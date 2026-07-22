@@ -1,0 +1,1030 @@
+{
+  "header": {
+    "id": "ifcxs/examples/comparison/two-rooms.ifcx",
+    "ifcxVersion": "ifcx_alpha",
+    "dataVersion": "1.0.0",
+    "author": "shinozaki.ken.141@gmail.com",
+    "timestamp": "2026-07-22"
+  },
+  "imports": [
+    {
+      "uri": "https://ifcx.dev/@standards.buildingsmart.org/ifc/core/ifc@v5a.ifcx"
+    },
+    {
+      "uri": "https://ifcx.dev/@standards.buildingsmart.org/ifc/core/prop@v5a.ifcx"
+    },
+    {
+      "uri": "https://ifcx.dev/@openusd.org/usd@v1.ifcx"
+    }
+  ],
+  "schemas": {},
+  "data": [
+    {
+      "path": "648457dc-94ea-9724-479a-5b33b9f28284",
+      "children": {
+        "Two_Rooms_Project": "2814d0ce-7132-48ac-3a51-b29d3d73aaaa"
+      }
+    },
+    {
+      "path": "2814d0ce-7132-48ac-3a51-b29d3d73aaaa",
+      "children": {
+        "Site": "c543b9d1-b5d8-f735-a344-df46a336d326"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcProject",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcProject"
+        }
+      }
+    },
+    {
+      "path": "c543b9d1-b5d8-f735-a344-df46a336d326",
+      "children": {
+        "Building": "04f6ca4d-7f83-ccbe-35e5-022278abe09a"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcSite",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcSite"
+        }
+      }
+    },
+    {
+      "path": "04f6ca4d-7f83-ccbe-35e5-022278abe09a",
+      "children": {
+        "L1": "08c0e842-7211-5a67-9800-e0d607599f1b"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcBuilding",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcBuilding"
+        }
+      }
+    },
+    {
+      "path": "08c0e842-7211-5a67-9800-e0d607599f1b",
+      "children": {
+        "Space_a": "be0d2ca7-9bbf-a29e-3e89-b5af2e9445c2",
+        "Space_b": "7a5ed426-e9ae-9218-d780-3e950f53475c",
+        "Wall_N": "10f5c5ca-d967-1b9e-b5f9-1c3008b82674",
+        "Wall_S": "1bc2bfc8-a7a2-0989-5c1f-dddceab80b8b",
+        "Wall_W": "149b74aa-6902-ffd1-a69c-7d774e02a9fc",
+        "Wall_E": "84d7e460-3378-13da-8c62-7c4e93ef0d8f",
+        "Wall_P": "d2f905ca-7a16-c72a-81ee-38b8f580e25a"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcBuildingStorey",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcBuildingStorey"
+        }
+      }
+    },
+    {
+      "path": "2f5730d9-a9ce-4299-02ff-d00be2b3d2af",
+      "children": {
+        "Body": "8da8d074-8042-98f7-3663-f040d0eaa5fb"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcDoor",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcDoor"
+        }
+      }
+    },
+    {
+      "path": "8da8d074-8042-98f7-3663-f040d0eaa5fb",
+      "attributes": {
+        "usd::usdgeom::mesh": {
+          "faceVertexIndices": [
+            0,
+            2,
+            1,
+            0,
+            3,
+            2,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "points": [
+            [
+              3.57,
+              1.86,
+              0
+            ],
+            [
+              3.63,
+              1.86,
+              0
+            ],
+            [
+              3.63,
+              2.64,
+              0
+            ],
+            [
+              3.57,
+              2.64,
+              0
+            ],
+            [
+              3.57,
+              1.86,
+              2
+            ],
+            [
+              3.63,
+              1.86,
+              2
+            ],
+            [
+              3.63,
+              2.64,
+              2
+            ],
+            [
+              3.57,
+              2.64,
+              2
+            ]
+          ]
+        },
+        "bsi::ifc::presentation::diffuseColor": [
+          0.72,
+          0.55,
+          0.35
+        ],
+        "bsi::ifc::presentation::opacity": 1
+      }
+    },
+    {
+      "path": "f88932c5-5cb9-21b2-df2d-2e699c7d033f",
+      "children": {
+        "Body": "16a9ab75-da8e-daf5-2ed2-88d320fbdba0"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcDoor",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcDoor"
+        }
+      }
+    },
+    {
+      "path": "16a9ab75-da8e-daf5-2ed2-88d320fbdba0",
+      "attributes": {
+        "usd::usdgeom::mesh": {
+          "faceVertexIndices": [
+            0,
+            2,
+            1,
+            0,
+            3,
+            2,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "points": [
+            [
+              4.95,
+              -0.03,
+              0
+            ],
+            [
+              5.85,
+              -0.03,
+              0
+            ],
+            [
+              5.85,
+              0.03,
+              0
+            ],
+            [
+              4.95,
+              0.03,
+              0
+            ],
+            [
+              4.95,
+              -0.03,
+              2.1
+            ],
+            [
+              5.85,
+              -0.03,
+              2.1
+            ],
+            [
+              5.85,
+              0.03,
+              2.1
+            ],
+            [
+              4.95,
+              0.03,
+              2.1
+            ]
+          ]
+        },
+        "bsi::ifc::presentation::diffuseColor": [
+          0.72,
+          0.55,
+          0.35
+        ],
+        "bsi::ifc::presentation::opacity": 1
+      }
+    },
+    {
+      "path": "10f5c5ca-d967-1b9e-b5f9-1c3008b82674",
+      "children": {
+        "Body": "5cad9f67-a1b1-7e89-f2be-a2d95421488b"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcWall",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcWall"
+        }
+      }
+    },
+    {
+      "path": "5cad9f67-a1b1-7e89-f2be-a2d95421488b",
+      "attributes": {
+        "usd::usdgeom::mesh": {
+          "faceVertexIndices": [
+            0,
+            2,
+            1,
+            0,
+            3,
+            2,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "points": [
+            [
+              -0.075,
+              4.425,
+              0
+            ],
+            [
+              7.275,
+              4.425,
+              0
+            ],
+            [
+              7.275,
+              4.575,
+              0
+            ],
+            [
+              -0.075,
+              4.575,
+              0
+            ],
+            [
+              -0.075,
+              4.425,
+              2.4
+            ],
+            [
+              7.275,
+              4.425,
+              2.4
+            ],
+            [
+              7.275,
+              4.575,
+              2.4
+            ],
+            [
+              -0.075,
+              4.575,
+              2.4
+            ]
+          ]
+        },
+        "bsi::ifc::presentation::diffuseColor": [
+          0.55,
+          0.55,
+          0.55
+        ],
+        "bsi::ifc::presentation::opacity": 1
+      }
+    },
+    {
+      "path": "1bc2bfc8-a7a2-0989-5c1f-dddceab80b8b",
+      "children": {
+        "Body": "8255dce0-0a63-7308-e7cb-2ef66df970c5",
+        "Door_2": "f88932c5-5cb9-21b2-df2d-2e699c7d033f"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcWall",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcWall"
+        }
+      }
+    },
+    {
+      "path": "8255dce0-0a63-7308-e7cb-2ef66df970c5",
+      "attributes": {
+        "usd::usdgeom::mesh": {
+          "faceVertexIndices": [
+            0,
+            2,
+            1,
+            0,
+            3,
+            2,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "points": [
+            [
+              -0.075,
+              -0.075,
+              0
+            ],
+            [
+              7.275,
+              -0.075,
+              0
+            ],
+            [
+              7.275,
+              0.075,
+              0
+            ],
+            [
+              -0.075,
+              0.075,
+              0
+            ],
+            [
+              -0.075,
+              -0.075,
+              2.4
+            ],
+            [
+              7.275,
+              -0.075,
+              2.4
+            ],
+            [
+              7.275,
+              0.075,
+              2.4
+            ],
+            [
+              -0.075,
+              0.075,
+              2.4
+            ]
+          ]
+        },
+        "bsi::ifc::presentation::diffuseColor": [
+          0.55,
+          0.55,
+          0.55
+        ],
+        "bsi::ifc::presentation::opacity": 1
+      }
+    },
+    {
+      "path": "149b74aa-6902-ffd1-a69c-7d774e02a9fc",
+      "children": {
+        "Body": "60e5429f-653f-8f9a-cb6e-fd80578a9518"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcWall",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcWall"
+        }
+      }
+    },
+    {
+      "path": "60e5429f-653f-8f9a-cb6e-fd80578a9518",
+      "attributes": {
+        "usd::usdgeom::mesh": {
+          "faceVertexIndices": [
+            0,
+            2,
+            1,
+            0,
+            3,
+            2,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "points": [
+            [
+              -0.075,
+              0.075,
+              0
+            ],
+            [
+              0.075,
+              0.075,
+              0
+            ],
+            [
+              0.075,
+              4.425,
+              0
+            ],
+            [
+              -0.075,
+              4.425,
+              0
+            ],
+            [
+              -0.075,
+              0.075,
+              2.4
+            ],
+            [
+              0.075,
+              0.075,
+              2.4
+            ],
+            [
+              0.075,
+              4.425,
+              2.4
+            ],
+            [
+              -0.075,
+              4.425,
+              2.4
+            ]
+          ]
+        },
+        "bsi::ifc::presentation::diffuseColor": [
+          0.55,
+          0.55,
+          0.55
+        ],
+        "bsi::ifc::presentation::opacity": 1
+      }
+    },
+    {
+      "path": "84d7e460-3378-13da-8c62-7c4e93ef0d8f",
+      "children": {
+        "Body": "02dc06d9-0e55-3f91-f2f1-6143e891b469"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcWall",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcWall"
+        }
+      }
+    },
+    {
+      "path": "02dc06d9-0e55-3f91-f2f1-6143e891b469",
+      "attributes": {
+        "usd::usdgeom::mesh": {
+          "faceVertexIndices": [
+            0,
+            2,
+            1,
+            0,
+            3,
+            2,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "points": [
+            [
+              7.125,
+              0.075,
+              0
+            ],
+            [
+              7.275,
+              0.075,
+              0
+            ],
+            [
+              7.275,
+              4.425,
+              0
+            ],
+            [
+              7.125,
+              4.425,
+              0
+            ],
+            [
+              7.125,
+              0.075,
+              2.4
+            ],
+            [
+              7.275,
+              0.075,
+              2.4
+            ],
+            [
+              7.275,
+              4.425,
+              2.4
+            ],
+            [
+              7.125,
+              4.425,
+              2.4
+            ]
+          ]
+        },
+        "bsi::ifc::presentation::diffuseColor": [
+          0.55,
+          0.55,
+          0.55
+        ],
+        "bsi::ifc::presentation::opacity": 1
+      }
+    },
+    {
+      "path": "d2f905ca-7a16-c72a-81ee-38b8f580e25a",
+      "children": {
+        "Body": "e99038d3-1b0c-e51c-d5b5-93eba200c23b",
+        "Door_1": "2f5730d9-a9ce-4299-02ff-d00be2b3d2af"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcWall",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcWall"
+        }
+      }
+    },
+    {
+      "path": "e99038d3-1b0c-e51c-d5b5-93eba200c23b",
+      "attributes": {
+        "usd::usdgeom::mesh": {
+          "faceVertexIndices": [
+            0,
+            2,
+            1,
+            0,
+            3,
+            2,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "points": [
+            [
+              3.54,
+              0.075,
+              0
+            ],
+            [
+              3.66,
+              0.075,
+              0
+            ],
+            [
+              3.66,
+              4.425,
+              0
+            ],
+            [
+              3.54,
+              4.425,
+              0
+            ],
+            [
+              3.54,
+              0.075,
+              2.4
+            ],
+            [
+              3.66,
+              0.075,
+              2.4
+            ],
+            [
+              3.66,
+              4.425,
+              2.4
+            ],
+            [
+              3.54,
+              4.425,
+              2.4
+            ]
+          ]
+        },
+        "bsi::ifc::presentation::diffuseColor": [
+          0.55,
+          0.55,
+          0.55
+        ],
+        "bsi::ifc::presentation::opacity": 1
+      }
+    },
+    {
+      "path": "be0d2ca7-9bbf-a29e-3e89-b5af2e9445c2",
+      "children": {
+        "Body": "ba9173fe-114c-71b3-7f9d-88b81e96a9e5"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcSpace",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcSpace"
+        }
+      }
+    },
+    {
+      "path": "ba9173fe-114c-71b3-7f9d-88b81e96a9e5",
+      "attributes": {
+        "usd::usdgeom::mesh": {
+          "faceVertexIndices": [
+            0,
+            2,
+            1,
+            0,
+            3,
+            2,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "points": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              3.6,
+              0,
+              0
+            ],
+            [
+              3.6,
+              4.5,
+              0
+            ],
+            [
+              0,
+              4.5,
+              0
+            ],
+            [
+              0,
+              0,
+              2.4
+            ],
+            [
+              3.6,
+              0,
+              2.4
+            ],
+            [
+              3.6,
+              4.5,
+              2.4
+            ],
+            [
+              0,
+              4.5,
+              2.4
+            ]
+          ]
+        },
+        "bsi::ifc::presentation::diffuseColor": [
+          0.85,
+          0.9,
+          1
+        ],
+        "bsi::ifc::presentation::opacity": 0.3
+      }
+    },
+    {
+      "path": "7a5ed426-e9ae-9218-d780-3e950f53475c",
+      "children": {
+        "Body": "f1c4eda3-d8e9-8ae9-5ca8-53b6e17f5d2d"
+      },
+      "attributes": {
+        "bsi::ifc::class": {
+          "code": "IfcSpace",
+          "uri": "https://identifier.buildingsmart.org/uri/buildingsmart/ifc/4.3/class/IfcSpace"
+        }
+      }
+    },
+    {
+      "path": "f1c4eda3-d8e9-8ae9-5ca8-53b6e17f5d2d",
+      "attributes": {
+        "usd::usdgeom::mesh": {
+          "faceVertexIndices": [
+            0,
+            2,
+            1,
+            0,
+            3,
+            2,
+            4,
+            5,
+            6,
+            4,
+            6,
+            7,
+            0,
+            1,
+            5,
+            0,
+            5,
+            4,
+            1,
+            2,
+            6,
+            1,
+            6,
+            5,
+            2,
+            3,
+            7,
+            2,
+            7,
+            6,
+            3,
+            0,
+            4,
+            3,
+            4,
+            7
+          ],
+          "points": [
+            [
+              3.6,
+              0,
+              0
+            ],
+            [
+              7.2,
+              0,
+              0
+            ],
+            [
+              7.2,
+              4.5,
+              0
+            ],
+            [
+              3.6,
+              4.5,
+              0
+            ],
+            [
+              3.6,
+              0,
+              2.4
+            ],
+            [
+              7.2,
+              0,
+              2.4
+            ],
+            [
+              7.2,
+              4.5,
+              2.4
+            ],
+            [
+              3.6,
+              4.5,
+              2.4
+            ]
+          ]
+        },
+        "bsi::ifc::presentation::diffuseColor": [
+          0.85,
+          0.9,
+          1
+        ],
+        "bsi::ifc::presentation::opacity": 0.3
+      }
+    }
+  ]
+}
