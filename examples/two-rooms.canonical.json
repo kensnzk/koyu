@@ -1,0 +1,111 @@
+{
+  "ifcxs": "0.1",
+  "name": "二室一扉",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      3600,
+      7200
+    ],
+    "Y": [
+      0,
+      4500
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2400
+    }
+  },
+  "spaces": {
+    "/L1/a": {
+      "type": "room",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "居室A"
+      }
+    },
+    "/L1/b": {
+      "type": "room",
+      "at": [
+        "X2",
+        "Y1",
+        "X3",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "居室B"
+      }
+    },
+    "/out": {
+      "type": "exterior",
+      "attrs": {
+        "name": "外部"
+      }
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/L1/a",
+        "/L1/b"
+      ],
+      "kind": "wall",
+      "t": 120,
+      "attrs": {
+        "spec": "PW1"
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "w": 780,
+          "h": 2000,
+          "at": 0.5
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L1/a",
+        "/out"
+      ],
+      "kind": "wall",
+      "t": 150,
+      "attrs": {
+        "fire": 60,
+        "spec": "EW1"
+      }
+    },
+    {
+      "between": [
+        "/L1/b",
+        "/out"
+      ],
+      "kind": "wall",
+      "t": 150,
+      "attrs": {
+        "fire": 60,
+        "spec": "EW1"
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "h": 2100,
+          "at": 0.5,
+          "edge": "S",
+          "attrs": {
+            "name": "玄関"
+          }
+        }
+      ]
+    }
+  ]
+}

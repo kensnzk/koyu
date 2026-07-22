@@ -1,0 +1,22 @@
+# 二室一扉 — 最初の一手
+# 建物ですらない。それでも空間の同一性・境界の帰属・接続・パスの切り方が
+# この数十行で全部決まる。(docs/writing-architecture.md)
+
+ifcxs 0.1
+name 二室一扉
+unit mm
+
+grid X 0 3600 7200
+grid Y 0 4500
+level L1 0 h:2400
+
+space /L1/a room X1..X2 Y1..Y2 name:居室A
+space /L1/b room X2..X3 Y1..Y2 name:居室B
+space /out exterior name:外部
+
+boundary /L1/a /L1/b t:120 spec:PW1
+  door w:780 h:2000
+
+boundary /L1/a /out t:150 spec:EW1 fire:60
+boundary /L1/b /out t:150 spec:EW1 fire:60
+  door w:900 h:2100 edge:S name:玄関
