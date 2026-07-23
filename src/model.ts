@@ -170,6 +170,13 @@ export interface Boundary {
   /** 数えない分節 (字下げのseg行) */
   segs: Seg[];
   line: number;
+  /** 合成時の出所レイヤー (ADR-0010) */
+  file?: string;
+}
+
+/** エラー・警告の位置表記 — 合成時はどのレイヤーのことかを言葉にする (ADR-0010) */
+export function srcRef(line: number, file?: string): string {
+  return `${file ? `${file}:` : ""}${line}行目`;
 }
 
 export interface Model {

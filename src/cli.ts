@@ -26,7 +26,7 @@ import {
   zoneAreaM2,
   type Model,
 } from "./model.js";
-import { parseFile } from "./parse.js";
+import { parseFile } from "./parse-file.js";
 import { svgPlan } from "./plan.js";
 
 function load(file: string): Model {

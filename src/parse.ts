@@ -3,8 +3,6 @@
 // import による合成 (ADR-0010): ファイル群を重ねて一つの模型にする。
 // 分担して書き、合成時のコンフリクト (パス・アセット・グリッドの重複) は言葉のエラーになる。
 
-import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
 import {
   type Area,
   type Attrs,
@@ -34,29 +32,71 @@ function emptyModel(): Model {
   };
 }
 
+/** レイヤーの読み込み口 — import の解決。fs版は parse-file.ts が、仮想版は parseFiles が与える。
+ *  fromKey が undefined のときは entry 自身の解決 */
+export type LayerLoader = (
+  fromKey: string | undefined,
+  ref: string,
+) => { key: string; src: string };
+
 export function parse(source: string): Model {
   const model = emptyModel();
-  ingest(model, source, undefined, new Set());
+  ingest(model, source, undefined, new Set(), undefined);
   return model;
 }
 
-/** ファイルから読む。import による合成はこちらでのみ働く (相対パスの基準が要るため) */
-export function parseFile(filePath: string): Model {
+/** ローダーを介した合成の入口。entry もローダーで読む (ADR-0010) */
+export function parseWith(loader: LayerLoader, entry: string): Model {
   const model = emptyModel();
-  ingestFile(model, resolve(filePath), new Set());
+  let layer: { key: string; src: string };
+  try {
+    layer = loader(undefined, entry);
+  } catch {
+    throw new SourceError(0, `ファイルが読めません: ${entry}`);
+  }
+  ingestLayer(model, layer.key, layer.src, new Set(), loader);
   return model;
 }
 
-function ingestFile(model: Model, absPath: string, seen: Set<string>): void {
-  if (seen.has(absPath)) return; // 同じレイヤーは一度だけ合成される (USDのsublayerと同じ)
-  seen.add(absPath);
-  let src: string;
-  try {
-    src = readFileSync(absPath, "utf8");
-  } catch {
-    throw new SourceError(0, `ファイルが読めません: ${absPath}`);
+/** 仮想ファイル群からの合成 — fsの無い環境 (ブラウザ等) 向け。
+ *  キーはPOSIX風の相対パス (`L1.muro`, `floors/L1.muro`)。import はキー空間の中で解決される */
+export function parseFiles(files: Record<string, string>, entry: string): Model {
+  const map = new Map(Object.entries(files).map(([k, v]) => [normKey(k), v]));
+  return parseWith((from, ref) => {
+    const key = from === undefined ? normKey(ref) : joinKey(dirKey(from), ref);
+    const src = map.get(key);
+    if (src === undefined) throw new Error(key);
+    return { key, src };
+  }, entry);
+}
+
+function normKey(p: string): string {
+  return joinKey("", p);
+}
+function dirKey(p: string): string {
+  const i = p.lastIndexOf("/");
+  return i < 0 ? "" : p.slice(0, i);
+}
+function joinKey(dir: string, rel: string): string {
+  const out: string[] = dir ? dir.split("/") : [];
+  for (const seg of rel.split("/")) {
+    if (seg === "" || seg === ".") continue;
+    if (seg === "..") out.pop();
+    else out.push(seg);
   }
-  ingest(model, src, absPath, seen);
+  return out.join("/");
+}
+
+function ingestLayer(
+  model: Model,
+  key: string,
+  src: string,
+  seen: Set<string>,
+  loader: LayerLoader | undefined,
+): void {
+  if (seen.has(key)) return; // 同じレイヤーは一度だけ合成される (USDのsublayerと同じ)
+  seen.add(key);
+  ingest(model, src, key, seen, loader);
 }
 
 function ingest(
@@ -64,6 +104,7 @@ function ingest(
   source: string,
   file: string | undefined,
   seen: Set<string>,
+  loader: LayerLoader | undefined,
 ): void {
   let current: Boundary[] = [];
   let currentSpaces: Space[] = [];
@@ -113,10 +154,19 @@ function ingest(
       case "import": {
         const rel = rest[0];
         if (!rel) throw new SourceError(ln, "import には相対パスを書きます: import ./assets.muro");
-        if (!file) {
-          throw new SourceError(ln, "import はファイル読み込み (parseFile / CLI) でのみ使えます");
+        if (!loader) {
+          throw new SourceError(
+            ln,
+            "import はファイル合成 (parseFile / parseFiles / CLI) でのみ使えます",
+          );
         }
-        ingestFile(model, resolve(dirname(file), rel), seen);
+        let layer: { key: string; src: string };
+        try {
+          layer = loader(file, rel);
+        } catch {
+          throw new SourceError(ln, `ファイルが読めません: ${rel}`);
+        }
+        ingestLayer(model, layer.key, layer.src, seen, loader);
         break;
       }
       case "asset": {
@@ -247,6 +297,7 @@ function ingest(
         }
         for (const [ea, eb] of expandSpan(model, [pa, pb], ln)) {
           const b = parseBoundary([ea!, eb!, ...rest.slice(2)], ln);
+          if (file) b.file = file;
           model.boundaries.push(b);
           current.push(b);
         }
@@ -297,6 +348,7 @@ function ingest(
             openings: [],
             segs: [],
             line: ln,
+            ...(file ? { file } : {}),
           };
           model.boundaries.push(b);
           current.push(b);

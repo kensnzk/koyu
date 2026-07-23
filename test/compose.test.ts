@@ -9,7 +9,8 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check } from "../src/check.js";
 import { toCanonical, zoneAreaM2 } from "../src/model.js";
-import { parse, parseFile } from "../src/parse.js";
+import { parse, parseFiles } from "../src/parse.js";
+import { parseFile } from "../src/parse-file.js";
 
 const mainPath = fileURLToPath(
   new URL("../examples/house/main.muro", import.meta.url),
@@ -51,6 +52,60 @@ test("import合成: 同一ファイルの二重importは一度だけ読み込ま
   );
   const m = parseFile(join(dir, "main.muro"));
   assert.equal(m.spaces.size, 1); // 重複エラーにならず、冪等
+});
+
+test("parseFiles: 仮想ファイル群 (ブラウザ向け) でも同じ合成が動く", () => {
+  const m = parseFiles(
+    {
+      "main.muro": [
+        "koyu 0.1",
+        "name 仮想合成",
+        "unit mm",
+        "grid X 0 3640",
+        "grid Y 0 3640",
+        "level L1 0 h:2400",
+        "import ./assets.muro",
+        "import ./floors/L1.muro",
+      ].join("\n"),
+      "assets.muro": "asset D1 door w:800 h:2000 style:sliding\n",
+      "floors/L1.muro":
+        "space /a room X1..X2 Y1..Y2 level:L1\nboundary /a /out2 edge:S t:150\n  door D1\nspace /out2 exterior\n",
+    },
+    "main.muro",
+  );
+  assert.equal(m.spaces.size, 2);
+  const d = m.boundaries[0]!.openings[0]!;
+  assert.equal(d.w, 800);
+  assert.equal(d.attrs["style"], "sliding");
+  assert.equal(m.spaces.get("/a")!.file, "floors/L1.muro"); // キーがそのまま出所になる
+});
+
+test("parseFiles: 無いファイルのimportはその行のエラー", () => {
+  assert.throws(
+    () =>
+      parseFiles(
+        {
+          "main.muro": "koyu 0.1\nname x\nunit mm\ngrid X 0 1000\ngrid Y 0 1000\nlevel L1 0 h:2400\nimport ./nope.muro",
+        },
+        "main.muro",
+      ),
+    /main\.muro:7行目: ファイルが読めません: \.\/nope\.muro/,
+  );
+});
+
+test("check: 合成モデルのcheckエラーは出所レイヤーつき", () => {
+  const m = parseFiles(
+    {
+      "main.muro":
+        "koyu 0.1\nname x\nunit mm\ngrid X 0 3640 7280\ngrid Y 0 3640\nlevel L1 0 h:2400\nimport ./L1.muro",
+      "L1.muro":
+        "space /a room X1..X2 Y1..Y2 level:L1\nspace /b room X2..X3 Y1..Y2 level:L1\nboundary /a /b t:120\n  door w:900 at:Y1+200",
+    },
+    "main.muro",
+  );
+  const res = check(m);
+  assert.equal(res.errors.length, 1);
+  assert.match(res.errors[0]!, /^L1\.muro:4行目: 位置 Y1\+200/);
 });
 
 // ---- コンフリクト検出 ----

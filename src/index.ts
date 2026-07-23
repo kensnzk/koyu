@@ -1,6 +1,6 @@
 // koyu v0 — 公開API
 export * from "./model.js";
-export { parse, parseFile, tokenize } from "./parse.js";
+export { parse, parseFiles, parseWith, tokenize, type LayerLoader } from "./parse.js";
 export * from "./graph.js";
 export { check, type CheckResult } from "./check.js";
 export { daylight, type DaylightResult } from "./light.js";

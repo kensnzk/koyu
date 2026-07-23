@@ -4,6 +4,7 @@
 // 空間の領域は矩形の合併 (L字など)。壁は合併の外周と共有辺から導出される。
 
 import type { Boundary, Edge, Model, Opening, Rect, Space } from "./model.js";
+import { srcRef } from "./model.js";
 
 /** 壁芯線分 (mm)。水平なら y1===y2、垂直なら x1===x2 */
 export interface Segment {
@@ -204,18 +205,18 @@ export function placeBand(
   let segs = segmentsFor(model, b);
   if (band.edge) segs = segs.filter((s) => s.edgeOfA === band.edge);
   if (segs.length === 0) {
-    return { error: `${band.line}行目: ${label} を置ける境界線分がありません (${b.a} | ${b.b})` };
+    return { error: `${srcRef(band.line, b.file)}: ${label} を置ける境界線分がありません (${b.a} | ${b.b})` };
   }
   if (segs.length > 1) {
     return {
-      error: `${band.line}行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (${b.a} | ${b.b})`,
+      error: `${srcRef(band.line, b.file)}: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (${b.a} | ${b.b})`,
     };
   }
   const seg = segs[0]!;
   const len = segmentLength(seg);
   if (band.w > len) {
     return {
-      error: `${band.line}行目: ${label}の幅 ${band.w} が境界線分の長さ ${len} を超えています`,
+      error: `${srcRef(band.line, b.file)}: ${label}の幅 ${band.w} が境界線分の長さ ${len} を超えています`,
     };
   }
   const half = band.w / 2;
@@ -225,7 +226,7 @@ export function placeBand(
     const axisOk = seg.horizontal ? band.atAxis === "X" : band.atAxis === "Y";
     if (!axisOk) {
       return {
-        error: `${band.line}行目: ${label} の位置 ${band.atRef} は${
+        error: `${srcRef(band.line, b.file)}: ${label} の位置 ${band.atRef} は${
           seg.horizontal ? "水平線分なのでX系" : "垂直線分なのでY系"
         }の通りで指定します`,
       };
@@ -234,7 +235,7 @@ export function placeBand(
     pos = band.atAbs - start;
     if (pos < half - EPS || pos > len - half + EPS) {
       return {
-        error: `${band.line}行目: 位置 ${band.atRef} では ${label} (幅${band.w}) が境界線分からはみ出します (線分 ${Math.round(
+        error: `${srcRef(band.line, b.file)}: 位置 ${band.atRef} では ${label} (幅${band.w}) が境界線分からはみ出します (線分 ${Math.round(
           start,
         )}〜${Math.round(start + len)}mm、中心の許容 ${Math.round(start + half)}〜${Math.round(
           start + len - half,
