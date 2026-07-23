@@ -1,6 +1,6 @@
 {
   "name": "koyu",
-  "version": "0.0.1",
+  "version": "0.5.0",
   "description": "空間を一次要素とするテキストネイティブ建築記述の探求 — writing architecture, not buildings",
   "type": "module",
   "scripts": {
