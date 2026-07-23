@@ -1,6 +1,10 @@
 // koyu v0 — 記法パーサ
 // 一行が一文。図面が数百年運んできた抽象度を、そのままテキストにする。
+// import による合成 (ADR-0010): ファイル群を重ねて一つの模型にする。
+// 分担して書き、合成時のコンフリクト (パス・アセット・グリッドの重複) は言葉のエラーになる。
 
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import {
   type Area,
   type Attrs,
@@ -17,40 +21,74 @@ import {
 
 const EDGES = new Set(["N", "E", "S", "W"]);
 
-export function parse(source: string): Model {
-  const model: Model = {
+function emptyModel(): Model {
+  return {
     version: "0.1",
     unit: "mm",
     grid: { X: { names: [], coords: [] }, Y: { names: [], coords: [] } },
     levels: {},
     spaces: new Map(),
     zones: new Map(),
+    assets: new Map(),
     boundaries: [],
   };
+}
 
+export function parse(source: string): Model {
+  const model = emptyModel();
+  ingest(model, source, undefined, new Set());
+  return model;
+}
+
+/** ファイルから読む。import による合成はこちらでのみ働く (相対パスの基準が要るため) */
+export function parseFile(filePath: string): Model {
+  const model = emptyModel();
+  ingestFile(model, resolve(filePath), new Set());
+  return model;
+}
+
+function ingestFile(model: Model, absPath: string, seen: Set<string>): void {
+  if (seen.has(absPath)) return; // 同じレイヤーは一度だけ合成される (USDのsublayerと同じ)
+  seen.add(absPath);
+  let src: string;
+  try {
+    src = readFileSync(absPath, "utf8");
+  } catch {
+    throw new SourceError(0, `ファイルが読めません: ${absPath}`);
+  }
+  ingest(model, src, absPath, seen);
+}
+
+function ingest(
+  model: Model,
+  source: string,
+  file: string | undefined,
+  seen: Set<string>,
+): void {
   let current: Boundary[] = [];
   let currentSpaces: Space[] = [];
   const lines = source.split(/\r?\n/);
 
   for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i]!;
-    const ln = i + 1;
-    const tokens = tokenize(raw, ln);
-    if (tokens.length === 0) continue;
-    const indented = /^\s/.test(raw);
-    const [head, ...rest] = tokens as [string, ...string[]];
+    try {
+      const raw = lines[i]!;
+      const ln = i + 1;
+      const tokens = tokenize(raw, ln);
+      if (tokens.length === 0) continue;
+      const indented = /^\s/.test(raw);
+      const [head, ...rest] = tokens as [string, ...string[]];
 
     if (indented) {
       if (head === "door" || head === "window") {
         if (current.length === 0) {
           throw new SourceError(ln, `${head} は boundary の直下に字下げして書きます`);
         }
-        for (const b of current) b.openings.push(parseOpening(head, rest, ln));
+        for (const b of current) b.openings.push(parseOpening(head, rest, ln, model));
       } else if (head === "seg") {
         if (current.length === 0) {
           throw new SourceError(ln, "seg は boundary の直下に字下げして書きます");
         }
-        for (const b of current) b.segs.push(parseSeg(rest, ln));
+        for (const b of current) b.segs.push(parseSeg(rest, ln, model));
       } else if (head === "area") {
         if (currentSpaces.length === 0) {
           throw new SourceError(ln, "area は space の直下に字下げして書きます");
@@ -72,8 +110,47 @@ export function parse(source: string): Model {
         model.version = rest[0] ?? "0.1";
         break;
       }
+      case "import": {
+        const rel = rest[0];
+        if (!rel) throw new SourceError(ln, "import には相対パスを書きます: import ./assets.muro");
+        if (!file) {
+          throw new SourceError(ln, "import はファイル読み込み (parseFile / CLI) でのみ使えます");
+        }
+        ingestFile(model, resolve(dirname(file), rel), seen);
+        break;
+      }
+      case "asset": {
+        // 建具アセット (RevitのFamily / USDのReference — ADR-0010)
+        const aname = rest[0];
+        const akind = rest[1];
+        if (!aname || aname.includes(":") || aname.startsWith("/")) {
+          throw new SourceError(ln, "asset は asset <名> door|window [属性...] の形で書きます");
+        }
+        if (akind !== "door" && akind !== "window") {
+          throw new SourceError(ln, `asset の種別は door / window です: ${akind}`);
+        }
+        const prevA = model.assets.get(aname);
+        if (prevA) {
+          throw new SourceError(
+            ln,
+            `アセット名が重複しています: ${aname} (既出: ${prevA.file ?? "同ファイル"}:${prevA.line}行目)`,
+          );
+        }
+        model.assets.set(aname, {
+          name: aname,
+          kind: akind,
+          attrs: parseAttrs(rest.slice(2), ln),
+          line: ln,
+          ...(file ? { file } : {}),
+        });
+        break;
+      }
       case "name": {
-        model.name = rest.join(" ");
+        const nm = rest.join(" ");
+        if (model.name !== undefined && model.name !== nm) {
+          throw new SourceError(ln, `name は一度だけ宣言します (既に「${model.name}」— 合成時はbase層で)`);
+        }
+        model.name = nm;
         break;
       }
       case "unit": {
@@ -84,6 +161,9 @@ export function parse(source: string): Model {
         const axis = rest[0];
         if (axis !== "X" && axis !== "Y") {
           throw new SourceError(ln, `grid の軸は X か Y です: ${axis}`);
+        }
+        if (model.grid[axis].coords.length > 0) {
+          throw new SourceError(ln, `grid ${axis} は一度だけ宣言します (合成時はbase層で)`);
         }
         const coords = rest.slice(1).map((t) => toNumber(t, ln, "gridの座標"));
         if (coords.length < 2) throw new SourceError(ln, "grid には座標を2つ以上書きます");
@@ -146,9 +226,14 @@ export function parse(source: string): Model {
         if (!path) throw new SourceError(ln, "space にはパスが要ります");
         for (const [p] of expandSpan(model, [path], ln)) {
           const space = parseSpace([p!, ...rest.slice(1)], ln, model);
-          if (model.spaces.has(space.path)) {
-            throw new SourceError(ln, `空間パスが重複しています: ${space.path}`);
+          const prevS = model.spaces.get(space.path);
+          if (prevS) {
+            throw new SourceError(
+              ln,
+              `空間パスが重複しています: ${space.path} (既出: ${prevS.file ?? "同ファイル"}:${prevS.line}行目)`,
+            );
           }
+          if (file) space.file = file;
           model.spaces.set(space.path, space);
           currentSpaces.push(space);
         }
@@ -174,10 +259,19 @@ export function parse(source: string): Model {
           throw new SourceError(ln, "zone は zone /パス [属性...] の形で書きます");
         }
         for (const [p] of expandSpan(model, [zpath], ln)) {
-          if (model.zones.has(p!)) {
-            throw new SourceError(ln, `ゾーンパスが重複しています: ${p}`);
+          const prevZ = model.zones.get(p!);
+          if (prevZ) {
+            throw new SourceError(
+              ln,
+              `ゾーンパスが重複しています: ${p} (既出: ${prevZ.file ?? "同ファイル"}:${prevZ.line}行目)`,
+            );
           }
-          model.zones.set(p!, { path: p!, attrs: parseAttrs(rest.slice(1), ln), line: ln });
+          model.zones.set(p!, {
+            path: p!,
+            attrs: parseAttrs(rest.slice(1), ln),
+            line: ln,
+            ...(file ? { file } : {}),
+          });
         }
         break;
       }
@@ -212,8 +306,14 @@ export function parse(source: string): Model {
       default:
         throw new SourceError(ln, `未知のキーワードです: ${head}`);
     }
+    } catch (e) {
+      // 合成時はどのファイルのエラーかを言葉にする
+      if (e instanceof SourceError && !e.file && file) {
+        throw new SourceError(e.line, e.raw, file);
+      }
+      throw e;
+    }
   }
-  return model;
 }
 
 // ---- 各要素 ----
@@ -311,16 +411,37 @@ function parseArea(rest: string[], ln: number, model: Model): Area {
 }
 
 /** 数えない分節: 境界上の区間 (壁材の途中変更など) */
-function parseSeg(rest: string[], ln: number): Seg {
+function parseSeg(rest: string[], ln: number, model: Model): Seg {
   const attrs = parseAttrs(rest, ln);
   const w = takeNumber(attrs, "w");
   if (w === undefined || w <= 0) {
     throw new SourceError(ln, "seg には幅 w:(mm) が要ります");
   }
-  const at = takeNumber(attrs, "at") ?? 0.5;
-  if (at < 0 || at > 1) throw new SourceError(ln, "at は 0..1 で指定します");
+  const at = parseAt(attrs, ln, model);
   const edge = takeEdge(attrs, ln);
-  return { w, at, ...(edge ? { edge } : {}), attrs, line: ln };
+  return { w, ...at, ...(edge ? { edge } : {}), attrs, line: ln };
+}
+
+/**
+ * 位置指定: at は 0..1 の比率 (クランプされる) か、通り参照 (at:X2+450 — 明示位置)。
+ * 明示位置ははみ出しをクランプせずエラーにする (placeBand)
+ */
+function parseAt(
+  attrs: Attrs,
+  ln: number,
+  model: Model,
+): { at: number; atRef?: string; atAbs?: number; atAxis?: "X" | "Y" } {
+  const v = attrs["at"];
+  if (v === undefined) return { at: 0.5 };
+  delete attrs["at"];
+  if (typeof v === "number") {
+    if (v < 0 || v > 1) {
+      throw new SourceError(ln, "at は 0..1 の比率か、通り参照 (at:X2+450) で指定します");
+    }
+    return { at: v };
+  }
+  const r = resolveRef(model, v, ln);
+  return { at: 0.5, atRef: v, atAbs: r.coord, atAxis: r.axis };
 }
 
 /** レベルのスパン (L2..L9) を、宣言済みレベルのz順の並びに解決する */
@@ -412,15 +533,37 @@ function parseBoundary(rest: string[], ln: number): Boundary {
   };
 }
 
-function parseOpening(kind: "door" | "window", rest: string[], ln: number): Opening {
-  const attrs = parseAttrs(rest, ln);
+function parseOpening(
+  kind: "door" | "window",
+  rest: string[],
+  ln: number,
+  model: Model,
+): Opening {
+  // 先頭の非 key:value トークンは建具アセット参照 (Instance←Reference — ADR-0010)。
+  // アセットの属性を既定とし、インスタンスの属性が上書きする
+  let ref: string | undefined;
+  let tokens = rest;
+  if (rest[0] && !rest[0].includes(":") && !rest[0].startsWith("/")) {
+    ref = rest[0];
+    tokens = rest.slice(1);
+  }
+  const attrs: Attrs = {};
+  if (ref) {
+    const asset = model.assets.get(ref);
+    if (!asset) throw new SourceError(ln, `未定義の建具アセットです: ${ref}`);
+    if (asset.kind !== kind) {
+      throw new SourceError(ln, `アセット ${ref} は ${asset.kind} です (${kind} として使えません)`);
+    }
+    Object.assign(attrs, asset.attrs);
+  }
+  Object.assign(attrs, parseAttrs(tokens, ln));
+
   const w = takeNumber(attrs, "w");
   if (w === undefined || w <= 0) {
-    throw new SourceError(ln, `${kind} には幅 w:(mm) が要ります`);
+    throw new SourceError(ln, `${kind} には幅 w:(mm) が要ります (アセット側でも可)`);
   }
   const h = takeNumber(attrs, "h");
-  const at = takeNumber(attrs, "at") ?? 0.5;
-  if (at < 0 || at > 1) throw new SourceError(ln, "at は 0..1 で指定します");
+  const at = parseAt(attrs, ln, model);
   const edge = takeEdge(attrs, ln);
   const hingeRaw = takeString(attrs, "hinge");
   if (hingeRaw !== undefined && !EDGES.has(hingeRaw)) {
@@ -432,9 +575,10 @@ function parseOpening(kind: "door" | "window", rest: string[], ln: number): Open
   }
   return {
     kind,
+    ...(ref ? { ref } : {}),
     w,
     ...(h !== undefined ? { h } : {}),
-    at,
+    ...at,
     ...(edge ? { edge } : {}),
     ...(hingeRaw ? { hinge: hingeRaw as Edge } : {}),
     ...(swingRaw ? { swing: swingRaw as "a" | "b" } : {}),

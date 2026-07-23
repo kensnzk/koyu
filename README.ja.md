@@ -29,6 +29,8 @@ boundary /L1/a /L1/b t:120 spec:PW1
 
 ![集合住宅基準階平面図](docs/img/mansion-L5.svg)
 
+一棟はファイル群としても書ける — USD流の合成 ([examples/house/](examples/house/))。base層が共有の基盤 (通り芯・レベル) を一度だけ宣言し、建具アセット・敷地・各フロアを `import` で重ねる。分担して書かれた層は加算で合成され、衝突 (パスやアセット名の重複、gridの再宣言) は出所 (ファイル:行) つきのビルドエラーになる。`koyu check main.muro` が一棟のビルドの門番。建具の型は `asset` (RevitのFamily、USDのReference) — インスタンスが参照して上書きし (`door SD1 sill:800`)、開口の位置は通り芯の言葉で書けて (`at:Y2+1820`) はみ出し・重なりが検査される (ADR-0010)。
+
 ## 使い方
 
 ```sh
@@ -48,6 +50,7 @@ npm run koyu -- doors  examples/office.muro /L2/office /out   # → 4枚 (階段
 npm run koyu -- stats  examples/mansion.muro         # 面積・ゾーン集計・専有率
 npm run koyu -- light  examples/mansion.muro         # 採光 1/7 の粗い判定
 npm run koyu -- site   examples/house.muro           # 敷地面積・接道・建蔽率・容積率
+npm run koyu -- check  examples/house/main.muro      # 複数ファイル合成のビルド門番
 ```
 
 ## 構成

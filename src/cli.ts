@@ -8,7 +8,7 @@
 //   npm run koyu -- levels examples/office.muro   # テキストの矩計 (高さの積み上がり)
 //   npm run koyu -- json   examples/office.muro
 
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { check } from "./check.js";
 import { doorsBetween, neighbors } from "./graph.js";
@@ -26,12 +26,11 @@ import {
   zoneAreaM2,
   type Model,
 } from "./model.js";
-import { parse } from "./parse.js";
+import { parseFile } from "./parse.js";
 import { svgPlan } from "./plan.js";
 
 function load(file: string): Model {
-  const src = readFileSync(file, "utf8");
-  return parse(src);
+  return parseFile(file); // import による合成もここで働く
 }
 
 function opt(rest: string[], ...names: string[]): string | undefined {

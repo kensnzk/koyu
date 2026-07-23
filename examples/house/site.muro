@@ -1,0 +1,31 @@
+# 敷地の層 — 外部の分節と地上の外部空間 (ADR-0009)
+# /out は方角・性格ごとの複数のexterior空間に割れ (道路は road:幅員)、
+# 地上の外部空間 (庭) はL1上の実在の空間として建物の周りをタイルする。
+
+space /out/road exterior name:南側道路 road:6000
+space /out/n    exterior name:北側隣地
+space /out/e    exterior name:東側隣地
+space /out/w    exterior name:西側隣地
+
+zone /site name:敷地 site:1 area:126.24
+space /site/garden garden X1-1500..X3+1500 Y1-4000..Y1 level:L1 name:南庭
+space /site/west   yard   X1-1500..X1 Y1..Y3+1000      level:L1 name:西側通路
+space /site/east   yard   X3..X3+1500 Y1..Y3+1000      level:L1 name:東側通路
+space /site/north  yard   X1..X3 Y3..Y3+1000           level:L1 name:北側通路
+
+# ---- 庭同士は連続 ----
+boundary /site/garden /site/west type:open
+boundary /site/garden /site/east type:open
+boundary /site/west /site/north type:open
+boundary /site/east /site/north type:open
+
+# ---- 敷地境界: 塀は境界のspec語彙 (外気は遮らない air:1)。門扉はアセット参照+明示位置 ----
+boundary /site/garden /out/road edge:S t:120 spec:ブロック塀+フェンス air:1 h:1200
+  door GT1 at:X2 name:門扉   # 位置は通り芯基準の明示 — はみ出せばエラーになる
+boundary /site/garden /out/w edge:W t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/garden /out/e edge:E t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/west /out/w edge:W t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/west /out/n edge:N t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/east /out/e edge:E t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/east /out/n edge:N t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/north /out/n edge:N t:120 spec:ブロック塀 air:1 h:1200

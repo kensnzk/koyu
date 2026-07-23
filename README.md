@@ -30,6 +30,8 @@ A 10-story double-loaded apartment building — 43 units, elevator + exterior st
 
 ![Apartment typical floor plan](docs/img/mansion-L5.svg)
 
+A building can also be written as a set of files and composed, USD-style ([examples/house/](examples/house/)): a base layer declares the shared foundation (grid, levels) exactly once and `import`s the door/window assets, the site, and each floor — authored separately, merged additively, with conflicts (duplicate paths, duplicate asset names, re-declared grids) rejected at build time with file:line provenance. `koyu check main.muro` is the build gate for the whole building. Door/window types are `asset`s — Revit's Family, USD's Reference — referenced by instances that override their defaults (`door SD1 sill:800`), and opening positions can be written against the grid (`at:Y2+1820`) with overflow and overlap validated (ADR-0010).
+
 ## Usage
 
 ```sh
@@ -49,6 +51,7 @@ npm run koyu -- doors  examples/office.muro /L2/office /out   # → 4 doors (via
 npm run koyu -- stats  examples/mansion.muro         # areas, zone rollups, efficiency ratio
 npm run koyu -- light  examples/mansion.muro         # rough 1/7 daylight check
 npm run koyu -- site   examples/house.muro           # site area, frontage, coverage, FAR
+npm run koyu -- check  examples/house/main.muro      # multi-file composition: the build gate
 ```
 
 ## Layout

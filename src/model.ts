@@ -68,6 +68,8 @@ export interface Space {
   areas: Area[];
   attrs: Attrs;
   line: number;
+  /** 合成時の出所ファイル (コンフリクト報告用) */
+  file?: string;
 }
 
 /**
@@ -78,6 +80,21 @@ export interface Zone {
   path: string;
   attrs: Attrs;
   line: number;
+  /** 合成時の出所ファイル (コンフリクト報告用) */
+  file?: string;
+}
+
+/**
+ * 建具アセット — RevitのFamily、USDのReferenceにあたる型の宣言 (ADR-0010)。
+ * `asset SD1 door w:800 style:sliding` と宣言し、開口が `door SD1 ...` で参照する。
+ * インスタンス側の属性が上書きする。別ファイル (アセット集) に置いて import できる
+ */
+export interface Asset {
+  name: string;
+  kind: "door" | "window";
+  attrs: Attrs;
+  line: number;
+  file?: string;
 }
 
 /**
@@ -93,12 +110,20 @@ export type BoundaryKind = "wall" | "open" | "stair" | "shaft" | "void";
 
 export interface Opening {
   kind: "door" | "window";
+  /** 参照した建具アセット名 (Reference — ADR-0010) */
+  ref?: string;
   /** 幅 mm */
   w: number;
   /** 高さ mm */
   h?: number;
-  /** 区間上の位置 0..1 (既定 0.5) */
+  /** 区間上の位置 0..1 (既定 0.5)。比率指定はクランプされる */
   at: number;
+  /** 明示位置: 書かれた通り参照 (at:X2+450 など) */
+  atRef?: string;
+  /** 明示位置: 解決済みの絶対座標 mm。はみ出しはエラーになる (クランプしない) */
+  atAbs?: number;
+  /** 明示位置の軸 (水平線分はX系、垂直線分はY系でなければならない) */
+  atAxis?: "X" | "Y";
   /** 区間が複数あるとき (外部境界など) の辺の指定 */
   edge?: Edge;
   /** 開き勝手: 吊元の側 (水平線分ならW/E、垂直線分ならS/N)。既定は始端側 */
@@ -118,6 +143,10 @@ export interface Seg {
   w: number;
   /** 区間中心の位置 0..1 (既定 0.5) */
   at: number;
+  /** 明示位置 (開口と同じ流儀 — at:X2+450) */
+  atRef?: string;
+  atAbs?: number;
+  atAxis?: "X" | "Y";
   edge?: Edge;
   attrs: Attrs;
   line: number;
@@ -151,15 +180,19 @@ export interface Model {
   levels: Record<string, Level>;
   spaces: Map<string, Space>;
   zones: Map<string, Zone>;
+  assets: Map<string, Asset>;
   boundaries: Boundary[];
 }
 
 export class SourceError extends Error {
   constructor(
     public line: number,
-    message: string,
+    /** 位置情報を除いた本文 (合成時のファイル付与に使う) */
+    public raw: string,
+    /** 出所ファイル (合成時) */
+    public file?: string,
   ) {
-    super(`${line}行目: ${message}`);
+    super(`${file ? `${file}:` : ""}${line}行目: ${raw}`);
     this.name = "SourceError";
   }
 }
@@ -309,9 +342,10 @@ export function toCanonical(model: Model): string {
         ? {
             openings: b.openings.map((o) => ({
               kind: o.kind,
+              ...(o.ref ? { ref: o.ref } : {}),
               w: o.w,
               ...(o.h !== undefined ? { h: o.h } : {}),
-              at: o.at,
+              at: o.atRef ?? o.at,
               ...(o.edge ? { edge: o.edge } : {}),
               ...(o.hinge ? { hinge: o.hinge } : {}),
               ...(o.swing ? { swing: o.swing } : {}),
@@ -337,6 +371,11 @@ export function toCanonical(model: Model): string {
     const z = model.zones.get(p)!;
     zones[p] = Object.keys(z.attrs).length ? { attrs: sortObj(z.attrs) } : {};
   }
+  const assets: Record<string, unknown> = {};
+  for (const n of [...model.assets.keys()].sort()) {
+    const a = model.assets.get(n)!;
+    assets[n] = { kind: a.kind, ...(Object.keys(a.attrs).length ? { attrs: sortObj(a.attrs) } : {}) };
+  }
 
   const doc = {
     koyu: model.version,
@@ -355,6 +394,7 @@ export function toCanonical(model: Model): string {
         ]),
       ),
     ),
+    ...(Object.keys(assets).length ? { assets } : {}),
     ...(Object.keys(zones).length ? { zones } : {}),
     spaces,
     boundaries,

@@ -313,6 +313,22 @@ function doorSwing(
     along = { x: 0, y: fromNorth ? -1 : 1 };
     inward = { x: c.x > cx ? 1 : -1, y: 0 };
   }
+  // 引き戸・自動ドア (style:sliding / style:auto — アセット語彙): 開き軌跡ではなく
+  // 吊元側の控え (戸袋側) にパネルを描く
+  const style = o.attrs["style"];
+  if (style === "sliding" || style === "auto") {
+    const off = 110; // 壁面からの控え mm
+    const s1 = {
+      x: hinge.x - along.x * o.w + inward.x * off,
+      y: hinge.y - along.y * o.w + inward.y * off,
+    };
+    const s2 = { x: hinge.x + inward.x * off, y: hinge.y + inward.y * off };
+    return (
+      `<line x1="${sx(s1.x)}" y1="${sy(s1.y)}" x2="${sx(s2.x)}" y2="${sy(s2.y)}" stroke="${INK}" stroke-width="2"/>` +
+      `<line x1="${sx(s2.x)}" y1="${sy(s2.y)}" x2="${sx(hinge.x)}" y2="${sy(hinge.y)}" stroke="${INK}" stroke-width="0.7"/>`
+    );
+  }
+
   const leafEnd = { x: hinge.x + inward.x * o.w, y: hinge.y + inward.y * o.w };
   const gapEnd = { x: hinge.x + along.x * o.w, y: hinge.y + along.y * o.w };
 

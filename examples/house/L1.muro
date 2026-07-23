@@ -1,0 +1,16 @@
+# 1階の層 — 分担の単位。室と庭の境界は実在の矩形同士から正確に導出される。
+
+space /home/ldk   ldk  X1..X2 Y1..Y3 + X2..X3 Y1..Y2 level:L1 name:LDK floor:オーク
+space /home/hall1 hall X2..X3 Y2..Y3 level:L1 name:玄関・階段
+
+boundary /home/ldk /home/hall1 t:120 spec:LGS
+  door SD1 edge:E hinge:S swing:b   # 片引き戸 (アセット参照 — 平面は引き戸の表現になる)
+boundary /home/ldk /site/garden t:150 spec:EW
+  window W1 at:X2 name:掃き出し窓   # 庭は上が開いている → 採光1.0。位置はX2通り芯
+boundary /home/ldk /site/west t:150 spec:EW
+  window W2
+boundary /home/ldk /site/east t:150 spec:EW
+boundary /home/ldk /site/north t:150 spec:EW
+boundary /home/hall1 /site/east t:150 spec:EW
+  door D1 at:Y2+1820 name:玄関   # 玄関位置も通り芯基準の明示
+boundary /home/hall1 /site/north t:150 spec:EW

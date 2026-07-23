@@ -41,12 +41,20 @@
 | 属性 | 解釈 | 意味 |
 |---|---|---|
 | kind | ★ | door (通行) / window (採光。通行しない) |
+| (先頭トークン) | ★ | 建具アセットの参照 (`door SD1 …` — Reference)。アセットの属性が既定になり、インスタンスが上書きする (ADR-0010) |
 | w / h | ★ | 幅・高さmm。windowのhはlightが読む |
-| at | ★ | 線分上の位置0..1 (既定0.5) |
+| at | ★ | 位置。比率0..1 (既定0.5、線分内にクランプ) または通り芯参照 `at:X2+450` (絶対 — クランプせず、はみ出し・軸違い・開口同士の重なりはエラー) |
 | edge | ★ | 複数線分の辺選択 |
 | hinge | ★ | 開き勝手: 吊元 (水平線分はW/E、垂直線分はN/S。既定は始端側) |
 | swing | ★ | 開き勝手: 開く側 (a/b。既定はa=領域を持つ側) |
+| style | ★ | 建具の型: hinged (開き戸・既定) / sliding (引き戸) / auto (自動ドア)。平面の建具表現が変わる |
 | sill / name / … | — | 自由 |
+
+### asset (建具アセット — ADR-0010)
+`asset 名 door|window 属性…` — 参照される既定値の束 (RevitのFamily、USDのReference)。第4の要素ではなく、開口の属性の出所を一箇所にするだけ。kindは参照する開口と一致していなければならない。名前の重複は合成時もエラー。
+
+### import (合成 — ADR-0010)
+`import ./L1.muro` — 書かれたファイルからの相対パス。base層が基盤 (koyu/name/unit/grid/level) を一度だけ宣言し、層は空間・境界・ゾーン・アセットを加算する。衝突 (空間パス・アセット名の重複、grid/nameの再宣言) は出所つきのビルドエラー。同一ファイルの二重importは冪等。
 
 ### level
 `z` (位置引数)、`h` (基準天井高)、`slab` (床組み厚)、`pitch` (範囲宣言のみ) — すべて★。
@@ -55,8 +63,8 @@
 `name` (自由)、`use` (★継承元)、`site` (★ 1=敷地の集約 — siteコマンドの対象)、`area` (★ 敷地の宣言面積㎡ — 導出面積と照合される)。幾何を持たない。
 
 ### area / seg (数えない分節)
-位置 (areaは領域、segはat/w/edge — ★) + 任意の上書き属性 (—)。
+位置 (areaは領域、segはat/w/edge — ★。segのatも通り芯参照可) + 任意の上書き属性 (—)。
 
 ## IFCとの対応 (参考)
 
-boundary wall/open ↔ IfcRelSpaceBoundary の PHYSICAL/VIRTUAL。内外の別 ↔ InternalOrExternalBoundary (こちらは宣言でなく導出)。spec:手すり ↔ IfcRailing (要素クラスは語彙の値になる)。opening ↔ IfcOpeningElement + IfcDoor/IfcWindow。zone ↔ IfcZone。stair/shaft/void の垂直境界と slab の既定は、空間一次ゆえにIFCに直接の相当物を持たない。
+boundary wall/open ↔ IfcRelSpaceBoundary の PHYSICAL/VIRTUAL。内外の別 ↔ InternalOrExternalBoundary (こちらは宣言でなく導出)。spec:手すり ↔ IfcRailing (要素クラスは語彙の値になる)。opening ↔ IfcOpeningElement + IfcDoor/IfcWindow。asset ↔ IfcDoorType/IfcWindowType (タイプとオカレンス — RevitのFamily)、style ↔ IfcDoorTypeOperationEnum の粗い射影 (SINGLE_SWING/SLIDING…)。zone ↔ IfcZone。stair/shaft/void の垂直境界と slab の既定は、空間一次ゆえにIFCに直接の相当物を持たない。importの合成はIFC4に相当物がなく (単一ファイルが原則)、IFCX/USDのレイヤー合成に対応する。

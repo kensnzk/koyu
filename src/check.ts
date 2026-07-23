@@ -144,11 +144,20 @@ export function check(model: Model): CheckResult {
     if (b.kind === "open" && b.openings.length > 0) {
       warnings.push(`${b.line}行目: open境界の開口は通行に影響しません (常に通れます)`);
     }
+    const placedOnSeg: Array<{ o: (typeof b.openings)[number]; key: string; c: number }> = [];
     for (const o of b.openings) {
       const placed = placeOpening(model, b, o);
       if ("error" in placed && placed.error) {
         errors.push(placed.error);
         continue;
+      }
+      if ("segment" in placed) {
+        const s = placed.segment;
+        placedOnSeg.push({
+          o,
+          key: `${s.x1},${s.y1},${s.x2},${s.y2}`,
+          c: s.horizontal ? placed.cx : placed.cy,
+        });
       }
       if (o.hinge && "segment" in placed) {
         const okAxis = placed.segment.horizontal
@@ -159,6 +168,28 @@ export function check(model: Model): CheckResult {
             `${o.line}行目: hinge:${o.hinge} は${
               placed.segment.horizontal ? "水平線分 (W/E)" : "垂直線分 (N/S)"
             }で指定します`,
+          );
+        }
+      }
+    }
+    // 同じ線分の上の開口同士は重なってはならない
+    const byKey = new Map<string, typeof placedOnSeg>();
+    for (const p of placedOnSeg) {
+      const arr = byKey.get(p.key) ?? [];
+      arr.push(p);
+      byKey.set(p.key, arr);
+    }
+    for (const group of byKey.values()) {
+      group.sort((p, q) => p.c - q.c);
+      for (let k = 0; k + 1 < group.length; k++) {
+        const p = group[k]!;
+        const q = group[k + 1]!;
+        const need = (p.o.w + q.o.w) / 2;
+        if (q.c - p.c < need - EPS) {
+          errors.push(
+            `${q.o.line}行目: 開口同士が重なっています (${p.o.kind}と${q.o.kind} — 中心間 ${Math.round(
+              q.c - p.c,
+            )}mm < 必要 ${Math.round(need)}mm)`,
           );
         }
       }

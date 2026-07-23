@@ -1,0 +1,9 @@
+# 建具アセット — RevitのFamily、USDのReferenceにあたる層 (ADR-0010)。
+# 開口は `door SD1 ...` のように参照 (Instance) し、インスタンス側の属性が上書きする。
+
+asset D1  door   w:900  h:2100 style:hinged  name:玄関ドア
+asset SD1 door   w:800  h:2000 style:sliding name:片引き戸
+asset GT1 door   w:900  h:1200 style:hinged  name:門扉
+asset W1  window w:2600 h:2200 sill:0        name:掃き出し窓
+asset W2  window w:1650 h:1100 sill:900      name:腰窓
+asset W3  window w:2600 h:1100 sill:1100     name:高窓

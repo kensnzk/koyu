@@ -1,6 +1,6 @@
 {
   "name": "@kensnzk/koyu",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "空間を一次要素とするテキストネイティブ建築記述の探求 — writing architecture, not buildings",
   "type": "module",
   "main": "./dist/index.js",
@@ -28,7 +28,7 @@
     "prepare": "npm run build",
     "test": "node --import tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "check:examples": "tsx src/cli.ts check examples/two-rooms.muro",
+    "check:examples": "for f in examples/two-rooms.muro examples/office.muro examples/mansion.muro examples/house.muro examples/house/main.muro; do tsx src/cli.ts check $f || exit 1; done",
     "plan:examples": "tsx src/cli.ts plan examples/two-rooms.muro -o out/two-rooms.svg"
   },
   "devDependencies": {

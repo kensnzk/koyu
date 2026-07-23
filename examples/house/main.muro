@@ -1,0 +1,27 @@
+# 小さな戸建住宅 — 合成のデモ (ADR-0010)
+# ここが base 層: 名前・グリッド・レベルという「全体の一貫性」を一度だけ宣言し、
+# 建具アセット・敷地・各フロアを import で重ねる。分担して書かれたファイル群は
+# 合成時にコンフリクト (パス・アセット・グリッドの重複) が検査され、一棟としてビルドされる。
+#   koyu check examples/house/main.muro がそのビルドの門番になる。
+
+koyu 0.1
+name 小さな戸建住宅
+unit mm
+
+grid X 0 3640 7280
+grid Y 0 3640 7280
+
+level L1 0 h:2400
+level L2 2900 h:2400 slab:500
+level R 5800 slab:500
+
+import ./assets.muro
+import ./site.muro
+import ./L1.muro
+import ./L2.muro
+
+zone /home name:住戸 use:exclusive
+
+# ---- 垂直: 階を跨ぐ関係は base 層が持つ (内部階段と部分吹抜け) ----
+boundary /home/hall1 /home/hall2 type:stair
+boundary /home/ldk /home/void type:void   # 部分吹抜け — LDKの天井高は階高内のまま

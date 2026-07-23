@@ -179,6 +179,10 @@ export function spacesOverlap(a: Space, b: Space): boolean {
 export interface Band {
   w: number;
   at: number;
+  /** 明示位置 (通り参照 at:X2+450 の解決値)。指定時はクランプせず、はみ出しをエラーにする */
+  atRef?: string;
+  atAbs?: number;
+  atAxis?: "X" | "Y";
   edge?: Edge;
   line: number;
 }
@@ -215,7 +219,31 @@ export function placeBand(
     };
   }
   const half = band.w / 2;
-  const pos = Math.min(Math.max(band.at * len, half), len - half);
+  let pos: number;
+  if (band.atAbs !== undefined) {
+    // 明示位置: 通り参照で置かれたものはクランプしない — はみ出しは言葉のエラーになる
+    const axisOk = seg.horizontal ? band.atAxis === "X" : band.atAxis === "Y";
+    if (!axisOk) {
+      return {
+        error: `${band.line}行目: ${label} の位置 ${band.atRef} は${
+          seg.horizontal ? "水平線分なのでX系" : "垂直線分なのでY系"
+        }の通りで指定します`,
+      };
+    }
+    const start = seg.horizontal ? seg.x1 : seg.y1;
+    pos = band.atAbs - start;
+    if (pos < half - EPS || pos > len - half + EPS) {
+      return {
+        error: `${band.line}行目: 位置 ${band.atRef} では ${label} (幅${band.w}) が境界線分からはみ出します (線分 ${Math.round(
+          start,
+        )}〜${Math.round(start + len)}mm、中心の許容 ${Math.round(start + half)}〜${Math.round(
+          start + len - half,
+        )}mm)`,
+      };
+    }
+  } else {
+    pos = Math.min(Math.max(band.at * len, half), len - half);
+  }
   return {
     segment: seg,
     cx: seg.horizontal ? seg.x1 + pos : seg.x1,

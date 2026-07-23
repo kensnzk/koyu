@@ -1,0 +1,19 @@
+# 2階の層 — 上階の外壁は方角別のexteriorに面する。
+
+space /home/bed1  bedroom X1..X2 Y1..Y3 level:L2 name:主寝室
+space /home/void  void    X2..X3 Y1..Y2 level:L2 name:リビング上部
+space /home/hall2 hall    X2..X3 Y2..Y3 level:L2 name:2階ホール
+
+boundary /home/bed1 /out/road edge:S t:150 spec:EW
+  window W1 sill:800   # アセットの sill:0 をインスタンスが上書き
+boundary /home/bed1 /out/w edge:W t:150 spec:EW
+boundary /home/bed1 /out/n edge:N t:150 spec:EW
+boundary /home/bed1 /home/void t:120 spec:LGS
+boundary /home/bed1 /home/hall2 t:120 spec:LGS
+  door SD1 name:寝室引き戸
+boundary /home/void /home/hall2 t:120 spec:手すり air:1 h:1100
+boundary /home/void /out/road edge:S t:150 spec:EW
+  window W3 name:吹抜けの高窓
+boundary /home/void /out/e edge:E t:150 spec:EW
+boundary /home/hall2 /out/e edge:E t:150 spec:EW
+boundary /home/hall2 /out/n edge:N t:150 spec:EW
