@@ -87,7 +87,13 @@ export function parse(source: string): Model {
         const z = toNumber(rest[1] ?? "", ln, "levelの高さ(z)");
         const attrs = parseAttrs(rest.slice(2), ln);
         const h = takeNumber(attrs, "h");
-        model.levels[name] = { name, z, ...(h !== undefined ? { h } : {}) };
+        const slab = takeNumber(attrs, "slab");
+        model.levels[name] = {
+          name,
+          z,
+          ...(h !== undefined ? { h } : {}),
+          ...(slab !== undefined ? { slab } : {}),
+        };
         current = undefined;
         break;
       }
@@ -135,32 +141,53 @@ function parseSpace(rest: string[], ln: number, model: Model): Space {
     if (regionTokens.length !== 2) {
       throw new SourceError(ln, "領域は X?..X? と Y?..Y? の2つで指定します");
     }
-    let xr: [string, string] | undefined;
-    let yr: [string, string] | undefined;
+    let xr: [number, number] | undefined;
+    let yr: [number, number] | undefined;
+    let xg: [string, string] | undefined;
+    let yg: [string, string] | undefined;
     for (const t of regionTokens) {
       const [p, q] = t.split("..");
       if (!p || !q) throw new SourceError(ln, `領域指定が読めません: ${t}`);
-      if (model.grid.X.names.includes(p) && model.grid.X.names.includes(q)) xr = [p, q];
-      else if (model.grid.Y.names.includes(p) && model.grid.Y.names.includes(q)) yr = [p, q];
-      else throw new SourceError(ln, `未定義の通り名です: ${t}`);
+      const rp = resolveRef(model, p, ln);
+      const rq = resolveRef(model, q, ln);
+      if (rp.axis !== rq.axis) {
+        throw new SourceError(ln, `領域の両端は同じ軸の通りで指定します: ${t}`);
+      }
+      if (rp.axis === "X") {
+        xr = [rp.coord, rq.coord];
+        xg = [p, q];
+      } else {
+        yr = [rp.coord, rq.coord];
+        yg = [p, q];
+      }
     }
-    if (!xr || !yr) throw new SourceError(ln, "領域には X系とY系の通りを1組ずつ使います");
-    const [xa, xb] = xr;
-    const [ya, yb] = yr;
-    const x1 = gridCoord(model, "X", xa);
-    const x2 = gridCoord(model, "X", xb);
-    const y1 = gridCoord(model, "Y", ya);
-    const y2 = gridCoord(model, "Y", yb);
-    if (x1 === x2 || y1 === y2) throw new SourceError(ln, "領域の幅がゼロです");
-    space.grid = { xa, xb, ya, yb };
+    if (!xr || !yr || !xg || !yg) {
+      throw new SourceError(ln, "領域には X系とY系の通りを1組ずつ使います");
+    }
+    if (xr[0] === xr[1] || yr[0] === yr[1]) throw new SourceError(ln, "領域の幅がゼロです");
+    space.grid = { xa: xg[0], xb: xg[1], ya: yg[0], yb: yg[1] };
     space.rect = {
-      x1: Math.min(x1, x2),
-      x2: Math.max(x1, x2),
-      y1: Math.min(y1, y2),
-      y2: Math.max(y1, y2),
+      x1: Math.min(xr[0], xr[1]),
+      x2: Math.max(xr[0], xr[1]),
+      y1: Math.min(yr[0], yr[1]),
+      y2: Math.max(yr[0], yr[1]),
     };
   }
   return space;
+}
+
+/** 通り参照 (X2, X2+600, Y3-150 など) を軸と座標mmに解決する */
+function resolveRef(model: Model, token: string, ln: number): { axis: "X" | "Y"; coord: number } {
+  const m = /^([XY]\d+)([+-]\d+)?$/.exec(token);
+  if (!m) throw new SourceError(ln, `未定義の通り名です: ${token}`);
+  const name = m[1]!;
+  const offset = m[2] ? Number(m[2]) : 0;
+  for (const axis of ["X", "Y"] as const) {
+    const g = model.grid[axis];
+    const i = g.names.indexOf(name);
+    if (i >= 0) return { axis, coord: g.coords[i]! + offset };
+  }
+  throw new SourceError(ln, `未定義の通り名です: ${token}`);
 }
 
 function parseBoundary(rest: string[], ln: number): Boundary {
@@ -172,8 +199,8 @@ function parseBoundary(rest: string[], ln: number): Boundary {
   const attrs = parseAttrs(rest.slice(2), ln);
   const t = takeNumber(attrs, "t");
   const kindRaw = takeString(attrs, "type") ?? "wall";
-  if (kindRaw !== "wall" && kindRaw !== "open") {
-    throw new SourceError(ln, `boundary の type は wall / open です: ${kindRaw}`);
+  if (kindRaw !== "wall" && kindRaw !== "open" && kindRaw !== "stair" && kindRaw !== "shaft") {
+    throw new SourceError(ln, `boundary の type は wall / open / stair / shaft です: ${kindRaw}`);
   }
   const edge = takeEdge(attrs, ln);
   return {
@@ -275,10 +302,4 @@ function takeEdge(attrs: Attrs, ln: number): Edge | undefined {
   if (v === undefined) return undefined;
   if (!EDGES.has(v)) throw new SourceError(ln, `edge は N/E/S/W で指定します: ${v}`);
   return v as Edge;
-}
-
-function gridCoord(model: Model, axis: "X" | "Y", name: string): number {
-  const g = model.grid[axis];
-  const i = g.names.indexOf(name);
-  return g.coords[i]!;
 }

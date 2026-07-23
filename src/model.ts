@@ -14,6 +14,8 @@ export interface Level {
   z: number;
   /** 階の基準天井高 mm */
   h?: number;
+  /** この階の床組み厚 mm (下階の天井面から自階FLまで: スラブ+懐+仕上) */
+  slab?: number;
 }
 
 export interface GridAxis {
@@ -46,7 +48,12 @@ export interface Space {
   line: number;
 }
 
-export type BoundaryKind = "wall" | "open";
+/**
+ * 水平: wall (壁) / open (垂れ壁の有無を言わない開放的な分節 — 基本計画の抽象度)
+ * 垂直: stair (階段 — 通行可) / shaft (EV等 — 連続するが通行不可)
+ * 垂直の既定は床 (slab) であり書かない。levelのslab宣言が一括で与える。
+ */
+export type BoundaryKind = "wall" | "open" | "stair" | "shaft";
 
 export interface Opening {
   kind: "door" | "window";
@@ -103,6 +110,18 @@ export function areaM2(s: Space): number | undefined {
   return Math.round(a * 100) / 100;
 }
 
+/** 空間の有効天井高 mm (space自身のh属性 → レベルのh の順) */
+export function heff(model: Model, s: Space): number | undefined {
+  const own = s.attrs["h"];
+  if (typeof own === "number") return own;
+  return s.level ? model.levels[s.level]?.h : undefined;
+}
+
+/** レベルをzの昇順で返す */
+export function levelsSorted(model: Model): Level[] {
+  return Object.values(model.levels).sort((a, b) => a.z - b.z);
+}
+
 export function displayName(s: Space): string {
   const n = s.attrs["name"];
   return typeof n === "string" ? n : (s.path.split("/").pop() ?? s.path);
@@ -150,7 +169,11 @@ export function toCanonical(model: Model): string {
       Object.fromEntries(
         Object.entries(model.levels).map(([k, v]) => [
           k,
-          { z: v.z, ...(v.h !== undefined ? { h: v.h } : {}) },
+          {
+            z: v.z,
+            ...(v.h !== undefined ? { h: v.h } : {}),
+            ...(v.slab !== undefined ? { slab: v.slab } : {}),
+          },
         ]),
       ),
     ),

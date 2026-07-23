@@ -84,16 +84,21 @@ export function segmentsFor(model: Model, b: Boundary): Segment[] {
   const sb = model.spaces.get(b.b);
   if (!sa || !sb) return [];
 
+  // 垂直境界 (stair/shaft/暗黙のslab) は壁線分を持たない
+  if (b.kind === "stair" || b.kind === "shaft") return [];
+
   let segs: Segment[] = [];
   if (sa.rect && sb.rect) {
+    if (sa.level !== sb.level) return []; // 異なるレベル間に壁は立たない
     const s = sharedSegment(sa.rect, sb.rect);
     if (s) segs = [s];
   } else if (sa.rect || sb.rect) {
-    // 片側が領域を持たない (外部など): 部屋の外周から、他の部屋と接する区間を除いた残り
-    const room = (sa.rect ?? sb.rect)!;
+    // 片側が領域を持たない (外部など): 部屋の外周から、同レベルで接する他室の区間を除いた残り
+    const roomSpace = sa.rect ? sa : sb;
+    const room = roomSpace.rect!;
     const roomIsA = !!sa.rect;
     const others = [...model.spaces.values()]
-      .filter((s) => s.rect && s !== sa && s !== sb)
+      .filter((s) => s.rect && s !== sa && s !== sb && s.level === roomSpace.level)
       .map((s) => s.rect!);
     for (const e of ["N", "E", "S", "W"] as const) {
       segs.push(...perimeterRemainder(room, e, others));
@@ -147,14 +152,29 @@ export function placeOpening(model: Model, b: Boundary, o: Opening): PlacedOpeni
   };
 }
 
-/** 通行可能か。open境界は扉なしで通れ、wall境界は扉があるときだけ通れる */
-export function passable(b: Boundary): boolean {
-  return b.kind === "open" || b.openings.some((o) => o.kind === "door");
+/** 平面上の重なり (垂直隣接の導出に使う)。重ならなければ undefined */
+export function planOverlap(a: Rect, b: Rect): Rect | undefined {
+  const x1 = Math.max(a.x1, b.x1);
+  const x2 = Math.min(a.x2, b.x2);
+  const y1 = Math.max(a.y1, b.y1);
+  const y2 = Math.min(a.y2, b.y2);
+  if (x2 - x1 > EPS && y2 - y1 > EPS) return { x1, y1, x2, y2 };
+  return undefined;
 }
 
-/** 通過扉数 (open境界=0, 扉付きwall境界=1) */
+/**
+ * 通行可能か。open境界と階段は扉なしで通れ、wall境界は扉があるときだけ通れる。
+ * shaft (EV等) は空間として連続するが人は通れない — 避難の問いに正直であるために
+ */
+export function passable(b: Boundary): boolean {
+  if (b.kind === "open" || b.kind === "stair") return true;
+  if (b.kind === "shaft") return false;
+  return b.openings.some((o) => o.kind === "door");
+}
+
+/** 通過扉数 (open境界・階段=0, 扉付きwall境界=1) */
 function doorCost(b: Boundary): number {
-  return b.kind === "open" ? 0 : 1;
+  return b.kind === "wall" ? 1 : 0;
 }
 
 export interface Route {

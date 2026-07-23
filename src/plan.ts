@@ -70,9 +70,20 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     );
   }
 
-  // 壁 (境界から生成)
+  // 壁 (境界から生成)。このレベルに触れる境界だけを描く
   const placedOpenings: Array<{ b: Boundary; o: Opening; seg: Segment; cx: number; cy: number }> = [];
   for (const b of model.boundaries) {
+    const onLevel = [b.a, b.b].some((p) => model.spaces.get(p)?.level === level);
+    if (!onLevel) continue;
+    if (b.kind === "open") {
+      // 開放的な分節: 壁は無いが構成の線として破線で示す (基本計画の抽象度)
+      for (const seg of segmentsFor(model, b)) {
+        parts.push(
+          `<line x1="${sx(seg.x1)}" y1="${sy(seg.y1)}" x2="${sx(seg.x2)}" y2="${sy(seg.y2)}" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>`,
+        );
+      }
+      continue;
+    }
     if (b.kind !== "wall") continue;
     const t = b.t ?? WALL_DEFAULT_T;
     for (const seg of segmentsFor(model, b)) {

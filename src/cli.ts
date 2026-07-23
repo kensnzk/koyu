@@ -1,17 +1,26 @@
 #!/usr/bin/env node
-// IFCXS v0 — CLI
-//   npm run ifcxs -- check examples/two-rooms.ifcxs
-//   npm run ifcxs -- plan  examples/two-rooms.ifcxs -o out/two-rooms.svg
-//   npm run ifcxs -- doors examples/two-rooms.ifcxs /L1/a /out
-//   npm run ifcxs -- graph examples/two-rooms.ifcxs
-//   npm run ifcxs -- stats examples/two-rooms.ifcxs
-//   npm run ifcxs -- json  examples/two-rooms.ifcxs
+// IFCXS v0.1 — CLI
+//   npm run ifcxs -- check  examples/office.ifcxs
+//   npm run ifcxs -- plan   examples/office.ifcxs -l L2 -o out/office-L2.svg
+//   npm run ifcxs -- doors  examples/office.ifcxs /L2/office /out
+//   npm run ifcxs -- graph  examples/office.ifcxs
+//   npm run ifcxs -- stats  examples/office.ifcxs
+//   npm run ifcxs -- levels examples/office.ifcxs   # テキストの矩計 (高さの積み上がり)
+//   npm run ifcxs -- json   examples/office.ifcxs
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { check } from "./check.js";
 import { doorsBetween, neighbors } from "./graph.js";
-import { areaM2, displayName, SourceError, toCanonical, type Model } from "./model.js";
+import {
+  areaM2,
+  displayName,
+  heff,
+  levelsSorted,
+  SourceError,
+  toCanonical,
+  type Model,
+} from "./model.js";
 import { parse } from "./parse.js";
 import { svgPlan } from "./plan.js";
 
@@ -20,11 +29,19 @@ function load(file: string): Model {
   return parse(src);
 }
 
+function opt(rest: string[], ...names: string[]): string | undefined {
+  for (const n of names) {
+    const i = rest.indexOf(n);
+    if (i >= 0 && rest[i + 1]) return rest[i + 1];
+  }
+  return undefined;
+}
+
 function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
-      "使い方: ifcxs <check|plan|doors|graph|stats|json> <file.ifcxs> [引数...]",
+      "使い方: ifcxs <check|plan|doors|graph|stats|levels|json> <file.ifcxs> [引数...]",
     );
     return 2;
   }
@@ -49,10 +66,11 @@ function main(argv: string[]): number {
       return 0;
     }
     case "plan": {
-      const oIdx = rest.indexOf("-o");
+      const level = opt(rest, "-l", "--level") ?? Object.keys(model.levels)[0];
+      const explicit = opt(rest, "-o");
       const outFile =
-        oIdx >= 0 && rest[oIdx + 1] ? rest[oIdx + 1]! : file.replace(/\.ifcxs$/, "") + ".svg";
-      const svg = svgPlan(model);
+        explicit ?? `${file.replace(/\.ifcxs$/, "")}-${level}.svg`;
+      const svg = svgPlan(model, { level });
       mkdirSync(dirname(outFile), { recursive: true });
       writeFileSync(outFile, svg);
       console.log(`平面図を生成しました: ${outFile}`);
@@ -77,7 +95,16 @@ function main(argv: string[]): number {
         const ns = neighbors(model, s.path);
         console.log(`${s.path} (${displayName(s)})`);
         for (const n of ns) {
-          const mark = n.boundary.kind === "open" ? "〰 開放" : n.passable ? `— 扉${n.doors}` : "| 壁";
+          const mark =
+            n.boundary.kind === "open"
+              ? "〰 開放"
+              : n.boundary.kind === "stair"
+                ? "↕ 階段"
+                : n.boundary.kind === "shaft"
+                  ? "↕ シャフト(通行不可)"
+                  : n.passable
+                    ? `— 扉${n.doors}`
+                    : "| 壁";
           const attrs = Object.entries(n.boundary.attrs)
             .map(([k, v]) => `${k}:${v}`)
             .join(" ");
@@ -87,17 +114,67 @@ function main(argv: string[]): number {
       return 0;
     }
     case "stats": {
+      const levels = levelsSorted(model);
+      const spaces = [...model.spaces.values()];
       let total = 0;
       const byType = new Map<string, number>();
-      for (const s of model.spaces.values()) {
-        const a = areaM2(s);
-        if (a === undefined) continue;
-        total += a;
-        byType.set(s.type, (byType.get(s.type) ?? 0) + a);
-        console.log(`${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)}㎡`);
+      const byUse = new Map<string, number>();
+      for (const l of levels) {
+        const onLevel = spaces.filter((s) => s.level === l.name && s.rect);
+        if (onLevel.length === 0) continue;
+        console.log(`${l.name}`);
+        let sub = 0;
+        for (const s of onLevel) {
+          const a = areaM2(s)!;
+          sub += a;
+          total += a;
+          byType.set(s.type, (byType.get(s.type) ?? 0) + a);
+          const use = s.attrs["use"];
+          if (typeof use === "string") byUse.set(use, (byUse.get(use) ?? 0) + a);
+          console.log(`  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)}㎡`);
+        }
+        console.log(`  小計 ${sub.toFixed(2)}㎡`);
       }
-      console.log(`合計\t\t\t${total.toFixed(2)}㎡`);
+      console.log(`合計 ${total.toFixed(2)}㎡`);
       for (const [t, a] of byType) console.log(`  ${t}: ${a.toFixed(2)}㎡`);
+      if (byUse.size > 0) {
+        const parts = [...byUse.entries()].map(
+          ([u, a]) => `${u} ${a.toFixed(2)}㎡ (${((a / total) * 100).toFixed(1)}%)`,
+        );
+        console.log(`use別: ${parts.join(" / ")}`);
+      }
+      return 0;
+    }
+    case "levels": {
+      // テキストの矩計: レベルの積み上がりと高さの検算
+      const levels = levelsSorted(model);
+      if (levels.length === 0) {
+        console.log("レベルが定義されていません");
+        return 1;
+      }
+      for (let i = levels.length - 1; i >= 0; i--) {
+        const l = levels[i]!;
+        const upper = levels[i + 1];
+        console.log(
+          `${l.name}\tz:${l.z}` +
+            (l.h !== undefined ? `\th:${l.h}` : "") +
+            (l.slab !== undefined ? `\tslab:${l.slab}` : ""),
+        );
+        if (upper) {
+          const pitch = upper.z - l.z;
+          const detail =
+            l.h !== undefined && upper.slab !== undefined
+              ? ` = 天井${l.h} + slab${upper.slab}` +
+                (pitch - l.h - upper.slab > 0 ? ` + 余り${pitch - l.h - upper.slab}` : "")
+              : "";
+          console.log(`  ↑ 階高 ${pitch}${detail}`);
+        }
+      }
+      const spaces = [...model.spaces.values()].filter((s) => s.rect && s.level);
+      const overrides = spaces.filter((s) => typeof s.attrs["h"] === "number");
+      for (const s of overrides) {
+        console.log(`個別天井高: ${s.path} h:${heff(model, s)}`);
+      }
       return 0;
     }
     default:

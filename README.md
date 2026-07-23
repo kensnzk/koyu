@@ -17,6 +17,10 @@ boundary /L1/a /L1/b t:120 spec:PW1
 
 ![二室一扉の平面図](docs/img/two-rooms.svg)
 
+2フロアのオフィス (廊下・コア・通り芯オフセット壁・階段/EV・高さの整合つき) でも約100行 ([examples/office.ifcxs](examples/office.ifcxs))。解像度は基本計画レベル — 垂れ壁を表現しないのは省略ではなく抽象度の選択で、計画初期にBIMが重すぎたという弱点の裏側がこの記述の主戦場である。高さ方向の一貫性は「天井高+上階slab ≤ 階高」という宣言された不変量の検査で担保する (ADR-0002)。
+
+![オフィス1階平面図](docs/img/office-L1.svg)
+
 ## 使い方
 
 ```sh
@@ -29,6 +33,11 @@ npm run ifcxs -- doors examples/two-rooms.ifcxs /L1/a /out   # → 2枚
 npm run ifcxs -- graph examples/two-rooms.ifcxs        # 空間グラフ
 npm run ifcxs -- stats examples/two-rooms.ifcxs        # 面積 (壁芯)
 npm run ifcxs -- json  examples/two-rooms.ifcxs        # 正準JSON (機械形式)
+
+npm run ifcxs -- plan   examples/office.ifcxs -l L2    # レベル別の平面図
+npm run ifcxs -- levels examples/office.ifcxs          # テキストの矩計 (高さの積み上がり)
+npm run ifcxs -- doors  examples/office.ifcxs /L2/office /out   # → 4枚 (階段経由)
+npm run ifcxs -- stats  examples/office.ifcxs          # 面積・レンタブル比
 ```
 
 ## 構成
