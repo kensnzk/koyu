@@ -1,10 +1,31 @@
 {
   "name": "@kensnzk/koyu",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "空間を一次要素とするテキストネイティブ建築記述の探求 — writing architecture, not buildings",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./examples/*": "./examples/*",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "koyu": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "examples",
+    "NOTICE"
+  ],
   "scripts": {
     "koyu": "tsx src/cli.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "npm run build",
     "test": "node --import tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "check:examples": "tsx src/cli.ts check examples/two-rooms.muro",
