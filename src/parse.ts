@@ -24,6 +24,7 @@ export function parse(source: string): Model {
     grid: { X: { names: [], coords: [] }, Y: { names: [], coords: [] } },
     levels: {},
     spaces: new Map(),
+    zones: new Map(),
     boundaries: [],
   };
 
@@ -166,6 +167,20 @@ export function parse(source: string): Model {
         }
         break;
       }
+      case "zone": {
+        // 数える集約 — 住戸・部門など。幾何は持たず、パス接頭辞で空間を束ねる
+        const zpath = rest[0];
+        if (!zpath || !zpath.startsWith("/")) {
+          throw new SourceError(ln, "zone は zone /パス [属性...] の形で書きます");
+        }
+        for (const [p] of expandSpan(model, [zpath], ln)) {
+          if (model.zones.has(p!)) {
+            throw new SourceError(ln, `ゾーンパスが重複しています: ${p}`);
+          }
+          model.zones.set(p!, { path: p!, attrs: parseAttrs(rest.slice(1), ln), line: ln });
+        }
+        break;
+      }
       case "stack": {
         // 垂直に連続する空間列: stack ev L1..L10 type:shaft
         const leaf = rest[0];
@@ -176,8 +191,8 @@ export function parse(source: string): Model {
         const levels = resolveSpanLevels(model, span, ln);
         const attrs = parseAttrs(rest.slice(2), ln);
         const kind = takeString(attrs, "type");
-        if (kind !== "stair" && kind !== "shaft") {
-          throw new SourceError(ln, `stack の type は stair / shaft です: ${kind}`);
+        if (kind !== "stair" && kind !== "shaft" && kind !== "void") {
+          throw new SourceError(ln, `stack の type は stair / shaft / void です: ${kind}`);
         }
         for (let i = 0; i + 1 < levels.length; i++) {
           const b: Boundary = {
@@ -206,24 +221,34 @@ export function parse(source: string): Model {
 function parseSpace(rest: string[], ln: number, model: Model): Space {
   const path = rest[0];
   if (!path || !path.startsWith("/")) {
-    throw new SourceError(ln, "space は space /パス 型 [X?..X? Y?..Y?] の形で書きます");
+    throw new SourceError(ln, "space は space /パス 型 [X?..X? Y?..Y? [+ ...]] の形で書きます");
   }
   const type = rest[1];
   if (!type) throw new SourceError(ln, `space ${path} に型(語彙)が要ります`);
 
-  const regionTokens = rest.slice(2).filter((t) => t.includes(".."));
-  const attrTokens = rest.slice(2).filter((t) => !t.includes(".."));
+  // 領域は「+」区切りで複数書ける (L字などの合併)
+  const groups: string[][] = [[]];
+  const attrTokens: string[] = [];
+  for (const t of rest.slice(2)) {
+    if (t === "+") {
+      groups.push([]);
+    } else if (t.includes("..")) {
+      groups[groups.length - 1]!.push(t);
+    } else {
+      attrTokens.push(t);
+    }
+  }
   const attrs = parseAttrs(attrTokens, ln);
 
   const seg = path.split("/")[1];
   const level = seg && model.levels[seg] ? seg : undefined;
 
-  const space: Space = { path, type, level, areas: [], attrs, line: ln };
-
-  if (regionTokens.length > 0) {
-    const r = parseRegion(regionTokens, ln, model);
-    space.grid = r.grid;
-    space.rect = r.rect;
+  const space: Space = { path, type, level, grids: [], rects: [], areas: [], attrs, line: ln };
+  for (const g of groups) {
+    if (g.length === 0) continue;
+    const r = parseRegion(g, ln, model);
+    space.grids.push(r.grid);
+    space.rects.push(r.rect);
   }
   return space;
 }
@@ -357,14 +382,17 @@ function parseBoundary(rest: string[], ln: number): Boundary {
   const attrs = parseAttrs(rest.slice(2), ln);
   const t = takeNumber(attrs, "t");
   const kindRaw = takeString(attrs, "type") ?? "wall";
-  if (kindRaw !== "wall" && kindRaw !== "open" && kindRaw !== "stair" && kindRaw !== "shaft") {
-    throw new SourceError(ln, `boundary の type は wall / open / stair / shaft です: ${kindRaw}`);
+  if (!["wall", "open", "stair", "shaft", "void"].includes(kindRaw)) {
+    throw new SourceError(
+      ln,
+      `boundary の type は wall / open / stair / shaft / void です: ${kindRaw}`,
+    );
   }
   const edge = takeEdge(attrs, ln);
   return {
     a,
     b,
-    kind: kindRaw,
+    kind: kindRaw as Boundary["kind"],
     ...(t !== undefined ? { t } : {}),
     ...(edge ? { edge } : {}),
     attrs,

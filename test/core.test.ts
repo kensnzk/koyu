@@ -17,10 +17,10 @@ test("二室一扉が読める", () => {
   assert.equal(m.spaces.size, 3);
   assert.equal(m.boundaries.length, 3);
   const a = m.spaces.get("/L1/a")!;
-  assert.deepEqual(a.rect, { x1: 0, y1: 0, x2: 3600, y2: 4500 });
+  assert.deepEqual(a.rects, [{ x1: 0, y1: 0, x2: 3600, y2: 4500 }]);
   assert.equal(a.level, "L1");
   assert.equal(areaM2(a), 16.2);
-  assert.equal(m.spaces.get("/out")!.rect, undefined);
+  assert.equal(m.spaces.get("/out")!.rects.length, 0);
 });
 
 test("グラフへの問い: 扉をいくつ通るか", () => {

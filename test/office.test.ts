@@ -16,15 +16,19 @@ const src = readFileSync(
 test("オフィス2フロアが読める", () => {
   const m = parse(src);
   assert.equal(m.spaces.size, 17);
-  assert.equal(m.boundaries.length, 42);
+  assert.equal(m.boundaries.length, 43);
   assert.equal(Object.keys(m.levels).length, 3);
 });
 
 test("通り芯からのオフセットが解決される", () => {
   const m = parse(src);
   // X1+3200 / X2+3000 のオフセット壁
-  assert.deepEqual(m.spaces.get("/L1/stair")!.rect, { x1: 0, y1: 8000, x2: 3200, y2: 12000 });
-  assert.deepEqual(m.spaces.get("/L1/wc-w")!.rect, { x1: 9400, y1: 8000, x2: 12800, y2: 12000 });
+  assert.deepEqual(m.spaces.get("/L1/stair")!.rects, [
+    { x1: 0, y1: 8000, x2: 3200, y2: 12000 },
+  ]);
+  assert.deepEqual(m.spaces.get("/L1/wc-w")!.rects, [
+    { x1: 9400, y1: 8000, x2: 12800, y2: 12000 },
+  ]);
 });
 
 test("整合チェックが警告ゼロで通る (高さの不変量含む)", () => {

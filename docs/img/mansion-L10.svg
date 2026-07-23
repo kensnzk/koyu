@@ -70,12 +70,16 @@
 <line x1="546.5" y1="384" x2="546.5" y2="429" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 546.5 429 A 45 45 0 0 0 591.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
 <rect x="208.75" y="406.5" width="10.5" height="45" fill="#faf8f4"/>
 <line x1="214" y1="451.5" x2="259" y2="451.5" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 259 451.5 A 45 45 0 0 0 214 406.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<rect x="439" y="768.75" width="130" height="10.5" fill="#faf8f4"/>
-<line x1="439" y1="774" x2="569" y2="774" stroke="#1f1f1f" stroke-width="1"/>
+<rect x="294" y="768.75" width="130" height="10.5" fill="#faf8f4"/>
+<line x1="294" y1="774" x2="424" y2="774" stroke="#1f1f1f" stroke-width="1"/>
+<rect x="584" y="768.75" width="130" height="10.5" fill="#faf8f4"/>
+<line x1="584" y1="774" x2="714" y2="774" stroke="#1f1f1f" stroke-width="1"/>
 <rect x="874" y="768.75" width="130" height="10.5" fill="#faf8f4"/>
 <line x1="874" y1="774" x2="1004" y2="774" stroke="#1f1f1f" stroke-width="1"/>
 <rect x="794" y="78.75" width="130" height="10.5" fill="#faf8f4"/>
 <line x1="794" y1="84" x2="924" y2="84" stroke="#1f1f1f" stroke-width="1"/>
+<rect x="1078.75" y="192.75" width="10.5" height="82.5" fill="#faf8f4"/>
+<line x1="1084" y1="192.75" x2="1084" y2="275.25" stroke="#1f1f1f" stroke-width="1"/>
 <rect x="1078.75" y="399" width="10.5" height="60" fill="#faf8f4"/>
 <line x1="1084" y1="399" x2="1084" y2="459" stroke="#1f1f1f" stroke-width="1"/>
 <text x="504" y="620" text-anchor="middle" font-size="14" fill="#1f1f1f">PH-A</text>

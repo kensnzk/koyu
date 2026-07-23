@@ -44,6 +44,13 @@ export interface Area {
   line: number;
 }
 
+export interface GridRef {
+  xa: string;
+  xb: string;
+  ya: string;
+  yb: string;
+}
+
 export interface Space {
   /** パスが同一性。/L1/a のように人間が読める階層で名指す */
   path: string;
@@ -51,10 +58,10 @@ export interface Space {
   type: string;
   /** 所属レベル名 (パスの先頭セグメントがレベル名なら自動判定) */
   level?: string;
-  /** グリッド参照 (X1..X2 Y1..Y2) */
-  grid?: { xa: string; xb: string; ya: string; yb: string };
-  /** グリッド解決後のmm矩形。exteriorなどは持たない */
-  rect?: Rect;
+  /** グリッド参照。複数矩形の合併でL字などを表す (rectsと同順) */
+  grids: GridRef[];
+  /** グリッド解決後のmm矩形の合併。exteriorなどは空 */
+  rects: Rect[];
   /** 数えない分節 (字下げのarea行) */
   areas: Area[];
   attrs: Attrs;
@@ -62,11 +69,22 @@ export interface Space {
 }
 
 /**
+ * ゾーン — 数える集約。住戸・部門など、空間の上位のくくり。
+ * 幾何は持たず、パス接頭辞で束ねた空間の面積の合計として面積を持つ (ADR-0005)
+ */
+export interface Zone {
+  path: string;
+  attrs: Attrs;
+  line: number;
+}
+
+/**
  * 水平: wall (壁) / open (垂れ壁の有無を言わない開放的な分節 — 基本計画の抽象度)
- * 垂直: stair (階段 — 通行可) / shaft (EV等 — 連続するが通行不可)
+ * 垂直: stair (階段 — 通行可) / shaft (EV等 — 連続するが通行不可) /
+ *       void (吹抜け — 床の不在。下階の空間が上階の空間へ立ち上がる)
  * 垂直の既定は床 (slab) であり書かない。levelのslab宣言が一括で与える。
  */
-export type BoundaryKind = "wall" | "open" | "stair" | "shaft";
+export type BoundaryKind = "wall" | "open" | "stair" | "shaft" | "void";
 
 export interface Opening {
   kind: "door" | "window";
@@ -119,6 +137,7 @@ export interface Model {
   grid: { X: GridAxis; Y: GridAxis };
   levels: Record<string, Level>;
   spaces: Map<string, Space>;
+  zones: Map<string, Zone>;
   boundaries: Boundary[];
 }
 
@@ -132,11 +151,40 @@ export class SourceError extends Error {
   }
 }
 
-/** 面積 (壁芯) m² */
+/** 面積 (壁芯) m²。複数矩形は合計 (重なりはcheckが禁じる) */
 export function areaM2(s: Space): number | undefined {
-  if (!s.rect) return undefined;
-  const a = ((s.rect.x2 - s.rect.x1) * (s.rect.y2 - s.rect.y1)) / 1e6;
+  if (s.rects.length === 0) return undefined;
+  const a = s.rects.reduce((sum, r) => sum + (r.x2 - r.x1) * (r.y2 - r.y1), 0) / 1e6;
   return Math.round(a * 100) / 100;
+}
+
+/** ゾーンの面積 = パス接頭辞で束ねた空間の合計 (吹抜けvoidは数えない) */
+export function zoneAreaM2(model: Model, zonePath: string): number {
+  let sum = 0;
+  for (const s of model.spaces.values()) {
+    if (!s.path.startsWith(zonePath + "/")) continue;
+    if (s.type === "void") continue;
+    sum += areaM2(s) ?? 0;
+  }
+  return Math.round(sum * 100) / 100;
+}
+
+/** 実効use属性 — 自分に無ければ、最も深いゾーン祖先から継承する */
+export function effectiveUse(model: Model, s: Space): string | undefined {
+  const own = s.attrs["use"];
+  if (typeof own === "string") return own;
+  let best: string | undefined;
+  let bestLen = -1;
+  for (const z of model.zones.values()) {
+    if (s.path.startsWith(z.path + "/") && z.path.length > bestLen) {
+      const u = z.attrs["use"];
+      if (typeof u === "string") {
+        best = u;
+        bestLen = z.path.length;
+      }
+    }
+  }
+  return best;
 }
 
 /** 空間の有効天井高 mm (space自身のh属性 → レベルのh の順) */
@@ -163,7 +211,11 @@ export function toCanonical(model: Model): string {
     const s = model.spaces.get(p)!;
     spaces[p] = {
       type: s.type,
-      ...(s.grid ? { at: [s.grid.xa, s.grid.ya, s.grid.xb, s.grid.yb] } : {}),
+      ...(s.grids.length === 1
+        ? { at: [s.grids[0]!.xa, s.grids[0]!.ya, s.grids[0]!.xb, s.grids[0]!.yb] }
+        : s.grids.length > 1
+          ? { at: s.grids.map((g) => [g.xa, g.ya, g.xb, g.yb]) }
+          : {}),
       ...(Object.keys(s.attrs).length ? { attrs: sortObj(s.attrs) } : {}),
       ...(s.areas.length
         ? {
@@ -207,6 +259,12 @@ export function toCanonical(model: Model): string {
     }))
     .sort((x, y) => (x.between.join() < y.between.join() ? -1 : 1));
 
+  const zones: Record<string, unknown> = {};
+  for (const p of [...model.zones.keys()].sort()) {
+    const z = model.zones.get(p)!;
+    zones[p] = Object.keys(z.attrs).length ? { attrs: sortObj(z.attrs) } : {};
+  }
+
   const doc = {
     ifcxs: model.version,
     ...(model.name ? { name: model.name } : {}),
@@ -224,6 +282,7 @@ export function toCanonical(model: Model): string {
         ]),
       ),
     ),
+    ...(Object.keys(zones).length ? { zones } : {}),
     spaces,
     boundaries,
   };

@@ -12,13 +12,16 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { check } from "./check.js";
 import { doorsBetween, neighbors } from "./graph.js";
+import { daylight } from "./light.js";
 import {
   areaM2,
   displayName,
+  effectiveUse,
   heff,
   levelsSorted,
   SourceError,
   toCanonical,
+  zoneAreaM2,
   type Model,
 } from "./model.js";
 import { parse } from "./parse.js";
@@ -41,7 +44,7 @@ function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
-      "使い方: ifcxs <check|plan|doors|graph|stats|levels|json> <file.ifcxs> [引数...]",
+      "使い方: ifcxs <check|plan|doors|graph|stats|levels|light|json> <file.ifcxs> [引数...]",
     );
     return 2;
   }
@@ -102,9 +105,11 @@ function main(argv: string[]): number {
                 ? "↕ 階段"
                 : n.boundary.kind === "shaft"
                   ? "↕ シャフト(通行不可)"
-                  : n.passable
-                    ? `— 扉${n.doors}`
-                    : "| 壁";
+                  : n.boundary.kind === "void"
+                    ? "↕ 吹抜け"
+                    : n.passable
+                      ? `— 扉${n.doors}`
+                      : "| 壁";
           const attrs = Object.entries(n.boundary.attrs)
             .map(([k, v]) => `${k}:${v}`)
             .join(" ");
@@ -120,22 +125,35 @@ function main(argv: string[]): number {
       const byType = new Map<string, number>();
       const byUse = new Map<string, number>();
       for (const l of levels) {
-        const onLevel = spaces.filter((s) => s.level === l.name && s.rect);
+        const onLevel = spaces.filter((s) => s.level === l.name && s.rects.length > 0);
         if (onLevel.length === 0) continue;
         console.log(`${l.name}`);
         let sub = 0;
         for (const s of onLevel) {
+          if (s.type === "void") {
+            console.log(`  ${s.path}\t${displayName(s)}\t吹抜け (床面積不算入)`);
+            continue;
+          }
           const a = areaM2(s)!;
           sub += a;
           total += a;
           byType.set(s.type, (byType.get(s.type) ?? 0) + a);
-          const use = s.attrs["use"];
-          if (typeof use === "string") byUse.set(use, (byUse.get(use) ?? 0) + a);
+          const use = effectiveUse(model, s);
+          if (use) byUse.set(use, (byUse.get(use) ?? 0) + a);
           console.log(`  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)}㎡`);
         }
         console.log(`  小計 ${sub.toFixed(2)}㎡`);
       }
       console.log(`合計 ${total.toFixed(2)}㎡`);
+      if (model.zones.size > 0) {
+        console.log("ゾーン別 (数える集約):");
+        for (const z of [...model.zones.values()].sort((a, b) => (a.path < b.path ? -1 : 1))) {
+          const nm = z.attrs["name"];
+          console.log(
+            `  ${z.path}\t${typeof nm === "string" ? nm : ""}\t${zoneAreaM2(model, z.path).toFixed(2)}㎡`,
+          );
+        }
+      }
       for (const [t, a] of byType) console.log(`  ${t}: ${a.toFixed(2)}㎡`);
       if (byUse.size > 0) {
         const parts = [...byUse.entries()].map(
@@ -144,6 +162,28 @@ function main(argv: string[]): number {
         console.log(`use別: ${parts.join(" / ")}`);
       }
       return 0;
+    }
+    case "light": {
+      const results = daylight(model);
+      if (results.length === 0) {
+        console.log("対象の居室 (住居系) がありません");
+        return 0;
+      }
+      let fail = 0;
+      for (const r of results) {
+        if (!r.ok) fail++;
+        const ratio = r.window > 0 ? `1/${(r.floor / r.window).toFixed(1)}` : "窓なし";
+        console.log(
+          `${r.ok ? "✔" : "✖"} ${r.space.path}\t${displayName(r.space)}\t窓 ${r.window.toFixed(2)}㎡ / 床 ${r.floor.toFixed(2)}㎡ = ${ratio} (必要 1/7 ≈ ${r.need.toFixed(2)}㎡)` +
+            (r.missingH ? " ⚠ h未指定の窓は数えていません" : ""),
+        );
+      }
+      console.log(
+        fail === 0
+          ? `✔ 全${results.length}室が 1/7 を満たします (補正係数なしの粗い判定)`
+          : `✖ ${results.length}室中 ${fail}室が不足しています`,
+      );
+      return fail === 0 ? 0 : 1;
     }
     case "levels": {
       // テキストの矩計: レベルの積み上がりと高さの検算
@@ -170,7 +210,7 @@ function main(argv: string[]): number {
           console.log(`  ↑ 階高 ${pitch}${detail}`);
         }
       }
-      const spaces = [...model.spaces.values()].filter((s) => s.rect && s.level);
+      const spaces = [...model.spaces.values()].filter((s) => s.rects.length > 0 && s.level);
       const overrides = spaces.filter((s) => typeof s.attrs["h"] === "number");
       for (const s of overrides) {
         console.log(`個別天井高: ${s.path} h:${heff(model, s)}`);

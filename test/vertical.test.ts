@@ -71,5 +71,5 @@ test("負のオフセットも書ける", () => {
 level L1 0 h:2700
 space /L1/a room X1..X2-600 Y1..Y2
 `);
-  assert.equal(m.spaces.get("/L1/a")!.rect!.x2, 3000);
+  assert.equal(m.spaces.get("/L1/a")!.rects[0]!.x2, 3000);
 });

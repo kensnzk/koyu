@@ -64,7 +64,13 @@ boundary /L1/common /out t:200 spec:EW fire:60
 boundary /L1/stair /out type:open      # 地上階の屋外階段は外部へ直接開放
 
 # ============ 基準階 (2〜9F) — 一度だけ書く ============
-space /L2..L9/A unit X1..X2 Y1..Y2               name:Aタイプ use:exclusive
+# Aタイプだけ間取りまで書く — 粒度は混在してよい。zone=数える集約 (ADR-0005)。
+# 住戸の専有面積はゾーンの集計として出る。LDKはL字 (領域は「+」で合併)
+zone /L2..L9/A name:Aタイプ use:exclusive
+space /L2..L9/A/ldk     ldk     X1+2600..X2 Y1..Y2-1800 + X1..X1+2600 Y1..Y1+1400 name:LDK
+space /L2..L9/A/bedroom bedroom X1..X1+2600 Y1+1400..Y2-1800 name:洋室
+space /L2..L9/A/wet     water   X1..X1+3600 Y2-1800..Y2 name:水回り
+space /L2..L9/A/hall    hall    X1+3600..X2 Y2-1800..Y2 name:玄関廊下
 space /L2..L9/B unit X2..X3 Y1..Y2               name:Bタイプ use:exclusive
 space /L2..L9/C unit X3..X4 Y1..Y2               name:Cタイプ use:exclusive
 space /L2..L9/corridor corridor X1..X4 Y2..Y3    name:内廊下 use:common
@@ -74,10 +80,22 @@ space /L2..L9/ev ev X2..X2+2600 Y3..Y3+2600      name:EV use:common
 space /L2..L9/ps ps X2..X2+2600 Y3+2600..Y4      name:PS・MB use:common
 space /L2..L9/stair stair X1-2600..X1 Y2-600..Y3 name:屋外階段 use:common
 
-boundary /L2..L9/A /L2..L9/B t:180 spec:RC fire:60 sound:D-50   # 界壁
-boundary /L2..L9/B /L2..L9/C t:180 spec:RC fire:60 sound:D-50
-boundary /L2..L9/A /L2..L9/corridor t:180 spec:RC fire:60
+# --- Aタイプの間取り ---
+boundary /L2..L9/A/ldk /L2..L9/A/bedroom t:100 spec:LGS
+  door w:800 edge:W
+boundary /L2..L9/A/ldk /L2..L9/A/hall t:100 spec:LGS
+  door w:800
+boundary /L2..L9/A/ldk /L2..L9/A/wet t:100 spec:LGS
+boundary /L2..L9/A/bedroom /L2..L9/A/wet t:100 spec:LGS
+boundary /L2..L9/A/hall /L2..L9/A/wet t:100 spec:LGS
+  door w:750
+boundary /L2..L9/A/hall /L2..L9/corridor t:180 spec:RC fire:60
   door w:900 name:玄関
+boundary /L2..L9/A/wet /L2..L9/corridor t:180 spec:RC fire:60
+boundary /L2..L9/A/ldk /L2..L9/B t:180 spec:RC fire:60 sound:D-50   # 界壁
+boundary /L2..L9/A/hall /L2..L9/B t:180 spec:RC fire:60 sound:D-50
+# --- 他住戸 (住戸単位のまま) ---
+boundary /L2..L9/B /L2..L9/C t:180 spec:RC fire:60 sound:D-50
 boundary /L2..L9/B /L2..L9/corridor t:180 spec:RC fire:60
   door w:900 name:玄関
 boundary /L2..L9/C /L2..L9/corridor t:180 spec:RC fire:60
@@ -90,23 +108,27 @@ boundary /L2..L9/corridor /L2..L9/ev t:200 spec:RC
   door w:900 name:EV扉
 boundary /L2..L9/corridor /L2..L9/stair t:180 spec:RC fire:60
   door w:900 name:階段防火戸
-boundary /L2..L9/A /L2..L9/stair t:180 spec:RC fire:60
+boundary /L2..L9/A/wet /L2..L9/stair t:180 spec:RC fire:60
 boundary /L2..L9/D /L2..L9/ev t:200 spec:RC
 boundary /L2..L9/D /L2..L9/ps t:120 spec:LGS
 boundary /L2..L9/E /L2..L9/ev t:200 spec:RC
 boundary /L2..L9/E /L2..L9/ps t:120 spec:LGS
 boundary /L2..L9/ev /L2..L9/ps t:200 spec:RC
 
-boundary /L2..L9/A /out t:180 spec:EW fire:60
-  window w:2600 edge:S sill:0 name:掃き出し窓
+boundary /L2..L9/A/ldk /out t:180 spec:EW fire:60
+  window w:2600 h:2200 edge:S sill:0 name:掃き出し窓
+boundary /L2..L9/A/bedroom /out t:180 spec:EW fire:60
+  window w:1650 h:1100 edge:W sill:900
+boundary /L2..L9/A/wet /out t:180 spec:EW
 boundary /L2..L9/B /out t:180 spec:EW fire:60
-  window w:2600 edge:S sill:0
+  window w:2600 h:2200 edge:S sill:0
 boundary /L2..L9/C /out t:180 spec:EW fire:60
-  window w:2600 edge:S sill:0
+  window w:2600 h:2200 edge:S sill:0
 boundary /L2..L9/D /out t:180 spec:EW fire:60
-  window w:2600 edge:N sill:0
+  window w:2600 h:2200 edge:N sill:0
 boundary /L2..L9/E /out t:180 spec:EW fire:60
-  window w:2600 edge:N sill:0
+  window w:2600 h:2200 edge:N sill:0
+  window w:1650 h:2200 edge:E sill:0    # 54㎡は1面の窓では1/7に足りない — lightの指摘
 boundary /L2..L9/corridor /out t:180 spec:EW
   window w:1200 edge:E sill:800 name:突き当り窓
 boundary /L2..L9/ps /out t:180 spec:EW
@@ -143,11 +165,13 @@ boundary /L10/1003 /L10/ps t:120 spec:LGS
 boundary /L10/ev /L10/ps t:200 spec:RC
 
 boundary /L10/1001 /out t:180 spec:EW fire:60
-  window w:2600 edge:S sill:0
+  window w:2600 h:2200 edge:S sill:0 at:0.25
+  window w:2600 h:2200 edge:S sill:0 at:0.75   # 69.6㎡には2枚要る
 boundary /L10/1002 /out t:180 spec:EW fire:60
-  window w:2600 edge:S sill:0
+  window w:2600 h:2200 edge:S sill:0
 boundary /L10/1003 /out t:180 spec:EW fire:60
-  window w:2600 edge:N sill:0
+  window w:2600 h:2200 edge:N sill:0
+  window w:1650 h:2200 edge:E sill:0
 boundary /L10/terrace /out t:120 spec:手すり壁      # 屋外 — 外部とは手すり壁で接する
 boundary /L10/corridor /out t:180 spec:EW
   window w:1200 edge:E sill:800

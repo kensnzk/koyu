@@ -1,6 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1128" height="768" viewBox="0 0 1128 768" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
 <rect width="1128" height="768" fill="#faf8f4"/>
-<rect x="84" y="364" width="320" height="320" fill="#f1ebdd"/>
+<rect x="84" y="364" width="320" height="320" fill="#faf8f4"/>
+<line x1="84" y1="684" x2="404" y2="364" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>
+<line x1="84" y1="364" x2="404" y2="684" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>
 <rect x="404" y="284" width="640" height="400" fill="#f1ebdd"/>
 <rect x="84" y="284" width="320" height="80" fill="#f1ebdd"/>
 <rect x="84" y="84" width="160" height="200" fill="#f1ebdd"/>
@@ -58,8 +60,6 @@
 <rect x="554" y="79.5" width="170" height="9" fill="#1f1f1f"/>
 <rect x="724" y="79.5" width="320" height="9" fill="#1f1f1f"/>
 <rect x="1039.5" y="84" width="9" height="200" fill="#1f1f1f"/>
-<rect x="221.5" y="360.25" width="45" height="7.5" fill="#faf8f4"/>
-<line x1="221.5" y1="364" x2="221.5" y2="409" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 221.5 409 A 45 45 0 0 0 266.5 364" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
 <rect x="400.25" y="301.5" width="7.5" height="45" fill="#faf8f4"/>
 <line x1="404" y1="346.5" x2="449" y2="346.5" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 449 346.5 A 45 45 0 0 0 404 301.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
 <rect x="141.5" y="278.75" width="45" height="10.5" fill="#faf8f4"/>
@@ -80,9 +80,9 @@
 <line x1="794" y1="684" x2="974" y2="684" stroke="#1f1f1f" stroke-width="1"/>
 <rect x="1038.75" y="424" width="10.5" height="120" fill="#faf8f4"/>
 <line x1="1044" y1="424" x2="1044" y2="544" stroke="#1f1f1f" stroke-width="1"/>
-<text x="244" y="520" text-anchor="middle" font-size="14" fill="#1f1f1f">会議室</text>
-<text x="244" y="537" text-anchor="middle" font-size="10" fill="#8a8171">meeting ・ 40.96㎡</text>
-<text x="244" y="551" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L2/meeting</text>
+<text x="244" y="520" text-anchor="middle" font-size="14" fill="#1f1f1f">エントランス吹抜け</text>
+<text x="244" y="537" text-anchor="middle" font-size="10" fill="#8a8171">吹抜け</text>
+<text x="244" y="551" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L2/void</text>
 <text x="724" y="480" text-anchor="middle" font-size="14" fill="#1f1f1f">執務室</text>
 <text x="724" y="497" text-anchor="middle" font-size="10" fill="#8a8171">office ・ 102.4㎡</text>
 <text x="724" y="511" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L2/office</text>

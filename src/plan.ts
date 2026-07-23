@@ -22,13 +22,16 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   if (!level) throw new Error("レベルが定義されていません");
   const scale = opts.scale ?? 0.05;
 
-  const rooms = [...model.spaces.values()].filter((s) => s.rect && s.level === level);
+  const rooms = [...model.spaces.values()].filter(
+    (s) => s.rects.length > 0 && s.level === level,
+  );
   if (rooms.length === 0) throw new Error(`レベル ${level} に領域を持つ空間がありません`);
 
-  const minX = Math.min(...rooms.map((s) => s.rect!.x1));
-  const maxX = Math.max(...rooms.map((s) => s.rect!.x2));
-  const minY = Math.min(...rooms.map((s) => s.rect!.y1));
-  const maxY = Math.max(...rooms.map((s) => s.rect!.y2));
+  const allRects = rooms.flatMap((s) => s.rects);
+  const minX = Math.min(...allRects.map((r) => r.x1));
+  const maxX = Math.max(...allRects.map((r) => r.x2));
+  const minY = Math.min(...allRects.map((r) => r.y1));
+  const maxY = Math.max(...allRects.map((r) => r.y2));
 
   const M = 84; // 余白 px (通り芯記号ぶん)
   const W = (maxX - minX) * scale + M * 2;
@@ -42,12 +45,21 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   );
   parts.push(`<rect width="${W}" height="${H}" fill="${PAPER}"/>`);
 
-  // 空間の面
+  // 空間の面 (合併の各矩形。同色・輪郭なしなのでL字は一体に見える)
   for (const s of rooms) {
-    const r = s.rect!;
-    parts.push(
-      `<rect x="${sx(r.x1)}" y="${sy(r.y2)}" width="${(r.x2 - r.x1) * scale}" height="${(r.y2 - r.y1) * scale}" fill="${ROOM}"/>`,
-    );
+    const isVoid = s.type === "void";
+    for (const r of s.rects) {
+      parts.push(
+        `<rect x="${sx(r.x1)}" y="${sy(r.y2)}" width="${(r.x2 - r.x1) * scale}" height="${(r.y2 - r.y1) * scale}" fill="${isVoid ? PAPER : ROOM}"/>`,
+      );
+      if (isVoid) {
+        // 吹抜け: 破線の対角線 (作図慣習)
+        parts.push(
+          `<line x1="${sx(r.x1)}" y1="${sy(r.y1)}" x2="${sx(r.x2)}" y2="${sy(r.y2)}" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>`,
+          `<line x1="${sx(r.x1)}" y1="${sy(r.y2)}" x2="${sx(r.x2)}" y2="${sy(r.y1)}" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>`,
+        );
+      }
+    }
   }
 
   // 数えない分節 (area): 床材の切替など。面積にもグラフにも現れない — 淡い面と破線で示す
@@ -150,15 +162,18 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     }
   }
 
-  // 空間ラベル
+  // 空間ラベル (最大の矩形の中心に置く)
   for (const s of rooms) {
-    const r = s.rect!;
+    const r = [...s.rects].sort(
+      (a, b) => (b.x2 - b.x1) * (b.y2 - b.y1) - (a.x2 - a.x1) * (a.y2 - a.y1),
+    )[0]!;
     const cx = sx((r.x1 + r.x2) / 2);
     const cy = sy((r.y1 + r.y2) / 2);
-    const area = areaM2(s);
+    const sub =
+      s.type === "void" ? "吹抜け" : `${esc(s.type)} ・ ${areaM2(s)}㎡`;
     parts.push(
       `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="14" fill="${INK}">${esc(displayName(s))}</text>`,
-      `<text x="${cx}" y="${cy + 13}" text-anchor="middle" font-size="10" fill="#8a8171">${esc(s.type)} ・ ${area}㎡</text>`,
+      `<text x="${cx}" y="${cy + 13}" text-anchor="middle" font-size="10" fill="#8a8171">${sub}</text>`,
       `<text x="${cx}" y="${cy + 27}" text-anchor="middle" font-size="8.5" fill="#b3ab9c">${esc(s.path)}</text>`,
     );
   }
@@ -220,12 +235,14 @@ function doorSwing(
   sx: (x: number) => number,
   sy: (y: number) => number,
 ): string {
-  // 開く側の空間 (aが領域を持てばa、なければb)
+  // 開く側の空間 (aが領域を持てばa、なければb)。合併なら扉に最も近い矩形へ開く
   const sa = model.spaces.get(b.a);
   const sb = model.spaces.get(b.b);
-  const into = sa?.rect ? sa : sb?.rect ? sb : undefined;
-  if (!into?.rect) return "";
-  const r = into.rect;
+  const into = sa && sa.rects.length > 0 ? sa : sb && sb.rects.length > 0 ? sb : undefined;
+  if (!into) return "";
+  const dist = (rc: { x1: number; y1: number; x2: number; y2: number }) =>
+    ((rc.x1 + rc.x2) / 2 - cx) ** 2 + ((rc.y1 + rc.y2) / 2 - cy) ** 2;
+  const r = [...into.rects].sort((p, q) => dist(p) - dist(q))[0]!;
   const c = { x: (r.x1 + r.x2) / 2, y: (r.y1 + r.y2) / 2 };
 
   // 世界座標: 吊元 hinge、開き先端 free(=通行方向)、軌跡は hinge を中心とする1/4円

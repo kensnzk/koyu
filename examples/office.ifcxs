@@ -16,7 +16,7 @@ level R 8000 slab:1300          # 屋根面。L2の空間の上限を与える
 space /out exterior name:外部
 
 # ---- 1階: エントランス+事務室、北側にコア ----
-space /L1/hall     hall     X1..X2 Y1..Y2       name:エントランスホール use:common floor:フローリング
+space /L1/hall     hall     X1..X2 Y1..Y2       name:エントランスホール use:common floor:フローリング h:6700   # 吹抜けで2層分
   area X1..X1+1800 Y1..Y2 name:土間 floor:モルタル   # 数えない分節: 室は割れない。面積はホールのまま
 space /L1/office   office   X2..X4 Y1..Y2       name:事務室 use:rentable
 space /L1/corridor corridor X1..X4 Y2..Y3       name:廊下 use:common
@@ -62,7 +62,7 @@ boundary /L1/wc-w /out t:180 spec:EW1
 boundary /L1/machine /out t:180 spec:EW1
 
 # ---- 2階: 会議室+執務室 (南の廊下芯Y2を跨いで広がる)、コアは1階と同位置 ----
-space /L2/meeting  meeting  X1..X2 Y1..Y2       name:会議室 use:rentable h:2400
+space /L2/void     void     X1..X2 Y1..Y2       name:エントランス吹抜け
 space /L2/office   office   X2..X4 Y1..Y3       name:執務室 use:rentable floor:タイルカーペット
   area X3+3200..X4 Y1..Y1+3200 name:リフレッシュコーナー floor:フローリング
 space /L2/corridor corridor X1..X2 Y2..Y3       name:廊下 use:common
@@ -72,9 +72,8 @@ space /L2/wc-m     wc       X2..X2+3000 Y3..Y4  name:男子WC use:common
 space /L2/wc-w     wc       X2+3000..X3 Y3..Y4  name:女子WC use:common
 space /L2/machine  machine  X3..X4 Y3..Y4       name:倉庫 use:common
 
-boundary /L2/meeting /L2/office t:120 spec:LGS
-boundary /L2/meeting /L2/corridor t:120 spec:LGS
-  door w:900
+boundary /L2/void /L2/office t:120 spec:LGS
+boundary /L2/void /L2/corridor t:120 spec:手すり壁   # 吹抜けに面する腰壁
 boundary /L2/office /L2/corridor t:120 spec:LGS
   door w:900
 boundary /L2/corridor /L2/stair t:180 spec:RC fire:60
@@ -92,8 +91,8 @@ boundary /L2/ev /L2/wc-m t:180 spec:RC
 boundary /L2/wc-m /L2/wc-w t:80 spec:LGS
 boundary /L2/wc-w /L2/machine t:120 spec:LGS
 
-boundary /L2/meeting /out t:180 spec:EW1 fire:60
-  window w:3600 edge:S sill:800
+boundary /L2/void /out t:180 spec:EW1 fire:60
+  window w:3600 edge:S sill:800    # 吹抜けの大開口
 boundary /L2/office /out t:180 spec:EW1 fire:60
   window w:3600 edge:S at:0.3 sill:800
   window w:3600 edge:S at:0.75 sill:800
@@ -105,6 +104,7 @@ boundary /L2/wc-m /out t:180 spec:EW1
 boundary /L2/wc-w /out t:180 spec:EW1
 boundary /L2/machine /out t:180 spec:EW1
 
-# ---- 垂直: 床は書かない (levelのslabが既定)。例外 — 繋がる場所 — だけ書く ----
+# ---- 垂直: 床は書かない (levelのslabが既定)。例外 — 繋がる場所と抜ける場所 — だけ書く ----
 boundary /L1/stair /L2/stair type:stair
 boundary /L1/ev /L2/ev type:shaft
+boundary /L1/hall /L2/void type:void   # エントランスは2層吹抜け — 床の不在も境界で書く
