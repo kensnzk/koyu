@@ -3,12 +3,13 @@
 // 採光補正係数は掛けない甘い判定であり、基本計画の解像度に合わせた早期警報である。
 // 対象: unit / room / ldk / bedroom / living (hab:0 で除外、hab:1 で他の型も対象に)
 
-import { areaM2, isSemiOutdoor, type Model, type Space } from "./model.js";
+import { areaM2, isCoveredAbove, isSemiOutdoor, type Model, type Space } from "./model.js";
 
 const HABITABLE = new Set(["unit", "room", "ldk", "bedroom", "living"]);
 
-/** 半屋外 (バルコニー等) 越しの窓の係数 — 縁側補正に倣う粗い値 */
-const SEMI_FACTOR = 0.7;
+/** 庇下・バルコニー下 (上に空間がある半屋外) 越しの窓の係数 — 縁側補正に倣う粗い値。
+ *  上が開いた半屋外 (庭・最上階バルコニー) 越しは 1.0 (ADR-0009) */
+const COVERED_SEMI_FACTOR = 0.7;
 
 export interface DaylightResult {
   space: Space;
@@ -38,9 +39,16 @@ export function daylight(model: Model): DaylightResult[] {
       if (!other) continue;
       const os = model.spaces.get(other);
       if (!os) continue;
-      // 外部に直接面する窓は係数1、半屋外 (バルコニー等) 越しは0.7
+      // 外部に直接面する窓は係数1。半屋外越しは、その半屋外が庇下 (上に空間がある) なら0.7、
+      // 上が開いていれば (庭・最上階バルコニー) 1.0
       const factor =
-        os.type === "exterior" ? 1 : isSemiOutdoor(model, os) ? SEMI_FACTOR : 0;
+        os.type === "exterior"
+          ? 1
+          : isSemiOutdoor(model, os)
+            ? isCoveredAbove(model, os)
+              ? COVERED_SEMI_FACTOR
+              : 1
+            : 0;
       if (factor === 0) continue;
       for (const o of b.openings) {
         if (o.kind !== "window") continue;

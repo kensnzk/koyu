@@ -186,6 +186,47 @@ export function isSemiOutdoor(model: Model, s: Space): boolean {
   return false;
 }
 
+/**
+ * 上に (どのレベルであれ) 空間が重なっているか — 庇下・バルコニー下の導出。
+ * 採光の半屋外係数 (庇下0.7 / 上が開いていれば1.0) などが読む (ADR-0009)
+ */
+export function isCoveredAbove(model: Model, s: Space): boolean {
+  if (s.rects.length === 0 || !s.level) return false;
+  const z = model.levels[s.level]?.z;
+  if (z === undefined) return false;
+  for (const o of model.spaces.values()) {
+    if (o === s || o.rects.length === 0 || !o.level) continue;
+    const oz = model.levels[o.level]?.z;
+    if (oz === undefined || oz <= z) continue;
+    for (const ra of s.rects) {
+      for (const rb of o.rects) {
+        const x = Math.min(ra.x2, rb.x2) - Math.max(ra.x1, rb.x1);
+        const y = Math.min(ra.y2, rb.y2) - Math.max(ra.y1, rb.y1);
+        if (x > 0.5 && y > 0.5) return true;
+      }
+    }
+  }
+  return false;
+}
+
+/** 矩形集合の合併面積 m² (水平投影 — 建築面積の導出に使う)。座標圧縮による厳密計算 */
+export function unionAreaM2(rects: Rect[]): number {
+  if (rects.length === 0) return 0;
+  const xs = [...new Set(rects.flatMap((r) => [r.x1, r.x2]))].sort((a, b) => a - b);
+  const ys = [...new Set(rects.flatMap((r) => [r.y1, r.y2]))].sort((a, b) => a - b);
+  let area = 0;
+  for (let i = 0; i + 1 < xs.length; i++) {
+    for (let j = 0; j + 1 < ys.length; j++) {
+      const cx = (xs[i]! + xs[i + 1]!) / 2;
+      const cy = (ys[j]! + ys[j + 1]!) / 2;
+      if (rects.some((r) => cx > r.x1 && cx < r.x2 && cy > r.y1 && cy < r.y2)) {
+        area += (xs[i + 1]! - xs[i]!) * (ys[j + 1]! - ys[j]!);
+      }
+    }
+  }
+  return Math.round((area / 1e6) * 100) / 100;
+}
+
 /** ゾーンの面積 = パス接頭辞で束ねた空間の合計 (吹抜けと半屋外は数えない — 専有面積の言葉) */
 export function zoneAreaM2(model: Model, zonePath: string): number {
   let sum = 0;

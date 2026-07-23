@@ -132,6 +132,15 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
           `<line x1="${sx(seg.x1)}" y1="${sy(seg.y1)}" x2="${sx(seg.x2)}" y2="${sy(seg.y2)}" stroke="${INK}" stroke-width="1.4"/>`,
         );
       }
+      // 柵の扉 (門扉など): 線を切って軌跡を描く
+      for (const o of b.openings) {
+        if (o.kind !== "door") continue;
+        const placed = placeOpening(model, b, o);
+        if (!("error" in placed)) {
+          parts.push(bandRect(placed.segment, o.w, placed.cx, placed.cy, 120, scale, sx, sy, PAPER));
+          parts.push(doorSwing(model, b, o, placed.segment, placed.cx, placed.cy, scale, sx, sy));
+        }
+      }
       continue;
     }
     const t = b.t ?? WALL_DEFAULT_T;

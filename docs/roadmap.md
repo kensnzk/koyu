@@ -44,7 +44,7 @@ IFCXのサンプルを読み (ifcx-notes.md)、二つの室とその間の扉一
 
 ## 横断: IFCカバレッジの運用 (2026-07-23〜)
 
-IFC4建築系コアを鏡にして、書けるもの・まだ書けないもの・方針として書かないものを [docs/ifc-coverage.md](ifc-coverage.md) で管理する。未対応 (○)・部分対応 (◐) はLinearの別プロジェクト [IFCXS × IFC カバレッジ](https://linear.app/munipersonal/project/ifcxs-ifc-カバレッジ-c97cdb2fdc18) のIssue (概念クラスタ単位、15件) と対応。実装や決定が動いたら表を先に直し、Issueを閉じる。当面の優先はP2の4件: 敷地とその境界 (MUN-149)、外部空間の分節 (MUN-150)、外構 (MUN-151)、立ち上がり・パラペット (MUN-152) — いずれもM2 (一棟への問い) の足場になる。
+IFC4建築系コアを鏡にして、書けるもの・まだ書けないもの・方針として書かないものを [docs/ifc-coverage.md](ifc-coverage.md) で管理する。未対応 (○)・部分対応 (◐) はLinearの別プロジェクト [IFCXS × IFC カバレッジ](https://linear.app/munipersonal/project/ifcxs-ifc-カバレッジ-c97cdb2fdc18) のIssue (概念クラスタ単位、15件) と対応。実装や決定が動いたら表を先に直し、Issueを閉じる。当面の優先はP2の4件: 敷地とその境界 (MUN-149 ✔ 2026-07-23済)、外部空間の分節 (MUN-150 ✔ 同)、外構 (MUN-151)、立ち上がり・パラペット (MUN-152)。149/150はADR-0009 — /outの分節 (road:幅員)、地上外部空間のタイル、zone site:1の宣言/導出照合、`site`コマンド (敷地面積・接道・建蔽率・容積率)。戸建例のL1平面は配置図兼用になった。
 
 ## 地平 (マイルストーンにしない遠景)
 

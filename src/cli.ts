@@ -13,6 +13,7 @@ import { dirname } from "node:path";
 import { check } from "./check.js";
 import { doorsBetween, neighbors } from "./graph.js";
 import { daylight } from "./light.js";
+import { siteReport } from "./site.js";
 import {
   areaM2,
   displayName,
@@ -45,7 +46,7 @@ function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
-      "使い方: ifcxs <check|plan|doors|graph|stats|levels|light|json> <file.ifcxs> [引数...]",
+      "使い方: ifcxs <check|plan|doors|graph|stats|levels|light|site|json> <file.ifcxs> [引数...]",
     );
     return 2;
   }
@@ -159,9 +160,10 @@ function main(argv: string[]): number {
       if (semiTotal > 0) {
         console.log(`半屋外 ${semiTotal.toFixed(2)}㎡ (バルコニー・屋外階段等 — 算入条件は法規細部のため別掲)`);
       }
-      if (model.zones.size > 0) {
+      const zonesToShow = [...model.zones.values()].filter((z) => z.attrs["site"] !== 1);
+      if (zonesToShow.length > 0) {
         console.log("ゾーン別 (数える集約):");
-        for (const z of [...model.zones.values()].sort((a, b) => (a.path < b.path ? -1 : 1))) {
+        for (const z of zonesToShow.sort((a, b) => (a.path < b.path ? -1 : 1))) {
           const nm = z.attrs["name"];
           console.log(
             `  ${z.path}\t${typeof nm === "string" ? nm : ""}\t${zoneAreaM2(model, z.path).toFixed(2)}㎡`,
@@ -198,6 +200,36 @@ function main(argv: string[]): number {
           : `✖ ${results.length}室中 ${fail}室が不足しています`,
       );
       return fail === 0 ? 0 : 1;
+    }
+    case "site": {
+      // 敷地の問い: 敷地面積・接道・建蔽率・容積率 (基本計画のボリューム検討の数字)
+      const r = siteReport(model);
+      if (!r.siteZone && r.roads.length === 0) {
+        console.log("敷地がありません (zone に site:1 を、道路に road:幅員 を宣言します)");
+        return 1;
+      }
+      const site = r.declaredArea ?? r.derivedArea;
+      if (r.siteZone) {
+        const nm = r.siteZone.attrs["name"];
+        console.log(`敷地 ${r.siteZone.path}${typeof nm === "string" ? ` (${nm})` : ""}`);
+      }
+      if (r.declaredArea !== undefined) {
+        const ok = Math.abs(r.declaredArea - r.derivedArea) < 0.05;
+        console.log(
+          `  敷地面積: 宣言 ${r.declaredArea.toFixed(2)}㎡ / 導出 ${r.derivedArea.toFixed(2)}㎡ ${ok ? "✔ 一致" : "⚠ 不一致 (タイルの隙間か重なり)"}`,
+        );
+      } else {
+        console.log(`  敷地面積 (導出): ${r.derivedArea.toFixed(2)}㎡`);
+      }
+      for (const road of r.roads) {
+        const nm = road.road.attrs["name"];
+        console.log(
+          `  接道: ${road.road.path}${typeof nm === "string" ? ` (${nm})` : ""} 幅員${road.width}mm ・ 接道長 ${road.frontage}mm ${road.frontage >= 2000 ? "✔ 2m以上" : "✖ 2m未満"}`,
+        );
+      }
+      console.log(`  建築面積 (水平投影・粗): ${r.footprint.toFixed(2)}㎡ → 建蔽率 ${((r.footprint / site) * 100).toFixed(1)}%`);
+      console.log(`  延べ面積: ${r.totalFloor.toFixed(2)}㎡ → 容積率 ${((r.totalFloor / site) * 100).toFixed(1)}%`);
+      return 0;
     }
     case "levels": {
       // テキストの矩計: レベルの積み上がりと高さの検算

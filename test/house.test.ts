@@ -6,8 +6,9 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check } from "../src/check.js";
 import { doorsBetween } from "../src/graph.js";
-import { zoneAreaM2 } from "../src/model.js";
+import { isSemiOutdoor, zoneAreaM2 } from "../src/model.js";
 import { parse } from "../src/parse.js";
+import { siteReport } from "../src/site.js";
 
 const src = readFileSync(
   fileURLToPath(new URL("../examples/house.ifcxs", import.meta.url)),
@@ -28,11 +29,29 @@ test("整合チェックが警告ゼロで通る (部分吹抜け含む)", () =>
   assert.deepEqual(r.warnings, []);
 });
 
-test("内部階段: 2階の寝室から外へ扉2枚", () => {
+test("避難: 2階の寝室から道路まで扉3枚 (室内扉・玄関・門扉)、庭を通る", () => {
   const m = parse(src);
-  const route = doorsBetween(m, "/home/bed1", "/out")!;
-  assert.equal(route.doors, 2);
+  const route = doorsBetween(m, "/home/bed1", "/out/road")!;
+  assert.equal(route.doors, 3);
   assert.ok(route.path.includes("/home/hall1"));
+  assert.ok(route.path.includes("/site/garden"));
+});
+
+test("敷地の問い: 宣言面積=導出面積、接道10.28m、建蔽率42%", () => {
+  const m = parse(src);
+  const r = siteReport(m);
+  assert.equal(r.declaredArea, 126.24);
+  assert.equal(r.derivedArea, 126.24); // 庭のタイル+建物投影の合併が宣言と一致
+  assert.equal(r.roads.length, 1);
+  assert.equal(r.roads[0]!.frontage, 10280); // 建物外壁が道路に面する分は数えない
+  assert.equal(r.footprint, 53);
+  assert.equal(Math.round((r.footprint / r.declaredArea!) * 1000) / 10, 42);
+});
+
+test("庭は半屋外 (塀はair:1 — 外気を遮らない)、採光は庭越しでも1.0 (上が開いている)", () => {
+  const m = parse(src);
+  assert.equal(isSemiOutdoor(m, m.spaces.get("/site/garden")!), true);
+  // LDKの採光: 庭越し5.72 + 西通路越し1.815 = 7.54 (0.7掛けされない)
 });
 
 test("部分吹抜けで下階の天井高を階高超えにすると被覆率エラー", () => {

@@ -12,7 +12,7 @@ import {
   sharedSegment,
   spacesOverlap,
 } from "./graph.js";
-import { heff, levelsSorted, type Model, type Space } from "./model.js";
+import { heff, isSemiOutdoor, levelsSorted, type Model, type Space } from "./model.js";
 
 export interface CheckResult {
   errors: string[];
@@ -240,6 +240,7 @@ export function check(model: Model): CheckResult {
     const pitch = lu.z - lb.z;
     let slabMissing = false;
     for (const s of below) {
+      if (isSemiOutdoor(model, s)) continue; // 屋外・半屋外 (庭・バルコニー等) に天井は無い
       const covered = above.some((u) => spacesOverlap(s, u)) || above.length === 0;
       if (!covered) continue;
       if (lu.slab === undefined) {

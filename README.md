@@ -43,6 +43,7 @@ npm run ifcxs -- levels examples/office.ifcxs          # テキストの矩計 (
 npm run ifcxs -- doors  examples/office.ifcxs /L2/office /out   # → 4枚 (階段経由)
 npm run ifcxs -- stats  examples/mansion.ifcxs         # 面積・ゾーン集計・専有率
 npm run ifcxs -- light  examples/mansion.ifcxs         # 採光 1/7 の粗い判定
+npm run ifcxs -- site   examples/house.ifcxs           # 敷地面積・接道・建蔽率・容積率
 ```
 
 ## 構成
