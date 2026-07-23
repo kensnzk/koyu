@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// IFCXS v0.1 — CLI
-//   npm run ifcxs -- check  examples/office.ifcxs
-//   npm run ifcxs -- plan   examples/office.ifcxs -l L2 -o out/office-L2.svg
-//   npm run ifcxs -- doors  examples/office.ifcxs /L2/office /out
-//   npm run ifcxs -- graph  examples/office.ifcxs
-//   npm run ifcxs -- stats  examples/office.ifcxs
-//   npm run ifcxs -- levels examples/office.ifcxs   # テキストの矩計 (高さの積み上がり)
-//   npm run ifcxs -- json   examples/office.ifcxs
+// koyu v0.1 — CLI
+//   npm run koyu -- check  examples/office.muro
+//   npm run koyu -- plan   examples/office.muro -l L2 -o out/office-L2.svg
+//   npm run koyu -- doors  examples/office.muro /L2/office /out
+//   npm run koyu -- graph  examples/office.muro
+//   npm run koyu -- stats  examples/office.muro
+//   npm run koyu -- levels examples/office.muro   # テキストの矩計 (高さの積み上がり)
+//   npm run koyu -- json   examples/office.muro
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
@@ -46,7 +46,7 @@ function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
-      "使い方: ifcxs <check|plan|doors|graph|stats|levels|light|site|json> <file.ifcxs> [引数...]",
+      "使い方: koyu <check|plan|doors|graph|stats|levels|light|site|json> <file.muro> [引数...]",
     );
     return 2;
   }
@@ -74,7 +74,7 @@ function main(argv: string[]): number {
       const level = opt(rest, "-l", "--level") ?? Object.keys(model.levels)[0];
       const explicit = opt(rest, "-o");
       const outFile =
-        explicit ?? `${file.replace(/\.ifcxs$/, "")}-${level}.svg`;
+        explicit ?? `${file.replace(/\.muro$/, "")}-${level}.svg`;
       const svg = svgPlan(model, { level });
       mkdirSync(dirname(outFile), { recursive: true });
       writeFileSync(outFile, svg);
@@ -84,7 +84,7 @@ function main(argv: string[]): number {
     case "doors": {
       const [from, to] = rest;
       if (!from || !to) {
-        console.log("使い方: ifcxs doors <file> /パスA /パスB");
+        console.log("使い方: koyu doors <file> /パスA /パスB");
         return 2;
       }
       const route = doorsBetween(model, from, to);

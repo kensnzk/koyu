@@ -1,4 +1,4 @@
-// IFCXS v0 — 記法パーサ
+// koyu v0 — 記法パーサ
 // 一行が一文。図面が数百年運んできた抽象度を、そのままテキストにする。
 
 import {
@@ -68,7 +68,7 @@ export function parse(source: string): Model {
     current = [];
     currentSpaces = [];
     switch (head) {
-      case "ifcxs": {
+      case "koyu": {
         model.version = rest[0] ?? "0.1";
         break;
       }

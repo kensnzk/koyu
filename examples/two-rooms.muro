@@ -2,7 +2,7 @@
 # 建物ですらない。それでも空間の同一性・境界の帰属・接続・パスの切り方が
 # この数十行で全部決まる。(docs/writing-architecture.md)
 
-ifcxs 0.1
+koyu 0.1
 name 二室一扉
 unit mm
 

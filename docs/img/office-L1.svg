@@ -109,6 +109,8 @@
 <text x="884" y="180" text-anchor="middle" font-size="14" fill="#1f1f1f">機械室</text>
 <text x="884" y="197" text-anchor="middle" font-size="10" fill="#8a8171">machine ・ 25.6㎡</text>
 <text x="884" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/machine</text>
+<rect x="84" y="364" width="320" height="320" fill="none" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>
+<text x="244" y="564" text-anchor="middle" font-size="9" fill="#b3ab9c">上部吹抜け</text>
 <text x="22" y="750" font-size="12" fill="#1f1f1f">小さなオフィス — L1 平面</text>
-<text x="1106" y="750" text-anchor="end" font-size="9" fill="#a49b8a">ifcxs v0 — 空間から生成 (壁芯・mm)</text>
+<text x="1106" y="750" text-anchor="end" font-size="9" fill="#a49b8a">koyu v0 — 空間から生成 (壁芯・mm)</text>
 </svg>

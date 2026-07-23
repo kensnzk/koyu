@@ -8,7 +8,7 @@ import { areaM2, SourceError, toCanonical } from "../src/model.js";
 import { parse, tokenize } from "../src/parse.js";
 import { svgPlan } from "../src/plan.js";
 
-const examplePath = fileURLToPath(new URL("../examples/two-rooms.ifcxs", import.meta.url));
+const examplePath = fileURLToPath(new URL("../examples/two-rooms.muro", import.meta.url));
 const exampleSrc = readFileSync(examplePath, "utf8");
 
 test("二室一扉が読める", () => {
@@ -157,7 +157,7 @@ test("正準JSONは安定している", () => {
   const j2 = toCanonical(parse(exampleSrc));
   assert.equal(j1, j2);
   assert.ok(j1.includes('"between"'));
-  assert.ok(j1.includes('"ifcxs": "0.1"'));
+  assert.ok(j1.includes('"koyu": "0.1"'));
 });
 
 test("平面図SVGが生成される", () => {

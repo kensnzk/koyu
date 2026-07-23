@@ -12,7 +12,7 @@ import { parse } from "../src/parse.js";
 import { svgPlan } from "../src/plan.js";
 
 const src = readFileSync(
-  fileURLToPath(new URL("../examples/office.ifcxs", import.meta.url)),
+  fileURLToPath(new URL("../examples/office.muro", import.meta.url)),
   "utf8",
 );
 

@@ -20,7 +20,7 @@ function fmt(v: number): string {
 // IFC GUID (22文字, base64風)。名前から決定的に作る
 const ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_$";
 function guid(name: string): string {
-  const h = createHash("md5").update(`ifcxs:${name}`).digest();
+  const h = createHash("md5").update(`koyu:${name}`).digest();
   let out = ALPHABET[h[0]! % 4]!;
   for (let i = 1; i < 22; i++) out += ALPHABET[h[i % 16]! * (i + 7) % 64]!;
   return out;
@@ -63,7 +63,7 @@ function lp(): string {
   return e(`IFCLOCALPLACEMENT(${lpStorey},${axis0})`);
 }
 
-// ---- 壁 5枚 (壁芯は IFCXS の grid と同じ。外周150, 界壁120, 高さ2400) ----
+// ---- 壁 5枚 (壁芯は koyu の grid と同じ。外周150, 界壁120, 高さ2400) ----
 const H = 2400;
 function wall(name: string, cx: number, cy: number, xd: number, yd: number): string {
   return e(`IFCWALL('${guid(name)}',$,'${name}',$,$,${lp()},${box(cx, cy, xd, yd, 0, H)},$,$)`);
@@ -126,7 +126,7 @@ for (const [name, sp, el, flag] of sb) {
 const header = `ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');
-FILE_NAME('two-rooms.ifc','2026-07-22T00:00:00',('ken'),('IFCXS'),'ifcxs gen-ifc4','ifcxs gen-ifc4','');
+FILE_NAME('two-rooms.ifc','2026-07-22T00:00:00',('ken'),('koyu'),'koyu gen-ifc4','koyu gen-ifc4','');
 FILE_SCHEMA(('IFC4'));
 ENDSEC;
 DATA;`;

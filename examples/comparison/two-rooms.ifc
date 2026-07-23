@@ -1,7 +1,7 @@
 ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('ViewDefinition [CoordinationView]'),'2;1');
-FILE_NAME('two-rooms.ifc','2026-07-22T00:00:00',('ken'),('IFCXS'),'ifcxs gen-ifc4','ifcxs gen-ifc4','');
+FILE_NAME('two-rooms.ifc','2026-07-22T00:00:00',('ken'),('koyu'),'koyu gen-ifc4','koyu gen-ifc4','');
 FILE_SCHEMA(('IFC4'));
 ENDSEC;
 DATA;

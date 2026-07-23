@@ -11,7 +11,7 @@ import { parse } from "../src/parse.js";
 import { siteReport } from "../src/site.js";
 
 const src = readFileSync(
-  fileURLToPath(new URL("../examples/house.ifcxs", import.meta.url)),
+  fileURLToPath(new URL("../examples/house.muro", import.meta.url)),
   "utf8",
 );
 

@@ -10,7 +10,7 @@ import { areaM2, effectiveUse, isSemiOutdoor, zoneAreaM2 } from "../src/model.js
 import { parse } from "../src/parse.js";
 
 const src = readFileSync(
-  fileURLToPath(new URL("../examples/mansion.ifcxs", import.meta.url)),
+  fileURLToPath(new URL("../examples/mansion.muro", import.meta.url)),
   "utf8",
 );
 

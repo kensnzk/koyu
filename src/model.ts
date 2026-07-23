@@ -1,4 +1,4 @@
-// IFCXS v0 — データモデル
+// koyu v0 — データモデル
 // 一次要素は空間。壁は二つの空間の「境界」という関係であり、物ではない。
 // 形はここには無い。形は生成物である。(docs/writing-architecture.md)
 
@@ -339,7 +339,7 @@ export function toCanonical(model: Model): string {
   }
 
   const doc = {
-    ifcxs: model.version,
+    koyu: model.version,
     ...(model.name ? { name: model.name } : {}),
     unit: model.unit,
     grid: { X: model.grid.X.coords, Y: model.grid.Y.coords },

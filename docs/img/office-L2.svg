@@ -37,7 +37,7 @@
 <circle cx="44" cy="84" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="44" y="87.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y4</text>
 <rect x="401" y="364" width="6" height="320" fill="#1f1f1f"/>
-<rect x="84" y="361" width="320" height="6" fill="#1f1f1f"/>
+<line x1="84" y1="364" x2="404" y2="364" stroke="#1f1f1f" stroke-width="1.4"/>
 <rect x="401" y="284" width="6" height="80" fill="#1f1f1f"/>
 <rect x="84" y="279.5" width="160" height="9" fill="#1f1f1f"/>
 <rect x="244" y="279.5" width="160" height="9" fill="#1f1f1f"/>
@@ -105,5 +105,5 @@
 <text x="884" y="197" text-anchor="middle" font-size="10" fill="#8a8171">machine ・ 25.6㎡</text>
 <text x="884" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L2/machine</text>
 <text x="22" y="750" font-size="12" fill="#1f1f1f">小さなオフィス — L2 平面</text>
-<text x="1106" y="750" text-anchor="end" font-size="9" fill="#a49b8a">ifcxs v0 — 空間から生成 (壁芯・mm)</text>
+<text x="1106" y="750" text-anchor="end" font-size="9" fill="#a49b8a">koyu v0 — 空間から生成 (壁芯・mm)</text>
 </svg>

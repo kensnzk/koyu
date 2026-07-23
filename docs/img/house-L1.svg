@@ -76,5 +76,5 @@
 <rect x="341" y="316" width="182" height="182" fill="none" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>
 <text x="432" y="447" text-anchor="middle" font-size="9" fill="#b3ab9c">上部吹抜け</text>
 <text x="22" y="764" font-size="12" fill="#1f1f1f">小さな戸建住宅 — L1 平面</text>
-<text x="660" y="764" text-anchor="end" font-size="9" fill="#a49b8a">ifcxs v0 — 空間から生成 (壁芯・mm)</text>
+<text x="660" y="764" text-anchor="end" font-size="9" fill="#a49b8a">koyu v0 — 空間から生成 (壁芯・mm)</text>
 </svg>

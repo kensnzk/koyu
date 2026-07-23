@@ -8,7 +8,7 @@
 <rect x="504" y="254" width="130" height="130" fill="#f1ebdd"/>
 <rect x="504" y="84" width="130" height="170" fill="#f1ebdd"/>
 <rect x="634" y="84" width="450" height="300" fill="#f1ebdd"/>
-<rect x="84" y="384" width="130" height="120" fill="#f1ebdd"/>
+<rect x="84" y="384" width="130" height="120" fill="#f8f5ec"/>
 <line x1="214" y1="58" x2="214" y2="800" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="214" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="214" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X1</text>
@@ -106,8 +106,8 @@
 <text x="859" y="247" text-anchor="middle" font-size="10" fill="#8a8171">meeting ・ 54㎡</text>
 <text x="859" y="261" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/common</text>
 <text x="149" y="440" text-anchor="middle" font-size="14" fill="#1f1f1f">屋外階段</text>
-<text x="149" y="457" text-anchor="middle" font-size="10" fill="#8a8171">stair ・ 6.24㎡</text>
+<text x="149" y="457" text-anchor="middle" font-size="10" fill="#8a8171">stair ・ 6.24㎡ ・ 半屋外</text>
 <text x="149" y="471" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/stair</text>
 <text x="22" y="840" font-size="12" fill="#1f1f1f">内廊下型集合住宅 — L1 平面</text>
-<text x="1146" y="840" text-anchor="end" font-size="9" fill="#a49b8a">ifcxs v0 — 空間から生成 (壁芯・mm)</text>
+<text x="1146" y="840" text-anchor="end" font-size="9" fill="#a49b8a">koyu v0 — 空間から生成 (壁芯・mm)</text>
 </svg>

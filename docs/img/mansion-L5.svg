@@ -156,5 +156,5 @@
 <text x="149" y="457" text-anchor="middle" font-size="10" fill="#8a8171">stair ・ 6.24㎡ ・ 半屋外</text>
 <text x="149" y="471" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L5/stair</text>
 <text x="22" y="910" font-size="12" fill="#1f1f1f">内廊下型集合住宅 — L5 平面</text>
-<text x="1146" y="910" text-anchor="end" font-size="9" fill="#a49b8a">ifcxs v0 — 空間から生成 (壁芯・mm)</text>
+<text x="1146" y="910" text-anchor="end" font-size="9" fill="#a49b8a">koyu v0 — 空間から生成 (壁芯・mm)</text>
 </svg>

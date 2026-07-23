@@ -1,4 +1,4 @@
-// IFCXS v0 — 平面図の生成
+// koyu v0 — 平面図の生成
 // ソースに形は無い。形は必要になった時にルールから生成する。まず平面図、その後に三次元。
 // 壁は「二つの空間の境界」から導かれて現れる — 壁を描く操作はどこにも無い。
 
@@ -232,7 +232,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   const title = `${model.name ?? "無題"} — ${level} 平面`;
   parts.push(
     `<text x="${M - 62}" y="${H - 18}" font-size="12" fill="${INK}">${esc(title)}</text>`,
-    `<text x="${W - M + 62}" y="${H - 18}" text-anchor="end" font-size="9" fill="#a49b8a">ifcxs v0 — 空間から生成 (壁芯・mm)</text>`,
+    `<text x="${W - M + 62}" y="${H - 18}" text-anchor="end" font-size="9" fill="#a49b8a">koyu v0 — 空間から生成 (壁芯・mm)</text>`,
   );
 
   parts.push("</svg>");

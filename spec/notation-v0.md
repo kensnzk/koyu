@@ -1,4 +1,4 @@
-# IFCXS 記法 v0 (draft)
+# koyu 記法 v0 (draft)
 
 状態: 素振り。この文書は二室一扉を書くために生まれた最初の記法の記録であり、確定仕様ではない。ここでの決定の理由は docs/decisions/0001-notation-v0.md に、思想は docs/writing-architecture.md にある。
 
@@ -15,7 +15,7 @@
 ```
 # 二室一扉 — 最初の一手
 
-ifcxs 0.1
+koyu 0.1
 name 二室一扉
 unit mm
 
@@ -50,7 +50,7 @@ v0 を決めるために、同じ場面を三つの形式で書いた。上の D
 二つ目、YAML:
 
 ```yaml
-ifcxs: "0.1"
+koyu: "0.1"
 name: 二室一扉
 unit: mm
 grid:
@@ -80,11 +80,11 @@ boundaries:
       - {kind: door, w: 900, h: 2100, edge: S, name: 玄関}
 ```
 
-三つ目、JSON。これは `ifcxs json` が吐く正準形そのものであり、全文は examples/two-rooms.canonical.json にある (111行)。抜粋:
+三つ目、JSON。これは `koyu json` が吐く正準形そのものであり、全文は examples/two-rooms.canonical.json にある (111行)。抜粋:
 
 ```json
 {
-  "ifcxs": "0.1",
+  "koyu": "0.1",
   "name": "二室一扉",
   "unit": "mm",
   "grid": { "X": [0, 3600, 7200], "Y": [0, 4500] },
@@ -107,17 +107,17 @@ boundaries:
 | パーサ | 自作 (約300行で済んだ) | 既存 | 既存 |
 | レイヤー合成 | 直接は不向き | 中間 | 最も素直 (IFCX/USDと同じ土俵) |
 
-**決定: author形式はDSL、機械形式は正準JSON。** 人が(そしてLLMが)読み書きする原本はDSLで持ち、合成・diff・外部接続の土台には `ifcxs json` の正準形を使う。YAMLは両者の中間で決め手を欠くため見送る。DSLの代償はエディタ支援が無いことと文法の保守だが、文法を「一行一文 + key:value + 字下げ」から増やさないことで抑える。
+**決定: author形式はDSL、機械形式は正準JSON。** 人が(そしてLLMが)読み書きする原本はDSLで持ち、合成・diff・外部接続の土台には `koyu json` の正準形を使う。YAMLは両者の中間で決め手を欠くため見送る。DSLの代償はエディタ支援が無いことと文法の保守だが、文法を「一行一文 + key:value + 字下げ」から増やさないことで抑える。
 
 ## 正準JSONの形 (機械形式)
 
-`ifcxs json` が吐く正準JSONは次のキーを持つ。`ifcxs` (版)、`name`、`unit`、`grid` (X/Y各軸の座標配列 mm)、`levels` (名前→ `{z, h?}`)、`spaces` (パス→ `{type, at?, attrs?}`。`at` は `[XA, YA, XB, YB]` の通り名4つ)、`boundaries` (配列。各要素は `{between, kind, t?, edge?, attrs?, openings?}` で、`between` は昇順に並べた2パス、`openings` の各要素は `{kind, w, h?, at, edge?, attrs?}`)。
+`koyu json` が吐く正準JSONは次のキーを持つ。`koyu` (版)、`name`、`unit`、`grid` (X/Y各軸の座標配列 mm)、`levels` (名前→ `{z, h?}`)、`spaces` (パス→ `{type, at?, attrs?}`。`at` は `[XA, YA, XB, YB]` の通り名4つ)、`boundaries` (配列。各要素は `{between, kind, t?, edge?, attrs?, openings?}` で、`between` は昇順に並べた2パス、`openings` の各要素は `{kind, w, h?, at, edge?, attrs?}`)。
 
 安定性の規則: すべてのオブジェクトキーはソートされ、`spaces` はパス順、`boundaries` は `between` の辞書順に並ぶ。同じ構成からは常にバイト同一のJSONが出るため、diff・ハッシュ・レイヤー合成の土台に使える。素振り段階の現在は src/model.ts の `toCanonical()` の実装を正とし、本節はその写しである (乖離したらどちらを直すかをその時に決め、ADRに残す)。
 
 ## v0.1 追補 — オフセットと高さ方向 (2026-07-23)
 
-複数レベル・廊下と複数室・芯外の壁を書くための追補。理由は ADR-0002、実例は examples/office.ifcxs (2フロアのオフィス、約100行)。
+複数レベル・廊下と複数室・芯外の壁を書くための追補。理由は ADR-0002、実例は examples/office.muro (2フロアのオフィス、約100行)。
 
 **通り芯オフセット。** 領域の参照は `X2+600` `Y3-150` のように芯からの寸法を足し引きできる。座標の直書きは無い — 芯の言語を保つ。
 
@@ -129,7 +129,7 @@ boundaries:
 
 **stats の use 集計。** 空間に `use:rentable` / `use:common` などの属性を与えると、statsが面積比 (レンタブル比) を返す。
 
-**基準階の反復 — 一度だけ書く (v0.2 / ADR-0004)。** レベルの等差宣言 `level L3..L9 6700 pitch:2900 h:2400 slab:500`、パスのスパン展開 `space /L2..L9/A unit ...` (宣言済みレベルのz順の並びへ展開。一行内の複数パスは同じスパンで、同じ階に揃う)、垂直積層の宣言 `stack ev L1..L10 type:shaft` (連続レベル対に垂直境界)。DSLは意図 (基準階は一つ) を保持し、正準JSONは展開後を持つ。例外階 (特定階だけ違う) は未対応 — 吹抜け (type:void) と同時に設計する。実例: examples/mansion.ifcxs (10階建て43戸が159行 → 90空間・244境界)。
+**基準階の反復 — 一度だけ書く (v0.2 / ADR-0004)。** レベルの等差宣言 `level L3..L9 6700 pitch:2900 h:2400 slab:500`、パスのスパン展開 `space /L2..L9/A unit ...` (宣言済みレベルのz順の並びへ展開。一行内の複数パスは同じスパンで、同じ階に揃う)、垂直積層の宣言 `stack ev L1..L10 type:shaft` (連続レベル対に垂直境界)。DSLは意図 (基準階は一つ) を保持し、正準JSONは展開後を持つ。例外階 (特定階だけ違う) は未対応 — 吹抜け (type:void) と同時に設計する。実例: examples/mansion.muro (10階建て43戸が159行 → 90空間・244境界)。
 
 **数えない分節 (area / seg)。** 室を割らずに床材の切替や壁材の途中変更を書く従属要素 (ADR-0003)。`space` の字下げに `area X?..X? Y?..Y? floor:モルタル name:土間`、`boundary` の字下げに `seg at:0.75 w:3600 spec:ガラスパーティション` (位置は開口と同じ流儀)。隔離則: これらは面積・室数・グラフに一切影響しない。リトマス試験は「面積表に一行として現れてほしいか」(欲しければspace) と「そこを通れるかが問題になるか」(なるならboundary/opening)。平面図ではareaは淡い面+破線、segは壁の色調変化として描かれる。
 
@@ -151,7 +151,7 @@ boundaries:
 
 **開き勝手。** `door ... hinge:E swing:b` — 吊元 (線分の端) と開く側 (境界のa/b)。既定は始端・a側。
 
-**メゾネット (ADR-0008)。** パスの第一義は集計の階層。階を跨ぐくくりは `level:` 属性で階を明示する: `space /home/bed1 ... level:L2`。ゾーンが階を跨いで住戸を束ねる (examples/house.ifcxs)。
+**メゾネット (ADR-0008)。** パスの第一義は集計の階層。階を跨ぐくくりは `level:` 属性で階を明示する: `space /home/bed1 ... level:L2`。ゾーンが階を跨いで住戸を束ねる (examples/house.muro)。
 
 **部分吹抜け (ADR-0006追記)。** 下階の天井高は階高内のまま、吹抜け部分の高さは導出。全面吹抜け (被覆≥99%) のときだけ階をまたぐ天井高を宣言できる。下階平面に「上部吹抜け」の破線表示。
 

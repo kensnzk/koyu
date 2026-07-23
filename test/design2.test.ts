@@ -11,11 +11,11 @@ import { areaM2, effectiveUse } from "../src/model.js";
 import { parse } from "../src/parse.js";
 
 const mansion = readFileSync(
-  fileURLToPath(new URL("../examples/mansion.ifcxs", import.meta.url)),
+  fileURLToPath(new URL("../examples/mansion.muro", import.meta.url)),
   "utf8",
 );
 const office = readFileSync(
-  fileURLToPath(new URL("../examples/office.ifcxs", import.meta.url)),
+  fileURLToPath(new URL("../examples/office.muro", import.meta.url)),
   "utf8",
 );
 

@@ -8,7 +8,7 @@
 import { createHash } from "node:crypto";
 
 function uuid(name: string): string {
-  const h = createHash("md5").update(`ifcxs:${name}`).digest("hex");
+  const h = createHash("md5").update(`koyu:${name}`).digest("hex");
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20, 32)}`;
 }
 
@@ -82,7 +82,7 @@ const H = 2400;
 const d1 = element("Door_1", "IfcDoor", boxMesh(3570, 1860, 0, 3630, 2640, 2000), WOOD);
 const d2 = element("Door_2", "IfcDoor", boxMesh(4950, -30, 0, 5850, 30, 2100), WOOD);
 
-// 壁 5枚 (壁芯はIFCXSのgridと同じ。外周150・界壁120)
+// 壁 5枚 (壁芯はkoyuのgridと同じ。外周150・界壁120)
 const wN = element("Wall_N", "IfcWall", boxMesh(-75, 4425, 0, 7275, 4575, H), GRAY);
 const wS = element("Wall_S", "IfcWall", boxMesh(-75, -75, 0, 7275, 75, H), GRAY, { Door_2: d2 });
 const wW = element("Wall_W", "IfcWall", boxMesh(-75, 75, 0, 75, 4425, H), GRAY);
@@ -117,7 +117,7 @@ data.unshift(
 
 const file = {
   header: {
-    id: "ifcxs/examples/comparison/two-rooms.ifcx",
+    id: "koyu/examples/comparison/two-rooms.ifcx",
     ifcxVersion: "ifcx_alpha",
     dataVersion: "1.0.0",
     author: "shinozaki.ken.141@gmail.com",

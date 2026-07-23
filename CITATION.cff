@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "この探求を参照する場合は、以下の情報で引用してください。"
+title: "koyu (戸牖) — 空間を一次要素とするテキストネイティブ建築記述"
+authors:
+  - family-names: "Shinozaki"
+    given-names: "Ken"
+    email: "shinozaki.ken.141@gmail.com"
+version: "0.5.0"
+date-released: "2026-07-23"
+license: "Apache-2.0"
+keywords:
+  - architecture
+  - BIM
+  - IFC
+  - ontology
+  - spatial-description
+  - text-native
+  - DSL
+abstract: >-
+  空間を一次要素とするテキストを建築の原本とし、形はそこから生成する。
+  壁は二つの空間の境界という関係、開口は境界に開いた接続。
+  建物一棟を数百行で書く記法とツール群の探求。
+  Writing architecture, not buildings: a text-native, space-first
+  notation where walls are boundaries between spaces and form is
+  generated, not authored.
