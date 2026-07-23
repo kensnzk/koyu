@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "この探求を参照する場合は、以下の情報で引用してください。"
-title: "koyu (戸牖) — 空間を一次要素とするテキストネイティブ建築記述"
+title: "koyu (戸牖) — a space-first, text-native notation for architecture"
 authors:
   - family-names: "Shinozaki"
     given-names: "Ken"

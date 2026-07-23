@@ -1,8 +1,20 @@
 {
-  "title": "koyu (戸牖) — 空間を一次要素とするテキストネイティブ建築記述",
-  "description": "空間を一次要素とするテキストを建築の原本とし、形はそこから生成する探求。壁は二つの空間の境界という関係、開口は境界に開いた接続。建物一棟を数百行で書く。Writing architecture, not buildings.",
-  "creators": [{"name": "Shinozaki, Ken"}],
+  "title": "koyu (戸牖) — a space-first, text-native notation for architecture",
+  "description": "An exploration of text-native architectural description with space as the primary element: walls are boundaries between spaces, openings are connections, form is generated rather than authored. A whole building in a few hundred lines. 空間を一次要素とするテキストネイティブ建築記述の探求。",
+  "creators": [
+    {
+      "name": "Shinozaki, Ken"
+    }
+  ],
   "license": "Apache-2.0",
-  "keywords": ["architecture", "BIM", "IFC", "ontology", "spatial description", "text-native", "DSL"],
+  "keywords": [
+    "architecture",
+    "BIM",
+    "IFC",
+    "ontology",
+    "spatial description",
+    "text-native",
+    "DSL"
+  ],
   "upload_type": "software"
 }

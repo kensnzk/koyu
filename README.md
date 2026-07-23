@@ -1,10 +1,13 @@
-# koyu (戸牖) — 建築を書く
+# koyu (戸牖) — writing architecture, not buildings
 
-> 鑿戸牖以為室、当其無、有室之用 — 老子 第十一章
+> 鑿戸牖以為室、当其無、有室之用
+> *Cut doors and windows to make a room; it is the emptiness within that makes the room useful.* — Laozi, ch. 11
 
-空間を一次要素とするテキストネイティブな建築記述の探求。壁は物ではなく二つの空間の境界という関係であり、形はソースではなく生成物である。建物一棟を数百行のテキストで書き、git・LLM・都市データと同じ土俵に載せることを狙う。主張の全文は [docs/writing-architecture.md](docs/writing-architecture.md)。
+[日本語](README.ja.md)
 
-二室一扉はこう書く (全文 [examples/two-rooms.muro](examples/two-rooms.muro)):
+An exploration of text-native architectural description with **space as the primary element**. A wall is not a thing — it is the boundary between two spaces. An opening is a connection cut into a boundary. Form is not source — it is generated. A whole building fits in a few hundred lines of text, which puts architecture on the same ground as git, LLMs, and city-scale data. The full argument (in Japanese) is in [docs/writing-architecture.md](docs/writing-architecture.md).
+
+Two rooms and one door are written like this (full file: [examples/two-rooms.muro](examples/two-rooms.muro)):
 
 ```
 space /L1/a room X1..X2 Y1..Y2 name:居室A
@@ -15,55 +18,55 @@ boundary /L1/a /L1/b t:120 spec:PW1
   door w:780 h:2000
 ```
 
-ここから平面図が生成される。壁を描く操作はどこにも無い — 壁は空間の割付から導出される。
+The floor plan is generated from this. There is no operation that draws a wall — walls are derived from the layout of spaces.
 
-![二室一扉の平面図](docs/img/two-rooms.svg)
+![Plan of two rooms and one door](docs/img/two-rooms.svg)
 
-2フロアのオフィス (廊下・コア・通り芯オフセット壁・階段/EV・高さの整合つき) でも約100行 ([examples/office.muro](examples/office.muro))。解像度は基本計画レベル — 垂れ壁を表現しないのは省略ではなく抽象度の選択で、計画初期にBIMが重すぎたという弱点の裏側がこの記述の主戦場である。高さ方向の一貫性は「天井高+上階slab ≤ 階高」という宣言された不変量の検査で担保する (ADR-0002)。
+A two-story office — corridor, core, offset walls off the grid lines, stairs/elevator, vertical consistency — is about 100 lines ([examples/office.muro](examples/office.muro)). The resolution is schematic-design level. Not modeling downstand beams is not an omission but a chosen level of abstraction: the early design phase, where BIM has always been too heavy, is exactly where this notation lives. Vertical consistency is enforced as a declared invariant — ceiling height + slab above ≤ floor-to-floor height (ADR-0002).
 
-![オフィス1階平面図](docs/img/office-L1.svg)
+![Office level 1 plan](docs/img/office-L1.svg)
 
-10階建て内廊下型集合住宅 (43戸、EV+屋外階段、屋上、Aタイプは間取り込み) は **183行** ([examples/mansion.muro](examples/mansion.muro))。基準階は一度だけ書き、`/L2..L9/A` のスパンが8フロアへ展開される (ADR-0004)。L字のLDKは矩形の合併、住戸は `zone` (数える集約) で間取りに割っても専有面積の言葉を保つ (ADR-0005)。吹抜けは `type:void` の垂直境界 — 床の不在も境界で書く (ADR-0006)。`doors` が「9階のLDKから地上まで扉3枚」に、`light` が住居系居室の1/7採光に即答する。
+A 10-story double-loaded apartment building — 43 units, elevator + exterior stair, roof, unit type A with its interior layout — is **183 lines** ([examples/mansion.muro](examples/mansion.muro)). The typical floor is written once and the span `/L2..L9/A` expands it across eight floors (ADR-0004). An L-shaped living room is a union of rectangles; units are `zone`s (counted aggregation), so subdividing a unit into rooms never loses the language of net area (ADR-0005). A double-height void is a vertical boundary of `type:void` — even the absence of a floor is written as a boundary (ADR-0006). `doors` answers "how many doors from the 9th-floor living room to the street"; `light` gives a first-pass check of the 1/7 daylighting ratio for habitable rooms.
 
-![集合住宅基準階平面図](docs/img/mansion-L5.svg)
+![Apartment typical floor plan](docs/img/mansion-L5.svg)
 
-## 使い方
+## Usage
 
 ```sh
 npm install
 npm test
 
-npm run koyu -- check examples/two-rooms.muro        # 整合チェック
+npm run koyu -- check examples/two-rooms.muro        # consistency check
 npm run koyu -- plan  examples/two-rooms.muro -o out/two-rooms.svg
-npm run koyu -- doors examples/two-rooms.muro /L1/a /out   # → 2枚
-npm run koyu -- graph examples/two-rooms.muro        # 空間グラフ
-npm run koyu -- stats examples/two-rooms.muro        # 面積 (壁芯)
-npm run koyu -- json  examples/two-rooms.muro        # 正準JSON (機械形式)
+npm run koyu -- doors examples/two-rooms.muro /L1/a /out   # → 2 doors
+npm run koyu -- graph examples/two-rooms.muro        # the space graph
+npm run koyu -- stats examples/two-rooms.muro        # areas (centerline)
+npm run koyu -- json  examples/two-rooms.muro        # canonical JSON (machine form)
 
-npm run koyu -- plan   examples/office.muro -l L2    # レベル別の平面図
-npm run koyu -- levels examples/office.muro          # テキストの矩計 (高さの積み上がり)
-npm run koyu -- doors  examples/office.muro /L2/office /out   # → 4枚 (階段経由)
-npm run koyu -- stats  examples/mansion.muro         # 面積・ゾーン集計・専有率
-npm run koyu -- light  examples/mansion.muro         # 採光 1/7 の粗い判定
-npm run koyu -- site   examples/house.muro           # 敷地面積・接道・建蔽率・容積率
+npm run koyu -- plan   examples/office.muro -l L2    # per-level plans
+npm run koyu -- levels examples/office.muro          # a textual section (height stack-up)
+npm run koyu -- doors  examples/office.muro /L2/office /out   # → 4 doors (via the stair)
+npm run koyu -- stats  examples/mansion.muro         # areas, zone rollups, efficiency ratio
+npm run koyu -- light  examples/mansion.muro         # rough 1/7 daylight check
+npm run koyu -- site   examples/house.muro           # site area, frontage, coverage, FAR
 ```
 
-## 構成
+## Layout
 
-記法の仕様と書き比べは [spec/notation-v0.md](spec/notation-v0.md)、属性の付け方の契約は [spec/vocabulary.md](spec/vocabulary.md)、IFC4とのカバレッジ照合は [docs/ifc-coverage.md](docs/ifc-coverage.md)、設計判断の記録は [docs/decisions/](docs/decisions/)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [koyu](https://linear.app/munipersonal/project/koyu-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。実装は src/ に約900行 (パーサ・グラフ・チェック・平面図生成・CLI)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室一扉をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。
+The notation spec and side-by-side comparisons are in [spec/notation-v0.md](spec/notation-v0.md); the contract for attributes is [spec/vocabulary.md](spec/vocabulary.md); coverage against the IFC4 architectural core is [docs/ifc-coverage.md](docs/ifc-coverage.md); design decisions are recorded in [docs/decisions/](docs/decisions/); the roadmap is [docs/roadmap.md](docs/roadmap.md); daily logs are in [docs/log/](docs/log/). The implementation is ~900 lines in src/ (parser, graph, checks, plan generation, CLI), tests in test/. Reading notes on IFCX are in [docs/ifcx-notes.md](docs/ifcx-notes.md); the same two-rooms-one-door written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).
 
-## 技術方針
+## Technical stance
 
-TypeScriptで書き、実行時依存はゼロに保つ。BIM/IFC系のツールが必要になったらThatOpenのOSS (web-ifc, @thatopen/components) を使う。IFC_samples/ はIFC取り込み (M5) 用のサンプルコーパスでgitの外に置いている (第三者提供のファイルのため再配布しない)。
+TypeScript, zero runtime dependencies. When BIM/IFC tooling is needed, ThatOpen's OSS (web-ifc, @thatopen/components) is used. IFC_samples/ is a sample corpus for one-way IFC import (M5) and is kept out of git (third-party files; not redistributed).
 
-これは探求である。事業化を目的とせず、オーサリングツールは作らず、往復互換は捨て、直交グリッドに絞る。
+This is an exploration. It is not aimed at commercialization; it builds no authoring tool, abandons round-trip compatibility, and restricts itself to orthogonal grids.
 
-## 名について
+## The name
 
-戸牖 (こゆう) は戸と窓 — 開口。老子第十一章は「戸牖を鑿ちて以て室と為す。其の無に当たりて、室の用有り」と言う。開口を鑿ってはじめて室になり、室の用は壁ではなく無 (空間) の側にある。空間を一次要素とし、壁を境界という関係、開口を境界に開いた接続として書くこの記法の、これが最古の出典である。同音の「固有」も掛かっている — 各空間は人間可読な固有名 (階層パス) で名指される。
+戸牖 (*koyu*) means doors and windows — openings. Laozi, chapter 11: cut doors and windows to make a room; it is the emptiness — the space — that makes the room useful, not the walls. For a notation in which space is primary, walls are relations, and openings are connections cut into boundaries, this is the oldest source there is. The homophone 固有 (*koyu*, "proper / intrinsic") is also intended: every space is addressed by a human-readable proper name, its hierarchical path.
 
-ファイル拡張子は `.muro` (室)。ファイルが保持する単位は部材ではなく室である。
+The file extension is `.muro` (室, *muro* — room). The unit a file holds is not a building component but a room.
 
-## ライセンス
+## License
 
-コード (src/, test/, examples/ ほか) は [Apache License 2.0](LICENSE)。文書 (docs/, spec/, 原稿「[建築を書く](docs/writing-architecture.md)」) は [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja)。引用情報は [CITATION.cff](CITATION.cff)。
+Code (src/, test/, examples/, …) is under the [Apache License 2.0](LICENSE). Documents (docs/, spec/, and the essay "[建築を書く / Writing Architecture](docs/writing-architecture.md)") are under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Citation metadata is in [CITATION.cff](CITATION.cff).
