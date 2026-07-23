@@ -34,11 +34,16 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   );
   if (rooms.length === 0) throw new Error(`レベル ${level} に領域を持つ空間がありません`);
 
+  // 敷地形状 (ADR-0011) は最下階の平面 (配置図兼用) に敷地境界線として描く
+  const lowest = Object.values(model.levels).sort((a, b) => a.z - b.z)[0]?.name;
+  const sitePolys = level === lowest ? [...model.polygons.values()] : [];
+
   const allRects = rooms.flatMap((s) => s.rects);
-  const minX = Math.min(...allRects.map((r) => r.x1));
-  const maxX = Math.max(...allRects.map((r) => r.x2));
-  const minY = Math.min(...allRects.map((r) => r.y1));
-  const maxY = Math.max(...allRects.map((r) => r.y2));
+  const polyPts = sitePolys.flatMap((p) => p.points);
+  const minX = Math.min(...allRects.map((r) => r.x1), ...polyPts.map((p) => p.x));
+  const maxX = Math.max(...allRects.map((r) => r.x2), ...polyPts.map((p) => p.x));
+  const minY = Math.min(...allRects.map((r) => r.y1), ...polyPts.map((p) => p.y));
+  const maxY = Math.max(...allRects.map((r) => r.y2), ...polyPts.map((p) => p.y));
 
   const M = 84; // 余白 px (通り芯記号ぶん)
   const W = (maxX - minX) * scale + M * 2;
@@ -51,6 +56,14 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">`,
   );
   parts.push(`<rect width="${W}" height="${H}" fill="${PAPER}"/>`);
+
+  // 敷地境界線 (一点二点鎖線 — 作図慣習)。形は生成しない: 書かれた所与の形をそのまま引く
+  for (const poly of sitePolys) {
+    const d = poly.points.map((pt, i) => `${i === 0 ? "M" : "L"} ${sx(pt.x)} ${sy(pt.y)}`).join(" ");
+    parts.push(
+      `<path d="${d} Z" fill="none" stroke="#8a8171" stroke-width="1.1" stroke-dasharray="14 3 2.5 3 2.5 3"/>`,
+    );
+  }
 
   // 空間の面 (合併の各矩形。同色・輪郭なしなのでL字は一体に見える)
   // 半屋外 (外部にopen/railで接する空間) は淡く塗り分け、屋外であることが図から読めるように

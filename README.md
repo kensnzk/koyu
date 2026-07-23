@@ -30,6 +30,8 @@ A 10-story double-loaded apartment building — 43 units, elevator + exterior st
 
 ![Apartment typical floor plan](docs/img/mansion-L5.svg)
 
+The full-feature showcase is **[examples/tower/](examples/tower/)** — an 11-storey mixed-use corner building (retail below, housing above, a penthouse floor, ~4,786m² GFA) composed from 8 files. Its site is an irregular pentagon: site shape is the one thing this notation allows to be *written* as geometry (`polygon`, ADR-0011), because a site's shape is surveyed input from the world, not designed form — it lives in its own quarantined layer (site-geometry.muro) and the derived area, building containment, and the site boundary line on the plan all follow from it. Everything else demonstrates the rest of the notation at once: a two-storey entrance void, interlocking L-shaped units, balconies, a low-rise roof terrace written as an exception-floor *diff layer*, door/window assets with an auto-door, explicit grid-referenced positions, and one unit type subdivided into rooms. 178 spaces / 542 boundaries check clean; 66 habitable rooms pass the 1/7 daylight test; "how many doors from the 9th-floor living room to the street" answers 4.
+
 A building can also be written as a set of files and composed, USD-style ([examples/house/](examples/house/)): a base layer declares the shared foundation (grid, levels) exactly once and `import`s the door/window assets, the site, and each floor — authored separately, merged additively, with conflicts (duplicate paths, duplicate asset names, re-declared grids) rejected at build time with file:line provenance. `koyu check main.muro` is the build gate for the whole building. Door/window types are `asset`s — Revit's Family, USD's Reference — referenced by instances that override their defaults (`door SD1 sill:800`), and opening positions can be written against the grid (`at:Y2+1820`) with overflow and overlap validated (ADR-0010).
 
 ## Usage
@@ -52,6 +54,7 @@ npm run koyu -- stats  examples/mansion.muro         # areas, zone rollups, effi
 npm run koyu -- light  examples/mansion.muro         # rough 1/7 daylight check
 npm run koyu -- site   examples/house.muro           # site area, frontage, coverage, FAR
 npm run koyu -- check  examples/house/main.muro      # multi-file composition: the build gate
+npm run koyu -- site   examples/tower/main.muro      # showcase: polygon site, two roads, FAR
 ```
 
 ## Layout

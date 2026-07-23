@@ -189,6 +189,60 @@ export interface Model {
   zones: Map<string, Zone>;
   assets: Map<string, Asset>;
   boundaries: Boundary[];
+  /** 敷地形状 — 所与のジオメトリ (ADR-0011)。パス→頂点列 (mm)。唯一、書かれる形 */
+  polygons: Map<string, SitePolygon>;
+}
+
+/** 平面上の点 (mm) */
+export interface Pt {
+  x: number;
+  y: number;
+}
+
+/** 敷地形状 (ADR-0011) — 測量に由来する所与の多角形。建物の形は生成物のままで、
+ *  これはゾーン (site:1) に付く入力データ。隔離レイヤー (別ファイル+import) 推奨 */
+export interface SitePolygon {
+  path: string;
+  points: Pt[];
+  line: number;
+  file?: string;
+}
+
+/** 多角形の面積 ㎡ (シューレース公式)。頂点は順不同 (時計/反時計どちらでも) */
+export function polygonAreaM2(points: Pt[]): number {
+  let sum = 0;
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i]!;
+    const b = points[(i + 1) % points.length]!;
+    sum += a.x * b.y - b.x * a.y;
+  }
+  return Math.abs(sum) / 2 / 1e6;
+}
+
+/** 点が多角形の内側にあるか (境界上は内側扱い、許容誤差eps mm) */
+export function pointInPolygon(p: Pt, poly: Pt[], eps = 1): boolean {
+  // 境界上の判定 (線分との距離 ≤ eps)
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i]!;
+    const b = poly[(i + 1) % poly.length]!;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy;
+    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2));
+    const qx = a.x + t * dx;
+    const qy = a.y + t * dy;
+    if ((p.x - qx) ** 2 + (p.y - qy) ** 2 <= eps * eps) return true;
+  }
+  // レイキャスト
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const a = poly[i]!;
+    const b = poly[j]!;
+    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) {
+      inside = !inside;
+    }
+  }
+  return inside;
 }
 
 export class SourceError extends Error {
@@ -383,6 +437,10 @@ export function toCanonical(model: Model): string {
     const a = model.assets.get(n)!;
     assets[n] = { kind: a.kind, ...(Object.keys(a.attrs).length ? { attrs: sortObj(a.attrs) } : {}) };
   }
+  const polygons: Record<string, number[][]> = {};
+  for (const p of [...model.polygons.keys()].sort()) {
+    polygons[p] = model.polygons.get(p)!.points.map((pt) => [pt.x, pt.y]);
+  }
 
   const doc = {
     koyu: model.version,
@@ -402,6 +460,7 @@ export function toCanonical(model: Model): string {
       ),
     ),
     ...(Object.keys(assets).length ? { assets } : {}),
+    ...(Object.keys(polygons).length ? { polygons } : {}),
     ...(Object.keys(zones).length ? { zones } : {}),
     spaces,
     boundaries,

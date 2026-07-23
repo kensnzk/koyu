@@ -14,6 +14,7 @@ import {
 } from "./graph.js";
 import { heff, isSemiOutdoor, levelsSorted, type Model, type Space,
   srcRef,
+  pointInPolygon,
 } from "./model.js";
 
 export interface CheckResult {
@@ -313,6 +314,38 @@ export function check(model: Model): CheckResult {
       warnings.push(
         `${srcRef(s.line, s.file)}: ${s.path} は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)`,
       );
+    }
+  }
+
+  // 敷地形状 (ADR-0011): 対応ゾーンの存在と、建物のはみ出し検査。
+  // 建物 (敷地ゾーン配下でも外部でもない、領域を持つ空間) の全ての角は敷地の中になければならない。
+  // 地上の外部空間タイル (庭・通路) は近似なので検査しない — 面積の真は多角形が持つ
+  for (const poly of model.polygons.values()) {
+    const zone = model.zones.get(poly.path);
+    if (!zone) {
+      warnings.push(
+        `${srcRef(poly.line, poly.file)}: polygon ${poly.path} に対応するゾーンがありません`,
+      );
+      continue;
+    }
+    if (zone.attrs["site"] !== 1) continue;
+    for (const s of withRect) {
+      if (s.type === "exterior" || s.path.startsWith(poly.path + "/")) continue;
+      for (const r of s.rects) {
+        const corners = [
+          { x: r.x1, y: r.y1 },
+          { x: r.x2, y: r.y1 },
+          { x: r.x2, y: r.y2 },
+          { x: r.x1, y: r.y2 },
+        ];
+        const out = corners.find((c) => !pointInPolygon(c, poly.points));
+        if (out) {
+          errors.push(
+            `${srcRef(s.line, s.file)}: ${s.path} が敷地形状からはみ出しています (角 ${out.x},${out.y})`,
+          );
+          break;
+        }
+      }
     }
   }
 

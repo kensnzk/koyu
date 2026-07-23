@@ -29,6 +29,7 @@ function emptyModel(): Model {
     zones: new Map(),
     assets: new Map(),
     boundaries: [],
+    polygons: new Map(),
   };
 }
 
@@ -190,6 +191,34 @@ function ingest(
           name: aname,
           kind: akind,
           attrs: parseAttrs(rest.slice(2), ln),
+          line: ln,
+          ...(file ? { file } : {}),
+        });
+        break;
+      }
+      case "polygon": {
+        // 敷地形状 (ADR-0011) — 所与のジオメトリ。唯一、書かれる形。
+        // polygon /site -2600,-7000 38000,-7000 38000,15600 2000,16800 -2600,12000
+        const ppath = rest[0];
+        if (!ppath || !ppath.startsWith("/")) {
+          throw new SourceError(ln, "polygon は polygon /ゾーンパス x,y x,y x,y ... の形で書きます");
+        }
+        const pts = rest.slice(1).map((tok) => {
+          const m = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(tok);
+          if (!m) throw new SourceError(ln, `頂点が読めません (x,y のmm座標): ${tok}`);
+          return { x: Number(m[1]), y: Number(m[2]) };
+        });
+        if (pts.length < 3) throw new SourceError(ln, "polygon には頂点を3つ以上書きます");
+        const prevP = model.polygons.get(ppath);
+        if (prevP) {
+          throw new SourceError(
+            ln,
+            `敷地形状が重複しています: ${ppath} (既出: ${prevP.file ?? "同ファイル"}:${prevP.line}行目)`,
+          );
+        }
+        model.polygons.set(ppath, {
+          path: ppath,
+          points: pts,
           line: ln,
           ...(file ? { file } : {}),
         });

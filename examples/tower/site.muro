@@ -1,0 +1,33 @@
+# 外構の層 — 外部の分節と地上の外部空間 (ADR-0009)
+# 角地: 南12m道路+東6m道路。地上の外部空間は建物の周りをタイルする実在の空間。
+# タイルは矩形の近似 — 面積の真は敷地形状 (site-geometry.muro のpolygon) が持つ。
+
+space /out/road-s exterior name:南側道路 road:12000
+space /out/road-e exterior name:東側道路 road:6000
+space /out/n exterior name:北側隣地
+space /out/w exterior name:西側隣地
+
+zone /site name:敷地 site:1 area:1097.80
+
+space /site/walk  plaza   X1-2600..X6+6000 Y1-7000..Y1-4600 level:L1 name:歩道状空地
+space /site/park  parking X6..X6+6000 Y1-4600..Y2           level:L1 name:駐車場・荷捌き
+space /site/cycle yard    X6..X6+6000 Y2..Y4+2400           level:L1 name:駐輪場
+space /site/west  yard    X1-1400..X1 Y1-4600..Y4           level:L1 name:西側通路
+space /site/green yard    X1..X6 Y4..Y4+2400                level:L1 name:北側植栽帯
+
+# ---- 外部空間同士の連続 ----
+boundary /site/walk /site/park type:open
+boundary /site/walk /site/west type:open
+boundary /site/park /site/cycle type:open
+boundary /site/green /site/cycle type:open
+
+# ---- 道路との接続 (接道): 商業前面と車路は開放、駐輪は柵 ----
+boundary /site/walk /out/road-s edge:S type:open
+boundary /site/park /out/road-e edge:E type:open
+boundary /site/cycle /out/road-e edge:E t:120 spec:フェンス air:1 h:1200
+
+# ---- 隣地境界: 塀は境界の語彙 (物はspec、外気は遮らない) ----
+boundary /site/walk /out/w edge:W t:120 spec:ブロック塀 air:1 h:1800
+boundary /site/west /out/w edge:W t:120 spec:ブロック塀 air:1 h:1800
+boundary /site/green /out/n edge:N t:120 spec:ブロック塀+フェンス air:1 h:1800
+boundary /site/cycle /out/n edge:N t:120 spec:フェンス air:1 h:1200

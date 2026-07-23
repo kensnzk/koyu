@@ -212,10 +212,13 @@ function main(argv: string[]): number {
         const nm = r.siteZone.attrs["name"];
         console.log(`敷地 ${r.siteZone.path}${typeof nm === "string" ? ` (${nm})` : ""}`);
       }
+      if (r.polygon) {
+        console.log(`  敷地形状: 多角形 ${r.polygon.points.length}頂点 (polygon宣言 — 所与のジオメトリ)`);
+      }
       if (r.declaredArea !== undefined) {
         const ok = Math.abs(r.declaredArea - r.derivedArea) < 0.05;
         console.log(
-          `  敷地面積: 宣言 ${r.declaredArea.toFixed(2)}㎡ / 導出 ${r.derivedArea.toFixed(2)}㎡ ${ok ? "✔ 一致" : "⚠ 不一致 (タイルの隙間か重なり)"}`,
+          `  敷地面積: 宣言 ${r.declaredArea.toFixed(2)}㎡ / 導出 ${r.derivedArea.toFixed(2)}㎡ ${ok ? "✔ 一致" : `⚠ 不一致 (${r.polygon ? "測量値と多角形の食い違い" : "タイルの隙間か重なり"})`}`,
         );
       } else {
         console.log(`  敷地面積 (導出): ${r.derivedArea.toFixed(2)}㎡`);

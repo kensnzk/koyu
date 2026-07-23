@@ -1,0 +1,118 @@
+# 基準階の層 — L3..L10の住戸とL3..L11のコアを「一度だけ」書く (ADR-0004)。
+# 南列: A (間取りまで割る・L字LDK) / B (Aと噛み合うL字) / C。北列: D / E / F。
+# バルコニーはL4..L10 (L3の南は低層部屋根のテラス — L3.muro が例外の差分を持つ)。
+# Aだけ間取りに割り、ゾーンが専有面積の言葉を保つ (ADR-0005 — 粒度の混在)。
+
+zone /L3..L10/A name:Aタイプ use:exclusive
+
+space /L3..L10/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク
+space /L3..L10/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1
+space /L3..L10/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2
+space /L3..L10/A/wet wet X1+3200..X2+1600 Y1+4000..Y2 name:水回り
+space /L3..L10/A/hall hall X2+1600..X2+3200 Y1+4000..Y2 name:玄関
+
+space /L3..L10/B unit X3..X4+3200 Y1..Y2 + X2+3200..X3 Y1+2400..Y2 name:Bタイプ use:exclusive
+space /L3..L10/C unit X4+3200..X6 Y1..Y2 name:Cタイプ use:exclusive
+space /L3..L10/D unit X1+3200..X2+3200 Y3..Y4 name:Dタイプ use:exclusive
+space /L3..L10/E unit X2+3200..X4 Y3..Y4 name:Eタイプ use:exclusive
+space /L3..L10/F unit X4+3200..X5+3200 Y3..Y4 name:Fタイプ use:exclusive
+
+space /L3..L11/corridor corridor X1..X6 Y2..Y3 + X4..X4+3200 Y3..Y3+3200 name:内廊下 use:common
+space /L3..L11/st2 stair X1..X1+3200 Y3..Y4 name:西階段 use:common
+space /L3..L11/ev shaft X4..X4+3200 Y3+3200..Y4 name:EV use:common
+space /L3..L11/st1 stair X5+3200..X6 Y3..Y4 name:東階段 use:common
+
+space /L4..L10/bA balcony X1..X3 Y1-1500..Y1 name:バルコニーA
+space /L4..L10/bB balcony X3..X4+3200 Y1-1500..Y1 name:バルコニーB
+space /L4..L10/bC balcony X4+3200..X6 Y1-1500..Y1 name:バルコニーC
+
+# ---- Aの間取り (内部) ----
+boundary /L3..L10/A/ldk /L3..L10/A/bed1 t:120 spec:LGS
+  door SD1
+boundary /L3..L10/A/ldk /L3..L10/A/bed2 t:120 spec:LGS
+  door SD1
+boundary /L3..L10/A/ldk /L3..L10/A/hall t:120 spec:LGS
+  door SD1
+boundary /L3..L10/A/ldk /L3..L10/A/wet t:120 spec:LGS
+boundary /L3..L10/A/hall /L3..L10/A/wet t:120 spec:LGS
+  door w:700
+boundary /L3..L10/A/bed1 /L3..L10/A/wet t:120 spec:LGS
+boundary /L3..L10/A/bed1 /L3..L10/A/bed2 t:120 spec:LGS
+
+# ---- 戸境 (RC) ----
+boundary /L3..L10/A/ldk /L3..L10/B t:180 spec:戸境RC
+boundary /L3..L10/A/hall /L3..L10/B t:180 spec:戸境RC
+boundary /L3..L10/B /L3..L10/C t:180 spec:戸境RC
+boundary /L3..L10/D /L3..L10/E t:180 spec:戸境RC
+
+# ---- 住戸と内廊下 (玄関は明示位置) ----
+boundary /L3..L10/A/hall /L3..L10/corridor t:180 spec:RC
+  door D1 name:A玄関
+boundary /L3..L10/A/bed1 /L3..L10/corridor t:180 spec:RC
+boundary /L3..L10/A/wet /L3..L10/corridor t:180 spec:RC
+boundary /L3..L10/B /L3..L10/corridor t:180 spec:RC
+  door D1 at:X4 name:B玄関
+boundary /L3..L10/C /L3..L10/corridor t:180 spec:RC
+  door D1 at:X5 name:C玄関
+boundary /L3..L10/D /L3..L10/corridor t:180 spec:RC
+  door D1 name:D玄関
+boundary /L3..L10/E /L3..L10/corridor t:180 spec:RC
+  door D1 edge:S at:X3+1600 name:E玄関
+boundary /L3..L10/F /L3..L10/corridor t:180 spec:RC
+  door D1 edge:S at:X5 name:F玄関
+
+# ---- コア回り ----
+boundary /L3..L11/corridor /L3..L11/st2 t:200 spec:RC
+  door FD1 name:西階段防火戸
+boundary /L3..L11/corridor /L3..L11/st1 t:200 spec:RC
+  door FD1 name:東階段防火戸
+boundary /L3..L11/corridor /L3..L11/ev t:200 spec:RC
+boundary /L3..L10/D /L3..L10/st2 t:180 spec:RC
+boundary /L3..L10/E /L3..L10/ev t:180 spec:RC
+boundary /L3..L10/F /L3..L10/ev t:180 spec:RC
+boundary /L3..L10/F /L3..L10/st1 t:180 spec:RC
+
+# ---- バルコニー (L4..L10): サッシは窓、外は手すり (air:1)、隣とは隔て板 ----
+boundary /L4..L10/A/ldk /L4..L10/bA t:100 spec:サッシ
+  window W1 at:X2 name:掃き出し
+  window W3 at:X2+4800
+boundary /L4..L10/A/bed2 /L4..L10/bA t:100 spec:サッシ
+  window W2
+boundary /L4..L10/B /L4..L10/bB t:100 spec:サッシ
+  window W1 at:X3+1600
+  window W1 at:X4-1600
+  window W2 at:X4+800
+boundary /L4..L10/C /L4..L10/bC t:100 spec:サッシ
+  window W1 at:X5
+  window W1 at:X5+3200
+boundary /L4..L10/bA /L4..L10/bB t:60 spec:隔て板 air:1
+boundary /L4..L10/bB /L4..L10/bC t:60 spec:隔て板 air:1
+boundary /L4..L10/bA /out/road-s edge:S t:120 spec:手すり air:1 h:1200
+boundary /L4..L10/bB /out/road-s edge:S t:120 spec:手すり air:1 h:1200
+boundary /L4..L10/bC /out/road-s edge:S t:120 spec:手すり air:1 h:1200
+boundary /L4..L10/bA /out/w edge:W t:120 spec:手すり air:1 h:1200
+boundary /L4..L10/bC /out/road-e edge:E t:120 spec:手すり air:1 h:1200
+
+# ---- 塔状部の外周 (L3..L10) ----
+boundary /L3..L10/A/bed1 /out/w edge:W t:200 spec:RC
+  window W2
+boundary /L3..L10/A/bed2 /out/w edge:W t:200 spec:RC
+boundary /L3..L10/C /out/road-e edge:E t:200 spec:RC
+  window W2
+boundary /L3..L10/D /out/n edge:N t:200 spec:RC
+  window W4
+boundary /L3..L10/E /out/n edge:N t:200 spec:RC
+  window W4
+boundary /L3..L10/F /out/n edge:N t:200 spec:RC
+  window W4
+boundary /L3..L11/st2 /out/w edge:W t:200 spec:RC
+  window W2
+boundary /L3..L11/st2 /out/n edge:N t:200 spec:RC
+boundary /L3..L11/st1 /out/road-e edge:E t:200 spec:RC
+  window W2
+boundary /L3..L11/st1 /out/n edge:N t:200 spec:RC
+boundary /L3..L11/ev /out/n edge:N t:200 spec:RC
+boundary /L3..L11/corridor /out/w edge:W t:200 spec:RC
+  window W2
+boundary /L3..L11/corridor /out/road-e edge:E t:200 spec:RC
+  window W2

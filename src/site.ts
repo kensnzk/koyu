@@ -7,8 +7,10 @@ import { segmentLength, segmentsFor } from "./graph.js";
 import {
   areaM2,
   isSemiOutdoor,
+  polygonAreaM2,
   unionAreaM2,
   type Model,
+  type SitePolygon,
   type Space,
   type Zone,
 } from "./model.js";
@@ -23,9 +25,11 @@ export interface RoadFrontage {
 
 export interface SiteReport {
   siteZone?: Zone;
+  /** 敷地形状 (polygon宣言 — ADR-0011)。あるとき導出面積はこの多角形から出る */
+  polygon?: SitePolygon;
   /** 宣言された敷地面積 m² (zoneのarea:属性 — 測量値) */
   declaredArea?: number;
-  /** 導出された敷地面積 m² (敷地内空間+建物水平投影の合併) */
+  /** 導出された敷地面積 m² (敷地形状があれば多角形、なければ敷地内空間+建物水平投影の合併) */
   derivedArea: number;
   /** 建築面積 m² (屋内空間の水平投影の合併 — 庇・バルコニーの算入は粗い) */
   footprint: number;
@@ -48,10 +52,13 @@ export function siteReport(model: Model): SiteReport {
     ? spaces.filter((s) => s.path.startsWith(siteZone.path + "/") && s.rects.length > 0)
     : [];
 
-  const derivedArea = unionAreaM2([
-    ...siteChildren.flatMap((s) => s.rects),
-    ...indoor.flatMap((s) => s.rects),
-  ]);
+  const polygon = siteZone ? model.polygons.get(siteZone.path) : undefined;
+  const derivedArea = polygon
+    ? Math.round(polygonAreaM2(polygon.points) * 100) / 100
+    : unionAreaM2([
+        ...siteChildren.flatMap((s) => s.rects),
+        ...indoor.flatMap((s) => s.rects),
+      ]);
   const footprint = unionAreaM2(indoor.flatMap((s) => s.rects));
   const totalFloor =
     Math.round(indoor.reduce((sum, s) => sum + (areaM2(s) ?? 0), 0) * 100) / 100;
@@ -73,6 +80,7 @@ export function siteReport(model: Model): SiteReport {
 
   return {
     ...(siteZone ? { siteZone } : {}),
+    ...(polygon ? { polygon } : {}),
     ...(typeof declared === "number" ? { declaredArea: declared } : {}),
     derivedArea,
     footprint,

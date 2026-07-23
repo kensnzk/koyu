@@ -1,0 +1,13 @@
+# 建具アセット — RevitのFamily / USDのReference (ADR-0010)
+# 商業の自動ドア・住戸の玄関・防火戸・引き戸・サッシの型を一箇所で宣言し、
+# 各フロアの開口が参照 (Instance) して上書きする。建具表はこの台帳の一覧。
+
+asset AD1 door w:1800 h:2400 style:auto    name:自動ドア
+asset D1  door w:900  h:2100 style:hinged  name:住戸玄関ドア
+asset FD1 door w:900  h:2000 style:hinged  fire:特定防火設備 name:防火戸
+asset SD1 door w:800  h:2000 style:sliding name:片引き戸
+
+asset W1 window w:2600 h:2200 sill:0   name:掃き出し窓
+asset W2 window w:1650 h:1100 sill:900 name:腰窓
+asset W3 window w:2600 h:1100 sill:1100 name:高窓
+asset W4 window w:4800 h:1800 sill:800 name:連窓

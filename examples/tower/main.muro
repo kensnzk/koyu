@@ -1,0 +1,37 @@
+# 街角の複合ビル — 低層商業+高層住宅 (koyuショーケース)
+# 11階建て・延床約4,750㎡。角地 (南12m・東6m道路)、非矩形敷地。
+# ここが base 層: グリッド・レベルという全体の一貫性を一度だけ宣言し、
+# 敷地形状 (所与のジオメトリ)・外構・建具・各フロアを import で重ねる。
+#   L1-L2 商業 / L3-L10 住宅基準階 (L3は低層部屋根のテラス付き例外階) / L11 ペントハウス
+#   koyu check examples/tower/main.muro が一棟のビルドの門番。
+
+koyu 0.1
+name 街角の複合ビル — 低層商業+高層住宅
+unit mm
+
+grid X 0 6400 12800 19200 25600 32000
+grid Y 0 5600 7600 13200
+
+level L1 0 h:3600 slab:600
+level L2 4200 h:3200 slab:600
+level L3 8000 h:2500 slab:450
+level L4..L10 11000 pitch:3000 h:2500 slab:450
+level L11 32000 h:2600 slab:500
+level R 35200 slab:500
+
+import ./assets.muro
+import ./site-geometry.muro
+import ./site.muro
+import ./L1.muro
+import ./L2.muro
+import ./typical.muro
+import ./L3.muro
+import ./L11.muro
+
+# ---- 垂直: 階を跨ぐ関係は base 層が持つ ----
+stack st1 L1..L11 type:stair
+stack st2 L1..L11 type:stair
+stack ev  L1..L11 type:shaft
+
+# エントランスホールの2層吹抜け (L2の床の不在)
+boundary /L1/hall /L2/void type:void
