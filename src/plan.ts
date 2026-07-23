@@ -2,7 +2,7 @@
 // ソースに形は無い。形は必要になった時にルールから生成する。まず平面図、その後に三次元。
 // 壁は「二つの空間の境界」から導かれて現れる — 壁を描く操作はどこにも無い。
 
-import { placeOpening, segmentLength, segmentsFor, type Segment } from "./graph.js";
+import { placeBand, placeOpening, segmentsFor, type Segment } from "./graph.js";
 import { areaM2, displayName, type Boundary, type Model, type Opening } from "./model.js";
 
 export interface PlanOptions {
@@ -50,6 +50,24 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     );
   }
 
+  // 数えない分節 (area): 床材の切替など。面積にもグラフにも現れない — 淡い面と破線で示す
+  for (const s of rooms) {
+    for (const a of s.areas) {
+      const r = a.rect;
+      parts.push(
+        `<rect x="${sx(r.x1)}" y="${sy(r.y2)}" width="${(r.x2 - r.x1) * scale}" height="${(r.y2 - r.y1) * scale}" fill="#e7dfcc" fill-opacity="0.55" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="4 3"/>`,
+      );
+      const label = [a.attrs["name"], a.attrs["floor"]]
+        .filter((v): v is string => typeof v === "string")
+        .join(" ・ ");
+      if (label) {
+        parts.push(
+          `<text x="${sx(r.x1) + 6}" y="${sy(r.y2) + 12}" font-size="8.5" fill="#8a8171">${esc(label)}</text>`,
+        );
+      }
+    }
+  }
+
   // 通り芯
   for (const [i, x] of model.grid.X.coords.entries()) {
     if (x < minX - 1 || x > maxX + 1) continue;
@@ -89,6 +107,20 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     for (const seg of segmentsFor(model, b)) {
       parts.push(wallRect(seg, t, scale, sx, sy));
     }
+    // 数えない分節 (seg): 壁材が途中から変わる区間 — 色調を変えて示す
+    for (const g of b.segs) {
+      const placed = placeBand(model, b, g, "seg");
+      if (!("error" in placed)) {
+        parts.push(bandRect(placed.segment, g.w, placed.cx, placed.cy, t, scale, sx, sy, "#77716a"));
+        const spec = g.attrs["spec"];
+        if (typeof spec === "string") {
+          const horizontal = placed.segment.horizontal;
+          parts.push(
+            `<text x="${sx(placed.cx) + (horizontal ? 0 : 8)}" y="${sy(placed.cy) + (horizontal ? -7 : 3)}" text-anchor="${horizontal ? "middle" : "start"}" font-size="8" fill="#77716a">${esc(spec)}</text>`,
+          );
+        }
+      }
+    }
     for (const o of b.openings) {
       const placed = placeOpening(model, b, o);
       if (!("error" in placed && placed.error) && "segment" in placed) {
@@ -100,7 +132,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   // 開口 (壁を欠き取り、扉は吊元と軌跡を描く)
   for (const { b, o, seg, cx, cy } of placedOpenings) {
     const t = (b.t ?? WALL_DEFAULT_T) + 30; // 欠き取りは少し深く
-    parts.push(gapRect(seg, o.w, cx, cy, t, scale, sx, sy));
+    parts.push(bandRect(seg, o.w, cx, cy, t, scale, sx, sy, PAPER));
     if (o.kind === "door") {
       parts.push(doorSwing(model, b, o, seg, cx, cy, scale, sx, sy));
     } else {
@@ -159,7 +191,7 @@ function wallRect(
   return `<rect x="${x}" y="${y}" width="${t * scale}" height="${(seg.y2 - seg.y1) * scale}" fill="${INK}"/>`;
 }
 
-function gapRect(
+function bandRect(
   seg: Segment,
   w: number,
   cx: number,
@@ -168,11 +200,12 @@ function gapRect(
   scale: number,
   sx: (x: number) => number,
   sy: (y: number) => number,
+  fill: string,
 ): string {
   if (seg.horizontal) {
-    return `<rect x="${sx(cx - w / 2)}" y="${sy(cy + t / 2)}" width="${w * scale}" height="${t * scale}" fill="${PAPER}"/>`;
+    return `<rect x="${sx(cx - w / 2)}" y="${sy(cy + t / 2)}" width="${w * scale}" height="${t * scale}" fill="${fill}"/>`;
   }
-  return `<rect x="${sx(cx + t / 2 - t)}" y="${sy(cy + w / 2)}" width="${t * scale}" height="${w * scale}" fill="${PAPER}"/>`;
+  return `<rect x="${sx(cx + t / 2 - t)}" y="${sy(cy + w / 2)}" width="${t * scale}" height="${w * scale}" fill="${fill}"/>`;
 }
 
 /** 扉: 吊元から開いた軌跡 (1/4円)。吊り込み側は「先に書いた空間」= boundary.a 側 */

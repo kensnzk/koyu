@@ -3,7 +3,7 @@
 // 高さ方向の一貫性 — BIMが3Dであることで暗黙に担保していたもの — は、
 // ここでは宣言された不変量 (天井高 + 上階slab ≤ 階高) の検査として明示的に持つ。
 
-import { placeOpening, planOverlap, segmentsFor, sharedSegment } from "./graph.js";
+import { placeBand, placeOpening, planOverlap, segmentsFor, sharedSegment } from "./graph.js";
 import { heff, levelsSorted, type Model, type Space } from "./model.js";
 
 export interface CheckResult {
@@ -92,6 +92,9 @@ export function check(model: Model): CheckResult {
       if (b.openings.length > 0) {
         warnings.push(`${b.line}行目: 垂直境界の開口はv0.1では解釈されません`);
       }
+      if (b.segs.length > 0) {
+        warnings.push(`${b.line}行目: 垂直境界の seg は解釈されません`);
+      }
       continue;
     }
 
@@ -116,6 +119,34 @@ export function check(model: Model): CheckResult {
       const placed = placeOpening(model, b, o);
       if ("error" in placed && placed.error) {
         errors.push(placed.error);
+      }
+    }
+    for (const g of b.segs) {
+      if (b.kind === "open") {
+        warnings.push(`${g.line}行目: open境界 (壁が無い) の seg は解釈されません`);
+        continue;
+      }
+      const placed = placeBand(model, b, g, "seg");
+      if ("error" in placed && placed.error) {
+        errors.push(placed.error);
+      }
+    }
+  }
+
+  // 数えない分節 (area) は親の領域に収まっているか
+  for (const s of model.spaces.values()) {
+    for (const a of s.areas) {
+      if (!s.rect) {
+        errors.push(`${a.line}行目: 領域を持たない空間 ${s.path} に area は書けません`);
+        continue;
+      }
+      const inside =
+        a.rect.x1 >= s.rect.x1 - EPS &&
+        a.rect.x2 <= s.rect.x2 + EPS &&
+        a.rect.y1 >= s.rect.y1 - EPS &&
+        a.rect.y2 <= s.rect.y2 + EPS;
+      if (!inside) {
+        warnings.push(`${a.line}行目: area が ${s.path} の領域からはみ出しています`);
       }
     }
   }

@@ -116,40 +116,57 @@ export function segmentLength(s: Segment): number {
   return s.horizontal ? s.x2 - s.x1 : s.y2 - s.y1;
 }
 
-export interface PlacedOpening {
-  opening: Opening;
-  segment: Segment;
-  /** 開口中心の座標 mm */
-  cx: number;
-  cy: number;
-  error?: string;
+/** 境界線分上に位置を持つもの (開口・seg) の共通形 */
+export interface Band {
+  w: number;
+  at: number;
+  edge?: Edge;
+  line: number;
 }
 
-/** 開口を線分上に配置する。曖昧なら error を返す */
-export function placeOpening(model: Model, b: Boundary, o: Opening): PlacedOpening | { error: string } {
+export interface PlacedBand {
+  segment: Segment;
+  /** 中心の座標 mm */
+  cx: number;
+  cy: number;
+}
+
+/** 帯 (開口・seg) を境界線分上に配置する。曖昧なら error を返す */
+export function placeBand(
+  model: Model,
+  b: Boundary,
+  band: Band,
+  label: string,
+): PlacedBand | { error: string } {
   let segs = segmentsFor(model, b);
-  if (o.edge) segs = segs.filter((s) => s.edgeOfA === o.edge);
+  if (band.edge) segs = segs.filter((s) => s.edgeOfA === band.edge);
   if (segs.length === 0) {
-    return { error: `${o.line}行目: ${o.kind} を置ける境界線分がありません (${b.a} | ${b.b})` };
+    return { error: `${band.line}行目: ${label} を置ける境界線分がありません (${b.a} | ${b.b})` };
   }
   if (segs.length > 1) {
     return {
-      error: `${o.line}行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (${b.a} | ${b.b})`,
+      error: `${band.line}行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (${b.a} | ${b.b})`,
     };
   }
   const seg = segs[0]!;
   const len = segmentLength(seg);
-  if (o.w > len) {
-    return { error: `${o.line}行目: 開口幅 ${o.w} が境界線分の長さ ${len} を超えています` };
+  if (band.w > len) {
+    return {
+      error: `${band.line}行目: ${label}の幅 ${band.w} が境界線分の長さ ${len} を超えています`,
+    };
   }
-  const half = o.w / 2;
-  const pos = Math.min(Math.max(o.at * len, half), len - half);
+  const half = band.w / 2;
+  const pos = Math.min(Math.max(band.at * len, half), len - half);
   return {
-    opening: o,
     segment: seg,
     cx: seg.horizontal ? seg.x1 + pos : seg.x1,
     cy: seg.horizontal ? seg.y1 : seg.y1 + pos,
   };
+}
+
+/** 開口を境界線分上に配置する */
+export function placeOpening(model: Model, b: Boundary, o: Opening): PlacedBand | { error: string } {
+  return placeBand(model, b, o, o.kind);
 }
 
 /** 平面上の重なり (垂直隣接の導出に使う)。重ならなければ undefined */

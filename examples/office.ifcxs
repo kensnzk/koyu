@@ -16,7 +16,8 @@ level R 8000 slab:1300          # 屋根面。L2の空間の上限を与える
 space /out exterior name:外部
 
 # ---- 1階: エントランス+事務室、北側にコア ----
-space /L1/hall     hall     X1..X2 Y1..Y2       name:エントランスホール use:common
+space /L1/hall     hall     X1..X2 Y1..Y2       name:エントランスホール use:common floor:フローリング
+  area X1..X1+1800 Y1..Y2 name:土間 floor:モルタル   # 数えない分節: 室は割れない。面積はホールのまま
 space /L1/office   office   X2..X4 Y1..Y2       name:事務室 use:rentable
 space /L1/corridor corridor X1..X4 Y2..Y3       name:廊下 use:common
 space /L1/stair    stair    X1..X1+3200 Y3..Y4  name:階段室 use:common
@@ -30,6 +31,7 @@ boundary /L1/hall /L1/office t:120 spec:LGS
 boundary /L1/hall /L1/corridor type:open
 boundary /L1/office /L1/corridor t:120 spec:LGS
   door w:900
+  seg at:0.75 w:3600 spec:ガラスパーティション   # 数えない分節: 同じ境界のまま壁材だけ変わる
 boundary /L1/corridor /L1/stair t:180 spec:RC fire:60
   door w:900 name:ST1
 boundary /L1/corridor /L1/ev t:180 spec:RC
@@ -61,7 +63,8 @@ boundary /L1/machine /out t:180 spec:EW1
 
 # ---- 2階: 会議室+執務室 (南の廊下芯Y2を跨いで広がる)、コアは1階と同位置 ----
 space /L2/meeting  meeting  X1..X2 Y1..Y2       name:会議室 use:rentable h:2400
-space /L2/office   office   X2..X4 Y1..Y3       name:執務室 use:rentable
+space /L2/office   office   X2..X4 Y1..Y3       name:執務室 use:rentable floor:タイルカーペット
+  area X3+3200..X4 Y1..Y1+3200 name:リフレッシュコーナー floor:フローリング
 space /L2/corridor corridor X1..X2 Y2..Y3       name:廊下 use:common
 space /L2/stair    stair    X1..X1+3200 Y3..Y4  name:階段室 use:common
 space /L2/ev       ev       X1+3200..X2 Y3..Y4  name:EV use:common

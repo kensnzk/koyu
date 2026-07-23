@@ -2,12 +2,15 @@
 // 一行が一文。図面が数百年運んできた抽象度を、そのままテキストにする。
 
 import {
+  type Area,
   type Attrs,
   type AttrValue,
   type Boundary,
   type Edge,
   type Model,
   type Opening,
+  type Rect,
+  type Seg,
   SourceError,
   type Space,
 } from "./model.js";
@@ -25,6 +28,7 @@ export function parse(source: string): Model {
   };
 
   let current: Boundary | undefined;
+  let currentSpace: Space | undefined;
   const lines = source.split(/\r?\n/);
 
   for (let i = 0; i < lines.length; i++) {
@@ -36,16 +40,32 @@ export function parse(source: string): Model {
     const [head, ...rest] = tokens as [string, ...string[]];
 
     if (indented) {
-      if (head !== "door" && head !== "window") {
-        throw new SourceError(ln, `字下げ行に置けるのは door / window のみです: ${head}`);
+      if (head === "door" || head === "window") {
+        if (!current) {
+          throw new SourceError(ln, `${head} は boundary の直下に字下げして書きます`);
+        }
+        current.openings.push(parseOpening(head, rest, ln));
+      } else if (head === "seg") {
+        if (!current) {
+          throw new SourceError(ln, "seg は boundary の直下に字下げして書きます");
+        }
+        current.segs.push(parseSeg(rest, ln));
+      } else if (head === "area") {
+        if (!currentSpace) {
+          throw new SourceError(ln, "area は space の直下に字下げして書きます");
+        }
+        currentSpace.areas.push(parseArea(rest, ln, model));
+      } else {
+        throw new SourceError(
+          ln,
+          `字下げ行に置けるのは door / window / seg / area のみです: ${head}`,
+        );
       }
-      if (!current) {
-        throw new SourceError(ln, `${head} は boundary の直下に字下げして書きます`);
-      }
-      current.openings.push(parseOpening(head, rest, ln));
       continue;
     }
 
+    current = undefined;
+    currentSpace = undefined;
     switch (head) {
       case "ifcxs": {
         model.version = rest[0] ?? "0.1";
@@ -103,7 +123,7 @@ export function parse(source: string): Model {
           throw new SourceError(ln, `空間パスが重複しています: ${space.path}`);
         }
         model.spaces.set(space.path, space);
-        current = undefined;
+        currentSpace = space;
         break;
       }
       case "boundary": {
@@ -135,45 +155,79 @@ function parseSpace(rest: string[], ln: number, model: Model): Space {
   const seg = path.split("/")[1];
   const level = seg && model.levels[seg] ? seg : undefined;
 
-  const space: Space = { path, type, level, attrs, line: ln };
+  const space: Space = { path, type, level, areas: [], attrs, line: ln };
 
   if (regionTokens.length > 0) {
-    if (regionTokens.length !== 2) {
-      throw new SourceError(ln, "領域は X?..X? と Y?..Y? の2つで指定します");
+    const r = parseRegion(regionTokens, ln, model);
+    space.grid = r.grid;
+    space.rect = r.rect;
+  }
+  return space;
+}
+
+/** 領域指定 (X?..X? Y?..Y?) をグリッド参照とmm矩形に解決する */
+function parseRegion(
+  regionTokens: string[],
+  ln: number,
+  model: Model,
+): { grid: { xa: string; xb: string; ya: string; yb: string }; rect: Rect } {
+  if (regionTokens.length !== 2) {
+    throw new SourceError(ln, "領域は X?..X? と Y?..Y? の2つで指定します");
+  }
+  let xr: [number, number] | undefined;
+  let yr: [number, number] | undefined;
+  let xg: [string, string] | undefined;
+  let yg: [string, string] | undefined;
+  for (const t of regionTokens) {
+    const [p, q] = t.split("..");
+    if (!p || !q) throw new SourceError(ln, `領域指定が読めません: ${t}`);
+    const rp = resolveRef(model, p, ln);
+    const rq = resolveRef(model, q, ln);
+    if (rp.axis !== rq.axis) {
+      throw new SourceError(ln, `領域の両端は同じ軸の通りで指定します: ${t}`);
     }
-    let xr: [number, number] | undefined;
-    let yr: [number, number] | undefined;
-    let xg: [string, string] | undefined;
-    let yg: [string, string] | undefined;
-    for (const t of regionTokens) {
-      const [p, q] = t.split("..");
-      if (!p || !q) throw new SourceError(ln, `領域指定が読めません: ${t}`);
-      const rp = resolveRef(model, p, ln);
-      const rq = resolveRef(model, q, ln);
-      if (rp.axis !== rq.axis) {
-        throw new SourceError(ln, `領域の両端は同じ軸の通りで指定します: ${t}`);
-      }
-      if (rp.axis === "X") {
-        xr = [rp.coord, rq.coord];
-        xg = [p, q];
-      } else {
-        yr = [rp.coord, rq.coord];
-        yg = [p, q];
-      }
+    if (rp.axis === "X") {
+      xr = [rp.coord, rq.coord];
+      xg = [p, q];
+    } else {
+      yr = [rp.coord, rq.coord];
+      yg = [p, q];
     }
-    if (!xr || !yr || !xg || !yg) {
-      throw new SourceError(ln, "領域には X系とY系の通りを1組ずつ使います");
-    }
-    if (xr[0] === xr[1] || yr[0] === yr[1]) throw new SourceError(ln, "領域の幅がゼロです");
-    space.grid = { xa: xg[0], xb: xg[1], ya: yg[0], yb: yg[1] };
-    space.rect = {
+  }
+  if (!xr || !yr || !xg || !yg) {
+    throw new SourceError(ln, "領域には X系とY系の通りを1組ずつ使います");
+  }
+  if (xr[0] === xr[1] || yr[0] === yr[1]) throw new SourceError(ln, "領域の幅がゼロです");
+  return {
+    grid: { xa: xg[0], xb: xg[1], ya: yg[0], yb: yg[1] },
+    rect: {
       x1: Math.min(xr[0], xr[1]),
       x2: Math.max(xr[0], xr[1]),
       y1: Math.min(yr[0], yr[1]),
       y2: Math.max(yr[0], yr[1]),
-    };
+    },
+  };
+}
+
+/** 数えない分節: 室内の領域 (床材の切替など) */
+function parseArea(rest: string[], ln: number, model: Model): Area {
+  const regionTokens = rest.filter((t) => t.includes(".."));
+  const attrTokens = rest.filter((t) => !t.includes(".."));
+  const r = parseRegion(regionTokens, ln, model);
+  return { grid: r.grid, rect: r.rect, attrs: parseAttrs(attrTokens, ln), line: ln };
+}
+
+/** 数えない分節: 境界上の区間 (壁材の途中変更など) */
+function parseSeg(rest: string[], ln: number): Seg {
+  const attrs = parseAttrs(rest, ln);
+  const w = takeNumber(attrs, "w");
+  if (w === undefined || w <= 0) {
+    throw new SourceError(ln, "seg には幅 w:(mm) が要ります");
   }
-  return space;
+  const at = takeNumber(attrs, "at") ?? 0.5;
+  if (at < 0 || at > 1) throw new SourceError(ln, "at は 0..1 で指定します");
+  const edge = takeEdge(attrs, ln);
+  return { w, at, ...(edge ? { edge } : {}), attrs, line: ln };
 }
 
 /** 通り参照 (X2, X2+600, Y3-150 など) を軸と座標mmに解決する */
@@ -211,6 +265,7 @@ function parseBoundary(rest: string[], ln: number): Boundary {
     ...(edge ? { edge } : {}),
     attrs,
     openings: [],
+    segs: [],
     line: ln,
   };
 }

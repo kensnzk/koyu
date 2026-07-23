@@ -33,6 +33,17 @@ export interface Rect {
   y2: number;
 }
 
+/**
+ * 数えない分節 — 室に従属する領域 (床材の切替など)。
+ * 面積・室数・グラフには一切現れない。属性の上書きだけを運ぶ (ADR-0003)
+ */
+export interface Area {
+  grid: { xa: string; xb: string; ya: string; yb: string };
+  rect: Rect;
+  attrs: Attrs;
+  line: number;
+}
+
 export interface Space {
   /** パスが同一性。/L1/a のように人間が読める階層で名指す */
   path: string;
@@ -44,6 +55,8 @@ export interface Space {
   grid?: { xa: string; xb: string; ya: string; yb: string };
   /** グリッド解決後のmm矩形。exteriorなどは持たない */
   rect?: Rect;
+  /** 数えない分節 (字下げのarea行) */
+  areas: Area[];
   attrs: Attrs;
   line: number;
 }
@@ -69,6 +82,20 @@ export interface Opening {
   line: number;
 }
 
+/**
+ * 境界上の数えない分節 — 壁材が途中から変わる区間など。
+ * 開口と同じ流儀で位置 (at, w) を持つが、通行・接続には一切影響しない (ADR-0003)
+ */
+export interface Seg {
+  /** 幅 mm */
+  w: number;
+  /** 区間中心の位置 0..1 (既定 0.5) */
+  at: number;
+  edge?: Edge;
+  attrs: Attrs;
+  line: number;
+}
+
 /** 境界はどちらの空間にも属さない。二つの空間パスを結ぶ第一級の関係 */
 export interface Boundary {
   a: string;
@@ -80,6 +107,8 @@ export interface Boundary {
   edge?: Edge;
   attrs: Attrs;
   openings: Opening[];
+  /** 数えない分節 (字下げのseg行) */
+  segs: Seg[];
   line: number;
 }
 
@@ -136,6 +165,14 @@ export function toCanonical(model: Model): string {
       type: s.type,
       ...(s.grid ? { at: [s.grid.xa, s.grid.ya, s.grid.xb, s.grid.yb] } : {}),
       ...(Object.keys(s.attrs).length ? { attrs: sortObj(s.attrs) } : {}),
+      ...(s.areas.length
+        ? {
+            areas: s.areas.map((a) => ({
+              at: [a.grid.xa, a.grid.ya, a.grid.xb, a.grid.yb],
+              ...(Object.keys(a.attrs).length ? { attrs: sortObj(a.attrs) } : {}),
+            })),
+          }
+        : {}),
     };
   }
   const boundaries = [...model.boundaries]
@@ -154,6 +191,16 @@ export function toCanonical(model: Model): string {
               at: o.at,
               ...(o.edge ? { edge: o.edge } : {}),
               ...(Object.keys(o.attrs).length ? { attrs: sortObj(o.attrs) } : {}),
+            })),
+          }
+        : {}),
+      ...(b.segs.length
+        ? {
+            segs: b.segs.map((g) => ({
+              w: g.w,
+              at: g.at,
+              ...(g.edge ? { edge: g.edge } : {}),
+              ...(Object.keys(g.attrs).length ? { attrs: sortObj(g.attrs) } : {}),
             })),
           }
         : {}),

@@ -8,6 +8,8 @@
 <rect x="404" y="84" width="150" height="200" fill="#f1ebdd"/>
 <rect x="554" y="84" width="170" height="200" fill="#f1ebdd"/>
 <rect x="724" y="84" width="320" height="200" fill="#f1ebdd"/>
+<rect x="884" y="524" width="160" height="160" fill="#e7dfcc" fill-opacity="0.55" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="4 3"/>
+<text x="890" y="536" font-size="8.5" fill="#8a8171">リフレッシュコーナー ・ フローリング</text>
 <line x1="84" y1="58" x2="84" y2="710" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="84" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="84" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X1</text>
