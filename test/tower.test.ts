@@ -1,5 +1,5 @@
 // ショーケース: 街角の複合ビル (examples/tower/) — 全機能の実証を回帰で守る。
-// 8ファイル合成・非矩形敷地 (polygon)・角地2道路・吹抜け・L字住戸・バルコニー・
+// 9ファイル合成・非矩形敷地 (polygon)・角地2道路・吹抜け・L字住戸・バルコニー・
 // 例外階 (L3テラス)・ペントハウス・アセット・明示位置・スパン・stack。
 
 import assert from "node:assert/strict";
@@ -14,7 +14,7 @@ import { siteReport } from "../src/site.js";
 
 const mainPath = fileURLToPath(new URL("../examples/tower/main.muro", import.meta.url));
 
-test("tower: 8レイヤーが一棟にビルドされ、警告ゼロで整合する", () => {
+test("tower: 9レイヤーが一棟にビルドされ、警告ゼロで整合する", () => {
   const m = parseFile(mainPath);
   const r = check(m);
   assert.deepEqual(r.errors, []);
