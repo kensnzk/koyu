@@ -26,14 +26,13 @@ test("L字の室: LDKは2矩形の合併で面積は合計", () => {
   assert.equal(areaM2(ldk), 17.08);
 });
 
-test("L字の外周: 共線の外壁は一本にまとまり、掃き出し窓が置ける", () => {
+test("L字の外周: 共線の辺は一本にまとまり、掃き出し窓が置ける", () => {
   const m = parse(mansion);
-  const b = m.boundaries.find((x) => x.a === "/L2/A/ldk" && x.b === "/out")!;
+  const b = m.boundaries.find((x) => x.a === "/L2/A/ldk" && x.b === "/L2/A/balcony")!;
   const segs = segmentsFor(m, b);
-  const south = segs.filter((s) => s.edgeOfA === "S");
-  assert.equal(south.length, 1); // 2矩形のS辺が1本にマージ
-  assert.equal(south[0]!.x1, 0);
-  assert.equal(south[0]!.x2, 5800);
+  assert.equal(segs.length, 1); // LDKの2矩形のS辺がバルコニーに対し1本にマージ
+  assert.equal(segs[0]!.x1, 0);
+  assert.equal(segs[0]!.x2, 5800);
 });
 
 test("同一ペアの複数線分: LDK|洋室はL字で2辺接し、edgeで扉の辺を選ぶ", () => {
@@ -73,11 +72,13 @@ test("吹抜けは通行できず、床面積にも入らない", () => {
   assert.equal(Math.round(total * 100) / 100, 419.84); // 460.8 - 40.96 (吹抜け)
 });
 
-test("採光: 51室すべてが1/7を満たす (補正係数なしの粗い判定)", () => {
+test("採光: 51室すべてが1/7を満たす。バルコニー越しは0.7掛け", () => {
   const m = parse(mansion);
   const results = daylight(m);
-  assert.equal(results.length, 51); // (LDK+洋室)×8 + B〜E×8×... 住居系の居室
+  assert.equal(results.length, 51); // (LDK+洋室)×8 + B〜E×8 + PH×3
   assert.ok(results.every((r) => r.ok));
+  const ldk = results.find((r) => r.space.path === "/L5/A/ldk")!;
+  assert.equal(Math.round(ldk.window * 1000) / 1000, 4.004); // 5.72 × 0.7
 });
 
 test("採光: 窓を失えば落ちる", () => {

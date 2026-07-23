@@ -3,7 +3,14 @@
 // 壁は「二つの空間の境界」から導かれて現れる — 壁を描く操作はどこにも無い。
 
 import { placeBand, placeOpening, segmentsFor, type Segment } from "./graph.js";
-import { areaM2, displayName, type Boundary, type Model, type Opening } from "./model.js";
+import {
+  areaM2,
+  displayName,
+  isSemiOutdoor,
+  type Boundary,
+  type Model,
+  type Opening,
+} from "./model.js";
 
 export interface PlanOptions {
   level?: string;
@@ -46,11 +53,13 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   parts.push(`<rect width="${W}" height="${H}" fill="${PAPER}"/>`);
 
   // 空間の面 (合併の各矩形。同色・輪郭なしなのでL字は一体に見える)
+  // 半屋外 (外部にopen/railで接する空間) は淡く塗り分け、屋外であることが図から読めるように
   for (const s of rooms) {
     const isVoid = s.type === "void";
+    const semi = isSemiOutdoor(model, s);
     for (const r of s.rects) {
       parts.push(
-        `<rect x="${sx(r.x1)}" y="${sy(r.y2)}" width="${(r.x2 - r.x1) * scale}" height="${(r.y2 - r.y1) * scale}" fill="${isVoid ? PAPER : ROOM}"/>`,
+        `<rect x="${sx(r.x1)}" y="${sy(r.y2)}" width="${(r.x2 - r.x1) * scale}" height="${(r.y2 - r.y1) * scale}" fill="${isVoid ? PAPER : semi ? "#f8f5ec" : ROOM}"/>`,
       );
       if (isVoid) {
         // 吹抜け: 破線の対角線 (作図慣習)
@@ -115,6 +124,16 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
       continue;
     }
     if (b.kind !== "wall") continue;
+    if (b.air) {
+      // 遮蔽しない物 (手すり・柵 = spec語彙): 細実線 —
+      // 壁の黒帯と描き分けることで「囲われていない」ことが図から読める
+      for (const seg of segmentsFor(model, b)) {
+        parts.push(
+          `<line x1="${sx(seg.x1)}" y1="${sy(seg.y1)}" x2="${sx(seg.x2)}" y2="${sy(seg.y2)}" stroke="${INK}" stroke-width="1.4"/>`,
+        );
+      }
+      continue;
+    }
     const t = b.t ?? WALL_DEFAULT_T;
     for (const seg of segmentsFor(model, b)) {
       parts.push(wallRect(seg, t, scale, sx, sy));
@@ -170,12 +189,34 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     const cx = sx((r.x1 + r.x2) / 2);
     const cy = sy((r.y1 + r.y2) / 2);
     const sub =
-      s.type === "void" ? "吹抜け" : `${esc(s.type)} ・ ${areaM2(s)}㎡`;
+      s.type === "void"
+        ? "吹抜け"
+        : `${esc(s.type)} ・ ${areaM2(s)}㎡${isSemiOutdoor(model, s) ? " ・ 半屋外" : ""}`;
     parts.push(
       `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="14" fill="${INK}">${esc(displayName(s))}</text>`,
       `<text x="${cx}" y="${cy + 13}" text-anchor="middle" font-size="10" fill="#8a8171">${sub}</text>`,
       `<text x="${cx}" y="${cy + 27}" text-anchor="middle" font-size="8.5" fill="#b3ab9c">${esc(s.path)}</text>`,
     );
+  }
+
+  // 下階の平面への「上部吹抜け」表示 (作図慣習)
+  for (const b of model.boundaries) {
+    if (b.kind !== "void") continue;
+    const sa = model.spaces.get(b.a);
+    const sb = model.spaces.get(b.b);
+    if (!sa?.level || !sb?.level) continue;
+    const za = model.levels[sa.level]?.z;
+    const zb = model.levels[sb.level]?.z;
+    if (za === undefined || zb === undefined) continue;
+    const lower = za < zb ? sa : sb;
+    const upper = za < zb ? sb : sa;
+    if (lower.level !== level) continue;
+    for (const r of upper.rects) {
+      parts.push(
+        `<rect x="${sx(r.x1)}" y="${sy(r.y2)}" width="${(r.x2 - r.x1) * scale}" height="${(r.y2 - r.y1) * scale}" fill="none" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>`,
+        `<text x="${sx((r.x1 + r.x2) / 2)}" y="${sy((r.y1 + r.y2) / 2) + 40}" text-anchor="middle" font-size="9" fill="#b3ab9c">上部吹抜け</text>`,
+      );
+    }
   }
 
   // 表題
@@ -235,27 +276,32 @@ function doorSwing(
   sx: (x: number) => number,
   sy: (y: number) => number,
 ): string {
-  // 開く側の空間 (aが領域を持てばa、なければb)。合併なら扉に最も近い矩形へ開く
+  // 開く側の空間: swing:a/b の指定、既定はa側 (領域を持つ方)。合併なら扉に最も近い矩形へ開く
   const sa = model.spaces.get(b.a);
   const sb = model.spaces.get(b.b);
-  const into = sa && sa.rects.length > 0 ? sa : sb && sb.rects.length > 0 ? sb : undefined;
-  if (!into) return "";
+  let into: typeof sa;
+  if (o.swing === "a") into = sa;
+  else if (o.swing === "b") into = sb;
+  else into = sa && sa.rects.length > 0 ? sa : sb;
+  if (!into || into.rects.length === 0) return "";
   const dist = (rc: { x1: number; y1: number; x2: number; y2: number }) =>
     ((rc.x1 + rc.x2) / 2 - cx) ** 2 + ((rc.y1 + rc.y2) / 2 - cy) ** 2;
   const r = [...into.rects].sort((p, q) => dist(p) - dist(q))[0]!;
   const c = { x: (r.x1 + r.x2) / 2, y: (r.y1 + r.y2) / 2 };
 
-  // 世界座標: 吊元 hinge、開き先端 free(=通行方向)、軌跡は hinge を中心とする1/4円
+  // 世界座標: 吊元 hinge (hinge:W/E/S/N — 既定は始端側)、軌跡は hinge を中心とする1/4円
   let hinge: { x: number; y: number };
   let along: { x: number; y: number };
   let inward: { x: number; y: number };
   if (seg.horizontal) {
-    hinge = { x: cx - o.w / 2, y: cy };
-    along = { x: 1, y: 0 };
+    const fromEast = o.hinge === "E";
+    hinge = { x: fromEast ? cx + o.w / 2 : cx - o.w / 2, y: cy };
+    along = { x: fromEast ? -1 : 1, y: 0 };
     inward = { x: 0, y: c.y > cy ? 1 : -1 };
   } else {
-    hinge = { x: cx, y: cy - o.w / 2 };
-    along = { x: 0, y: 1 };
+    const fromNorth = o.hinge === "N";
+    hinge = { x: cx, y: fromNorth ? cy + o.w / 2 : cy - o.w / 2 };
+    along = { x: 0, y: fromNorth ? -1 : 1 };
     inward = { x: c.x > cx ? 1 : -1, y: 0 };
   }
   const leafEnd = { x: hinge.x + inward.x * o.w, y: hinge.y + inward.y * o.w };

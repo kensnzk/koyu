@@ -1,0 +1,46 @@
+# 小さな戸建住宅 — メゾネットの原型
+# パスの第一義は集計の階層。レベルは既定でパス先頭から読むが、この家は /home の下に
+# 全室を束ね、level: 属性で階を明示する (ADR-0008)。階を跨ぐ住戸=ゾーンが素直に書ける。
+# LDK上部は部分吹抜け (被覆1/3)。内部階段で2層が繋がる。開き勝手 (hinge/swing) の実例つき。
+
+ifcxs 0.1
+name 小さな戸建住宅
+unit mm
+
+grid X 0 3640 7280
+grid Y 0 3640 7280
+
+level L1 0 h:2400
+level L2 2900 h:2400 slab:500
+level R 5800 slab:500
+
+space /out exterior name:外部
+
+zone /home name:住戸 use:exclusive
+
+space /home/ldk   ldk     X1..X2 Y1..Y3 + X2..X3 Y1..Y2 level:L1 name:LDK floor:オーク
+space /home/hall1 hall    X2..X3 Y2..Y3 level:L1 name:玄関・階段
+space /home/bed1  bedroom X1..X2 Y1..Y3 level:L2 name:主寝室
+space /home/void  void    X2..X3 Y1..Y2 level:L2 name:リビング上部
+space /home/hall2 hall    X2..X3 Y2..Y3 level:L2 name:2階ホール
+
+boundary /home/ldk /home/hall1 t:120 spec:LGS
+  door w:800 edge:E hinge:S swing:b   # 開き勝手の明示: 吊元は南、ホール側へ開く
+boundary /home/ldk /out t:150 spec:EW
+  window w:2600 h:2200 edge:S sill:0
+  window w:1650 h:1100 edge:W sill:900
+boundary /home/hall1 /out t:150 spec:EW
+  door w:900 edge:E name:玄関
+boundary /home/bed1 /out t:150 spec:EW
+  window w:2600 h:2200 edge:S sill:800
+boundary /home/bed1 /home/void t:120 spec:LGS
+boundary /home/bed1 /home/hall2 t:120 spec:LGS
+  door w:800
+boundary /home/void /home/hall2 t:120 spec:手すり air:1 h:1100   # 吹抜けに面する2階ホール
+boundary /home/void /out t:150 spec:EW
+  window w:2600 h:1100 edge:S sill:1100   # 吹抜けの高窓
+boundary /home/hall2 /out t:150 spec:EW
+
+# ---- 垂直: 内部階段と部分吹抜け ----
+boundary /home/hall1 /home/hall2 type:stair
+boundary /home/ldk /home/void type:void   # 部分吹抜け — LDKの天井高は階高内のまま (規則はADR-0006追記)

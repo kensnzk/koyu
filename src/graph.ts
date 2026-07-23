@@ -229,7 +229,8 @@ export function placeOpening(model: Model, b: Boundary, o: Opening): PlacedBand 
 }
 
 /**
- * 通行可能か。open境界と階段は扉なしで通れ、wall境界は扉があるときだけ通れる。
+ * 通行可能か。open境界と階段は扉なしで通れ、wall境界は扉があるときだけ通れる
+ * (手すり = 扉のないwall+air:1 なので自動的に通れない)。
  * shaft (EV等) と void (吹抜け) は空間として連続するが人は通れない
  */
 export function passable(b: Boundary): boolean {
@@ -237,6 +238,7 @@ export function passable(b: Boundary): boolean {
   if (b.kind === "shaft" || b.kind === "void") return false;
   return b.openings.some((o) => o.kind === "door");
 }
+
 
 /** 通過扉数 (open境界・階段=0, 扉付きwall境界=1) */
 function doorCost(b: Boundary): number {

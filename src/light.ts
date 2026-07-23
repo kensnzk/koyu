@@ -3,9 +3,12 @@
 // 採光補正係数は掛けない甘い判定であり、基本計画の解像度に合わせた早期警報である。
 // 対象: unit / room / ldk / bedroom / living (hab:0 で除外、hab:1 で他の型も対象に)
 
-import { areaM2, type Model, type Space } from "./model.js";
+import { areaM2, isSemiOutdoor, type Model, type Space } from "./model.js";
 
 const HABITABLE = new Set(["unit", "room", "ldk", "bedroom", "living"]);
+
+/** 半屋外 (バルコニー等) 越しの窓の係数 — 縁側補正に倣う粗い値 */
+const SEMI_FACTOR = 0.7;
 
 export interface DaylightResult {
   space: Space;
@@ -34,14 +37,18 @@ export function daylight(model: Model): DaylightResult[] {
       const other = b.a === s.path ? b.b : b.b === s.path ? b.a : undefined;
       if (!other) continue;
       const os = model.spaces.get(other);
-      if (!os || os.type !== "exterior") continue;
+      if (!os) continue;
+      // 外部に直接面する窓は係数1、半屋外 (バルコニー等) 越しは0.7
+      const factor =
+        os.type === "exterior" ? 1 : isSemiOutdoor(model, os) ? SEMI_FACTOR : 0;
+      if (factor === 0) continue;
       for (const o of b.openings) {
         if (o.kind !== "window") continue;
         if (o.h === undefined) {
           missingH = true;
           continue;
         }
-        win += (o.w * o.h) / 1e6;
+        win += (o.w * o.h * factor) / 1e6;
       }
     }
     const need = floor / 7;

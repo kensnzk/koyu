@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check } from "../src/check.js";
 import { doorsBetween } from "../src/graph.js";
-import { areaM2, effectiveUse, zoneAreaM2 } from "../src/model.js";
+import { areaM2, effectiveUse, isSemiOutdoor, zoneAreaM2 } from "../src/model.js";
 import { parse } from "../src/parse.js";
 
 const src = readFileSync(
@@ -14,11 +14,11 @@ const src = readFileSync(
   "utf8",
 );
 
-test("200行たらずのテキストが10フロア114空間に展開される", () => {
+test("200行たらずのテキストが10フロア122空間に展開される", () => {
   const m = parse(src);
   assert.ok(src.split("\n").length < 200);
-  assert.equal(m.spaces.size, 114);
-  assert.equal(m.boundaries.length, 316);
+  assert.equal(m.spaces.size, 122);
+  assert.equal(m.boundaries.length, 332);
   assert.equal(Object.keys(m.levels).length, 11); // L1..L10 + R (範囲宣言L3..L9は7レベル)
   assert.equal(m.zones.size, 8); // Aタイプのゾーン × L2..L9
 });
@@ -59,13 +59,22 @@ test("2階の洋室から9階の洋室へは扉8枚", () => {
   assert.equal(doorsBetween(m, "/L2/A/bedroom", "/L9/A/bedroom")!.doors, 8);
 });
 
-test("面積: 専有1704㎡ — 間取りに割ってもゾーンの集計で不変", () => {
+test("面積: 専有1704㎡ — 間取りに割っても、バルコニーが付いても不変", () => {
   const m = parse(src);
   const exclusive = [...m.spaces.values()]
-    .filter((s) => effectiveUse(m, s) === "exclusive")
+    .filter((s) => effectiveUse(m, s) === "exclusive" && !isSemiOutdoor(m, s))
     .reduce((sum, s) => sum + (areaM2(s) ?? 0), 0);
   assert.equal(Math.round(exclusive * 100) / 100, 1704);
-  assert.equal(zoneAreaM2(m, "/L5/A"), 34.8); // 住戸=ゾーンの面積は室の合計
+  assert.equal(zoneAreaM2(m, "/L5/A"), 34.8); // 住戸=ゾーンの面積は室の合計 (半屋外は数えない)
+});
+
+test("半屋外は導出される: バルコニー・屋外階段は半屋外、内廊下は違う", () => {
+  const m = parse(src);
+  assert.equal(isSemiOutdoor(m, m.spaces.get("/L5/A/balcony")!), true);
+  assert.equal(isSemiOutdoor(m, m.spaces.get("/L5/stair")!), true);
+  assert.equal(isSemiOutdoor(m, m.spaces.get("/L10/terrace")!), true);
+  assert.equal(isSemiOutdoor(m, m.spaces.get("/L5/corridor")!), false); // 内廊下
+  assert.equal(isSemiOutdoor(m, m.spaces.get("/L5/A/ldk")!), false); // バルコニーの内側
 });
 
 test("一行の中で異なるレベル範囲は使えない", () => {

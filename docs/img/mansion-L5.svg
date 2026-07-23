@@ -1,10 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1168" height="858" viewBox="0 0 1168 858" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
-<rect width="1168" height="858" fill="#faf8f4"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1168" height="928" viewBox="0 0 1168 928" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="1168" height="928" fill="#faf8f4"/>
 <rect x="344" y="564" width="160" height="210" fill="#f1ebdd"/>
 <rect x="214" y="704" width="130" height="70" fill="#f1ebdd"/>
 <rect x="214" y="564" width="130" height="140" fill="#f1ebdd"/>
 <rect x="214" y="474" width="180" height="90" fill="#f1ebdd"/>
 <rect x="394" y="474" width="110" height="90" fill="#f1ebdd"/>
+<rect x="214" y="774" width="290" height="70" fill="#f8f5ec"/>
 <rect x="504" y="474" width="290" height="300" fill="#f1ebdd"/>
 <rect x="794" y="474" width="290" height="300" fill="#f1ebdd"/>
 <rect x="214" y="384" width="870" height="90" fill="#f1ebdd"/>
@@ -12,17 +13,17 @@
 <rect x="634" y="84" width="450" height="300" fill="#f1ebdd"/>
 <rect x="504" y="254" width="130" height="130" fill="#f1ebdd"/>
 <rect x="504" y="84" width="130" height="170" fill="#f1ebdd"/>
-<rect x="84" y="384" width="130" height="120" fill="#f1ebdd"/>
-<line x1="214" y1="58" x2="214" y2="800" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<rect x="84" y="384" width="130" height="120" fill="#f8f5ec"/>
+<line x1="214" y1="58" x2="214" y2="870" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="214" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="214" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X1</text>
-<line x1="504" y1="58" x2="504" y2="800" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<line x1="504" y1="58" x2="504" y2="870" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="504" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="504" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X2</text>
-<line x1="794" y1="58" x2="794" y2="800" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<line x1="794" y1="58" x2="794" y2="870" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="794" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="794" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X3</text>
-<line x1="1084" y1="58" x2="1084" y2="800" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<line x1="1084" y1="58" x2="1084" y2="870" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="1084" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="1084" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X4</text>
 <line x1="58" y1="774" x2="1110" y2="774" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
@@ -61,6 +62,9 @@
 <rect x="631" y="84" width="6" height="170" fill="#1f1f1f"/>
 <rect x="504" y="249" width="130" height="10" fill="#1f1f1f"/>
 <rect x="214" y="769.5" width="290" height="9" fill="#1f1f1f"/>
+<line x1="504" y1="844" x2="504" y2="774" stroke="#1f1f1f" stroke-width="1.4"/>
+<line x1="214" y1="844" x2="504" y2="844" stroke="#1f1f1f" stroke-width="1.4"/>
+<line x1="214" y1="844" x2="214" y2="774" stroke="#1f1f1f" stroke-width="1.4"/>
 <rect x="209.5" y="704" width="9" height="70" fill="#1f1f1f"/>
 <rect x="209.5" y="564" width="9" height="140" fill="#1f1f1f"/>
 <rect x="209.5" y="504" width="9" height="60" fill="#1f1f1f"/>
@@ -73,9 +77,9 @@
 <rect x="1079.5" y="84" width="9" height="300" fill="#1f1f1f"/>
 <rect x="1079.5" y="384" width="9" height="90" fill="#1f1f1f"/>
 <rect x="504" y="79.5" width="130" height="9" fill="#1f1f1f"/>
-<rect x="84" y="381" width="130" height="6" fill="#1f1f1f"/>
-<rect x="84" y="501" width="130" height="6" fill="#1f1f1f"/>
-<rect x="81" y="384" width="6" height="120" fill="#1f1f1f"/>
+<line x1="84" y1="384" x2="214" y2="384" stroke="#1f1f1f" stroke-width="1.4"/>
+<line x1="84" y1="504" x2="214" y2="504" stroke="#1f1f1f" stroke-width="1.4"/>
+<line x1="84" y1="504" x2="84" y2="384" stroke="#1f1f1f" stroke-width="1.4"/>
 <rect x="340.75" y="614" width="6.5" height="40" fill="#faf8f4"/>
 <line x1="344" y1="654" x2="384" y2="654" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 384 654 A 40 40 0 0 0 344 614" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
 <rect x="429" y="560.75" width="40" height="6.5" fill="#faf8f4"/>
@@ -83,7 +87,7 @@
 <rect x="390.75" y="500.25" width="6.5" height="37.5" fill="#faf8f4"/>
 <line x1="394" y1="537.75" x2="431.5" y2="537.75" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 431.5 537.75 A 37.5 37.5 0 0 0 394 500.25" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
 <rect x="426.5" y="468.75" width="45" height="10.5" fill="#faf8f4"/>
-<line x1="426.5" y1="474" x2="426.5" y2="519" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 426.5 519 A 45 45 0 0 0 471.5 474" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="471.5" y1="474" x2="471.5" y2="519" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 471.5 519 A 45 45 0 0 1 426.5 474" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
 <rect x="626.5" y="468.75" width="45" height="10.5" fill="#faf8f4"/>
 <line x1="626.5" y1="474" x2="626.5" y2="519" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 626.5 519 A 45 45 0 0 0 671.5 474" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
 <rect x="916.5" y="468.75" width="45" height="10.5" fill="#faf8f4"/>
@@ -124,6 +128,9 @@
 <text x="449" y="515" text-anchor="middle" font-size="14" fill="#1f1f1f">玄関廊下</text>
 <text x="449" y="532" text-anchor="middle" font-size="10" fill="#8a8171">hall ・ 3.96㎡</text>
 <text x="449" y="546" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L5/A/hall</text>
+<text x="359" y="805" text-anchor="middle" font-size="14" fill="#1f1f1f">バルコニー</text>
+<text x="359" y="822" text-anchor="middle" font-size="10" fill="#8a8171">balcony ・ 8.12㎡ ・ 半屋外</text>
+<text x="359" y="836" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L5/A/balcony</text>
 <text x="649" y="620" text-anchor="middle" font-size="14" fill="#1f1f1f">Bタイプ</text>
 <text x="649" y="637" text-anchor="middle" font-size="10" fill="#8a8171">unit ・ 34.8㎡</text>
 <text x="649" y="651" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L5/B</text>
@@ -146,8 +153,8 @@
 <text x="569" y="182" text-anchor="middle" font-size="10" fill="#8a8171">ps ・ 8.84㎡</text>
 <text x="569" y="196" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L5/ps</text>
 <text x="149" y="440" text-anchor="middle" font-size="14" fill="#1f1f1f">屋外階段</text>
-<text x="149" y="457" text-anchor="middle" font-size="10" fill="#8a8171">stair ・ 6.24㎡</text>
+<text x="149" y="457" text-anchor="middle" font-size="10" fill="#8a8171">stair ・ 6.24㎡ ・ 半屋外</text>
 <text x="149" y="471" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L5/stair</text>
-<text x="22" y="840" font-size="12" fill="#1f1f1f">内廊下型集合住宅 — L5 平面</text>
-<text x="1146" y="840" text-anchor="end" font-size="9" fill="#a49b8a">ifcxs v0 — 空間から生成 (壁芯・mm)</text>
+<text x="22" y="910" font-size="12" fill="#1f1f1f">内廊下型集合住宅 — L5 平面</text>
+<text x="1146" y="910" text-anchor="end" font-size="9" fill="#a49b8a">ifcxs v0 — 空間から生成 (壁芯・mm)</text>
 </svg>

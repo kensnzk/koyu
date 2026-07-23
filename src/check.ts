@@ -148,6 +148,19 @@ export function check(model: Model): CheckResult {
       const placed = placeOpening(model, b, o);
       if ("error" in placed && placed.error) {
         errors.push(placed.error);
+        continue;
+      }
+      if (o.hinge && "segment" in placed) {
+        const okAxis = placed.segment.horizontal
+          ? o.hinge === "W" || o.hinge === "E"
+          : o.hinge === "N" || o.hinge === "S";
+        if (!okAxis) {
+          errors.push(
+            `${o.line}行目: hinge:${o.hinge} は${
+              placed.segment.horizontal ? "水平線分 (W/E)" : "垂直線分 (N/S)"
+            }で指定します`,
+          );
+        }
       }
     }
     for (const g of b.segs) {
@@ -194,8 +207,9 @@ export function check(model: Model): CheckResult {
   }
 
   // 高さ方向の一貫性: 下階の空間の天井高 + 上階のslab ≤ 階高
-  // 吹抜け (void境界) で上階へ立ち上がる空間はこの不変量から宣言的に免除される
-  const voidExempt = new Set<string>();
+  // 吹抜け (void境界) は宣言的な免除だが、免除が効くのは吹抜けが平面を覆う範囲まで —
+  // 部分吹抜けでは下階の天井高は階高内に収める (吹抜け部分の高さは導出) (ADR-0006追記)
+  const voidPartners = new Map<string, Space[]>();
   for (const b of model.boundaries) {
     if (b.kind !== "void") continue;
     const sa = model.spaces.get(b.a);
@@ -204,8 +218,11 @@ export function check(model: Model): CheckResult {
     const ia = levelIndex.get(sa.level) ?? 0;
     const ib = levelIndex.get(sb.level) ?? 0;
     const lower = ia < ib ? sa : sb;
-    const upperLevel = ia < ib ? sb.level : sa.level;
-    voidExempt.add(`${lower.path}|${upperLevel}`);
+    const upper = ia < ib ? sb : sa;
+    const key = `${lower.path}|${upper.level}`;
+    const arr = voidPartners.get(key) ?? [];
+    arr.push(upper);
+    voidPartners.set(key, arr);
   }
 
   const byLevel = new Map<string, Space[]>();
@@ -223,7 +240,6 @@ export function check(model: Model): CheckResult {
     const pitch = lu.z - lb.z;
     let slabMissing = false;
     for (const s of below) {
-      if (voidExempt.has(`${s.path}|${lu.name}`)) continue;
       const covered = above.some((u) => spacesOverlap(s, u)) || above.length === 0;
       if (!covered) continue;
       if (lu.slab === undefined) {
@@ -236,10 +252,17 @@ export function check(model: Model): CheckResult {
         continue;
       }
       if (h + lu.slab > pitch + EPS) {
+        const partners = voidPartners.get(`${s.path}|${lu.name}`) ?? [];
+        const cover = partners.length ? voidCoverage(s, partners) : 0;
+        if (cover >= 0.99) continue; // 全面吹抜け — 宣言的免除
         errors.push(
-          `${s.path} が上階に食い込みます: 天井高${h} + ${lu.name}のslab${lu.slab} = ${
-            h + lu.slab
-          } > 階高${pitch}`,
+          partners.length
+            ? `${s.path} の天井高${h}は階高${pitch}を超えますが、吹抜けの被覆は${Math.round(
+                cover * 100,
+              )}%です。部分吹抜けでは天井高を階高内に収めます (吹抜け部分の高さは導出)`
+            : `${s.path} が上階に食い込みます: 天井高${h} + ${lu.name}のslab${lu.slab} = ${
+                h + lu.slab
+              } > 階高${pitch}`,
         );
       }
     }
@@ -254,10 +277,25 @@ export function check(model: Model): CheckResult {
   for (const s of withRect) {
     if (!s.level) {
       warnings.push(
-        `${s.line}行目: ${s.path} は領域を持ちますが、パス先頭がレベル名ではありません`,
+        `${s.line}行目: ${s.path} は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)`,
       );
     }
   }
 
   return { errors, warnings };
+}
+
+/** 吹抜けが下階の空間の平面をどれだけ覆うか (0..1) */
+function voidCoverage(s: Space, partners: Space[]): number {
+  let inter = 0;
+  for (const r of s.rects) {
+    for (const p of partners) {
+      for (const pr of p.rects) {
+        const o = planOverlap(r, pr);
+        if (o) inter += (o.x2 - o.x1) * (o.y2 - o.y1);
+      }
+    }
+  }
+  const area = s.rects.reduce((sum, r) => sum + (r.x2 - r.x1) * (r.y2 - r.y1), 0);
+  return area > 0 ? inter / area : 0;
 }

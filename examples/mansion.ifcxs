@@ -1,6 +1,7 @@
 # 内廊下型集合住宅 — 10階建て・43戸
 # 1Fは共用部と機械室、2〜9Fが基準階 (5戸: 34.8㎡×4 + 54㎡×1)、10Fはペントハウス (3戸+ルーフテラス)。
-# EV1基 (シャフト=通行不可)、西側に屋外階段 (外部にはopen/手すり壁で接する半屋外)。
+# EV1基 (シャフト=通行不可)、西側に屋外階段とAタイプのバルコニー (半屋外 —
+# 外部に対し open または air:1 (手すり等、遮蔽しない物) の境界を持つ空間として導出される)。
 # 基準階は一度だけ書く — /L2..L9/ のスパンが8フロアに展開される。
 
 ifcxs 0.1
@@ -71,6 +72,7 @@ space /L2..L9/A/ldk     ldk     X1+2600..X2 Y1..Y2-1800 + X1..X1+2600 Y1..Y1+140
 space /L2..L9/A/bedroom bedroom X1..X1+2600 Y1+1400..Y2-1800 name:洋室
 space /L2..L9/A/wet     water   X1..X1+3600 Y2-1800..Y2 name:水回り
 space /L2..L9/A/hall    hall    X1+3600..X2 Y2-1800..Y2 name:玄関廊下
+space /L2..L9/A/balcony balcony X1..X2 Y1-1400..Y1 name:バルコニー   # 半屋外 — 専有面積に数えない
 space /L2..L9/B unit X2..X3 Y1..Y2               name:Bタイプ use:exclusive
 space /L2..L9/C unit X3..X4 Y1..Y2               name:Cタイプ use:exclusive
 space /L2..L9/corridor corridor X1..X4 Y2..Y3    name:内廊下 use:common
@@ -90,7 +92,7 @@ boundary /L2..L9/A/bedroom /L2..L9/A/wet t:100 spec:LGS
 boundary /L2..L9/A/hall /L2..L9/A/wet t:100 spec:LGS
   door w:750
 boundary /L2..L9/A/hall /L2..L9/corridor t:180 spec:RC fire:60
-  door w:900 name:玄関
+  door w:900 name:玄関 hinge:E   # 開き勝手: 吊元は東、開く側は既定 (a=住戸側)
 boundary /L2..L9/A/wet /L2..L9/corridor t:180 spec:RC fire:60
 boundary /L2..L9/A/ldk /L2..L9/B t:180 spec:RC fire:60 sound:D-50   # 界壁
 boundary /L2..L9/A/hall /L2..L9/B t:180 spec:RC fire:60 sound:D-50
@@ -115,8 +117,10 @@ boundary /L2..L9/E /L2..L9/ev t:200 spec:RC
 boundary /L2..L9/E /L2..L9/ps t:120 spec:LGS
 boundary /L2..L9/ev /L2..L9/ps t:200 spec:RC
 
+boundary /L2..L9/A/ldk /L2..L9/A/balcony t:180 spec:EW fire:60
+  window w:2600 h:2200 sill:0 name:掃き出し窓   # バルコニー越しの採光は0.7掛け
+boundary /L2..L9/A/balcony /out t:120 spec:手すり air:1 h:1100
 boundary /L2..L9/A/ldk /out t:180 spec:EW fire:60
-  window w:2600 h:2200 edge:S sill:0 name:掃き出し窓
 boundary /L2..L9/A/bedroom /out t:180 spec:EW fire:60
   window w:1650 h:1100 edge:W sill:900
 boundary /L2..L9/A/wet /out t:180 spec:EW
@@ -132,7 +136,7 @@ boundary /L2..L9/E /out t:180 spec:EW fire:60
 boundary /L2..L9/corridor /out t:180 spec:EW
   window w:1200 edge:E sill:800 name:突き当り窓
 boundary /L2..L9/ps /out t:180 spec:EW
-boundary /L2..L9/stair /out t:120 spec:手すり壁
+boundary /L2..L9/stair /out t:120 spec:手すり air:1 h:1100   # 物はあるが遮蔽しない → 半屋外
 
 # ============ 10階 — ペントハウス ============
 space /L10/1001 unit X1..X3 Y1..Y2               name:PH-A use:exclusive
@@ -172,11 +176,11 @@ boundary /L10/1002 /out t:180 spec:EW fire:60
 boundary /L10/1003 /out t:180 spec:EW fire:60
   window w:2600 h:2200 edge:N sill:0
   window w:1650 h:2200 edge:E sill:0
-boundary /L10/terrace /out t:120 spec:手すり壁      # 屋外 — 外部とは手すり壁で接する
+boundary /L10/terrace /out t:120 spec:手すり air:1 h:1100
 boundary /L10/corridor /out t:180 spec:EW
   window w:1200 edge:E sill:800
 boundary /L10/ps /out t:180 spec:EW
-boundary /L10/stair /out t:120 spec:手すり壁
+boundary /L10/stair /out t:120 spec:手すり air:1 h:1100
 
 # ============ 垂直 — 積層するものだけ書く。床は既定 (levelのslab) ============
 stack ev L1..L10 type:shaft        # EVシャフト: 連続するが人は通れない

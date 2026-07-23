@@ -52,11 +52,13 @@ export interface GridRef {
 }
 
 export interface Space {
-  /** パスが同一性。/L1/a のように人間が読める階層で名指す */
+  /** パスが同一性。/L1/a のように人間が読める階層で名指す。
+   *  パスの第一義は集計の階層 — レベルは既定で先頭セグメントから読むが、
+   *  階を跨ぐくくり (メゾネット) は level: 属性で明示する (ADR-0008) */
   path: string;
   /** 開かれた語彙 (room, corridor, exterior, void, ...) */
   type: string;
-  /** 所属レベル名 (パスの先頭セグメントがレベル名なら自動判定) */
+  /** 所属レベル名 (パス先頭セグメント、または level: 属性) */
   level?: string;
   /** グリッド参照。複数矩形の合併でL字などを表す (rectsと同順) */
   grids: GridRef[];
@@ -79,9 +81,12 @@ export interface Zone {
 }
 
 /**
- * 水平: wall (壁) / open (垂れ壁の有無を言わない開放的な分節 — 基本計画の抽象度)
+ * kindは関係のトポロジーだけを言う (IFCのIfcRelSpaceBoundaryがPhysical/Virtualしか
+ * 言わないのと同じ構え)。手すり・カーテンウォールといった「実現する物」はspec語彙で、
+ * kindには入れない (IfcRailingが要素であって境界種別でないことに倣う — ADR-0007)。
+ * 水平: wall (物がある。扉がなければ通れない) / open (何もない — 通行可)
  * 垂直: stair (階段 — 通行可) / shaft (EV等 — 連続するが通行不可) /
- *       void (吹抜け — 床の不在。下階の空間が上階の空間へ立ち上がる)
+ *       void (吹抜け — 床の不在)
  * 垂直の既定は床 (slab) であり書かない。levelのslab宣言が一括で与える。
  */
 export type BoundaryKind = "wall" | "open" | "stair" | "shaft" | "void";
@@ -96,6 +101,10 @@ export interface Opening {
   at: number;
   /** 区間が複数あるとき (外部境界など) の辺の指定 */
   edge?: Edge;
+  /** 開き勝手: 吊元の側 (水平線分ならW/E、垂直線分ならS/N)。既定は始端側 */
+  hinge?: Edge;
+  /** 開き勝手: 開く側 (境界のa側/b側)。既定はa側 (領域を持つ方) */
+  swing?: "a" | "b";
   attrs: Attrs;
   line: number;
 }
@@ -121,6 +130,10 @@ export interface Boundary {
   kind: BoundaryKind;
   /** 壁厚 mm (通り芯・境界線に対して芯振り分け) */
   t?: number;
+  /** 遮蔽しない (air:1) — 手すり・柵など、物はあるが外気・光を遮らない。
+   *  通行可能性はkindが言い (壁は扉がなければ通れない)、遮蔽性はこの属性が言う。
+   *  外部に対して open または air:1 の境界を持つ空間が半屋外と導出される */
+  air?: boolean;
   /** 境界をaの矩形から見た特定の辺に限定する */
   edge?: Edge;
   attrs: Attrs;
@@ -158,12 +171,28 @@ export function areaM2(s: Space): number | undefined {
   return Math.round(a * 100) / 100;
 }
 
-/** ゾーンの面積 = パス接頭辞で束ねた空間の合計 (吹抜けvoidは数えない) */
+/**
+ * 半屋外か — 宣言ではなく導出。外部 (type:exterior) に対して
+ * open または air:1 (手すり等、遮蔽しない物) の境界で接する空間は半屋外である (ADR-0007)
+ */
+export function isSemiOutdoor(model: Model, s: Space): boolean {
+  if (s.rects.length === 0) return false;
+  for (const b of model.boundaries) {
+    if (b.kind !== "open" && !b.air) continue;
+    const other = b.a === s.path ? b.b : b.b === s.path ? b.a : undefined;
+    if (!other) continue;
+    if (model.spaces.get(other)?.type === "exterior") return true;
+  }
+  return false;
+}
+
+/** ゾーンの面積 = パス接頭辞で束ねた空間の合計 (吹抜けと半屋外は数えない — 専有面積の言葉) */
 export function zoneAreaM2(model: Model, zonePath: string): number {
   let sum = 0;
   for (const s of model.spaces.values()) {
     if (!s.path.startsWith(zonePath + "/")) continue;
     if (s.type === "void") continue;
+    if (isSemiOutdoor(model, s)) continue;
     sum += areaM2(s) ?? 0;
   }
   return Math.round(sum * 100) / 100;
@@ -232,6 +261,7 @@ export function toCanonical(model: Model): string {
       between: [b.a, b.b].sort(),
       kind: b.kind,
       ...(b.t !== undefined ? { t: b.t } : {}),
+      ...(b.air ? { air: true } : {}),
       ...(b.edge ? { edge: b.edge } : {}),
       ...(Object.keys(b.attrs).length ? { attrs: sortObj(b.attrs) } : {}),
       ...(b.openings.length
@@ -242,6 +272,8 @@ export function toCanonical(model: Model): string {
               ...(o.h !== undefined ? { h: o.h } : {}),
               at: o.at,
               ...(o.edge ? { edge: o.edge } : {}),
+              ...(o.hinge ? { hinge: o.hinge } : {}),
+              ...(o.swing ? { swing: o.swing } : {}),
               ...(Object.keys(o.attrs).length ? { attrs: sortObj(o.attrs) } : {}),
             })),
           }

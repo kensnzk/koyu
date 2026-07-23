@@ -73,7 +73,7 @@ space /L2/wc-w     wc       X2+3000..X3 Y3..Y4  name:女子WC use:common
 space /L2/machine  machine  X3..X4 Y3..Y4       name:倉庫 use:common
 
 boundary /L2/void /L2/office t:120 spec:LGS
-boundary /L2/void /L2/corridor t:120 spec:手すり壁   # 吹抜けに面する腰壁
+boundary /L2/void /L2/corridor t:120 spec:腰壁+手すり air:1   # 吹抜けに面する — 遮蔽しない
 boundary /L2/office /L2/corridor t:120 spec:LGS
   door w:900
 boundary /L2/corridor /L2/stair t:180 spec:RC fire:60

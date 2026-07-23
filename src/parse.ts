@@ -240,8 +240,13 @@ function parseSpace(rest: string[], ln: number, model: Model): Space {
   }
   const attrs = parseAttrs(attrTokens, ln);
 
+  // レベルは既定でパス先頭から読む。階を跨ぐくくり (メゾネット等) は level: で明示する
+  const explicit = takeString(attrs, "level");
+  if (explicit !== undefined && !model.levels[explicit]) {
+    throw new SourceError(ln, `未宣言のレベルです: level:${explicit}`);
+  }
   const seg = path.split("/")[1];
-  const level = seg && model.levels[seg] ? seg : undefined;
+  const level = explicit ?? (seg && model.levels[seg] ? seg : undefined);
 
   const space: Space = { path, type, level, grids: [], rects: [], areas: [], attrs, line: ln };
   for (const g of groups) {
@@ -388,12 +393,17 @@ function parseBoundary(rest: string[], ln: number): Boundary {
       `boundary の type は wall / open / stair / shaft / void です: ${kindRaw}`,
     );
   }
+  const air = takeNumber(attrs, "air");
+  if (air !== undefined && air !== 0 && air !== 1) {
+    throw new SourceError(ln, "air は 0 / 1 で指定します (1=遮蔽しない: 手すり・柵など)");
+  }
   const edge = takeEdge(attrs, ln);
   return {
     a,
     b,
     kind: kindRaw as Boundary["kind"],
     ...(t !== undefined ? { t } : {}),
+    ...(air === 1 ? { air: true } : {}),
     ...(edge ? { edge } : {}),
     attrs,
     openings: [],
@@ -412,12 +422,22 @@ function parseOpening(kind: "door" | "window", rest: string[], ln: number): Open
   const at = takeNumber(attrs, "at") ?? 0.5;
   if (at < 0 || at > 1) throw new SourceError(ln, "at は 0..1 で指定します");
   const edge = takeEdge(attrs, ln);
+  const hingeRaw = takeString(attrs, "hinge");
+  if (hingeRaw !== undefined && !EDGES.has(hingeRaw)) {
+    throw new SourceError(ln, `hinge は N/E/S/W で指定します: ${hingeRaw}`);
+  }
+  const swingRaw = takeString(attrs, "swing");
+  if (swingRaw !== undefined && swingRaw !== "a" && swingRaw !== "b") {
+    throw new SourceError(ln, `swing は a / b (境界のどちら側へ開くか) です: ${swingRaw}`);
+  }
   return {
     kind,
     w,
     ...(h !== undefined ? { h } : {}),
     at,
     ...(edge ? { edge } : {}),
+    ...(hingeRaw ? { hinge: hingeRaw as Edge } : {}),
+    ...(swingRaw ? { swing: swingRaw as "a" | "b" } : {}),
     attrs,
     line: ln,
   };

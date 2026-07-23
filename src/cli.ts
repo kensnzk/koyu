@@ -18,6 +18,7 @@ import {
   displayName,
   effectiveUse,
   heff,
+  isSemiOutdoor,
   levelsSorted,
   SourceError,
   toCanonical,
@@ -101,7 +102,9 @@ function main(argv: string[]): number {
           const mark =
             n.boundary.kind === "open"
               ? "〰 開放"
-              : n.boundary.kind === "stair"
+              : n.boundary.kind === "wall" && n.boundary.air && !n.passable
+                ? "| 手すり等(外気開放・通行不可)"
+                : n.boundary.kind === "stair"
                 ? "↕ 階段"
                 : n.boundary.kind === "shaft"
                   ? "↕ シャフト(通行不可)"
@@ -124,6 +127,7 @@ function main(argv: string[]): number {
       let total = 0;
       const byType = new Map<string, number>();
       const byUse = new Map<string, number>();
+      let semiTotal = 0;
       for (const l of levels) {
         const onLevel = spaces.filter((s) => s.level === l.name && s.rects.length > 0);
         if (onLevel.length === 0) continue;
@@ -135,6 +139,13 @@ function main(argv: string[]): number {
             continue;
           }
           const a = areaM2(s)!;
+          if (isSemiOutdoor(model, s)) {
+            semiTotal += a;
+            console.log(
+              `  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)}㎡ (半屋外・別掲)`,
+            );
+            continue;
+          }
           sub += a;
           total += a;
           byType.set(s.type, (byType.get(s.type) ?? 0) + a);
@@ -144,7 +155,10 @@ function main(argv: string[]): number {
         }
         console.log(`  小計 ${sub.toFixed(2)}㎡`);
       }
-      console.log(`合計 ${total.toFixed(2)}㎡`);
+      console.log(`合計 ${total.toFixed(2)}㎡ (屋内床面積)`);
+      if (semiTotal > 0) {
+        console.log(`半屋外 ${semiTotal.toFixed(2)}㎡ (バルコニー・屋外階段等 — 算入条件は法規細部のため別掲)`);
+      }
       if (model.zones.size > 0) {
         console.log("ゾーン別 (数える集約):");
         for (const z of [...model.zones.values()].sort((a, b) => (a.path < b.path ? -1 : 1))) {
