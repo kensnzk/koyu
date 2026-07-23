@@ -1,0 +1,159 @@
+# 内廊下型集合住宅 — 10階建て・43戸
+# 1Fは共用部と機械室、2〜9Fが基準階 (5戸: 34.8㎡×4 + 54㎡×1)、10Fはペントハウス (3戸+ルーフテラス)。
+# EV1基 (シャフト=通行不可)、西側に屋外階段 (外部にはopen/手すり壁で接する半屋外)。
+# 基準階は一度だけ書く — /L2..L9/ のスパンが8フロアに展開される。
+
+ifcxs 0.1
+name 内廊下型集合住宅
+unit mm
+
+grid X 0 5800 11600 17400
+grid Y 0 6000 7800 13800
+
+level L1 0 h:2800
+level L2 3800 h:2400 slab:1000       # 1Fは階高3800 (共用部の設備懐)
+level L3..L9 6700 pitch:2900 h:2400 slab:500
+level L10 27000 h:2600 slab:500      # ペントハウスは天井高2600
+level R 30200 slab:600               # 屋上 (陸屋根)。L10の上限を与える
+
+space /out exterior name:外部
+
+# ============ 1階 — 共用部・機械室 ============
+space /L1/hall     hall     X1..X2 Y1..Y3        name:エントランスホール use:common floor:タイル
+space /L1/machine  machine  X2..X3 Y1..Y2        name:機械室・電気室 use:common
+space /L1/bike     bicycle  X3..X4 Y1..Y2        name:駐輪場 use:common
+space /L1/corridor corridor X2..X4 Y2..Y3        name:共用廊下 use:common
+space /L1/garbage  waste    X1..X2 Y3..Y4        name:ごみ置場 use:common
+space /L1/ev       ev       X2..X2+2600 Y3..Y3+2600   name:EV use:common
+space /L1/trunk    trunk    X2..X2+2600 Y3+2600..Y4   name:トランクルーム use:common
+space /L1/common   meeting  X2+2600..X4 Y3..Y4   name:管理室・集会室 use:common
+space /L1/stair    stair    X1-2600..X1 Y2-600..Y3    name:屋外階段 use:common
+
+boundary /L1/hall /L1/machine t:180 spec:RC
+boundary /L1/hall /L1/corridor type:open
+boundary /L1/hall /L1/garbage t:180 spec:RC
+boundary /L1/hall /L1/stair t:180 spec:RC fire:60
+  door w:900 name:階段出入口
+boundary /L1/machine /L1/bike t:180 spec:RC
+boundary /L1/machine /L1/corridor t:180 spec:RC
+  door w:900
+boundary /L1/bike /L1/corridor t:120 spec:LGS
+  door w:1800 name:駐輪場入口
+boundary /L1/corridor /L1/ev t:200 spec:RC
+  door w:900 name:EV扉
+boundary /L1/corridor /L1/common t:120 spec:LGS
+  door w:900
+boundary /L1/garbage /L1/ev t:200 spec:RC
+boundary /L1/garbage /L1/trunk t:180 spec:RC
+boundary /L1/ev /L1/trunk t:200 spec:RC
+boundary /L1/ev /L1/common t:200 spec:RC
+boundary /L1/trunk /L1/common t:120 spec:LGS
+
+boundary /L1/hall /out t:200 spec:EW fire:60
+  door w:1800 edge:S name:エントランス
+  window w:2400 edge:W sill:500
+boundary /L1/machine /out t:200 spec:EW
+boundary /L1/bike /out t:200 spec:EW
+  door w:1800 edge:S name:駐輪場外部口
+boundary /L1/corridor /out t:200 spec:EW
+boundary /L1/garbage /out t:200 spec:EW
+  door w:1200 edge:W name:ごみ搬出口
+boundary /L1/trunk /out t:200 spec:EW
+boundary /L1/common /out t:200 spec:EW fire:60
+  window w:2600 edge:N sill:800
+boundary /L1/stair /out type:open      # 地上階の屋外階段は外部へ直接開放
+
+# ============ 基準階 (2〜9F) — 一度だけ書く ============
+space /L2..L9/A unit X1..X2 Y1..Y2               name:Aタイプ use:exclusive
+space /L2..L9/B unit X2..X3 Y1..Y2               name:Bタイプ use:exclusive
+space /L2..L9/C unit X3..X4 Y1..Y2               name:Cタイプ use:exclusive
+space /L2..L9/corridor corridor X1..X4 Y2..Y3    name:内廊下 use:common
+space /L2..L9/D unit X1..X2 Y3..Y4               name:Dタイプ use:exclusive
+space /L2..L9/E unit X2+2600..X4 Y3..Y4          name:Eタイプ use:exclusive
+space /L2..L9/ev ev X2..X2+2600 Y3..Y3+2600      name:EV use:common
+space /L2..L9/ps ps X2..X2+2600 Y3+2600..Y4      name:PS・MB use:common
+space /L2..L9/stair stair X1-2600..X1 Y2-600..Y3 name:屋外階段 use:common
+
+boundary /L2..L9/A /L2..L9/B t:180 spec:RC fire:60 sound:D-50   # 界壁
+boundary /L2..L9/B /L2..L9/C t:180 spec:RC fire:60 sound:D-50
+boundary /L2..L9/A /L2..L9/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L9/B /L2..L9/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L9/C /L2..L9/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L9/D /L2..L9/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L9/E /L2..L9/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L9/corridor /L2..L9/ev t:200 spec:RC
+  door w:900 name:EV扉
+boundary /L2..L9/corridor /L2..L9/stair t:180 spec:RC fire:60
+  door w:900 name:階段防火戸
+boundary /L2..L9/A /L2..L9/stair t:180 spec:RC fire:60
+boundary /L2..L9/D /L2..L9/ev t:200 spec:RC
+boundary /L2..L9/D /L2..L9/ps t:120 spec:LGS
+boundary /L2..L9/E /L2..L9/ev t:200 spec:RC
+boundary /L2..L9/E /L2..L9/ps t:120 spec:LGS
+boundary /L2..L9/ev /L2..L9/ps t:200 spec:RC
+
+boundary /L2..L9/A /out t:180 spec:EW fire:60
+  window w:2600 edge:S sill:0 name:掃き出し窓
+boundary /L2..L9/B /out t:180 spec:EW fire:60
+  window w:2600 edge:S sill:0
+boundary /L2..L9/C /out t:180 spec:EW fire:60
+  window w:2600 edge:S sill:0
+boundary /L2..L9/D /out t:180 spec:EW fire:60
+  window w:2600 edge:N sill:0
+boundary /L2..L9/E /out t:180 spec:EW fire:60
+  window w:2600 edge:N sill:0
+boundary /L2..L9/corridor /out t:180 spec:EW
+  window w:1200 edge:E sill:800 name:突き当り窓
+boundary /L2..L9/ps /out t:180 spec:EW
+boundary /L2..L9/stair /out t:120 spec:手すり壁
+
+# ============ 10階 — ペントハウス ============
+space /L10/1001 unit X1..X3 Y1..Y2               name:PH-A use:exclusive
+space /L10/1002 unit X3..X4 Y1..Y2               name:PH-B use:exclusive
+space /L10/corridor corridor X1..X4 Y2..Y3       name:内廊下 use:common
+space /L10/terrace terrace X1..X2 Y3..Y4         name:ルーフテラス use:common
+space /L10/1003 unit X2+2600..X4 Y3..Y4          name:PH-C use:exclusive
+space /L10/ev ev X2..X2+2600 Y3..Y3+2600         name:EV use:common
+space /L10/ps ps X2..X2+2600 Y3+2600..Y4         name:PS・MB use:common
+space /L10/stair stair X1-2600..X1 Y2-600..Y3    name:屋外階段 use:common
+
+boundary /L10/1001 /L10/1002 t:180 spec:RC fire:60 sound:D-50
+boundary /L10/1001 /L10/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L10/1002 /L10/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L10/1003 /L10/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L10/corridor /L10/terrace t:180 spec:EW
+  door w:900 name:テラス出入口
+boundary /L10/corridor /L10/ev t:200 spec:RC
+  door w:900 name:EV扉
+boundary /L10/corridor /L10/stair t:180 spec:RC fire:60
+  door w:900 name:階段防火戸
+boundary /L10/1001 /L10/stair t:180 spec:RC fire:60
+boundary /L10/terrace /L10/ev t:200 spec:RC
+boundary /L10/terrace /L10/ps t:180 spec:RC
+boundary /L10/1003 /L10/ev t:200 spec:RC
+boundary /L10/1003 /L10/ps t:120 spec:LGS
+boundary /L10/ev /L10/ps t:200 spec:RC
+
+boundary /L10/1001 /out t:180 spec:EW fire:60
+  window w:2600 edge:S sill:0
+boundary /L10/1002 /out t:180 spec:EW fire:60
+  window w:2600 edge:S sill:0
+boundary /L10/1003 /out t:180 spec:EW fire:60
+  window w:2600 edge:N sill:0
+boundary /L10/terrace /out t:120 spec:手すり壁      # 屋外 — 外部とは手すり壁で接する
+boundary /L10/corridor /out t:180 spec:EW
+  window w:1200 edge:E sill:800
+boundary /L10/ps /out t:180 spec:EW
+boundary /L10/stair /out t:120 spec:手すり壁
+
+# ============ 垂直 — 積層するものだけ書く。床は既定 (levelのslab) ============
+stack ev L1..L10 type:shaft        # EVシャフト: 連続するが人は通れない
+stack stair L1..L10 type:stair     # 屋外階段: 扉0枚で階をまたぐ

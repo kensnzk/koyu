@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1168" height="858" viewBox="0 0 1168 858" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="1168" height="858" fill="#faf8f4"/>
+<rect x="214" y="474" width="580" height="300" fill="#f1ebdd"/>
+<rect x="794" y="474" width="290" height="300" fill="#f1ebdd"/>
+<rect x="214" y="384" width="870" height="90" fill="#f1ebdd"/>
+<rect x="214" y="84" width="290" height="300" fill="#f1ebdd"/>
+<rect x="634" y="84" width="450" height="300" fill="#f1ebdd"/>
+<rect x="504" y="254" width="130" height="130" fill="#f1ebdd"/>
+<rect x="504" y="84" width="130" height="170" fill="#f1ebdd"/>
+<rect x="84" y="384" width="130" height="120" fill="#f1ebdd"/>
+<line x1="214" y1="58" x2="214" y2="800" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="214" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="214" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X1</text>
+<line x1="504" y1="58" x2="504" y2="800" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="504" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="504" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X2</text>
+<line x1="794" y1="58" x2="794" y2="800" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="794" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="794" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X3</text>
+<line x1="1084" y1="58" x2="1084" y2="800" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="1084" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="1084" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X4</text>
+<line x1="58" y1="774" x2="1110" y2="774" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="44" cy="774" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="44" y="777.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y1</text>
+<line x1="58" y1="474" x2="1110" y2="474" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="44" cy="474" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="44" y="477.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y2</text>
+<line x1="58" y1="384" x2="1110" y2="384" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="44" cy="384" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="44" y="387.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y3</text>
+<line x1="58" y1="84" x2="1110" y2="84" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="44" cy="84" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="44" y="87.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y4</text>
+<rect x="789.5" y="474" width="9" height="300" fill="#1f1f1f"/>
+<rect x="214" y="469.5" width="580" height="9" fill="#1f1f1f"/>
+<rect x="794" y="469.5" width="290" height="9" fill="#1f1f1f"/>
+<rect x="634" y="379.5" width="450" height="9" fill="#1f1f1f"/>
+<rect x="214" y="379.5" width="290" height="9" fill="#1f1f1f"/>
+<rect x="504" y="379" width="130" height="10" fill="#1f1f1f"/>
+<rect x="209.5" y="384" width="9" height="90" fill="#1f1f1f"/>
+<rect x="209.5" y="474" width="9" height="30" fill="#1f1f1f"/>
+<rect x="499" y="254" width="10" height="130" fill="#1f1f1f"/>
+<rect x="499.5" y="84" width="9" height="170" fill="#1f1f1f"/>
+<rect x="629" y="254" width="10" height="130" fill="#1f1f1f"/>
+<rect x="631" y="84" width="6" height="170" fill="#1f1f1f"/>
+<rect x="504" y="249" width="130" height="10" fill="#1f1f1f"/>
+<rect x="214" y="769.5" width="580" height="9" fill="#1f1f1f"/>
+<rect x="209.5" y="504" width="9" height="270" fill="#1f1f1f"/>
+<rect x="1079.5" y="474" width="9" height="300" fill="#1f1f1f"/>
+<rect x="794" y="769.5" width="290" height="9" fill="#1f1f1f"/>
+<rect x="634" y="79.5" width="450" height="9" fill="#1f1f1f"/>
+<rect x="1079.5" y="84" width="9" height="300" fill="#1f1f1f"/>
+<rect x="214" y="81" width="290" height="6" fill="#1f1f1f"/>
+<rect x="211" y="84" width="6" height="300" fill="#1f1f1f"/>
+<rect x="1079.5" y="384" width="9" height="90" fill="#1f1f1f"/>
+<rect x="504" y="79.5" width="130" height="9" fill="#1f1f1f"/>
+<rect x="84" y="381" width="130" height="6" fill="#1f1f1f"/>
+<rect x="84" y="501" width="130" height="6" fill="#1f1f1f"/>
+<rect x="81" y="384" width="6" height="120" fill="#1f1f1f"/>
+<rect x="481.5" y="468.75" width="45" height="10.5" fill="#faf8f4"/>
+<line x1="481.5" y1="474" x2="481.5" y2="519" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 481.5 519 A 45 45 0 0 0 526.5 474" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<rect x="916.5" y="468.75" width="45" height="10.5" fill="#faf8f4"/>
+<line x1="916.5" y1="474" x2="916.5" y2="519" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 916.5 519 A 45 45 0 0 0 961.5 474" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<rect x="836.5" y="378.75" width="45" height="10.5" fill="#faf8f4"/>
+<line x1="836.5" y1="384" x2="836.5" y2="339" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 836.5 339 A 45 45 0 0 1 881.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<rect x="336.5" y="378.75" width="45" height="10.5" fill="#faf8f4"/>
+<line x1="336.5" y1="384" x2="336.5" y2="429" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 336.5 429 A 45 45 0 0 0 381.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<rect x="546.5" y="378.25" width="45" height="11.5" fill="#faf8f4"/>
+<line x1="546.5" y1="384" x2="546.5" y2="429" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 546.5 429 A 45 45 0 0 0 591.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<rect x="208.75" y="406.5" width="10.5" height="45" fill="#faf8f4"/>
+<line x1="214" y1="451.5" x2="259" y2="451.5" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 259 451.5 A 45 45 0 0 0 214 406.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<rect x="439" y="768.75" width="130" height="10.5" fill="#faf8f4"/>
+<line x1="439" y1="774" x2="569" y2="774" stroke="#1f1f1f" stroke-width="1"/>
+<rect x="874" y="768.75" width="130" height="10.5" fill="#faf8f4"/>
+<line x1="874" y1="774" x2="1004" y2="774" stroke="#1f1f1f" stroke-width="1"/>
+<rect x="794" y="78.75" width="130" height="10.5" fill="#faf8f4"/>
+<line x1="794" y1="84" x2="924" y2="84" stroke="#1f1f1f" stroke-width="1"/>
+<rect x="1078.75" y="399" width="10.5" height="60" fill="#faf8f4"/>
+<line x1="1084" y1="399" x2="1084" y2="459" stroke="#1f1f1f" stroke-width="1"/>
+<text x="504" y="620" text-anchor="middle" font-size="14" fill="#1f1f1f">PH-A</text>
+<text x="504" y="637" text-anchor="middle" font-size="10" fill="#8a8171">unit ・ 69.6㎡</text>
+<text x="504" y="651" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L10/1001</text>
+<text x="939" y="620" text-anchor="middle" font-size="14" fill="#1f1f1f">PH-B</text>
+<text x="939" y="637" text-anchor="middle" font-size="10" fill="#8a8171">unit ・ 34.8㎡</text>
+<text x="939" y="651" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L10/1002</text>
+<text x="649" y="425" text-anchor="middle" font-size="14" fill="#1f1f1f">内廊下</text>
+<text x="649" y="442" text-anchor="middle" font-size="10" fill="#8a8171">corridor ・ 31.32㎡</text>
+<text x="649" y="456" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L10/corridor</text>
+<text x="359" y="230" text-anchor="middle" font-size="14" fill="#1f1f1f">ルーフテラス</text>
+<text x="359" y="247" text-anchor="middle" font-size="10" fill="#8a8171">terrace ・ 34.8㎡</text>
+<text x="359" y="261" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L10/terrace</text>
+<text x="859" y="230" text-anchor="middle" font-size="14" fill="#1f1f1f">PH-C</text>
+<text x="859" y="247" text-anchor="middle" font-size="10" fill="#8a8171">unit ・ 54㎡</text>
+<text x="859" y="261" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L10/1003</text>
+<text x="569" y="315" text-anchor="middle" font-size="14" fill="#1f1f1f">EV</text>
+<text x="569" y="332" text-anchor="middle" font-size="10" fill="#8a8171">ev ・ 6.76㎡</text>
+<text x="569" y="346" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L10/ev</text>
+<text x="569" y="165" text-anchor="middle" font-size="14" fill="#1f1f1f">PS・MB</text>
+<text x="569" y="182" text-anchor="middle" font-size="10" fill="#8a8171">ps ・ 8.84㎡</text>
+<text x="569" y="196" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L10/ps</text>
+<text x="149" y="440" text-anchor="middle" font-size="14" fill="#1f1f1f">屋外階段</text>
+<text x="149" y="457" text-anchor="middle" font-size="10" fill="#8a8171">stair ・ 6.24㎡</text>
+<text x="149" y="471" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L10/stair</text>
+<text x="22" y="840" font-size="12" fill="#1f1f1f">内廊下型集合住宅 — L10 平面</text>
+<text x="1146" y="840" text-anchor="end" font-size="9" fill="#a49b8a">ifcxs v0 — 空間から生成 (壁芯・mm)</text>
+</svg>

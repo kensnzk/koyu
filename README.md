@@ -21,6 +21,10 @@ boundary /L1/a /L1/b t:120 spec:PW1
 
 ![オフィス1階平面図](docs/img/office-L1.svg)
 
+10階建て内廊下型集合住宅 (43戸、EV+屋外階段、屋上) は **159行** ([examples/mansion.ifcxs](examples/mansion.ifcxs))。基準階は一度だけ書き、`/L2..L9/A` のスパンが8フロアへ展開される (ADR-0004)。「9階の住戸から地上まで扉2枚」にグラフが即答する。
+
+![集合住宅基準階平面図](docs/img/mansion-L5.svg)
+
 ## 使い方
 
 ```sh

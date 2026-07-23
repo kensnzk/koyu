@@ -27,8 +27,8 @@ export function parse(source: string): Model {
     boundaries: [],
   };
 
-  let current: Boundary | undefined;
-  let currentSpace: Space | undefined;
+  let current: Boundary[] = [];
+  let currentSpaces: Space[] = [];
   const lines = source.split(/\r?\n/);
 
   for (let i = 0; i < lines.length; i++) {
@@ -41,20 +41,20 @@ export function parse(source: string): Model {
 
     if (indented) {
       if (head === "door" || head === "window") {
-        if (!current) {
+        if (current.length === 0) {
           throw new SourceError(ln, `${head} は boundary の直下に字下げして書きます`);
         }
-        current.openings.push(parseOpening(head, rest, ln));
+        for (const b of current) b.openings.push(parseOpening(head, rest, ln));
       } else if (head === "seg") {
-        if (!current) {
+        if (current.length === 0) {
           throw new SourceError(ln, "seg は boundary の直下に字下げして書きます");
         }
-        current.segs.push(parseSeg(rest, ln));
+        for (const b of current) b.segs.push(parseSeg(rest, ln));
       } else if (head === "area") {
-        if (!currentSpace) {
+        if (currentSpaces.length === 0) {
           throw new SourceError(ln, "area は space の直下に字下げして書きます");
         }
-        currentSpace.areas.push(parseArea(rest, ln, model));
+        for (const s of currentSpaces) s.areas.push(parseArea(rest, ln, model));
       } else {
         throw new SourceError(
           ln,
@@ -64,22 +64,19 @@ export function parse(source: string): Model {
       continue;
     }
 
-    current = undefined;
-    currentSpace = undefined;
+    current = [];
+    currentSpaces = [];
     switch (head) {
       case "ifcxs": {
         model.version = rest[0] ?? "0.1";
-        current = undefined;
         break;
       }
       case "name": {
         model.name = rest.join(" ");
-        current = undefined;
         break;
       }
       case "unit": {
         if (rest[0] !== "mm") throw new SourceError(ln, `v0の単位はmmのみです: ${rest[0]}`);
-        current = undefined;
         break;
       }
       case "grid": {
@@ -98,7 +95,6 @@ export function parse(source: string): Model {
           names: coords.map((_, k) => `${axis}${k + 1}`),
           coords,
         };
-        current = undefined;
         break;
       }
       case "level": {
@@ -108,27 +104,94 @@ export function parse(source: string): Model {
         const attrs = parseAttrs(rest.slice(2), ln);
         const h = takeNumber(attrs, "h");
         const slab = takeNumber(attrs, "slab");
+        const pitch = takeNumber(attrs, "pitch");
+
+        // 範囲宣言: level L3..L9 6700 pitch:2900 — 基準階のレベルを一度に宣言する
+        const range = /^([A-Za-z]+)(\d+)\.\.([A-Za-z]+)(\d+)$/.exec(name);
+        if (range) {
+          const [, p1, n1, p2, n2] = range;
+          if (p1 !== p2 || Number(n1) >= Number(n2)) {
+            throw new SourceError(ln, `レベル範囲が読めません: ${name}`);
+          }
+          if (pitch === undefined || pitch <= 0) {
+            throw new SourceError(ln, `レベル範囲には pitch:(階高mm) が要ります: ${name}`);
+          }
+          for (let k = Number(n1); k <= Number(n2); k++) {
+            const nm = `${p1}${k}`;
+            if (model.levels[nm]) throw new SourceError(ln, `レベルが重複しています: ${nm}`);
+            model.levels[nm] = {
+              name: nm,
+              z: z + pitch * (k - Number(n1)),
+              ...(h !== undefined ? { h } : {}),
+              ...(slab !== undefined ? { slab } : {}),
+            };
+          }
+          break;
+        }
+        if (pitch !== undefined) {
+          throw new SourceError(ln, "pitch はレベル範囲 (L?..L?) の宣言でのみ使えます");
+        }
+        if (model.levels[name]) throw new SourceError(ln, `レベルが重複しています: ${name}`);
         model.levels[name] = {
           name,
           z,
           ...(h !== undefined ? { h } : {}),
           ...(slab !== undefined ? { slab } : {}),
         };
-        current = undefined;
         break;
       }
       case "space": {
-        const space = parseSpace(rest, ln, model);
-        if (model.spaces.has(space.path)) {
-          throw new SourceError(ln, `空間パスが重複しています: ${space.path}`);
+        const path = rest[0];
+        if (!path) throw new SourceError(ln, "space にはパスが要ります");
+        for (const [p] of expandSpan(model, [path], ln)) {
+          const space = parseSpace([p!, ...rest.slice(1)], ln, model);
+          if (model.spaces.has(space.path)) {
+            throw new SourceError(ln, `空間パスが重複しています: ${space.path}`);
+          }
+          model.spaces.set(space.path, space);
+          currentSpaces.push(space);
         }
-        model.spaces.set(space.path, space);
-        currentSpace = space;
         break;
       }
       case "boundary": {
-        current = parseBoundary(rest, ln);
-        model.boundaries.push(current);
+        const pa = rest[0];
+        const pb = rest[1];
+        if (!pa || !pb) {
+          throw new SourceError(ln, "boundary は boundary /パスA /パスB [属性...] の形で書きます");
+        }
+        for (const [ea, eb] of expandSpan(model, [pa, pb], ln)) {
+          const b = parseBoundary([ea!, eb!, ...rest.slice(2)], ln);
+          model.boundaries.push(b);
+          current.push(b);
+        }
+        break;
+      }
+      case "stack": {
+        // 垂直に連続する空間列: stack ev L1..L10 type:shaft
+        const leaf = rest[0];
+        const span = rest[1];
+        if (!leaf || leaf.startsWith("/") || !span) {
+          throw new SourceError(ln, "stack は stack <名前> <L?..L?> type:stair|shaft の形で書きます");
+        }
+        const levels = resolveSpanLevels(model, span, ln);
+        const attrs = parseAttrs(rest.slice(2), ln);
+        const kind = takeString(attrs, "type");
+        if (kind !== "stair" && kind !== "shaft") {
+          throw new SourceError(ln, `stack の type は stair / shaft です: ${kind}`);
+        }
+        for (let i = 0; i + 1 < levels.length; i++) {
+          const b: Boundary = {
+            a: `/${levels[i]!}/${leaf}`,
+            b: `/${levels[i + 1]!}/${leaf}`,
+            kind,
+            attrs: { ...attrs },
+            openings: [],
+            segs: [],
+            line: ln,
+          };
+          model.boundaries.push(b);
+          current.push(b);
+        }
         break;
       }
       default:
@@ -228,6 +291,47 @@ function parseSeg(rest: string[], ln: number): Seg {
   if (at < 0 || at > 1) throw new SourceError(ln, "at は 0..1 で指定します");
   const edge = takeEdge(attrs, ln);
   return { w, at, ...(edge ? { edge } : {}), attrs, line: ln };
+}
+
+/** レベルのスパン (L2..L9) を、宣言済みレベルのz順の並びに解決する */
+function resolveSpanLevels(model: Model, token: string, ln: number): string[] {
+  const m = /^([A-Za-z]+\d+)\.\.([A-Za-z]+\d+)$/.exec(token);
+  if (!m) throw new SourceError(ln, `レベル範囲が読めません: ${token}`);
+  const from = model.levels[m[1]!];
+  const to = model.levels[m[2]!];
+  if (!from || !to) {
+    throw new SourceError(ln, `未宣言のレベルを含む範囲です (levelを先に書きます): ${token}`);
+  }
+  if (from.z >= to.z) throw new SourceError(ln, `範囲の向きが逆です: ${token}`);
+  return Object.values(model.levels)
+    .filter((l) => l.z >= from.z && l.z <= to.z)
+    .sort((a, b) => a.z - b.z)
+    .map((l) => l.name);
+}
+
+/**
+ * パス中のレベルスパン (/L2..L9/A) を展開する。
+ * 一行の中の複数パスは同じスパンを指す必要があり、同じレベルに揃って展開される (基準階の書き味)
+ */
+function expandSpan(model: Model, paths: string[], ln: number): string[][] {
+  const spans = new Set<string>();
+  for (const p of paths) {
+    const seg = p.split("/")[1];
+    if (seg && /^[A-Za-z]+\d+\.\.[A-Za-z]+\d+$/.test(seg)) spans.add(seg);
+  }
+  if (spans.size === 0) return [paths];
+  if (spans.size > 1) {
+    throw new SourceError(ln, `一行の中のレベル範囲は揃えます: ${[...spans].join(", ")}`);
+  }
+  const span = [...spans][0]!;
+  const levels = resolveSpanLevels(model, span, ln);
+  return levels.map((lv) =>
+    paths.map((p) => {
+      const segs = p.split("/");
+      if (segs[1] === span) segs[1] = lv;
+      return segs.join("/");
+    }),
+  );
 }
 
 /** 通り参照 (X2, X2+600, Y3-150 など) を軸と座標mmに解決する */
