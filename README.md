@@ -47,7 +47,7 @@ npm run ifcxs -- light  examples/mansion.ifcxs         # 採光 1/7 の粗い判
 
 ## 構成
 
-記法の仕様と書き比べは [spec/notation-v0.md](spec/notation-v0.md)、属性の付け方の契約は [spec/vocabulary.md](spec/vocabulary.md)、設計判断の記録は [docs/decisions/](docs/decisions/)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [IFCXS](https://linear.app/munipersonal/project/ifcxs-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。実装は src/ に約900行 (パーサ・グラフ・チェック・平面図生成・CLI)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室一扉をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。
+記法の仕様と書き比べは [spec/notation-v0.md](spec/notation-v0.md)、属性の付け方の契約は [spec/vocabulary.md](spec/vocabulary.md)、IFC4とのカバレッジ照合は [docs/ifc-coverage.md](docs/ifc-coverage.md)、設計判断の記録は [docs/decisions/](docs/decisions/)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [IFCXS](https://linear.app/munipersonal/project/ifcxs-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。実装は src/ に約900行 (パーサ・グラフ・チェック・平面図生成・CLI)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室一扉をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。
 
 ## 技術方針
 
