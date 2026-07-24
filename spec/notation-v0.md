@@ -1,6 +1,6 @@
-# koyu 記法 v0 (draft)
+# koyu 記法 v0 — 成立の記録 (歴史文書)
 
-状態: 素振り。この文書は二室一扉を書くために生まれた最初の記法の記録であり、確定仕様ではない。ここでの決定の理由は docs/decisions/0001-notation-v0.md に、思想は docs/writing-architecture.md にある。
+**現在の仕様は [language.md](language.md) / [semantics.md](semantics.md) / [canonical-json.md](canonical-json.md) / [tools.md](tools.md) が正である。** 本書は記法が生まれた過程の記録 — v0の書き比べ (DSL/YAML/JSON) と各版の追補を、書かれた当時のまま保存する。決定の理由は docs/decisions/ (ADR)、思想は docs/writing-architecture.md。
 
 設計基準はひとつに固定する。**LLMが一つのコンテキストで読み切り、正しく部分編集できるか。** この基準から、テキストネイティブであること、参照が人間の読める階層パスであること、小さなファイルであること、単位と座標系を先頭で一度だけ宣言することが導かれる。
 

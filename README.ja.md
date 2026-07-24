@@ -62,7 +62,7 @@ npm run koyu -- site   examples/tower/main.muro      # ショーケース: polyg
 
 ## 構成
 
-記法の仕様と書き比べは [spec/notation-v0.md](spec/notation-v0.md)、属性の付け方の契約は [spec/vocabulary.md](spec/vocabulary.md)、IFC4とのカバレッジ照合は [docs/ifc-coverage.md](docs/ifc-coverage.md)、設計判断の記録は [docs/decisions/](docs/decisions/)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [koyu](https://linear.app/munipersonal/project/koyu-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。実装は src/ に約900行 (パーサ・グラフ・チェック・平面図生成・CLI)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室一扉をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。
+現在の仕様は [spec/](spec/README.md) に体系化した — 言語リファレンス ([language.md](spec/language.md))・意味論 ([semantics.md](spec/semantics.md))・語彙の台帳 ([vocabulary.md](spec/vocabulary.md))・正準JSON・ツールリファレンス (CLI/MCP/API)。ADRは「なぜ」を、specは「いま何が真か」を持つ。記法の成立記録 (DSL/YAML/JSON書き比べ) は [spec/notation-v0.md](spec/notation-v0.md)、IFC4とのカバレッジ照合は [docs/ifc-coverage.md](docs/ifc-coverage.md)、設計判断の記録は [docs/decisions/](docs/decisions/)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [koyu](https://linear.app/munipersonal/project/koyu-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。実装は src/ に約900行 (パーサ・グラフ・チェック・平面図生成・CLI)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室一扉をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。
 
 ## 技術方針
 
