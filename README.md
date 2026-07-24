@@ -57,6 +57,10 @@ npm run koyu -- check  examples/house/main.muro      # multi-file composition: t
 npm run koyu -- site   examples/tower/main.muro      # showcase: polygon site, two roads, FAR
 ```
 
+## LLM connection
+
+`koyu-mcp` is a zero-dependency MCP server over stdio (ADR-0012): an LLM agent reads the building (`layers`), edits it (`write_layer`), and `check` acts as the build gate — errors come back with layer:line provenance. `doors` / `light` / `site` / `stats` are the same description read different ways. The whole 4,786m² showcase is 8,099 tokens as source (measured; IFC4 is 14x, IFCX 25x — see [examples/comparison/](examples/comparison/README.md)), so a whole building fits in one context with room to work. The horizon design (digital twin, ontology alignment via W3C BOT, city connection) is in [docs/horizon.md](docs/horizon.md).
+
 ## Layout
 
 The notation spec and side-by-side comparisons are in [spec/notation-v0.md](spec/notation-v0.md); the contract for attributes is [spec/vocabulary.md](spec/vocabulary.md); coverage against the IFC4 architectural core is [docs/ifc-coverage.md](docs/ifc-coverage.md); design decisions are recorded in [docs/decisions/](docs/decisions/); the roadmap is [docs/roadmap.md](docs/roadmap.md); daily logs are in [docs/log/](docs/log/). The implementation is ~900 lines in src/ (parser, graph, checks, plan generation, CLI), tests in test/. Reading notes on IFCX are in [docs/ifcx-notes.md](docs/ifcx-notes.md); the same two-rooms-one-door written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).

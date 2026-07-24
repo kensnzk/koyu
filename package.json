@@ -1,6 +1,6 @@
 {
   "name": "@kensnzk/koyu",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "空間を一次要素とするテキストネイティブ建築記述の探求 — writing architecture, not buildings",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,7 +18,8 @@
     }
   },
   "bin": {
-    "koyu": "dist/cli.js"
+    "koyu": "dist/cli.js",
+    "koyu-mcp": "dist/mcp.js"
   },
   "files": [
     "dist",
