@@ -108,6 +108,40 @@ export function mergeCollinear(segs: Segment[]): Segment[] {
   return out;
 }
 
+/**
+ * 既定境界の導出 (ADR-0014) — 垂直の「既定は床」と対称の、水平の「既定は壁」。
+ * 同一レベル (未特定同士を含む) で平面が接する領域つき空間の組に、宣言境界がその組に
+ * 一つも無ければ kind:wall の既定境界を導く。宣言は例外 (open・手すり) と属性のためにある。
+ * 領域を持たない空間 (exterior等) との境界は導かない — 相手の名指しが情報のため宣言する。
+ * 合成・スパン展開の完了後に呼ぶ (parse / parseWith の出口)。冪等。
+ */
+export function deriveDefaultBoundaries(model: Model): void {
+  const declared = new Set<string>();
+  for (const b of model.boundaries) declared.add([b.a, b.b].sort().join("|"));
+  const withRect = [...model.spaces.values()].filter((s) => s.rects.length > 0);
+  for (let i = 0; i < withRect.length; i++) {
+    for (let j = i + 1; j < withRect.length; j++) {
+      const a = withRect[i]!;
+      const b = withRect[j]!;
+      if (a.level !== b.level) continue;
+      const key = [a.path, b.path].sort().join("|");
+      if (declared.has(key)) continue;
+      if (!a.rects.some((ra) => b.rects.some((rb) => sharedSegment(ra, rb)))) continue;
+      model.boundaries.push({
+        a: a.path,
+        b: b.path,
+        kind: "wall",
+        derived: true,
+        attrs: {},
+        openings: [],
+        segs: [],
+        line: 0,
+      });
+      declared.add(key);
+    }
+  }
+}
+
 /** 境界の壁芯線分を導く。壁の位置は空間の割付から生成される — 壁を置く操作は存在しない */
 export function segmentsFor(model: Model, b: Boundary): Segment[] {
   const sa = model.spaces.get(b.a);

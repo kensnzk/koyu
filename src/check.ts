@@ -9,10 +9,9 @@ import {
   placeOpening,
   planOverlap,
   segmentsFor,
-  sharedSegment,
   spacesOverlap,
 } from "./graph.js";
-import { heff, isSemiOutdoor, levelsSorted, type Boundary, type Model, type Space,
+import { heff, isSemiOutdoor, levelsSorted, type Attrs, type Boundary, type Model, type Space,
   srcRef,
   polygonAreaM2,
   polygonSelfIntersection,
@@ -103,18 +102,45 @@ export function check(model: Model): CheckResult {
     }
   }
 
-  // 接しているのに境界が宣言されていない組 (同一レベル)
-  const declared = new Set(model.boundaries.map((b) => [b.a, b.b].sort().join("|")));
-  for (let i = 0; i < withRect.length; i++) {
-    for (let j = i + 1; j < withRect.length; j++) {
-      const a = withRect[i]!;
-      const b = withRect[j]!;
-      if (a.level !== b.level) continue;
-      const touching = a.rects.some((ra) => b.rects.some((rb) => sharedSegment(ra, rb)));
-      if (!touching) continue;
-      if (!declared.has([a.path, b.path].sort().join("|"))) {
-        warnings.push(`接しているのに境界が宣言されていません: ${a.path} | ${b.path}`);
+  // 言語版の受理条件 (ADR-0017): 0.1は意味保存の場合のみ受理する。
+  // 既定境界 (ADR-0014) が導出されるファイルは、0.1の意味 (境界なし+警告) と食い違う — エラーで二択を示す
+  if (model.version === "0.1") {
+    for (const b of model.boundaries) {
+      if (b.derived) {
+        errors.push(
+          `koyu 0.1 のファイルに境界が宣言されていない接触ペアがあります: ${b.a} | ${b.b} — 0.2では既定の壁が導出され意味が変わります。境界を宣言するか、koyu 0.2 へ上げます`,
+        );
       }
+    }
+  }
+
+  // uid (ADR-0015): 不透明トークン、space/zone横断でモデル全体一意。
+  // 数字だけの形は禁じる — parseの数値化で 0123 が 123 になり、書いたトークンの区別が失われる
+  const uidOwners = new Map<string, Array<{ kind: string; path: string; line: number; file?: string }>>();
+  const collectUid = (kind: string, path: string, attrs: Attrs, line: number, file?: string) => {
+    const v = attrs["uid"];
+    if (v === undefined) return;
+    if (typeof v === "number") {
+      errors.push(
+        `${srcRef(line, file)}: uid は数字だけのトークンにできません: uid:${v} (sp-${v} のような形にします)`,
+      );
+      return;
+    }
+    if (v === "" || /\s/.test(v)) {
+      errors.push(`${srcRef(line, file)}: uid に空白は使えません: "${v}"`);
+      return;
+    }
+    const arr = uidOwners.get(v) ?? [];
+    arr.push({ kind, path, line, file });
+    uidOwners.set(v, arr);
+  };
+  for (const s of model.spaces.values()) collectUid("space", s.path, s.attrs, s.line, s.file);
+  for (const z of model.zones.values()) collectUid("zone", z.path, z.attrs, z.line, z.file);
+  for (const [uid, owners] of uidOwners) {
+    if (owners.length > 1) {
+      errors.push(
+        `uid が重複しています: ${uid} (${owners.map((o) => `${o.kind} ${o.path} — ${srcRef(o.line, o.file)}`).join(", ")})`,
+      );
     }
   }
 

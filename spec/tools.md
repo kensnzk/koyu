@@ -53,7 +53,7 @@ import { parseFile } from "@kensnzk/koyu/node";
 
 - **合成の入口**: `parse(source)` (単一ソース — importはエラー) / `parseFiles(files, entry)` (仮想ファイル群 — キー空間の中でimport解決。ブラウザ向け) / `parseFile(path)` (fs) / `parseFileWith(path, overlay)` (fs+差し替え — 書き込み前の門番用) / `parseWith(loader, entry)` (独自ローダー)。合成に参加した全レイヤーは `model.layers` (合成順)。
 - **検査と問い**: `check(model)` → {errors, warnings}。`doorsBetween` / `daylight` / `siteReport` / `zoneAreaM2` / `neighbors` / `passable`。
-- **導出の部品**: `segmentsFor` / `sharedSegment` / `placeOpening` / `placeBand` / `mergeCollinear` / `heff` / `isSemiOutdoor` / `isCoveredAbove` / `levelsSorted` / `polygonAreaM2` / `pointInPolygon` / `rectEscapesPolygon` / `polygonSelfIntersection`。
+- **導出の部品**: `segmentsFor` / `sharedSegment` / `deriveDefaultBoundaries` (既定境界 — parse系は適用済み。正準JSON由来のモデルに意味を与えるときに使う) / `placeOpening` / `placeBand` / `mergeCollinear` / `heff` / `isSemiOutdoor` / `isCoveredAbove` / `levelsSorted` / `polygonAreaM2` / `pointInPolygon` / `rectEscapesPolygon` / `polygonSelfIntersection`。
 - **生成**: `svgPlan(model, {level, scale?})` / `toCanonical(model)`。
 - **エラー**: 構文・合成エラーは `SourceError` (line / raw / file — messageは `レイヤー:行目: 本文`)。checkは投げず配列で返す。
 - サブパス: `@kensnzk/koyu/examples/*` で同梱例を配布物として参照できる。

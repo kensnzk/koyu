@@ -5,6 +5,11 @@
 export type AttrValue = string | number;
 export type Attrs = Record<string, AttrValue>;
 
+/** このツールが受理する言語版 (ADR-0017)。旧版は意味保存の場合のみ受理される (checkが検査する) */
+export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2"];
+/** 版宣言を省略したときの解釈 — 常に最新版の意味論 (省略はツール版を跨いで意味安定ではない) */
+export const DEFAULT_LANGUAGE_VERSION = "0.2";
+
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";
 
@@ -172,6 +177,8 @@ export interface Boundary {
   line: number;
   /** 合成時の出所レイヤー (ADR-0010) */
   file?: string;
+  /** 既定境界 (ADR-0014) — 宣言されず、接触から導出された壁。正準JSONには出ない (書かれた構成のみ) */
+  derived?: boolean;
 }
 
 /** エラー・警告の位置表記 — 合成時はどのレイヤーのことかを言葉にする (ADR-0010) */
@@ -194,6 +201,8 @@ export interface Model {
   polygons: Map<string, SitePolygon>;
   /** 合成に参加したレイヤー (ローダーのキー、合成順 — entryが先頭)。単一ソースのparseでは空 */
   layers: string[];
+  /** koyu版が明示宣言されたか (base層でのみ・一度だけ — ADR-0017の合成規則の管理用) */
+  versionDeclared?: boolean;
 }
 
 /** 平面上の点 (mm) */
@@ -457,9 +466,10 @@ export function toCanonical(model: Model): string {
     };
   }
   // 境界: a/bの向きは書かれた表記 (aキー) として保存する — edge/swingはa側から読む。
-  // 宣言順は意味を持たないため、並びは内容の正準順 (betweenの辞書順、同一betweenは直列化順)
+  // 宣言順は意味を持たないため、並びは内容の正準順 (betweenの辞書順、同一betweenは直列化順)。
+  // 既定境界 (derived — ADR-0014) は出さない: 正準JSONは書かれた構成のみで、意味は導出後のModelが持つ
   const boundaries = sortBySerial(
-    [...model.boundaries].map((b) => ({
+    [...model.boundaries].filter((b) => !b.derived).map((b) => ({
       between: [b.a, b.b].sort(),
       a: b.a,
       kind: b.kind,

@@ -8,6 +8,7 @@ import {
   type Attrs,
   type AttrValue,
   type Boundary,
+  DEFAULT_LANGUAGE_VERSION,
   type Edge,
   type Model,
   type Opening,
@@ -15,13 +16,15 @@ import {
   type Seg,
   SourceError,
   type Space,
+  SUPPORTED_LANGUAGE_VERSIONS,
 } from "./model.js";
+import { deriveDefaultBoundaries } from "./graph.js";
 
 const EDGES = new Set(["N", "E", "S", "W"]);
 
 function emptyModel(): Model {
   return {
-    version: "0.1",
+    version: DEFAULT_LANGUAGE_VERSION,
     unit: "mm",
     grid: { X: { names: [], coords: [] }, Y: { names: [], coords: [] } },
     levels: {},
@@ -44,6 +47,7 @@ export type LayerLoader = (
 export function parse(source: string): Model {
   const model = emptyModel();
   ingest(model, source, undefined, new Set(), undefined);
+  deriveDefaultBoundaries(model); // 水平の既定は壁 (ADR-0014) — 合成・展開の完了後に一度だけ
   return model;
 }
 
@@ -57,6 +61,7 @@ export function parseWith(loader: LayerLoader, entry: string): Model {
     throw new SourceError(0, `ファイルが読めません: ${entry}`);
   }
   ingestLayer(model, layer.key, layer.src, new Set(), loader);
+  deriveDefaultBoundaries(model); // 水平の既定は壁 (ADR-0014) — 合成・展開の完了後に一度だけ
   return model;
 }
 
@@ -151,11 +156,22 @@ function ingest(
     currentSpaces = [];
     switch (head) {
       case "koyu": {
-        const v = rest[0] ?? "0.1";
-        if (v !== "0.1") {
-          throw new SourceError(ln, `対応していないkoyuの版です: ${v} (このツールの対応: 0.1)`);
+        const v = rest[0] ?? DEFAULT_LANGUAGE_VERSION;
+        if (!SUPPORTED_LANGUAGE_VERSIONS.includes(v)) {
+          throw new SourceError(
+            ln,
+            `対応していないkoyuの版です: ${v} (このツールの対応: ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")})`,
+          );
+        }
+        // 版はbase層 (entry) でのみ・一度だけ宣言する — 合成順による黙った上書きを禁じる (ADR-0017)
+        if (file !== undefined && model.layers[0] !== file) {
+          throw new SourceError(ln, "koyu の版宣言はbase層 (entry) でのみ書きます");
+        }
+        if (model.versionDeclared && model.version !== v) {
+          throw new SourceError(ln, `koyu の版は既に ${model.version} と宣言されています`);
         }
         model.version = v;
+        model.versionDeclared = true;
         break;
       }
       case "import": {
