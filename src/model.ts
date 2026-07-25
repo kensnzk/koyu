@@ -440,73 +440,79 @@ export function displayName(s: Space): string {
   return typeof n === "string" ? n : (s.path.split("/").pop() ?? s.path);
 }
 
+/** 正準JSONの空間エントリ (書かれた表記・正準順)。semantic diff (ADR-0018) が比較基底として共有する */
+export function canonicalSpaceEntry(s: Space): Record<string, unknown> {
+  return {
+    type: s.type,
+    ...(s.grids.length === 1
+      ? { at: [s.grids[0]!.xa, s.grids[0]!.ya, s.grids[0]!.xb, s.grids[0]!.yb] }
+      : s.grids.length > 1
+        ? { at: sortBySerial(s.grids.map((g) => [g.xa, g.ya, g.xb, g.yb])) }
+        : {}),
+    ...(Object.keys(s.attrs).length ? { attrs: sortObj(s.attrs) } : {}),
+    ...(s.areas.length
+      ? {
+          areas: sortBySerial(
+            s.areas.map((a) => ({
+              at: [a.grid.xa, a.grid.ya, a.grid.xb, a.grid.yb],
+              ...(Object.keys(a.attrs).length ? { attrs: sortObj(a.attrs) } : {}),
+            })),
+          ),
+        }
+      : {}),
+  };
+}
+
+/** 正準JSONの開口エントリ (atRef??at 等の正準表記) — toCanonicalとsemantic diffが共有 */
+export function canonicalOpeningEntry(o: Opening): Record<string, unknown> {
+  return {
+    kind: o.kind,
+    ...(o.ref ? { ref: o.ref } : {}),
+    w: o.w,
+    ...(o.h !== undefined ? { h: o.h } : {}),
+    at: o.atRef ?? o.at,
+    ...(o.edge ? { edge: o.edge } : {}),
+    ...(o.hinge ? { hinge: o.hinge } : {}),
+    ...(o.swing ? { swing: o.swing } : {}),
+    ...(Object.keys(o.attrs).length ? { attrs: sortObj(o.attrs) } : {}),
+  };
+}
+
+/** 正準JSONのsegエントリ — toCanonicalとsemantic diffが共有 */
+export function canonicalSegEntry(g: Seg): Record<string, unknown> {
+  return {
+    w: g.w,
+    at: g.atRef ?? g.at,
+    ...(g.edge ? { edge: g.edge } : {}),
+    ...(Object.keys(g.attrs).length ? { attrs: sortObj(g.attrs) } : {}),
+  };
+}
+
+/** 正準JSONの境界エントリ。a/bの向きは書かれた表記 (aキー) として保存する — edge/swingはa側から読む */
+export function canonicalBoundaryEntry(b: Boundary): Record<string, unknown> {
+  return {
+    between: [b.a, b.b].sort(),
+    a: b.a,
+    kind: b.kind,
+    ...(b.t !== undefined ? { t: b.t } : {}),
+    ...(b.air ? { air: true } : {}),
+    ...(b.edge ? { edge: b.edge } : {}),
+    ...(Object.keys(b.attrs).length ? { attrs: sortObj(b.attrs) } : {}),
+    ...(b.openings.length ? { openings: sortBySerial(b.openings.map(canonicalOpeningEntry)) } : {}),
+    ...(b.segs.length ? { segs: sortBySerial(b.segs.map(canonicalSegEntry)) } : {}),
+  };
+}
+
 /** 正準JSON — 機械形式。差分とレイヤー合成の土台 (キーは安定順) */
 export function toCanonical(model: Model): string {
   const spaces: Record<string, unknown> = {};
   for (const p of [...model.spaces.keys()].sort()) {
-    const s = model.spaces.get(p)!;
-    spaces[p] = {
-      type: s.type,
-      ...(s.grids.length === 1
-        ? { at: [s.grids[0]!.xa, s.grids[0]!.ya, s.grids[0]!.xb, s.grids[0]!.yb] }
-        : s.grids.length > 1
-          ? { at: sortBySerial(s.grids.map((g) => [g.xa, g.ya, g.xb, g.yb])) }
-          : {}),
-      ...(Object.keys(s.attrs).length ? { attrs: sortObj(s.attrs) } : {}),
-      ...(s.areas.length
-        ? {
-            areas: sortBySerial(
-              s.areas.map((a) => ({
-                at: [a.grid.xa, a.grid.ya, a.grid.xb, a.grid.yb],
-                ...(Object.keys(a.attrs).length ? { attrs: sortObj(a.attrs) } : {}),
-              })),
-            ),
-          }
-        : {}),
-    };
+    spaces[p] = canonicalSpaceEntry(model.spaces.get(p)!);
   }
-  // 境界: a/bの向きは書かれた表記 (aキー) として保存する — edge/swingはa側から読む。
-  // 宣言順は意味を持たないため、並びは内容の正準順 (betweenの辞書順、同一betweenは直列化順)。
+  // 境界: 宣言順は意味を持たないため、並びは内容の正準順 (betweenの辞書順、同一betweenは直列化順)。
   // 既定境界 (derived — ADR-0014) は出さない: 正準JSONは書かれた構成のみで、意味は導出後のModelが持つ
   const boundaries = sortBySerial(
-    [...model.boundaries].filter((b) => !b.derived).map((b) => ({
-      between: [b.a, b.b].sort(),
-      a: b.a,
-      kind: b.kind,
-      ...(b.t !== undefined ? { t: b.t } : {}),
-      ...(b.air ? { air: true } : {}),
-      ...(b.edge ? { edge: b.edge } : {}),
-      ...(Object.keys(b.attrs).length ? { attrs: sortObj(b.attrs) } : {}),
-      ...(b.openings.length
-        ? {
-            openings: sortBySerial(
-              b.openings.map((o) => ({
-                kind: o.kind,
-                ...(o.ref ? { ref: o.ref } : {}),
-                w: o.w,
-                ...(o.h !== undefined ? { h: o.h } : {}),
-                at: o.atRef ?? o.at,
-                ...(o.edge ? { edge: o.edge } : {}),
-                ...(o.hinge ? { hinge: o.hinge } : {}),
-                ...(o.swing ? { swing: o.swing } : {}),
-                ...(Object.keys(o.attrs).length ? { attrs: sortObj(o.attrs) } : {}),
-              })),
-            ),
-          }
-        : {}),
-      ...(b.segs.length
-        ? {
-            segs: sortBySerial(
-              b.segs.map((g) => ({
-                w: g.w,
-                at: g.atRef ?? g.at,
-                ...(g.edge ? { edge: g.edge } : {}),
-                ...(Object.keys(g.attrs).length ? { attrs: sortObj(g.attrs) } : {}),
-              })),
-            ),
-          }
-        : {}),
-    })),
+    [...model.boundaries].filter((b) => !b.derived).map(canonicalBoundaryEntry),
   );
 
   const zones: Record<string, unknown> = {};
@@ -554,8 +560,8 @@ function sortObj<T>(o: Record<string, T>): Record<string, T> {
   return Object.fromEntries(Object.entries(o).sort(([a], [b]) => (a < b ? -1 : 1)));
 }
 
-/** 宣言順に意味の無い集合を、直列化したJSONの辞書順に並べる — 正準順の土台 */
-function sortBySerial<T>(items: T[]): T[] {
+/** 宣言順に意味の無い集合を、直列化したJSONの辞書順に並べる — 正準順の土台 (diffも同じ順で比べる) */
+export function sortBySerial<T>(items: T[]): T[] {
   return items
     .map((it) => [JSON.stringify(it), it] as const)
     .sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0))

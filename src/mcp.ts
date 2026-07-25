@@ -21,7 +21,7 @@ import {
   type Model,
   type Space,
 } from "./index.js";
-import { check } from "./check.js";
+import { check, checkDiagnostics } from "./check.js";
 import { svgPlan } from "./plan.js";
 import { siteReport } from "./site.js";
 import { parseFile, parseFileWith } from "./parse-file.js";
@@ -141,7 +141,14 @@ const TOOLS: Record<string, Tool> = {
     run: (a) => {
       const m = load(str(a.file, "file"));
       const r = check(m);
-      return { ok: r.errors.length === 0, spaces: m.spaces.size, boundaries: m.boundaries.length, ...r };
+      return {
+        ok: r.errors.length === 0,
+        spaces: m.spaces.size,
+        boundaries: m.boundaries.length,
+        ...r,
+        // 構造化診断 (ADR-0016) — errors/warningsの文字列と同件・同順。code/severity/path/relatedつき
+        diagnostics: checkDiagnostics(m),
+      };
     },
   },
   layers: {

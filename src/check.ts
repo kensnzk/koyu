@@ -3,6 +3,10 @@
 // 高さ方向の一貫性 — BIMが3Dであることで暗黙に担保していたもの — は、
 // ここでは宣言された不変量 (天井高 + 上階slab ≤ 階高) の検査として明示的に持つ。
 // 吹抜け (type:void) はこの不変量の宣言的な免除である。
+//
+// 診断契約 (ADR-0016): 一次形式は checkDiagnostics の Diagnostic[] — code / severity /
+// 日本語本文 / 出所 / 対象パス。check は互換層で、従来の文字列 (位置接頭辞つき) を組み立てる。
+// severity はコードの不変属性 — 重さを変えたくなったら新コードを切る。
 
 import {
   placeBand,
@@ -23,24 +27,133 @@ export interface CheckResult {
   warnings: string[];
 }
 
+/** 構造化診断 (ADR-0016)。message は本文のみ — 位置接頭辞「file:N行目: 」を含まない */
+export interface Diagnostic {
+  /** 台帳 DIAGNOSTIC_CODES のコード (領域2-3字 + 2桁連番) */
+  code: string;
+  severity: "error" | "warning";
+  /** 日本語の本文 (位置接頭辞なし) */
+  message: string;
+  /** 出所の行 (位置を持たない診断は省略) */
+  line?: number;
+  /** 出所レイヤー (合成時) */
+  file?: string;
+  /** 対象の空間/ゾーン/polygonのパス (境界は両パス) */
+  path?: string[];
+  /** 関連位置 (重複の既出側・重なりの相手など) */
+  related?: Array<{ line: number; file?: string }>;
+}
+
+/**
+ * 診断コードの台帳 — 全コードと規範severity。specの表 (semantics.md §5) とテストで一致を守る。
+ * BND07 は欠番 — 「接しているのに境界が無い」警告はADR-0014 (既定境界) で廃止された。
+ * SYN01 は構文・合成エラー (SourceError) の写し — checkは例外を診断にしない。CLIの check --json だけが写す。
+ */
+export const DIAGNOSTIC_CODES: Record<string, "error" | "warning"> = {
+  REF01: "error", // 境界が未定義の空間パスを参照
+  BND01: "error", // 同一空間同士の境界
+  BND02: "error", // 同一空間対の境界の重複 (edge限定まで同一 — ADR-0013)
+  BND03: "error", // 異レベルの空間への壁境界
+  BND04: "error", // 接していない空間の境界
+  BND05: "warning", // 同一空間対でedge限定の有無が混在
+  BND06: "warning", // 境界線分がゼロ
+  LVL01: "error", // レベルzの重複
+  GEO01: "error", // 自らの領域 (合併の矩形) 同士の重なり
+  GEO02: "error", // 同一レベルの空間同士の重なり
+  VRT01: "error", // 垂直境界の前提 (領域とレベルを持つ空間同士)
+  VRT02: "error", // 非隣接レベル間の垂直境界
+  VRT03: "error", // 平面が重ならない垂直境界
+  VRT04: "warning", // void境界の上側が非void
+  VRT05: "warning", // 垂直境界の開口 (解釈されない)
+  VRT06: "warning", // 垂直境界のseg (解釈されない)
+  OPN01: "error", // hingeの軸違い
+  OPN02: "error", // 開口同士の重なり
+  OPN03: "warning", // open境界の開口 (通行に影響しない)
+  OPN04: "error", // 開口を置ける境界線分が無い
+  OPN05: "error", // 境界線分が複数で曖昧
+  OPN06: "error", // 開口の幅が線分長を超える
+  OPN07: "error", // 開口の明示位置の軸違い
+  OPN08: "error", // 開口の明示位置のはみ出し
+  SEG01: "error", // 領域を持たない空間へのarea
+  SEG02: "warning", // areaのはみ出し
+  SEG03: "warning", // open境界のseg (解釈されない)
+  SEG04: "error", // segを置ける境界線分が無い
+  SEG05: "error", // segの境界線分が複数で曖昧
+  SEG06: "error", // segの幅が線分長を超える
+  SEG07: "error", // segの明示位置の軸違い
+  SEG08: "error", // segの明示位置のはみ出し
+  ZON01: "warning", // 空のゾーン
+  ZON02: "warning", // ゾーンと同パスの空間
+  HGT01: "error", // 上階への食い込み (高さ不変量違反)
+  HGT02: "error", // 部分吹抜けの被覆不足
+  HGT03: "warning", // 上階slab未宣言で高さ検査ができない
+  HGT04: "warning", // 天井高不明で高さ検査ができない
+  HGT05: "warning", // レベルが特定できない領域つき空間
+  SIT01: "error", // 敷地形状の重複頂点
+  SIT02: "error", // 敷地形状の自己交差
+  SIT03: "error", // 建物の敷地形状からのはみ出し
+  SIT04: "warning", // 対応するゾーンの無いpolygon
+  SIT05: "warning", // 敷地面積の宣言と導出の食い違い
+  UID01: "error", // 数字だけのuid (ADR-0015)
+  UID02: "error", // 空白を含むuid
+  UID03: "error", // uidの重複
+  VER01: "error", // koyu 0.1 での既定境界の導出 (ADR-0017)
+  SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
+};
+
 const EPS = 0.5;
 /** 敷地まわりの幾何の許容 (境界上は内側扱い) — ADR-0011の1mm */
 const EPS_SITE = 1;
 const VERTICAL = new Set(["stair", "shaft", "void"]);
 
+/** 互換層 — 従来の文字列形式。位置を持つ診断は「file:N行目: 本文」に組み立てる */
 export function check(model: Model): CheckResult {
   const errors: string[] = [];
   const warnings: string[] = [];
+  for (const d of checkDiagnostics(model)) {
+    const text = d.line !== undefined ? `${srcRef(d.line, d.file)}: ${d.message}` : d.message;
+    (d.severity === "error" ? errors : warnings).push(text);
+  }
+  return { errors, warnings };
+}
+
+export function checkDiagnostics(model: Model): Diagnostic[] {
+  const diags: Diagnostic[] = [];
+  /** line:0 は「位置なし」— フィールドごと省略する (既定境界などの導出物) */
+  const emit = (
+    code: string,
+    message: string,
+    at: {
+      line?: number;
+      file?: string;
+      path?: string[];
+      related?: Array<{ line: number; file?: string }>;
+    } = {},
+  ) => {
+    diags.push({
+      code,
+      severity: DIAGNOSTIC_CODES[code]!,
+      message,
+      ...(at.line ? { line: at.line } : {}),
+      ...(at.line && at.file !== undefined ? { file: at.file } : {}),
+      ...(at.path ? { path: at.path } : {}),
+      ...(at.related ? { related: at.related } : {}),
+    });
+  };
+  const loc = (line: number, file?: string): { line: number; file?: string } => ({
+    line,
+    ...(file !== undefined ? { file } : {}),
+  });
 
   // 境界の参照先
   for (const b of model.boundaries) {
     for (const p of [b.a, b.b]) {
       if (!model.spaces.has(p)) {
-        errors.push(`${srcRef(b.line, b.file)}: 未定義の空間を参照しています: ${p}`);
+        emit("REF01", `未定義の空間を参照しています: ${p}`, { line: b.line, file: b.file, path: [b.a, b.b] });
       }
     }
     if (b.a === b.b) {
-      errors.push(`${srcRef(b.line, b.file)}: 同じ空間同士の境界は書けません: ${b.a}`);
+      emit("BND01", `同じ空間同士の境界は書けません: ${b.a}`, { line: b.line, file: b.file, path: [b.a, b.b] });
     }
   }
 
@@ -53,8 +166,10 @@ export function check(model: Model): CheckResult {
     const key = `${pair}#${b.edge ?? ""}`;
     const prev = seenBoundary.get(key);
     if (prev) {
-      errors.push(
-        `${srcRef(b.line, b.file)}: 境界が重複しています: ${pair}${b.edge ? ` edge:${b.edge}` : ""} (既出: ${srcRef(prev.line, prev.file)})`,
+      emit(
+        "BND02",
+        `境界が重複しています: ${pair}${b.edge ? ` edge:${b.edge}` : ""} (既出: ${srcRef(prev.line, prev.file)})`,
+        { line: b.line, file: b.file, path: [b.a, b.b], related: [loc(prev.line, prev.file)] },
       );
     } else {
       seenBoundary.set(key, b);
@@ -65,7 +180,9 @@ export function check(model: Model): CheckResult {
   }
   for (const [pair, edges] of pairEdges) {
     if (edges.has("") && edges.size > 1) {
-      warnings.push(`同じ空間対に edge 限定つきと無しの境界が併存しています (線分が重なります): ${pair}`);
+      emit("BND05", `同じ空間対に edge 限定つきと無しの境界が併存しています (線分が重なります): ${pair}`, {
+        path: pair.split(" | "),
+      });
     }
   }
 
@@ -75,7 +192,7 @@ export function check(model: Model): CheckResult {
   // レベルの重複
   for (let i = 1; i < levels.length; i++) {
     if (Math.abs(levels[i]!.z - levels[i - 1]!.z) < EPS) {
-      errors.push(`レベル ${levels[i - 1]!.name} と ${levels[i]!.name} のzが同じです`);
+      emit("LVL01", `レベル ${levels[i - 1]!.name} と ${levels[i]!.name} のzが同じです`);
     }
   }
 
@@ -84,7 +201,7 @@ export function check(model: Model): CheckResult {
     for (let i = 0; i < s.rects.length; i++) {
       for (let j = i + 1; j < s.rects.length; j++) {
         if (planOverlap(s.rects[i]!, s.rects[j]!)) {
-          errors.push(`${srcRef(s.line, s.file)}: ${s.path} の領域同士が重なっています`);
+          emit("GEO01", `${s.path} の領域同士が重なっています`, { line: s.line, file: s.file, path: [s.path] });
         }
       }
     }
@@ -97,7 +214,10 @@ export function check(model: Model): CheckResult {
       const b = withRect[j]!;
       if (a.level !== b.level) continue;
       if (spacesOverlap(a, b)) {
-        errors.push(`空間の領域が重なっています: ${a.path} と ${b.path}`);
+        emit("GEO02", `空間の領域が重なっています: ${a.path} と ${b.path}`, {
+          path: [a.path, b.path],
+          related: [loc(b.line, b.file)],
+        });
       }
     }
   }
@@ -107,8 +227,10 @@ export function check(model: Model): CheckResult {
   if (model.version === "0.1") {
     for (const b of model.boundaries) {
       if (b.derived) {
-        errors.push(
+        emit(
+          "VER01",
           `koyu 0.1 のファイルに境界が宣言されていない接触ペアがあります: ${b.a} | ${b.b} — 0.2では既定の壁が導出され意味が変わります。境界を宣言するか、koyu 0.2 へ上げます`,
+          { path: [b.a, b.b] },
         );
       }
     }
@@ -121,13 +243,15 @@ export function check(model: Model): CheckResult {
     const v = attrs["uid"];
     if (v === undefined) return;
     if (typeof v === "number") {
-      errors.push(
-        `${srcRef(line, file)}: uid は数字だけのトークンにできません: uid:${v} (sp-${v} のような形にします)`,
-      );
+      emit("UID01", `uid は数字だけのトークンにできません: uid:${v} (sp-${v} のような形にします)`, {
+        line,
+        file,
+        path: [path],
+      });
       return;
     }
     if (v === "" || /\s/.test(v)) {
-      errors.push(`${srcRef(line, file)}: uid に空白は使えません: "${v}"`);
+      emit("UID02", `uid に空白は使えません: "${v}"`, { line, file, path: [path] });
       return;
     }
     const arr = uidOwners.get(v) ?? [];
@@ -138,8 +262,10 @@ export function check(model: Model): CheckResult {
   for (const z of model.zones.values()) collectUid("zone", z.path, z.attrs, z.line, z.file);
   for (const [uid, owners] of uidOwners) {
     if (owners.length > 1) {
-      errors.push(
+      emit(
+        "UID03",
         `uid が重複しています: ${uid} (${owners.map((o) => `${o.kind} ${o.path} — ${srcRef(o.line, o.file)}`).join(", ")})`,
+        { path: owners.map((o) => o.path), related: owners.map((o) => loc(o.line, o.file)) },
       );
     }
   }
@@ -150,63 +276,60 @@ export function check(model: Model): CheckResult {
     const sa = model.spaces.get(b.a);
     const sb = model.spaces.get(b.b);
     if (!sa || !sb) continue;
+    const bAt = { line: b.line, file: b.file, path: [b.a, b.b] };
 
     if (VERTICAL.has(b.kind)) {
       // 垂直境界: 隣り合うレベルの、平面で重なる空間同士にしか張れない
       if (sa.rects.length === 0 || sb.rects.length === 0 || !sa.level || !sb.level) {
-        errors.push(`${srcRef(b.line, b.file)}: ${b.kind} 境界は領域とレベルを持つ空間同士に書きます`);
+        emit("VRT01", `${b.kind} 境界は領域とレベルを持つ空間同士に書きます`, bAt);
         continue;
       }
       const ia = levelIndex.get(sa.level);
       const ib = levelIndex.get(sb.level);
       if (ia === undefined || ib === undefined || Math.abs(ia - ib) !== 1) {
-        errors.push(
-          `${srcRef(b.line, b.file)}: ${b.kind} 境界は隣り合うレベルの間に書きます: ${b.a} | ${b.b}`,
-        );
+        emit("VRT02", `${b.kind} 境界は隣り合うレベルの間に書きます: ${b.a} | ${b.b}`, bAt);
       } else if (!spacesOverlap(sa, sb)) {
-        errors.push(
-          `${srcRef(b.line, b.file)}: ${b.kind} 境界の空間が平面上で重なっていません: ${b.a} | ${b.b}`,
-        );
+        emit("VRT03", `${b.kind} 境界の空間が平面上で重なっていません: ${b.a} | ${b.b}`, bAt);
       }
       if (b.kind === "void") {
         const upper = (ia ?? 0) > (ib ?? 0) ? sa : sb;
         if (upper.type !== "void") {
-          warnings.push(
-            `${srcRef(b.line, b.file)}: void境界の上側は type:void の空間を想定しています: ${upper.path}`,
-          );
+          emit("VRT04", `void境界の上側は type:void の空間を想定しています: ${upper.path}`, bAt);
         }
       }
       if (b.openings.length > 0) {
-        warnings.push(`${srcRef(b.line, b.file)}: 垂直境界の開口は解釈されません`);
+        emit("VRT05", `垂直境界の開口は解釈されません`, bAt);
       }
       if (b.segs.length > 0) {
-        warnings.push(`${srcRef(b.line, b.file)}: 垂直境界の seg は解釈されません`);
+        emit("VRT06", `垂直境界の seg は解釈されません`, bAt);
       }
       continue;
     }
 
     // 水平境界
     if (sa.rects.length > 0 && sb.rects.length > 0 && sa.level !== sb.level) {
-      errors.push(
-        `${srcRef(b.line, b.file)}: 異なるレベルの空間に壁境界は書けません (垂直は type:stair/shaft/void): ${b.a} | ${b.b}`,
+      emit(
+        "BND03",
+        `異なるレベルの空間に壁境界は書けません (垂直は type:stair/shaft/void): ${b.a} | ${b.b}`,
+        bAt,
       );
       continue;
     }
     const segs = segmentsFor(model, b);
     if (sa.rects.length > 0 && sb.rects.length > 0 && segs.length === 0) {
-      errors.push(`${srcRef(b.line, b.file)}: 空間が接していないため境界を導けません: ${b.a} | ${b.b}`);
+      emit("BND04", `空間が接していないため境界を導けません: ${b.a} | ${b.b}`, bAt);
     }
     if ((sa.rects.length > 0 ? 1 : 0) + (sb.rects.length > 0 ? 1 : 0) === 1 && segs.length === 0) {
-      warnings.push(`${srcRef(b.line, b.file)}: 外周に残る辺が無く、境界線分がゼロです: ${b.a} | ${b.b}`);
+      emit("BND06", `外周に残る辺が無く、境界線分がゼロです: ${b.a} | ${b.b}`, bAt);
     }
     if (b.kind === "open" && b.openings.length > 0) {
-      warnings.push(`${srcRef(b.line, b.file)}: open境界の開口は通行に影響しません (常に通れます)`);
+      emit("OPN03", `open境界の開口は通行に影響しません (常に通れます)`, bAt);
     }
     const placedOnSeg: Array<{ o: (typeof b.openings)[number]; key: string; c: number }> = [];
     for (const o of b.openings) {
       const placed = placeOpening(model, b, o);
       if ("error" in placed && placed.error) {
-        errors.push(placed.error);
+        emit(placed.code, placed.message, { line: placed.line, file: placed.file, path: [b.a, b.b] });
         continue;
       }
       if ("segment" in placed) {
@@ -222,10 +345,10 @@ export function check(model: Model): CheckResult {
           ? o.hinge === "W" || o.hinge === "E"
           : o.hinge === "N" || o.hinge === "S";
         if (!okAxis) {
-          errors.push(
-            `${srcRef(o.line, b.file)}: hinge:${o.hinge} は${
-              placed.segment.horizontal ? "水平線分 (W/E)" : "垂直線分 (N/S)"
-            }で指定します`,
+          emit(
+            "OPN01",
+            `hinge:${o.hinge} は${placed.segment.horizontal ? "水平線分 (W/E)" : "垂直線分 (N/S)"}で指定します`,
+            { line: o.line, file: b.file, path: [b.a, b.b] },
           );
         }
       }
@@ -244,22 +367,24 @@ export function check(model: Model): CheckResult {
         const q = group[k + 1]!;
         const need = (p.o.w + q.o.w) / 2;
         if (q.c - p.c < need - EPS) {
-          errors.push(
-            `${srcRef(q.o.line, b.file)}: 開口同士が重なっています (${p.o.kind}と${q.o.kind} — 中心間 ${Math.round(
+          emit(
+            "OPN02",
+            `開口同士が重なっています (${p.o.kind}と${q.o.kind} — 中心間 ${Math.round(
               q.c - p.c,
             )}mm < 必要 ${Math.round(need)}mm)`,
+            { line: q.o.line, file: b.file, path: [b.a, b.b], related: [loc(p.o.line, b.file)] },
           );
         }
       }
     }
     for (const g of b.segs) {
       if (b.kind === "open") {
-        warnings.push(`${srcRef(g.line, b.file)}: open境界 (壁が無い) の seg は解釈されません`);
+        emit("SEG03", `open境界 (壁が無い) の seg は解釈されません`, { line: g.line, file: b.file, path: [b.a, b.b] });
         continue;
       }
       const placed = placeBand(model, b, g, "seg");
       if ("error" in placed && placed.error) {
-        errors.push(placed.error);
+        emit(placed.code, placed.message, { line: placed.line, file: placed.file, path: [b.a, b.b] });
       }
     }
   }
@@ -268,7 +393,11 @@ export function check(model: Model): CheckResult {
   for (const s of model.spaces.values()) {
     for (const a of s.areas) {
       if (s.rects.length === 0) {
-        errors.push(`${srcRef(a.line, s.file)}: 領域を持たない空間 ${s.path} に area は書けません`);
+        emit("SEG01", `領域を持たない空間 ${s.path} に area は書けません`, {
+          line: a.line,
+          file: s.file,
+          path: [s.path],
+        });
         continue;
       }
       const inside = s.rects.some(
@@ -279,7 +408,7 @@ export function check(model: Model): CheckResult {
           a.rect.y2 <= r.y2 + EPS,
       );
       if (!inside) {
-        warnings.push(`${srcRef(a.line, s.file)}: area が ${s.path} の領域からはみ出しています`);
+        emit("SEG02", `area が ${s.path} の領域からはみ出しています`, { line: a.line, file: s.file, path: [s.path] });
       }
     }
   }
@@ -288,10 +417,14 @@ export function check(model: Model): CheckResult {
   for (const z of model.zones.values()) {
     const children = [...model.spaces.keys()].filter((p) => p.startsWith(z.path + "/"));
     if (children.length === 0) {
-      warnings.push(`${srcRef(z.line, z.file)}: ゾーン ${z.path} の下に空間がありません`);
+      emit("ZON01", `ゾーン ${z.path} の下に空間がありません`, { line: z.line, file: z.file, path: [z.path] });
     }
     if (model.spaces.has(z.path)) {
-      warnings.push(`${srcRef(z.line, z.file)}: ゾーンと同じパスの空間があります (どちらかに寄せます): ${z.path}`);
+      emit("ZON02", `ゾーンと同じパスの空間があります (どちらかに寄せます): ${z.path}`, {
+        line: z.line,
+        file: z.file,
+        path: [z.path],
+      });
     }
   }
 
@@ -338,37 +471,43 @@ export function check(model: Model): CheckResult {
       }
       const h = heff(model, s);
       if (h === undefined) {
-        warnings.push(`${s.path} の天井高が不明で、${lu.name} との高さ検査ができません`);
+        emit("HGT04", `${s.path} の天井高が不明で、${lu.name} との高さ検査ができません`, { path: [s.path] });
         continue;
       }
       if (h + lu.slab > pitch + EPS) {
         const partners = voidPartners.get(`${s.path}|${lu.name}`) ?? [];
         const cover = partners.length ? voidCoverage(s, partners) : 0;
         if (cover >= 0.99) continue; // 全面吹抜け — 宣言的免除
-        errors.push(
-          partners.length
-            ? `${s.path} の天井高${h}は階高${pitch}を超えますが、吹抜けの被覆は${Math.round(
-                cover * 100,
-              )}%です。部分吹抜けでは天井高を階高内に収めます (吹抜け部分の高さは導出)`
-            : `${s.path} が上階に食い込みます: 天井高${h} + ${lu.name}のslab${lu.slab} = ${
-                h + lu.slab
-              } > 階高${pitch}`,
-        );
+        if (partners.length) {
+          emit(
+            "HGT02",
+            `${s.path} の天井高${h}は階高${pitch}を超えますが、吹抜けの被覆は${Math.round(
+              cover * 100,
+            )}%です。部分吹抜けでは天井高を階高内に収めます (吹抜け部分の高さは導出)`,
+            { path: [s.path] },
+          );
+        } else {
+          emit(
+            "HGT01",
+            `${s.path} が上階に食い込みます: 天井高${h} + ${lu.name}のslab${lu.slab} = ${h + lu.slab} > 階高${pitch}`,
+            { path: [s.path] },
+          );
+        }
       }
     }
     if (slabMissing) {
-      warnings.push(
-        `レベル ${lu.name} に slab が未宣言のため、${lb.name} との高さ検査ができません`,
-      );
+      emit("HGT03", `レベル ${lu.name} に slab が未宣言のため、${lb.name} との高さ検査ができません`);
     }
   }
 
   // レベルに載らない領域つき空間
   for (const s of withRect) {
     if (!s.level) {
-      warnings.push(
-        `${srcRef(s.line, s.file)}: ${s.path} は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)`,
-      );
+      emit("HGT05", `${s.path} は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)`, {
+        line: s.line,
+        file: s.file,
+        path: [s.path],
+      });
     }
   }
 
@@ -380,23 +519,29 @@ export function check(model: Model): CheckResult {
       const a = poly.points[i]!;
       const b = poly.points[(i + 1) % poly.points.length]!;
       if (Math.hypot(b.x - a.x, b.y - a.y) <= EPS_SITE) {
-        errors.push(
-          `${srcRef(poly.line, poly.file)}: 敷地形状に重複する頂点があります (${Math.round(a.x)},${Math.round(a.y)})`,
-        );
+        emit("SIT01", `敷地形状に重複する頂点があります (${Math.round(a.x)},${Math.round(a.y)})`, {
+          line: poly.line,
+          file: poly.file,
+          path: [poly.path],
+        });
       }
     }
     const selfX = polygonSelfIntersection(poly.points);
     if (selfX) {
-      errors.push(
-        `${srcRef(poly.line, poly.file)}: 敷地形状が自己交差しています (${Math.round(selfX.x)},${Math.round(selfX.y)} 付近)`,
-      );
+      emit("SIT02", `敷地形状が自己交差しています (${Math.round(selfX.x)},${Math.round(selfX.y)} 付近)`, {
+        line: poly.line,
+        file: poly.file,
+        path: [poly.path],
+      });
       continue; // 不正な形に対する包含・面積は判定しない
     }
     const zone = model.zones.get(poly.path);
     if (!zone) {
-      warnings.push(
-        `${srcRef(poly.line, poly.file)}: polygon ${poly.path} に対応するゾーンがありません`,
-      );
+      emit("SIT04", `polygon ${poly.path} に対応するゾーンがありません`, {
+        line: poly.line,
+        file: poly.file,
+        path: [poly.path],
+      });
       continue;
     }
     if (zone.attrs["site"] !== 1) continue;
@@ -404,8 +549,10 @@ export function check(model: Model): CheckResult {
     if (typeof declared === "number") {
       const derived = polygonAreaM2(poly.points);
       if (Math.abs(declared - derived) >= 0.05) {
-        warnings.push(
-          `${srcRef(zone.line, zone.file)}: 敷地面積の宣言と導出が食い違います: 宣言 ${declared}㎡ / 導出 ${derived.toFixed(2)}㎡`,
+        emit(
+          "SIT05",
+          `敷地面積の宣言と導出が食い違います: 宣言 ${declared}㎡ / 導出 ${derived.toFixed(2)}㎡`,
+          { line: zone.line, file: zone.file, path: [zone.path] },
         );
       }
     }
@@ -414,16 +561,18 @@ export function check(model: Model): CheckResult {
       for (const r of s.rects) {
         const out = rectEscapesPolygon(r, poly.points, EPS_SITE);
         if (out) {
-          errors.push(
-            `${srcRef(s.line, s.file)}: ${s.path} が敷地形状からはみ出しています (${Math.round(out.x)},${Math.round(out.y)} 付近)`,
-          );
+          emit("SIT03", `${s.path} が敷地形状からはみ出しています (${Math.round(out.x)},${Math.round(out.y)} 付近)`, {
+            line: s.line,
+            file: s.file,
+            path: [s.path],
+          });
           break;
         }
       }
     }
   }
 
-  return { errors, warnings };
+  return diags;
 }
 
 /** 吹抜けが下階の空間の平面をどれだけ覆うか (0..1) */

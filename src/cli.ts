@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // koyu v0.1 — CLI
-//   npm run koyu -- check  examples/office.muro
+//   npm run koyu -- check  examples/office.muro   # --json で構造化診断、--strict で警告も終了コード1
+//   npm run koyu -- diff   before.muro after.muro # 構成の言葉の差分 (--json で ModelDiff)
 //   npm run koyu -- plan   examples/office.muro -l L2 -o out/office-L2.svg
 //   npm run koyu -- doors  examples/office.muro /L2/office /out
 //   npm run koyu -- graph  examples/office.muro
@@ -10,7 +11,8 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { check } from "./check.js";
+import { check, checkDiagnostics, type Diagnostic } from "./check.js";
+import { renderDiff, semanticDiff } from "./diff.js";
 import { doorsBetween, neighbors } from "./graph.js";
 import { daylight } from "./light.js";
 import { siteReport } from "./site.js";
@@ -45,14 +47,75 @@ function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
-      "使い方: koyu <check|plan|doors|graph|stats|levels|light|site|json> <file.muro> [引数...]",
+      "使い方: koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <file.muro> [引数...]\n" +
+        "  check: --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1)\n" +
+        "  diff:  koyu diff <a.muro> <b.muro> [--json] — 構成の言葉の差分 (0=差分なし / 1=差分あり / 2=入力が壊れている)",
     );
     return 2;
   }
-  const model = load(file);
+
+  if (cmd === "diff") {
+    // semantic diff (ADR-0018) — 構成の言葉で二つのモデルを比べる。
+    // 終了コードは 0=差分なし / 1=差分あり / 2=入力が壊れている — checkの0/1と紛れない
+    const fileB = rest[0];
+    if (!fileB) {
+      console.log("使い方: koyu diff <a.muro> <b.muro> [--json]");
+      return 2;
+    }
+    let ma: Model;
+    let mb: Model;
+    try {
+      ma = load(file);
+      mb = load(fileB);
+    } catch (e) {
+      if (e instanceof SourceError) {
+        console.error(`✖ ${e.message}`);
+        return 2;
+      }
+      throw e;
+    }
+    const d = semanticDiff(ma, mb);
+    const lines = renderDiff(d);
+    if (rest.includes("--json")) {
+      console.log(JSON.stringify(d, null, 1));
+    } else if (lines.length === 0) {
+      console.log("差分なし");
+    } else {
+      for (const l of lines) console.log(l);
+    }
+    return lines.length === 0 ? 0 : 1;
+  }
+
+  let model: Model;
+  try {
+    model = load(file);
+  } catch (e) {
+    // check --json は構文・合成エラー (SourceError) でも有効JSONを返す — SYN01 の1件に写す (ADR-0016)
+    if (cmd === "check" && rest.includes("--json") && e instanceof SourceError) {
+      const d: Diagnostic = {
+        code: "SYN01",
+        severity: "error",
+        message: e.raw,
+        ...(e.line ? { line: e.line } : {}),
+        ...(e.file !== undefined ? { file: e.file } : {}),
+      };
+      console.log(JSON.stringify([d], null, 1));
+      return 1;
+    }
+    throw e;
+  }
 
   switch (cmd) {
     case "check": {
+      const strict = rest.includes("--strict");
+      if (rest.includes("--json")) {
+        const diags = checkDiagnostics(model);
+        console.log(JSON.stringify(diags, null, 1));
+        const bad =
+          diags.some((d) => d.severity === "error") ||
+          (strict && diags.some((d) => d.severity === "warning"));
+        return bad ? 1 : 0;
+      }
       const { errors, warnings } = check(model);
       for (const w of warnings) console.log(`⚠ ${w}`);
       for (const e of errors) console.log(`✖ ${e}`);
@@ -61,7 +124,7 @@ function main(argv: string[]): number {
           `✔ 整合 — 空間 ${model.spaces.size} / 境界 ${model.boundaries.length}` +
             (warnings.length ? ` (警告 ${warnings.length})` : ""),
         );
-        return 0;
+        return strict && warnings.length > 0 ? 1 : 0;
       }
       return 1;
     }

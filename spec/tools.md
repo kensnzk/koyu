@@ -5,12 +5,13 @@ koyu v0.9.0 現在。すべてのツールは同じ導出 (semantics.md) の別�
 ## CLI (`koyu` / `npm run koyu --`)
 
 ```
-koyu <check|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [引数...]
+koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [引数...]
 ```
 
 | コマンド | 引数 | 出力 | 終了コード |
 |---|---|---|---|
-| `check` | — | 整合の可否・エラー/警告 (出所つき) | 0=緑 / 1=エラー |
+| `check` | `--json` (Diagnostic[]をJSON出力 — 構文・合成エラーはSYN01の1件に写して有効JSONのまま), `--strict` (警告があれば終了コード1) | 整合の可否・エラー/警告 (出所つき)。診断コード台帳は semantics.md §5 | 0=緑 / 1=エラー (--strict時は警告も) |
+| `diff` | `<b.muro>` (比較先 — entryが比較元), `--json` (ModelDiffをJSON出力) | 構成の言葉の差分 (ADR-0018): grid移動・改名 (uid一致・パス不一致)・空間/境界/開口のフィールド変化。行順・書式・素wall宣言と省略 (既定壁) の違いは差分にしない | 0=差分なし / 1=差分あり / 2=入力が壊れている |
 | `plan` | `-l レベル` (既定: 最初のレベル), `-o 出力.svg` (既定: `<entry>-<レベル>.svg`) | 平面SVG生成 | 0 |
 | `doors` | `/パスA /パスB` | 扉数と経由列、到達不能なら1 | 0/1/2 |
 | `graph` | — | 空間ごとの隣接 (境界種別・扉数) | 0 |
@@ -29,7 +30,7 @@ stdio上のMCP (JSON-RPC 2.0、行区切りJSON)。依存ゼロ・ステート�
 | ツール | 引数 | 返り |
 |---|---|---|
 | `model_summary` | file | 名前・レベル・レイヤー構成・ゾーン・アセット・面積・check件数 — **まず呼ぶ** |
-| `check` | file | ok・エラー/警告 (出所レイヤー:行つき) — **編集のたびに呼ぶ門番** |
+| `check` | file | ok・エラー/警告 (出所レイヤー:行つき)・diagnostics (構造化診断 — ADR-0016。文字列と同件・同順) — **編集のたびに呼ぶ門番** |
 | `layers` | file | 合成に参加した全レイヤーの {file, source} — 原本を読む |
 | `write_layer` | file, layer, content | 検査してから全置換 (parse不能な合成になる内容は書き込まれない — 原本不変。checkエラーは返すが途中状態の保存は許す)。書き込みはatomic。`.muro` のみ・entryのディレクトリ配下のみ (相対パスとsymlink実体で検査。合成に参加しないファイルの内容は検証されない) |
 | `doors` | file, from, to | 最少扉数の経路、到達不能なら {unreachable} |
@@ -52,9 +53,10 @@ import { parseFile } from "@kensnzk/koyu/node";
 ```
 
 - **合成の入口**: `parse(source)` (単一ソース — importはエラー) / `parseFiles(files, entry)` (仮想ファイル群 — キー空間の中でimport解決。ブラウザ向け) / `parseFile(path)` (fs) / `parseFileWith(path, overlay)` (fs+差し替え — 書き込み前の門番用) / `parseWith(loader, entry)` (独自ローダー)。合成に参加した全レイヤーは `model.layers` (合成順)。
-- **検査と問い**: `check(model)` → {errors, warnings}。`doorsBetween` / `daylight` / `siteReport` / `zoneAreaM2` / `neighbors` / `passable`。
+- **検査と問い**: `checkDiagnostics(model)` → `Diagnostic[]` (一次形式 — code/severity/message/出所/path/related。台帳は `DIAGNOSTIC_CODES`、コード表は semantics.md §5。ADR-0016) / `check(model)` → {errors, warnings} (互換の文字列形式 — 同件・同順)。`doorsBetween` / `daylight` / `siteReport` / `zoneAreaM2` / `neighbors` / `passable`。
 - **導出の部品**: `segmentsFor` / `sharedSegment` / `deriveDefaultBoundaries` (既定境界 — parse系は適用済み。正準JSON由来のモデルに意味を与えるときに使う) / `placeOpening` / `placeBand` / `mergeCollinear` / `heff` / `isSemiOutdoor` / `isCoveredAbove` / `levelsSorted` / `polygonAreaM2` / `pointInPolygon` / `rectEscapesPolygon` / `polygonSelfIntersection`。
 - **生成**: `svgPlan(model, {level, scale?})` / `toCanonical(model)`。
+- **差分**: `semanticDiff(a, b)` → `ModelDiff` (構成の言葉の差分 — 改名はuidで検出、境界は実効集合で比較。`toCanonical` 同一なら空。ADR-0018) / `renderDiff(d)` → 日本語の行 (空配列=差分なし)。
 - **エラー**: 構文・合成エラーは `SourceError` (line / raw / file — messageは `レイヤー:行目: 本文`)。checkは投げず配列で返す。
 - サブパス: `@kensnzk/koyu/examples/*` で同梱例を配布物として参照できる。
 
