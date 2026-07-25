@@ -2,7 +2,7 @@
 
 # Cheat sheet — every construct on one page
 
-An index for remembering how something is written. **The norms are held by spec/** — each section heading jumps to the section of the specification that owns that fact. To learn in order, [start.md](start.md); to look up from an error message, [diagnostics.md (日本語)](../diagnostics.md); for worked examples that run, [gallery.md](gallery.md).
+An index for remembering how something is written. **The norms are held by spec/** — each section heading jumps to the section of the specification that owns that fact. To learn in order, [start.md](start.md); to look up from an error message, [diagnostics.md](diagnostics.md); for worked examples that run, [gallery.md](gallery.md).
 
 The skeleton of the notation ([language.md §1](../../spec/en/language.md)):
 

@@ -26,7 +26,7 @@ for (const s of model.spaces.values()) {
 ```
 
 ```text
-二室一扉 — 空間 3 / 診断 0件
+二室 — 空間 3 / 診断 0件
 /L1/a	room	16.2
 /L1/b	room	16.2
 /out	exterior	-
@@ -753,7 +753,7 @@ console.log(toCanonical(a).split("\n").slice(0, 6).join("\n"));
 ```text
 {
   "koyu": "0.3",
-  "name": "二室一扉",
+  "name": "二室",
   "unit": "mm",
   "grid": {
     "X": [

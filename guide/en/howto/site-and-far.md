@@ -250,7 +250,7 @@ The exit code of `site` is 0 when there is a site zone and 1 when there is not.
 - [Split across several files](split-into-files.md) — putting the polygon in a quarantined layer
 - [Cut windows and pass the daylight test](daylight.md) — a garden being open above matters to the daylight coefficient
 - [Getting unstuck](troubleshooting.md)
-- [The diagnostic index (日本語)](../../diagnostics.md) — causes and fixes for SIT01–SIT05
+- [The diagnostic index](../diagnostics.md) — causes and fixes for SIT01–SIT05
 - [The command reference](../cli.md) — the arguments and exit codes of `site`
 - [spec/semantics.md](../../../spec/en/semantics.md) §6 site — the normative definitions of area, frontage, and coverage
 - [spec/language.md](../../../spec/en/language.md) §5 zone, §7 polygon — the grammar

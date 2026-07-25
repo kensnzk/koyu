@@ -187,7 +187,7 @@ The exit code is 0 when it is reachable and 1 when it is not. Use that when guar
 - [Subdivide a dwelling](unit-layout.md) — putting doors between the rooms you split out
 - [Getting unstuck](troubleshooting.md) — how to fix the line where `check` is green but `doors` says unreachable
 - [Six ideas](../concepts.md) — that a boundary is a relation, and that the default is a wall
-- [The diagnostic index (日本語)](../../diagnostics.md)
+- [The diagnostic index](../diagnostics.md)
 - [spec/semantics.md](../../../spec/en/semantics.md) §4 passability, §6 doors — the normative definitions
 - [spec/language.md](../../../spec/en/language.md) §4 boundary — the grammar of kinds and openings
 - [ADR-0014](../../../docs/decisions/0014-default-boundaries.md) — why the default was made a wall, and how the "these touch but no boundary is declared" warning (BND07) came to be retired

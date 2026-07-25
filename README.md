@@ -16,20 +16,32 @@ The prose is split into two books, in Japanese. Start at the guide; consult the 
 - **[docs/decisions/](docs/decisions/)** — the ADRs: why each decision was made and what was rejected.
 - **[AGENTS.md](AGENTS.md)** — the entry point for LLM agents working in this repository.
 
-Two rooms and one door are written like this — **an excerpt, not a complete file.** The `koyu`, `grid`, and `level` declarations that must precede it are elided; pasted on its own this fragment fails with `未定義の通り名です: X1`. The full file is [examples/two-rooms.muro](examples/two-rooms.muro), and a complete four-line starting point is under [Getting started](#getting-started) below.
+One room is written like this. Four lines, and it is a complete file.
 
-```muro-part
-space /L1/a room X1..X2 Y1..Y2 name:居室A
-space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out  exterior name:外部
-
-boundary /L1/a /L1/b t:120 spec:PW1
-  door w:780 h:2000
+```muro
+grid X 0 3600
+grid Y 0 4000
+level L1 0
+space /L1/a room X1..X2 Y1..Y2
 ```
 
-The floor plan is generated from this. There is no operation that draws a wall — wall segments are derived from the layout of spaces and the declared boundary relations.
+`koyu plan` produces the floor plan. Not one wall is drawn — there is a space, but not one boundary.
 
-![Plan of two rooms and one door](docs/img/two-rooms.svg)
+![Plan of a single room](guide/img/start-01-one-room.svg)
+
+Add one more `space` line. Change nothing else.
+
+```muro
+grid X 0 3600 5400
+grid Y 0 4000
+level L1 0
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+```
+
+![Plan of two rooms, with a wall standing between them](guide/img/start-02-two-rooms.svg)
+
+**A wall appears. There is no operation anywhere that draws a wall.** A wall is the boundary relation between two spaces, derived from the layout of those spaces. Where a pair of touching spaces has no declaration, that means "wall" rather than "undefined".
 
 A two-story office — corridor, core, offset walls off the grid lines, stairs/elevator, vertical consistency — is about 100 lines ([examples/office.muro](examples/office.muro)). The resolution is schematic-design level. Not modeling downstand beams is not an omission but a chosen level of abstraction: the early design phase, where BIM has always been too heavy, is exactly where this notation lives. Vertical consistency is enforced as a declared invariant — ceiling height + slab above ≤ floor-to-floor height (ADR-0002).
 
@@ -46,15 +58,8 @@ A building can also be written as a set of files and composed — additive layer
 ## Getting started
 
 1. **Install.** Clone this repository and run `npm install`.
-2. **Run a bundled example.** `npx tsx src/cli.ts check examples/two-rooms.muro` prints `✔ 整合 — 空間 3 / 境界 3`. Then `npx tsx src/cli.ts plan examples/two-rooms.muro -o out/two-rooms.svg` writes the drawing shown above.
-3. **Write your own.** These four lines are the smallest file that both checks clean and renders a plan. Save them as `first.muro` and run the same two commands on it.
-
-```muro
-grid X 0 3600
-grid Y 0 4000
-level L1 0
-space /L1/a room X1..X2 Y1..Y2
-```
+2. **Write the four lines above** into `first.muro`, then run `npx tsx src/cli.ts check first.muro` and `npx tsx src/cli.ts plan first.muro -o out/first.svg`.
+3. **Read a bundled example.** `npx tsx src/cli.ts check examples/two-rooms.muro` prints `✔ 整合 — 空間 3 / 境界 3`; `stats`, `graph`, and `doors` answer about the same file.
 
 `grid` and `level` must be declared before anything that refers to them, and the type (`room`, the second positional word) is required; everything else — the `koyu` version line, `unit`, `name`, heights — is optional. From here, [guide/start.md](guide/start.md) (Japanese) is a managed path from this one room to a two-storey house with per-floor plans, a circulation check, and a daylight check.
 
@@ -88,7 +93,7 @@ npm run koyu -- site   examples/tower/main.muro      # showcase: polygon site, t
 
 ## Layout
 
-The learning material lives in [guide/](guide/README.md) — tutorial, concepts, how-to, diagnostics, CLI/API. The current specification lives in [spec/](spec/README.md) — language reference, semantics (derivations, checks, queries), the attribute ledger, the canonical JSON format, and the tool reference (CLI / MCP / API). ADRs record why decisions were made; spec/ states what is true now. The historical record of how the notation was chosen (with the DSL/YAML/JSON comparison) is [spec/notation-v0.md](spec/notation-v0.md); coverage against the IFC4 architectural core is [docs/ifc-coverage.md](docs/ifc-coverage.md); design decisions are recorded in [docs/decisions/](docs/decisions/); the roadmap is [docs/roadmap.md](docs/roadmap.md); daily logs are in [docs/log/](docs/log/). The implementation is ~4,500 lines in src/ (parser, graph, checks, plan generation, CLI, MCP server), tests in test/. Reading notes on IFCX are in [docs/ifcx-notes.md](docs/ifcx-notes.md); the same two-rooms-one-door written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).
+The learning material lives in [guide/](guide/README.md) — tutorial, concepts, how-to, diagnostics, CLI/API. The current specification lives in [spec/](spec/README.md) — language reference, semantics (derivations, checks, queries), the attribute ledger, the canonical JSON format, and the tool reference (CLI / MCP / API). ADRs record why decisions were made; spec/ states what is true now. The historical record of how the notation was chosen (with the DSL/YAML/JSON comparison) is [spec/notation-v0.md](spec/notation-v0.md); coverage against the IFC4 architectural core is [docs/ifc-coverage.md](docs/ifc-coverage.md); design decisions are recorded in [docs/decisions/](docs/decisions/); the roadmap is [docs/roadmap.md](docs/roadmap.md); daily logs are in [docs/log/](docs/log/). The implementation is ~4,500 lines in src/ (parser, graph, checks, plan generation, CLI, MCP server), tests in test/. Reading notes on IFCX are in [docs/ifcx-notes.md](docs/ifcx-notes.md); the same two rooms written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).
 
 ## Technical stance
 

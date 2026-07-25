@@ -201,7 +201,7 @@ The wet area and entrance in `examples/tower/typical.muro` are written this way.
 - [Cut windows and pass the daylight test](daylight.md) — cutting windows into the rooms you split out
 - [Doors and egress](doors-and-escape.md) — counting whether each room can be reached from the entrance
 - [Six ideas](../concepts.md) — that a path is identity, and that the default is a wall
-- [The diagnostic index (日本語)](../../diagnostics.md) — causes and fixes for GEO01 / GEO02 / ZON01 / ZON02
+- [The diagnostic index](../diagnostics.md) — causes and fixes for GEO01 / GEO02 / ZON01 / ZON02
 - [spec/language.md](../../../spec/en/language.md) §3 space, §5 zone — the grammar of region unions and zones
 - [spec/semantics.md](../../../spec/en/semantics.md) §6 stats — the definitions of the aggregation axes
 - [ADR-0005](../../../docs/decisions/0005-zones-and-unions.md) — why mixed granularity was allowed

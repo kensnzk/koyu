@@ -1,3 +1,5 @@
+[English](en/diagnostics.md) · **日本語**
+
 # 診断コード事典
 
 `check` が返す診断の全コードを、**原因**と**直し方**つきで引くための頁である。コードと severity と概要の台帳は [spec/semantics.md §5](../spec/semantics.md) が持つ — ここはその台帳に、specが意図して載せない「なぜそうなるのか」「何を書き換えるのか」「最小の再現」を足す。

@@ -195,7 +195,7 @@ Forget the `slab:` on the upper level and the check does not run at all — you 
 - [The how-to index](README.md)
 - [Doors and egress](doors-and-escape.md) — the check to run whenever you add a level
 - [Six ideas](../concepts.md) — that the vertical default is a floor and the horizontal default is a wall
-- [The diagnostic index (日本語)](../../diagnostics.md) — causes and fixes for HGT01–HGT05
+- [The diagnostic index](../diagnostics.md) — causes and fixes for HGT01–HGT05
 - [spec/semantics.md](../../../spec/en/semantics.md) §3, vertical derivation and the height invariant — the normative definition
 - [spec/language.md](../../../spec/en/language.md) §2 foundation declarations, §4 boundary — the grammar of `level`, `stack`, and vertical boundaries
 - A worked two-storey building — `examples/house/` ([the gallery](../gallery.md))

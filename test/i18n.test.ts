@@ -32,7 +32,7 @@ const root = fileURLToPath(new URL("..", import.meta.url));
  */
 const TREES = [
   { ja: join(root, "spec"), en: join(root, "spec", "en"), label: "spec", complete: true },
-  { ja: join(root, "guide"), en: join(root, "guide", "en"), label: "guide", complete: false },
+  { ja: join(root, "guide"), en: join(root, "guide", "en"), label: "guide", complete: true },
 ];
 
 /** 対応を要求しないもの (訳す対象でない、あるいは本質的に二言語のもの) */

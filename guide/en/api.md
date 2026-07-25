@@ -26,7 +26,7 @@ for (const s of model.spaces.values()) {
 ```
 
 ```text
-二室一扉 — 空間 3 / 診断 0件
+二室 — 空間 3 / 診断 0件
 /L1/a	room	16.2
 /L1/b	room	16.2
 /out	exterior	-
@@ -238,7 +238,7 @@ console.log(JSON.stringify(checkDiagnostics(model), null, 1));
 ]
 ```
 
-**`checkDiagnostics` never throws.** Syntax and composition errors are thrown by the `parse` family as `SourceError`, so catch those at the call site. What each diagnostic means and how to fix it is in [diagnostics.md (日本語)](../diagnostics.md).
+**`checkDiagnostics` never throws.** Syntax and composition errors are thrown by the `parse` family as `SourceError`, so catch those at the call site. What each diagnostic means and how to fix it is in [diagnostics.md](diagnostics.md).
 
 ### check — the compatible string form
 
@@ -287,7 +287,7 @@ console.log(DIAGNOSTIC_CODES["BND04"], DIAGNOSTIC_CODES["BND07"]);
 error undefined
 ```
 
-`BND07` is a retired number, so it is `undefined` ([diagnostics.md (日本語)](../diagnostics.md#bnd07)).
+`BND07` is a retired number, so it is `undefined` ([diagnostics.md](diagnostics.md#bnd07)).
 
 ## Asking
 
@@ -753,7 +753,7 @@ console.log(toCanonical(a).split("\n").slice(0, 6).join("\n"));
 ```text
 {
   "koyu": "0.3",
-  "name": "二室一扉",
+  "name": "二室",
   "unit": "mm",
   "grid": {
     "X": [
@@ -940,4 +940,4 @@ The viewer **ugatsu** ([github.com/kensnzk/ugatsu](https://github.com/kensnzk/ug
 - [spec/semantics.md](../../spec/en/semantics.md) — the definitions of derivation, checking, and the queries (normative)
 - [spec/canonical-json.md](../../spec/en/canonical-json.md) — the schema of the canonical JSON (normative)
 - [cli.md](cli.md) — calling the same derivations from the command line
-- [diagnostics.md (日本語)](../diagnostics.md) — the causes and fixes for the diagnostic codes
+- [diagnostics.md](diagnostics.md) — the causes and fixes for the diagnostic codes

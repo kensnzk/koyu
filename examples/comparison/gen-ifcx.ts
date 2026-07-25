@@ -1,4 +1,4 @@
-// 二室一扉を IFCX (IFC5 alpha) として生成する。
+// 二室を IFCX (IFC5 alpha) として生成する。
 // buildingSMART/IFC5-development の hello-wall.ifcx の流儀に倣う:
 // UUIDパス + children による階層、usd::usdgeom::mesh によるメッシュ同梱、
 // bsi::ifc::class による分類。開口のブーリアンは省略し (hello-wallではType側の

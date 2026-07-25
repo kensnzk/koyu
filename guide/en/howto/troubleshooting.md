@@ -414,12 +414,12 @@ npx tsx src/cli.ts check corner.muro --json
 ]
 ```
 
-A syntax or composition error is also copied into a single `SYN01` and returned as valid JSON, so a pipeline does not break. The meaning of each code is in [the diagnostic index (日本語)](../../diagnostics.md), and the normative ledger is [spec/semantics.md §5](../../../spec/en/semantics.md).
+A syntax or composition error is also copied into a single `SYN01` and returned as valid JSON, so a pipeline does not break. The meaning of each code is in [the diagnostic index](../diagnostics.md), and the normative ledger is [spec/semantics.md §5](../../../spec/en/semantics.md).
 
 ## Related
 
 - [The how-to index](README.md)
-- [The diagnostic index (日本語)](../../diagnostics.md) — looking up a cause and a fix from a code
+- [The diagnostic index](../diagnostics.md) — looking up a cause and a fix from a code
 - [Doors and egress](doors-and-escape.md)
 - [Subdivide a dwelling](unit-layout.md) — item 5's `zone`-versus-`space` distinction, as a procedure
 - [Add a level](add-a-level.md) — items 7 and 8's level declaration, as a procedure

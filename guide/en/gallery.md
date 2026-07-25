@@ -20,7 +20,7 @@ The five bundled examples are in order of difficulty, and each broadly builds on
 
 ![two-rooms L1](../../docs/img/two-rooms.svg)
 
-22 lines / 3 spaces / 3 boundaries / 32.40 m². It is not even a building. Even so, the identity of a space, where a boundary belongs, how connection is expressed, and how paths are cut are all settled here.
+22 lines / 3 spaces / 3 boundaries / 32.40 m². Two rooms side by side, one door between them and one door out. The smallest units of the notation all appear once here.
 
 **What it is first to demonstrate**
 
@@ -443,7 +443,7 @@ npx tsx src/cli.ts light examples/tower/main.muro
 
 ## examples/comparison/
 
-The same two rooms and one door — the same scene as [two-rooms](#examplestwo-roomsmuro) — written also in IFC4 (SPF) and IFCX (IFC5 alpha) sits in `examples/comparison/`. The comparison is not about which format is better but about measuring **what happens when the subject of the description is swapped from the building-as-object to architecture-as-space**.
+The same two rooms — the same scene as [two-rooms](#examplestwo-roomsmuro) — written also in IFC4 (SPF) and IFCX (IFC5 alpha) sits in `examples/comparison/`. The comparison is not about which format is better but about measuring **what happens when the subject of the description is swapped from the building-as-object to architecture-as-space**.
 
 Measured in the unit an LLM reads and writes (o200k_base):
 

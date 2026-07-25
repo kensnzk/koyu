@@ -17,4 +17,4 @@ If this is your first contact with koyu, write [start.md](../start.md) through f
 | Have an agent read and write koyu over MCP | [agent-mcp.md](agent-mcp.md) |
 | Get down to the cause when an error or warning appears | [troubleshooting.md](troubleshooting.md) |
 
-To look up a cause and a fix from a diagnostic code, use [diagnostics.md (日本語)](../../diagnostics.md); to see the whole notation on one page, use [cheatsheet.md](../cheatsheet.md).
+To look up a cause and a fix from a diagnostic code, use [diagnostics.md](../diagnostics.md); to see the whole notation on one page, use [cheatsheet.md](../cheatsheet.md).

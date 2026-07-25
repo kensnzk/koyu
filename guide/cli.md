@@ -470,7 +470,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 ```text
 {
   "koyu": "0.3",
-  "name": "二室一扉",
+  "name": "二室",
   "unit": "mm",
   "grid": {
     "X": [

@@ -20,7 +20,7 @@
 
 ![two-rooms L1](../docs/img/two-rooms.svg)
 
-22行 / 空間3 / 境界3 / 32.40㎡。建物ですらない。それでも空間の同一性・境界の帰属・接続・パスの切り方がここで全部決まる。
+22行 / 空間3 / 境界3 / 32.40㎡。室を二つ並べ、その間に扉を一枚、外へ出る扉を一枚。この記法の最小の単位が一通り出そろう。
 
 **この例が初めて示すもの**
 
@@ -437,7 +437,7 @@ npx tsx src/cli.ts light examples/tower/main.muro
 
 ## examples/comparison/
 
-同じ二室一扉 — [two-rooms](#examplestwo-roomsmuro) と同じ場面 — を IFC4 (SPF) と IFCX (IFC5 alpha) でも書いたものが `examples/comparison/` にある。形式の巧拙ではなく、**記述の主語を「建築物 (物)」から「建築 (空間)」に取り替えると何が起きるか**を測るための比較である。
+同じ二室 — [two-rooms](#examplestwo-roomsmuro) と同じ場面 — を IFC4 (SPF) と IFCX (IFC5 alpha) でも書いたものが `examples/comparison/` にある。形式の巧拙ではなく、**記述の主語を「建築物 (物)」から「建築 (空間)」に取り替えると何が起きるか**を測るための比較である。
 
 LLMが読み書きする単位 (o200k_base) での実測:
 

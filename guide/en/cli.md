@@ -114,7 +114,7 @@ With errors, `--json` takes this shape. `message` is the body only; the position
 
 (`file` is the **resolved absolute path**; it is elided here. The same path prefixes each line of the human output.)
 
-A file that could not be read due to a syntax error still returns valid JSON under `--json` — it is copied into a single `SYN01`. The meaning, cause, and fix for each code are in [diagnostics.md (日本語)](../diagnostics.md), and the ledger is [spec/semantics.md §5](../../spec/en/semantics.md).
+A file that could not be read due to a syntax error still returns valid JSON under `--json` — it is copied into a single `SYN01`. The meaning, cause, and fix for each code are in [diagnostics.md](diagnostics.md), and the ledger is [spec/semantics.md §5](../../spec/en/semantics.md).
 
 **A green `check` is not looking at whether the building can be used.** A building with not one door, and one with not one window, are both green. Confirm circulation with `doors` and daylight with `light`, separately ([Combinations worth using](#combinations-worth-using)).
 
@@ -209,7 +209,7 @@ Error: レベル R に領域を持つ空間がありません
 
 ("There is no space with a region on level R.")
 
-**`plan` can die even when `check` is green.** In particular when a space is not on a level (diagnostic [HGT05 (日本語)](../diagnostics.md#hgt05) stops at a warning). When `plan` dies, try putting it through `check --strict` first.
+**`plan` can die even when `check` is green.** In particular when a space is not on a level (diagnostic [HGT05](diagnostics.md#hgt05) stops at a warning). When `plan` dies, try putting it through `check --strict` first.
 
 The drawing conventions (the black band of a wall, the dashed line of an `open`, the swing of a door, the diagonal of a void, the site boundary line) are in [spec/semantics.md §7](../../spec/en/semantics.md). What the bundled examples come out as is in [gallery.md](gallery.md).
 
@@ -371,7 +371,7 @@ L1	z:0	h:2700
 個別天井高: /L1/hall h:6700
 ```
 
-When the decomposition does not appear, either the storey below has no `h` or the one above has no `slab`. In that case the height check does not run either, and the warnings [HGT03 (日本語)](../diagnostics.md#hgt03) / [HGT04 (日本語)](../diagnostics.md#hgt04) appear. **Declaring a roof level that holds no space (`level R 5800 slab:500`) brings the top storey into the check as well.**
+When the decomposition does not appear, either the storey below has no `h` or the one above has no `slab`. In that case the height check does not run either, and the warnings [HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) appear. **Declaring a roof level that holds no space (`level R 5800 slab:500`) brings the top storey into the check as well.**
 
 ## light — do the habitable rooms meet 1/7
 
@@ -478,7 +478,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 ```text
 {
   "koyu": "0.3",
-  "name": "二室一扉",
+  "name": "二室",
   "unit": "mm",
   "grid": {
     "X": [
@@ -542,7 +542,7 @@ npx tsx src/cli.ts json derived.muro
 npx tsx src/cli.ts check examples/house/main.muro --strict
 ```
 
-`--strict` makes warnings fail too. Without it, the "the check could not run" warnings ([HGT03 (日本語)](../diagnostics.md#hgt03) / [HGT04 (日本語)](../diagnostics.md#hgt04) / [HGT05 (日本語)](../diagnostics.md#hgt05)) slip through green. Give the gate `--strict`.
+`--strict` makes warnings fail too. Without it, the "the check could not run" warnings ([HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) / [HGT05](diagnostics.md#hgt05)) slip through green. Give the gate `--strict`.
 
 **Review an edit.** Read it in the language of composition rather than as a text diff. Take out the state before the commit and compare.
 
@@ -584,6 +584,6 @@ The entrance for use from an agent is separate (`koyu-mcp`). It is stateless, an
 
 - [spec/tools.md](../../spec/en/tools.md) — the contract for the CLI, MCP, and the public API (normative)
 - [spec/semantics.md](../../spec/en/semantics.md) — the definitions of the questions each command answers (normative)
-- [diagnostics.md (日本語)](../diagnostics.md) — the cause and fix for every diagnostic code `check` returns
+- [diagnostics.md](diagnostics.md) — the cause and fix for every diagnostic code `check` returns
 - [api.md](api.md) — calling the same derivations from a program
 - [gallery.md](gallery.md) — the bundled examples and the drawings that came out of them
