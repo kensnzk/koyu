@@ -1,3 +1,5 @@
+[English](../en/howto/README.md) · **日本語**
+
 # how-to — 目的から引く
 
 仕事の途中で開く頁である。目的を先頭に置き、手順だけを書く。理由と背景は書かない — 概念は [concepts.md](../concepts.md)、規範は [spec/](../../spec/) が持つ。
