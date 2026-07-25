@@ -21,7 +21,7 @@ Each stage's endpoint is kept as a working file under [examples/steps/](../../ex
 | Document | Contents | Reader |
 |---|---|---|
 | [start.md](start.md) | **The tutorial** — one room to a two-storey house, on a single track. Instructions only, no choices (30–45 min) | Anyone new to koyu. **Start here** |
-| [concepts.md (日本語)](../concepts.md) | **Explanation** — the six ideas you need before the syntax reads. What it means that something is *not* written (10 min) | Anyone who has written one file; anyone who wants the reasons behind the shape |
+| [concepts.md](concepts.md) | **Explanation** — the six ideas you need before the syntax reads. What it means that something is *not* written (10 min) | Anyone who has written one file; anyone who wants the reasons behind the shape |
 | [gallery.md (日本語)](../gallery.md) | **Worked examples** — the five bundled buildings in order of difficulty, with generated drawings and measured figures. What each one is the first to demonstrate | People who prefer to start from pictures; people wondering what to write next (optional) |
 
 **For looking things up** — open only the part you need. Not to be read through.
@@ -51,7 +51,7 @@ There are three ways to arrive. Pick yours and read in that order.
 ### If you want to write (describe a building in .muro)
 
 1. [start.md](start.md) — get your hands moving. **Skipping this makes the rest unreadable**
-2. [concepts.md (日本語)](../concepts.md) — grasp what it was that you just wrote
+2. [concepts.md](concepts.md) — grasp what it was that you just wrote
 3. Keep [cheatsheet.md (日本語)](../cheatsheet.md) beside you; when you get stuck, look up [howto/](howto/README.md) by goal
 4. When `check` gives you an error, [diagnostics.md (日本語)](../diagnostics.md)
 5. For what you could write next, [gallery.md (日本語)](../gallery.md)
@@ -59,7 +59,7 @@ There are three ways to arrive. Pick yours and read in that order.
 ### If you are building a tool (a program that reads or writes koyu)
 
 1. [start.md](start.md) — write the language once yourself. Reading only the specification leaves the vocabulary without footing
-2. [concepts.md (日本語)](../concepts.md) — especially §2 "a boundary is a relation, not a thing" and §5 "the authored source and what is derived"
+2. [concepts.md](concepts.md) — especially §2 "a boundary is a relation, not a thing" and §5 "the authored source and what is derived"
 3. [spec/language.md](../../spec/en/language.md) → [spec/semantics.md](../../spec/en/semantics.md) — the norms: the grammar, and the definitions of derivation, checking, and the queries
 4. [spec/canonical-json.md](../../spec/en/canonical-json.md) and [spec/tools.md](../../spec/en/tools.md) — the machine format and the CLI/MCP/API contracts
 5. [api.md (日本語)](../api.md) / [cli.md (日本語)](../cli.md) — how to call them, and what actually comes back
@@ -68,7 +68,7 @@ There are three ways to arrive. Pick yours and read in that order.
 ### If you want the argument (why a notation like this at all)
 
 1. [docs/writing-architecture.md](../../docs/writing-architecture.md) — the essay
-2. [concepts.md (日本語)](../concepts.md) — how the argument took shape as a notation
+2. [concepts.md](concepts.md) — how the argument took shape as a notation
 3. [gallery.md (日本語)](../gallery.md) — measured, how far one building can be taken
 4. [docs/decisions/](../../docs/decisions/) — the reasons for each judgement, and the alternatives that were rejected
 5. [spec/notation-v0.md](../../spec/en/notation-v0.md) — the record of how the notation was chosen out of a DSL/YAML/JSON comparison

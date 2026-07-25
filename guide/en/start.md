@@ -527,7 +527,7 @@ There are only 13 words that can begin a line in this notation, and 5 that can s
 
 ## What to read next
 
-- **If why it is written this way has not settled yet** → [concepts.md (日本語)](../concepts.md). It covers the ideas you need first for the notation to settle.
+- **If why it is written this way has not settled yet** → [concepts.md](concepts.md). It covers the ideas you need first for the notation to settle.
 - **If you know what you want to do** → [howto/](howto). Procedures are lined up by goal.
 - **To keep beside you while writing** → [cheatsheet.md (日本語)](../cheatsheet.md). Every construct on one page.
 - **When you get an error** → [diagnostics.md (日本語)](../diagnostics.md). A cause and a fix for each diagnostic.
