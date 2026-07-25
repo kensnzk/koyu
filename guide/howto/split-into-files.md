@@ -1,3 +1,5 @@
+[English](../en/howto/split-into-files.md) · **日本語**
+
 # import で一棟を複数ファイルに割る
 
 一つの `.muro` を層に切り出し、`import` で一棟として合成する。分担して書き、衝突はビルドエラーで捕まえる。

@@ -9,7 +9,7 @@ The file paths in the output below are actually absolute; they are shortened to 
 ## Before you begin
 
 - One storey of `.muro` passes `check` with zero errors.
-- You know which file is the base layer (the entry) that declares `grid` and `level`. If you have split across several files, see [split-into-files.md (日本語)](../../howto/split-into-files.md).
+- You know which file is the base layer (the entry) that declares `grid` and `level`. If you have split across several files, see [split-into-files.md](split-into-files.md).
 
 ## Steps
 
@@ -78,7 +78,7 @@ When there are many storeys, declare them all at once with `stack`, which draws 
 stack hall L1..L2 type:stair
 ```
 
-A relation that spans levels belongs to no single storey's layer. If you have split across several files, put it in the base layer ([split-into-files.md (日本語)](../../howto/split-into-files.md)).
+A relation that spans levels belongs to no single storey's layer. If you have split across several files, put it in the base layer ([split-into-files.md](split-into-files.md)).
 
 ### 5. Write a door from each upstairs room to the stair space
 

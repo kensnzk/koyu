@@ -184,7 +184,7 @@ The exit code is 0 when it is reachable and 1 when it is not. Use that when guar
 
 - [The how-to index](README.md)
 - [Add a level](add-a-level.md) — how to connect with a stair
-- [Subdivide a dwelling (日本語)](../../howto/unit-layout.md) — putting doors between the rooms you split out
+- [Subdivide a dwelling](unit-layout.md) — putting doors between the rooms you split out
 - [Getting unstuck (日本語)](../../howto/troubleshooting.md) — how to fix the line where `check` is green but `doors` says unreachable
 - [Six ideas](../concepts.md) — that a boundary is a relation, and that the default is a wall
 - [The diagnostic index (日本語)](../../diagnostics.md)
