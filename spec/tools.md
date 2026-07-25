@@ -1,6 +1,6 @@
 # ツールリファレンス — CLI・MCP・公開API
 
-koyu v0.8.0 現在。すべてのツールは同じ導出 (semantics.md) の別の入口である — CLIは人の手、MCPはエージェント、APIはプログラム。
+koyu v0.9.0 現在。すべてのツールは同じ導出 (semantics.md) の別の入口である — CLIは人の手、MCPはエージェント、APIはプログラム。
 
 ## CLI (`koyu` / `npm run koyu --`)
 
@@ -31,11 +31,11 @@ stdio上のMCP (JSON-RPC 2.0、行区切りJSON)。依存ゼロ・ステート�
 | `model_summary` | file | 名前・レベル・レイヤー構成・ゾーン・アセット・面積・check件数 — **まず呼ぶ** |
 | `check` | file | ok・エラー/警告 (出所レイヤー:行つき) — **編集のたびに呼ぶ門番** |
 | `layers` | file | 合成に参加した全レイヤーの {file, source} — 原本を読む |
-| `write_layer` | file, layer, content | レイヤー全置換→直後のcheck結果。`.muro` のみ・entryのディレクトリ配下のみ |
+| `write_layer` | file, layer, content | 検査してから全置換 (parse不能な合成になる内容は書き込まれない — 原本不変。checkエラーは返すが途中状態の保存は許す)。書き込みはatomic。`.muro` のみ・entryのディレクトリ配下のみ (相対パスとsymlink実体で検査。合成に参加しないファイルの内容は検証されない) |
 | `doors` | file, from, to | 最少扉数の経路、到達不能なら {unreachable} |
 | `spaces` | file, [level] | 空間一覧 (パス・型・面積・半屋外・出所) |
 | `light` | file | 居室ごとの採光判定 |
-| `site` | file | 敷地レポート (面積照合・接道・建蔽率・容積率) |
+| `site` | file | 敷地レポート (面積照合 `areaMatch`・接道・建蔽率・容積率) |
 | `plan_svg` | file, level | 平面SVG文字列 |
 | `canonical_json` | file | 正準JSON |
 
@@ -51,9 +51,9 @@ import { parse, parseFiles, parseWith, check, doorsBetween, daylight, siteReport
 import { parseFile } from "@kensnzk/koyu/node";
 ```
 
-- **合成の入口**: `parse(source)` (単一ソース — importはエラー) / `parseFiles(files, entry)` (仮想ファイル群 — キー空間の中でimport解決。ブラウザ向け) / `parseFile(path)` (fs) / `parseWith(loader, entry)` (独自ローダー)。
+- **合成の入口**: `parse(source)` (単一ソース — importはエラー) / `parseFiles(files, entry)` (仮想ファイル群 — キー空間の中でimport解決。ブラウザ向け) / `parseFile(path)` (fs) / `parseFileWith(path, overlay)` (fs+差し替え — 書き込み前の門番用) / `parseWith(loader, entry)` (独自ローダー)。合成に参加した全レイヤーは `model.layers` (合成順)。
 - **検査と問い**: `check(model)` → {errors, warnings}。`doorsBetween` / `daylight` / `siteReport` / `zoneAreaM2` / `neighbors` / `passable`。
-- **導出の部品**: `segmentsFor` / `sharedSegment` / `placeOpening` / `placeBand` / `mergeCollinear` / `heff` / `isSemiOutdoor` / `isCoveredAbove` / `levelsSorted` / `polygonAreaM2` / `pointInPolygon`。
+- **導出の部品**: `segmentsFor` / `sharedSegment` / `placeOpening` / `placeBand` / `mergeCollinear` / `heff` / `isSemiOutdoor` / `isCoveredAbove` / `levelsSorted` / `polygonAreaM2` / `pointInPolygon` / `rectEscapesPolygon` / `polygonSelfIntersection`。
 - **生成**: `svgPlan(model, {level, scale?})` / `toCanonical(model)`。
 - **エラー**: 構文・合成エラーは `SourceError` (line / raw / file — messageは `レイヤー:行目: 本文`)。checkは投げず配列で返す。
 - サブパス: `@kensnzk/koyu/examples/*` で同梱例を配布物として参照できる。

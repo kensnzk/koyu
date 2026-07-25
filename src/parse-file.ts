@@ -9,8 +9,20 @@ import { parseWith } from "./parse.js";
 
 /** ファイルから読む。import は書かれたファイルからの相対で解決される */
 export function parseFile(filePath: string): Model {
+  return parseFileWith(filePath);
+}
+
+/**
+ * 差し替えつきのファイル合成 — 書き込み前の門番 (MCPのwrite_layer) が使う。
+ * overlay が文字列を返したパスは、ディスクの内容の代わりにそれが合成される
+ */
+export function parseFileWith(
+  filePath: string,
+  overlay?: (absPath: string) => string | undefined,
+): Model {
   return parseWith((from, ref) => {
     const key = from === undefined ? resolve(ref) : resolve(dirname(from), ref);
-    return { key, src: readFileSync(key, "utf8") };
+    const src = overlay?.(key) ?? readFileSync(key, "utf8");
+    return { key, src };
   }, filePath);
 }

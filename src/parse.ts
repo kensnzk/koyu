@@ -30,6 +30,7 @@ function emptyModel(): Model {
     assets: new Map(),
     boundaries: [],
     polygons: new Map(),
+    layers: [],
   };
 }
 
@@ -97,6 +98,7 @@ function ingestLayer(
 ): void {
   if (seen.has(key)) return; // 同じレイヤーは一度だけ合成される (USDのsublayerと同じ)
   seen.add(key);
+  model.layers.push(key); // 合成への参加を要素の有無によらず記録する (grid/levelだけの層も数える)
   ingest(model, src, key, seen, loader);
 }
 
@@ -149,7 +151,11 @@ function ingest(
     currentSpaces = [];
     switch (head) {
       case "koyu": {
-        model.version = rest[0] ?? "0.1";
+        const v = rest[0] ?? "0.1";
+        if (v !== "0.1") {
+          throw new SourceError(ln, `対応していないkoyuの版です: ${v} (このツールの対応: 0.1)`);
+        }
+        model.version = v;
         break;
       }
       case "import": {
@@ -701,6 +707,10 @@ function parseAttrs(tokens: string[], ln: number): Attrs {
     const key = t.slice(0, idx);
     const rawVal = t.slice(idx + 1);
     if (rawVal === "") throw new SourceError(ln, `属性 ${key} に値がありません`);
+    if (attrs[key] !== undefined) {
+      // 後勝ちの黙認はtypoとマージ事故を隠す — 同一行内の重複はエラー (ADR-0013)
+      throw new SourceError(ln, `属性キーが重複しています: ${key}`);
+    }
     attrs[key] = maybeNumber(rawVal);
   }
   return attrs;

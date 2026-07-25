@@ -1,12 +1,12 @@
 # 機械形式リファレンス — 正準JSON
 
-koyu v0.8.0 現在。`koyu json <entry>` / `toCanonical(model)` が出力する。author形式 (.muro) が人とLLMの原本、正準JSONは機械の土台 — diff・ハッシュ・レイヤー合成・外部接続 (RDF等) はこの上に作る。
+koyu v0.9.0 現在。`koyu json <entry>` / `toCanonical(model)` が出力する。author形式 (.muro) が人とLLMの原本、正準JSONは機械の土台 — diff・ハッシュ・レイヤー合成・外部接続 (RDF等) はこの上に作る。
 
 ## 安定性の規則 (この形式の存在理由)
 
-1. **同じ構成からは常にバイト同一のJSONが出る。** すべてのオブジェクトキーはソートされ、`spaces` はパス順、`boundaries` は `between` の辞書順、`zones`・`assets`・`polygons` はキー順に並ぶ。
+1. **同じ構成からは常にバイト同一のJSONが出る。** すべてのオブジェクトキーはソートされ、`spaces` はパス順、`boundaries` は `between` の辞書順 (同一 `between` は内容の正準順)、`zones`・`assets`・`polygons` はキー順に並ぶ。**宣言順に意味の無い配列 (openings・segs・areas・領域合併) も内容の正準順に並ぶ** — 同じ構成を別の行順で書いても同じバイト列になる (ADR-0013)。
 2. **合成後の単一モデルである。** import・スパン・stackは展開済みで残らない。展開の意図 (基準階は一つ) を保つのはauthor形式の仕事。
-3. **書かれた表記を保存する。** 位置は通り参照のまま (`"at": "Y2+1820"`)、領域は通り名4つ組 — 正準形は語り直さない。
+3. **書かれた表記を保存する。** 位置は通り参照のまま (`"at": "Y2+1820"`)、領域は通り名4つ組、**境界の向きは `a` キー** (先に書いた空間 — `edge`/`swing` はこの側から読む。ADR-0013で追加: これが無いとJSONだけでは開き勝手を復元できない) — 正準形は語り直さない。polygonの頂点列は幾何 (巡回) なので並べ替えない。
 
 ## スキーマ
 
@@ -31,6 +31,7 @@ koyu v0.8.0 現在。`koyu json <entry>` / `toCanonical(model)` が出力する�
   "boundaries": [
     {
       "between": ["/L5/A/hall", "/L5/corridor"],    // 昇順の2パス
+      "a": "/L5/A/hall",                             // 書かれた向き — edge/swingはa側から読む
       "kind": "wall",                                // wall|open|stair|shaft|void
       "t": 180, "air": true, "edge": "S",            // それぞれ任意
       "attrs": { "spec": "RC" },                     // 任意

@@ -12,9 +12,11 @@ import {
   sharedSegment,
   spacesOverlap,
 } from "./graph.js";
-import { heff, isSemiOutdoor, levelsSorted, type Model, type Space,
+import { heff, isSemiOutdoor, levelsSorted, type Boundary, type Model, type Space,
   srcRef,
-  pointInPolygon,
+  polygonAreaM2,
+  polygonSelfIntersection,
+  rectEscapesPolygon,
 } from "./model.js";
 
 export interface CheckResult {
@@ -23,6 +25,8 @@ export interface CheckResult {
 }
 
 const EPS = 0.5;
+/** 敷地まわりの幾何の許容 (境界上は内側扱い) — ADR-0011の1mm */
+const EPS_SITE = 1;
 const VERTICAL = new Set(["stair", "shaft", "void"]);
 
 export function check(model: Model): CheckResult {
@@ -38,6 +42,31 @@ export function check(model: Model): CheckResult {
     }
     if (b.a === b.b) {
       errors.push(`${srcRef(b.line, b.file)}: 同じ空間同士の境界は書けません: ${b.a}`);
+    }
+  }
+
+  // 境界の同一性: 同じ空間対 (edge限定まで同一) の重複宣言は矛盾の温床 — エラー (ADR-0013)。
+  // wall/openの食い違いもこの検査が捕まえる。edge限定の有無が混在する対は線分が重なるため警告
+  const seenBoundary = new Map<string, Boundary>();
+  const pairEdges = new Map<string, Set<string>>();
+  for (const b of model.boundaries) {
+    const pair = [b.a, b.b].sort().join(" | ");
+    const key = `${pair}#${b.edge ?? ""}`;
+    const prev = seenBoundary.get(key);
+    if (prev) {
+      errors.push(
+        `${srcRef(b.line, b.file)}: 境界が重複しています: ${pair}${b.edge ? ` edge:${b.edge}` : ""} (既出: ${srcRef(prev.line, prev.file)})`,
+      );
+    } else {
+      seenBoundary.set(key, b);
+    }
+    const set = pairEdges.get(pair) ?? new Set<string>();
+    set.add(b.edge ?? "");
+    pairEdges.set(pair, set);
+  }
+  for (const [pair, edges] of pairEdges) {
+    if (edges.has("") && edges.size > 1) {
+      warnings.push(`同じ空間対に edge 限定つきと無しの境界が併存しています (線分が重なります): ${pair}`);
     }
   }
 
@@ -317,10 +346,26 @@ export function check(model: Model): CheckResult {
     }
   }
 
-  // 敷地形状 (ADR-0011): 対応ゾーンの存在と、建物のはみ出し検査。
-  // 建物 (敷地ゾーン配下でも外部でもない、領域を持つ空間) の全ての角は敷地の中になければならない。
+  // 敷地形状 (ADR-0011): 形の妥当性、対応ゾーンの存在、宣言面積との照合、建物のはみ出し検査。
+  // はみ出しは四隅の内包に加え、多角形の頂点の入り込みと辺の交差を見る — 凹敷地でも正しい (ADR-0013)。
   // 地上の外部空間タイル (庭・通路) は近似なので検査しない — 面積の真は多角形が持つ
   for (const poly of model.polygons.values()) {
+    for (let i = 0; i < poly.points.length; i++) {
+      const a = poly.points[i]!;
+      const b = poly.points[(i + 1) % poly.points.length]!;
+      if (Math.hypot(b.x - a.x, b.y - a.y) <= EPS_SITE) {
+        errors.push(
+          `${srcRef(poly.line, poly.file)}: 敷地形状に重複する頂点があります (${Math.round(a.x)},${Math.round(a.y)})`,
+        );
+      }
+    }
+    const selfX = polygonSelfIntersection(poly.points);
+    if (selfX) {
+      errors.push(
+        `${srcRef(poly.line, poly.file)}: 敷地形状が自己交差しています (${Math.round(selfX.x)},${Math.round(selfX.y)} 付近)`,
+      );
+      continue; // 不正な形に対する包含・面積は判定しない
+    }
     const zone = model.zones.get(poly.path);
     if (!zone) {
       warnings.push(
@@ -329,19 +374,22 @@ export function check(model: Model): CheckResult {
       continue;
     }
     if (zone.attrs["site"] !== 1) continue;
+    const declared = zone.attrs["area"];
+    if (typeof declared === "number") {
+      const derived = polygonAreaM2(poly.points);
+      if (Math.abs(declared - derived) >= 0.05) {
+        warnings.push(
+          `${srcRef(zone.line, zone.file)}: 敷地面積の宣言と導出が食い違います: 宣言 ${declared}㎡ / 導出 ${derived.toFixed(2)}㎡`,
+        );
+      }
+    }
     for (const s of withRect) {
       if (s.type === "exterior" || s.path.startsWith(poly.path + "/")) continue;
       for (const r of s.rects) {
-        const corners = [
-          { x: r.x1, y: r.y1 },
-          { x: r.x2, y: r.y1 },
-          { x: r.x2, y: r.y2 },
-          { x: r.x1, y: r.y2 },
-        ];
-        const out = corners.find((c) => !pointInPolygon(c, poly.points));
+        const out = rectEscapesPolygon(r, poly.points, EPS_SITE);
         if (out) {
           errors.push(
-            `${srcRef(s.line, s.file)}: ${s.path} が敷地形状からはみ出しています (角 ${out.x},${out.y})`,
+            `${srcRef(s.line, s.file)}: ${s.path} が敷地形状からはみ出しています (${Math.round(out.x)},${Math.round(out.y)} 付近)`,
           );
           break;
         }

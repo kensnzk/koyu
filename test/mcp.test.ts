@@ -3,9 +3,9 @@
 
 import assert from "node:assert/strict";
 import { spawn, type ChildProcess } from "node:child_process";
-import { cpSync, mkdtempSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -97,7 +97,9 @@ test("MCP: initialize → tools/list → towerへの問い → write_layerの門
     const route = JSON.parse((await c.call("doors", { file: entry, from: "/L9/A/ldk", to: "/out/road-s" })).text);
     assert.equal(route.doors, 4);
 
-    // 門番: 壊れた編集はcheckエラーが出所つきで返る
+    // 門番: parse不能な編集は書き込まれず、原本は不変 (ADR-0013)
+    const l11Path = join(dir, "L11.muro");
+    const l11Before = readFileSync(l11Path, "utf8");
     const broken = await c.call("write_layer", {
       file: entry,
       layer: "L11.muro",
@@ -105,6 +107,8 @@ test("MCP: initialize → tools/list → towerへの問い → write_layerの門
     });
     const br = JSON.parse(broken.text);
     assert.equal(br.ok, false);
+    assert.equal(br.written, false);
+    assert.equal(readFileSync(l11Path, "utf8"), l11Before);
 
     // 正しい編集に戻すと緑に戻る
     const orig = JSON.parse((await c.call("layers", { file: join(root, "examples/tower/main.muro") })).text) as Array<{
@@ -119,6 +123,17 @@ test("MCP: initialize → tools/list → towerへの問い → write_layerの門
     // .muro以外への書き込みは拒否
     const deny = await c.call("write_layer", { file: entry, layer: "evil.sh", content: "x" });
     assert.equal(deny.isError, true);
+
+    // entryディレクトリの外への書き込みは拒否 — 兄弟prefix (dir-esc) も文字列prefixでは通らない (ADR-0013)
+    const esc1 = await c.call("write_layer", { file: entry, layer: "../escape.muro", content: "koyu 0.1\n" });
+    assert.equal(esc1.isError, true);
+    const esc2 = await c.call("write_layer", {
+      file: entry,
+      layer: `../${basename(dir)}-esc/x.muro`,
+      content: "koyu 0.1\n",
+    });
+    assert.equal(esc2.isError, true);
+    assert.equal(existsSync(`${dir}-esc`), false);
   } finally {
     c.kill();
   }

@@ -3,6 +3,7 @@
 - 対象: [2026-07-25-dsl-review.md](2026-07-25-dsl-review.md) (外部レビュー、対象コミット `0d8a8a6` = 検証時HEAD)
 - 検証日: 2026-07-25
 - この文書の位置づけ: **提案**である。採用する項目は、リポジトリの規律どおり **ADR (なぜ) + テスト (保証) + spec (現在形)** の三点セットへ落として初めて決定になる (spec/README.md)。
+- 追記 (2026-07-25): 本計画の Phase A (P0全件) は [ADR-0013「意味の保証」](../decisions/0013-semantic-guarantees.md) として実装・採用された (v0.9)。本文中の ADR-0014〜0017 は未起草の提案番号である。本文の行番号・実測値は検証時点 (`0d8a8a6`) のもの。
 
 ## 0. 要旨
 
@@ -32,7 +33,7 @@
 | D-004 | 凹敷地のはみ出し判定が角だけ | **確認** | `src/check.ts:334-341` は矩形の四隅のみ判定。U字敷地の凹部を跨ぐ矩形 (四隅は敷地内、辺の中央は敷地外) で `check` エラー0を再現 (付録B-4)。凹polygonに対する `pointInPolygon` のテストも存在しない |
 | D-005 | 敷地宣言面積の不一致がcheckに入っていない | **確認** | spec/semantics.md は「宣言と照合 (±0.05㎡)」を規定するが、実装は `src/cli.ts:219-222` の表示のみで終了コード0。宣言50㎡/導出100㎡で `check` エラー0・`site` exit 0 を再現 (付録B-5)。MCPの `site` も不一致フラグを返さない |
 | D-006 | 重複属性が黙って後勝ち | **挙動は確認、位置づけは補正** | 後勝ちは再現 (付録B-6)。ただし spec/language.md:9 に「**同名キーは後勝ち**」と明記されており、暗黙挙動ではなく**仕様の決定**である。批判の宛先は仕様に向くべきで、その上でエラー化の提案自体は妥当 (§2.4 P0-03') |
-| D-007 | specと実装のseverity不一致 (void境界) | **確認** | spec/semantics.md:21「違えばエラー」・:35のエラー一覧に対し、実装は `src/check.ts:119` で warning。なおリポジトリの規律 (spec/README.md「実装とテストが正であり、specを直す」) に従えば短期の解決はspec側の訂正であり、恒久解は診断契約 (ADR-0015案) で規範severityを固定すること |
+| D-007 | specと実装のseverity不一致 (void境界) | **確認** | spec/semantics.md:21「違えばエラー」・:35のエラー一覧に対し、実装は `src/check.ts:119` で warning。なおリポジトリの規律 (spec/README.md「実装とテストが正であり、specを直す」) に従えば短期の解決はspec側の訂正であり、恒久解は診断契約 (ADR-0016案) で規範severityを固定すること |
 | D-008 | MCPのwriteは門番ではなく事後検査 | **確認** | `src/mcp.ts:173-177` は `writeFileSync` の後に parse/check。パース不能な内容でも壊れたファイルが残り、以後の全ツールが失敗する。`test/mcp.test.ts` は失敗時のファイル状態を検証していない |
 | D-009 | MCPのディレクトリ境界判定が文字列prefix | **確認 (実害まで再現)** | `src/mcp.ts:172` の `startsWith(entryDir)`。実MCPサーバーに対し `layer:"../proj-escape/x.muro"` で **entry `proj/` の兄弟ディレクトリへの書き込みに成功** (`ok:true` が返る) を再現 (付録B-7) |
 | D-010 | `layers`が全importを列挙できない場合がある | **確認 (実害まで再現)** | `src/mcp.ts:36-44` は spaces/zones/assets/polygons/boundaries の出所集合から再構成。grid/levelのみを持つimport層を作ると `layers` の列挙から欠落することを実サーバーで再現 (付録B-8)。なおリポジトリ内の実例 (tower/house) では grid/level がentryにあるため顕在化していない |
@@ -91,16 +92,16 @@
 
 レビュー§13の15問のうち、Phase Aの実装が依存する4問を先に決める。残り (Q1, Q6, Q8, Q9, Q10, Q11, Q12, Q15) はPhase Cの外部検証の入力を待って決める。
 
-**ADR-0013 境界の既定** (§13 Q3, Q4, Q7を吸収)
+**ADR-0014 境界の既定** (§13 Q3, Q4, Q7を吸収)
 接する空間にboundaryが無いとき: 案A=既定wallを導出し例外だけ書く / 案B=必須化 (エラー)。**推奨は案A**。「床は書かない — 既定は床。例外だけ宣言」(spec/semantics.md:19) という垂直方向の意味論と対称になり、towerの163本の境界手書きの大半が消え、「壁は導出」の主張が水平でも実体を持つ。現状の「不足しても警告」は廃止する。
 
-**ADR-0014 同一性** (Q2, Q5)
+**ADR-0015 同一性** (Q2, Q5)
 パス主義 (spec/language.md:39) は維持する — 可読アドレスとしての価値、docs/horizon.md:33「パスがそのまま意味である」という外部キー戦略は正しい。その上で、**rename耐性が必要な利用者向けに任意の `uid:` 属性を予約**する (パスから導出しない、重複はエラー、正準JSONに保存)。センサー連携・長期運用のjoinはuidを推奨し、パスはアドレスと集計の階層に役割を限定する。sidecar台帳はコーパスが要求するまで作らない。
 
-**ADR-0015 診断契約** (Q13の一部、D-007の恒久解)
+**ADR-0016 診断契約** (Q13の一部、D-007の恒久解)
 diagnosticへ `code` / 規範severity / `file`+`range` / `related` を導入し、specに診断コード台帳を持つ。specと実装のseverity不一致はconformance testで検出する。CLIは現行の日本語文字列を人間向け表示として保ち、`--json` で構造化診断を返す。
 
-**ADR-0016 言語版と互換** (Q14)
+**ADR-0017 言語版と互換** (Q14)
 language version (`koyu 0.1`) / tool・package version / canonical schema version を分離して定義し、**パーサは未対応のlanguage versionを拒否**する。言語を変える変更はlanguage versionを上げ、fixtureで移行を検証する。
 
 ### 2.4 Phase A — 意味の正しさ (即時・P0全件)
@@ -109,15 +110,15 @@ language version (`koyu 0.1`) / tool・package version / canonical schema versio
 
 | ID | やること | 実装方針 |
 |---|---|---|
-| P0-01 | 正準JSONの方向保持 | `between` の昇順は保ち、**端点の向きを別キーで保存** (例: `"a": "/L1/z"` の1キー追加)。将来の絶対参照化 (`swing-into:/パス` — レビュー9.2) はADR-0015と合わせて検討 |
+| P0-01 | 正準JSONの方向保持 | `between` の昇順は保ち、**端点の向きを別キーで保存** (例: `"a": "/L1/z"` の1キー追加)。将来の絶対参照化 (`swing-into:/パス` — レビュー9.2) はADR-0016と合わせて検討 |
 | P0-02 | canonical順序の完全定義 | openings/segs/areas のsort key (位置→幅→種別→属性) と、同一`between`境界のタイブレーク (kind→edge→t→attrs) を spec/canonical-json.md に規範として明記し、property-based testで「意味同一→バイト同一」を検証 |
 | P0-03 | boundary同一性の検査 | 同一無順序ペア (edge限定があればedge込み) の重複宣言をエラーに。wall/open矛盾はこれで自動的に検出される |
 | P0-03' | 同一行の重複属性をエラーに | spec/language.md:9「後勝ち」を「同一行内の重複はエラー」へ改める (レイヤー間の既定は現状どおり衝突エラー)。typoとmerge事故を隠さない |
 | P0-04 | 凹polygon包含 | 四隅内包に**矩形辺×polygon辺の交差判定**を追加 (四隅がすべて内側かつ辺交差が無ければ矩形全体が内側 — 凹でも成立)。U字ケースをテストに |
 | P0-05 | polygon validity | 自己交差・重複頂点・頂点数の検査に診断コード |
 | P0-06 | 敷地面積照合をcheckへ | ±0.05㎡超の不一致を `check` のwarning (診断コード付き) に統合。CLI/API/MCPで同じ結果 |
-| P0-07 | 言語版検証 | ADR-0016の実装。`koyu 0.1` 以外を拒否するところから |
-| P0-08 | 診断契約 | ADR-0015の実装。既存メッセージへのコード付与から始める |
+| P0-07 | 言語版検証 | ADR-0017の実装。`koyu 0.1` 以外を拒否するところから |
+| P0-08 | 診断契約 | ADR-0016の実装。既存メッセージへのコード付与から始める |
 | P0-09 | MCP transaction | 差し替え内容で**仮想合成 (`parseFiles` が既にある) → parse/check成功時のみ書き込み**。書き込みはtmp+renameでatomicに。壊れた内容は原本に触れない |
 | P0-10 | MCP sandbox | `path.relative()` で `..`/絶対パスを拒否し、`realpath` 後にも境界検査。兄弟prefix (`proj-escape/`) ケースをテストに (付録B-7が再現手順) |
 | P0-11 | release同期 | CITATION.cff・lockfile (`npm i` で再生成)・READMEの数値を同期し、タグを打つ。package/spec/CITATIONの版一致をテストで検査 (docs assertion) |
@@ -131,12 +132,12 @@ language version (`koyu 0.1`) / tool・package version / canonical schema versio
 
 - **warning policy / `--strict`** (P1-19): CI用に「警告で失敗」「コード別deny/allow」。ADR-0008:23が既に予告している `check --strict` の回収
 - **lint最小** (P1-04の一部): 未知語彙のopt-in警告 (vocabulary.mdとの突き合わせ)。自由語彙は既定では守る
-- **ADR-0013の実装** (境界の既定): 意味論の変更なのでlanguage versionを上げる最初の実例になり、ADR-0016の運用試験を兼ねる
+- **ADR-0014の実装** (境界の既定): 意味論の変更なのでlanguage versionを上げる最初の実例になり、ADR-0017の運用試験を兼ねる
 
 **保留** (外部利用者・コーパスの要求まで作らない — レビューPhase E原則「Coreを壊さない境界を作るのが先、実装はコーパスが要求してから」の一般適用):
 
 - CST/AST・formatter・LSP・rename (P1-01,02,03,05) — 現在の利用者は作者とLLMのみで、diffの土台は正準JSON側 (P0-01/02) が先
-- semantic diff / merge (P1-20,21) — uid (ADR-0014) と正準JSONの意味保存が前提。その後に
+- semantic diff / merge (P1-20,21) — uid (ADR-0015) と正準JSONの意味保存が前提。その後に
 - template/instance (P1-17)、units/quantity (P1-12)、座標系・複数グリッド (P1-13 — 測地はPhase Dの都市接続と同時)、vertical extent (P1-14)、portal graph (P1-09,10)、多重zone membership (P1-07)
 
 ### 2.6 Phase C — 外部の建築で壊す (採用 — 既定路線と合流)
@@ -150,7 +151,7 @@ language version (`koyu 0.1`) / tool・package version / canonical schema versio
 
 ### 2.7 Phase D — 射影 (roadmapへIndoorGMLを追加)
 
-docs/roadmap.md の既定順序 (MCP済 → rdf/BOT → as-built上書き合成 → 測地 → ツインデモ) を維持し、**BOTの次にIndoorGML 2.0射影を追加**する (レビュー§7.2の採用)。理由: 空間中心・CellSpace/CellBoundary・二重グラフというkoyuに最も近い標準であり、経路系の問い (doors) を外部モデルと相互検証できる唯一の相手。前提としてADR-0014 (uid) が先。bSDD/IDS・IFC one-way exportはその後、コーパスの要求で。
+docs/roadmap.md の既定順序 (MCP済 → rdf/BOT → as-built上書き合成 → 測地 → ツインデモ) を維持し、**BOTの次にIndoorGML 2.0射影を追加**する (レビュー§7.2の採用)。理由: 空間中心・CellSpace/CellBoundary・二重グラフというkoyuに最も近い標準であり、経路系の問い (doors) を外部モデルと相互検証できる唯一の相手。前提としてADR-0015 (uid) が先。bSDD/IDS・IFC one-way exportはその後、コーパスの要求で。
 
 ### 2.8 採用しない・保留する提案 (理由付き)
 
@@ -158,7 +159,7 @@ docs/roadmap.md の既定順序 (MCP済 → rdf/BOT → as-built上書き合成 
 |---|---|---|
 | Program/brief層 (§4.1, P3-01) | **見送り** | koyuの原本は「解決済みレイアウト」だと定義する (ADRで明文化)。要求と実現値の管理は外部profile/requirementsの領分。レビュー自身もP3 (コーパス要求後) に置いている |
 | 多重zone membership (§4.3, P1-07) | **保留** | 防火区画・HVACゾーンの問いはまだ存在しない。問いが来たときに、パス階層+明示membershipの形で足す |
-| interface/assemblyの分離 (§4.5) | **保留** | 連続壁のグルーピングを要求する問い (熱・音・防火の集計) がまだ無い。ADR-0013で「boundaryは二空間間のinterfaceである」ことだけ先に明文化する |
+| interface/assemblyの分離 (§4.5) | **保留** | 連続壁のグルーピングを要求する問い (熱・音・防火の集計) がまだ無い。ADR-0014で「boundaryは二空間間のinterfaceである」ことだけ先に明文化する |
 | portal/connector完全グラフ (§4.6) | **保留** | 当面は doors の評価範囲の明示 (§2.2) で足りる。避難profileを作る段階 (P3-08) で扉単位のedgeへ |
 | polygon region backend・非直交 (§4.8, P3-02) | **保留 (レビューと同意見)** | 「斜めを実装するな、Coreを壊さない境界を作れ」に同意。geometry backendの分離設計だけPhase B後半で先行してよい |
 | 時間・フェーズ・状態 (§4.11) | **一歩だけ** | 既定路線の as-built 上書きレイヤー (docs/horizon.md、ADR-0010の保留回収) を最初の一歩とし、ライフサイクル語彙はその経験の後 |
@@ -168,7 +169,7 @@ docs/roadmap.md の既定順序 (MCP済 → rdf/BOT → as-built上書き合成 
 ### 2.9 実施順序
 
 ```
-A. 意味の正しさ    P0全件 + ADR-0013〜0016           ← 次の機能追加より先
+A. 意味の正しさ    P0全件 + ADR-0014〜0016           ← 次の機能追加より先
 B. 言語基盤(前半)  --strict / lint最小 / 境界既定の実装
 C. 外部検証        LLM eval / コーパス / 第三者試験 / matched-scope比較
 D. 射影            BOT → IndoorGML → (bSDD/IDS → IFC)
