@@ -1,6 +1,6 @@
 # ツールリファレンス — CLI・MCP・公開API
 
-koyu v0.10.0 現在。すべてのツールは同じ導出 (semantics.md) の別の入口である — CLIは人の手、MCPはエージェント、APIはプログラム。
+koyu v0.11.0 現在。すべてのツールは同じ導出 (semantics.md) の別の入口である — CLIは人の手、MCPはエージェント、APIはプログラム。
 
 ## CLI (`koyu` / `npm run koyu --`)
 
@@ -54,7 +54,7 @@ import { parseFile } from "@kensnzk/koyu/node";
 
 - **合成の入口**: `parse(source)` (単一ソース — importはエラー) / `parseFiles(files, entry)` (仮想ファイル群 — キー空間の中でimport解決。ブラウザ向け) / `parseFile(path)` (fs) / `parseFileWith(path, overlay)` (fs+差し替え — 書き込み前の門番用) / `parseWith(loader, entry)` (独自ローダー)。合成に参加した全レイヤーは `model.layers` (合成順)。
 - **検査と問い**: `checkDiagnostics(model)` → `Diagnostic[]` (一次形式 — code/severity/message/出所/path/related。台帳は `DIAGNOSTIC_CODES`、コード表は semantics.md §5。ADR-0016) / `check(model)` → {errors, warnings} (互換の文字列形式 — 同件・同順)。`doorsBetween` / `daylight` / `siteReport` / `zoneAreaM2` / `neighbors` / `passable`。
-- **導出の部品**: `segmentsFor` / `sharedSegment` / `deriveDefaultBoundaries` (既定境界 — parse系は適用済み。正準JSON由来のモデルに意味を与えるときに使う) / `placeOpening` / `placeBand` / `mergeCollinear` / `heff` / `isSemiOutdoor` / `isCoveredAbove` / `levelsSorted` / `polygonAreaM2` / `pointInPolygon` / `rectEscapesPolygon` / `polygonSelfIntersection`。
+- **導出の部品**: `segmentsFor` / `sharedSegment` / `deriveDefaultBoundaries` (既定境界 — parse系は適用済み。正準JSON由来のモデルに意味を与えるときに使う) / `placeOpening` / `placeBand` (この「帯」は境界線分上の区間 = 開口・seg のことで、記法のキーワード `band` 〈language.md §3〉とは別の層である) / `mergeCollinear` / `heff` / `isSemiOutdoor` / `isCoveredAbove` / `levelsSorted` / `polygonAreaM2` / `pointInPolygon` / `rectEscapesPolygon` / `polygonSelfIntersection`。
 - **生成**: `svgPlan(model, {level, scale?})` / `toCanonical(model)`。
 - **差分**: `semanticDiff(a, b)` → `ModelDiff` (構成の言葉の差分 — 改名はuidで検出、境界は実効集合で比較。`toCanonical` 同一なら空。ADR-0018) / `renderDiff(d)` → 日本語の行 (空配列=差分なし)。
 - **エラー**: 構文・合成エラーは `SourceError` (line / raw / file — messageは `レイヤー:行目: 本文`)。checkは投げず配列で返す。

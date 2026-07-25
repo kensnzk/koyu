@@ -163,7 +163,7 @@ test("正準JSONは安定している", () => {
   const j2 = toCanonical(parse(exampleSrc));
   assert.equal(j1, j2);
   assert.ok(j1.includes('"between"'));
-  assert.ok(j1.includes('"koyu": "0.2"'));
+  assert.ok(j1.includes('"koyu": "0.3"'));
 });
 
 test("平面図SVGが生成される", () => {

@@ -22,6 +22,34 @@ import { deriveDefaultBoundaries } from "./graph.js";
 
 const EDGES = new Set(["N", "E", "S", "W"]);
 
+/**
+ * 帯 (band, ADR-0019) の宣言 — parse の局所状態であり Model には入らない。
+ * 帯は「位置ではなく寸法と並び」を書く記法で、垂直の矩計 (level の積み上げ) の水平版である。
+ * 展開すると通常の Space になるので、下流 (check/plan/graph/diff/light/site) は帯を知らない。
+ */
+interface BandDecl {
+  axis: "X" | "Y";
+  /** 割る向きの区間 mm */
+  lo: number;
+  hi: number;
+  /** 帯の両端と直交方向の両端は「書かれた綴り」のまま要素へ渡す (意味保存の要) */
+  loRef: string;
+  hiRef: string;
+  crossA: string;
+  crossB: string;
+  members: BandMember[];
+  line: number;
+}
+
+interface BandMember {
+  path: string;
+  type: string;
+  /** 帯の向きの寸法mm。"rest" は残りを吸収する印 (帯に高々一つ) */
+  w: number | "rest";
+  attrTokens: string[];
+  line: number;
+}
+
 function emptyModel(): Model {
   return {
     version: DEFAULT_LANGUAGE_VERSION,
@@ -116,6 +144,7 @@ function ingest(
 ): void {
   let current: Boundary[] = [];
   let currentSpaces: Space[] = [];
+  let band: BandDecl | undefined; // 帯は次の非字下げ行か層の終わりで展開される (ADR-0019)
   const lines = source.split(/\r?\n/);
 
   for (let i = 0; i < lines.length; i++) {
@@ -139,19 +168,34 @@ function ingest(
         }
         for (const b of current) b.segs.push(parseSeg(rest, ln, model));
       } else if (head === "area") {
+        if (band) {
+          throw new SourceError(
+            ln,
+            "band の要素に area は書けません (領域が導出のため — area が要る室は位置で書きます)",
+          );
+        }
         if (currentSpaces.length === 0) {
           throw new SourceError(ln, "area は space の直下に字下げして書きます");
         }
         for (const s of currentSpaces) s.areas.push(parseArea(rest, ln, model));
+      } else if (head === "space") {
+        // 帯の要素 — 領域の代わりに幅 w: を持つ space 行 (ADR-0019)
+        if (!band) throw new SourceError(ln, "字下げした space は band の直下に書きます");
+        band.members.push(parseBandMember(rest, ln));
       } else {
         throw new SourceError(
           ln,
-          `字下げ行に置けるのは door / window / seg / area のみです: ${head}`,
+          `字下げ行に置けるのは door / window / seg / area / space (band の要素) のみです: ${head}`,
         );
       }
       continue;
     }
 
+    // 帯は次の非字下げ行の直前に展開する (パス重複の検出順を宣言順に保つ)
+    if (band) {
+      expandBand(model, band, file);
+      band = undefined;
+    }
     current = [];
     currentSpaces = [];
     switch (head) {
@@ -328,9 +372,21 @@ function ingest(
         };
         break;
       }
+      case "band": {
+        // 帯 (ADR-0019) — 寸法と並びを書き、位置を導く。宣言はここ、展開は次の非字下げ行の直前
+        band = parseBandHead(rest, ln, model);
+        break;
+      }
       case "space": {
         const path = rest[0];
         if (!path) throw new SourceError(ln, "space にはパスが要ります");
+        // w: は帯の要素の語 — 字下げを落とした要素が「領域なしの空間」として黙って通るのを防ぐ
+        if (rest.some((t) => t === "w:" || t.startsWith("w:"))) {
+          throw new SourceError(
+            ln,
+            "space に w: は書けません (幅で書く空間は band の直下に字下げします)",
+          );
+        }
         for (const [p] of expandSpan(model, [path], ln)) {
           const space = parseSpace([p!, ...rest.slice(1)], ln, model);
           const prevS = model.spaces.get(space.path);
@@ -423,6 +479,17 @@ function ingest(
       throw e;
     }
   }
+  // 層の終わりで閉じる帯 (最終行が帯の要素だった場合)
+  if (band) {
+    try {
+      expandBand(model, band, file);
+    } catch (e) {
+      if (e instanceof SourceError && !e.file && file) {
+        throw new SourceError(e.line, e.raw, file);
+      }
+      throw e;
+    }
+  }
 }
 
 // ---- 各要素 ----
@@ -465,6 +532,193 @@ function parseSpace(rest: string[], ln: number, model: Model): Space {
     space.rects.push(r.rect);
   }
   return space;
+}
+
+// ---- 帯 (band) — 寸法と並びから位置を導く (ADR-0019) ----
+
+/** `band <軸> <X?..X?> <Y?..Y?>` の見出し行。key:value は書けない (帯は残らないので運び先が無い) */
+function parseBandHead(rest: string[], ln: number, model: Model): BandDecl {
+  const axis = rest[0];
+  if (axis !== "X" && axis !== "Y") {
+    throw new SourceError(
+      ln,
+      `band の割る向きは X か Y です: ${axis ?? "(無し)"} (band X X1..X2 Y1..Y2 の形で書きます)`,
+    );
+  }
+  const tail = rest.slice(1);
+  const extra = tail.filter((t) => !t.includes(".."));
+  if (extra.length > 0) {
+    throw new SourceError(
+      ln,
+      `band の行に書けるのは 軸と領域だけです (属性は要素の space 行に書きます): ${extra.join(" ")}`,
+    );
+  }
+  // 逆順表記は space では同じ矩形の別綴りだが、帯では並びの向きが意味を持つので許さない
+  for (const t of tail) {
+    const [p, q] = t.split("..");
+    if (!p || !q) throw new SourceError(ln, `領域指定が読めません: ${t}`);
+    const rp = resolveRef(model, p, ln);
+    const rq = resolveRef(model, q, ln);
+    if (rp.axis === rq.axis && rp.coord > rq.coord) {
+      throw new SourceError(
+        ln,
+        `band の範囲は昇順で書きます (要素は 西→東 / 南→北 に並びます): ${t}`,
+      );
+    }
+  }
+  const r = parseRegion(tail, ln, model); // 軸の対・幅ゼロ・未定義の通り名は既存の言葉で弾かれる
+  return {
+    axis,
+    lo: axis === "X" ? r.rect.x1 : r.rect.y1,
+    hi: axis === "X" ? r.rect.x2 : r.rect.y2,
+    loRef: axis === "X" ? r.grid.xa : r.grid.ya,
+    hiRef: axis === "X" ? r.grid.xb : r.grid.yb,
+    crossA: axis === "X" ? r.grid.ya : r.grid.xa,
+    crossB: axis === "X" ? r.grid.yb : r.grid.xb,
+    members: [],
+    line: ln,
+  };
+}
+
+/** 帯の要素: `space <パス> <型> w:<mm>|w:rest [属性...]` — 領域の代わりに寸法を持つ space 行 */
+function parseBandMember(rest: string[], ln: number): BandMember {
+  const path = rest[0];
+  if (!path?.startsWith("/")) {
+    throw new SourceError(ln, "band の要素は space /パス 型 w:(mm) の形で書きます");
+  }
+  const type = rest[1];
+  // 型の位置に k:v が来たら「型の書き忘れ」— 幅の欠落として誤報しない
+  if (!type || type.includes(":")) {
+    throw new SourceError(ln, `band の要素 ${path} に型(語彙)が要ります`);
+  }
+  let w: number | "rest" | undefined;
+  const attrTokens: string[] = [];
+  for (const t of rest.slice(2)) {
+    if (t === "+" || t.includes("..")) {
+      throw new SourceError(ln, `band の要素に領域は書けません (帯と w: が与えます): ${t}`);
+    }
+    if (t.startsWith("level:")) {
+      throw new SourceError(
+        ln,
+        `band の要素に level: は書けません (帯は一つのレベルの並びです): ${t}`,
+      );
+    }
+    if (t.startsWith("w:")) {
+      if (w !== undefined) throw new SourceError(ln, "属性キーが重複しています: w");
+      const v = t.slice(2);
+      if (v === "rest") w = "rest";
+      else if (/^\d+$/.test(v) && Number(v) > 0) w = Number(v);
+      else throw new SourceError(ln, `band の要素の幅は正の整数mm か rest で書きます: ${t}`);
+      continue;
+    }
+    attrTokens.push(t);
+  }
+  if (w === undefined) {
+    throw new SourceError(ln, `band の要素には幅 w:(mm) か w:rest が要ります: ${path}`);
+  }
+  return { path, type, w, attrTokens, line: ln };
+}
+
+/**
+ * resolveRef の逆 — 導かれた切り位置を通り参照に綴る「床規則」:
+ * その座標**以下**で最も大きい通り芯からのオフセット (オフセット0なら通り名だけ)。
+ * 上の通り芯から引く綴り (Y2-1800) は導出では生じない。
+ */
+function spellRef(model: Model, axis: "X" | "Y", c: number, ln: number): string {
+  const g = model.grid[axis];
+  if (!Number.isInteger(c)) {
+    throw new SourceError(ln, `導かれた切り位置が整数mmになりません: ${c}`);
+  }
+  let i = 0;
+  for (let k = 0; k < g.coords.length; k++) if (g.coords[k]! <= c) i = k;
+  const off = c - g.coords[i]!;
+  if (off === 0) return g.names[i]!;
+  return `${g.names[i]}${off > 0 ? "+" : ""}${off}`;
+}
+
+/** 帯を通常の Space へ展開する。一方向・順序付き・決定的 — 足し算と一回の引き算だけ */
+function expandBand(model: Model, band: BandDecl, file: string | undefined): void {
+  const { axis, lo, hi, members } = band;
+  if (members.length === 0) {
+    throw new SourceError(band.line, "band の下に space を字下げして1つ以上書きます");
+  }
+  const extent = hi - lo;
+  let sum = 0;
+  let restAt = -1;
+  for (let k = 0; k < members.length; k++) {
+    const m = members[k]!;
+    if (m.w === "rest") {
+      if (restAt >= 0) {
+        throw new SourceError(
+          m.line,
+          `残りを吸収する要素 (w:rest) は帯に一つだけです: ${members[restAt]!.path}, ${m.path}`,
+        );
+      }
+      restAt = k;
+    } else sum += m.w;
+  }
+  const list = members.map((m) => `  ${m.path} w:${m.w}`).join("\n");
+  if (sum > extent) {
+    throw new SourceError(
+      band.line,
+      `帯の幅 ${extent}mm に対し寸法の合計が ${sum}mm で、${sum - extent}mm 超えています\n${list}`,
+    );
+  }
+  const widths = members.map((m) => (m.w === "rest" ? 0 : m.w));
+  if (restAt >= 0) {
+    if (sum === extent) {
+      throw new SourceError(
+        members[restAt]!.line,
+        `帯の幅 ${extent}mm を他の寸法が使い切っていて、${members[restAt]!.path} (w:rest) の残りがゼロです`,
+      );
+    }
+    widths[restAt] = extent - sum;
+  } else if (sum < extent) {
+    throw new SourceError(
+      band.line,
+      `帯の幅 ${extent}mm に対し寸法の合計が ${sum}mm で、${extent - sum}mm 足りません ` +
+        `(寸法を直すか、どれかを w:rest にします)\n${list}`,
+    );
+  }
+
+  // レベルスパンは全要素をまとめて一度だけ展開する (帯の中で揃っていることを先に確かめる)
+  const iterations = expandSpan(model, members.map((m) => m.path), band.line);
+  for (const it of iterations) {
+    const lv = new Set(it.map((p) => p.split("/")[1]));
+    if (lv.size > 1) {
+      throw new SourceError(
+        band.line,
+        `帯の要素は同じレベルに展開します: ${it.map((p) => `${p} → ${p.split("/")[1]}`).join(", ")}`,
+      );
+    }
+  }
+
+  for (const it of iterations) {
+    let cursor = lo;
+    for (let k = 0; k < members.length; k++) {
+      const m = members[k]!;
+      const a = cursor;
+      const b = cursor + widths[k]!;
+      cursor = b;
+      // 帯の両端は書かれた綴りのまま。内側の切り位置だけを綴る (これが意味保存の要)
+      const aRef = a === lo ? band.loRef : spellRef(model, axis, a, m.line);
+      const bRef = b === hi ? band.hiRef : spellRef(model, axis, b, m.line);
+      const along = `${aRef}..${bRef}`;
+      const cross = `${band.crossA}..${band.crossB}`;
+      const xTok = axis === "X" ? along : cross;
+      const yTok = axis === "X" ? cross : along;
+      const space = parseSpace([it[k]!, m.type, xTok, yTok, ...m.attrTokens], m.line, model);
+      const prev = model.spaces.get(space.path);
+      if (prev) {
+        throw new SourceError(
+          m.line,
+          `空間パスが重複しています: ${space.path} (既出: ${prev.file ?? "同ファイル"}:${prev.line}行目)`,
+        );
+      }
+      if (file) space.file = file;
+      model.spaces.set(space.path, space);
+    }
+  }
 }
 
 /** 領域指定 (X?..X? Y?..Y?) をグリッド参照とmm矩形に解決する */
