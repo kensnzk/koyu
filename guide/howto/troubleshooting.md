@@ -1,3 +1,5 @@
+[English](../en/howto/troubleshooting.md) · **日本語**
+
 # よくある詰まり
 
 出たメッセージから原因と直し方を引く。

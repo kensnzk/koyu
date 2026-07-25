@@ -133,7 +133,7 @@ space /home/ldk   ldk  X1..X2 Y1..Y3 level:L2 name:LDK上部
 
 - [The how-to index](README.md)
 - [Give the site its shape and produce coverage and floor area ratios](site-and-far.md) — how to place the quarantined `polygon` layer
-- [Connect an agent over MCP (日本語)](../../howto/agent-mcp.md) — having it read and write by layer (`layers` / `write_layer`)
+- [Connect an agent over MCP](agent-mcp.md) — having it read and write by layer (`layers` / `write_layer`)
 - [The cheat sheet (日本語)](../../cheatsheet.md) — every construct, `import` included
 - [spec/language.md](../../../spec/en/language.md) §8 import — the rules of composition
 - [spec/tools.md](../../../spec/en/tools.md) — the composition entry points (`parse` / `parseFiles` / `parseFile` / `parseWith`)

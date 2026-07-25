@@ -63,7 +63,7 @@ There are three ways to arrive. Pick yours and read in that order.
 3. [spec/language.md](../../spec/en/language.md) → [spec/semantics.md](../../spec/en/semantics.md) — the norms: the grammar, and the definitions of derivation, checking, and the queries
 4. [spec/canonical-json.md](../../spec/en/canonical-json.md) and [spec/tools.md](../../spec/en/tools.md) — the machine format and the CLI/MCP/API contracts
 5. [api.md (日本語)](../api.md) / [cli.md (日本語)](../cli.md) — how to call them, and what actually comes back
-6. If you are connecting an agent, [howto/agent-mcp.md (日本語)](../howto/agent-mcp.md)
+6. If you are connecting an agent, [howto/agent-mcp.md](howto/agent-mcp.md)
 
 ### If you want the argument (why a notation like this at all)
 

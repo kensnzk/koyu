@@ -1,3 +1,5 @@
+[English](../en/howto/agent-mcp.md) · **日本語**
+
 # MCP でエージェントに繋ぐ
 
 `koyu-mcp` を MCP サーバーとして登録し、LLM エージェントに建物を読ませ・編集させ・検証させる。
