@@ -532,5 +532,5 @@ There are only 13 words that can begin a line in this notation, and 5 that can s
 - **To keep beside you while writing** → [cheatsheet.md](cheatsheet.md). Every construct on one page.
 - **When you get an error** → [diagnostics.md (日本語)](../diagnostics.md). A cause and a fix for each diagnostic.
 - **If you want to know more commands** → [cli.md (日本語)](../cli.md). It also covers `graph`, `stats`, `site`, `diff`, and `json`, which were not used here.
-- **If you want to read what others have written** → [gallery.md (日本語)](../gallery.md). The bundled examples, with drawings and what each one demonstrates.
+- **If you want to read what others have written** → [gallery.md](gallery.md). The bundled examples, with drawings and what each one demonstrates.
 - **If you need an exact definition** → [spec/](../../spec/en/README.md). The grammar is in [language.md](../../spec/en/language.md), derivation and checking in [semantics.md](../../spec/en/semantics.md), the attribute contract in [vocabulary.md](../../spec/en/vocabulary.md), and the CLI/MCP/API in [tools.md](../../spec/en/tools.md).

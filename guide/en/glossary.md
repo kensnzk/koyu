@@ -49,7 +49,7 @@ The terms are in five groups — the skeleton, the elements, derived properties,
 | Term | One-sentence definition | Norm | Used in |
 |---|---|---|---|
 | derivation, 導出 | Something determined mechanically and uniquely from the authored composition (wall segments, areas, adjacency, semi-outdoor, passability). Absent from the source | [semantics.md, opening](../../spec/en/semantics.md) | [concepts.md §5](concepts.md) |
-| generation, 生成 | Something *not* uniquely determined. The plan drawing is one, and that several forms come from one composition is not a defect | [semantics.md §7](../../spec/en/semantics.md) | [gallery.md (日本語)](../gallery.md) |
+| generation, 生成 | Something *not* uniquely determined. The plan drawing is one, and that several forms come from one composition is not a defect | [semantics.md §7](../../spec/en/semantics.md) | [gallery.md](gallery.md) |
 | shared edge, 共有辺 | The interval where the rectangle unions of two spaces overlap on the same line. A boundary's wall centerline segment is derived as this, and collinear intervals are merged into one | [semantics.md §2](../../spec/en/semantics.md) | [concepts.md §2](concepts.md) |
 | default boundary, 既定境界 | The `wall` boundary derived after composition where a pair of touching spaces with regions on the same level has no declaration at all. It carries no door, so it is not passable | [semantics.md §2](../../spec/en/semantics.md), [ADR-0014](../../docs/decisions/0014-default-boundaries.md) | [concepts.md §3](concepts.md) |
 | vertical adjacency, 垂直の隣接 | The relation between spaces overlapping in plan on consecutive levels. Never declared; the default reading is "there is a floor". Only the exceptions (`stair`/`shaft`/`void`) are written | [semantics.md §3](../../spec/en/semantics.md), [ADR-0002](../../docs/decisions/0002-height-and-offsets.md) | [house/main](../../examples/house/main.muro) |
@@ -57,7 +57,7 @@ The terms are in five groups — the skeleton, the elements, derived properties,
 | covered above, 庇下 (isCoveredAbove) | Whether a space is overlapped from above by a space on any level. Even the presence of a roof is derived rather than declared, and the 0.7 semi-outdoor daylight coefficient reads it | [semantics.md §4](../../spec/en/semantics.md) | [tower/typical](../../examples/tower/typical.muro) |
 | passability, 通行可能性 (passable) | A `wall` is passable only with a door, `open` and `stair` are always passable, and `shaft` and `void` never are. `air:1` is about shielding, not passage | [semantics.md §4](../../spec/en/semantics.md) | [concepts.md, closing](concepts.md) |
 | height invariant, 高さの不変量 | That for every space, ceiling height + the slab above ≤ the floor-to-floor height. Breaking it is HGT01 | [semantics.md §3](../../spec/en/semantics.md) | [tower/main](../../examples/tower/main.muro) |
-| interior floor area, 屋内床面積 | The sum of the wall-centerline areas of spaces that have a region and a level and are neither `void`, `exterior`, nor semi-outdoor | [semantics.md §6](../../spec/en/semantics.md) | [gallery.md (日本語)](../gallery.md) |
+| interior floor area, 屋内床面積 | The sum of the wall-centerline areas of spaces that have a region and a level and are neither `void`, `exterior`, nor semi-outdoor | [semantics.md §6](../../spec/en/semantics.md) | [gallery.md](gallery.md) |
 
 ## Files and versions
 

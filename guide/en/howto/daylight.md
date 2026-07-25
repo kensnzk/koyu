@@ -188,4 +188,4 @@ A `✖` line prints the required area outright (`必要 1/7 ≈ …㎡`, "requir
 - [spec/semantics.md](../../../spec/en/semantics.md) §4 derived properties, §6 light — the normative definitions
 - [spec/vocabulary.md](../../../spec/en/vocabulary.md) — the attribute contract for `window` and `space`
 - [ADR-0007](../../../docs/decisions/0007-semi-outdoor-air.md) — why semi-outdoor is derived from `air:1`
-- Worked examples — `examples/house/` (across a garden, coefficient 1.0) and `examples/tower/` (across a balcony, coefficient 0.7); see [the gallery (日本語)](../../gallery.md)
+- Worked examples — `examples/house/` (across a garden, coefficient 1.0) and `examples/tower/` (across a balcony, coefficient 0.7); see [the gallery](../gallery.md)

@@ -139,4 +139,4 @@ space /home/ldk   ldk  X1..X2 Y1..Y3 level:L2 name:LDK上部
 - [spec/tools.md](../../../spec/en/tools.md) — the composition entry points (`parse` / `parseFiles` / `parseFile` / `parseWith`)
 - [ADR-0010](../../../docs/decisions/0010-assets-and-composition.md) — why additive composition was chosen and layer strength was not
 - [ADR-0011](../../../docs/decisions/0011-site-polygon.md) — the practice of keeping the site shape in a quarantined layer
-- A 5-file worked example — `examples/house/`; a 9-file one — `examples/tower/` ([the gallery (日本語)](../../gallery.md))
+- A 5-file worked example — `examples/house/`; a 9-file one — `examples/tower/` ([the gallery](../gallery.md))
