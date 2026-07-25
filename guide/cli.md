@@ -1,3 +1,5 @@
+[English](en/cli.md) · **日本語**
+
 # CLI リファレンス
 
 `koyu` コマンドの使い方を、コマンドごとに「何に答えるか」から引くための頁である。契約の表 (引数・出力・終了コードの規範) は [spec/tools.md](../spec/tools.md) が持つ — ここはそれを、実際の呼び方と実際の出力で使えるようにしたものである。
@@ -15,7 +17,7 @@ npx tsx src/cli.ts check examples/two-rooms.muro
 ## 共通のかたち
 
 ```text
-koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [引数...]
+koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [args...]
 ```
 
 **渡すのは常に entry のファイルパス一つである。** `import` で分割されたモデルでも、base層のファイル (`examples/house/main.muro` など) だけを渡す — レイヤーの合成は毎回自動で行われる。分割されたファイルの一枚を単体で渡すと、そのファイルには grid も level も無いので落ちる。
