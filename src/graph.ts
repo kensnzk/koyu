@@ -108,6 +108,40 @@ export function mergeCollinear(segs: Segment[]): Segment[] {
   return out;
 }
 
+/**
+ * 既定境界の導出 (ADR-0014) — 垂直の「既定は床」と対称の、水平の「既定は壁」。
+ * 同一レベル (未特定同士を含む) で平面が接する領域つき空間の組に、宣言境界がその組に
+ * 一つも無ければ kind:wall の既定境界を導く。宣言は例外 (open・手すり) と属性のためにある。
+ * 領域を持たない空間 (exterior等) との境界は導かない — 相手の名指しが情報のため宣言する。
+ * 合成・スパン展開の完了後に呼ぶ (parse / parseWith の出口)。冪等。
+ */
+export function deriveDefaultBoundaries(model: Model): void {
+  const declared = new Set<string>();
+  for (const b of model.boundaries) declared.add([b.a, b.b].sort().join("|"));
+  const withRect = [...model.spaces.values()].filter((s) => s.rects.length > 0);
+  for (let i = 0; i < withRect.length; i++) {
+    for (let j = i + 1; j < withRect.length; j++) {
+      const a = withRect[i]!;
+      const b = withRect[j]!;
+      if (a.level !== b.level) continue;
+      const key = [a.path, b.path].sort().join("|");
+      if (declared.has(key)) continue;
+      if (!a.rects.some((ra) => b.rects.some((rb) => sharedSegment(ra, rb)))) continue;
+      model.boundaries.push({
+        a: a.path,
+        b: b.path,
+        kind: "wall",
+        derived: true,
+        attrs: {},
+        openings: [],
+        segs: [],
+        line: 0,
+      });
+      declared.add(key);
+    }
+  }
+}
+
 /** 境界の壁芯線分を導く。壁の位置は空間の割付から生成される — 壁を置く操作は存在しない */
 export function segmentsFor(model: Model, b: Boundary): Segment[] {
   const sa = model.spaces.get(b.a);
@@ -195,29 +229,44 @@ export interface PlacedBand {
   cy: number;
 }
 
+/** 帯の配置失敗 — error は互換の完成文 (位置接頭辞つき)。code/line/message は診断契約 (ADR-0016) の材料 */
+export interface BandError {
+  error: string;
+  /** 診断コード — 開口は OPN04〜08、seg は SEG04〜08 (呼び手のlabelで決まる) */
+  code: string;
+  line: number;
+  file?: string;
+  /** 位置接頭辞を除いた本文 */
+  message: string;
+}
+
 /** 帯 (開口・seg) を境界線分上に配置する。曖昧なら error を返す */
 export function placeBand(
   model: Model,
   b: Boundary,
   band: Band,
   label: string,
-): PlacedBand | { error: string } {
+): PlacedBand | BandError {
+  // 配置失敗の診断: label が "seg" なら SEG系、開口 (door/window等) なら OPN系のコード
+  const fail = (n: string, message: string): BandError => ({
+    error: `${srcRef(band.line, b.file)}: ${message}`,
+    code: `${label === "seg" ? "SEG" : "OPN"}${n}`,
+    line: band.line,
+    ...(b.file !== undefined ? { file: b.file } : {}),
+    message,
+  });
   let segs = segmentsFor(model, b);
   if (band.edge) segs = segs.filter((s) => s.edgeOfA === band.edge);
   if (segs.length === 0) {
-    return { error: `${srcRef(band.line, b.file)}: ${label} を置ける境界線分がありません (${b.a} | ${b.b})` };
+    return fail("04", `${label} を置ける境界線分がありません (${b.a} | ${b.b})`);
   }
   if (segs.length > 1) {
-    return {
-      error: `${srcRef(band.line, b.file)}: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (${b.a} | ${b.b})`,
-    };
+    return fail("05", `境界線分が複数あります。edge:N/E/S/W で辺を指定してください (${b.a} | ${b.b})`);
   }
   const seg = segs[0]!;
   const len = segmentLength(seg);
   if (band.w > len) {
-    return {
-      error: `${srcRef(band.line, b.file)}: ${label}の幅 ${band.w} が境界線分の長さ ${len} を超えています`,
-    };
+    return fail("06", `${label}の幅 ${band.w} が境界線分の長さ ${len} を超えています`);
   }
   const half = band.w / 2;
   let pos: number;
@@ -225,22 +274,24 @@ export function placeBand(
     // 明示位置: 通り参照で置かれたものはクランプしない — はみ出しは言葉のエラーになる
     const axisOk = seg.horizontal ? band.atAxis === "X" : band.atAxis === "Y";
     if (!axisOk) {
-      return {
-        error: `${srcRef(band.line, b.file)}: ${label} の位置 ${band.atRef} は${
+      return fail(
+        "07",
+        `${label} の位置 ${band.atRef} は${
           seg.horizontal ? "水平線分なのでX系" : "垂直線分なのでY系"
         }の通りで指定します`,
-      };
+      );
     }
     const start = seg.horizontal ? seg.x1 : seg.y1;
     pos = band.atAbs - start;
     if (pos < half - EPS || pos > len - half + EPS) {
-      return {
-        error: `${srcRef(band.line, b.file)}: 位置 ${band.atRef} では ${label} (幅${band.w}) が境界線分からはみ出します (線分 ${Math.round(
+      return fail(
+        "08",
+        `位置 ${band.atRef} では ${label} (幅${band.w}) が境界線分からはみ出します (線分 ${Math.round(
           start,
         )}〜${Math.round(start + len)}mm、中心の許容 ${Math.round(start + half)}〜${Math.round(
           start + len - half,
         )}mm)`,
-      };
+      );
     }
   } else {
     pos = Math.min(Math.max(band.at * len, half), len - half);
@@ -253,7 +304,7 @@ export function placeBand(
 }
 
 /** 開口を境界線分上に配置する */
-export function placeOpening(model: Model, b: Boundary, o: Opening): PlacedBand | { error: string } {
+export function placeOpening(model: Model, b: Boundary, o: Opening): PlacedBand | BandError {
   return placeBand(model, b, o, o.kind);
 }
 

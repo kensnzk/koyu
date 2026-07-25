@@ -5,6 +5,11 @@
 export type AttrValue = string | number;
 export type Attrs = Record<string, AttrValue>;
 
+/** このツールが受理する言語版 (ADR-0017)。旧版は意味保存の場合のみ受理される (checkが検査する) */
+export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2"];
+/** 版宣言を省略したときの解釈 — 常に最新版の意味論 (省略はツール版を跨いで意味安定ではない) */
+export const DEFAULT_LANGUAGE_VERSION = "0.2";
+
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";
 
@@ -172,6 +177,8 @@ export interface Boundary {
   line: number;
   /** 合成時の出所レイヤー (ADR-0010) */
   file?: string;
+  /** 既定境界 (ADR-0014) — 宣言されず、接触から導出された壁。正準JSONには出ない (書かれた構成のみ) */
+  derived?: boolean;
 }
 
 /** エラー・警告の位置表記 — 合成時はどのレイヤーのことかを言葉にする (ADR-0010) */
@@ -189,8 +196,13 @@ export interface Model {
   zones: Map<string, Zone>;
   assets: Map<string, Asset>;
   boundaries: Boundary[];
-  /** 敷地形状 — 所与のジオメトリ (ADR-0011)。パス→頂点列 (mm)。唯一、書かれる形 */
+  /** 敷地形状 — 所与のジオメトリ (ADR-0011)。パス→頂点列 (mm)。
+   *  唯一の自由頂点列 — 空間の領域はグリッド参照の矩形として書かれる */
   polygons: Map<string, SitePolygon>;
+  /** 合成に参加したレイヤー (ローダーのキー、合成順 — entryが先頭)。単一ソースのparseでは空 */
+  layers: string[];
+  /** koyu版が明示宣言されたか (base層でのみ・一度だけ — ADR-0017の合成規則の管理用) */
+  versionDeclared?: boolean;
 }
 
 /** 平面上の点 (mm) */
@@ -217,6 +229,66 @@ export function polygonAreaM2(points: Pt[]): number {
     sum += a.x * b.y - b.x * a.y;
   }
   return Math.abs(sum) / 2 / 1e6;
+}
+
+/** 線分同士が内部で交差するか (端点・境界上の接触は交差としない、許容誤差eps mm)。交点を返す */
+function properCrossing(a1: Pt, a2: Pt, b1: Pt, b2: Pt, eps = 1): Pt | undefined {
+  const d = (a2.x - a1.x) * (b2.y - b1.y) - (a2.y - a1.y) * (b2.x - b1.x);
+  if (d === 0) return undefined; // 平行・共線 (共線の重なりは接触扱い — 境界上は内側)
+  const t = ((b1.x - a1.x) * (b2.y - b1.y) - (b1.y - a1.y) * (b2.x - b1.x)) / d;
+  const u = ((b1.x - a1.x) * (a2.y - a1.y) - (b1.y - a1.y) * (a2.x - a1.x)) / d;
+  const la = Math.hypot(a2.x - a1.x, a2.y - a1.y);
+  const lb = Math.hypot(b2.x - b1.x, b2.y - b1.y);
+  if (la === 0 || lb === 0) return undefined;
+  const ea = eps / la;
+  const eb = eps / lb;
+  if (t <= ea || t >= 1 - ea || u <= eb || u >= 1 - eb) return undefined; // 端点付近は接触
+  return { x: a1.x + t * (a2.x - a1.x), y: a1.y + t * (a2.y - a1.y) };
+}
+
+/** 多角形の自己交差点 (隣接しない辺同士の内部交差)。なければundefined */
+export function polygonSelfIntersection(poly: Pt[], eps = 1): Pt | undefined {
+  const n = poly.length;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 2; j < n; j++) {
+      if (i === 0 && j === n - 1) continue; // 先頭と末尾の辺は隣接
+      const x = properCrossing(poly[i]!, poly[(i + 1) % n]!, poly[j]!, poly[(j + 1) % n]!, eps);
+      if (x) return x;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * 矩形が多角形からはみ出す点 (完全に内側ならundefined)。凹多角形にも正しい:
+ * 四隅の内包に加え、多角形の頂点の矩形内への入り込みと、辺同士の内部交差を検査する
+ */
+export function rectEscapesPolygon(r: Rect, poly: Pt[], eps = 1): Pt | undefined {
+  const corners: Pt[] = [
+    { x: r.x1, y: r.y1 },
+    { x: r.x2, y: r.y1 },
+    { x: r.x2, y: r.y2 },
+    { x: r.x1, y: r.y2 },
+  ];
+  for (const c of corners) if (!pointInPolygon(c, poly, eps)) return c;
+  for (const p of poly) {
+    if (p.x > r.x1 + eps && p.x < r.x2 - eps && p.y > r.y1 + eps && p.y < r.y2 - eps) return p;
+  }
+  const edges: Array<[Pt, Pt]> = [
+    [corners[0]!, corners[1]!],
+    [corners[1]!, corners[2]!],
+    [corners[2]!, corners[3]!],
+    [corners[3]!, corners[0]!],
+  ];
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i]!;
+    const b = poly[(i + 1) % poly.length]!;
+    for (const [p, q] of edges) {
+      const x = properCrossing(a, b, p, q, eps);
+      if (x) return x;
+    }
+  }
+  return undefined;
 }
 
 /** 点が多角形の内側にあるか (境界上は内側扱い、許容誤差eps mm) */
@@ -368,64 +440,83 @@ export function displayName(s: Space): string {
   return typeof n === "string" ? n : (s.path.split("/").pop() ?? s.path);
 }
 
+/** 正準JSONの空間エントリ (書かれた表記・正準順)。semantic diff (ADR-0018) が比較基底として共有する */
+export function canonicalSpaceEntry(s: Space): Record<string, unknown> {
+  return {
+    type: s.type,
+    // 明示の level: (パス先頭セグメントと異なる所属 — メゾネット等) は書かれた構成として保存する。
+    // これが無いとJSONだけでは所属レベル (垂直検査・集計・既定境界の前提) を復元できない
+    ...(s.level !== undefined && s.path.split("/")[1] !== s.level ? { level: s.level } : {}),
+    ...(s.grids.length === 1
+      ? { at: [s.grids[0]!.xa, s.grids[0]!.ya, s.grids[0]!.xb, s.grids[0]!.yb] }
+      : s.grids.length > 1
+        ? { at: sortBySerial(s.grids.map((g) => [g.xa, g.ya, g.xb, g.yb])) }
+        : {}),
+    ...(Object.keys(s.attrs).length ? { attrs: sortObj(s.attrs) } : {}),
+    ...(s.areas.length
+      ? {
+          areas: sortBySerial(
+            s.areas.map((a) => ({
+              at: [a.grid.xa, a.grid.ya, a.grid.xb, a.grid.yb],
+              ...(Object.keys(a.attrs).length ? { attrs: sortObj(a.attrs) } : {}),
+            })),
+          ),
+        }
+      : {}),
+  };
+}
+
+/** 正準JSONの開口エントリ (atRef??at 等の正準表記) — toCanonicalとsemantic diffが共有 */
+export function canonicalOpeningEntry(o: Opening): Record<string, unknown> {
+  return {
+    kind: o.kind,
+    ...(o.ref ? { ref: o.ref } : {}),
+    w: o.w,
+    ...(o.h !== undefined ? { h: o.h } : {}),
+    at: o.atRef ?? o.at,
+    ...(o.edge ? { edge: o.edge } : {}),
+    ...(o.hinge ? { hinge: o.hinge } : {}),
+    ...(o.swing ? { swing: o.swing } : {}),
+    ...(Object.keys(o.attrs).length ? { attrs: sortObj(o.attrs) } : {}),
+  };
+}
+
+/** 正準JSONのsegエントリ — toCanonicalとsemantic diffが共有 */
+export function canonicalSegEntry(g: Seg): Record<string, unknown> {
+  return {
+    w: g.w,
+    at: g.atRef ?? g.at,
+    ...(g.edge ? { edge: g.edge } : {}),
+    ...(Object.keys(g.attrs).length ? { attrs: sortObj(g.attrs) } : {}),
+  };
+}
+
+/** 正準JSONの境界エントリ。a/bの向きは書かれた表記 (aキー) として保存する — edge/swingはa側から読む */
+export function canonicalBoundaryEntry(b: Boundary): Record<string, unknown> {
+  return {
+    between: [b.a, b.b].sort(),
+    a: b.a,
+    kind: b.kind,
+    ...(b.t !== undefined ? { t: b.t } : {}),
+    ...(b.air ? { air: true } : {}),
+    ...(b.edge ? { edge: b.edge } : {}),
+    ...(Object.keys(b.attrs).length ? { attrs: sortObj(b.attrs) } : {}),
+    ...(b.openings.length ? { openings: sortBySerial(b.openings.map(canonicalOpeningEntry)) } : {}),
+    ...(b.segs.length ? { segs: sortBySerial(b.segs.map(canonicalSegEntry)) } : {}),
+  };
+}
+
 /** 正準JSON — 機械形式。差分とレイヤー合成の土台 (キーは安定順) */
 export function toCanonical(model: Model): string {
   const spaces: Record<string, unknown> = {};
   for (const p of [...model.spaces.keys()].sort()) {
-    const s = model.spaces.get(p)!;
-    spaces[p] = {
-      type: s.type,
-      ...(s.grids.length === 1
-        ? { at: [s.grids[0]!.xa, s.grids[0]!.ya, s.grids[0]!.xb, s.grids[0]!.yb] }
-        : s.grids.length > 1
-          ? { at: s.grids.map((g) => [g.xa, g.ya, g.xb, g.yb]) }
-          : {}),
-      ...(Object.keys(s.attrs).length ? { attrs: sortObj(s.attrs) } : {}),
-      ...(s.areas.length
-        ? {
-            areas: s.areas.map((a) => ({
-              at: [a.grid.xa, a.grid.ya, a.grid.xb, a.grid.yb],
-              ...(Object.keys(a.attrs).length ? { attrs: sortObj(a.attrs) } : {}),
-            })),
-          }
-        : {}),
-    };
+    spaces[p] = canonicalSpaceEntry(model.spaces.get(p)!);
   }
-  const boundaries = [...model.boundaries]
-    .map((b) => ({
-      between: [b.a, b.b].sort(),
-      kind: b.kind,
-      ...(b.t !== undefined ? { t: b.t } : {}),
-      ...(b.air ? { air: true } : {}),
-      ...(b.edge ? { edge: b.edge } : {}),
-      ...(Object.keys(b.attrs).length ? { attrs: sortObj(b.attrs) } : {}),
-      ...(b.openings.length
-        ? {
-            openings: b.openings.map((o) => ({
-              kind: o.kind,
-              ...(o.ref ? { ref: o.ref } : {}),
-              w: o.w,
-              ...(o.h !== undefined ? { h: o.h } : {}),
-              at: o.atRef ?? o.at,
-              ...(o.edge ? { edge: o.edge } : {}),
-              ...(o.hinge ? { hinge: o.hinge } : {}),
-              ...(o.swing ? { swing: o.swing } : {}),
-              ...(Object.keys(o.attrs).length ? { attrs: sortObj(o.attrs) } : {}),
-            })),
-          }
-        : {}),
-      ...(b.segs.length
-        ? {
-            segs: b.segs.map((g) => ({
-              w: g.w,
-              at: g.at,
-              ...(g.edge ? { edge: g.edge } : {}),
-              ...(Object.keys(g.attrs).length ? { attrs: sortObj(g.attrs) } : {}),
-            })),
-          }
-        : {}),
-    }))
-    .sort((x, y) => (x.between.join() < y.between.join() ? -1 : 1));
+  // 境界: 宣言順は意味を持たないため、並びは内容の正準順 (betweenの辞書順、同一betweenは直列化順)。
+  // 既定境界 (derived — ADR-0014) は出さない: 正準JSONは書かれた構成のみで、意味は導出後のModelが持つ
+  const boundaries = sortBySerial(
+    [...model.boundaries].filter((b) => !b.derived).map(canonicalBoundaryEntry),
+  );
 
   const zones: Record<string, unknown> = {};
   for (const p of [...model.zones.keys()].sort()) {
@@ -470,4 +561,12 @@ export function toCanonical(model: Model): string {
 
 function sortObj<T>(o: Record<string, T>): Record<string, T> {
   return Object.fromEntries(Object.entries(o).sort(([a], [b]) => (a < b ? -1 : 1)));
+}
+
+/** 宣言順に意味の無い集合を、直列化したJSONの辞書順に並べる — 正準順の土台 (diffも同じ順で比べる) */
+export function sortBySerial<T>(items: T[]): T[] {
+  return items
+    .map((it) => [JSON.stringify(it), it] as const)
+    .sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0))
+    .map(([, it]) => it);
 }

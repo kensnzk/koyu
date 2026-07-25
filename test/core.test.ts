@@ -89,7 +89,7 @@ boundary /L1/a /L1/c t:120
   assert.ok(r.errors.some((e) => e.includes("接していない")));
 });
 
-test("接しているのに境界が無ければ警告", () => {
+test("接しているのに境界が無ければ既定の壁が導出される (ADR-0014)", () => {
   const m = parse(`
 grid X 0 3600 7200
 grid Y 0 4500
@@ -98,7 +98,13 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 `);
   const r = check(m);
-  assert.ok(r.warnings.some((w) => w.includes("宣言されていません")));
+  assert.deepEqual(r.errors, []);
+  assert.deepEqual(r.warnings, []);
+  const derived = m.boundaries.filter((b) => b.derived);
+  assert.equal(derived.length, 1);
+  assert.equal(derived[0]!.kind, "wall");
+  // 既定の壁は扉が無いので通れない — 既定は「繋がっていない」ではなく「壁がある」
+  assert.equal(doorsBetween(m, "/L1/a", "/L1/b"), undefined);
 });
 
 test("開口が線分より広ければエラー", () => {
@@ -157,7 +163,7 @@ test("正準JSONは安定している", () => {
   const j2 = toCanonical(parse(exampleSrc));
   assert.equal(j1, j2);
   assert.ok(j1.includes('"between"'));
-  assert.ok(j1.includes('"koyu": "0.1"'));
+  assert.ok(j1.includes('"koyu": "0.2"'));
 });
 
 test("平面図SVGが生成される", () => {

@@ -9,7 +9,7 @@ import { parse, parseFiles } from "../src/parse.js";
 import { siteReport } from "../src/site.js";
 
 const BASE = [
-  "koyu 0.1",
+  "koyu 0.2",
   "name 敷地形状",
   "unit mm",
   "grid X 0 8000",
@@ -66,7 +66,7 @@ space /site/yard yard X1-2000..X1 Y1..Y2 level:L1`; // タイルは西へ1mは�
   assert.deepEqual(ok.errors, []);
   const bad = check(parse(src("space /a room X1..X2+2000 Y1..Y2 level:L1"))); // 東へ1000はみ出す
   assert.equal(bad.errors.length, 1);
-  assert.match(bad.errors[0]!, /敷地形状からはみ出しています \(角 10000,0\)/);
+  assert.match(bad.errors[0]!, /敷地形状からはみ出しています \(10000,0 付近\)/);
 });
 
 test("check: 対応するゾーンのないpolygonは警告", () => {

@@ -4,7 +4,7 @@
 # 合成時にコンフリクト (パス・アセット・グリッドの重複) が検査され、一棟としてビルドされる。
 #   koyu check examples/house/main.muro がそのビルドの門番になる。
 
-koyu 0.1
+koyu 0.2
 name 小さな戸建住宅
 unit mm
 

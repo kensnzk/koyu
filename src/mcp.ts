@@ -6,8 +6,8 @@
 // 使い方:  koyu-mcp   (カレントディレクトリ基準の相対パスでファイルを指定)
 // エージェントのループ: layers で読む → write_layer で書く → check が門番 → doors/stats/light/site で帰結を確かめる
 
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { mkdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import {
   areaM2,
   daylight,
@@ -21,10 +21,10 @@ import {
   type Model,
   type Space,
 } from "./index.js";
-import { check } from "./check.js";
+import { check, checkDiagnostics } from "./check.js";
 import { svgPlan } from "./plan.js";
 import { siteReport } from "./site.js";
-import { parseFile } from "./parse-file.js";
+import { parseFile, parseFileWith } from "./parse-file.js";
 
 // ---- モデルの読み込みと要約 ----
 
@@ -32,15 +32,17 @@ function load(file: string): Model {
   return parseFile(resolve(file));
 }
 
-/** 合成に参加したレイヤーのファイル一覧 (出所の集合 + entry) */
+/** 合成に参加した全レイヤー — 要素の有無によらずModelが記録する (grid/levelだけの層も落ちない) */
 function layerFiles(model: Model, entry: string): string[] {
-  const set = new Set<string>([resolve(entry)]);
-  for (const s of model.spaces.values()) if (s.file) set.add(s.file);
-  for (const z of model.zones.values()) if (z.file) set.add(z.file);
-  for (const a of model.assets.values()) if (a.file) set.add(a.file);
-  for (const p of model.polygons.values()) if (p.file) set.add(p.file);
-  for (const b of model.boundaries) if (b.file) set.add(b.file);
-  return [...set].sort();
+  return [...new Set([resolve(entry), ...model.layers])].sort();
+}
+
+/** entryディレクトリ境界の検査 — 文字列prefixではなく相対パスで判定する (ADR-0013) */
+function assertInside(entryDir: string, targetDir: string): void {
+  const rel = relative(entryDir, targetDir);
+  if (rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
+    throw new Error("entryのディレクトリの外へは書き込めません");
+  }
 }
 
 function summarize(model: Model, file: string): unknown {
@@ -139,7 +141,14 @@ const TOOLS: Record<string, Tool> = {
     run: (a) => {
       const m = load(str(a.file, "file"));
       const r = check(m);
-      return { ok: r.errors.length === 0, spaces: m.spaces.size, boundaries: m.boundaries.length, ...r };
+      return {
+        ok: r.errors.length === 0,
+        spaces: m.spaces.size,
+        boundaries: m.boundaries.length,
+        ...r,
+        // 構造化診断 (ADR-0016) — errors/warningsの文字列と同件・同順。code/severity/path/relatedつき
+        diagnostics: checkDiagnostics(m),
+      };
     },
   },
   layers: {
@@ -153,7 +162,8 @@ const TOOLS: Record<string, Tool> = {
   },
   write_layer: {
     description:
-      "レイヤー (.muroファイル) を書き換え、直後にcheckした結果を返す。checkが門番 — エラーなら直して再度書くこと。履歴はgitに任せる",
+      "レイヤー (.muroファイル) を検査してから書き換える。parse不能な合成になる内容は書き込まれない (原本不変)。" +
+      "checkのエラーは返すが書き込みは行う (複数レイヤーにまたがる編集の途中を許す) — 直して再度書くこと。履歴はgitに任せる",
     schema: {
       type: "object",
       properties: {
@@ -169,16 +179,27 @@ const TOOLS: Record<string, Tool> = {
       const entryDir = resolve(dirname(resolve(file)));
       const target = resolve(entryDir, str(a.layer, "layer"));
       if (!target.endsWith(".muro")) throw new Error("書き込みは .muro ファイルに限ります");
-      if (!target.startsWith(entryDir)) throw new Error("entryのディレクトリの外へは書き込めません");
-      mkdirSync(dirname(target), { recursive: true });
-      writeFileSync(target, content);
+      assertInside(entryDir, dirname(target));
+      // 門番は書き込みの前 — 差し替え内容で仮想合成し、parse不能なら原本に触れない (ADR-0013)。
+      // 合成に参加しないファイルの内容は検証されない (importされた時のcheckが捕まえる)
+      let m: Model;
       try {
-        const m = load(file);
-        const r = check(m);
-        return { written: target, ok: r.errors.length === 0, spaces: m.spaces.size, ...r };
+        m = parseFileWith(resolve(file), (p) => (p === target ? content : undefined));
       } catch (e) {
-        return { written: target, ok: false, parseError: e instanceof Error ? e.message : String(e) };
+        return {
+          written: false,
+          target,
+          ok: false,
+          parseError: e instanceof Error ? e.message : String(e),
+        };
       }
+      const r = check(m);
+      mkdirSync(dirname(target), { recursive: true });
+      assertInside(realpathSync(entryDir), realpathSync(dirname(target))); // symlink経由の脱出も塞ぐ
+      const tmp = `${target}.tmp-${process.pid}`;
+      writeFileSync(tmp, content);
+      renameSync(tmp, target); // 同一ディレクトリ内のrename — 中途半端なファイルを残さない
+      return { written: target, ok: r.errors.length === 0, spaces: m.spaces.size, ...r };
     },
   },
   doors: {
@@ -237,6 +258,9 @@ const TOOLS: Record<string, Tool> = {
         ...(r.polygon ? { polygonVertices: r.polygon.points.length } : {}),
         declaredAreaM2: r.declaredArea,
         derivedAreaM2: r.derivedArea,
+        ...(r.declaredArea !== undefined && r.derivedArea !== undefined
+          ? { areaMatch: Math.abs(r.declaredArea - r.derivedArea) < 0.05 }
+          : {}),
         footprintM2: r.footprint,
         totalFloorM2: r.totalFloor,
         coverageRatio: site ? Math.round((r.footprint / site) * 1000) / 10 : undefined,
@@ -296,7 +320,7 @@ function handle(msg: Json): void {
       result(id, {
         protocolVersion: (params.protocolVersion as string) ?? "2025-06-18",
         capabilities: { tools: {} },
-        serverInfo: { name: "koyu", version: "0.8.0" },
+        serverInfo: { name: "koyu", version: "0.10.0" },
         instructions:
           "空間一次の建築記述koyuのサーバー。model_summaryで建物を掴み、layersで原本 (.muroレイヤー群) を読み、" +
           "write_layerで編集する。checkが一棟のビルドの門番 — エラーは出所レイヤー:行つきで返る。" +
