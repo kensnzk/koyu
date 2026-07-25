@@ -1,3 +1,5 @@
+[English](en/notation-v0.md) · **日本語**
+
 # koyu 記法 v0 — 成立の記録 (歴史文書)
 
 **現在の仕様は [language.md](language.md) / [semantics.md](semantics.md) / [canonical-json.md](canonical-json.md) / [tools.md](tools.md) が正である。** 本書は記法が生まれた過程の記録 — v0の書き比べ (DSL/YAML/JSON) と各版の追補を、書かれた当時のまま保存する。決定の理由は docs/decisions/ (ADR)、思想は docs/writing-architecture.md。

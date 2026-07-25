@@ -1,3 +1,5 @@
+[English](en/canonical-json.md) · **日本語**
+
 # 機械形式リファレンス — 正準JSON
 
 koyu v0.11.0 現在。`koyu json <entry>` / `toCanonical(model)` が出力する。author形式 (.muro) が人とLLMの原本、正準JSONは機械の土台 — diff・ハッシュ・レイヤー合成・外部接続 (RDF等) はこの上に作る。
@@ -12,7 +14,7 @@ koyu v0.11.0 現在。`koyu json <entry>` / `toCanonical(model)` が出力する
 
 ```jsonc
 {
-  "koyu": "0.2",                        // 言語版 (宣言値の素通し。schema版はツール版 — 本書ヘッダ — が契約)
+  "koyu": "0.3",                        // 言語版 (宣言値の素通し。schema版はツール版 — 本書ヘッダ — が契約)
   "name": "…",                          // 任意
   "unit": "mm",
   "grid": { "X": [0, 6400, …], "Y": [0, 5600, …] },   // 座標配列 (通り名は X1.. が暗黙)

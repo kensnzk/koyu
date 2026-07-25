@@ -1,3 +1,5 @@
+[English](en/tools.md) · **日本語**
+
 # ツールリファレンス — CLI・MCP・公開API
 
 koyu v0.11.0 現在。すべてのツールは同じ導出 (semantics.md) の別の入口である — CLIは人の手、MCPはエージェント、APIはプログラム。
@@ -5,7 +7,7 @@ koyu v0.11.0 現在。すべてのツールは同じ導出 (semantics.md) の別
 ## CLI (`koyu` / `npm run koyu --`)
 
 ```
-koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [引数...]
+koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [args...]
 ```
 
 | コマンド | 引数 | 出力 | 終了コード |

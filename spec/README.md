@@ -1,3 +1,5 @@
+[English](en/README.md) · **日本語**
+
 # spec/ — koyuの仕様 (現在形)
 
 > **これはリファレンスである。koyuをこれから学ぶなら [guide/start.md](../guide/start.md) から始めること。**引くための文書であって、通して読んで身につく作りにはしていない。
