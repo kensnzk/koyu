@@ -444,6 +444,9 @@ export function displayName(s: Space): string {
 export function canonicalSpaceEntry(s: Space): Record<string, unknown> {
   return {
     type: s.type,
+    // 明示の level: (パス先頭セグメントと異なる所属 — メゾネット等) は書かれた構成として保存する。
+    // これが無いとJSONだけでは所属レベル (垂直検査・集計・既定境界の前提) を復元できない
+    ...(s.level !== undefined && s.path.split("/")[1] !== s.level ? { level: s.level } : {}),
     ...(s.grids.length === 1
       ? { at: [s.grids[0]!.xa, s.grids[0]!.ya, s.grids[0]!.xb, s.grids[0]!.yb] }
       : s.grids.length > 1

@@ -276,3 +276,14 @@ test("CLI: diff の終了コードは 0=差分なし / 1=差分あり / 2=入力
   assert.equal(bad.status, 2);
   assert.match(bad.stderr, /未定義の通り名/);
 });
+
+test("level:の付け替えは差分になる (正準JSONにも現れる — 不変量の維持)", () => {
+  const src = (lv: string) =>
+    `koyu 0.2\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0\nlevel L2 3000\nspace /Z/a room X1..X2 Y1..Y2 level:${lv}`;
+  const a = parse(src("L1"));
+  const b = parse(src("L2"));
+  assert.notEqual(toCanonical(a), toCanonical(b));
+  const lines = renderDiff(semanticDiff(a, b));
+  assert.equal(lines.length, 1);
+  assert.match(lines[0]!, /level L1 → L2/);
+});

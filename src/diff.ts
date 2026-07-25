@@ -176,6 +176,7 @@ const fmtArea = (v: number | undefined): string | undefined => (v === undefined 
 function spaceFields(sa: Space, sb: Space): FieldChange[] {
   const fields: FieldChange[] = [];
   if (sa.type !== sb.type) fields.push(fieldChange("type", sa.type, sb.type));
+  if (sa.level !== sb.level) fields.push(fieldChange("level", sa.level ?? "—", sb.level ?? "—"));
   const ea = canonicalSpaceEntry(sa);
   const eb = canonicalSpaceEntry(sb);
   if (JSON.stringify(ea["at"] ?? null) !== JSON.stringify(eb["at"] ?? null)) {

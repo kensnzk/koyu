@@ -156,19 +156,24 @@ function ingest(
     currentSpaces = [];
     switch (head) {
       case "koyu": {
-        const v = rest[0] ?? DEFAULT_LANGUAGE_VERSION;
+        const v = rest[0];
+        if (!v) throw new SourceError(ln, `koyu には版を書きます: koyu ${DEFAULT_LANGUAGE_VERSION}`);
+        if (rest.length > 1) {
+          throw new SourceError(ln, `koyu の版宣言に余分なトークンがあります: ${rest.slice(1).join(" ")}`);
+        }
         if (!SUPPORTED_LANGUAGE_VERSIONS.includes(v)) {
           throw new SourceError(
             ln,
             `対応していないkoyuの版です: ${v} (このツールの対応: ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")})`,
           );
         }
-        // 版はbase層 (entry) でのみ・一度だけ宣言する — 合成順による黙った上書きを禁じる (ADR-0017)
+        // 版はbase層 (entry) でのみ・一度だけ宣言する — 合成順による黙った上書きを禁じる (ADR-0017)。
+        // gridの規律に合わせ、再宣言は同値でもエラー
         if (file !== undefined && model.layers[0] !== file) {
           throw new SourceError(ln, "koyu の版宣言はbase層 (entry) でのみ書きます");
         }
-        if (model.versionDeclared && model.version !== v) {
-          throw new SourceError(ln, `koyu の版は既に ${model.version} と宣言されています`);
+        if (model.versionDeclared) {
+          throw new SourceError(ln, `koyu の版は一度だけ宣言します (既に ${model.version})`);
         }
         model.version = v;
         model.versionDeclared = true;
@@ -248,6 +253,7 @@ function ingest(
       }
       case "name": {
         const nm = rest.join(" ");
+        if (!nm) throw new SourceError(ln, "name には値を書きます");
         if (model.name !== undefined && model.name !== nm) {
           throw new SourceError(ln, `name は一度だけ宣言します (既に「${model.name}」— 合成時はbase層で)`);
         }
@@ -284,9 +290,9 @@ function ingest(
         if (!name) throw new SourceError(ln, "level には名前が要ります");
         const z = toNumber(rest[1] ?? "", ln, "levelの高さ(z)");
         const attrs = parseAttrs(rest.slice(2), ln);
-        const h = takeNumber(attrs, "h");
-        const slab = takeNumber(attrs, "slab");
-        const pitch = takeNumber(attrs, "pitch");
+        const h = takeNumber(attrs, "h", ln);
+        const slab = takeNumber(attrs, "slab", ln);
+        const pitch = takeNumber(attrs, "pitch", ln);
 
         // 範囲宣言: level L3..L9 6700 pitch:2900 — 基準階のレベルを一度に宣言する
         const range = /^([A-Za-z]+)(\d+)\.\.([A-Za-z]+)(\d+)$/.exec(name);
@@ -482,12 +488,15 @@ function parseRegion(
     if (rp.axis !== rq.axis) {
       throw new SourceError(ln, `領域の両端は同じ軸の通りで指定します: ${t}`);
     }
+    // 逆順表記 (X2..X1) は同じ矩形の別綴り — 座標昇順に正規化して保存する (正準JSON・diffが揃う)
+    const [lo, hi] = rp.coord <= rq.coord ? [[rp.coord, p] as const, [rq.coord, q] as const]
+                                          : [[rq.coord, q] as const, [rp.coord, p] as const];
     if (rp.axis === "X") {
-      xr = [rp.coord, rq.coord];
-      xg = [p, q];
+      xr = [lo[0], hi[0]];
+      xg = [lo[1], hi[1]];
     } else {
-      yr = [rp.coord, rq.coord];
-      yg = [p, q];
+      yr = [lo[0], hi[0]];
+      yg = [lo[1], hi[1]];
     }
   }
   if (!xr || !yr || !xg || !yg) {
@@ -516,7 +525,7 @@ function parseArea(rest: string[], ln: number, model: Model): Area {
 /** 数えない分節: 境界上の区間 (壁材の途中変更など) */
 function parseSeg(rest: string[], ln: number, model: Model): Seg {
   const attrs = parseAttrs(rest, ln);
-  const w = takeNumber(attrs, "w");
+  const w = takeNumber(attrs, "w", ln);
   if (w === undefined || w <= 0) {
     throw new SourceError(ln, "seg には幅 w:(mm) が要ります");
   }
@@ -609,7 +618,7 @@ function parseBoundary(rest: string[], ln: number): Boundary {
     throw new SourceError(ln, "boundary は boundary /パスA /パスB [属性...] の形で書きます");
   }
   const attrs = parseAttrs(rest.slice(2), ln);
-  const t = takeNumber(attrs, "t");
+  const t = takeNumber(attrs, "t", ln);
   const kindRaw = takeString(attrs, "type") ?? "wall";
   if (!["wall", "open", "stair", "shaft", "void"].includes(kindRaw)) {
     throw new SourceError(
@@ -617,7 +626,7 @@ function parseBoundary(rest: string[], ln: number): Boundary {
       `boundary の type は wall / open / stair / shaft / void です: ${kindRaw}`,
     );
   }
-  const air = takeNumber(attrs, "air");
+  const air = takeNumber(attrs, "air", ln);
   if (air !== undefined && air !== 0 && air !== 1) {
     throw new SourceError(ln, "air は 0 / 1 で指定します (1=遮蔽しない: 手すり・柵など)");
   }
@@ -661,11 +670,11 @@ function parseOpening(
   }
   Object.assign(attrs, parseAttrs(tokens, ln));
 
-  const w = takeNumber(attrs, "w");
+  const w = takeNumber(attrs, "w", ln);
   if (w === undefined || w <= 0) {
     throw new SourceError(ln, `${kind} には幅 w:(mm) が要ります (アセット側でも可)`);
   }
-  const h = takeNumber(attrs, "h");
+  const h = takeNumber(attrs, "h", ln);
   const at = parseAt(attrs, ln, model);
   const edge = takeEdge(attrs, ln);
   const hingeRaw = takeString(attrs, "hinge");
@@ -741,11 +750,15 @@ function toNumber(v: string, ln: number, what: string): number {
   return Number(v);
 }
 
-function takeNumber(attrs: Attrs, key: string): number | undefined {
+function takeNumber(attrs: Attrs, key: string, ln: number): number | undefined {
   const v = attrs[key];
   if (v === undefined) return undefined;
   delete attrs[key];
-  return typeof v === "number" ? v : Number.NaN;
+  if (typeof v !== "number") {
+    // NaNの黙認はcheck緑のまま導出を壊す (typo h:24O0 など) — その場のエラーにする
+    throw new SourceError(ln, `属性 ${key} は数値で書きます: ${v}`);
+  }
+  return v;
 }
 
 function takeString(attrs: Attrs, key: string): string | undefined {

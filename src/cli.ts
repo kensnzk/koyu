@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// koyu v0.1 — CLI
+// koyu — CLI
 //   npm run koyu -- check  examples/office.muro   # --json で構造化診断、--strict で警告も終了コード1
 //   npm run koyu -- diff   before.muro after.muro # 構成の言葉の差分 (--json で ModelDiff)
 //   npm run koyu -- plan   examples/office.muro -l L2 -o out/office-L2.svg
