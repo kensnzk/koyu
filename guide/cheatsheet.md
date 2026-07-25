@@ -1,3 +1,5 @@
+[English](en/cheatsheet.md) · **日本語**
+
 # チートシート — 全構文を一枚に
 
 書き方を思い出すための索引である。**規範は spec/ が持つ** — 各節の見出しから、その事実を所有する仕様の節へ飛べる。順を追って学ぶなら [start.md](start.md)、エラー文から引くなら [diagnostics.md](diagnostics.md)、動く実例は [gallery.md](gallery.md)。
@@ -300,8 +302,8 @@ stack ev L1..L10 type:shaft
 ## CLI ([tools.md](../spec/tools.md))
 
 ```sh
-npx tsx src/cli.ts <コマンド> <entry.muro> [引数…]
-npm run koyu -- <コマンド> <entry.muro> [引数…]    # 同じもの
+npx tsx src/cli.ts <command> <entry.muro> [args…]
+npm run koyu -- <command> <entry.muro> [args…]    # 同じもの
 ```
 
 entryは常にファイルパスで、`import` は自動で合成される。

@@ -193,7 +193,7 @@ band X X1+3200..X2+3200 Y1+4000..Y2
   space /L3..L10/A/hall hall w:1600 name:玄関
 ```
 
-The wet area and entrance in `examples/tower/typical.muro` are written this way. Write a dimension on every member and the parser reconciles their sum against the width of the band. The grammar is in [the cheat sheet, band (日本語)](../../cheatsheet.md); the norm is [spec/language.md §3, band](../../../spec/en/language.md).
+The wet area and entrance in `examples/tower/typical.muro` are written this way. Write a dimension on every member and the parser reconciles their sum against the width of the band. The grammar is in [the cheat sheet, band](../cheatsheet.md); the norm is [spec/language.md §3, band](../../../spec/en/language.md).
 
 ## Related
 

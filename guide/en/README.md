@@ -28,7 +28,7 @@ Each stage's endpoint is kept as a working file under [examples/steps/](../../ex
 
 | Document | Contents | Reader |
 |---|---|---|
-| [cheatsheet.md (日本語)](../cheatsheet.md) | Every construct on one page. Each heading jumps to the owning section of spec/ | Anyone who needs reminding how something is written |
+| [cheatsheet.md](cheatsheet.md) | Every construct on one page. Each heading jumps to the owning section of spec/ | Anyone who needs reminding how something is written |
 | [howto/](howto/README.md) | Eight recipes, indexed by goal — add a level, subdivide a dwelling, daylight, doors and egress, site and floor area ratio, splitting into files, connecting an agent, and getting unstuck | Anyone whose hands have stopped |
 | [diagnostics.md (日本語)](../diagnostics.md) | All 49 diagnostic codes with the **cause**, the **fix**, and a minimal reproduction. Looked up from the error text | Anyone `check` has told off |
 | [glossary.md](glossary.md) | A one-sentence definition per term, plus where it is normatively defined and where it is actually used | Anyone who has lost the thread of a word |
@@ -52,7 +52,7 @@ There are three ways to arrive. Pick yours and read in that order.
 
 1. [start.md](start.md) — get your hands moving. **Skipping this makes the rest unreadable**
 2. [concepts.md](concepts.md) — grasp what it was that you just wrote
-3. Keep [cheatsheet.md (日本語)](../cheatsheet.md) beside you; when you get stuck, look up [howto/](howto/README.md) by goal
+3. Keep [cheatsheet.md](cheatsheet.md) beside you; when you get stuck, look up [howto/](howto/README.md) by goal
 4. When `check` gives you an error, [diagnostics.md (日本語)](../diagnostics.md)
 5. For what you could write next, [gallery.md (日本語)](../gallery.md)
 

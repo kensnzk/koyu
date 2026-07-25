@@ -184,7 +184,7 @@ A `✖` line prints the required area outright (`必要 1/7 ≈ …㎡`, "requir
 
 - [The how-to index](README.md)
 - [Six ideas](../concepts.md) — that the type is an open vocabulary, and that semi-outdoor is derived
-- [The cheat sheet (日本語)](../../cheatsheet.md) — the attributes a `window` may carry
+- [The cheat sheet](../cheatsheet.md) — the attributes a `window` may carry
 - [spec/semantics.md](../../../spec/en/semantics.md) §4 derived properties, §6 light — the normative definitions
 - [spec/vocabulary.md](../../../spec/en/vocabulary.md) — the attribute contract for `window` and `space`
 - [ADR-0007](../../../docs/decisions/0007-semi-outdoor-air.md) — why semi-outdoor is derived from `air:1`

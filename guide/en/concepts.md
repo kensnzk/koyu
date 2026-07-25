@@ -374,7 +374,7 @@ As the extreme case of this asymmetry, **`check` is green on an empty file too**
 ## Onward
 
 - The order in which to move your hands — [start.md](start.md)
-- The list of constructs — [cheatsheet.md (日本語)](../cheatsheet.md)
+- The list of constructs — [cheatsheet.md](cheatsheet.md)
 - Looking up a word — [glossary.md](glossary.md)
 - The cause and fix for each diagnostic code — [diagnostics.md (日本語)](../diagnostics.md)
 - The norms (grammar, semantics, the vocabulary ledger, canonical JSON, tool contracts) — [spec/](../../spec/en/README.md)

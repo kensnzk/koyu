@@ -523,13 +523,13 @@ npx tsx src/cli.ts light out/house.muro
 
 From 30 lines of text came a two-storey house, its plan drawings, and the answers about circulation and daylight.
 
-There are only 13 words that can begin a line in this notation, and 5 that can sit indented. What you have used so far is `grid`, `level`, `space`, `boundary`, the indented `door` and `window`, plus `koyu` and `name` — that is enough for one house. The rest — `zone`, `import`, `asset`, `polygon`, `stack`, `band`, `unit`, the indented `area` and `seg`, and the `space` that sits indented as a band member — are the words for when the scale grows. The full list is in [cheatsheet.md (日本語)](../cheatsheet.md).
+There are only 13 words that can begin a line in this notation, and 5 that can sit indented. What you have used so far is `grid`, `level`, `space`, `boundary`, the indented `door` and `window`, plus `koyu` and `name` — that is enough for one house. The rest — `zone`, `import`, `asset`, `polygon`, `stack`, `band`, `unit`, the indented `area` and `seg`, and the `space` that sits indented as a band member — are the words for when the scale grows. The full list is in [cheatsheet.md](cheatsheet.md).
 
 ## What to read next
 
 - **If why it is written this way has not settled yet** → [concepts.md](concepts.md). It covers the ideas you need first for the notation to settle.
 - **If you know what you want to do** → [howto/](howto). Procedures are lined up by goal.
-- **To keep beside you while writing** → [cheatsheet.md (日本語)](../cheatsheet.md). Every construct on one page.
+- **To keep beside you while writing** → [cheatsheet.md](cheatsheet.md). Every construct on one page.
 - **When you get an error** → [diagnostics.md (日本語)](../diagnostics.md). A cause and a fix for each diagnostic.
 - **If you want to know more commands** → [cli.md (日本語)](../cli.md). It also covers `graph`, `stats`, `site`, `diff`, and `json`, which were not used here.
 - **If you want to read what others have written** → [gallery.md (日本語)](../gallery.md). The bundled examples, with drawings and what each one demonstrates.

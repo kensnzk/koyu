@@ -425,7 +425,7 @@ A syntax or composition error is also copied into a single `SYN01` and returned 
 - [Add a level](add-a-level.md) — items 7 and 8's level declaration, as a procedure
 - [Give the site its shape and produce coverage and floor area ratios](site-and-far.md)
 - [Six ideas](../concepts.md) — why the default is a wall, and why only the outside is written by hand
-- [The cheat sheet (日本語)](../../cheatsheet.md)
+- [The cheat sheet](../cheatsheet.md)
 - [spec/language.md](../../../spec/en/language.md) — the grammar and the table of defaults
 - [spec/semantics.md](../../../spec/en/semantics.md) — the norms of derivation and checking
 - [spec/vocabulary.md](../../../spec/en/vocabulary.md) — the ledger of interpreted attributes
