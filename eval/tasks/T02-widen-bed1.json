@@ -1,0 +1,37 @@
+{
+  "id": "T02-widen-bed1",
+  "class": { "op": "update", "kind": "spatial" },
+  "fixture": "examples/tower",
+  "entry": "main.muro",
+  "instruction": "基準階 (L3〜L10) の A タイプについて、洋室1 (/L3..L10/A/bed1) が 3200 × 3200 で狭いという指摘が出た。東へ広げたい。\n\n- 洋室1の東側の壁を 600mm 東へ動かし、洋室1を 3800 × 3200 の矩形 (12.16㎡) にすること。\n- 広がった分は LDK (/L3..L10/A/ldk) と 水回り (/L3..L10/A/wet) から削ること。洋室2 (bed2 7.68㎡) と 玄関 (hall 2.56㎡) の領域は変えないこと。\n- A タイプの専有面積 61.44㎡ は変えないこと。増やしても減らしてもいけない。\n- 窓を増やしてはならない。洋室1は既存の西面の腰窓 1 枚のままで採光 1/7 を満たす必要がある。\n- L3 から L10 までの 8 層すべてに反映すること。\n- 作業後に koyu check を --strict で通し、エラーも警告も 0 にすること。領域を動かすと境界の線分の取り方が変わることがあるので、開口の指定も必要なら直すこと。",
+  "oracles": [
+    { "kind": "check", "strict": true },
+    { "kind": "light" },
+    {
+      "kind": "assert",
+      "expr": "['L3','L4','L5','L6','L7','L8','L9','L10'].every(L => zoneAreaM2(m, '/' + L + '/A') === 61.44)",
+      "label": "A タイプの専有面積 61.44㎡ が 8 層すべてで不変 (面積の保存)"
+    },
+    {
+      "kind": "assert",
+      "expr": "areaM2(m.spaces.get('/L5/A/bed1')) === 12.16 && Math.min(...m.spaces.get('/L5/A/bed1').rects.map(r => r.x1)) === 0 && Math.max(...m.spaces.get('/L5/A/bed1').rects.map(r => r.x2)) === 3800",
+      "label": "洋室1 が西端 x=0・東端 x=3800・12.16㎡ になっている (東へ 600mm 広がった)"
+    },
+    {
+      "kind": "assert",
+      "expr": "['L3','L4','L5','L6','L7','L8','L9','L10'].every(L => Math.max(...m.spaces.get('/' + L + '/A/bed1').rects.map(r => r.x2)) === 3800)",
+      "label": "8 層すべての洋室1 が東端 x=3800 になっている"
+    },
+    {
+      "kind": "assert",
+      "expr": "areaM2(m.spaces.get('/L5/A/ldk')) === 32.32 && areaM2(m.spaces.get('/L5/A/wet')) === 6.72 && areaM2(m.spaces.get('/L5/A/bed2')) === 7.68 && areaM2(m.spaces.get('/L5/A/hall')) === 2.56",
+      "label": "削られたのは LDK (33.28→32.32) と 水回り (7.68→6.72) だけで、洋室2・玄関は不変"
+    },
+    {
+      "kind": "assert",
+      "expr": "m.spaces.size === 178 && m.boundaries.length === 542 && m.boundaries.reduce((n, b) => n + b.openings.filter(o => o.kind === 'window').length, 0) === 157 && daylight(m).length === 66 && m.spaces.get('/L5/A/bed1')?.type === 'bedroom'",
+      "label": "空間178・境界542・窓157・採光の評価対象66室 が不変で 洋室1 の型も bedroom のまま"
+    }
+  ],
+  "notes": "op=update / kind=spatial の基準タスク。領域を動かすと、幾何・採光・境界線分の 3 つが同時に動く。\n\nオラクルの選び方 (実測 v0.2 に基づく):\n- 面積保存の assert が無いと、この課題は「洋室1 を広げるだけ」で通ってしまう (ハンドオフの指摘どおり)。広げた分を隣から取らなければ領域が重なり GEO02 で check が捕まえるが、逆に LDK を必要以上に削る/削りすぎるハックは check では捕まらない。zoneAreaM2 が唯一の番人である。\n- check(strict) が止めるハック: 洋室1 を広げたまま隣を削らない (GEO02 空間の重なり)、隣を削りすぎて接触が切れる (BND04 境界を導けない)、孤児になった境界宣言を残す (REF01)。\n  さらにこの課題では、洋室1 が LDK の南側の帯 (y 0..2400) の下に潜り込むため /Ln/A/ldk | /Ln/A/bed1 の境界線分が 1 本から 2 本 (x=3800 の垂直と y=2400 の水平) に増え、そこに載っている片引き戸 SD1 が OPN05 「境界線分が複数」で必ずエラーになる。edge: で辺を指定し直すまで check は緑にならない — 「領域を動かすと開口の指定も直る」という koyu の連鎖を測る中核部分であり、これは check(strict) だけが捕まえる。\n- light が止めるハック: 面積は保ったまま洋室1 を過大に広げる。洋室1 の窓は西面の腰窓 W2 (1.815㎡) 1 枚だけで、600mm 広げた時点で need = 12.16/7 = 1.7371 と余裕は 4.5% しかない。あと 200mm (計 800mm) 広げると need 1.8286 > 1.815 で不合格になる。逆方向のハック (床を減らして採光を楽にする) は面積保存の assert が塞ぐ — 採光を単独の報酬にすると「部屋を縮める」が最適解になる (arXiv 2605.14117) ため、light は必ず面積オラクルと対にしてある。\n- 窓157・境界542・空間178・採光対象66室・洋室1の型 の assert が止めるハック: 洋室1 に窓を1枚足して light を通す、水回りを消して面積の帳尻を合わせる、そして **洋室1 の type を bedroom 以外にして light の評価対象から外す**。最後の一つは T03 で実測した本当の穴と同型である — light は「評価対象が0室」しか防げないので、評価対象の母集団 (daylight(m).length) を別に固定しなければ、型の付け替えで部分的に逃げられる。\n- 個別面積の assert が止めるハック: 洋室2 を削って洋室1 に足す (専有面積の合計は保たれるので zoneAreaM2 は通ってしまう)。\n\n参照解 (検証済み・check strict 0/0、light 66室合格):\n  bed1 X1..X1+3800 Y1+2400..Y2\n  ldk  X1+3200..X3 Y1..Y1+2400 + X1+3800..X2+3200 Y1+2400..Y1+4000\n  wet  X1+3800..X2+1600 Y1+4000..Y2\n  boundary /L3..L10/A/ldk /L3..L10/A/bed1 の door SD1 に edge:W を足す\n\n未編集のフィクスチャでの値: bed1 は 10.24㎡ / 東端 3200 なので assert 4・5・6 が false になり、課題は確かに未達である。"
+}

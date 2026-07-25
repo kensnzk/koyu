@@ -1,0 +1,27 @@
+{
+  "id": "T06-generate-two-rooms",
+  "class": { "op": "create", "kind": "direct" },
+  "fixture": "",
+  "entry": "main.muro",
+  "instruction": "空のディレクトリに、koyu の .muro を新規に書き起こすこと。\n\n- 6.0m × 4.5m の矩形の中に、二つの室を並べ、その間に扉を 1 枚置くこと。\n- 室のパスは /L1/a と /L1/b とすること。二室で 6.0m × 4.5m をちょうど埋めること (合計 27.00㎡、重なりも隙間も無し)。\n- 二室の間の扉は 1 枚だけとすること。\n- 言語版は koyu 0.2、単位は mm、エントリファイルの名は main.muro とすること。\n- 記法は spec/language.md を、書き方の手本は examples/two-rooms.muro を参照してよい。\n- koyu check を --strict で通し、エラーだけでなく警告も 0 にすること。",
+  "oracles": [
+    { "kind": "check", "strict": true },
+    { "kind": "doors", "from": "/L1/a", "to": "/L1/b", "min": 1, "max": 1 },
+    {
+      "kind": "assert",
+      "expr": "m.version === '0.2' && m.unit === 'mm' && [...m.spaces.values()].filter(s => s.rects.length > 0).length >= 2 && m.boundaries.reduce((n, b) => n + b.openings.filter(o => o.kind === 'door').length, 0) >= 1",
+      "label": "koyu 0.2 / mm で、領域を持つ空間が 2 つ以上・扉が 1 枚以上ある"
+    },
+    {
+      "kind": "assert",
+      "expr": "unionAreaM2([...(m.spaces.get('/L1/a')?.rects ?? []), ...(m.spaces.get('/L1/b')?.rects ?? [])]) === 27 && Math.round((areaM2(m.spaces.get('/L1/a')) ?? 0) * 100) / 100 + Math.round((areaM2(m.spaces.get('/L1/b')) ?? 0) * 100) / 100 === 27",
+      "label": "/L1/a と /L1/b の合併面積が 27.00㎡ かつ 二室の面積の和も 27.00㎡ (重なりも隙間も無い)"
+    },
+    {
+      "kind": "assert",
+      "expr": "Math.max(...['/L1/a','/L1/b'].flatMap(p => m.spaces.get(p)?.rects ?? []).map(r => r.x2)) - Math.min(...['/L1/a','/L1/b'].flatMap(p => m.spaces.get(p)?.rects ?? []).map(r => r.x1)) === 6000 && Math.max(...['/L1/a','/L1/b'].flatMap(p => m.spaces.get(p)?.rects ?? []).map(r => r.y2)) - Math.min(...['/L1/a','/L1/b'].flatMap(p => m.spaces.get(p)?.rects ?? []).map(r => r.y1)) === 4500",
+      "label": "二室の外形が 6000mm × 4500mm ちょうど"
+    }
+  ],
+  "notes": "白紙から書き起こす課題。既存のモデルを編集するのではなく、記法そのものを書けるかを測る。\n\n分類について: ハンドオフはこれを「create/generate」と呼んでいるが、BIM-Edit (arXiv 2606.20146) から借りた kind の語彙は direct|spatial|topological の 3 つだけであり、harness (eval/score.ts の validateTask) もその 3 つしか受け付けない。ここでは kind=direct を選んだ — パス・型・寸法・扉の枚数がすべて指示に明示されており、既存モデルの空間関係や接続関係から何かを導く必要が無いためである。報告のときは T01 (属性の書き換え) や T05 (改名) と同じ direct の桶に入るが、実質は「記法の流暢さ」の測定であることを覚えておくこと。\n\nここが 0 に近いなら、他の 5 課題の失敗は「編集が難しい」ではなく「記法が書けない」に帰属する — 版の前後比較の基準線として最初に見る値である。\n\nオラクルの選び方 (実測 v0.2 に基づく):\n- check(strict) が唯一の「文法と整合の門番」である。--strict なので警告も許さない。ただし check は寸法の意味を見ないので、これ単独では「1mm 角の部屋を 2 つ書く」縮退解が満点になる。\n- 合併面積 27.00㎡ と 外形 6000×4500 の assert が止めるハック: 縮退解 (零に潰す・極小の部屋)、および題意より大きく/小さく作る解。合併面積と個別面積の和を両方 27.00㎡ で縛ってあるので、二室が重なっている解 (合併 < 和) も、隙間がある解 (合併 = 和 < 27) も落ちる。\n- doors (/L1/a → /L1/b が ちょうど 1 枚) が止めるハック: 扉を書き忘れる、二室を隣り合わせにせず外部経由でしか行き来できない配置にする、扉を 2 枚以上置く。doorsBetween は open 境界と階段をコスト 0 で通るので、「壁を書かずに素通しにする」解も 0 枚になって min:1 で落ちる。\n- 空間 2 以上・扉 1 枚以上の assert はハンドオフの指定どおりの粗い下限であり、上の 2 つの精密なオラクルの前置きとして残してある。\n\nこの課題では light を使わない。題意が「二室と扉 1 枚」であって窓を求めていないためである。type:room は採光の評価対象 (unit/room/ldk/bedroom/living) なので、窓を書かなければ daylight は必ず不合格になる — light をここに足すと、題意に無い要求で全実行が落ちる。将来この課題に採光を課すなら、instruction 側に窓の要求を書き足してから light を足すこと。\n\n参照解 (検証済み・check strict 0/0、doors 1、合併 27.00㎡、外形 6000×4500):\n  grid X 0 3000 6000 / grid Y 0 4500 / level L1 0 h:2400\n  space /L1/a room X1..X2 Y1..Y2 / space /L1/b room X2..X3 Y1..Y2 / space /out exterior\n  boundary /L1/a /L1/b に door w:780 h:2000、外周は /out との境界\n\nfixture が \"\" (空の作業ディレクトリ) なので、未編集の状態では main.muro が存在せず、すべてのオラクルが評価不能 = 不合格になる。"
+}
