@@ -6,9 +6,18 @@
 
 空間を一次要素とするテキストネイティブな建築記述の探求。壁は物ではなく二つの空間の境界という関係である。原本に書かれるのは空間の領域と境界の関係であり、部材の形はソースではなく生成物である。建物一棟を数百行のテキストで書き、git・LLMと同じ土俵に載せ、都市接続の候補になる軽さを狙う。主張の全文は [docs/writing-architecture.md](docs/writing-architecture.md)。
 
-二室一扉はこう書く (全文 [examples/two-rooms.muro](examples/two-rooms.muro)):
+## ドキュメント
 
-```
+文書は二冊に分かれている。**[guide/](guide/README.md) が最初の扉**で、[spec/](spec/README.md) が規範である。
+
+- **[guide/](guide/README.md)** — 学ぶ本。チュートリアル・六つの考え・how-to・診断コード事典・CLI/APIリファレンス。**koyu を初めて書くなら [guide/start.md](guide/start.md) から** (30〜45分で二階建て一棟と平面図まで届く)
+- **[spec/](spec/README.md)** — 規範リファレンス。文法・意味論・語彙の台帳・正準JSON・ツール契約を現在形で
+- **[docs/decisions/](docs/decisions/)** — ADR。なぜそう決めたか、何を棄却したか
+- **[AGENTS.md](AGENTS.md)** — このリポジトリで作業するLLMエージェントの入口
+
+二室一扉はこう書く。以下は**抜粋であって、完全なファイルではない** — 先に要る `koyu` / `grid` / `level` の宣言を省いてあるので、これだけを貼ると `未定義の通り名です: X1` で落ちる。全文は [examples/two-rooms.muro](examples/two-rooms.muro)、通る最小のファイルは [guide/start.md](guide/start.md) の第1段にある。
+
+```muro-part
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
 space /out  exterior name:外部

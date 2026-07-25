@@ -7,9 +7,18 @@
 
 An exploration of text-native architectural description with **space as the primary element**. A wall is not a thing — it is the boundary between two spaces. An opening is a connection cut into a boundary. What is authored is spatial regions and the boundary relations between them; the form of building components is not source — it is generated. A whole building fits in a few hundred lines of text, which puts architecture on the same ground as git and LLMs, and makes it light enough to be a candidate for city-scale connection. The full argument (in Japanese) is in [docs/writing-architecture.md](docs/writing-architecture.md).
 
-Two rooms and one door are written like this (full file: [examples/two-rooms.muro](examples/two-rooms.muro)):
+## Documentation
 
-```
+The prose is split into two books, in Japanese. Start at the guide; consult the reference.
+
+- **[guide/](guide/README.md)** — the guide: a tutorial that goes from one room to a two-storey house in 30–45 minutes, the six concepts, how-to recipes, the diagnostic-code handbook, and the CLI and API references. **If you are learning koyu, start at [guide/start.md](guide/start.md).**
+- **[spec/](spec/README.md)** — the normative reference: grammar, semantics, the attribute ledger, canonical JSON, tool contracts. Present tense, no history.
+- **[docs/decisions/](docs/decisions/)** — the ADRs: why each decision was made and what was rejected.
+- **[AGENTS.md](AGENTS.md)** — the entry point for LLM agents working in this repository.
+
+Two rooms and one door are written like this — **an excerpt, not a complete file.** The `koyu`, `grid`, and `level` declarations that must precede it are elided; pasted on its own this fragment fails with `未定義の通り名です: X1`. The full file is [examples/two-rooms.muro](examples/two-rooms.muro), and a complete four-line starting point is under [Getting started](#getting-started) below.
+
+```muro-part
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
 space /out  exterior name:外部
@@ -33,6 +42,21 @@ A 10-story double-loaded apartment building — 43 units, elevator + exterior st
 The full-feature showcase is **[examples/tower/](examples/tower/)** — an 11-storey mixed-use corner building (retail below, housing above, a penthouse floor, ~4,786m² GFA) composed from 9 files. Its site is an irregular pentagon: site shape is the one thing this notation allows to be *written* as geometry (`polygon`, ADR-0011), because a site's shape is surveyed input from the world, not designed form — it lives in its own quarantined layer (site-geometry.muro) and the derived area, building containment, and the site boundary line on the plan all follow from it. Everything else demonstrates the rest of the notation at once: a two-storey entrance void, interlocking L-shaped units, balconies, a low-rise roof terrace written as an exception-floor *diff layer*, door/window assets with an auto-door, explicit grid-referenced positions, and one unit type subdivided into rooms. 178 spaces / 542 boundaries check clean; 66 habitable rooms pass the 1/7 daylight test; "how many doors from the 9th-floor living room to the street" answers 4.
 
 A building can also be written as a set of files and composed — additive layering inspired by USD, with no silent overrides (layer strength is deliberately not adopted, ADR-0010) ([examples/house/](examples/house/)): a base layer declares the shared foundation (grid, levels) exactly once and `import`s the door/window assets, the site, and each floor — authored separately, merged additively, with conflicts (duplicate paths, duplicate asset names, re-declared grids) rejected at build time with file:line provenance. `koyu check main.muro` is the build gate for the whole building. Door/window types are `asset`s — Revit's Family, USD's Reference — referenced by instances that override their defaults (`door SD1 sill:800`), and opening positions can be written against the grid (`at:Y2+1820`) with overflow and overlap validated (ADR-0010).
+
+## Getting started
+
+1. **Install.** Clone this repository and run `npm install`.
+2. **Run a bundled example.** `npx tsx src/cli.ts check examples/two-rooms.muro` prints `✔ 整合 — 空間 3 / 境界 3`. Then `npx tsx src/cli.ts plan examples/two-rooms.muro -o out/two-rooms.svg` writes the drawing shown above.
+3. **Write your own.** These four lines are the smallest file that both checks clean and renders a plan. Save them as `first.muro` and run the same two commands on it.
+
+```muro
+grid X 0 3600
+grid Y 0 4000
+level L1 0
+space /L1/a room X1..X2 Y1..Y2
+```
+
+`grid` and `level` must be declared before anything that refers to them, and the type (`room`, the second positional word) is required; everything else — the `koyu` version line, `unit`, `name`, heights — is optional. From here, [guide/start.md](guide/start.md) (Japanese) is a managed path from this one room to a two-storey house with per-floor plans, a circulation check, and a daylight check.
 
 ## Usage
 
@@ -64,7 +88,7 @@ npm run koyu -- site   examples/tower/main.muro      # showcase: polygon site, t
 
 ## Layout
 
-The current specification lives in [spec/](spec/README.md) — language reference, semantics (derivations, checks, queries), the attribute ledger, the canonical JSON format, and the tool reference (CLI / MCP / API). ADRs record why decisions were made; spec/ states what is true now. The historical record of how the notation was chosen (with the DSL/YAML/JSON comparison) is [spec/notation-v0.md](spec/notation-v0.md); coverage against the IFC4 architectural core is [docs/ifc-coverage.md](docs/ifc-coverage.md); design decisions are recorded in [docs/decisions/](docs/decisions/); the roadmap is [docs/roadmap.md](docs/roadmap.md); daily logs are in [docs/log/](docs/log/). The implementation is ~4,200 lines in src/ (parser, graph, checks, plan generation, CLI, MCP server), tests in test/. Reading notes on IFCX are in [docs/ifcx-notes.md](docs/ifcx-notes.md); the same two-rooms-one-door written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).
+The learning material lives in [guide/](guide/README.md) — tutorial, concepts, how-to, diagnostics, CLI/API. The current specification lives in [spec/](spec/README.md) — language reference, semantics (derivations, checks, queries), the attribute ledger, the canonical JSON format, and the tool reference (CLI / MCP / API). ADRs record why decisions were made; spec/ states what is true now. The historical record of how the notation was chosen (with the DSL/YAML/JSON comparison) is [spec/notation-v0.md](spec/notation-v0.md); coverage against the IFC4 architectural core is [docs/ifc-coverage.md](docs/ifc-coverage.md); design decisions are recorded in [docs/decisions/](docs/decisions/); the roadmap is [docs/roadmap.md](docs/roadmap.md); daily logs are in [docs/log/](docs/log/). The implementation is ~4,200 lines in src/ (parser, graph, checks, plan generation, CLI, MCP server), tests in test/. Reading notes on IFCX are in [docs/ifcx-notes.md](docs/ifcx-notes.md); the same two-rooms-one-door written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).
 
 ## Technical stance
 
