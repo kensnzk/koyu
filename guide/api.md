@@ -1,3 +1,5 @@
+[English](en/api.md) · **日本語**
+
 # TypeScript API リファレンス
 
 `@kensnzk/koyu` をプログラムから使うための頁である。**やりたいことの側から並べてある** — 記号の一覧ではなく、読み込む・検査する・問う・導出の部品を借りる・生成する・比べる、という順で引く。契約の要約は [spec/tools.md](../spec/tools.md) が持ち、答えの定義は [spec/semantics.md](../spec/semantics.md) が持つ。ここはその呼び方である。

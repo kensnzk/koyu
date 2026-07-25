@@ -532,7 +532,7 @@ npx tsx src/cli.ts json derived.muro
   "boundaries": []
 ```
 
-`check`'s "1 boundary" is the count on the **meaning** side, having counted the derived default wall; `json`'s empty array is the count on the **authored composition** side. It is not a contradiction. A consumer of the canonical JSON applies `deriveDefaultBoundaries` before reading meaning ([api.md (日本語)](../api.md)). The schema and the stability rules are in [spec/canonical-json.md](../../spec/en/canonical-json.md).
+`check`'s "1 boundary" is the count on the **meaning** side, having counted the derived default wall; `json`'s empty array is the count on the **authored composition** side. It is not a contradiction. A consumer of the canonical JSON applies `deriveDefaultBoundaries` before reading meaning ([api.md](api.md)). The schema and the stability rules are in [spec/canonical-json.md](../../spec/en/canonical-json.md).
 
 ## Combinations worth using
 
@@ -585,5 +585,5 @@ The entrance for use from an agent is separate (`koyu-mcp`). It is stateless, an
 - [spec/tools.md](../../spec/en/tools.md) — the contract for the CLI, MCP, and the public API (normative)
 - [spec/semantics.md](../../spec/en/semantics.md) — the definitions of the questions each command answers (normative)
 - [diagnostics.md (日本語)](../diagnostics.md) — the cause and fix for every diagnostic code `check` returns
-- [api.md (日本語)](../api.md) — calling the same derivations from a program
+- [api.md](api.md) — calling the same derivations from a program
 - [gallery.md](gallery.md) — the bundled examples and the drawings that came out of them

@@ -208,7 +208,7 @@ An error during tool execution comes back not as a JSON-RPC error but as a resul
 - [Doors and egress](doors-and-escape.md) — confirming the consequence with `doors`
 - [Give the site its shape and produce coverage and floor area ratios](site-and-far.md) — confirming the consequence with `site`
 - [Getting unstuck](troubleshooting.md) — how to fix the errors `check` returns
-- [The public API (日本語)](../../api.md) — calling the same derivations from a program, without MCP
+- [The public API](../api.md) — calling the same derivations from a program, without MCP
 - [spec/tools.md](../../../spec/en/tools.md) — the norms for the CLI, MCP, and the public API
 - [spec/canonical-json.md](../../../spec/en/canonical-json.md) — the format `canonical_json` returns
 - [ADR-0012](../../../docs/decisions/0012-mcp-server.md) — why the server ships with koyu itself, dependency-free and stateless

@@ -83,7 +83,7 @@ The terms are in five groups — the skeleton, the elements, derived properties,
 | unreachable, 到達不能 | The state where `doors` finds no route on the space graph. It happens even when `check` is green — a wall with no door cannot be passed | [semantics.md §6](../../spec/en/semantics.md) | [concepts.md, closing](concepts.md) |
 | daylight, 採光 (light) | The coarse test "effective window area ≥ floor area / 7" over the habitable rooms in scope. The coefficient is 0.7 when the semi-outdoor space beyond the window is covered above | [semantics.md §6](../../spec/en/semantics.md), [ADR-0006](../../docs/decisions/0006-voids-and-light.md) | [cli.md](cli.md) |
 | road frontage, 接道 | The total length of boundary segments between spaces beneath the site zone and exterior spaces carrying `road:<width>`. The part where the building's outer wall faces the road is not counted | [semantics.md §6](../../spec/en/semantics.md), [ADR-0009](../../docs/decisions/0009-site-and-exterior.md) | [tower/site](../../examples/tower/site.muro) |
-| the MCP server | `koyu-mcp` — the entrance for agents. `model_summary` → `layers` → `write_layer` → `check` is the standard loop | [tools.md](../../spec/en/tools.md), [ADR-0012](../../docs/decisions/0012-mcp-server.md) | [api.md (日本語)](../api.md) |
+| the MCP server | `koyu-mcp` — the entrance for agents. `model_summary` → `layers` → `write_layer` → `check` is the standard loop | [tools.md](../../spec/en/tools.md), [ADR-0012](../../docs/decisions/0012-mcp-server.md) | [api.md](api.md) |
 
 ## Neighboring words (outside koyu)
 

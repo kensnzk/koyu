@@ -33,7 +33,7 @@ Each stage's endpoint is kept as a working file under [examples/steps/](../../ex
 | [diagnostics.md (日本語)](../diagnostics.md) | All 49 diagnostic codes with the **cause**, the **fix**, and a minimal reproduction. Looked up from the error text | Anyone `check` has told off |
 | [glossary.md](glossary.md) | A one-sentence definition per term, plus where it is normatively defined and where it is actually used | Anyone who has lost the thread of a word |
 | [cli.md](cli.md) | Every `koyu` subcommand, from "what does it answer?". With real output | Anyone at the command line |
-| [api.md (日本語)](../api.md) | The public TypeScript API, from the side of what you want to do. All 49 exports | Anyone writing a program that embeds koyu (optional) |
+| [api.md](api.md) | The public TypeScript API, from the side of what you want to do. All 49 exports | Anyone writing a program that embeds koyu (optional) |
 
 **Outside these two books** — what guide/ does not cover.
 
@@ -62,7 +62,7 @@ There are three ways to arrive. Pick yours and read in that order.
 2. [concepts.md](concepts.md) — especially §2 "a boundary is a relation, not a thing" and §5 "the authored source and what is derived"
 3. [spec/language.md](../../spec/en/language.md) → [spec/semantics.md](../../spec/en/semantics.md) — the norms: the grammar, and the definitions of derivation, checking, and the queries
 4. [spec/canonical-json.md](../../spec/en/canonical-json.md) and [spec/tools.md](../../spec/en/tools.md) — the machine format and the CLI/MCP/API contracts
-5. [api.md (日本語)](../api.md) / [cli.md](cli.md) — how to call them, and what actually comes back
+5. [api.md](api.md) / [cli.md](cli.md) — how to call them, and what actually comes back
 6. If you are connecting an agent, [howto/agent-mcp.md](howto/agent-mcp.md)
 
 ### If you want the argument (why a notation like this at all)
