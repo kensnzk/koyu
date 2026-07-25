@@ -46,6 +46,7 @@ npm run koyu -- doors examples/two-rooms.muro /L1/a /out   # → 2 doors
 npm run koyu -- graph examples/two-rooms.muro        # the space graph
 npm run koyu -- stats examples/two-rooms.muro        # areas (centerline)
 npm run koyu -- json  examples/two-rooms.muro        # canonical JSON (machine form)
+npm run koyu -- diff  a.muro b.muro                  # semantic diff, in the language of composition
 
 npm run koyu -- plan   examples/office.muro -l L2    # per-level plans
 npm run koyu -- levels examples/office.muro          # a textual section (height stack-up)

@@ -45,6 +45,7 @@ npm run koyu -- doors examples/two-rooms.muro /L1/a /out   # → 2枚
 npm run koyu -- graph examples/two-rooms.muro        # 空間グラフ
 npm run koyu -- stats examples/two-rooms.muro        # 面積 (壁芯)
 npm run koyu -- json  examples/two-rooms.muro        # 正準JSON (機械形式)
+npm run koyu -- diff  a.muro b.muro                  # 構成の言葉のsemantic diff
 
 npm run koyu -- plan   examples/office.muro -l L2    # レベル別の平面図
 npm run koyu -- levels examples/office.muro          # テキストの矩計 (高さの積み上がり)

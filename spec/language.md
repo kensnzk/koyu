@@ -1,6 +1,6 @@
 # 言語リファレンス — .muro (author形式)
 
-koyu v0.9.0 現在の記法の規範。意味論 (導出・検査・問い) は [semantics.md](semantics.md)、属性の契約は [vocabulary.md](vocabulary.md)。
+koyu v0.10.0 現在の記法の規範。意味論 (導出・検査・問い) は [semantics.md](semantics.md)、属性の契約は [vocabulary.md](vocabulary.md)。
 
 ## 1. 字句
 

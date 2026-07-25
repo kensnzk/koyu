@@ -1,6 +1,6 @@
 # 機械形式リファレンス — 正準JSON
 
-koyu v0.9.0 現在。`koyu json <entry>` / `toCanonical(model)` が出力する。author形式 (.muro) が人とLLMの原本、正準JSONは機械の土台 — diff・ハッシュ・レイヤー合成・外部接続 (RDF等) はこの上に作る。
+koyu v0.10.0 現在。`koyu json <entry>` / `toCanonical(model)` が出力する。author形式 (.muro) が人とLLMの原本、正準JSONは機械の土台 — diff・ハッシュ・レイヤー合成・外部接続 (RDF等) はこの上に作る。
 
 ## 安定性の規則 (この形式の存在理由)
 
