@@ -30,9 +30,46 @@ import {
 } from "./model.js";
 import { parseFile } from "./parse-file.js";
 import { svgPlan } from "./plan.js";
+import { svgAxo } from "./axo.js";
+import { slopeText, verticalRuns } from "./vertical.js";
 
 function load(file: string): Model {
   return parseFile(file); // import による合成もここで働く
+}
+
+/** `-l L1..L5` / `-l L1,L3` をレベル名の列へ */
+/**
+ * `-l` の解決。**解決できない指定は空配列に落とさない** — 空配列は「一枚も描かない」を
+ * 意味するので、中身の無いSVGを終了コード0で「生成しました」と印字することになる。
+ * 呼び方の問題は呼び方の問題として返す (ADR-0028)。
+ */
+function expandLevelArg(model: Model, arg: string): string[] {
+  const all = levelsSorted(model).map((l) => l.name);
+  // 端点に数字を要求しない — complex の `R` (屋上) のようなレベル名も端点に取れる
+  const m = /^([^.,]+)\.\.([^.,]+)$/.exec(arg);
+  if (!m) {
+    const names = arg.split(",");
+    const unknown = names.filter((n) => !all.includes(n));
+    if (unknown.length > 0) die(`レベルが宣言されていません: ${unknown.join(",")} (宣言済み: ${all.join(" ")})`);
+    return names;
+  }
+  const za = model.levels[m[1]!]?.z;
+  const zb = model.levels[m[2]!]?.z;
+  if (za === undefined || zb === undefined) {
+    const bad = [m[1]!, m[2]!].filter((n) => model.levels[n] === undefined);
+    die(`レベルが宣言されていません: ${bad.join(",")} (宣言済み: ${all.join(" ")})`);
+  }
+  const out = levelsSorted(model)
+    .filter((l) => l.z >= Math.min(za!, zb!) && l.z <= Math.max(za!, zb!))
+    .map((l) => l.name);
+  if (out.length === 0) die(`レベル範囲 ${arg} に当たるレベルがありません`);
+  return out;
+}
+
+/** 呼び方の問題は終了コード2 (使い方と同じ扱い — 構成の問題ではない) */
+function die(message: string): never {
+  console.error(message);
+  process.exit(2);
 }
 
 function opt(rest: string[], ...names: string[]): string | undefined {
@@ -47,7 +84,7 @@ function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
-      "使い方: koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <file.muro> [引数...]\n" +
+      "使い方: koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]\n" +
         "  check: --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1)\n" +
         "  diff:  koyu diff <a.muro> <b.muro> [--json] — 構成の言葉の差分 (0=差分なし / 1=差分あり / 2=入力が壊れている)",
     );
@@ -134,6 +171,12 @@ function main(argv: string[]): number {
     }
     case "plan": {
       const level = opt(rest, "-l", "--level") ?? Object.keys(model.levels)[0];
+      // 未宣言のレベルは呼び方の問題 — 生のスタックトレースで落ちない (ADR-0028)
+      if (level !== undefined && model.levels[level] === undefined) {
+        die(
+          `レベルが宣言されていません: ${level} (宣言済み: ${levelsSorted(model).map((l) => l.name).join(" ")})`,
+        );
+      }
       const explicit = opt(rest, "-o");
       const outFile =
         explicit ?? `${file.replace(/\.muro$/, "")}-${level}.svg`;
@@ -191,6 +234,7 @@ function main(argv: string[]): number {
       const byType = new Map<string, number>();
       const byUse = new Map<string, number>();
       let semiTotal = 0;
+      let outdoorTotal = 0;
       for (const l of levels) {
         const onLevel = spaces.filter((s) => s.level === l.name && s.rects.length > 0);
         if (onLevel.length === 0) continue;
@@ -202,6 +246,11 @@ function main(argv: string[]): number {
             continue;
           }
           const a = areaM2(s)!;
+          if (s.type === "exterior") {
+            outdoorTotal += a;
+            console.log(`  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)}㎡ (屋外・不算入)`);
+            continue;
+          }
           if (isSemiOutdoor(model, s)) {
             semiTotal += a;
             console.log(
@@ -219,6 +268,9 @@ function main(argv: string[]): number {
         console.log(`  小計 ${sub.toFixed(2)}㎡`);
       }
       console.log(`合計 ${total.toFixed(2)}㎡ (屋内床面積)`);
+      if (outdoorTotal > 0) {
+        console.log(`屋外 ${outdoorTotal.toFixed(2)}㎡ (広場・空地等 — 床面積に算入しない)`);
+      }
       if (semiTotal > 0) {
         console.log(`半屋外 ${semiTotal.toFixed(2)}㎡ (バルコニー・屋外階段等 — 算入条件は法規細部のため別掲)`);
       }
@@ -296,6 +348,52 @@ function main(argv: string[]): number {
       console.log(`  延べ面積: ${r.totalFloor.toFixed(2)}㎡ → 容積率 ${((r.totalFloor / site) * 100).toFixed(1)}%`);
       return 0;
     }
+    case "axo": {
+      // 軸測図 — 立体をそのまま投影する。平面と同じく生成物のSVGなので、
+      // 実行環境もWebGLも要らず、生成して見るという同じ手で立体を確かめられる
+      const outPath = opt(rest, "-o", "--out") ?? "out/axo.svg";
+      const dirOpt = opt(rest, "-d", "--dir") as "NE" | "NW" | "SE" | "SW" | undefined;
+      const lv = opt(rest, "-l", "--levels");
+      const sc = opt(rest, "-s", "--scale");
+      const svg = svgAxo(model, {
+        ...(dirOpt ? { dir: dirOpt } : {}),
+        ...(lv ? { levels: expandLevelArg(model, lv) } : {}),
+        ...(sc ? { scale: Number(sc) } : {}),
+        ...(rest.includes("--ceilings") ? { ceilings: true } : {}),
+        ...(rest.includes("--no-walls") ? { walls: false } : {}),
+      });
+      mkdirSync(dirname(outPath), { recursive: true });
+      writeFileSync(outPath, svg);
+      console.log(`軸測図を生成しました: ${outPath}`);
+      return 0;
+    }
+
+    case "runs": {
+      // 縦動線 (ADR-0021): 段数も踏面も勾配も原本には書かれていない。全て導出値である
+      const runs = verticalRuns(model);
+      if (runs.length === 0) {
+        console.log("縦動線がありません (stair:N / ramp:N / escalator:N / lift:1 を空間に書きます)");
+        return 0;
+      }
+      for (const r of runs) {
+        const s = model.spaces.get(r.path);
+        const nm = s ? displayName(s) : r.path;
+        const head = `${r.level}${r.upper ? `→${r.upper}` : ""}\t${r.device}\t${nm}`;
+        if (r.device === "lift") {
+          console.log(`${head}\t${r.path}`);
+          continue;
+        }
+        const shape =
+          r.device === "stair"
+            ? `${r.risers}段 蹴上${Math.round(r.riser)} 踏面${Math.round(r.tread)}`
+            : `勾配 ${slopeText(r.slope)}`;
+        console.log(
+          `${head}\t上り${r.rise}mm\t${r.form === "return" ? "折返し" : "直"}\t${shape}\t走り${Math.round(r.going)}mm\t${r.path}`,
+        );
+      }
+      return 0;
+    }
+
     case "levels": {
       // テキストの矩計: レベルの積み上がりと高さの検算
       const levels = levelsSorted(model);

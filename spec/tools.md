@@ -2,24 +2,26 @@
 
 # ツールリファレンス — CLI・MCP・公開API
 
-koyu v0.11.0 現在。すべてのツールは同じ導出 (semantics.md) の別の入口である — CLIは人の手、MCPはエージェント、APIはプログラム。
+koyu v0.13.0 現在。すべてのツールは同じ導出 (semantics.md) の別の入口である — CLIは人の手、MCPはエージェント、APIはプログラム。
 
 ## CLI (`koyu` / `npm run koyu --`)
 
 ```
-koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [args...]
+koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]
 ```
 
 | コマンド | 引数 | 出力 | 終了コード |
 |---|---|---|---|
 | `check` | `--json` (Diagnostic[]をJSON出力 — 構文・合成エラーはSYN01の1件に写して有効JSONのまま), `--strict` (警告があれば終了コード1) | 整合の可否・エラー/警告 (出所つき)。診断コード台帳は semantics.md §5 | 0=緑 / 1=エラー (--strict時は警告も) |
 | `diff` | `<b.muro>` (比較先 — entryが比較元), `--json` (ModelDiffをJSON出力) | 構成の言葉の差分 (ADR-0018): grid移動・改名 (uid一致・パス不一致)・空間/境界/開口のフィールド変化。行順・書式・素wall宣言と省略 (既定壁) の違いは差分にしない | 0=差分なし / 1=差分あり / 2=入力が壊れている |
-| `plan` | `-l レベル` (既定: 最初のレベル), `-o 出力.svg` (既定: `<entry>-<レベル>.svg`) | 平面SVG生成 | 0 |
+| `plan` | `-l レベル` (既定: 最初のレベル), `-o 出力.svg` (既定: `<entry>-<レベル>.svg`) | 平面SVG生成 | 0 / 2 (未宣言のレベル名 — 呼び方の問題。ADR-0028) |
+| `axo` | `-o 出力.svg` (既定 `out/axo.svg`), `-d NE\|NW\|SE\|SW` (既定 SE), `-l L1..L5` または `-l L1,L3`, `-s 縮尺`, `--no-walls`, `--ceilings` | 軸測図SVG生成 — 床・屋根・壁・柱・縦動線を投影する (ADR-0026)。実行環境もWebGLも要らないので、平面と同じ「生成して見る」手で立体を確かめられる | 0 / 2 (未宣言のレベル名 — 空のSVGを黙って書かない。ADR-0028) |
 | `doors` | `/パスA /パスB` | 扉数と経由列、到達不能なら1 | 0/1/2 |
 | `graph` | — | 空間ごとの隣接 (境界種別・扉数) | 0 |
 | `stats` | — | レベル別面積・半屋外別掲・ゾーン別・型別・use別 | 0 |
-| `levels` | — | テキストの矩計 (階高の積み上がり) | 0 |
-| `light` | — | 居室ごとの1/7採光判定 | 0=全て✔ / 1 |
+| `levels` | — | テキストの矩計 (階高の積み上がり) | 0 / 1 |
+| `runs` | — | 縦動線の一覧 — 装置・上る高さ・折返しの有無・導出された勾配と走り長 (ADR-0021)。段数と踏面は `check` の RUN06 が検査する | 0 |
+| `light` | — | **`daylight:1` と宣言された室**の1/7採光判定 (対象は型から推定しない — ADR-0020) | 0=全て✔ / 1 / 1=対象なし |
 | `site` | — | 敷地面積 (宣言/導出照合)・接道・建蔽率・容積率 | 0 / 1=敷地なし |
 | `json` | — | 正準JSON (canonical-json.md) | 0 |
 

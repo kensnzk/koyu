@@ -20,7 +20,7 @@ test("tower: 9レイヤーが一棟にビルドされ、警告ゼロで整合す
   assert.deepEqual(r.errors, []);
   assert.deepEqual(r.warnings, []);
   assert.equal(m.spaces.size, 178);
-  assert.equal(m.boundaries.length, 542);
+  assert.equal(m.boundaries.length, 543); // L2廊下の東面 (外皮の穴 ENV01 が見つけた)
 });
 
 test("tower: 延床4785.92㎡ (商業+住宅)、Aタイプは各階61.44㎡", () => {

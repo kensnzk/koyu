@@ -3,11 +3,14 @@
 // 敷地 = site:1 属性を持つゾーン。地上の外部空間 (庭・アプローチ) はL1上の実在の空間として
 // 建物の周りをタイルし、道路・隣地は /out を割った複数のexterior空間 (道路は road:幅員)。
 
+import { unionArea } from "./poly.js";
 import { segmentLength, segmentsFor } from "./graph.js";
 import {
   areaM2,
+  isIndoor,
   isSemiOutdoor,
   polygonAreaM2,
+  regionOf,
   unionAreaM2,
   type Model,
   type SitePolygon,
@@ -43,11 +46,7 @@ export function siteReport(model: Model): SiteReport {
   const declared = siteZone?.attrs["area"];
 
   const spaces = [...model.spaces.values()];
-  const indoor = spaces.filter(
-    (s) =>
-      s.rects.length > 0 && s.level && s.type !== "void" && s.type !== "exterior" &&
-      !isSemiOutdoor(model, s),
-  );
+  const indoor = spaces.filter((s) => s.level && isIndoor(model, s));
   const siteChildren = siteZone
     ? spaces.filter((s) => s.path.startsWith(siteZone.path + "/") && s.rects.length > 0)
     : [];
@@ -59,7 +58,8 @@ export function siteReport(model: Model): SiteReport {
         ...siteChildren.flatMap((s) => s.rects),
         ...indoor.flatMap((s) => s.rects),
       ]);
-  const footprint = unionAreaM2(indoor.flatMap((s) => s.rects));
+  // 建築面積も導出された形から。割付から数えると、隅切りで落とした分まで数えてしまう
+  const footprint = Math.round((unionArea(indoor.flatMap((s) => regionOf(s))) / 1e6) * 100) / 100;
   const totalFloor =
     Math.round(indoor.reduce((sum, s) => sum + (areaM2(s) ?? 0), 0) * 100) / 100;
 

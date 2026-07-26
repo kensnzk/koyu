@@ -2,26 +2,28 @@
 
 # Tool reference — CLI, MCP, public API
 
-As of koyu v0.11.0. Every tool is a different entrance to the same derivations (semantics.md) — the CLI for hands, MCP for agents, the API for programs.
+As of koyu v0.13.0. Every tool is a different entrance to the same derivations (semantics.md) — the CLI for hands, MCP for agents, the API for programs.
 
 > This is a reference. If you are learning koyu, start at [guide/en/start.md](../../guide/en/start.md); for the CLI worked through with real output, see [guide/en/cli.md](../../guide/en/cli.md).
 
 ## CLI (`koyu` / `npm run koyu --`)
 
 ```
-koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [args...]
+koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]
 ```
 
 | Command | Arguments | Output | Exit code |
 |---|---|---|---|
 | `check` | `--json` (emit Diagnostic[] as JSON — a syntax or composition error is copied into a single SYN01 so the JSON stays valid), `--strict` (exit 1 if there are warnings) | Whether the composition is consistent; errors and warnings with provenance. The ledger of diagnostic codes is semantics.md §5 | 0 = green / 1 = errors (with --strict, warnings too) |
 | `diff` | `<b.muro>` (the target — the entry is the source), `--json` (emit ModelDiff as JSON) | The difference in the language of composition (ADR-0018): grid moves, renames (uid matches, path differs), field changes on spaces, boundaries, and openings. Line order, formatting, and the difference between a bare wall declaration and its omission (the default wall) are not differences | 0 = no difference / 1 = differences / 2 = the input is broken |
-| `plan` | `-l <level>` (default: the first level), `-o <out.svg>` (default: `<entry>-<level>.svg`) | Generates a plan as SVG | 0 |
+| `plan` | `-l <level>` (default: the first level), `-o <out.svg>` (default: `<entry>-<level>.svg`) | Generates a plan as SVG | 0 / 2 (an undeclared level name — a question of how it was called. ADR-0028) |
+| `axo` | `-o <out.svg>` (default `out/axo.svg`), `-d NE\|NW\|SE\|SW` (default SE), `-l L1..L5` or `-l L1,L3`, `-s <scale>`, `--no-walls`, `--ceilings` | Generates an axonometric as SVG — floors, roofs, walls, columns and vertical circulation, projected (ADR-0026). It needs no runtime and no WebGL, so a solid can be checked with the same generate-and-look loop as a plan | 0 / 2 (an undeclared level name — it never silently writes an empty SVG. ADR-0028) |
 | `doors` | `/pathA /pathB` | The door count and the intermediate list; 1 if unreachable | 0/1/2 |
 | `graph` | — | The neighbors of each space (boundary kind, door count) | 0 |
 | `stats` | — | Area by level, semi-outdoor reported separately, by zone, by type, by use | 0 |
-| `levels` | — | The section stack-up as text (how the heights add up) | 0 |
-| `light` | — | The 1/7 daylight verdict for each habitable room | 0 = all pass / 1 |
+| `levels` | — | The section stack-up as text (how the heights add up) | 0 / 1 |
+| `runs` | — | The vertical circulations — device, rise, whether it folds, and the derived slope and going length (ADR-0021). Riser counts and goings are checked by `check`'s RUN06 | 0 |
+| `light` | — | The 1/7 daylight verdict for **each room declared `daylight:1`** (scope is never inferred from the type — ADR-0020) | 0 = all pass / 1 / 1 = nothing in scope |
 | `site` | — | Site area (declared vs derived), road frontage, building coverage ratio, floor area ratio | 0 / 1 = no site |
 | `json` | — | The canonical JSON (canonical-json.md) | 0 |
 

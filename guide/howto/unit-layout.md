@@ -162,7 +162,7 @@ $ npx tsx src/cli.ts doors unit.muro /L3/A/bed1 /L3/corridor
 
 ## 割ると変わること
 
-- **`light` の対象が室になる。** 割る前は住戸そのもの (型 `unit`) が判定対象だった。割ったあとは `ldk` と `bedroom` が対象になり、`wet` と `hall` は対象から外れる。上の例で `light` を走らせると 3 室が並ぶ。
+- **`light` の対象は型では動かない。** 採光の対象は `daylight:1` の宣言だけが決める ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md))。割る前に住戸へ `daylight:1` を書いていたなら、割ったあとは**その宣言を室の側へ書き直す** — 書き直さなければ、割った瞬間に採光の判定が消える。どの室を対象にするかは設計者の判断であって、`ldk` や `bedroom` という綴りからは決まらない。
 - **`stats` の型別が細かくなる。** 住戸一つが `unit` として計上されていたところが、`ldk` `bedroom` `wet` `hall` に分かれる。ゾーン別の行だけが粒度の変化を吸収する。
 - **粒度は混在してよい。** 一部の住戸だけ割り、残りは一室のままにできる。`examples/tower/typical.muro` は A タイプだけを間取りまで割り、B〜F は `unit` 一室のまま置いている。
 

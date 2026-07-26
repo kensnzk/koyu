@@ -7,15 +7,18 @@ space /L3/tB terrace X3..X4+3200 Y1-4600..Y1 name:テラスB
 space /L3/tC terrace X4+3200..X6 Y1-4600..Y1 name:テラスC
 
 boundary /L3/A/ldk /L3/tA t:100 spec:サッシ
+  door BD1 at:X2+2400 name:掃き出し引違い
   window W1 at:X2 name:掃き出し
   window W3 at:X2+4800
 boundary /L3/A/bed2 /L3/tA t:100 spec:サッシ
   window W2
 boundary /L3/B /L3/tB t:100 spec:サッシ
+  door BD1 at:X4+2400 name:掃き出し引違い
   window W1 at:X3+1600
   window W1 at:X4-1600
   window W2 at:X4+800
 boundary /L3/C /L3/tC t:100 spec:サッシ
+  door BD1 at:X4+4400 name:掃き出し引違い
   window W1 at:X5
   window W1 at:X5+3200
 

@@ -1,0 +1,17 @@
+# 建具アセット — RevitのFamily / USDのReference (ADR-0010)
+# 型を一箇所で宣言し、各層の開口が参照して上書きする。建具表はこの台帳の一覧である。
+
+asset AD1 door w:2400 h:2700 style:auto    name:商業自動ドア
+asset AD2 door w:1800 h:2400 style:auto    name:事務所自動ドア
+asset FD1 door w:900  h:2000 style:hinged  fire:特定防火設備 name:防火戸
+asset FD2 door w:1800 h:2400 style:hinged  fire:特定防火設備 name:両開き防火戸
+asset SD1 door w:900  h:2100 style:sliding name:片引き戸
+asset HD1 door w:900  h:2100 style:hinged  fire:防火設備 name:客室扉
+asset MD1 door w:1800 h:2400 style:hinged  name:機械室扉
+asset GD1 door w:3600 h:3000 style:sliding name:荷捌きシャッター
+
+asset VG1 door w:6000 h:3000 style:sliding name:車路シャッター   # 車の出入口
+asset CW1 window w:7200 h:3600 sill:900  name:基壇カーテンウォール
+asset CW2 window w:7200 h:2100 sill:800  name:事務所カーテンウォール
+asset W1  window w:2600 h:2000 sill:400  name:客室窓
+asset W2  window w:1650 h:1100 sill:900  name:腰窓

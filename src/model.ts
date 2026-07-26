@@ -2,13 +2,15 @@
 // 一次要素は空間。壁は二つの空間の「境界」という関係であり、物ではない。
 // 形はここには無い。形は生成物である。(docs/writing-architecture.md)
 
+import * as poly from "./poly.js";
+
 export type AttrValue = string | number;
 export type Attrs = Record<string, AttrValue>;
 
 /** このツールが受理する言語版 (ADR-0017)。旧版は意味保存の場合のみ受理される (checkが検査する) */
-export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2", "0.3", "0.4"];
+export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2", "0.3", "0.4", "0.5"];
 /** 版宣言を省略したときの解釈 — 常に最新版の意味論 (省略はツール版を跨いで意味安定ではない) */
-export const DEFAULT_LANGUAGE_VERSION = "0.4";
+export const DEFAULT_LANGUAGE_VERSION = "0.5";
 
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";
@@ -21,6 +23,15 @@ export interface Level {
   h?: number;
   /** この階の床組み厚 mm (下階の天井面から自階FLまで: スラブ+懐+仕上) */
   slab?: number;
+  /**
+   * 地下の宣言 (ADR-0022)。zの負値から推定はしない — 地盤面は敷地の事実であって
+   * 座標系の原点の事実ではないため。集計 (地上/地下の床面積) と矩計の表示が読む。
+   * 接土境界の語彙は導入しない (物の名は spec 語彙 — 台帳の規則2)
+   */
+  underground?: boolean;
+  /** 宣言の出所 — level 由来の診断 (LVL01/HGT03/VER03) が位置を持てるように (ADR-0028) */
+  line: number;
+  file?: string;
 }
 
 export interface GridAxis {
@@ -67,8 +78,14 @@ export interface Space {
   level?: string;
   /** グリッド参照。複数矩形の合併でL字などを表す (rectsと同順) */
   grids: GridRef[];
-  /** グリッド解決後のmm矩形の合併。exteriorなどは空 */
+  /** グリッド解決後のmm矩形の合併。exteriorなどは空。**書かれた割付** (セル) であって形ではない */
   rects: Rect[];
+  /**
+   * 導出された領域 — 凸片の集合 (ADR-0022)。既定は rects をそのまま写したもので、
+   * 境界に描かれた線 (line) があればその半平面で切り分けた結果になる。
+   * 面積・平面図・立体はこちらを読む。rects は「書かれた綴り」として正準JSONに残る
+   */
+  pieces: Pt[][];
   /** 数えない分節 (字下げのarea行) */
   areas: Area[];
   attrs: Attrs;
@@ -157,11 +174,27 @@ export interface Seg {
   line: number;
 }
 
+/**
+ * 描かれた線 (ADR-0022) — 空間を区切る設計の行為そのもの。
+ * 端点は通り語 (`X3,Y1` / `X3+600,Y2-900`) で書く。生座標も角度も導入しない。
+ * 境界が既定で持つ「隣接から導かれる線分」を、この線が置き換える
+ */
+export interface DrawnLine {
+  /** 書かれた綴り — 正準JSONと差分が共有する */
+  aRef: string;
+  bRef: string;
+  a: Pt;
+  b: Pt;
+  line: number;
+}
+
 /** 境界はどちらの空間にも属さない。二つの空間パスを結ぶ第一級の関係 */
 export interface Boundary {
   a: string;
   b: string;
   kind: BoundaryKind;
+  /** 描かれた線 (字下げの line 行)。あれば境界の実現はこの線になる */
+  drawn?: DrawnLine;
   /** 壁厚 mm (通り芯・境界線に対して芯振り分け) */
   t?: number;
   /** 遮蔽しない (air:1) — 手すり・柵など、物はあるが外気・光を遮らない。
@@ -199,6 +232,8 @@ export interface Model {
   /** 敷地形状 — 所与のジオメトリ (ADR-0011)。パス→頂点列 (mm)。
    *  唯一の自由頂点列 — 空間の領域はグリッド参照の矩形として書かれる */
   polygons: Map<string, SitePolygon>;
+  /** 柱の宣言 (ADR-0023)。位置は書かれない — 通り芯の交点から導出される */
+  columns: ColumnDecl[];
   /** 合成に参加したレイヤー (ローダーのキー、合成順 — entryが先頭)。単一ソースのparseでは空 */
   layers: string[];
   /** koyu版が明示宣言されたか (base層でのみ・一度だけ — ADR-0017の合成規則の管理用) */
@@ -211,6 +246,43 @@ export interface Pt {
   y: number;
 }
 
+/**
+ * 柱の宣言 (ADR-0023) — 「どの通りに、どの階に、どの寸法で」だけを書く。
+ * **位置は書かない**。通り芯 (共有線) の交点のうち、そのレベルの床のある所に立つ、
+ * という規則で導出される。壁が境界から現れるのと同じ構えを、点の要素に適用したもの
+ */
+export interface ColumnDecl {
+  /** 一辺 mm (角柱)。`d:` があれば矩形断面の奥行 */
+  size: number;
+  depth?: number;
+  /** 展開済みレベル名 (宣言順ではなくz昇順) */
+  levels: string[];
+  /** 限定する通り名。未指定は全通り */
+  xNames?: string[];
+  yNames?: string[];
+  attrs: Attrs;
+  line: number;
+  file?: string;
+}
+
+/** 導出された柱 — 一本の柱 */
+export interface Column {
+  x: number;
+  y: number;
+  /** X方向の幅 mm / Y方向の奥行 mm */
+  w: number;
+  d: number;
+  level: string;
+  /** 立っている通りの名 (X3・Y2 のような組) — 図面の言葉 */
+  grid: string;
+  /**
+   * どの宣言から立ったか (model.columns の添字)。**診断の母集団を宣言に戻すために要る** —
+   * これが無いと「この宣言に対して一本も立たない」を問えない (ADR-0028)
+   */
+  decl: number;
+  attrs: Attrs;
+}
+
 /** 敷地形状 (ADR-0011) — 測量に由来する所与の多角形。建物の形は生成物のままで、
  *  これはゾーン (site:1) に付く入力データ。隔離レイヤー (別ファイル+import) 推奨 */
 export interface SitePolygon {
@@ -220,16 +292,8 @@ export interface SitePolygon {
   file?: string;
 }
 
-/** 多角形の面積 ㎡ (シューレース公式)。頂点は順不同 (時計/反時計どちらでも) */
-export function polygonAreaM2(points: Pt[]): number {
-  let sum = 0;
-  for (let i = 0; i < points.length; i++) {
-    const a = points[i]!;
-    const b = points[(i + 1) % points.length]!;
-    sum += a.x * b.y - b.x * a.y;
-  }
-  return Math.abs(sum) / 2 / 1e6;
-}
+/** 多角形の面積 ㎡。シューレースの実体は poly.ts にひとつだけある (ADR-0027) */
+export const polygonAreaM2 = (points: Pt[]): number => poly.area(points) / 1e6;
 
 /** 線分同士が内部で交差するか (端点・境界上の接触は交差としない、許容誤差eps mm)。交点を返す */
 function properCrossing(a1: Pt, a2: Pt, b1: Pt, b2: Pt, eps = 1): Pt | undefined {
@@ -264,58 +328,32 @@ export function polygonSelfIntersection(poly: Pt[], eps = 1): Pt | undefined {
  * 四隅の内包に加え、多角形の頂点の矩形内への入り込みと、辺同士の内部交差を検査する
  */
 export function rectEscapesPolygon(r: Rect, poly: Pt[], eps = 1): Pt | undefined {
-  const corners: Pt[] = [
-    { x: r.x1, y: r.y1 },
-    { x: r.x2, y: r.y1 },
-    { x: r.x2, y: r.y2 },
-    { x: r.x1, y: r.y2 },
-  ];
-  for (const c of corners) if (!pointInPolygon(c, poly, eps)) return c;
+  return shapeEscapesPolygon(rectToPoly(r), poly, eps);
+}
+
+/** 凸片が多角形からはみ出す点 (導出された領域を敷地形状と照合する — ADR-0022) */
+export function shapeEscapesPolygon(shape: Pt[], poly: Pt[], eps = 1): Pt | undefined {
+  for (const c of shape) if (!pointInPolygon(c, poly, eps)) return c;
   for (const p of poly) {
-    if (p.x > r.x1 + eps && p.x < r.x2 - eps && p.y > r.y1 + eps && p.y < r.y2 - eps) return p;
+    // 多角形の頂点が凸片の内部に食い込む (境界上は食い込みではない)
+    if (pointInPolygon(p, shape, eps) && !onPolygonEdge(p, shape, eps)) return p;
   }
-  const edges: Array<[Pt, Pt]> = [
-    [corners[0]!, corners[1]!],
-    [corners[1]!, corners[2]!],
-    [corners[2]!, corners[3]!],
-    [corners[3]!, corners[0]!],
-  ];
   for (let i = 0; i < poly.length; i++) {
     const a = poly[i]!;
     const b = poly[(i + 1) % poly.length]!;
-    for (const [p, q] of edges) {
-      const x = properCrossing(a, b, p, q, eps);
+    for (let k = 0; k < shape.length; k++) {
+      const x = properCrossing(a, b, shape[k]!, shape[(k + 1) % shape.length]!, eps);
       if (x) return x;
     }
   }
   return undefined;
 }
 
-/** 点が多角形の内側にあるか (境界上は内側扱い、許容誤差eps mm) */
-export function pointInPolygon(p: Pt, poly: Pt[], eps = 1): boolean {
-  // 境界上の判定 (線分との距離 ≤ eps)
-  for (let i = 0; i < poly.length; i++) {
-    const a = poly[i]!;
-    const b = poly[(i + 1) % poly.length]!;
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const len2 = dx * dx + dy * dy;
-    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2));
-    const qx = a.x + t * dx;
-    const qy = a.y + t * dy;
-    if ((p.x - qx) ** 2 + (p.y - qy) ** 2 <= eps * eps) return true;
-  }
-  // レイキャスト
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const a = poly[i]!;
-    const b = poly[j]!;
-    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
+/** 点が多角形の辺の上にあるか */
+export const onPolygonEdge = poly.onEdge;
+
+/** 点が多角形の内側にあるか (境界上は内側扱い) */
+export const pointInPolygon = poly.pointIn;
 
 export class SourceError extends Error {
   constructor(
@@ -330,11 +368,112 @@ export class SourceError extends Error {
   }
 }
 
-/** 面積 (壁芯) m²。複数矩形は合計 (重なりはcheckが禁じる) */
+/**
+ * 空間の導出された領域 (ADR-0022 / ADR-0027)。**形を読むときの唯一の入口**。
+ * parse の出口で必ず埋まるので、割付への退避は「未parseのModelを手で組んだとき」だけに効く。
+ * この式が各所に散っていたことが、rects と pieces の取り違えを四度生んだ根である。
+ */
+export const regionOf = (s: Space): Pt[][] =>
+  s.pieces.length > 0 ? s.pieces : s.rects.map(poly.rectToPoly);
+
+/** 面積 (壁芯) m²。導出された凸片の合計 — 描かれた線で切られていればその形の面積になる */
 export function areaM2(s: Space): number | undefined {
   if (s.rects.length === 0) return undefined;
-  const a = s.rects.reduce((sum, r) => sum + (r.x2 - r.x1) * (r.y2 - r.y1), 0) / 1e6;
+  const a = poly.areaOf(regionOf(s)) / 1e6;
   return Math.round(a * 100) / 100;
+}
+
+/** 矩形を頂点列へ (反時計回り) */
+export const rectToPoly = poly.rectToPoly;
+
+/** 凸多角形を半平面で切る (Sutherland–Hodgman)。
+ *  半平面は有向線分 a→b の左側 (外積>0)。切り落とされて空なら [] */
+export function clipHalfPlane(poly: Pt[], a: Pt, b: Pt, keepLeft: boolean, eps = 1e-6): Pt[] {
+  const side = (p: Pt): number => {
+    const v = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+    return keepLeft ? v : -v;
+  };
+  const out: Pt[] = [];
+  for (let i = 0; i < poly.length; i++) {
+    const p = poly[i]!;
+    const q = poly[(i + 1) % poly.length]!;
+    const sp = side(p);
+    const sq = side(q);
+    if (sp >= -eps) out.push(p);
+    if ((sp > eps && sq < -eps) || (sp < -eps && sq > eps)) {
+      const t = sp / (sp - sq);
+      out.push({ x: p.x + t * (q.x - p.x), y: p.y + t * (q.y - p.y) });
+    }
+  }
+  // 退化 (面積ゼロ) は捨てる
+  return out.length >= 3 && polygonAreaM2(out) > 1e-9 ? out : [];
+}
+
+/** 頂点列の外接矩形 */
+export const polyBounds = poly.bounds;
+
+/**
+ * 宣言 c がそのレベルで狙う交点のうち、**床の上にあるもの**。先勝ちの規則を適用する前の姿。
+ *
+ * 「一本も立たない」の理由を二つに割るために要る (ADR-0028) — ここが空なら床が無く、
+ * 空でないのに一本も立たないなら先の宣言に取られている。直す手が正反対である。
+ */
+export function columnSites(
+  model: Model,
+  c: ColumnDecl,
+  level: string,
+): Array<{ x: number; y: number; grid: string }> {
+  if (!c.levels.includes(level)) return [];
+  const floors = [...model.spaces.values()].filter(
+    (s) => s.level === level && s.type !== "exterior" && s.type !== "void" && s.rects.length > 0,
+  );
+  if (floors.length === 0) return [];
+  const xs = model.grid.X.names
+    .map((n, i) => ({ n, v: model.grid.X.coords[i]! }))
+    .filter((g) => !c.xNames || c.xNames.includes(g.n));
+  const ys = model.grid.Y.names
+    .map((n, i) => ({ n, v: model.grid.Y.coords[i]! }))
+    .filter((g) => !c.yNames || c.yNames.includes(g.n));
+  const out: Array<{ x: number; y: number; grid: string }> = [];
+  for (const gx of xs) {
+    for (const gy of ys) {
+      const inside = floors.some((s) =>
+        (s.pieces.length ? s.pieces : s.rects.map(rectToPoly)).some((p) =>
+          pointInPolygon({ x: gx.v, y: gy.v }, p, 1),
+        ),
+      );
+      if (inside) out.push({ x: gx.v, y: gy.v, grid: `${gx.n}・${gy.n}` });
+    }
+  }
+  return out;
+}
+
+/**
+ * そのレベルに立つ柱を導く (ADR-0023)。
+ * 通り芯の交点のうち、床のある空間 (exterior・void を除く) の内側にあるものへ柱を置く。
+ * 位置はどこにも書かれていない — 通りと床という既にある事実の交わりから現れる
+ */
+export function columnsFor(model: Model, level: string): Column[] {
+  const out: Column[] = [];
+  const seen = new Set<string>();
+  for (let ci = 0; ci < model.columns.length; ci++) {
+    const c = model.columns[ci]!;
+    for (const site of columnSites(model, c, level)) {
+      if (seen.has(site.grid)) continue; // 同じ交点に二本は立たない (先の宣言が勝つ)
+      seen.add(site.grid);
+      out.push({
+        x: site.x,
+        y: site.y,
+        w: c.size,
+        d: c.depth ?? c.size,
+        level,
+        grid: site.grid,
+        decl: ci,
+        attrs: c.attrs,
+      });
+    }
+  }
+  return out;
 }
 
 /**
@@ -364,13 +503,7 @@ export function isCoveredAbove(model: Model, s: Space): boolean {
     if (o === s || o.rects.length === 0 || !o.level) continue;
     const oz = model.levels[o.level]?.z;
     if (oz === undefined || oz <= z) continue;
-    for (const ra of s.rects) {
-      for (const rb of o.rects) {
-        const x = Math.min(ra.x2, rb.x2) - Math.max(ra.x1, rb.x1);
-        const y = Math.min(ra.y2, rb.y2) - Math.max(ra.y1, rb.y1);
-        if (x > 0.5 && y > 0.5) return true;
-      }
-    }
+    if (poly.overlaps(regionOf(s), regionOf(o))) return true;
   }
   return false;
 }
@@ -398,11 +531,22 @@ export function zoneAreaM2(model: Model, zonePath: string): number {
   let sum = 0;
   for (const s of model.spaces.values()) {
     if (!s.path.startsWith(zonePath + "/")) continue;
-    if (s.type === "void") continue;
-    if (isSemiOutdoor(model, s)) continue;
+    if (!isIndoor(model, s)) continue;
     sum += areaM2(s) ?? 0;
   }
   return Math.round(sum * 100) / 100;
+}
+
+/**
+ * 屋内の床面積に数えるか。**「延べ面積」を問う三箇所 (stats / site / MCP) の唯一の答え**。
+ *
+ * 判定が散っていたときは、外部そのものが屋内床に入り、しかも「隣に道路を書いたか」で
+ * 半屋外に落ちるかどうかが変わっていた。母集団は場所ごとに決めるものではない (ADR-0028)。
+ */
+export function isIndoor(model: Model, s: Space): boolean {
+  if (s.rects.length === 0) return false;
+  if (s.type === "exterior" || s.type === "void") return false;
+  return !isSemiOutdoor(model, s);
 }
 
 /** 実効use属性 — 自分に無ければ、最も深いゾーン祖先から継承する */
@@ -500,6 +644,10 @@ export function canonicalBoundaryEntry(b: Boundary): Record<string, unknown> {
     ...(b.t !== undefined ? { t: b.t } : {}),
     ...(b.air ? { air: true } : {}),
     ...(b.edge ? { edge: b.edge } : {}),
+    // 描かれた線は書かれた綴りのまま残す — 頂点座標はビルドの産物であって構成ではない
+    // 端点の書き順は図形を変えない (線分は向きを持たない — 導出される凸片は同一) ので、
+    // 解決座標の昇順に正準化する。**綴りは保つ** (通り参照のまま — 規則3)
+    ...(b.drawn ? { line: canonicalLineEnds(b.drawn) } : {}),
     ...(Object.keys(b.attrs).length ? { attrs: sortObj(b.attrs) } : {}),
     ...(b.openings.length ? { openings: sortBySerial(b.openings.map(canonicalOpeningEntry)) } : {}),
     ...(b.segs.length ? { segs: sortBySerial(b.segs.map(canonicalSegEntry)) } : {}),
@@ -546,12 +694,28 @@ export function toCanonical(model: Model): string {
             z: v.z,
             ...(v.h !== undefined ? { h: v.h } : {}),
             ...(v.slab !== undefined ? { slab: v.slab } : {}),
+            ...(v.underground ? { underground: 1 } : {}),
           },
         ]),
       ),
     ),
     ...(Object.keys(assets).length ? { assets } : {}),
     ...(Object.keys(polygons).length ? { polygons } : {}),
+    // **柱の宣言順は意味である。**同じ交点に二本は立たず、先の宣言が勝つ (ADR-0023) ので、
+    // 並べ替えると別の建物が同一のJSONになる。並べ替えてよいのは宣言の**中**の、
+    // 順序に意味の無い通り名の列だけである (ADR-0029)
+    ...(model.columns.length
+      ? {
+          columns: model.columns.map((c) => ({
+            size: c.size,
+            ...(c.depth !== undefined ? { d: c.depth } : {}),
+            levels: c.levels,
+            ...(c.xNames ? { x: sortGridNames(model.grid.X.names, c.xNames) } : {}),
+            ...(c.yNames ? { y: sortGridNames(model.grid.Y.names, c.yNames) } : {}),
+            ...(Object.keys(c.attrs).length ? { attrs: sortObj(c.attrs) } : {}),
+          })),
+        }
+      : {}),
     ...(Object.keys(zones).length ? { zones } : {}),
     spaces,
     boundaries,
@@ -559,11 +723,37 @@ export function toCanonical(model: Model): string {
   return JSON.stringify(doc, null, 2) + "\n";
 }
 
+/**
+ * 描かれた線の端点の対を、解決座標の昇順に並べる。
+ * 線分は向きを持たない — 端点をどちらから書いても導出される凸片は同一なので、
+ * 書き順は綴りの揺れである (規則1)。綴り自体は通り参照のまま保つ (規則3)
+ */
+function canonicalLineEnds(d: DrawnLine): [string, string] {
+  const forward = d.a.x < d.b.x || (d.a.x === d.b.x && d.a.y <= d.b.y);
+  return forward ? [d.aRef, d.bRef] : [d.bRef, d.aRef];
+}
+
+/** 通り名の列を通りの並び順に整える — `x:X2,X1` と `x:X1,X2` は同じ構成である */
+function sortGridNames(axis: string[], names: string[]): string[] {
+  return [...names].sort((p, q) => {
+    const ip = axis.indexOf(p);
+    const iq = axis.indexOf(q);
+    if (ip < 0 || iq < 0) return p < q ? -1 : p > q ? 1 : 0; // 未宣言の通りは辞書順で安定させる
+    return ip - iq;
+  });
+}
+
 function sortObj<T>(o: Record<string, T>): Record<string, T> {
   return Object.fromEntries(Object.entries(o).sort(([a], [b]) => (a < b ? -1 : 1)));
 }
 
-/** 宣言順に意味の無い集合を、直列化したJSONの辞書順に並べる — 正準順の土台 (diffも同じ順で比べる) */
+/**
+ * 宣言順に意味の無い集合を、直列化したJSONの辞書順に並べる — 正準順の土台 (diffも同じ順で比べる)。
+ *
+ * **掛ける前に問う: この配列の順序を入れ替えたら別の構成になるか。**なるなら掛けてはならない。
+ * 並べ替えは整形ではなく「順序に意味が無い」ことの表明である。柱 (columns) は先勝ちの規則を
+ * 持つので掛けない — 掛けていたとき、別の建物が同一バイトの正準JSONになっていた (ADR-0029)
+ */
 export function sortBySerial<T>(items: T[]): T[] {
   return items
     .map((it) => [JSON.stringify(it), it] as const)

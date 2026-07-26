@@ -1,0 +1,67 @@
+# 特大複合建築 — 延床約31,000㎡ / 地下2階＋地上19階 (koyu の負荷試験)
+#
+# towerの一桁上。規模そのものは壁ではない — 壁は斜路・斜め・地下・縦動線の4つで、
+# どれも「空間を一次にした記述」の境界線を決める設計判断だった。ここはその答え合わせである。
+#
+#   基壇 (1〜5F)  物販・飲食。階高4.8m・天井3.3mの重厚な基壇。敷地なりに切られた外形と、斜めに貫く通路。
+#   設備 (6F)     機械階。基壇と塔屋の間に一層まるごと。
+#   中層 (7〜13F) 事務所。矩形の基準階を一度だけ書く。
+#   高層 (14〜19F) ホテル。客室は帯 (band) で割る。
+#   地下 (B1〜B2) 駐車場・機械室・荷捌き。折返し斜路一本。
+#   コア      2階段+2EVバンク。B2からL19まで**5行**で書かれる。
+#
+#   koyu check examples/complex/main.muro       が門番
+#   koyu runs  examples/complex/main.muro       段数・踏面・勾配 (どれも原本に無い)
+#   koyu stats examples/complex/main.muro       面積表
+#   koyu site  examples/complex/main.muro       敷地・接道
+#   koyu plan  examples/complex/main.muro -l L1 -o out/c-L1.svg
+
+koyu 0.5
+name 特大複合建築 — 商業・事務所・ホテル
+unit mm
+
+# 通り芯は「共有線」である (ADR-0022) — 一度名付けてN回参照される線。
+# 柱はこの交点から導出されるので、構造グリッドと作図グリッドは同じ一つのものになる。
+grid X 0 8000 16000 24000 32000 40000 48000 56000
+grid Y 0 8000 16000 24000 32000 40000
+
+# 階高は用途で決まる。丸の内級の複合建築の実測に寄せた値 —
+#   駐車場 4,200 / 荷捌き階 5,100 / エントランス 6,600 / 商業 4,800 (天井3,300+懐1,500)
+#   機械階 5,400 / 事務所 4,200 (天井2,800+懐1,400 — 丸ビル・新丸ビルの基準階と同値)
+#   ホテル客室 3,400 (天井2,600)
+# 天井高 + 上階のslab ≤ 階高 という不変量を check が全レベルで検算する。
+level B2 -9300 h:3300 slab:900 underground:1
+level B1 -5100 h:4200 slab:900 underground:1
+level L1 0 h:5000 slab:900
+level L2 6600 h:3300 slab:1500
+level L3..L5 11400 pitch:4800 h:3300 slab:1500
+level L6 25800 h:4000 slab:1500
+level L7..L13 31200 pitch:4200 h:2800 slab:1400
+level L14..L19 60600 pitch:3400 h:2600 slab:800
+level R 81000 slab:800
+
+# 柱は寸法と階だけを書く。位置はどこにも書かれていない (ADR-0023) —
+# 通り芯の交点のうち、その階に床のあるところに立つ。上へ行くほど細くなる。
+column 900 B2..L6
+column 800 L7..L13
+column 700 L14..L19
+
+import ./assets.muro
+import ./site.muro
+import ./core.muro
+import ./basement.muro
+import ./L1.muro
+import ./podium.muro
+import ./plant.muro
+import ./office.muro
+import ./hotel.muro
+
+# ---- 垂直: 階を跨ぐ関係は base 層が持つ ----
+# 装置が違っても関係は一つ「レベル間を通れるか」。形の生成規則だけが違う。
+stack st1 B2..L19 type:stair
+stack st2 B2..L19 type:stair
+stack ev1 B2..L19 type:shaft
+stack ev2 B2..L19 type:shaft
+stack ramp B2..L1 type:stair
+stack es L1..L5 type:stair
+stack atrium L1..L5 type:void

@@ -12,13 +12,14 @@ import {
   type Edge,
   type Model,
   type Opening,
+  type Pt,
   type Rect,
   type Seg,
   SourceError,
   type Space,
   SUPPORTED_LANGUAGE_VERSIONS,
 } from "./model.js";
-import { deriveDefaultBoundaries } from "./graph.js";
+import { deriveDefaultBoundaries, derivePieces } from "./graph.js";
 
 const EDGES = new Set(["N", "E", "S", "W"]);
 
@@ -61,6 +62,7 @@ function emptyModel(): Model {
     assets: new Map(),
     boundaries: [],
     polygons: new Map(),
+    columns: [],
     layers: [],
   };
 }
@@ -75,7 +77,11 @@ export type LayerLoader = (
 export function parse(source: string): Model {
   const model = emptyModel();
   ingest(model, source, undefined, new Set(), undefined);
-  deriveDefaultBoundaries(model); // 水平の既定は壁 (ADR-0014) — 合成・展開の完了後に一度だけ
+  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / ADR-0027)。
+  // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
+  // 出所の無い BND04 が出る — 書いていない関係を責めることになる
+  derivePieces(model);
+  deriveDefaultBoundaries(model);
   return model;
 }
 
@@ -89,7 +95,11 @@ export function parseWith(loader: LayerLoader, entry: string): Model {
     throw new SourceError(0, `ファイルが読めません: ${entry}`);
   }
   ingestLayer(model, layer.key, layer.src, new Set(), loader);
-  deriveDefaultBoundaries(model); // 水平の既定は壁 (ADR-0014) — 合成・展開の完了後に一度だけ
+  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / ADR-0027)。
+  // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
+  // 出所の無い BND04 が出る — 書いていない関係を責めることになる
+  derivePieces(model);
+  deriveDefaultBoundaries(model);
   return model;
 }
 
@@ -167,6 +177,16 @@ function ingest(
           throw new SourceError(ln, "seg は boundary の直下に字下げして書きます");
         }
         for (const b of current) b.segs.push(parseSeg(rest, ln, model));
+      } else if (head === "line") {
+        // 描かれた線 (ADR-0022) — 境界の実現を、隣接からの導出ではなく設計の行為で与える
+        if (current.length === 0) {
+          throw new SourceError(ln, "line は boundary の直下に字下げして書きます");
+        }
+        const drawn = parseDrawnLine(rest, ln, model);
+        for (const b of current) {
+          if (b.drawn) throw new SourceError(ln, `一つの境界に線は一本です: ${b.a} | ${b.b}`);
+          b.drawn = { ...drawn };
+        }
       } else if (head === "area") {
         if (band) {
           throw new SourceError(
@@ -185,7 +205,7 @@ function ingest(
       } else {
         throw new SourceError(
           ln,
-          `字下げ行に置けるのは door / window / seg / area / space (band の要素) のみです: ${head}`,
+          `字下げ行に置けるのは door / window / seg / line / area / space (band の要素) のみです: ${head}`,
         );
       }
       continue;
@@ -337,6 +357,11 @@ function ingest(
         const h = takeNumber(attrs, "h", ln);
         const slab = takeNumber(attrs, "slab", ln);
         const pitch = takeNumber(attrs, "pitch", ln);
+        const under = takeNumber(attrs, "underground", ln);
+        if (under !== undefined && under !== 0 && under !== 1) {
+          throw new SourceError(ln, "underground は 0 / 1 で指定します (1=地下)");
+        }
+        const ug = under === 1 ? { underground: true } : {};
 
         // 範囲宣言: level L3..L9 6700 pitch:2900 — 基準階のレベルを一度に宣言する
         const range = /^([A-Za-z]+)(\d+)\.\.([A-Za-z]+)(\d+)$/.exec(name);
@@ -354,8 +379,11 @@ function ingest(
             model.levels[nm] = {
               name: nm,
               z: z + pitch * (k - Number(n1)),
+              line: ln,
+              ...(file !== undefined ? { file } : {}),
               ...(h !== undefined ? { h } : {}),
               ...(slab !== undefined ? { slab } : {}),
+              ...ug,
             };
           }
           break;
@@ -367,9 +395,54 @@ function ingest(
         model.levels[name] = {
           name,
           z,
+          line: ln,
+          ...(file !== undefined ? { file } : {}),
           ...(h !== undefined ? { h } : {}),
           ...(slab !== undefined ? { slab } : {}),
+          ...ug,
         };
+        break;
+      }
+      case "column": {
+        // 柱 (ADR-0023) — 寸法と階と通りだけを書く。位置は通り芯の交点から導出される
+        const size = toNumber(rest[0] ?? "", ln, "columnの寸法");
+        if (size <= 0) throw new SourceError(ln, "column の寸法は正のmmで書きます");
+        const span = rest[1];
+        if (!span) {
+          throw new SourceError(ln, "column は column <寸法mm> <L?..L?|レベル名> [x:通り,..] [y:通り,..] の形で書きます");
+        }
+        const levels = /\.\./.test(span)
+          ? resolveSpanLevels(model, span, ln)
+          : (() => {
+              if (!model.levels[span]) throw new SourceError(ln, `未宣言のレベルです: ${span}`);
+              return [span];
+            })();
+        const attrs = parseAttrs(rest.slice(2), ln);
+        const depth = takeNumber(attrs, "d", ln);
+        const names = (key: "x" | "y"): string[] | undefined => {
+          const v = takeString(attrs, key);
+          if (v === undefined) return undefined;
+          const list = v.split(",").filter(Boolean);
+          for (const n of list) {
+            if (!model.grid[key === "x" ? "X" : "Y"].names.includes(n)) {
+              throw new SourceError(ln, `未定義の通り名です: ${n}`);
+            }
+          }
+          if (list.length === 0) throw new SourceError(ln, `${key}: に通り名を書きます`);
+          return list;
+        };
+        const xNames = names("x");
+        const yNames = names("y");
+        model.columns.push({
+          size,
+          ...(depth !== undefined ? { depth } : {}),
+          levels,
+          ...(xNames ? { xNames } : {}),
+          ...(yNames ? { yNames } : {}),
+          attrs,
+          line: ln,
+          ...(file ? { file } : {}),
+        });
         break;
       }
       case "band": {
@@ -524,7 +597,17 @@ function parseSpace(rest: string[], ln: number, model: Model): Space {
   const seg = path.split("/")[1];
   const level = explicit ?? (seg && model.levels[seg] ? seg : undefined);
 
-  const space: Space = { path, type, level, grids: [], rects: [], areas: [], attrs, line: ln };
+  const space: Space = {
+    path,
+    type,
+    level,
+    grids: [],
+    rects: [],
+    pieces: [],
+    areas: [],
+    attrs,
+    line: ln,
+  };
   for (const g of groups) {
     if (g.length === 0) continue;
     const r = parseRegion(g, ln, model);
@@ -766,6 +849,42 @@ function parseRegion(
       y2: Math.max(yr[0], yr[1]),
     },
   };
+}
+
+/**
+ * 描かれた線 (ADR-0022) — `line X3,Y1 X4+600,Y3`。
+ * 端点は通り語の対 (`<X通り>,<Y通り>`、どちらもオフセット可)。
+ * **生の座標も角度も書けない** — 位置を定めるのは常に線であり、線の端点は通りである
+ */
+function parseDrawnLine(
+  rest: string[],
+  ln: number,
+  model: Model,
+): { aRef: string; bRef: string; a: Pt; b: Pt; line: number } {
+  if (rest.length !== 2) {
+    throw new SourceError(ln, "line は line <始点> <終点> の形で書きます (例: line X3,Y1 X4,Y3)");
+  }
+  const [aRef, bRef] = rest as [string, string];
+  const a = resolvePoint(model, aRef, ln);
+  const b = resolvePoint(model, bRef, ln);
+  if (Math.abs(a.x - b.x) < 0.5 && Math.abs(a.y - b.y) < 0.5) {
+    throw new SourceError(ln, `line の両端が同じ点です: ${aRef}`);
+  }
+  return { aRef, bRef, a, b, line: ln };
+}
+
+/** 通り語の対 `X3,Y1` / `X3+600,Y2-900` を点へ */
+function resolvePoint(model: Model, token: string, ln: number): Pt {
+  const parts = token.split(",");
+  if (parts.length !== 2) {
+    throw new SourceError(ln, `点は <X通り>,<Y通り> の形で書きます: ${token}`);
+  }
+  const p = resolveRef(model, parts[0]!, ln);
+  const q = resolveRef(model, parts[1]!, ln);
+  if (p.axis !== "X" || q.axis !== "Y") {
+    throw new SourceError(ln, `点はX通り,Y通りの順で書きます: ${token}`);
+  }
+  return { x: p.coord, y: q.coord };
 }
 
 /** 数えない分節: 室内の領域 (床材の切替など) */

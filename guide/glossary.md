@@ -68,7 +68,7 @@ koyu の語を引き当てるための表である。各行は「一文の定義
 | 層 (レイヤー) | 合成に参加する一ファイル。分担の単位であり、衝突 (パス・アセット名・grid の重複) は出所つきのビルドエラーになる。黙った上書きは無い | [language.md §8](../spec/language.md) | [tower/](../examples/tower/main.muro) |
 | base 層 (entry) | 合成の入口となるファイル。`koyu` / `name` / `unit` / `grid` / `level` を一度だけ宣言できるのはここだけである | [language.md §2・§8](../spec/language.md) | [tower/main](../examples/tower/main.muro) |
 | 出所 (file:行) | 診断が指す位置。合成に参加した層の名前と行番号で表される | [semantics.md §1](../spec/semantics.md) | [diagnostics.md](diagnostics.md) |
-| 言語版 | `koyu 0.4` — 記法の意味論の版。対応は `0.1, 0.2, 0.3, 0.4` で、宣言を省略すると最新版として読まれる。base 層で一度だけ書ける | [language.md §2 版の規範](../spec/language.md)・[ADR-0017](../docs/decisions/0017-language-versioning.md) | [two-rooms](../examples/two-rooms.muro) |
+| 言語版 | `koyu 0.5` — 記法の意味論の版。対応は `0.1, 0.2, 0.3, 0.4, 0.5` で、宣言を省略すると最新版として読まれる。base 層で一度だけ書ける | [language.md §2 版の規範](../spec/language.md)・[ADR-0017](../docs/decisions/0017-language-versioning.md) | [two-rooms](../examples/two-rooms.muro) |
 | 正準JSON | `koyu json` が出す機械形式。同じ構成からは常にバイト同一で、**書かれた構成のみ**を持つ (既定境界は出ない)。diff・ハッシュ・外部接続の土台 | [canonical-json.md](../spec/canonical-json.md)・[ADR-0013](../docs/decisions/0013-semantic-guarantees.md) | [two-rooms.canonical.json](../examples/two-rooms.canonical.json) |
 | 意味差分 (semantic diff) | `koyu diff` が出す構成の言葉の差分。行順・書式・素 wall 宣言と省略の違いは差分にせず、改名は `uid` の一致で検出する | [tools.md](../spec/tools.md)・[ADR-0018](../docs/decisions/0018-semantic-diff.md) | [cli.md](cli.md) |
 

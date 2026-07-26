@@ -8,13 +8,13 @@ koyu は建築をテキストで書く記法 (`.muro`) とその処理系であ�
 
 | 場所 | 中身 | 触るときの規律 |
 |---|---|---|
-| `src/` | 実装 約4,500行 — `parse.ts` `parse-file.ts` (合成) `model.ts` `check.ts` `graph.ts` `light.ts` `site.ts` `plan.ts` `diff.ts` `cli.ts` `mcp.ts` `index.ts` | 実行時依存ゼロ。挙動を変えたら spec とテストを同じ変更で直す |
+| `src/` | 実装 約7,500行 — `parse.ts` `parse-file.ts` (合成) `model.ts` `poly.ts` (幾何の一枚岩) `check.ts` (診断。`checkDiagnostics` は19の節の列で、節の粒度は**走査単位**) `graph.ts` `vertical.ts` (縦動線) `fabric.ts` (床・天井・屋根) `light.ts` `site.ts` `plan.ts` `axo.ts` (軸測図) `diff.ts` `cli.ts` `mcp.ts` `index.ts` | 実行時依存ゼロ。挙動を変えたら spec とテストを同じ変更で直す |
 | `spec/` | **規範リファレンス** (現在形) — 文法・意味論・語彙台帳・正準JSON・ツール契約 | 追補を積まない。本文をその場で書き換える |
 | `guide/` | **学ぶ本** — チュートリアル・概念・how-to・診断事典・CLI/API | 規範を書かない。spec へリンクする |
-| `docs/decisions/` | **ADR** — なぜそう決めたか、何を棄却したか (0001〜0020) | 決定は追記のみ。覆すときは新しいADRを書く |
+| `docs/decisions/` | **ADR** — なぜそう決めたか、何を棄却したか (0001〜0026) | 決定は追記のみ。覆すときは新しいADRを書く |
 | `docs/` | `writing-architecture.md` (主張の本文)・`roadmap.md`・`horizon.md`・`ifc-coverage.md`・`log/`・`reviews/` | |
-| `examples/` | 同梱の建物 — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `comparison/`。`steps/` は guide/start.md の各段の到達点 | 触ったら `npm run check:examples` が門番 |
-| `test/` | `node --test` の20ファイル。206件が緑 | 保証はテストで固定する。仕様の文だけでは着地していない |
+| `examples/` | 同梱の建物 — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (縦動線の最小例) `complex/` (延床31,606㎡) `comparison/`。`steps/` は guide/start.md の各段の到達点 | 触ったら `npm run check:examples` が門番 |
+| `test/` | `node --test` の22ファイル。254件が緑 | 保証はテストで固定する。仕様の文だけでは着地していない |
 | `eval/` | エージェント編集evalのハーネス (`run.ts` `score.ts` `tasks/` `fixtures/`) | |
 
 ## コマンド
@@ -29,11 +29,12 @@ npx tsx src/cli.ts check examples/two-rooms.muro            # 整合の門番
 npx tsx src/cli.ts check bad.muro --json                    # 診断コードつき (人向け出力にコードは出ない)
 npx tsx src/cli.ts check bad.muro --strict                  # 警告も終了コード1
 npx tsx src/cli.ts plan  examples/office.muro -l L2 -o out/office-L2.svg
+npx tsx src/cli.ts axo   examples/complex/main.muro -o out/axo.svg   # 立体もSVGで出る (ADR-0026)
 npx tsx src/cli.ts doors examples/mansion.muro /L9/A/ldk /out
 npx tsx src/cli.ts json  examples/two-rooms.muro            # 正準JSON
 ```
 
-サブコマンドは `check` `diff` `plan` `doors` `graph` `stats` `levels` `light` `site` `json`。実際の出力つきの解説は [guide/cli.md](guide/cli.md)、契約は [spec/tools.md](spec/tools.md)。
+サブコマンドは `check` `diff` `plan` `axo` `doors` `graph` `stats` `levels` `runs` `light` `site` `json`。実際の出力つきの解説は [guide/cli.md](guide/cli.md)、契約は [spec/tools.md](spec/tools.md)。
 
 専用の `--help` は無い。引数を欠いた呼び出し (`--help` を含む) が使い方を印字して**終了コード2**を返す。使い方行は `plan` の `-l/-o` と `doors` の二つのパス引数を落としているので、そこは [guide/cli.md](guide/cli.md) を見る。
 
@@ -59,7 +60,8 @@ model_summary → layers → write_layer → check ──エラー──→ 直�
 3. **変更は三点セットで着地する — ADR (なぜ) + テスト (保証) + spec (現在形)。**どれかを欠いた変更は未完了である。
 4. **spec は現在形で、その場で書き換える。**日付や「追補」や「v0.9では〜」を積まない。版は git が持つ。
 5. **診断は必ずコードを持ち、severity はコードの属性である** ([ADR-0016](docs/decisions/0016-diagnostic-contract.md))。同じコードが場合によって error になったり warning になったりはしない。コードを足したら [spec/semantics.md](spec/semantics.md) の台帳と [guide/diagnostics.md](guide/diagnostics.md) の両方に載せる。
-6. **言語の意味論を変える変更は言語版を上げる** ([ADR-0017](docs/decisions/0017-language-versioning.md))。現行は `koyu 0.4`。移行はADRに書き、examples は最新版へ揃える。
+   **母集団は書かれた宣言、出所は必ず持つ、並びは走査の順** ([ADR-0028](docs/decisions/0028-diagnostics-per-declaration.md))。解釈される属性 (台帳の★) の値は検査する — 書いたのに解釈されなかった値を黙って既定へ落とさない。`checkDiagnostics` を触るときは節の粒度を走査単位に保つ (コードの族で割ると並びが崩れる)。
+6. **言語の意味論を変える変更は言語版を上げる** ([ADR-0017](docs/decisions/0017-language-versioning.md))。現行は `koyu 0.5`。移行はADRに書き、examples は最新版へ揃える。
 7. **語彙は台帳が契約である** ([ADR-0008](docs/decisions/0008-vocabulary-and-level-attr.md))。[spec/vocabulary.md](spec/vocabulary.md) に載っていない属性を実装が解釈してはならない。
 8. **実行時依存はゼロ。**devDependencies 以外を足さない。
 9. **例は最新の言語版で書く。**新しい記法を入れたら examples を追随させる — release test がこれを検査する。
@@ -67,7 +69,7 @@ model_summary → layers → write_layer → check ──エラー──→ 直�
 
 ## エラーに当たったら
 
-`check` の人間向け出力に診断コードは出ない。`--json` を付けるとコードが出る。コードから原因と直し方を引く表は [guide/diagnostics.md](guide/diagnostics.md) (全51コード)。規範の台帳 (コード・severity・概要) は [spec/semantics.md](spec/semantics.md)。
+`check` の人間向け出力に診断コードは出ない。`--json` を付けるとコードが出る。コードから原因と直し方を引く表は [guide/diagnostics.md](guide/diagnostics.md) (全68コード)。規範の台帳 (コード・severity・概要) は [spec/semantics.md](spec/semantics.md)。
 
 よく踏む罠は3つある。`grid` と `level` は使用より**前**に宣言しないと効かない (`boundary` は前方参照してよい)。空間を間取りに割るなら親は `space` ではなく `zone` にする。外部への開口は境界線分が複数になるので `edge:N/E/S/W` で辺を選ぶ (N=+Y, S=-Y, E=+X, W=-X)。詳細は [guide/howto/troubleshooting.md](guide/howto/troubleshooting.md)。
 

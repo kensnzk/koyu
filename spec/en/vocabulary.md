@@ -69,6 +69,20 @@ No `key:value` may be written — a band does not survive into the model, so the
 ### asset (an opening asset — ADR-0010)
 `asset <name> door|window <attributes…>` — a bundle of defaults to be referenced (Revit's Family, USD's Reference). It is not a fourth element; it only puts the source of an opening's attributes in one place. The kind must match the opening that references it. A duplicate name is an error, including across composition.
 
+### line (a drawn line — ADR-0022)
+`line <start> <end>`, indented under a boundary. Endpoints are pairs of grid words — `X3,Y1` / `X3+600,Y2-900` — and **neither raw coordinates nor angles can be written**. A drawn line gives the boundary its realisation as an act of design rather than as something derived from adjacency (★). It redistributes the union of the two spaces' declared cells across its two sides, so the area one loses the other gains. When one side has no region (the outside), it cuts the envelope instead: the side with a region is trimmed and nothing is gained. One line per boundary. On a diagonal segment an opening's `at:` can only be a 0..1 ratio, since a grid reference does not fix a unique position there.
+
+### column (ADR-0023)
+`column <size mm> <level range|level name> [attrs...]` — **no position is written**. Columns stand where grid lines cross and that level has floor (inside a space with a region that is neither `exterior` nor `void`) (★).
+
+| Attribute | Read | Meaning |
+|---|---|---|
+| d | ★ | Depth in mm for a rectangular section (defaults to the size, i.e. square) |
+| x / y | ★ | Restrict which grid lines carry columns (comma-separated; all by default) |
+| spec / … | — | Free |
+
+Two columns never stand at the same intersection — the earlier declaration wins. A column is neither a space nor a boundary, so it appears in no area total and in no graph.
+
 ### polygon (the site shape — ADR-0011)
 `polygon /<zone path> x,y x,y x,y ...` — given geometry, from a survey. It is the one written shape in this notation, and it corresponds to a `site:1` zone (its absence is a warning). Tools interpret (★) the derived area (by the shoelace formula), the containment check for the building, and the site boundary line on the site plan. The standard practice is a quarantined layer of its own, brought in by import.
 

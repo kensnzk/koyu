@@ -68,7 +68,7 @@ console.log(m.spaces.size, m.version, m.layers);
 ```
 
 ```text
-1 0.4 []
+1 0.5 []
 ```
 
 `model.layers` は合成に参加したレイヤーの一覧 (合成順、entry が先頭) である。`parse` は単一ソースなので空になる。
@@ -752,7 +752,7 @@ console.log(toCanonical(a).split("\n").slice(0, 6).join("\n"));
 
 ```text
 {
-  "koyu": "0.4",
+  "koyu": "0.5",
   "name": "二室",
   "unit": "mm",
   "grid": {
@@ -913,7 +913,7 @@ console.log(SUPPORTED_LANGUAGE_VERSIONS, DEFAULT_LANGUAGE_VERSION);
 ```
 
 ```text
-[ '0.1', '0.2', '0.3', '0.4' ] 0.4
+[ '0.1', '0.2', '0.3', '0.4', '0.5' ] 0.5
 ```
 
 ## 型

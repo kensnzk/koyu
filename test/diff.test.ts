@@ -186,24 +186,70 @@ test("diff: grid座標の移動は出力の先頭に出て、面積差分の原�
   assert.ok(lines.some((l) => l.includes("面積 16.20㎡ → 18.90㎡")));
 });
 
-test("diff: polygonは巡回正規化 (回転・反転) で比べ、差分は頂点数と面積で報告する", () => {
+test("diff: polygonは巡回正規化 (回転・反転) で比べ、本文は変わった項だけを言う", () => {
   const site = `zone /site site:1`;
   const a = parse(`${BASE}\n${site}\npolygon /site 0,0 10000,0 10000,10000 0,10000`);
   const rotated = parse(`${BASE}\n${site}\npolygon /site 10000,0 10000,10000 0,10000 0,0`);
   const reversed = parse(`${BASE}\n${site}\npolygon /site 0,10000 10000,10000 10000,0 0,0`);
   assert.deepEqual(semanticDiff(a, rotated).polygons.changed, []);
   assert.deepEqual(semanticDiff(a, reversed).polygons.changed, []);
+  // 面積だけが変わったなら面積だけを言う — 「頂点 4 → 4」は何も伝えない
   const grown = parse(`${BASE}\n${site}\npolygon /site 0,0 12000,0 12000,10000 0,10000`);
-  const d = semanticDiff(a, grown);
-  assert.deepEqual(d.polygons.changed, [
-    {
-      path: "/site",
-      fields: [
-        { field: "頂点", from: "4", to: "4" },
-        { field: "面積", from: "100.00㎡", to: "120.00㎡" },
-      ],
-    },
+  assert.deepEqual(semanticDiff(a, grown).polygons.changed, [
+    { path: "/site", fields: [{ field: "面積", from: "100.00㎡", to: "120.00㎡" }] },
   ]);
+  // 頂点数も面積も同じまま形が変わることはある — そのときは黙らずにそう言う
+  const sheared = parse(`${BASE}\n${site}\npolygon /site 0,0 10000,0 12000,10000 2000,10000`);
+  assert.deepEqual(semanticDiff(a, sheared).polygons.changed, [
+    { path: "/site", fields: [{ field: "形", from: "頂点数も面積も同じ", to: "頂点の位置が違う" }] },
+  ]);
+});
+
+test("diff: 0.5 の三語 — 柱・描かれた線・地下は差分に出る (ADR-0029)", () => {
+  const B = ["koyu 0.5", "unit mm", "grid X 0 4000 8000", "grid Y 0 3000", "level L1 0 h:2700"].join("\n");
+
+  // 柱: 宣言そのものを比べる。位置は書かれないので、比べるものは宣言しかない
+  const noCol = parse(`${B}\nspace /L1/a room X1..X3 Y1..Y2`);
+  const withCol = parse(`${B}\nspace /L1/a room X1..X3 Y1..Y2\ncolumn 800 L1 x:X2`);
+  assert.deepEqual(semanticDiff(noCol, withCol).columns.added, [{ at: 1, label: "800角 L1 x:X2" }]);
+  assert.deepEqual(renderDiff(semanticDiff(withCol, noCol)), ["− 柱 800角 L1 x:X2"]);
+
+  // **宣言順は意味である** (同じ交点は先の宣言が勝つ) — 入れ替えは順位の差分になる
+  const two = (first: string, second: string) =>
+    parse(`${B}\nspace /L1/a room X1..X3 Y1..Y2\ncolumn ${first}\ncolumn ${second}`);
+  const d = semanticDiff(two("900 L1 x:X2", "500 L1"), two("500 L1", "900 L1 x:X2"));
+  assert.deepEqual(d.columns.changed.map((c) => [c.path, c.fields[0]!.from, c.fields[0]!.to]), [
+    ["900角 L1 x:X2", "1", "2"],
+    ["500角 L1", "2", "1"],
+  ]);
+
+  // 描かれた線: 面積が変わらない移動 (隅切りを反対の隅へ) でも見える
+  const line = (spell: string) =>
+    parse(`${B}\nspace /L1/a room X1..X2 Y1..Y2\nspace /out exterior\nboundary /L1/a /out edge:S t:120\n  line ${spell}`);
+  const moved = semanticDiff(line("X1+1000,Y1 X1,Y1+1000"), line("X2-1000,Y1 X2,Y1+1000"));
+  assert.equal(moved.boundaries.changed.length, 1);
+  assert.deepEqual(moved.boundaries.changed[0]!.fields, [
+    { field: "line", from: "X1,Y1+1000..X1+1000,Y1", to: "X2-1000,Y1..X2,Y1+1000" },
+  ]);
+  // 端点の書き順は図形を変えない — 差分にもならない
+  assertEmpty(semanticDiff(line("X1+1000,Y1 X1,Y1+1000"), line("X1,Y1+1000 X1+1000,Y1")));
+
+  // 地下: 集計と矩計が読む宣言なので、付け外しは差分である
+  const lv = (extra: string) => parse(`${B.replace("level L1 0 h:2700", `level L1 0 h:2700${extra}`)}\nspace /L1/a room X1..X2 Y1..Y2`);
+  assert.deepEqual(semanticDiff(lv(""), lv(" underground:1")).levels.changed, [
+    { path: "L1", fields: [{ field: "underground", from: "—", to: "1" }] },
+  ]);
+});
+
+test("正準JSON: 柱の宣言順は保たれ、通り名の並びは正準化される (ADR-0029)", () => {
+  const B = ["koyu 0.5", "unit mm", "grid X 0 4000 8000", "grid Y 0 4000", "level L1 0 h:3000"].join("\n");
+  const two = (first: string, second: string) =>
+    parse(`${B}\nspace /L1/a room X1..X3 Y1..Y2\ncolumn ${first}\ncolumn ${second}`);
+  // **順序は意味なので消さない** — 消すと別の建物が同一バイトになる
+  assert.notEqual(toCanonical(two("900 L1 x:X2", "500 L1")), toCanonical(two("500 L1", "900 L1 x:X2")));
+  // 一方、通り名の列に順序の意味は無い — 正準化してバイトを揃える
+  const names = (spell: string) => parse(`${B}\nspace /L1/a room X1..X3 Y1..Y2\ncolumn 800 L1 ${spell}`);
+  assert.equal(toCanonical(names("x:X1,X2 y:Y1,Y2")), toCanonical(names("x:X2,X1 y:Y2,Y1")));
 });
 
 test("diff: version・nameの変化", () => {

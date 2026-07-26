@@ -1,0 +1,40 @@
+# 地下2層 — 駐車場・機械室・荷捌き。折返し斜路一本で地上へ。
+#
+# 地下であることは level の underground:1 が言う (ADR-0022)。zの負値からは推定しない —
+# 地盤面は敷地の事実であって、座標系の原点の事実ではないからである。
+# 土に接する壁は spec 語彙が運ぶ (spec:RC土圧壁)。境界の型は増やさない — 物の名は spec である。
+# 採光は daylight:1 を書いた室にしか掛からないので、地下は自動的に判定の外にある。
+
+space /B2..B1/ramp ramp X1..X4 Y1..Y1+7000 name:車路 use:parking ramp:E form:return slope:6
+space /B2..B1/park parking X4..X8 Y1..Y1+7000 + X1..X8 Y1+7000..Y4-3200 name:駐車場 use:parking
+space /B2..B1/mech machine X1..X4 Y4-3200..Y5 name:機械室 use:common
+space /B2..B1/store backyard X7..X8 Y4-3200..Y5 name:荷捌き・倉庫 use:common
+
+boundary /B2..B1/park /B2..B1/ramp type:open
+boundary /B2..B1/park /B2..B1/mech t:250 spec:RC
+  door MD1 edge:N
+boundary /B2..B1/park /B2..B1/store t:250 spec:RC
+  door GD1 edge:N
+boundary /B2..B1/park /B2..B1/hall t:250 spec:RC
+  door FD2 edge:N name:駐車場からEVホールへ
+boundary /B2..B1/mech /B2..B1/ps t:250 spec:RC
+boundary /B2..B1/store /B2..B1/st2 t:250 spec:RC
+
+# 外周は土。境界の型ではなく spec の値が「何であるか」を運ぶ
+boundary /B2..B1/ramp /out edge:S t:600 spec:RC土圧壁
+boundary /B2..B1/ramp /out edge:W t:600 spec:RC土圧壁
+boundary /B2..B1/park /out edge:S t:600 spec:RC土圧壁
+boundary /B2..B1/park /out edge:E t:600 spec:RC土圧壁
+boundary /B2..B1/park /out edge:W t:600 spec:RC土圧壁
+boundary /B2..B1/mech /out edge:W t:600 spec:RC土圧壁
+boundary /B2..B1/mech /out edge:N t:600 spec:RC土圧壁
+boundary /B2..B1/store /out edge:E t:600 spec:RC土圧壁
+boundary /B2..B1/store /out edge:N t:600 spec:RC土圧壁
+boundary /B2..B1/ps /out edge:N t:600 spec:RC土圧壁
+boundary /B2..B1/tea /out edge:N t:600 spec:RC土圧壁
+boundary /B2..B1/st1 /out edge:N t:600 spec:RC土圧壁
+boundary /B2..B1/ev1 /out edge:N t:600 spec:RC土圧壁
+boundary /B2..B1/ev2 /out edge:N t:600 spec:RC土圧壁
+boundary /B2..B1/wcm /out edge:N t:600 spec:RC土圧壁
+boundary /B2..B1/wcw /out edge:N t:600 spec:RC土圧壁
+boundary /B2..B1/st2 /out edge:N t:600 spec:RC土圧壁

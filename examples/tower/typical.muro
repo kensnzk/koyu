@@ -79,16 +79,23 @@ boundary /L3..L10/F /L3..L10/ev t:180 spec:RC
 boundary /L3..L10/F /L3..L10/st1 t:180 spec:RC
 
 # ---- バルコニー (L4..L10): サッシは窓、外は手すり (air:1)、隣とは隔て板 ----
+#
+# 掃き出しサッシは**引違い部 (door) と FIX部 (window) に分けて書く**。
+# koyu の開口は通行 (door) か採光 (window) のどちらかで、一つの開口が両方を担うとは
+# 言えない — 「窓しか無いバルコニーには出られない」が導出の答えになる (docs/horizon.md)。
 boundary /L4..L10/A/ldk /L4..L10/bA t:100 spec:サッシ
-  window W1 at:X2 name:掃き出し
+  door BD1 at:X2+2400 name:掃き出し引違い
+  window W1 at:X2 name:掃き出しFIX
   window W3 at:X2+4800
 boundary /L4..L10/A/bed2 /L4..L10/bA t:100 spec:サッシ
   window W2
 boundary /L4..L10/B /L4..L10/bB t:100 spec:サッシ
+  door BD1 at:X4+2400 name:掃き出し引違い
   window W1 at:X3+1600
   window W1 at:X4-1600
   window W2 at:X4+800
 boundary /L4..L10/C /L4..L10/bC t:100 spec:サッシ
+  door BD1 at:X4+4400 name:掃き出し引違い
   window W1 at:X5
   window W1 at:X5+3200
 boundary /L4..L10/bA /L4..L10/bB t:60 spec:隔て板 air:1

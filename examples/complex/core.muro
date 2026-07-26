@@ -1,0 +1,40 @@
+# コア — 地下2階から19階まで、2階段・2EVバンク・便所・PS・給湯室。
+#
+# **21レベル分のコアが11行で書かれる。** これがレベルスパン (/B2..L19/) の効き目であり、
+# 「同じものを一度だけ書く」が規模に対して線形に効かないことの実演である。
+# コアは基準階の約20% — 丸の内級の高層複合建築の実比率に寄せた (新丸の内ビルの
+# 基準階3,126㎡に対しコアはおおむね2割)。細いコアは平面図では成立して見えるが、
+# 便所もPSも給湯も入らないので、建物としては嘘になる。
+#
+# **EVホールが幅いっぱいに通り、階段も便所も給湯室もPSも、すべてホールから直接開く。**
+# 便所を給湯室から入る、階段をPSから入る、といった割付は平面としては閉じていても
+# 建物としては成立しない — 導出された図がそれを露わにした。
+#
+# 階段の段割りは階ごとに違う — 階高が違うからである。同じ大きさの階段室に、
+# 基壇では37段、事務所では24段、ホテルでは19段が入る。踏面は300mmに揃い、
+# 余りが踊り場になる。段数も踏面も踊り場も、ここには書かれていない (ADR-0021)。
+
+space /B2..L19/ps shaft X4..X4+1400 Y4..Y5 name:PS・EPS use:common
+space /B2..L19/st1 stair X4+1400..X4+4100 Y4..Y5 name:階段1 use:common stair:N form:return
+space /B2..L19/ev1 shaft X4+4100..X4+8900 Y4..Y5 name:EVバンク1 use:common lift:1
+space /B2..L19/ev2 shaft X4+8900..X4+13700 Y4..Y5 name:EVバンク2 use:common lift:1
+space /B2..L19/wcm service X4+13700..X4+16900 Y4..Y5 name:男子便所 use:common
+space /B2..L19/wcw service X4+16900..X4+19900 Y4..Y5 name:女子便所 use:common
+space /B2..L19/tea service X4+19900..X4+21300 Y4..Y5 name:給湯室 use:common
+space /B2..L19/st2 stair X4+21300..X7 Y4..Y5 name:階段2 use:common stair:N form:return
+space /B2..L19/hall corridor X4..X7 Y4-3200..Y4 name:EVホール use:common
+
+boundary /B2..L19/hall /B2..L19/ps t:250 spec:RC
+  door w:700 name:PS点検口
+boundary /B2..L19/hall /B2..L19/st1 t:250 spec:RC
+  door FD1 name:階段1防火戸
+boundary /B2..L19/hall /B2..L19/ev1 t:250 spec:RC
+boundary /B2..L19/hall /B2..L19/ev2 t:250 spec:RC
+boundary /B2..L19/hall /B2..L19/wcm t:180 spec:LGS
+  door w:900 name:男子便所入口
+boundary /B2..L19/hall /B2..L19/wcw t:180 spec:LGS
+  door w:900 name:女子便所入口
+boundary /B2..L19/hall /B2..L19/tea t:180 spec:LGS
+  door w:900 name:給湯室入口
+boundary /B2..L19/hall /B2..L19/st2 t:250 spec:RC
+  door FD1 name:階段2防火戸

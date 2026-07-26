@@ -1,0 +1,84 @@
+# 地下2層＋駐車場斜路 — 建物ですらないものを書いて縦動線の記法を決める
+# 二室一扉と同じ精神。地下2層・駐車場・折返し斜路一本・階段・EV・地上への出口だけ。
+#   koyu check examples/basement/main.muro   が門番
+#   koyu runs  examples/basement/main.muro   が段数・踏面・勾配を答える
+#
+# 段数も踏面も勾配も、この原本のどこにも書かれていない。書かれているのは
+# 「どこに・どれだけの大きさで・どちらへ上るか」だけで、あとは規則が形を出す (ADR-0021)。
+#   * 斜路は空間である。面積を持ち、通行でき、避難経路になる — 接続だけにすると集計から落ちる。
+#   * 勾配は書かない。レベル差 ÷ 導出された走り長で決まる。slope: は上限の宣言で、検査に使われる。
+#   * 螺旋は書かない。折返し (form:return) の連続として書く。曲線は導入しない。
+#   * 地下は level の underground:1 という宣言。zの負値からは推定しない (ADR-0022)。
+#   * 土に接する壁は spec 語彙 (spec:RC土圧壁)。境界の型は増やさない — 物の名は spec である。
+
+koyu 0.5
+name 地下駐車場 — 縦動線の最小例
+unit mm
+
+grid X 0 8000 16000 25000 34000
+grid Y 0 7000 16000
+
+asset FD1 door w:900 h:2000 style:hinged fire:特定防火設備 name:防火戸
+
+level B2 -7400 h:2600 slab:800 underground:1
+level B1 -3700 h:2600 slab:800 underground:1
+level L1 0 h:4000 slab:900
+level R 4900 slab:500
+
+column 800 B2..L1
+
+# ---- 地下2層 (同じ割付を一度だけ書く) ----
+space /B2..B1/park parking X1..X3 Y1..Y3 name:駐車場 use:parking
+space /B2..B1/ramp ramp X3..X5 Y1..Y2 name:車路 use:parking ramp:E form:return slope:6
+space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 use:common stair:N form:return
+space /B2..B1/ev shaft X3+2600..X3+5200 Y2..Y2+5400 name:EV use:common lift:1
+space /B2..B1/mech machine X3+5200..X5 Y2..Y3 + X3..X3+5200 Y2+5400..Y3 name:機械室 use:common
+
+boundary /B2..B1/park /B2..B1/ramp type:open
+boundary /B2..B1/park /B2..B1/st t:250 spec:RC
+  door FD1 name:階段防火戸
+boundary /B2..B1/park /B2..B1/mech t:250 spec:RC
+  door w:1200 edge:E
+boundary /B2..B1/ramp /B2..B1/st t:250 spec:RC
+boundary /B2..B1/ramp /B2..B1/ev t:250 spec:RC
+boundary /B2..B1/ramp /B2..B1/mech t:250 spec:RC
+boundary /B2..B1/st /B2..B1/ev t:250 spec:RC
+boundary /B2..B1/st /B2..B1/mech t:250 spec:RC
+boundary /B2..B1/ev /B2..B1/mech t:250 spec:RC
+
+# 外周は土。物の名は spec 語彙が運ぶ (境界の型を増やさない)
+space /out exterior name:外部
+space /road exterior road:12000 name:前面道路
+
+boundary /B2..B1/park /out edge:W t:500 spec:RC土圧壁
+boundary /B2..B1/park /out edge:S t:500 spec:RC土圧壁
+boundary /B2..B1/park /out edge:N t:500 spec:RC土圧壁
+boundary /B2..B1/ramp /out edge:S t:500 spec:RC土圧壁
+boundary /B2..B1/ramp /out edge:E t:500 spec:RC土圧壁
+boundary /B2..B1/mech /out edge:N t:500 spec:RC土圧壁
+boundary /B2..B1/mech /out edge:E t:500 spec:RC土圧壁
+
+# ---- 1F: 車路の出口と階段の出口だけ ----
+space /L1/ramp parking X3..X5 Y1..Y2 name:車路出口 use:parking
+space /L1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段1F use:common
+space /L1/ev shaft X3+2600..X3+5200 Y2..Y2+5400 name:EV use:common lift:1
+
+boundary /L1/ramp /L1/st t:250 spec:RC
+  door FD1 name:階段防火戸
+boundary /L1/ramp /L1/ev t:250 spec:RC
+boundary /L1/st /L1/ev t:250 spec:RC
+boundary /L1/ramp /road edge:E t:200 spec:RC
+boundary /L1/ramp /out edge:S t:200 spec:RC
+boundary /L1/ramp /out edge:N t:200 spec:RC
+boundary /L1/ramp /out edge:W t:200 spec:RC
+boundary /L1/ev /out edge:E t:200 spec:RC
+boundary /L1/st /out edge:W t:200 spec:RC
+  door FD1 name:屋外への出口
+boundary /L1/st /out edge:N t:200 spec:RC
+boundary /L1/ev /out edge:N t:200 spec:RC
+
+# ---- 垂直: 階を跨ぐ関係 ----
+# 斜路も階段も「レベル間を通れる」という一つの関係。装置の違いは形の生成規則の違いにすぎない
+stack ramp B2..L1 type:stair
+stack st B2..L1 type:stair
+stack ev B2..L1 type:shaft

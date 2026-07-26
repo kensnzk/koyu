@@ -10,7 +10,9 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check, checkDiagnostics, DIAGNOSTIC_CODES, type Diagnostic } from "../src/check.js";
-import { srcRef } from "../src/model.js";
+import { areaM2, isIndoor, srcRef } from "../src/model.js";
+import { siteReport } from "../src/site.js";
+import { parseFile } from "../src/parse-file.js";
 import { parse, parseFiles } from "../src/parse.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -26,6 +28,201 @@ const BASE = [
 /** 互換層と同じ組み立て — 位置があれば接頭辞、なければ本文のみ */
 const fmt = (d: Diagnostic): string =>
   d.line !== undefined ? `${srcRef(d.line, d.file)}: ${d.message}` : d.message;
+
+// ---- (a0) 診断の母集団は書かれた宣言である (ADR-0028) ----
+
+/** 出所を持たないと決めた診断。これ以外は必ず line を持つ */
+const NO_SOURCE = new Set(["UID03", "VER01"]);
+
+test("出所: 書かれた宣言に対する診断は必ず line/file を持つ (例外は台帳の2件だけ)", () => {
+  // guide/diagnostics.md の全例を走らせ、出所の無い診断を洗う。
+  // かつては error 5件を含む8コードが位置を持たず、人向け出力から接頭辞が消えていた
+  const md = readFileSync(join(root, "guide/diagnostics.md"), "utf8");
+  const blocks = [...md.matchAll(/```muro-(?:bad|warn)\n([\s\S]*?)```/g)].map((m) => m[1]!);
+  assert.ok(blocks.length > 40, `例が少なすぎる: ${blocks.length}`);
+  const missing = new Map<string, string>();
+  for (const src of blocks) {
+    let diags: Diagnostic[];
+    try {
+      diags = checkDiagnostics(parse(src));
+    } catch {
+      continue; // muro-bad の構文エラーは SourceError — 診断の話ではない
+    }
+    for (const d of diags) {
+      if (d.line === undefined && !NO_SOURCE.has(d.code)) missing.set(d.code, d.message);
+    }
+  }
+  assert.deepEqual([...missing.keys()].sort(), [], `出所の無い診断: ${[...missing].map(([c, m]) => `${c} ${m}`).join(" / ")}`);
+});
+
+test("値: 解釈される属性の綴り誤りは、黙って既定へ落ちずエラーになる (ATT01/ATT02)", () => {
+  // h:35OO は数字の0でなく英字のO。かつては高さ不変量 (HGT01 error) が丸ごと消えていた
+  const typo = parse(`koyu 0.5
+grid X 0 3600
+grid Y 0 4000
+level L1 0 h:2400 slab:300
+level L2 3000 h:2400 slab:300
+space /L1/a room X1..X2 Y1..Y2 h:35OO
+space /L2/a room X1..X2 Y1..Y2`);
+  const d = checkDiagnostics(typo).filter((x) => x.code === "ATT01");
+  assert.equal(d.length, 1);
+  assert.equal(d[0]!.line, 6);
+  assert.deepEqual(d[0]!.path, ["/L1/a"]);
+
+  // 正しく書けば、同じ入力が本来の検査 (HGT01) に届く
+  const ok = parse(`koyu 0.5
+grid X 0 3600
+grid Y 0 4000
+level L1 0 h:2400 slab:300
+level L2 3000 h:2400 slab:300
+space /L1/a room X1..X2 Y1..Y2 h:3500
+space /L2/a room X1..X2 Y1..Y2`);
+  const h = checkDiagnostics(ok);
+  assert.deepEqual(h.map((x) => x.code), ["HGT01"]);
+  assert.equal(h[0]!.line, 6, "HGT01 も出所を持つ");
+
+  // 語彙の側 — ceiling は 0/1、turn は R/L
+  const enums = parse(`${BASE}
+space /L1/a room X1..X2 Y1..Y2 ceiling:none`);
+  const e = checkDiagnostics(enums).filter((x) => x.code === "ATT02");
+  assert.equal(e.length, 1);
+  assert.match(e[0]!.message, /ceiling は 0 \/ 1/);
+});
+
+test("値: site の綴り誤りは敷地の検査 (SIT03 error) を無効にしていた", () => {
+  const src = (v: string) => `koyu 0.5
+grid X 0 20000
+grid Y 0 20000
+level L1 0 h:2400
+zone /site name:敷地 site:${v}
+polygon /site 0,0 5000,0 5000,5000 0,5000
+space /L1/big room X1..X2 Y1..Y2`;
+  // 正しく書けば、建物が敷地からはみ出していることが error として出る
+  assert.ok(checkDiagnostics(parse(src("1"))).some((d) => d.code === "SIT03"));
+  // 綴りを誤ると SIT03 は走らない — だからその綴り自体をエラーにする
+  const typo = checkDiagnostics(parse(src("yes")));
+  assert.equal(typo.filter((d) => d.code === "SIT03").length, 0);
+  assert.ok(typo.some((d) => d.code === "ATT02"), "黙って緑にはならない");
+});
+
+test("母集団: 一本も立たない柱の宣言は、同じ階の別の宣言の成功に隠れない (COL01)", () => {
+  const m = parse(`koyu 0.5
+grid X 0 6000 12000
+grid Y 0 6000
+level L1 0 h:2400
+space /L1/a room X1..X2 Y1..Y2
+column 800 L1 x:X1,X2
+column 700 L1 x:X3`);
+  // 二本目は X3 (床の外) を指すので一本も立たない。一本目が立っていても隠れない
+  const col = checkDiagnostics(m).filter((d) => d.code === "COL01");
+  assert.equal(col.length, 1);
+  assert.equal(col[0]!.line, 7, "咎めているのは二本目の宣言の行");
+});
+
+test("母集団: 先の宣言に交点を取られた柱は COL01 ではなく COL02 (直す手が違う)", () => {
+  const m = parse(`koyu 0.5
+grid X 0 6000
+grid Y 0 6000
+level L1 0 h:2400
+space /L1/a room X1..X2 Y1..Y2
+column 800 L1
+column 700 L1`);
+  const d = checkDiagnostics(m);
+  assert.deepEqual(d.filter((x) => x.code === "COL01"), []);
+  const col2 = d.filter((x) => x.code === "COL02");
+  assert.equal(col2.length, 1);
+  assert.equal(col2[0]!.line, 7);
+  assert.equal(col2[0]!.related?.[0]?.line, 6, "影を作った宣言が related に載る");
+});
+
+test("母集団: 開口を咎める診断は開口ごとに、その行を指して出る (VRT05)", () => {
+  const m = parse(`koyu 0.5
+grid X 0 3600
+grid Y 0 4000
+level L1 0 h:2400 slab:300
+level L2 3000 h:2400 slab:300
+space /L1/s stair X1..X2 Y1..Y2
+space /L2/s stair X1..X2 Y1..Y2
+boundary /L1/s /L2/s type:stair
+  door w:800
+  door w:900`);
+  const d = checkDiagnostics(m).filter((x) => x.code === "VRT05");
+  assert.equal(d.length, 2, "扉二枚なら二件");
+  assert.deepEqual(d.map((x) => x.line), [9, 10], "親の境界行ではなく当の door の行");
+});
+
+test("メッセージ: 接しているのに edge を取り違えたとき、割付へ誤誘導しない (BND04)", () => {
+  // 東西に並ぶ二室の共有辺は E/W。edge:N を書いても「接していない」は事実に反する
+  const m = parse(`${BASE}
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+boundary /L1/a /L1/b edge:N`);
+  const d = checkDiagnostics(m).filter((x) => x.code === "BND04");
+  assert.equal(d.length, 1);
+  assert.match(d[0]!.message, /edge:N に共有辺がありません/);
+  assert.match(d[0]!.message, /実際に接しているのは E/);
+});
+
+test("母集団: 「延べ面積」は一箇所が答える — stats と site と MCP がずれない", () => {
+  const m = parseFile(join(root, "examples/complex/main.muro"));
+  const indoor = [...m.spaces.values()].filter((s) => s.level && isIndoor(m, s));
+  const total = indoor.reduce((a, s) => a + (areaM2(s) ?? 0), 0);
+  // かつては CLI stats だけが exterior を屋内床に数え、site と 160㎡ 食い違っていた
+  assert.equal(Math.round(total * 100) / 100, siteReport(m).totalFloor);
+  assert.ok(
+    [...m.spaces.values()].some((s) => s.type === "exterior" && s.rects.length > 0),
+    "外部の領域を持つ例で試している",
+  );
+});
+
+test("順序: 診断の並びは走査の順序である — 一つの境界が出す複数のコードは離れない", () => {
+  // **並びは契約である。**互換層は診断を出た順に文字列へ写す。
+  // ここで効く模型は「一本の境界が複数のコードを出す」もの — 15行目の境界は
+  // BND04・OPN04・SEG04 を続けて出す。checkDiagnostics を**コード族**で節に割ると
+  // この三つが他の境界の診断で分断され、並びが崩れる。走査単位で割れば崩れない。
+  const m = parse(`koyu 0.5
+grid X 0 3600 7200 10800
+grid Y 0 4000 8000
+level L1 0 h:2400 slab:300
+level L2 3000 h:2400 slab:300
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+space /L1/far room X3..X4 Y2..Y3
+space /L2/a room X1..X2 Y1..Y2
+space /out exterior
+boundary /L1/a /L1/b t:120
+  door w:900 at:0.4
+  door w:900 at:0.5
+boundary /L1/a /L1/b edge:E t:120
+boundary /L1/a /L1/far t:120
+  door w:900
+  seg w:600 spec:GL
+boundary /L1/a /L2/a t:120
+  door w:900
+  seg w:600
+boundary /L1/a /out type:void
+  door w:900
+  seg w:600
+boundary /L1/b /out kind:open
+  door w:900
+  seg w:600`);
+  assert.deepEqual(
+    checkDiagnostics(m).map((d) => [d.code, d.line]),
+    [
+      ["BND05", 11], // 境界の同一性 (edge限定の混在)
+      ["ENV01", 6], // 外皮の穴
+      ["ENV01", 8],
+      ["OPN02", 13], // ここから境界の妥当性 — 境界の宣言順に、境界ごとに固まって出る
+      ["BND04", 15],
+      ["OPN04", 16],
+      ["SEG04", 17],
+      ["BND03", 18],
+      ["VRT01", 21],
+      ["OPN05", 25],
+      ["SEG05", 26],
+    ],
+  );
+});
 
 // ---- (a) 主要コードの発火 ----
 
@@ -163,6 +360,18 @@ test("台帳: DIAGNOSTIC_CODESとsemantics.md §5の表が集合一致し、BND0
   // 廃止コードは台帳から消えるが、specに墓標が残る
   assert.match(spec, /\| BND07 \| — \| 欠番/);
   assert.equal("BND07" in DIAGNOSTIC_CODES, false);
+});
+
+test("台帳: 英訳の §5 の表も実装と集合一致する (訳の欠落は黙って溜まる)", () => {
+  // 訳の同期テストは見出しとコードブロックしか見ないので、**表の行が17本落ちても緑だった**。
+  // 台帳は三者 (実装・spec・spec/en) が一致して初めて契約である (ADR-0016)
+  const en = readFileSync(join(root, "spec/en/semantics.md"), "utf8");
+  const table: Record<string, string> = {};
+  for (const m of en.matchAll(/^\| ([A-Z]{3}\d{2}) \| (error|warning) \|/gm)) {
+    table[m[1]!] = m[2]!;
+  }
+  assert.deepEqual(table, DIAGNOSTIC_CODES);
+  assert.match(en, /\| BND07 \| — \|/);
 });
 
 // ---- (d)(e) CLI: --json / --strict ----

@@ -10,12 +10,14 @@ import { mkdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import {
   areaM2,
+  isIndoor,
   daylight,
   displayName,
   doorsBetween,
   effectiveUse,
   isSemiOutdoor,
   levelsSorted,
+  polygonAreaM2,
   toCanonical,
   zoneAreaM2,
   type Model,
@@ -47,9 +49,7 @@ function assertInside(entryDir: string, targetDir: string): void {
 
 function summarize(model: Model, file: string): unknown {
   const rooms = [...model.spaces.values()].filter((s) => s.rects.length > 0 && s.level);
-  const indoor = rooms.filter(
-    (s) => s.type !== "void" && s.type !== "exterior" && !isSemiOutdoor(model, s),
-  );
+  const indoor = rooms.filter((s) => isIndoor(model, s));
   const semi = rooms.filter((s) => s.type !== "void" && isSemiOutdoor(model, s));
   const byLevel: Record<string, { rooms: number; subtotalM2: number }> = {};
   for (const lv of levelsSorted(model)) {
@@ -78,11 +78,18 @@ function summarize(model: Model, file: string): unknown {
     })),
     spaces: model.spaces.size,
     boundaries: model.boundaries.length,
-    zones: [...model.zones.values()].map((z) => ({
-      path: z.path,
-      ...(typeof z.attrs["name"] === "string" ? { name: z.attrs["name"] } : {}),
-      areaM2: zoneAreaM2(model, z.path),
-    })),
+    // 敷地ゾーンに「専有床面積」の言葉は成り立たない — 敷地形状から導いた面積を返す
+    // (同じ敷地について 160 と 3854 の二つの数字が返る、という状態を作らない。ADR-0028)
+    zones: [...model.zones.values()].map((z) => {
+      const site = z.attrs["site"] === 1;
+      const poly = site ? model.polygons.get(z.path) : undefined;
+      return {
+        path: z.path,
+        ...(typeof z.attrs["name"] === "string" ? { name: z.attrs["name"] } : {}),
+        ...(site ? { site: true } : {}),
+        areaM2: poly ? polygonAreaM2(poly.points) : zoneAreaM2(model, z.path),
+      };
+    }),
     assets: [...model.assets.values()].map((a) => ({ name: a.name, kind: a.kind, attrs: a.attrs })),
     ...(model.polygons.size
       ? { sitePolygons: [...model.polygons.keys()] }
@@ -320,7 +327,7 @@ function handle(msg: Json): void {
       result(id, {
         protocolVersion: (params.protocolVersion as string) ?? "2025-06-18",
         capabilities: { tools: {} },
-        serverInfo: { name: "koyu", version: "0.11.0" },
+        serverInfo: { name: "koyu", version: "0.13.0" },
         instructions:
           "空間一次の建築記述koyuのサーバー。model_summaryで建物を掴み、layersで原本 (.muroレイヤー群) を読み、" +
           "write_layerで編集する。checkが一棟のビルドの門番 — エラーは出所レイヤー:行つきで返る。" +
