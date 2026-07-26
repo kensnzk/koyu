@@ -16,6 +16,7 @@ export {
   type BoundaryChange,
 } from "./diff.js";
 export { daylight, type DaylightResult } from "./light.js";
+export { slabs, type Slab, type SlabKind } from "./fabric.js";
 export {
   verticalRuns,
   verticalRun,

@@ -5,7 +5,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { check } from "../src/check.js";
 import { doorsBetween, segmentsFor } from "../src/graph.js";
-import { areaM2, columnsFor } from "../src/model.js";
+import { areaM2, columnsFor, polyBounds } from "../src/model.js";
+import { slabs } from "../src/fabric.js";
 import { parse } from "../src/parse.js";
 import { runDrawsForLevel, runSolids, verticalRuns } from "../src/vertical.js";
 
@@ -258,4 +259,52 @@ column 600 L2
 `);
   assert.equal(columnsFor(m, "L1").length, 2); // X2 × Y1,Y2
   assert.ok(check(m).warnings.some((w) => w.includes("立つ柱がありません")));
+});
+
+// ---- 面の要素 (ADR-0024) ----
+
+test("面: 床・天井・屋根は語彙を持たず slab と h から現れる", () => {
+  const m = parse(`koyu 0.5
+grid X 0 8000 16000
+grid Y 0 8000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+level R 6000 slab:400
+space /L1/a room X1..X3 Y1..Y2
+space /L2/b room X1..X2 Y1..Y2
+`);
+  const all = slabs(m);
+  const of = (k: string, path: string) => all.filter((s) => s.kind === k && s.space === path);
+  // 床は階のFLの下へ slab ぶん下がる
+  assert.deepEqual(of("floor", "/L1/a").map((s) => [s.z0, s.z1]), [[-300, 0]]);
+  // 天井は h の位置に張られる
+  assert.equal(of("ceiling", "/L1/a").length, 1);
+  assert.equal(of("ceiling", "/L1/a")[0]!.z1, 2700);
+  // 屋根: /L1/a は上階 /L2/b に半分だけ覆われるので、覆われていない側にだけ架かる
+  const roof = of("roof", "/L1/a");
+  assert.equal(roof.length, 1);
+  assert.deepEqual(polyBounds(roof[0]!.outline), { x1: 8000, x2: 16000, y1: 0, y2: 8000 });
+  // 最上階は全面に屋根 (上階レベル R の slab を厚みに使う)
+  assert.deepEqual(of("roof", "/L2/b").map((s) => [s.z0, s.z1]), [[5600, 6000]]);
+});
+
+test("面: 吹抜けに床は無く、縦動線に天井は無く、ceiling:0 は現し天井", () => {
+  const m = parse(`koyu 0.5
+grid X 0 3000 6000 9000
+grid Y 0 8000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/a room X1..X2 Y1..Y2 ceiling:0
+space /L1/s stair X2..X3 Y1..Y1+7000 stair:N
+space /L2/s stair X2..X3 Y1..Y1+7000
+space /L2/v void X1..X2 Y1..Y2
+boundary /L1/a /L2/v type:void
+stack s L1..L2 type:stair
+`);
+  const all = slabs(m);
+  const kinds = (path: string) => all.filter((s) => s.space === path).map((s) => s.kind).sort();
+  assert.ok(!kinds("/L2/v").includes("floor"), "吹抜けに床は無い");
+  assert.ok(!kinds("/L1/s").includes("ceiling"), "縦動線に天井は無い (面でない)");
+  assert.ok(!kinds("/L1/a").includes("ceiling"), "ceiling:0 は現し天井");
+  assert.ok(kinds("/L1/a").includes("floor"), "床はある");
 });
