@@ -40,7 +40,7 @@ test("import合成: 同一ファイルの二重importは一度だけ読み込ま
   writeFileSync(
     join(dir, "main.muro"),
     [
-      "koyu 0.1",
+      "koyu 0.4",
       "name 二重import",
       "unit mm",
       "grid X 0 3640",
@@ -58,7 +58,7 @@ test("parseFiles: 仮想ファイル群 (ブラウザ向け) でも同じ合成�
   const m = parseFiles(
     {
       "main.muro": [
-        "koyu 0.1",
+        "koyu 0.4",
         "name 仮想合成",
         "unit mm",
         "grid X 0 3640",
@@ -85,7 +85,7 @@ test("parseFiles: 無いファイルのimportはその行のエラー", () => {
     () =>
       parseFiles(
         {
-          "main.muro": "koyu 0.1\nname x\nunit mm\ngrid X 0 1000\ngrid Y 0 1000\nlevel L1 0 h:2400\nimport ./nope.muro",
+          "main.muro": "koyu 0.4\nname x\nunit mm\ngrid X 0 1000\ngrid Y 0 1000\nlevel L1 0 h:2400\nimport ./nope.muro",
         },
         "main.muro",
       ),
@@ -97,7 +97,7 @@ test("check: 合成モデルのcheckエラーは出所レイヤーつき", () =>
   const m = parseFiles(
     {
       "main.muro":
-        "koyu 0.1\nname x\nunit mm\ngrid X 0 3640 7280\ngrid Y 0 3640\nlevel L1 0 h:2400\nimport ./L1.muro",
+        "koyu 0.4\nname x\nunit mm\ngrid X 0 3640 7280\ngrid Y 0 3640\nlevel L1 0 h:2400\nimport ./L1.muro",
       "L1.muro":
         "space /a room X1..X2 Y1..Y2 level:L1\nspace /b room X2..X3 Y1..Y2 level:L1\nboundary /a /b t:120\n  door w:900 at:Y1+200",
     },
@@ -118,7 +118,7 @@ function compose(files: Record<string, string>): () => void {
 }
 
 const BASE = [
-  "koyu 0.1",
+  "koyu 0.4",
   "name コンフリクト",
   "unit mm",
   "grid X 0 3640",
@@ -208,7 +208,7 @@ test("明示位置: at:通り芯±寸法 が座標に解決され、正準JSON�
 test("はみ出し検査: 幅が線分から溢れる位置は許容範囲つきでエラー", () => {
   const model = parse(
     [
-      "koyu 0.1",
+      "koyu 0.4",
       "name はみ出し",
       "unit mm",
       "grid X 0 3640 7280",
@@ -228,7 +228,7 @@ test("はみ出し検査: 幅が線分から溢れる位置は許容範囲つき
 test("はみ出し検査: 軸違いの通り芯参照はエラー (垂直線分にX系)", () => {
   const model = parse(
     [
-      "koyu 0.1",
+      "koyu 0.4",
       "name 軸違い",
       "unit mm",
       "grid X 0 3640 7280",
@@ -248,7 +248,7 @@ test("はみ出し検査: 軸違いの通り芯参照はエラー (垂直線分�
 test("重なり検査: 同じ線分上の2つの開口が重なるとエラー", () => {
   const model = parse(
     [
-      "koyu 0.1",
+      "koyu 0.4",
       "name 重なり",
       "unit mm",
       "grid X 0 3640 7280",
@@ -269,7 +269,7 @@ test("重なり検査: 同じ線分上の2つの開口が重なるとエラー",
 test("比率位置は従来どおり動く (at:0.25 は線分内にクランプ)", () => {
   const model = parse(
     [
-      "koyu 0.1",
+      "koyu 0.4",
       "name 比率",
       "unit mm",
       "grid X 0 3640 7280",

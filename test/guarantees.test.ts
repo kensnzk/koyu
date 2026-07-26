@@ -9,7 +9,7 @@ import { toCanonical } from "../src/model.js";
 import { parse, parseFiles } from "../src/parse.js";
 
 const BASE = [
-  "koyu 0.1",
+  "koyu 0.4",
   "unit mm",
   "grid X 0 4000 8000",
   "grid Y 0 4000 8000",
@@ -90,7 +90,7 @@ test("check: edge限定の有無が混在する対は警告 (線分が重なる)
 // ---- 敷地: 凹多角形の包含と形の妥当性 ----
 
 test("check: 凹敷地 (U字) を跨ぐ建物は四隅が内側でもエラー", () => {
-  const src = `koyu 0.1
+  const src = `koyu 0.4
 unit mm
 grid X 0 2000 28000 30000
 grid Y 0 2000 6000 12000 20000
@@ -138,7 +138,7 @@ test("parse: 同一行の属性キーの重複はエラー (後勝ちで隠さ�
 });
 
 test("parse: 対応しないkoyu版はエラー", () => {
-  assert.throws(() => parse("koyu 0.4\nunit mm"), /対応していないkoyuの版です: 0\.4/);
+  assert.throws(() => parse("koyu 0.5\nunit mm"), /対応していないkoyuの版です: 0\.5/);
 });
 
 // ---- 合成: レイヤー記録の完全性 ----
@@ -146,7 +146,7 @@ test("parse: 対応しないkoyu版はエラー", () => {
 test("合成: grid/levelだけのレイヤーもlayersに記録される", () => {
   const m = parseFiles(
     {
-      "main.muro": "koyu 0.1\nunit mm\nimport ./base.muro\nimport ./rooms.muro\n",
+      "main.muro": "koyu 0.4\nunit mm\nimport ./base.muro\nimport ./rooms.muro\n",
       "base.muro": "grid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0\n",
       "rooms.muro":
         "space /L1/a room X1..X2 Y1..Y2\nspace /L1/b room X2..X3 Y1..Y2\nboundary /L1/a /L1/b\n  door w:800\n",
@@ -160,32 +160,32 @@ test("合成: grid/levelだけのレイヤーもlayersに記録される", () =>
 
 test("正準JSON: 明示のlevel:は保存される (無いとJSONから所属が復元できない)", () => {
   const mez = parse(
-    "koyu 0.2\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0\nlevel L2 3000\nspace /Z/a room X1..X2 Y1..Y2 level:L1",
+    "koyu 0.4\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0\nlevel L2 3000\nspace /Z/a room X1..X2 Y1..Y2 level:L1",
   );
   assert.match(toCanonical(mez), /"level": "L1"/);
   // パス先頭と同じ所属 (既定) は書かれた綴りに関わらず省略
-  const plain = parse("koyu 0.2\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0\nspace /L1/a room X1..X2 Y1..Y2");
+  const plain = parse("koyu 0.4\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0\nspace /L1/a room X1..X2 Y1..Y2");
   assert.doesNotMatch(toCanonical(plain), /"level"/);
 });
 
 test("正準JSON: 領域の逆順表記 (X2..X1) は昇順に正規化され、同じ矩形は同じバイト列", () => {
-  const src = (r: string) => `koyu 0.2\nunit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0\nspace /L1/a room ${r}`;
+  const src = (r: string) => `koyu 0.4\nunit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0\nspace /L1/a room ${r}`;
   assert.equal(toCanonical(parse(src("X2..X1 Y2..Y1"))), toCanonical(parse(src("X1..X2 Y1..Y2"))));
 });
 
 test("parse: 数値必須の属性に非数値を書くとエラー (NaNの黙認はしない)", () => {
   assert.throws(
-    () => parse("koyu 0.2\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0 h:24O0"),
+    () => parse("koyu 0.4\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0 h:24O0"),
     /属性 h は数値で書きます: 24O0/,
   );
 });
 
 test("parse: 裸のnameはエラー", () => {
-  assert.throws(() => parse("koyu 0.2\nname\nunit mm"), /name には値を書きます/);
+  assert.throws(() => parse("koyu 0.4\nname\nunit mm"), /name には値を書きます/);
 });
 
 test("parse: koyu行は2トークン・一度だけ (版なし・余剰・再宣言はエラー)", () => {
   assert.throws(() => parse("koyu\nunit mm"), /koyu には版を書きます/);
   assert.throws(() => parse("koyu 0.2 extra\nunit mm"), /余分なトークン/);
-  assert.throws(() => parse("koyu 0.2\nkoyu 0.2\nunit mm"), /一度だけ宣言します/);
+  assert.throws(() => parse("koyu 0.4\nkoyu 0.4\nunit mm"), /一度だけ宣言します/);
 });

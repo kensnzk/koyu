@@ -97,7 +97,9 @@ export const DIAGNOSTIC_CODES: Record<string, "error" | "warning"> = {
   UID01: "error", // 数字だけのuid (ADR-0015)
   UID02: "error", // 空白を含むuid
   UID03: "error", // uidの重複
+  DAY01: "error", // daylightの値が 0/1 以外 (ADR-0020)
   VER01: "error", // koyu 0.1 での既定境界の導出 (ADR-0017)
+  VER02: "error", // koyu 0.3以前で採光の推定対象だった型に daylight が無い (ADR-0020)
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
 };
 
@@ -105,6 +107,8 @@ const EPS = 0.5;
 /** 敷地まわりの幾何の許容 (境界上は内側扱い) — ADR-0011の1mm */
 const EPS_SITE = 1;
 const VERTICAL = new Set(["stair", "shaft", "void"]);
+/** 0.3以前が採光の対象と推定していた型 (ADR-0020で廃止)。旧版の受理条件の判定にだけ使う — 意味論には効かない */
+const LEGACY_DAYLIT = new Set(["unit", "room", "ldk", "bedroom", "living"]);
 
 /** 互換層 — 従来の文字列形式。位置を持つ診断は「file:N行目: 本文」に組み立てる */
 export function check(model: Model): CheckResult {
@@ -222,7 +226,21 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     }
   }
 
-  // 言語版の受理条件 (ADR-0017): 0.1は意味保存の場合のみ受理する。
+  // 採光の対象の宣言 (ADR-0020): daylight は「この室に 1/7 の判定を掛ける」という二値の宣言。
+  // 綴りの揺れ (daylight:true / daylight:yes) が黙って対象外に落ちるのを防ぐ
+  for (const s of model.spaces.values()) {
+    const v = s.attrs["daylight"];
+    if (v === undefined) continue;
+    if (v !== 0 && v !== 1) {
+      emit("DAY01", `daylight は 1 (採光判定の対象) か 0 (対象外) です: ${s.path} に daylight:${v}`, {
+        line: s.line,
+        file: s.file,
+        path: [s.path],
+      });
+    }
+  }
+
+  // 言語版の受理条件 (ADR-0017): 旧版は意味保存の場合のみ受理する。
   // 既定境界 (ADR-0014) が導出されるファイルは、0.1の意味 (境界なし+警告) と食い違う — エラーで二択を示す
   if (model.version === "0.1") {
     for (const b of model.boundaries) {
@@ -233,6 +251,19 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
           { path: [b.a, b.b] },
         );
       }
+    }
+  }
+
+  // 0.3以前は型から採光の対象を推定していた (ADR-0020で廃止)。推定対象だった型の空間に daylight が
+  // 書かれていなければ、0.4では判定から黙って外れる — 意味が変わるのでエラーで二択を示す
+  if (model.version !== "0.4") {
+    for (const s of model.spaces.values()) {
+      if (!LEGACY_DAYLIT.has(s.type) || s.attrs["daylight"] !== undefined) continue;
+      emit(
+        "VER02",
+        `koyu ${model.version} のファイルに daylight の無い ${s.type} があります: ${s.path} — 0.4では型から採光の対象を推定しないので判定から外れます。daylight:1 (対象) か daylight:0 (対象外) を書いてから koyu 0.4 へ上げます`,
+        { line: s.line, file: s.file, path: [s.path] },
+      );
     }
   }
 

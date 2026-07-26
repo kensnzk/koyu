@@ -10,14 +10,14 @@ import { parse, parseFiles } from "../src/parse.js";
 import { svgPlan } from "../src/plan.js";
 
 const BASE = [
-  "koyu 0.2",
+  "koyu 0.4",
   "unit mm",
   "grid X 0 4000 8000",
   "grid Y 0 4000 8000",
   "level L1 0 h:2400",
 ].join("\n");
 
-const ROOMS = "space /L1/a room X1..X2 Y1..Y2\nspace /L1/b room X2..X3 Y1..Y2";
+const ROOMS = "space /L1/a hall X1..X2 Y1..Y2\nspace /L1/b hall X2..X3 Y1..Y2";
 
 // ---- 既定境界 (ADR-0014) ----
 
@@ -72,7 +72,7 @@ test("版: 導出の起きない0.1ファイルはそのまま受理される", 
 
 test("版: 宣言の省略は最新版の意味論 (既定境界が導出され、エラーにならない)", () => {
   const m = parse(`unit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0\n${ROOMS}`);
-  assert.equal(m.version, "0.3");
+  assert.equal(m.version, "0.4");
   assert.equal(m.boundaries.filter((b) => b.derived).length, 1);
   assert.deepEqual(check(m).errors, []);
 });
@@ -83,7 +83,7 @@ test("版: import層での宣言はエラー (base層のみ)", () => {
       parseFiles(
         {
           "main.muro": "koyu 0.2\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0\nimport ./sub.muro\n",
-          "sub.muro": "koyu 0.2\nspace /L1/a room X1..X2 Y1..Y2\n",
+          "sub.muro": "koyu 0.2\nspace /L1/a hall X1..X2 Y1..Y2\n",
         },
         "main.muro",
       ),

@@ -76,7 +76,7 @@ test("診断: UID03 uid重複 — 位置なし (line省略)、全所有者がpat
 
 test("診断: VER01 0.1での既定境界導出 — 導出物なので位置なし", () => {
   const diags = checkDiagnostics(
-    parse(`koyu 0.1\nunit mm\ngrid X 0 3640 7280\ngrid Y 0 3640\nlevel L1 0\nspace /L1/a room X1..X2 Y1..Y2\nspace /L1/b room X2..X3 Y1..Y2`),
+    parse(`koyu 0.1\nunit mm\ngrid X 0 3640 7280\ngrid Y 0 3640\nlevel L1 0\nspace /L1/a hall X1..X2 Y1..Y2\nspace /L1/b hall X2..X3 Y1..Y2`),
   );
   assert.equal(diags.length, 1);
   const d = diags[0]!;
@@ -137,7 +137,7 @@ test("互換: 合成モデルの診断はfileを持ち、互換文字列はレ�
   const m = parseFiles(
     {
       "main.muro":
-        "koyu 0.2\nname x\nunit mm\ngrid X 0 3640 7280\ngrid Y 0 3640\nlevel L1 0 h:2400\nimport ./L1.muro",
+        "koyu 0.4\nname x\nunit mm\ngrid X 0 3640 7280\ngrid Y 0 3640\nlevel L1 0 h:2400\nimport ./L1.muro",
       "L1.muro":
         "space /a room X1..X2 Y1..Y2 level:L1\nspace /b room X2..X3 Y1..Y2 level:L1\nboundary /a /b t:120\n  door w:900 at:Y1+200",
     },

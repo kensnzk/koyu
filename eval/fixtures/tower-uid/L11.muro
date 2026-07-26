@@ -1,8 +1,8 @@
 # 11階の層 — ペントハウス2住戸と共用ルーフテラス。
 # コア (階段・EV・内廊下) は typical.muro の L3..L11 スパンが供給する。
 
-space /L11/PA unit X1..X3+3200 Y1..Y2 name:ペントハウスA use:exclusive
-space /L11/PB unit X3+3200..X6 Y1..Y2 name:ペントハウスB use:exclusive
+space /L11/PA unit X1..X3+3200 Y1..Y2 name:ペントハウスA use:exclusive daylight:1
+space /L11/PB unit X3+3200..X6 Y1..Y2 name:ペントハウスB use:exclusive daylight:1
 space /L11/bPA balcony X1..X3+3200 Y1-1500..Y1 name:バルコニーPA
 space /L11/bPB balcony X3+3200..X6 Y1-1500..Y1 name:バルコニーPB
 space /L11/roof terrace X1+3200..X4 Y3..Y4 name:共用ルーフテラス use:common

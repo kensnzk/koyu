@@ -19,7 +19,7 @@ Count how many doors are passed from a space to the outside, find the spaces tha
 The following is a two-storey house, and `check` is green on it. The only boundaries written are the four of the envelope and the one stair.
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 閉じた家
 unit mm
 

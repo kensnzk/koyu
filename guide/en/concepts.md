@@ -27,7 +27,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 ("Consistent — 1 space / 0 boundaries.")
 
-Neither `koyu 0.3`, nor `unit mm`, nor `name` is needed. **All that is required is that there be a grid on both axes, that it precede any line using it, that a level be declared, and that `space` carry a type (its second positional).** Coordinates are never written directly — position is always written in the language of grid lines ([spec/language.md §2, grid references and offsets](../../spec/en/language.md)).
+Neither `koyu 0.4`, nor `unit mm`, nor `name` is needed. **All that is required is that there be a grid on both axes, that it precede any line using it, that a level be declared, and that `space` carry a type (its second positional).** Coordinates are never written directly — position is always written in the language of grid lines ([spec/language.md §2, grid references and offsets](../../spec/en/language.md)).
 
 Add one room. Not one boundary line is written.
 
@@ -285,25 +285,24 @@ Of the types, only two are interpreted structurally by the tools.
 | `exterior` | The outside. May have no region. Adding `road:` makes it a subject of road frontage |
 | `void` | A void through the floor. Excluded from floor area, and not passable |
 
-Five more are subjects of the daylight check (`light`): `unit`, `room`, `ldk`, `bedroom`, `living` (added with `hab:1`, excluded with `hab:0`). **Every other type, however meaningful it looks, is a free word equivalent to any other as far as the tools are concerned.**
+**Every other type, however meaningful it looks, is a free word equivalent to any other as far as the tools are concerned.** Whether a space is a subject of the daylight check is not decided by the type either — it is declared, by writing `daylight:1` ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). The entrance to a verdict is never the type; it is an attribute, and the attribute names the tool's test rather than a legal category.
 
 The bundled examples actually use 31 type words (across 135 `space` lines). Not as a ledger but as usage, they are distributed like this.
 
 | Category | Words (occurrences) |
 |---|---|
 | Interpreted structurally | `exterior` (15) · `void` (4) |
-| Subjects of the daylight check | `unit` (14) · `bedroom` (5) · `ldk` (4) · `room` (2) · `living` (0 — in the vocabulary but absent from the examples) |
-| Uninterpreted, by usage | `stair` (11) · `yard` (9) · `hall` (8) · `corridor` (8) · `balcony` (6) · `wc` (5) · `terrace` (5) · `machine` (5) · `ev` (5) · `shop` (4) · `service` (4) · `office` (4) · `shaft` (3) · `ps` (2) · `garden` (2) · `wet` (1) · `water` (1) · `waste` (1) · `trunk` (1) · `plaza` (1) · `parking` (1) · `meeting` (1) · `lobby` (1) · `bicycle` (1) · `backyard` (1) |
+| Uninterpreted, by usage | `unit` (14) · `stair` (11) · `yard` (9) · `hall` (8) · `corridor` (8) · `balcony` (6) · `bedroom` (5) · `wc` (5) · `terrace` (5) · `machine` (5) · `ev` (5) · `ldk` (4) · `shop` (4) · `service` (4) · `office` (4) · `shaft` (3) · `room` (2) · `ps` (2) · `garden` (2) · `wet` (1) · `water` (1) · `waste` (1) · `trunk` (1) · `plaza` (1) · `parking` (1) · `meeting` (1) · `lobby` (1) · `bicycle` (1) · `backyard` (1) |
 
-The third row is de facto usage, not a contract. One confusing overlap is worth noting — `stair`, `shaft`, and `void` are also words for a **boundary kind**, but as space types `stair` and `shaft` are not interpreted (only `void` is interpreted as a space type as well).
+The second row is de facto usage, not a contract. One confusing overlap is worth noting — `stair`, `shaft`, and `void` are also words for a **boundary kind**, but as space types `stair` and `shaft` are not interpreted (only `void` is interpreted as a space type as well).
 
-Where this openness bites is when the choice of type silently moves a verdict. Write a windowless bathroom as `room` and it enters the daylight check.
+Where this openness bites is in seeing where the entrance to a verdict actually is. Declare that the check applies to a windowless bathroom and it enters the daylight test, with the type left as `wet`.
 
 ```muro
 grid X 0 2000
 grid Y 0 2000
 level L1 0 h:2400
-space /L1/bath room X1..X2 Y1..Y2 name:浴室
+space /L1/bath wet X1..X2 Y1..Y2 name:浴室 daylight:1
 space /out exterior
 boundary /L1/bath /out edge:S t:150
 ```
@@ -315,17 +314,17 @@ boundary /L1/bath /out edge:S t:150
 
 ("Window 0.00 m² / floor 4.00 m² = no windows, requires 1/7 ≈ 0.57 m². 1 of 1 room falls short.")
 
-Change one word of the type.
+Drop the `daylight:1`, without touching a character of the type.
 
 ```muro-part
 space /L1/bath wet X1..X2 Y1..Y2 name:浴室
 ```
 
 ```text
-対象の居室 (住居系) がありません
+採光の対象がありません (判定する室に daylight:1 を書きます)
 ```
 
-("There are no habitable rooms in scope.") `check` is green on both files. A type is not a description of a room; it is the entrance to a verdict.
+("Nothing is in scope for the daylight check — write daylight:1 on the rooms to test.") `check` is green on both files. **A type is a description of a room; it is not the entrance to a verdict.** Change the type from `wet` to `bedroom` and the verdict does not move at all — whether the daylight test applies is something the author declares with `daylight`, not something to be guessed from a room's name. (The habitable room of Article 2(iv) of the Building Standards Act is likewise a judgement about continuous use in fact, not about what the room is called. Note also that the attribute names the tool's test, not that legal category: the two are not the same set, since Article 28(1)'s daylight duty is scoped to dwellings, schools, hospitals and the like.)
 
 ## What a green check does not guarantee
 
@@ -341,7 +340,7 @@ What `check` looks at is whether the authored composition stands up. **It is not
 The first is the dangerous one. As §3 says, the default between touching spaces is a wall, and **a wall with no door cannot be passed**. So writing a two-storey building without a single door gets you a sealed building, in green.
 
 ```muro
-koyu 0.3
+koyu 0.4
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400

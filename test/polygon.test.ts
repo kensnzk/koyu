@@ -9,7 +9,7 @@ import { parse, parseFiles } from "../src/parse.js";
 import { siteReport } from "../src/site.js";
 
 const BASE = [
-  "koyu 0.2",
+  "koyu 0.4",
   "name 敷地形状",
   "unit mm",
   "grid X 0 8000",

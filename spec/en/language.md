@@ -17,7 +17,7 @@ The norm for the notation as of koyu v0.11.0. For semantics (derivation, checkin
 ## 2. Foundation declarations (the base layer holds these, once)
 
 ```
-koyu 0.3                      # version declaration (base layer only, once)
+koyu 0.4                      # version declaration (base layer only, once)
 name 街角の複合ビル             # building name (the rest of the line, whitespace allowed)
 unit mm                       # v0 is mm only
 grid X 0 6400 12800 19200     # X-axis grid-line coordinates (ascending, two or more). X1, X2, … are named automatically
@@ -28,7 +28,7 @@ level L4..L10 11000 pitch:3000 h:2500 slab:450   # range declaration (arithmetic
 
 `grid` is declared once per axis (in the base layer when composing). `name` is also declared once (it may be repeated only if identical). A `level` range declaration `L4..L10` is a prefix plus consecutive numbers, expanded to `z + pitch×k`. Duplicate level names are an error. Declaring a level that holds no space (a roof `R`, say) makes it the upper bound for the topmost floor's height check.
 
-**The version norm (ADR-0017).** The language versions this tool accepts are `0.1, 0.2, 0.3`; when the declaration is omitted the file is read with the semantics of the newest version, `0.3` (omission is *not* stable in meaning across tool versions — write the version in any file whose meaning you want pinned). The version declaration is the two tokens `koyu <version>` (a missing version, or extra tokens, is an error), in the base layer (the entry) only, and only once (the same discipline as `grid` — re-declaring is an error even with an identical value, which forbids a silent override that depends on composition order). The older version `0.1` is accepted **only when meaning is preserved** — the parser reads it, but a file in which default boundaries (§4) would be derived is made an **error by check (VER01)**, offering two ways out: declare the boundaries, or raise the file to `koyu 0.2`. A change that changes the language raises the version, and the migration is written in an ADR.
+**The version norm (ADR-0017).** The language versions this tool accepts are `0.1, 0.2, 0.3, 0.4`; when the declaration is omitted the file is read with the semantics of the newest version, `0.4` (omission is *not* stable in meaning across tool versions — write the version in any file whose meaning you want pinned). The version declaration is the two tokens `koyu <version>` (a missing version, or extra tokens, is an error), in the base layer (the entry) only, and only once (the same discipline as `grid` — re-declaring is an error even with an identical value, which forbids a silent override that depends on composition order). An older version is accepted **only when meaning is preserved** — the parser reads it, but a file whose meaning would change is made an error by check, which offers two ways out. For `0.1`, that is a file in which default boundaries (§4) would be derived (**VER01** — declare the boundaries, or raise the file to `koyu 0.2`). For `0.3` and earlier, which inferred the daylight scope from the type, it is a space of one of those types (`unit`, `room`, `ldk`, `bedroom`, `living`) carrying no `daylight` (**VER02** — write `daylight:1`/`daylight:0`, then raise the file to `koyu 0.4`; ADR-0020). A change that changes the language raises the version, and the migration is written in an ADR.
 
 ### Grid references and offsets
 
@@ -43,7 +43,7 @@ space /out/road-s exterior name:南側道路 road:12000
 ```
 
 - **The path is the identity.** A `/`-separated hierarchy. A path is first of all an aggregation hierarchy, and if its first segment is a level name the space belongs to that level. A grouping that spans levels (a maisonette, say) states it with the `level:` attribute.
-- **The type is an open vocabulary** (second positional, required). Interpreted structurally are `exterior` (may have no region; outside) and `void` (a void through the floor — excluded from floor area, not passable). The daylight check applies to `unit`, `room`, `ldk`, `bedroom`, `living` (adjusted by `hab:1/0`).
+- **The type is an open vocabulary** (second positional, required). The only two words interpreted structurally are `exterior` (may have no region; outside) and `void` (a void through the floor — excluded from floor area, not passable). **Being in scope for the daylight check is never inferred from the type** — `light` looks at the spaces that carry `daylight:1` (the default is out of scope; ADR-0020).
 - **A region is a union of rectangles.** Write `X?..X? Y?..Y?` and join several with `+` (for an L shape, say). A space with no region (an `exterior`, say) is allowed. Overlapping regions — within one space or between spaces — are an error.
 - **`area` (indented)** is an uncounted subdivision inside a room: a region plus overriding attributes only. It does not affect area, room counts, or the graph (the isolation rule). Spilling outside the parent region is a warning.
 - **Span expansion**: if the **first segment** of the path has the form `L3..L10`, the line expands across the declared levels in z order (all paths on one line must carry the same span).

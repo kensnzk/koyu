@@ -1,5 +1,5 @@
 {
-  "koyu": "0.3",
+  "koyu": "0.4",
   "name": "二室",
   "unit": "mm",
   "grid": {
@@ -29,6 +29,7 @@
         "Y2"
       ],
       "attrs": {
+        "daylight": 1,
         "name": "居室A"
       }
     },
@@ -41,6 +42,7 @@
         "Y2"
       ],
       "attrs": {
+        "daylight": 1,
         "name": "居室B"
       }
     },

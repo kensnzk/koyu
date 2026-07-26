@@ -25,7 +25,7 @@ space /L1/a room X1..X2 Y1..Y2
 ✔ 整合 — 空間 1 / 境界 0
 ```
 
-`koyu 0.3` も `unit mm` も `name` も要らない。**必要なのは、grid が二軸あること、それを使う行より前にあること、level が宣言されていること、`space` に型 (第2位置引数) が付いていることだけ**である。座標は直接書かない — 位置は常に通り芯の言葉で書く ([spec/language.md §2 通り参照とオフセット](../spec/language.md))。
+`koyu 0.4` も `unit mm` も `name` も要らない。**必要なのは、grid が二軸あること、それを使う行より前にあること、level が宣言されていること、`space` に型 (第2位置引数) が付いていることだけ**である。座標は直接書かない — 位置は常に通り芯の言葉で書く ([spec/language.md §2 通り参照とオフセット](../spec/language.md))。
 
 室を一つ足す。境界は一行も書かない。
 
@@ -275,25 +275,24 @@ space /L1/a room X1..X2 Y1..Y2 nmae:居間
 | `exterior` | 外部。領域なしでよい。`road:` を付ければ接道の対象になる |
 | `void` | 吹抜け。床面積に算入されず、通行できない |
 
-加えて五つが採光 (`light`) の対象になる: `unit` `room` `ldk` `bedroom` `living` (`hab:1` で追加、`hab:0` で除外)。**これ以外の型は、どれだけ意味ありげでも、ツールにとって等価な自由語である。**
+**この二つ以外の型は、どれだけ意味ありげでも、ツールにとって等価な自由語である。** 採光の対象になるかどうかも型では決まらない — 判定を掛ける室に `daylight:1` と書いて宣言する ([ADR-0020](../docs/decisions/0020-daylight-scope-is-declared.md))。判定の入口は型ではなく属性の側にあり、その属性は法概念ではなくツールの振る舞いを名指している。
 
 同梱例が実際に使っている型は31語ある (`space` 行135本)。台帳ではなく慣用として、次のように分布している。
 
 | 分類 | 語 (出現数) |
 |---|---|
 | 構造として解釈される | `exterior` (15) · `void` (4) |
-| 採光の対象 | `unit` (14) · `bedroom` (5) · `ldk` (4) · `room` (2) · `living` (0 — 語彙にはあるが例には無い) |
-| 解釈されない慣用語 | `stair` (11) · `yard` (9) · `hall` (8) · `corridor` (8) · `balcony` (6) · `wc` (5) · `terrace` (5) · `machine` (5) · `ev` (5) · `shop` (4) · `service` (4) · `office` (4) · `shaft` (3) · `ps` (2) · `garden` (2) · `wet` (1) · `water` (1) · `waste` (1) · `trunk` (1) · `plaza` (1) · `parking` (1) · `meeting` (1) · `lobby` (1) · `bicycle` (1) · `backyard` (1) |
+| 解釈されない慣用語 | `unit` (14) · `stair` (11) · `yard` (9) · `hall` (8) · `corridor` (8) · `balcony` (6) · `bedroom` (5) · `wc` (5) · `terrace` (5) · `machine` (5) · `ev` (5) · `ldk` (4) · `shop` (4) · `service` (4) · `office` (4) · `shaft` (3) · `room` (2) · `ps` (2) · `garden` (2) · `wet` (1) · `water` (1) · `waste` (1) · `trunk` (1) · `plaza` (1) · `parking` (1) · `meeting` (1) · `lobby` (1) · `bicycle` (1) · `backyard` (1) |
 
-三段目は de facto の慣用であって契約ではない。ただし紛らわしい重なりが一つある — `stair` と `shaft` と `void` は**境界の kind** にもある語だが、空間の型としての `stair`・`shaft` は解釈されない (`void` だけは空間の型としても解釈される)。
+二段目は de facto の慣用であって契約ではない。ただし紛らわしい重なりが一つある — `stair` と `shaft` と `void` は**境界の kind** にもある語だが、空間の型としての `stair`・`shaft` は解釈されない (`void` だけは空間の型としても解釈される)。
 
-この開き方が効いてくるのは、型の選択が判定を静かに動かすときである。窓の無い浴室を `room` と書くと、採光の対象に入る。
+この開き方が効いてくるのは、判定の入口がどこにあるかを見るときである。窓の無い浴室を居室と宣言すれば、型が `wet` のままでも採光の対象に入る。
 
 ```muro
 grid X 0 2000
 grid Y 0 2000
 level L1 0 h:2400
-space /L1/bath room X1..X2 Y1..Y2 name:浴室
+space /L1/bath wet X1..X2 Y1..Y2 name:浴室 daylight:1
 space /out exterior
 boundary /L1/bath /out edge:S t:150
 ```
@@ -303,17 +302,17 @@ boundary /L1/bath /out edge:S t:150
 ✖ 1室中 1室が不足しています
 ```
 
-型を一語だけ替える。
+`daylight:1` を落とす。型は一字も動かさない。
 
 ```muro-part
 space /L1/bath wet X1..X2 Y1..Y2 name:浴室
 ```
 
 ```text
-対象の居室 (住居系) がありません
+採光の対象がありません (判定する室に daylight:1 を書きます)
 ```
 
-どちらのファイルも `check` は緑である。型は室の説明ではなく、判定の入口である。
+どちらのファイルも `check` は緑である。**型は室の説明であって、判定の入口ではない。** 逆に、型を `wet` から `bedroom` に替えても判定は一切動かない — 判定を掛けるかどうかは書き手が `daylight` で宣言することであり、室の名前から推し量るものではないからである (建築基準法2条4号の居室も「継続的に使用する室」という実態の判断であって、室名では決まらない)。なお属性が名指しているのはツールの判定であって法概念ではない — 法28条1項の採光義務は住宅・学校・病院等に限られるので、両者は同じ集合ではない。
 
 ## check が緑でも保証されないこと
 
@@ -329,7 +328,7 @@ space /L1/bath wet X1..X2 Y1..Y2 name:浴室
 一つ目がとりわけ危ない。§3 のとおり接する空間の既定は壁であり、**扉の無い壁は通れない**。すなわち、扉を一枚も書かずに二階建てを書くと、密閉された建物が緑で通る。
 
 ```muro
-koyu 0.3
+koyu 0.4
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400

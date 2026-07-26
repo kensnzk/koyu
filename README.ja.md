@@ -46,7 +46,7 @@ space /L1/b room X2..X3 Y1..Y2
 
 ![オフィス1階平面図](docs/img/office-L1.svg)
 
-10階建て内廊下型集合住宅 (43戸、EV+屋外階段、屋上、Aタイプは間取り込み) は **187行** ([examples/mansion.muro](examples/mansion.muro))。基準階は一度だけ書き、`/L2..L9/A` のスパンが8フロアへ展開される (ADR-0004)。L字のLDKは矩形の合併、住戸は `zone` (数える集約) で間取りに割っても専有面積の言葉を保つ (ADR-0005)。吹抜けは `type:void` の垂直境界 — 床の不在も境界で書く (ADR-0006)。`doors` が「9階のLDKから地上まで扉3枚」に、`light` が住居系居室の1/7採光に即答する。
+10階建て内廊下型集合住宅 (43戸、EV+屋外階段、屋上、Aタイプは間取り込み) は **187行** ([examples/mansion.muro](examples/mansion.muro))。基準階は一度だけ書き、`/L2..L9/A` のスパンが8フロアへ展開される (ADR-0004)。L字のLDKは矩形の合併、住戸は `zone` (数える集約) で間取りに割っても専有面積の言葉を保つ (ADR-0005)。吹抜けは `type:void` の垂直境界 — 床の不在も境界で書く (ADR-0006)。`doors` が「9階のLDKから地上まで扉3枚」に、`light` が居室 (`daylight:1` と宣言した室) の1/7採光に即答する。
 
 ![集合住宅基準階平面図](docs/img/mansion-L5.svg)
 

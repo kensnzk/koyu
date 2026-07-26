@@ -92,7 +92,7 @@ npx tsx src/cli.ts site site.muro
 手順1〜5を一つのファイルにまとめると次になる。
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 敷地つきの平屋
 unit mm
 

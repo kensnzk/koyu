@@ -233,7 +233,7 @@ const TOOLS: Record<string, Tool> = {
     },
   },
   light: {
-    description: "採光の検査: 住居系の居室で窓面積/床面積 ≥ 1/7 (バルコニー・庇下は0.7掛け)",
+    description: "採光の検査: daylight:1 を書いた室で窓面積/床面積 ≥ 1/7 (バルコニー・庇下は0.7掛け)",
     schema: { type: "object", properties: FILE_PROP, required: ["file"] },
     run: (a) => {
       const m = load(str(a.file, "file"));

@@ -1,6 +1,6 @@
 # 1階の層 — 分担の単位。室と庭の境界は実在の矩形同士から正確に導出される。
 
-space /home/ldk   ldk  X1..X2 Y1..Y3 + X2..X3 Y1..Y2 level:L1 name:LDK floor:オーク
+space /home/ldk   ldk  X1..X2 Y1..Y3 + X2..X3 Y1..Y2 level:L1 name:LDK floor:オーク daylight:1
 space /home/hall1 hall X2..X3 Y2..Y3 level:L1 name:玄関・階段
 
 boundary /home/ldk /home/hall1 t:120 spec:LGS

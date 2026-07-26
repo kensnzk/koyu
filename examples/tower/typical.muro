@@ -5,23 +5,23 @@
 
 zone /L3..L10/A name:Aタイプ use:exclusive
 
-space /L3..L10/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク
+space /L3..L10/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク daylight:1
 # 帯 (ADR-0019): 位置ではなく寸法と並びを書き、位置は導出させる。
 # 西列を南から (洋室2 2400 / 洋室1 3200)、玄関側の帯を西から (水回り 4800 / 玄関 1600)。
 # どちらも「閉じた帯」— 合計が帯幅と一致することを parse が照合する (寸法の打ち間違いの検算)。
 band Y X1..X1+3200 Y1..Y2
-  space /L3..L10/A/bed2 bedroom w:2400 name:洋室2
-  space /L3..L10/A/bed1 bedroom w:3200 name:洋室1
+  space /L3..L10/A/bed2 bedroom w:2400 name:洋室2 daylight:1
+  space /L3..L10/A/bed1 bedroom w:3200 name:洋室1 daylight:1
 
 band X X1+3200..X2+3200 Y1+4000..Y2
   space /L3..L10/A/wet  wet  w:4800 name:水回り
   space /L3..L10/A/hall hall w:1600 name:玄関
 
-space /L3..L10/B unit X3..X4+3200 Y1..Y2 + X2+3200..X3 Y1+2400..Y2 name:Bタイプ use:exclusive
-space /L3..L10/C unit X4+3200..X6 Y1..Y2 name:Cタイプ use:exclusive
-space /L3..L10/D unit X1+3200..X2+3200 Y3..Y4 name:Dタイプ use:exclusive
-space /L3..L10/E unit X2+3200..X4 Y3..Y4 name:Eタイプ use:exclusive
-space /L3..L10/F unit X4+3200..X5+3200 Y3..Y4 name:Fタイプ use:exclusive
+space /L3..L10/B unit X3..X4+3200 Y1..Y2 + X2+3200..X3 Y1+2400..Y2 name:Bタイプ use:exclusive daylight:1
+space /L3..L10/C unit X4+3200..X6 Y1..Y2 name:Cタイプ use:exclusive daylight:1
+space /L3..L10/D unit X1+3200..X2+3200 Y3..Y4 name:Dタイプ use:exclusive daylight:1
+space /L3..L10/E unit X2+3200..X4 Y3..Y4 name:Eタイプ use:exclusive daylight:1
+space /L3..L10/F unit X4+3200..X5+3200 Y3..Y4 name:Fタイプ use:exclusive daylight:1
 
 space /L3..L11/corridor corridor X1..X6 Y2..Y3 + X4..X4+3200 Y3..Y3+3200 name:内廊下 use:common
 space /L3..L11/st2 stair X1..X1+3200 Y3..Y4 name:西階段 use:common

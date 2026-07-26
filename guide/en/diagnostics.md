@@ -1090,6 +1090,26 @@ space /L1/b room X2..X3 Y1..Y2 uid:sp-1
 
 **Fix** — change one to a different token. When it collides with another layer under composition (`import`), deciding a prefix per layer reduces the accidents.
 
+## Daylight — DAY
+
+<a id="day01"></a>
+### DAY01 — daylight is either 1 (in scope) or 0 (out of scope)
+
+`error`
+
+```muro-bad
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0
+space /L1/a room X1..X2 Y1..Y2 daylight:yes
+```
+
+`daylight は 1 (採光判定の対象) か 0 (対象外) です: /L1/a に daylight:yes` — "daylight is either 1 (in scope for the daylight check) or 0 (out of scope); /L1/a carries daylight:yes".
+
+**Cause** — `daylight` is the binary declaration of whether `light`'s 1/7 test applies to a room, and it is the **sole entrance** to that check ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). A spelling like `daylight:yes` or `daylight:true` would pass as a free attribute and drop the room silently out of scope — a total loss of the verdict — so any value but 0 or 1 is rejected.
+
+**Fix** — write `daylight:1` (test it) or `daylight:0` (do not). The type may be anything at all: `wet` with `daylight:1` is in scope, and `bedroom` with nothing written is not.
+
 ## Versions — VER
 
 <a id="ver01"></a>
@@ -1102,8 +1122,8 @@ koyu 0.1
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0
-space /L1/a room X1..X2 Y1..Y2
-space /L1/b room X2..X3 Y1..Y2
+space /L1/a hall X1..X2 Y1..Y2
+space /L1/b hall X2..X3 Y1..Y2
 ```
 
 `koyu 0.1 のファイルに境界が宣言されていない接触ペアがあります: /L1/a | /L1/b — 0.2では既定の壁が導出され意味が変わります。境界を宣言するか、koyu 0.2 へ上げます` — "in 0.2 a default wall is derived and the meaning changes; declare the boundary, or raise it to koyu 0.2".
@@ -1115,7 +1135,32 @@ space /L1/b room X2..X3 Y1..Y2
 - Have it read with the new meaning → make the first line `koyu 0.2`
 - Keep 0.1's meaning → write the `boundary` explicitly for the pair named
 
-**Note** — a file that omits the version declaration is always read with the newest version's semantics (`0.3`), so this code does not appear. Write the version in files whose meaning you want pinned. (The message body cites `0.2` because this code is the rule at the boundary between `0.1` and `0.2`.)
+**Note** — a file that omits the version declaration is always read with the newest version's semantics (`0.4`), so this code does not appear. Write the version in files whose meaning you want pinned. (The message body cites `0.2` because this code is the rule at the boundary between `0.1` and `0.2`.)
+
+<a id="ver02"></a>
+### VER02 — a koyu 0.3 file has a room with no daylight
+
+`error`
+
+```muro-bad
+koyu 0.3
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0
+space /L1/a room X1..X2 Y1..Y2
+```
+
+`koyu 0.3 のファイルに daylight の無い room があります: /L1/a — 0.4では型から採光の対象を推定しないので判定から外れます。daylight:1 (対象) か daylight:0 (対象外) を書いてから koyu 0.4 へ上げます` — "0.4 does not infer the daylight scope from the type, so this room falls out of the check; write daylight:1 or daylight:0, then raise the file to koyu 0.4".
+
+**Cause** — 0.3 and earlier inferred five types (`unit`, `room`, `ldk`, `bedroom`, `living`) to be in scope and put them in the daylight check. 0.4 does not infer the scope from the type at all ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). Raise the version without writing `daylight` and this room **falls silently out of scope, and `light` returns output indistinguishable from "everything passed"**. Since an older version is accepted only when meaning is preserved ([ADR-0017](../../docs/decisions/0017-language-versioning.md)), it is stopped here.
+
+**Fix** — state whether each room named is to be tested, then raise the version.
+
+- It is to be tested → add `daylight:1`
+- It is not (you had been writing storage or a closet) → add `daylight:0`
+- Either way, once that is written, make the first line `koyu 0.4`
+
+**Note** — a room that already carries `daylight` means the same thing under both versions, so this code does not appear for it. Nor does it appear in a file that omits the version declaration, which is read as the newest version.
 
 ## Syntax — SYN
 

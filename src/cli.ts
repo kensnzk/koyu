@@ -244,7 +244,7 @@ function main(argv: string[]): number {
     case "light": {
       const results = daylight(model);
       if (results.length === 0) {
-        console.log("対象の居室 (住居系) がありません");
+        console.log("採光の対象がありません (判定する室に daylight:1 を書きます)");
         return 0;
       }
       let fail = 0;

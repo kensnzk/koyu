@@ -68,7 +68,7 @@ console.log(m.spaces.size, m.version, m.layers);
 ```
 
 ```text
-1 0.3 []
+1 0.4 []
 ```
 
 `model.layers` is the list of layers that took part in composition (in composition order, the entry first). `parse` takes a single source, so it is empty.
@@ -375,7 +375,7 @@ interface DaylightResult {
 }
 ```
 
-The subjects are spaces whose type is `unit`, `room`, `ldk`, `bedroom`, or `living` (added with `hab:1`, excluded with `hab:0`). **With nothing in scope an empty array comes back** — indistinguishable from "everything passed", so look at `length`.
+The subjects are only the spaces carrying `daylight:1`; the type is not consulted ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). **With nothing in scope an empty array comes back** — indistinguishable from "everything passed", so look at `length`.
 
 ```ts
 import { daylight } from "@kensnzk/koyu";
@@ -752,7 +752,7 @@ console.log(toCanonical(a).split("\n").slice(0, 6).join("\n"));
 
 ```text
 {
-  "koyu": "0.3",
+  "koyu": "0.4",
   "name": "二室",
   "unit": "mm",
   "grid": {
@@ -913,7 +913,7 @@ console.log(SUPPORTED_LANGUAGE_VERSIONS, DEFAULT_LANGUAGE_VERSION);
 ```
 
 ```text
-[ '0.1', '0.2', '0.3' ] 0.3
+[ '0.1', '0.2', '0.3', '0.4' ] 0.4
 ```
 
 ## Types

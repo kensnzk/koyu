@@ -9,7 +9,7 @@ import { semanticDiff } from "../src/diff.js";
 import { toCanonical } from "../src/model.js";
 import { parse, parseFiles } from "../src/parse.js";
 
-const HEAD = "koyu 0.3\nunit mm\ngrid X 0 6400 12800\ngrid Y 0 5600\nlevel L1 0 h:2400\n";
+const HEAD = "koyu 0.4\nunit mm\ngrid X 0 6400 12800\ngrid Y 0 5600\nlevel L1 0 h:2400\n";
 
 // ---- A. 展開 ----
 
@@ -76,7 +76,7 @@ test("帯: 要素が一つでも成立する", () => {
 
 test("帯: レベルスパンは全要素まとめて展開される", () => {
   const src =
-    "koyu 0.3\nunit mm\ngrid X 0 6400\ngrid Y 0 5600\nlevel L1 0 h:2400\nlevel L2 3000 h:2400\nlevel L3 6000 h:2400\n" +
+    "koyu 0.4\nunit mm\ngrid X 0 6400\ngrid Y 0 5600\nlevel L1 0 h:2400\nlevel L2 3000 h:2400\nlevel L3 6000 h:2400\n" +
     "band X X1..X2 Y1..Y2\n  space /L1..L3/a room w:1600\n  space /L1..L3/b room w:rest\n";
   const m = parse(src);
   for (const lv of ["L1", "L2", "L3"]) {
@@ -250,7 +250,7 @@ test("帯のエラー: 要素なし / 帯の外の字下げ space / 帯の下の
 
 test("帯のエラー: 要素が違うレベルに展開される", () => {
   const src =
-    "koyu 0.3\nunit mm\ngrid X 0 6400\ngrid Y 0 5600\nlevel L1 0 h:2400\nlevel L2 3000 h:2400\n" +
+    "koyu 0.4\nunit mm\ngrid X 0 6400\ngrid Y 0 5600\nlevel L1 0 h:2400\nlevel L2 3000 h:2400\n" +
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:1600\n  space /L2/b room w:rest\n";
   assert.throws(() => parse(src), /帯の要素は同じレベルに展開します/);
 });
@@ -281,7 +281,7 @@ test("帯に語彙の版ゲートは無い (koyu 0.2 宣言でも読める)", ()
   // band にだけ設けるのは新機構の密輸になるため、意図的に設けていない (ADR-0019)。
   const m = parse(
     "koyu 0.2\nunit mm\ngrid X 0 6400\ngrid Y 0 5600\nlevel L1 0 h:2400\n" +
-      "band X X1..X2 Y1..Y2\n  space /L1/a room w:1600\n  space /L1/b room w:rest\n",
+      "band X X1..X2 Y1..Y2\n  space /L1/a hall w:1600\n  space /L1/b hall w:rest\n",
   );
   assert.equal(m.spaces.size, 2);
 });

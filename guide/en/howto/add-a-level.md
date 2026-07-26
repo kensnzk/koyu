@@ -94,7 +94,7 @@ boundary /L2/bed /L2/hall t:120
 The following file is a two-storey building containing every step above.
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 二階建ての稽古
 unit mm
 

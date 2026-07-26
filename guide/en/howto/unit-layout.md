@@ -16,7 +16,7 @@ The file paths in the output below are actually absolute; they are shortened to 
 This is the first trap. Leave the dwelling's `space` in place and add child `space` lines, and the parent's region overlaps the children's.
 
 ```muro-bad
-koyu 0.3
+koyu 0.4
 name 住戸を割る
 unit mm
 
@@ -96,7 +96,7 @@ boundary /L3/A/hall /L3/corridor t:180 spec:RC
 ## Confirming it
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 住戸を割る
 unit mm
 

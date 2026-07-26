@@ -18,7 +18,7 @@
 建物全体の一貫性 — `koyu` (版) `name` `unit` `grid` `level` — は base層が**一度だけ**宣言する。これらをどこか一つの層に集めたファイルが entry になる。
 
 ```muro-part
-koyu 0.3
+koyu 0.4
 name 小さな戸建住宅
 unit mm
 

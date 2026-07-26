@@ -9,20 +9,25 @@ The file paths in the output below are actually absolute; they are shortened to 
 ## Before you begin
 
 - `check` passes with zero errors.
-- You know the type (the second positional of `space`) of the space you want to cut a window into.
+- You have decided which rooms the daylight test should apply to (koyu never guesses — the author declares it).
 
 ## Steps
 
-### 1. Confirm that the space is in scope
+### 1. Declare that the check applies to the space
 
-What `light` looks at are spaces whose type is `unit`, `room`, `ldk`, `bedroom`, or `living`. The type is an open vocabulary, and any other word (`wet`, `hall`, `corridor`, `shop`, …) silently falls out of scope. Write a bathroom as `room` and it enters the test; write it as `wet` and it does not — neither is an error.
-
-To add to or remove from the scope without changing the type, use `hab:`. `hab:1` adds, `hab:0` excludes.
+What `light` looks at are **only** the spaces carrying `daylight:1`. The type is not consulted at all — whether the test applies is something the author declares, not something to be guessed from the room's name ([ADR-0020](../../../docs/decisions/0020-daylight-scope-is-declared.md)). The default is non-habitable, so with no `daylight` written anywhere, nothing is tested.
 
 ```muro-part
-space /L1/a room X1..X2 Y1..Y2 name:居室A hab:0        # type stays room, out of scope
-space /L1/b wet  X2..X3 Y1..Y2 name:洗面脱衣 hab:1     # type stays wet, in scope
+space /L1/a bedroom X1..X2 Y1..Y2 name:寝室 daylight:1     # tested
+space /L1/b wet     X2..X3 Y1..Y2 name:洗面脱衣       # default is out of scope
+space /L1/c wet     X3..X4 Y1..Y2 name:浴室 daylight:1     # type stays wet, tested all the same
 ```
+
+`daylight:0` means the same as the default, but it is worth writing to tell a reader that a room is deliberately left out. Only 0 and 1 are accepted; a spelling like `daylight:yes` is an error (DAY01).
+
+Where the denominator sits is decided by where you write `daylight:1`, too. Put it on the `unit` line and the whole dwelling is tested as one room; split the dwelling into ldk and bedroom and each is tested separately. Both are correct — it is a choice of what resolution the schematic design is being kept at.
+
+**When nothing is in scope, `light` returns exit code 0** — indistinguishable from "everything passed". When a room you expected does not appear, suspect a missing `daylight:1` first.
 
 ### 2. Write a `window` on a boundary facing outside
 
@@ -72,7 +77,7 @@ Run `light`. The exit code is 0 if every room passes and 1 if even one falls sho
 Both rooms in the following file pass.
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 採光の稽古
 unit mm
 
@@ -80,8 +85,8 @@ grid X 0 3600 7200
 grid Y 0 4500
 level L1 0 h:2400
 
-space /L1/a room X1..X2 Y1..Y2 name:居室A
-space /L1/b room X2..X3 Y1..Y2 name:居室B
+space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
+space /L1/b room X2..X3 Y1..Y2 name:居室B daylight:1
 space /out exterior name:外部
 
 boundary /L1/a /L1/b t:120
@@ -119,7 +124,7 @@ A window that borrows light across a balcony, a terrace, or a garden takes a coe
 A full-height window (2600×2200 = 5.72 m²) across a terrace that is open above is counted at the full 5.72 m².
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 半屋外越しの採光
 unit mm
 
@@ -127,7 +132,7 @@ grid X 0 4000
 grid Y 0 4000
 level L1 0 h:2400
 
-space /L1/liv living  X1..X2 Y1..Y2      name:居間
+space /L1/liv living  X1..X2 Y1..Y2      name:居間 daylight:1
 space /L1/bal balcony X1..X2 Y1-1500..Y1 name:テラス
 space /out exterior name:外部
 
@@ -143,7 +148,7 @@ boundary /L1/bal /out edge:S t:120 spec:手すり air:1 h:1100
 Add an upstairs balcony in the same position and the terrace becomes covered above, taking the 0.7. Neither the window nor the floor has been changed at all.
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 半屋外越しの採光
 unit mm
 
@@ -153,7 +158,7 @@ level L1 0 h:2400
 level L2 2900 h:2400 slab:500
 level R 5800 slab:500
 
-space /L1/liv living  X1..X2 Y1..Y2      name:居間
+space /L1/liv living  X1..X2 Y1..Y2      name:居間 daylight:1
 space /L1/bal balcony X1..X2 Y1-1500..Y1 name:テラス
 space /L2/bal balcony X1..X2 Y1-1500..Y1 name:上階バルコニー
 space /out exterior name:外部
@@ -176,7 +181,7 @@ A `✖` line prints the required area outright (`必要 1/7 ≈ …㎡`, "requir
 
 - Make the window larger, or add more of them. The effective window area is the sum over the windows on every boundary touching that space.
 - If it is across a semi-outdoor space, move the window onto a boundary that faces the outside directly (the coefficient becomes 1.0).
-- If the room is not a habitable room, correct the type or attach `hab:0`.
+- If the room should not be tested at all, drop its `daylight:1` (write `daylight:0` if you want the intent on the record).
 
 `light` is a coarse early warning that applies no correction factors, not a verdict of regulatory compliance ([spec/semantics.md §6](../../../spec/en/semantics.md)). The 1/7 ratio comes from the Japanese Building Standards Act.
 
