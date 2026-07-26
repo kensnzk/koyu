@@ -8,7 +8,7 @@ koyu は建築をテキストで書く記法 (`.muro`) とその処理系であ�
 
 | 場所 | 中身 | 触るときの規律 |
 |---|---|---|
-| `src/` | 実装 約6,000行 — `parse.ts` `parse-file.ts` (合成) `model.ts` `check.ts` `graph.ts` `vertical.ts` (縦動線) `fabric.ts` (床・天井・屋根) `light.ts` `site.ts` `plan.ts` `axo.ts` (軸測図) `diff.ts` `cli.ts` `mcp.ts` `index.ts` | 実行時依存ゼロ。挙動を変えたら spec とテストを同じ変更で直す |
+| `src/` | 実装 約6,000行 — `parse.ts` `parse-file.ts` (合成) `model.ts` `poly.ts` (幾何の一枚岩) `check.ts` (診断。`checkDiagnostics` は19の節の列で、節の粒度は**走査単位**) `graph.ts` `vertical.ts` (縦動線) `fabric.ts` (床・天井・屋根) `light.ts` `site.ts` `plan.ts` `axo.ts` (軸測図) `diff.ts` `cli.ts` `mcp.ts` `index.ts` | 実行時依存ゼロ。挙動を変えたら spec とテストを同じ変更で直す |
 | `spec/` | **規範リファレンス** (現在形) — 文法・意味論・語彙台帳・正準JSON・ツール契約 | 追補を積まない。本文をその場で書き換える |
 | `guide/` | **学ぶ本** — チュートリアル・概念・how-to・診断事典・CLI/API | 規範を書かない。spec へリンクする |
 | `docs/decisions/` | **ADR** — なぜそう決めたか、何を棄却したか (0001〜0026) | 決定は追記のみ。覆すときは新しいADRを書く |
@@ -60,6 +60,7 @@ model_summary → layers → write_layer → check ──エラー──→ 直�
 3. **変更は三点セットで着地する — ADR (なぜ) + テスト (保証) + spec (現在形)。**どれかを欠いた変更は未完了である。
 4. **spec は現在形で、その場で書き換える。**日付や「追補」や「v0.9では〜」を積まない。版は git が持つ。
 5. **診断は必ずコードを持ち、severity はコードの属性である** ([ADR-0016](docs/decisions/0016-diagnostic-contract.md))。同じコードが場合によって error になったり warning になったりはしない。コードを足したら [spec/semantics.md](spec/semantics.md) の台帳と [guide/diagnostics.md](guide/diagnostics.md) の両方に載せる。
+   **母集団は書かれた宣言、出所は必ず持つ、並びは走査の順** ([ADR-0028](docs/decisions/0028-diagnostics-per-declaration.md))。解釈される属性 (台帳の★) の値は検査する — 書いたのに解釈されなかった値を黙って既定へ落とさない。`checkDiagnostics` を触るときは節の粒度を走査単位に保つ (コードの族で割ると並びが崩れる)。
 6. **言語の意味論を変える変更は言語版を上げる** ([ADR-0017](docs/decisions/0017-language-versioning.md))。現行は `koyu 0.5`。移行はADRに書き、examples は最新版へ揃える。
 7. **語彙は台帳が契約である** ([ADR-0008](docs/decisions/0008-vocabulary-and-level-attr.md))。[spec/vocabulary.md](spec/vocabulary.md) に載っていない属性を実装が解釈してはならない。
 8. **実行時依存はゼロ。**devDependencies 以外を足さない。

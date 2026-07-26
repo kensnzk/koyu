@@ -175,6 +175,55 @@ test("母集団: 「延べ面積」は一箇所が答える — stats と site �
   );
 });
 
+test("順序: 診断の並びは走査の順序である — 一つの境界が出す複数のコードは離れない", () => {
+  // **並びは契約である。**互換層は診断を出た順に文字列へ写す。
+  // ここで効く模型は「一本の境界が複数のコードを出す」もの — 15行目の境界は
+  // BND04・OPN04・SEG04 を続けて出す。checkDiagnostics を**コード族**で節に割ると
+  // この三つが他の境界の診断で分断され、並びが崩れる。走査単位で割れば崩れない。
+  const m = parse(`koyu 0.5
+grid X 0 3600 7200 10800
+grid Y 0 4000 8000
+level L1 0 h:2400 slab:300
+level L2 3000 h:2400 slab:300
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+space /L1/far room X3..X4 Y2..Y3
+space /L2/a room X1..X2 Y1..Y2
+space /out exterior
+boundary /L1/a /L1/b t:120
+  door w:900 at:0.4
+  door w:900 at:0.5
+boundary /L1/a /L1/b edge:E t:120
+boundary /L1/a /L1/far t:120
+  door w:900
+  seg w:600 spec:GL
+boundary /L1/a /L2/a t:120
+  door w:900
+  seg w:600
+boundary /L1/a /out type:void
+  door w:900
+  seg w:600
+boundary /L1/b /out kind:open
+  door w:900
+  seg w:600`);
+  assert.deepEqual(
+    checkDiagnostics(m).map((d) => [d.code, d.line]),
+    [
+      ["BND05", 11], // 境界の同一性 (edge限定の混在)
+      ["ENV01", 6], // 外皮の穴
+      ["ENV01", 8],
+      ["OPN02", 13], // ここから境界の妥当性 — 境界の宣言順に、境界ごとに固まって出る
+      ["BND04", 15],
+      ["OPN04", 16],
+      ["SEG04", 17],
+      ["BND03", 18],
+      ["VRT01", 21],
+      ["OPN05", 25],
+      ["SEG05", 26],
+    ],
+  );
+});
+
 // ---- (a) 主要コードの発火 ----
 
 test("診断: BND02 境界重複 — line/path/related (既出側) を持つ", () => {

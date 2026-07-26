@@ -18,7 +18,7 @@ import {
   drawnCut,
   spacesOverlap,
 } from "./graph.js";
-import { heff, isSemiOutdoor, levelsSorted, type Attrs, type Boundary, type Edge, type Model, type Pt, type Rect, type Space,
+import { heff, isSemiOutdoor, levelsSorted, type Attrs, type Boundary, type Edge, type Level, type Model, type Pt, type Rect, type Space,
   columnSites,
   columnsFor,
   pointInPolygon,
@@ -219,6 +219,35 @@ export function check(model: Model): CheckResult {
   return { errors, warnings };
 }
 
+/**
+ * 節が共有する文脈。**節をまたいで読まれる値だけ**がここに載る —
+ * seenBoundary・pairEdges・siteZones・envelopedLevels・stood・uidOwners・
+ * voidPartners・byLevel はどれも一つの節の内側で閉じているので、載せない。
+ */
+/** 診断の出所 (境界に対する診断が共有する) */
+type At = { line?: number; file?: string; path?: string[]; related?: Array<{ line: number; file?: string }> };
+
+interface Ctx {
+  model: Model;
+  emit: (
+    code: DiagnosticCode,
+    message: string,
+    at?: {
+      line?: number;
+      file?: string;
+      path?: string[];
+      related?: Array<{ line: number; file?: string }>;
+    },
+  ) => void;
+  loc: (line: number, file?: string) => { line: number; file?: string };
+  /** 領域を持つ空間 (7つの節が読む) */
+  withRect: Space[];
+  /** z昇順のレベル */
+  levels: Level[];
+  /** レベル名 → z昇順の添字 (境界の妥当性と高さの節が読む) */
+  levelIndex: Map<string, number>;
+}
+
 export function checkDiagnostics(model: Model): Diagnostic[] {
   const diags: Diagnostic[] = [];
   /** line:0 は「位置なし」— フィールドごと省略する (既定境界などの導出物) */
@@ -247,6 +276,57 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     ...(file !== undefined ? { file } : {}),
   });
 
+
+  const withRect = [...model.spaces.values()].filter((s) => s.rects.length > 0);
+  const levels = levelsSorted(model);
+  const levelIndex = new Map(levels.map((l, i) => [l.name, i]));
+  const ctx: Ctx = { model, emit, loc, withRect, levels, levelIndex };
+
+  // **節の順序が出力の順序である。**互換層は診断を出た順に文字列へ写すので、
+  // ここの並びを入れ替えると check の出力が変わる (test/diagnostics.test.ts が固定している)。
+  // 節の粒度は「走査単位」であって「診断コードの族」ではない — 一つのループが
+  // 複数のコードを出すとき、それらは走査の順に交互に出る。族で割ると並びが崩れる
+  checkBoundaryRefs(ctx);
+  checkBoundaryIdentity(ctx);
+  checkLevelDepth(ctx);
+  checkSelfOverlap(ctx);
+  checkSpaceOverlap(ctx);
+  checkDaylightScope(ctx);
+  checkAttrValues(ctx);
+  checkRuns(ctx);
+  checkDrawnLines(ctx);
+  checkEnvelopeGaps(ctx);
+  checkColumns(ctx);
+  checkLanguageVersion(ctx);
+  checkUids(ctx);
+  checkBoundaryValidity(ctx);
+  checkAreas(ctx);
+  checkZones(ctx);
+  checkHeights(ctx);
+  checkOrphanSpaces(ctx);
+  checkSite(ctx);
+  return diags;
+}
+
+
+/** 吹抜けが下階の空間の平面をどれだけ覆うか (0..1) */
+function voidCoverage(s: Space, partners: Space[]): number {
+  let inter = 0;
+  for (const r of s.rects) {
+    for (const p of partners) {
+      for (const pr of p.rects) {
+        const o = planOverlap(r, pr);
+        if (o) inter += (o.x2 - o.x1) * (o.y2 - o.y1);
+      }
+    }
+  }
+  const area = s.rects.reduce((sum, r) => sum + (r.x2 - r.x1) * (r.y2 - r.y1), 0);
+  return area > 0 ? inter / area : 0;
+}
+
+/** 境界の参照先 — REF01 / BND01 */
+function checkBoundaryRefs(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 境界の参照先
   for (const b of model.boundaries) {
     for (const p of [b.a, b.b]) {
@@ -258,7 +338,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       emit("BND01", `同じ空間同士の境界は書けません: ${b.a}`, { line: b.line, file: b.file, path: [b.a, b.b] });
     }
   }
+}
 
+/** 境界の同一性 — BND02 / BND05 */
+function checkBoundaryIdentity(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 境界の同一性: 同じ空間対 (edge限定まで同一) の重複宣言は矛盾の温床 — エラー (ADR-0013)。
   // wall/openの食い違いもこの検査が捕まえる。edge限定の有無が混在する対は線分が重なるため警告
   const seenBoundary = new Map<string, Boundary>();
@@ -298,10 +382,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       });
     }
   }
+}
 
-  const withRect = [...model.spaces.values()].filter((s) => s.rects.length > 0);
-  const levels = levelsSorted(model);
-
+/** レベルの重複 — LVL01 */
+function checkLevelDepth(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // レベルの重複
   for (let i = 1; i < levels.length; i++) {
     if (Math.abs(levels[i]!.z - levels[i - 1]!.z) < EPS) {
@@ -312,7 +397,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       });
     }
   }
+}
 
+/** 自らの領域の重なり — GEO01 */
+function checkSelfOverlap(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 自らの領域 (合併の矩形同士) の重なり
   for (const s of withRect) {
     for (let i = 0; i < s.rects.length; i++) {
@@ -328,7 +417,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       }
     }
   }
+}
 
+/** 空間同士の重なり — GEO02 */
+function checkSpaceOverlap(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 同一レベルでの空間同士の重なり
   for (let i = 0; i < withRect.length; i++) {
     for (let j = i + 1; j < withRect.length; j++) {
@@ -345,7 +438,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       }
     }
   }
+}
 
+/** 採光の対象の宣言 — DAY01 */
+function checkDaylightScope(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 採光の対象の宣言 (ADR-0020): daylight は「この室に 1/7 の判定を掛ける」という二値の宣言。
   // 綴りの揺れ (daylight:true / daylight:yes) が黙って対象外に落ちるのを防ぐ
   for (const s of model.spaces.values()) {
@@ -359,7 +456,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       });
     }
   }
+}
 
+/** 解釈される属性の値 — ATT01 / ATT02 */
+function checkAttrValues(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 解釈される属性の値 (ADR-0028): **書いたのに解釈されなかった値は、黙って既定へ落とさない。**
   //
   // daylight だけが DAY01 で守られていて、他の★属性は素通りだった。帰結は黙殺である —
@@ -380,13 +481,21 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       }
     }
   }
+}
 
+/** 縦動線 — RUN01〜RUN08 */
+function checkRuns(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 縦動線 (ADR-0021): 宣言の妥当性と、**書かれていない導出値**の妥当性。
   // 段数も踏面も勾配も書かない — だから導出したものを検査する
   for (const i of runIssues(model)) {
     emit(i.code, i.message, { line: i.line, file: i.file, path: [i.path] });
   }
+}
 
+/** 描かれた線 — LIN01〜LIN03 */
+function checkDrawnLines(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 描かれた線 (ADR-0022): 線は二つの空間を実際に分離しなければならない。
   // 「宣言どおりに切れているか」は arrangement の検査であり、check の仕事
   for (const b of model.boundaries) {
@@ -426,7 +535,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       );
     }
   }
+}
 
+/** 外皮の穴 — ENV01 */
+function checkEnvelopeGaps(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 外皮の穴 (ADR-0025): 既定境界は領域を持たない空間との間には導かれない (ADR-0014) ので、
   // 外部への境界の書き忘れは黙って壁の不在になる。導出された外周のうち、
   // 他の空間とも宣言された境界とも向かい合っていない区間を数える。
@@ -465,7 +578,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       { line: s.line, file: s.file, path: [s.path] },
     );
   }
+}
 
+/** 柱 — COL01 / COL02 */
+function checkColumns(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 柱 (ADR-0023): 位置は書かれない。宣言に対して一本も立たなければ、
   // 通りか階の指定が実際の床とすれ違っている
   //
@@ -506,7 +623,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       );
     }
   }
+}
 
+/** 言語版の受理条件 — VER01〜VER03 */
+function checkLanguageVersion(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 言語版の受理条件 (ADR-0017): 旧版は意味保存の場合のみ受理する。
   // 既定境界 (ADR-0014) が導出されるファイルは、0.1の意味 (境界なし+警告) と食い違う — エラーで二択を示す
   if (model.version === "0.1") {
@@ -569,7 +690,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       }
     }
   }
+}
 
+/** uid — UID01〜UID03 */
+function checkUids(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // uid (ADR-0015): 不透明トークン、space/zone横断でモデル全体一意。
   // 数字だけの形は禁じる — parseの数値化で 0123 が 123 になり、書いたトークンの区別が失われる
   const uidOwners = new Map<string, Array<{ kind: string; path: string; line: number; file?: string }>>();
@@ -603,157 +728,193 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       );
     }
   }
+}
 
-  // 境界の妥当性
-  const levelIndex = new Map(levels.map((l, i) => [l.name, i]));
+/** 境界の妥当性 — VRT / BND03〜06 / OPN / SEG */
+function checkBoundaryValidity(ctx: Ctx): void {
+  const { model, emit } = ctx;
+  // 境界の妥当性。**一本のループを保つ** — 一つの境界が出す複数のコードは
+  // 走査の順に固まって出るので、コードの族で節に割ると並びが崩れる (ADR-0028)。
+  // ループの `continue` は「この境界の残りを飛ばす」を意味するので、
+  // 段に切り出すときは**呼び出し側の continue として残す** — 判定の綴りを
+  // ヘルパの中へ持ち込むと、同じ条件が二箇所に分かれて片方だけ直る
   for (const b of model.boundaries) {
     const sa = model.spaces.get(b.a);
     const sb = model.spaces.get(b.b);
-    if (!sa || !sb) continue;
+    if (!sa || !sb) continue; // 未定義の参照は REF01 が言う — 形の検査には進まない
     const bAt = { line: b.line, file: b.file, path: [b.a, b.b] };
 
     if (VERTICAL.has(b.kind)) {
-      // 垂直境界: 隣り合うレベルの、平面で重なる空間同士にしか張れない
-      if (sa.rects.length === 0 || sb.rects.length === 0 || !sa.level || !sb.level) {
-        emit("VRT01", `${b.kind} 境界は領域とレベルを持つ空間同士に書きます`, bAt);
-        continue;
-      }
-      const ia = levelIndex.get(sa.level);
-      const ib = levelIndex.get(sb.level);
-      if (ia === undefined || ib === undefined || Math.abs(ia - ib) !== 1) {
-        emit("VRT02", `${b.kind} 境界は隣り合うレベルの間に書きます: ${b.a} | ${b.b}`, bAt);
-      } else if (!spacesOverlap(sa, sb)) {
-        emit("VRT03", `${b.kind} 境界の空間が平面上で重なっていません: ${b.a} | ${b.b}`, bAt);
-      }
-      if (b.kind === "void") {
-        const upper = (ia ?? 0) > (ib ?? 0) ? sa : sb;
-        if (upper.type !== "void") {
-          emit("VRT04", `void境界の上側は type:void の空間を想定しています: ${upper.path}`, bAt);
-        }
-      }
-      // 咎めているのは字下げされた door / window / seg の行そのものなので、
-      // 親の境界宣言ではなくその行を指す。宣言が複数あれば診断も複数出る
-      for (const o of b.openings) {
-        emit("VRT05", `垂直境界の${o.kind}は解釈されません`, { line: o.line, file: b.file, path: [b.a, b.b] });
-      }
-      for (const g of b.segs) {
-        emit("VRT06", `垂直境界の seg は解釈されません`, { line: g.line, file: b.file, path: [b.a, b.b] });
-      }
-      continue;
+      checkVerticalBoundary(ctx, b, sa, sb, bAt);
+      continue; // 垂直境界は水平の検査 (線分・開口・seg) を一切受けない
     }
-
-    // 水平境界
     if (sa.rects.length > 0 && sb.rects.length > 0 && sa.level !== sb.level) {
       emit(
         "BND03",
         `異なるレベルの空間に壁境界は書けません (垂直は type:stair/shaft/void): ${b.a} | ${b.b}`,
         bAt,
       );
-      continue;
+      continue; // レベルを跨ぐ壁は成立していない — 線分も開口も問わない
     }
-    const segs = segmentsFor(model, b);
-    // 線を持つ境界の線分ゼロは「接していない」ではない — 線が分離していないか
-    // 何も切っていないかであり、それは LIN01 / LIN03 が言う
-    if (!b.drawn) {
-      if (sa.rects.length > 0 && sb.rects.length > 0 && segs.length === 0) {
-        // **線分がゼロの理由は二つある。**接していないか、edge: で絞った先に共有辺が
-        // 無いか。前者だと断言すると、実際には接している二室について「割付を直せ」と
-        // 言うことになる — 直すべきは方角一語である (N=+Y, S=-Y, E=+X, W=-X)
-        const without = b.edge ? segmentsFor(model, { ...b, edge: undefined }) : [];
-        if (without.length > 0) {
-          const dirs = [...new Set(without.map((g) => g.edgeOfA))].filter((d): d is Edge => d !== undefined);
-          emit(
-            "BND04",
-            `edge:${b.edge} に共有辺がありません: ${b.a} | ${b.b} (実際に接しているのは ${
-              dirs.join("・") || "別の辺"
-            } です)`,
-            bAt,
-          );
-        } else {
-          emit("BND04", `空間が接していないため境界を導けません: ${b.a} | ${b.b}`, bAt);
-        }
-      }
-      if ((sa.rects.length > 0 ? 1 : 0) + (sb.rects.length > 0 ? 1 : 0) === 1 && segs.length === 0) {
+    checkBoundarySegments(ctx, b, sa, sb, bAt);
+    checkOpenings(ctx, b);
+    checkBoundarySegs(ctx, b);
+  }
+}
+
+/** 垂直境界 (stair/shaft/void) — VRT01〜VRT06 */
+function checkVerticalBoundary(ctx: Ctx, b: Boundary, sa: Space, sb: Space, bAt: At): void {
+  const { emit, levelIndex } = ctx;
+  // 垂直境界: 隣り合うレベルの、平面で重なる空間同士にしか張れない
+  if (sa.rects.length === 0 || sb.rects.length === 0 || !sa.level || !sb.level) {
+    emit("VRT01", `${b.kind} 境界は領域とレベルを持つ空間同士に書きます`, bAt);
+    return; // 前提が崩れているので、以降の判定は意味を持たない
+  }
+  const ia = levelIndex.get(sa.level);
+  const ib = levelIndex.get(sb.level);
+  if (ia === undefined || ib === undefined || Math.abs(ia - ib) !== 1) {
+    emit("VRT02", `${b.kind} 境界は隣り合うレベルの間に書きます: ${b.a} | ${b.b}`, bAt);
+  } else if (!spacesOverlap(sa, sb)) {
+    emit("VRT03", `${b.kind} 境界の空間が平面上で重なっていません: ${b.a} | ${b.b}`, bAt);
+  }
+  if (b.kind === "void") {
+    const upper = (ia ?? 0) > (ib ?? 0) ? sa : sb;
+    if (upper.type !== "void") {
+      emit("VRT04", `void境界の上側は type:void の空間を想定しています: ${upper.path}`, bAt);
+    }
+  }
+  // 咎めているのは字下げされた door / window / seg の行そのものなので、
+  // 親の境界宣言ではなくその行を指す。宣言が複数あれば診断も複数出る
+  for (const o of b.openings) {
+    emit("VRT05", `垂直境界の${o.kind}は解釈されません`, { line: o.line, file: b.file, path: [b.a, b.b] });
+  }
+  for (const g of b.segs) {
+    emit("VRT06", `垂直境界の seg は解釈されません`, { line: g.line, file: b.file, path: [b.a, b.b] });
+  }
+}
+
+/** 水平境界の線分がゼロ — BND04 / BND06 */
+function checkBoundarySegments(ctx: Ctx, b: Boundary, sa: Space, sb: Space, bAt: At): void {
+  const { model, emit } = ctx;
+  // 線を持つ境界の線分ゼロは「接していない」ではない — 線が分離していないか
+  // 何も切っていないかであり、それは LIN01 / LIN03 が言う
+  if (b.drawn) return;
+  const segs = segmentsFor(model, b);
+  if (sa.rects.length > 0 && sb.rects.length > 0 && segs.length === 0) {
+    // **線分がゼロの理由は二つある。**接していないか、edge: で絞った先に共有辺が
+    // 無いか。前者だと断言すると、実際には接している二室について「割付を直せ」と
+    // 言うことになる — 直すべきは方角一語である (N=+Y, S=-Y, E=+X, W=-X)
+    const without = b.edge ? segmentsFor(model, { ...b, edge: undefined }) : [];
+    if (without.length > 0) {
+      const dirs = [...new Set(without.map((g) => g.edgeOfA))].filter((d): d is Edge => d !== undefined);
+      emit(
+        "BND04",
+        `edge:${b.edge} に共有辺がありません: ${b.a} | ${b.b} (実際に接しているのは ${
+          dirs.join("・") || "別の辺"
+        } です)`,
+        bAt,
+      );
+    } else {
+      emit("BND04", `空間が接していないため境界を導けません: ${b.a} | ${b.b}`, bAt);
+    }
+  }
+  if ((sa.rects.length > 0 ? 1 : 0) + (sb.rects.length > 0 ? 1 : 0) === 1 && segs.length === 0) {
+    emit(
+      "BND06",
+      `${b.edge ? `edge:${b.edge} の` : ""}外周に残る辺が無く、境界線分がゼロです: ${b.a} | ${b.b}`,
+      bAt,
+    );
+  }
+}
+
+/**
+ * 開口 — OPN03 / 配置エラー (OPN04〜08) / OPN01 / OPN02。
+ * **一つの関数に保つ** — 配置に失敗した開口は OPN01 も受けず OPN02 の母集団からも外れる。
+ * 配置の結果 (placedOnSeg) を跨いで持つのはここだけである
+ */
+function checkOpenings(ctx: Ctx, b: Boundary): void {
+  const { model, emit, loc } = ctx;
+  if (b.kind === "open" && b.openings.length > 0) {
+    for (const o of b.openings) {
+      emit("OPN03", `open境界の${o.kind}は通行に影響しません (常に通れます)`, {
+        line: o.line,
+        file: b.file,
+        path: [b.a, b.b],
+      });
+    }
+  }
+  const placedOnSeg: Array<{ o: (typeof b.openings)[number]; key: string; c: number }> = [];
+  for (const o of b.openings) {
+    const placed = placeOpening(model, b, o);
+    if ("error" in placed && placed.error) {
+      emit(placed.code, placed.message, { line: placed.line, file: placed.file, path: [b.a, b.b] });
+      continue; // 置けなかった開口は、以降 (hinge の軸・重なり) の対象にならない
+    }
+    if ("segment" in placed) {
+      const s = placed.segment;
+      placedOnSeg.push({
+        o,
+        key: `${s.x1},${s.y1},${s.x2},${s.y2}`,
+        c: s.horizontal ? placed.cx : placed.cy,
+      });
+    }
+    if (o.hinge && "segment" in placed) {
+      const okAxis = placed.segment.horizontal
+        ? o.hinge === "W" || o.hinge === "E"
+        : o.hinge === "N" || o.hinge === "S";
+      if (!okAxis) {
         emit(
-          "BND06",
-          `${b.edge ? `edge:${b.edge} の` : ""}外周に残る辺が無く、境界線分がゼロです: ${b.a} | ${b.b}`,
-          bAt,
+          "OPN01",
+          `hinge:${o.hinge} は${placed.segment.horizontal ? "水平線分 (W/E)" : "垂直線分 (N/S)"}で指定します`,
+          { line: o.line, file: b.file, path: [b.a, b.b] },
         );
       }
     }
-    if (b.kind === "open" && b.openings.length > 0) {
-      for (const o of b.openings) {
-        emit("OPN03", `open境界の${o.kind}は通行に影響しません (常に通れます)`, {
-          line: o.line,
-          file: b.file,
-          path: [b.a, b.b],
-        });
-      }
-    }
-    const placedOnSeg: Array<{ o: (typeof b.openings)[number]; key: string; c: number }> = [];
-    for (const o of b.openings) {
-      const placed = placeOpening(model, b, o);
-      if ("error" in placed && placed.error) {
-        emit(placed.code, placed.message, { line: placed.line, file: placed.file, path: [b.a, b.b] });
-        continue;
-      }
-      if ("segment" in placed) {
-        const s = placed.segment;
-        placedOnSeg.push({
-          o,
-          key: `${s.x1},${s.y1},${s.x2},${s.y2}`,
-          c: s.horizontal ? placed.cx : placed.cy,
-        });
-      }
-      if (o.hinge && "segment" in placed) {
-        const okAxis = placed.segment.horizontal
-          ? o.hinge === "W" || o.hinge === "E"
-          : o.hinge === "N" || o.hinge === "S";
-        if (!okAxis) {
-          emit(
-            "OPN01",
-            `hinge:${o.hinge} は${placed.segment.horizontal ? "水平線分 (W/E)" : "垂直線分 (N/S)"}で指定します`,
-            { line: o.line, file: b.file, path: [b.a, b.b] },
-          );
-        }
-      }
-    }
-    // 同じ線分の上の開口同士は重なってはならない
-    const byKey = new Map<string, typeof placedOnSeg>();
-    for (const p of placedOnSeg) {
-      const arr = byKey.get(p.key) ?? [];
-      arr.push(p);
-      byKey.set(p.key, arr);
-    }
-    for (const group of byKey.values()) {
-      group.sort((p, q) => p.c - q.c);
-      for (let k = 0; k + 1 < group.length; k++) {
-        const p = group[k]!;
-        const q = group[k + 1]!;
-        const need = (p.o.w + q.o.w) / 2;
-        if (q.c - p.c < need - EPS) {
-          emit(
-            "OPN02",
-            `開口同士が重なっています (${p.o.kind}と${q.o.kind} — 中心間 ${Math.round(
-              q.c - p.c,
-            )}mm < 必要 ${Math.round(need)}mm)`,
-            { line: q.o.line, file: b.file, path: [b.a, b.b], related: [loc(p.o.line, b.file)] },
-          );
-        }
-      }
-    }
-    for (const g of b.segs) {
-      if (b.kind === "open") {
-        emit("SEG03", `open境界 (壁が無い) の seg は解釈されません`, { line: g.line, file: b.file, path: [b.a, b.b] });
-        continue;
-      }
-      const placed = placeBand(model, b, g, "seg");
-      if ("error" in placed && placed.error) {
-        emit(placed.code, placed.message, { line: placed.line, file: placed.file, path: [b.a, b.b] });
+  }
+  // 同じ線分の上の開口同士は重なってはならない
+  const byKey = new Map<string, typeof placedOnSeg>();
+  for (const p of placedOnSeg) {
+    const arr = byKey.get(p.key) ?? [];
+    arr.push(p);
+    byKey.set(p.key, arr);
+  }
+  for (const group of byKey.values()) {
+    group.sort((p, q) => p.c - q.c);
+    for (let k = 0; k + 1 < group.length; k++) {
+      const p = group[k]!;
+      const q = group[k + 1]!;
+      const need = (p.o.w + q.o.w) / 2;
+      if (q.c - p.c < need - EPS) {
+        emit(
+          "OPN02",
+          `開口同士が重なっています (${p.o.kind}と${q.o.kind} — 中心間 ${Math.round(
+            q.c - p.c,
+          )}mm < 必要 ${Math.round(need)}mm)`,
+          { line: q.o.line, file: b.file, path: [b.a, b.b], related: [loc(p.o.line, b.file)] },
+        );
       }
     }
   }
+}
 
+/** 数えない分節 (seg) の配置 — SEG03 / SEG04〜08 */
+function checkBoundarySegs(ctx: Ctx, b: Boundary): void {
+  const { model, emit } = ctx;
+  for (const g of b.segs) {
+    if (b.kind === "open") {
+      emit("SEG03", `open境界 (壁が無い) の seg は解釈されません`, { line: g.line, file: b.file, path: [b.a, b.b] });
+      continue;
+    }
+    const placed = placeBand(model, b, g, "seg");
+    if ("error" in placed && placed.error) {
+      emit(placed.code, placed.message, { line: placed.line, file: placed.file, path: [b.a, b.b] });
+    }
+  }
+}
+
+/** 数えない分節 — SEG01 / SEG02 */
+function checkAreas(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 数えない分節 (area) は親の領域に収まっているか
   for (const s of model.spaces.values()) {
     for (const a of s.areas) {
@@ -774,7 +935,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       }
     }
   }
+}
 
+/** ゾーン — ZON01 / ZON02 */
+function checkZones(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // ゾーン: 束ねる空間が実在するか
   for (const z of model.zones.values()) {
     const children = [...model.spaces.keys()].filter((p) => p.startsWith(z.path + "/"));
@@ -789,7 +954,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       });
     }
   }
+}
 
+/** 高さ方向の一貫性 — HGT01〜HGT04 */
+function checkHeights(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 高さ方向の一貫性: 下階の空間の天井高 + 上階のslab ≤ 階高
   // 吹抜け (void境界) は宣言的な免除だが、免除が効くのは吹抜けが平面を覆う範囲まで —
   // 部分吹抜けでは下階の天井高は階高内に収める (吹抜け部分の高さは導出) (ADR-0006追記)
@@ -875,7 +1044,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       });
     }
   }
+}
 
+/** レベルに載らない空間 — HGT05 */
+function checkOrphanSpaces(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // レベルに載らない領域つき空間
   for (const s of withRect) {
     if (!s.level) {
@@ -886,7 +1059,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       });
     }
   }
+}
 
+/** 敷地形状 — SIT01〜SIT05 */
+function checkSite(ctx: Ctx): void {
+  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 敷地形状 (ADR-0011): 形の妥当性、対応ゾーンの存在、宣言面積との照合、建物のはみ出し検査。
   // はみ出しは四隅の内包に加え、多角形の頂点の入り込みと辺の交差を見る — 凹敷地でも正しい (ADR-0013)。
   // 地上の外部空間タイル (庭・通路) は近似なので検査しない — 面積の真は多角形が持つ
@@ -948,22 +1125,4 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       }
     }
   }
-
-  return diags;
-}
-
-
-/** 吹抜けが下階の空間の平面をどれだけ覆うか (0..1) */
-function voidCoverage(s: Space, partners: Space[]): number {
-  let inter = 0;
-  for (const r of s.rects) {
-    for (const p of partners) {
-      for (const pr of p.rects) {
-        const o = planOverlap(r, pr);
-        if (o) inter += (o.x2 - o.x1) * (o.y2 - o.y1);
-      }
-    }
-  }
-  const area = s.rects.reduce((sum, r) => sum + (r.x2 - r.x1) * (r.y2 - r.y1), 0);
-  return area > 0 ? inter / area : 0;
 }
