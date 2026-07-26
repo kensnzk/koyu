@@ -4,7 +4,8 @@
 // 空間の領域は矩形の合併 (L字など)。壁は合併の外周と共有辺から導出される。
 
 import type { Boundary, Edge, Model, Opening, Pt, Rect, Space } from "./model.js";
-import { clipHalfPlane, pointInPolygon, polyBounds, rectToPoly, srcRef } from "./model.js";
+import { rectToPoly, srcRef } from "./model.js";
+import * as poly from "./poly.js";
 
 /** 壁芯線分 (mm)。水平なら y1===y2、垂直なら x1===x2。
  *  描かれた線 (ADR-0022) は斜めになりうる — その場合 diagonal が立つ */
@@ -189,7 +190,8 @@ export function deriveDefaultBoundaries(model: Model): void {
       if (a.level !== b.level) continue;
       const key = [a.path, b.path].sort().join("|");
       if (declared.has(key)) continue;
-      if (!a.rects.some((ra) => b.rects.some((rb) => sharedSegment(ra, rb)))) continue;
+      // 接触は**導出された形**で見る — 線で接触が消えた組に既定の壁を作らない
+      if (sharedFromPieces(piecesOf(a), piecesOf(b)).length === 0) continue;
       model.boundaries.push({
         a: a.path,
         b: b.path,
@@ -218,154 +220,85 @@ export function deriveDefaultBoundaries(model: Model): void {
  */
 export function derivePieces(model: Model): void {
   for (const s of model.spaces.values()) s.pieces = s.rects.map(rectToPoly);
+  // 線は宣言順に効く。derivePieces は parse の出口で一度だけ呼ぶ (冪等ではない)
 
   for (const b of model.boundaries) {
     if (!b.drawn) continue;
     const sa = model.spaces.get(b.a);
     const sb = model.spaces.get(b.b);
     if (!sa || !sb) continue;
-    const box = polyBounds([b.drawn.a, b.drawn.b]);
-    const near = (p: Pt[]): boolean => {
-      const r = polyBounds(p);
-      return r.x2 >= box.x1 - 1 && r.x1 <= box.x2 + 1 && r.y2 >= box.y1 - 1 && r.y1 <= box.y2 + 1;
-    };
+    const cut = drawnCut(sa, sb, b.drawn.a, b.drawn.b);
+    if (!cut) continue;
 
-    // 片側が領域を持たない (外部) — 外皮を切る線。持つ側だけを自分の側へ切り落とす。
-    // 建物の外形が敷地の斜めに従う場面はこれで書ける (相手は面積を得ない)
-    const solo = sa.rects.length === 0 ? sb : sb.rects.length === 0 ? sa : undefined;
-    if (solo) {
-      if (solo.rects.length === 0) continue;
-      const keep = soloSide(solo, b.drawn.a, b.drawn.b);
-      if (keep === 0) continue; // LIN01
-      solo.pieces = [
-        ...solo.pieces.filter((p) => !near(p)),
-        ...solo.pieces
-          .filter(near)
-          .map((p) => clipHalfPlane(p, b.drawn!.a, b.drawn!.b, keep > 0))
-          .filter((p) => p.length > 0),
+    if (cut.solo) {
+      // 外皮を切る線 — 持つ側だけが窓の中で自分の側へ切り落とされる。相手は面積を得ない
+      const s = cut.solo;
+      const { inside, outside } = poly.splitByRect(s.pieces, cut.window);
+      s.pieces = [
+        ...outside,
+        ...inside.map((p) => poly.clipHalf(p, b.drawn!.a, b.drawn!.b, cut.sideA > 0)).filter((p) => p.length > 0),
       ];
       continue;
     }
 
-    const sides = resolveSides(sa, sb, b.drawn.a, b.drawn.b);
-    if (!sides) continue; // 分離しない — LIN01
-    const [sideA, sideB] = sides;
-
-    // **分け直しは二空間が向かい合っている範囲だけで起きる。**
-    // 一本の設計線は複数の境界に共有されるので、線の全長で分け直すと、
-    // 遠くの相手の領域まで奪ってしまう。窓は「線に沿っては両者の和、線を横切っては
-    // 両者の積」— 縦に走る線なら、yは重なる範囲、xは両者を覆う範囲になる
-    const win = shareWindow(polyBounds(sa.pieces.flat()), polyBounds(sb.pieces.flat()), b.drawn);
-    if (!win) continue;
-    const splitA = splitByBox(sa.pieces, win);
-    const splitB = splitByBox(sb.pieces, win);
+    // 二空間の分け直し — 窓の中の割付を合併し、線の両側へ分け直す (合計面積は保存される)
+    const splitA = poly.splitByRect(sa.pieces, cut.window);
+    const splitB = poly.splitByRect(sb.pieces, cut.window);
     const pool = [...splitA.inside, ...splitB.inside];
     if (pool.length === 0) continue;
     sa.pieces = [
       ...splitA.outside,
-      ...pool.map((p) => clipHalfPlane(p, b.drawn!.a, b.drawn!.b, sideA > 0)).filter((p) => p.length > 0),
+      ...pool.map((p) => poly.clipHalf(p, b.drawn!.a, b.drawn!.b, cut.sideA > 0)).filter((p) => p.length > 0),
     ];
     sb.pieces = [
       ...splitB.outside,
-      ...pool.map((p) => clipHalfPlane(p, b.drawn!.a, b.drawn!.b, sideB > 0)).filter((p) => p.length > 0),
+      ...pool.map((p) => poly.clipHalf(p, b.drawn!.a, b.drawn!.b, cut.sideA < 0)).filter((p) => p.length > 0),
     ];
   }
 }
 
-/** 分け直しが起きる窓。線に沿っては和、線を横切っては積 */
-function shareWindow(a: Rect, b: Rect, line: { a: Pt; b: Pt }): Rect | undefined {
-  const vertical = Math.abs(line.b.y - line.a.y) >= Math.abs(line.b.x - line.a.x);
-  const win = vertical
-    ? {
-        x1: Math.min(a.x1, b.x1),
-        x2: Math.max(a.x2, b.x2),
-        y1: Math.max(a.y1, b.y1),
-        y2: Math.min(a.y2, b.y2),
-      }
-    : {
-        x1: Math.max(a.x1, b.x1),
-        x2: Math.min(a.x2, b.x2),
-        y1: Math.min(a.y1, b.y1),
-        y2: Math.max(a.y2, b.y2),
-      };
-  return win.x2 - win.x1 > EPS && win.y2 - win.y1 > EPS ? win : undefined;
-}
-
-/** 凸片の集合を軸平行の窓の内外へ割る (どちらも凸片のまま) */
-function splitByBox(pieces: Pt[][], box: Rect): { inside: Pt[][]; outside: Pt[][] } {
-  const edges: Array<[Pt, Pt]> = [
-    [{ x: box.x1, y: box.y1 }, { x: box.x2, y: box.y1 }],
-    [{ x: box.x2, y: box.y1 }, { x: box.x2, y: box.y2 }],
-    [{ x: box.x2, y: box.y2 }, { x: box.x1, y: box.y2 }],
-    [{ x: box.x1, y: box.y2 }, { x: box.x1, y: box.y1 }],
-  ];
-  const outside: Pt[][] = [];
-  let inside = pieces;
-  for (const [u, v] of edges) {
-    const next: Pt[][] = [];
-    for (const p of inside) {
-      const keep = clipHalfPlane(p, u, v, true);
-      const drop = clipHalfPlane(p, u, v, false);
-      if (keep.length > 0) next.push(keep);
-      if (drop.length > 0) outside.push(drop);
-    }
-    inside = next;
-  }
-  return { inside, outside };
-}
-
-/** 有向線分 a→b から見た点の側 (正=左) */
-export function sideOf(p: Pt, a: Pt, b: Pt): number {
-  const v = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
-  return Math.abs(v) < 1e-6 ? 0 : v > 0 ? 1 : -1;
-}
-
 /**
- * 空間の割付が線のどちら側に偏っているか (正=左 / 負=右 / 0=偏りなし)。
- * 重心では線が割付を二等分したときに判定できないので、面積の偏りで測る
+ * 描かれた線の切り方を一度に決める — 窓・残す側・片側かどうか (ADR-0022 / ADR-0027)。
+ *
+ * **窓と側は必ず一緒に決める。**別々に決めていたために、側は空間の全割付を無限直線で
+ * 測るのに切るのは線の近傍だけ、という母集団のずれが生まれ、線から遠い翼が符号を
+ * 支配して、残すつもりだった側が黙って切り落とされた (check は緑のまま)。
+ * check の LIN01/LIN03 もこの同じ関数を通す — 判定と操作が食い違わないために。
  */
-function sideByArea(s: Space, a: Pt, b: Pt): number {
-  let left = 0;
-  let right = 0;
-  for (const r of s.rects) {
-    const p = rectToPoly(r);
-    left += area2(clipHalfPlane(p, a, b, true));
-    right += area2(clipHalfPlane(p, a, b, false));
+export function drawnCut(
+  sa: Space,
+  sb: Space,
+  a: Pt,
+  b: Pt,
+): { window: Rect; sideA: number; solo?: Space } | undefined {
+  const ba = poly.boundsOf(sa.pieces);
+  const bb = poly.boundsOf(sb.pieces);
+  // 片側が領域を持たない (外部) — 外皮を切る線
+  if (!ba || !bb) {
+    const solo = ba ? sa : bb ? sb : undefined;
+    const sb2 = ba ?? bb;
+    if (!solo || !sb2) return undefined;
+    const w = poly.lineWindow(a, b, sb2);
+    if (!poly.validWindow(w)) return undefined;
+    const side = poly.sideOfTouching(solo.pieces, w, a, b);
+    if (side === 0) return undefined; // 窓の中でちょうど二等分 — 残す側が決まらない (LIN01)
+    return { window: w, sideA: solo === sa ? side : -side, solo };
   }
-  const d = left - right;
-  return Math.abs(d) < 1e-6 ? 0 : d > 0 ? 1 : -1;
-}
-
-function area2(poly: Pt[]): number {
-  if (poly.length < 3) return 0;
-  let sum = 0;
-  for (let i = 0; i < poly.length; i++) {
-    const a = poly[i]!;
-    const b = poly[(i + 1) % poly.length]!;
-    sum += a.x * b.y - b.x * a.y;
-  }
-  return Math.abs(sum) / 2;
-}
-
-/**
- * 線の両側に二つの空間を割り当てる。偏りの無い側 (線が割付をちょうど二等分する側) は
- * 相手の反対側として決まる — 「線は二つを分ける」という宣言そのものが決め手になる。
- * 両方とも偏りが無ければ分離は決まらない (LIN01)
- */
-export function resolveSides(sa: Space, sb: Space, a: Pt, b: Pt): [number, number] | undefined {
-  let ia = sideByArea(sa, a, b);
-  let ib = sideByArea(sb, a, b);
-  if (ia === 0 && ib === 0) return undefined;
+  const w = poly.lineWindow(a, b, ba, bb);
+  if (!poly.validWindow(w)) return undefined;
+  let ia = poly.sideOfTouching(sa.pieces, w, a, b);
+  let ib = poly.sideOfTouching(sb.pieces, w, a, b);
+  if (ia === 0 && ib === 0) return undefined; // どちらも偏りなし — 分離が決まらない (LIN01)
   if (ia === 0) ia = -ib;
   if (ib === 0) ib = -ia;
-  if (ia === ib) return undefined;
-  return [ia, ib];
+  if (ia === ib) return undefined; // 同じ側 — 分離していない (LIN01)
+  return { window: w, sideA: ia };
 }
 
-/** 片側だけの線 (外皮を切る) — 残す側 */
-export function soloSide(s: Space, a: Pt, b: Pt): number {
-  return sideByArea(s, a, b);
-}
+
+
+
+
 
 /** 境界の壁芯線分を導く。壁の位置は空間の割付から生成される — 壁を置く操作は存在しない */
 export function segmentsFor(model: Model, b: Boundary): Segment[] {
@@ -498,8 +431,8 @@ function drawnShare(model: Model, sa: Space, sb: Space, p: Pt, q: Pt): Segment[]
     const cy = p.y + m * dy;
     const left = { x: cx + nx * PROBE, y: cy + ny * PROBE };
     const right = { x: cx - nx * PROBE, y: cy - ny * PROBE };
-    const inA = (pt: Pt) => A.some((g) => pointInPolygon(pt, g, 0));
-    const inB = (pt: Pt) => B.some((g) => pointInPolygon(pt, g, 0));
+    const inA = (pt: Pt) => A.some((g) => poly.pointIn(pt, g, 0));
+    const inB = (pt: Pt) => B.some((g) => poly.pointIn(pt, g, 0));
     // 片側が領域を持たない (外部) 相手なら、持つ側が片側に居るだけで境界になる
     const soloB = sb.rects.length === 0;
     const soloA = sa.rects.length === 0;
@@ -592,11 +525,16 @@ export interface PlacedBand {
   cy: number;
 }
 
+/** placeBand が出しうる診断コード (ADR-0016 の台帳の部分集合 — check の emit が型で受ける) */
+export type BandCode =
+  | "OPN04" | "OPN05" | "OPN06" | "OPN07" | "OPN08"
+  | "SEG04" | "SEG05" | "SEG06" | "SEG07" | "SEG08";
+
 /** 帯の配置失敗 — error は互換の完成文 (位置接頭辞つき)。code/line/message は診断契約 (ADR-0016) の材料 */
 export interface BandError {
   error: string;
   /** 診断コード — 開口は OPN04〜08、seg は SEG04〜08 (呼び手のlabelで決まる) */
-  code: string;
+  code: BandCode;
   line: number;
   file?: string;
   /** 位置接頭辞を除いた本文 */
@@ -611,9 +549,9 @@ export function placeBand(
   label: string,
 ): PlacedBand | BandError {
   // 配置失敗の診断: label が "seg" なら SEG系、開口 (door/window等) なら OPN系のコード
-  const fail = (n: string, message: string): BandError => ({
+  const fail = (n: "04" | "05" | "06" | "07" | "08", message: string): BandError => ({
     error: `${srcRef(band.line, b.file)}: ${message}`,
-    code: `${label === "seg" ? "SEG" : "OPN"}${n}`,
+    code: (label === "seg" ? `SEG${n}` : `OPN${n}`) as BandCode,
     line: band.line,
     ...(b.file !== undefined ? { file: b.file } : {}),
     message,

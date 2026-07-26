@@ -2,6 +2,8 @@
 // 一次要素は空間。壁は二つの空間の「境界」という関係であり、物ではない。
 // 形はここには無い。形は生成物である。(docs/writing-architecture.md)
 
+import * as poly from "./poly.js";
+
 export type AttrValue = string | number;
 export type Attrs = Record<string, AttrValue>;
 
@@ -282,16 +284,8 @@ export interface SitePolygon {
   file?: string;
 }
 
-/** 多角形の面積 ㎡ (シューレース公式)。頂点は順不同 (時計/反時計どちらでも) */
-export function polygonAreaM2(points: Pt[]): number {
-  let sum = 0;
-  for (let i = 0; i < points.length; i++) {
-    const a = points[i]!;
-    const b = points[(i + 1) % points.length]!;
-    sum += a.x * b.y - b.x * a.y;
-  }
-  return Math.abs(sum) / 2 / 1e6;
-}
+/** 多角形の面積 ㎡。シューレースの実体は poly.ts にひとつだけある (ADR-0027) */
+export const polygonAreaM2 = (points: Pt[]): number => poly.area(points) / 1e6;
 
 /** 線分同士が内部で交差するか (端点・境界上の接触は交差としない、許容誤差eps mm)。交点を返す */
 function properCrossing(a1: Pt, a2: Pt, b1: Pt, b2: Pt, eps = 1): Pt | undefined {
@@ -347,47 +341,11 @@ export function shapeEscapesPolygon(shape: Pt[], poly: Pt[], eps = 1): Pt | unde
   return undefined;
 }
 
-/** 点が多角形の辺の上にあるか (許容誤差eps mm) */
-export function onPolygonEdge(p: Pt, poly: Pt[], eps = 1): boolean {
-  for (let i = 0; i < poly.length; i++) {
-    const a = poly[i]!;
-    const b = poly[(i + 1) % poly.length]!;
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const len2 = dx * dx + dy * dy;
-    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2));
-    const qx = a.x + t * dx;
-    const qy = a.y + t * dy;
-    if ((p.x - qx) ** 2 + (p.y - qy) ** 2 <= eps * eps) return true;
-  }
-  return false;
-}
+/** 点が多角形の辺の上にあるか */
+export const onPolygonEdge = poly.onEdge;
 
-/** 点が多角形の内側にあるか (境界上は内側扱い、許容誤差eps mm) */
-export function pointInPolygon(p: Pt, poly: Pt[], eps = 1): boolean {
-  // 境界上の判定 (線分との距離 ≤ eps)
-  for (let i = 0; i < poly.length; i++) {
-    const a = poly[i]!;
-    const b = poly[(i + 1) % poly.length]!;
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const len2 = dx * dx + dy * dy;
-    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2));
-    const qx = a.x + t * dx;
-    const qy = a.y + t * dy;
-    if ((p.x - qx) ** 2 + (p.y - qy) ** 2 <= eps * eps) return true;
-  }
-  // レイキャスト
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const a = poly[i]!;
-    const b = poly[j]!;
-    if (a.y > p.y !== b.y > p.y && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
+/** 点が多角形の内側にあるか (境界上は内側扱い) */
+export const pointInPolygon = poly.pointIn;
 
 export class SourceError extends Error {
   constructor(
@@ -402,23 +360,23 @@ export class SourceError extends Error {
   }
 }
 
+/**
+ * 空間の導出された領域 (ADR-0022 / ADR-0027)。**形を読むときの唯一の入口**。
+ * parse の出口で必ず埋まるので、割付への退避は「未parseのModelを手で組んだとき」だけに効く。
+ * この式が各所に散っていたことが、rects と pieces の取り違えを四度生んだ根である。
+ */
+export const regionOf = (s: Space): Pt[][] =>
+  s.pieces.length > 0 ? s.pieces : s.rects.map(poly.rectToPoly);
+
 /** 面積 (壁芯) m²。導出された凸片の合計 — 描かれた線で切られていればその形の面積になる */
 export function areaM2(s: Space): number | undefined {
   if (s.rects.length === 0) return undefined;
-  const pieces = s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
-  const a = pieces.reduce((sum, p) => sum + polygonAreaM2(p), 0);
+  const a = poly.areaOf(regionOf(s)) / 1e6;
   return Math.round(a * 100) / 100;
 }
 
 /** 矩形を頂点列へ (反時計回り) */
-export function rectToPoly(r: Rect): Pt[] {
-  return [
-    { x: r.x1, y: r.y1 },
-    { x: r.x2, y: r.y1 },
-    { x: r.x2, y: r.y2 },
-    { x: r.x1, y: r.y2 },
-  ];
-}
+export const rectToPoly = poly.rectToPoly;
 
 /** 凸多角形を半平面で切る (Sutherland–Hodgman)。
  *  半平面は有向線分 a→b の左側 (外積>0)。切り落とされて空なら [] */
@@ -444,14 +402,7 @@ export function clipHalfPlane(poly: Pt[], a: Pt, b: Pt, keepLeft: boolean, eps =
 }
 
 /** 頂点列の外接矩形 */
-export function polyBounds(poly: Pt[]): Rect {
-  return {
-    x1: Math.min(...poly.map((p) => p.x)),
-    x2: Math.max(...poly.map((p) => p.x)),
-    y1: Math.min(...poly.map((p) => p.y)),
-    y2: Math.max(...poly.map((p) => p.y)),
-  };
-}
+export const polyBounds = poly.bounds;
 
 /**
  * そのレベルに立つ柱を導く (ADR-0023)。
@@ -526,13 +477,7 @@ export function isCoveredAbove(model: Model, s: Space): boolean {
     if (o === s || o.rects.length === 0 || !o.level) continue;
     const oz = model.levels[o.level]?.z;
     if (oz === undefined || oz <= z) continue;
-    for (const ra of s.rects) {
-      for (const rb of o.rects) {
-        const x = Math.min(ra.x2, rb.x2) - Math.max(ra.x1, rb.x1);
-        const y = Math.min(ra.y2, rb.y2) - Math.max(ra.y1, rb.y1);
-        if (x > 0.5 && y > 0.5) return true;
-      }
-    }
+    if (poly.overlaps(regionOf(s), regionOf(o))) return true;
   }
   return false;
 }

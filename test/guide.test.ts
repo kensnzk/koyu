@@ -278,7 +278,7 @@ test("台帳: guide/diagnostics.md の各節の例は、その節のコードち
       [s.code],
       `${where(b)}: ${s.code} の節の例が出す診断が一致しない — 実際は [${diags.map(render).join(" / ")}]\n${b.body}`,
     );
-    assert.equal(diags[0]!.severity, DIAGNOSTIC_CODES[s.code], `${where(b)}: ${s.code} のseverity`);
+    assert.equal(diags[0]!.severity, DIAGNOSTIC_CODES[s.code as keyof typeof DIAGNOSTIC_CODES], `${where(b)}: ${s.code} のseverity`);
   }
 });
 

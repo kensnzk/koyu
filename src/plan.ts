@@ -7,6 +7,7 @@ import {
   areaM2,
   columnsFor,
   displayName,
+  regionOf,
   isSemiOutdoor,
   polygonAreaM2,
   polyBounds,
@@ -84,8 +85,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   for (const s of rooms) {
     const isVoid = s.type === "void";
     const semi = isSemiOutdoor(model, s);
-    const pieces = s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
-    for (const poly of pieces) {
+    for (const poly of regionOf(s)) {
       parts.push(
         `<path d="${path2d(poly)}" fill="${isVoid ? PAPER : semi ? "#f8f5ec" : ROOM}"/>`,
       );
@@ -268,8 +268,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
 
   // 空間ラベル (最大の凸片の中心に置く)
   for (const s of rooms) {
-    const pieces = s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
-    const poly = [...pieces].sort((a, b) => polygonAreaM2(b) - polygonAreaM2(a))[0]!;
+    const poly = [...regionOf(s)].sort((a, b) => polygonAreaM2(b) - polygonAreaM2(a))[0]!;
     const r = polyBounds(poly);
     const cx = sx((r.x1 + r.x2) / 2);
     const cy = sy((r.y1 + r.y2) / 2);
@@ -296,9 +295,11 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     const lower = za < zb ? sa : sb;
     const upper = za < zb ? sb : sa;
     if (lower.level !== level) continue;
-    for (const r of upper.rects) {
+    // 上階の**導出された形**を落とす — 割付で描くと、切られた吹抜けが切られる前の姿で出る
+    for (const poly of regionOf(upper)) {
+      const r = polyBounds(poly);
       parts.push(
-        `<rect x="${sx(r.x1)}" y="${sy(r.y2)}" width="${(r.x2 - r.x1) * scale}" height="${(r.y2 - r.y1) * scale}" fill="none" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>`,
+        `<path d="${path2d(poly)}" fill="none" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>`,
         `<text x="${sx((r.x1 + r.x2) / 2)}" y="${sy((r.y1 + r.y2) / 2) + 40}" text-anchor="middle" font-size="9" fill="#b3ab9c">上部吹抜け</text>`,
       );
     }

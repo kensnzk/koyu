@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { check } from "../src/check.js";
 import { doorsBetween, segmentsFor } from "../src/graph.js";
-import { areaM2, columnsFor, polyBounds } from "../src/model.js";
+import { areaM2, columnsFor, polyBounds, polygonAreaM2 } from "../src/model.js";
 import { slabs } from "../src/fabric.js";
 import { svgAxo } from "../src/axo.js";
 import { parse } from "../src/parse.js";
@@ -382,4 +382,79 @@ boundary /L1/a /out t:200
   const segs = segmentsFor(m, shared);
   assert.equal(segs.length, 1);
   assert.deepEqual([segs[0]!.x1, segs[0]!.y1, segs[0]!.x2, segs[0]!.y2], [8000, 0, 8000, 8000]);
+});
+
+// ---- 母集団のずれ (ADR-0027) — どれも check が緑のまま黙って壊れていた ----
+
+test("線: 離れた翼が隅切りの向きを裏返さない (L字の室が消えない)", () => {
+  const m = parse(`koyu 0.5
+grid X 0 7000 8000 10000
+grid Y 0 8000 10000 40000
+level L1 0 h:2400
+space /L1/a room X1..X4 Y1..Y2 + X1..X2 Y2..Y4 name:L字の室
+space /out exterior
+boundary /L1/a /out t:150
+  line X3,Y2 X4,Y1
+`);
+  assert.equal(check(m).errors.length, 0);
+  // 10000×8000 + 7000×32000 = 304㎡ から、隅の三角 (2000×8000/2 = 8㎡) を落とす
+  assert.equal(areaM2(m.spaces.get("/L1/a")!), 296);
+});
+
+test("屋根: 上階だけ斜めに切ると、その真下に屋根が架かる", () => {
+  const m = parse(`koyu 0.5
+grid X 0 8000 16000
+grid Y 0 16000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+level R 6000 slab:300
+space /L1/a room X1..X3 Y1..Y2
+space /L2/b room X1..X3 Y1..Y2
+space /out exterior
+boundary /L1/a /out t:200
+boundary /L2/b /out t:200
+  line X1,Y2 X2,Y1
+`);
+  assert.equal(check(m).errors.length, 0);
+  const cut = 256 - areaM2(m.spaces.get("/L2/b")!)!; // 切り落とした面積
+  assert.ok(cut > 0, "上階が切れている");
+  const roof = slabs(m).filter((s) => s.kind === "roof" && s.space === "/L1/a");
+  assert.ok(roof.length > 0, "切り落とした範囲に屋根が架かる");
+  const a = roof.reduce((t, s) => t + polygonAreaM2(s.outline), 0);
+  assert.ok(Math.abs(a - cut) < 0.5, `屋根の面積が切り落とし分と一致する: ${a} vs ${cut}`);
+});
+
+test("線: 軸平行でも「何も切っていません」と誤報しない", () => {
+  const m = parse(`koyu 0.5
+grid X 0 8000 16000 24000
+grid Y 0 16000
+level L1 0 h:2700
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X4 Y1..Y2
+boundary /L1/a /L1/b t:120
+  line X3,Y1 X3,Y2
+`);
+  const r = check(m);
+  assert.deepEqual(r.errors, []);
+  assert.deepEqual(r.warnings.filter((w) => w.includes("切っていません")), []);
+  // 割付は X2 で分かれていたが、線が X3 へ動かした
+  assert.equal(areaM2(m.spaces.get("/L1/a")!), 256);
+});
+
+test("既定境界: 線で接触が消えた組に、出所の無い境界を作らない", () => {
+  const m = parse(`koyu 0.5
+grid X 0 3000 4000 9000
+grid Y 0 4500
+level L1 0 h:2400
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X4 Y1..Y2
+space /out exterior
+boundary /L1/a /out t:150
+boundary /L1/b /out t:150
+  line X2,Y1 X3,Y2
+`);
+  // 以前は rects の接触で既定壁が生まれ、線分ゼロの境界に位置なしの BND04 が出た
+  assert.deepEqual(check(m).errors, []);
+  const derived = m.boundaries.filter((b) => b.derived);
+  for (const b of derived) assert.ok(segmentsFor(m, b).length > 0, `${b.a}|${b.b} に線分がある`);
 });

@@ -6,55 +6,18 @@
 // 壁が境界から現れ、柱が通りの交点から現れるのと同じ構えで、面もまた宣言から現れる —
 // 床を置く操作も、天井を張る操作も、屋根を架ける操作も存在しない。
 
-import {
-  clipHalfPlane,
-  heff,
-  isSemiOutdoor,
-  levelsSorted,
-  polyBounds,
-  rectToPoly,
-  type Model,
-  type Pt,
-  type Rect,
-  type Space,
-} from "./model.js";
+import { heff, isSemiOutdoor, levelsSorted, type Model, type Pt, type Space } from "./model.js";
+import { areaOf, rectToPoly, subtract } from "./poly.js";
 import { runDecls } from "./vertical.js";
-
-/**
- * 凸片のうち、覆う矩形群に覆われていない部分を軸平行のタイルとして返す。
- * 覆う矩形の辺で座標圧縮し、覆われていないセルだけを凸片で切り取る (凸なので厳密)。
- * 部分被覆を扱わないと、塔屋が少しでも掛かった基壇に屋根が架からなくなる
- */
-function uncovered(piece: Pt[], covers: Rect[]): Pt[][] {
-  const b = polyBounds(piece);
-  const near = covers.filter((r) => r.x2 > b.x1 && r.x1 < b.x2 && r.y2 > b.y1 && r.y1 < b.y2);
-  if (near.length === 0) return [piece];
-  const xs = [...new Set([b.x1, b.x2, ...near.flatMap((r) => [r.x1, r.x2])])]
-    .filter((v) => v >= b.x1 - 0.5 && v <= b.x2 + 0.5)
-    .sort((p, q) => p - q);
-  const ys = [...new Set([b.y1, b.y2, ...near.flatMap((r) => [r.y1, r.y2])])]
-    .filter((v) => v >= b.y1 - 0.5 && v <= b.y2 + 0.5)
-    .sort((p, q) => p - q);
-  const out: Pt[][] = [];
-  for (let i = 0; i + 1 < xs.length; i++) {
-    for (let j = 0; j + 1 < ys.length; j++) {
-      const cx = (xs[i]! + xs[i + 1]!) / 2;
-      const cy = (ys[j]! + ys[j + 1]!) / 2;
-      if (near.some((r) => cx > r.x1 && cx < r.x2 && cy > r.y1 && cy < r.y2)) continue;
-      let cell = rectToPoly({ x1: xs[i]!, y1: ys[j]!, x2: xs[i + 1]!, y2: ys[j + 1]! });
-      for (let k = 0; k < piece.length && cell.length > 0; k++) {
-        cell = clipHalfPlane(cell, piece[k]!, piece[(k + 1) % piece.length]!, true);
-      }
-      if (cell.length >= 3) out.push(cell);
-    }
-  }
-  return out;
-}
 
 /** 天井面の見付け厚 mm (仕上げの面としての厚み) */
 const CEILING_T = 30;
 /** 上に何も無いときの屋根版の厚さ mm (上階レベルの slab が無い場合の既定) */
 const ROOF_T = 200;
+
+/** 空間の導出された領域。parse の出口で必ず埋まる (ADR-0022) — 割付への退避は持たない */
+export const regionOf = (s: Space): Pt[][] =>
+  s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
 
 export type SlabKind = "floor" | "ceiling" | "roof";
 
@@ -95,7 +58,7 @@ export function slabs(model: Model): Slab[] {
   for (const [li, level] of levels.entries()) {
     const upper = levels[li + 1];
     for (const s of byLevel.get(level.name) ?? []) {
-      const pieces = s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
+      const pieces = regionOf(s);
       const isVoid = s.type === "void";
       const isExterior = s.type === "exterior";
       const semi = isSemiOutdoor(model, s);
@@ -137,17 +100,20 @@ export function slabs(model: Model): Slab[] {
       // 後者は半屋外として導出される (ADR-0007)。だから除くのは外部と半屋外だけである。
       // 逆に**覆っている側には吹抜けも数える** — 竪穴の途中の階に屋根は架からない。
       if (isExterior || semi) continue;
-      const covers: Rect[] = [];
+      // **覆っているものも導出された形で取る。**割付で取ると、上階を斜めに切った
+      // 範囲まで「覆われている」と数えてしまい、その真下に屋根が架からなかった
+      const covers: Pt[][] = [];
       for (const up of levels.slice(li + 1)) {
         for (const o of byLevel.get(up.name) ?? []) {
           if (o.type === "exterior") continue;
-          covers.push(...o.rects);
+          covers.push(...regionOf(o));
         }
       }
       const top = upper ? upper.z : level.z + (h ?? 0) + ROOF_T;
       const t = upper?.slab ?? ROOF_T;
       for (const outline of pieces) {
-        for (const tile of uncovered(outline, covers)) {
+        for (const tile of subtract(outline, covers)) {
+          if (areaOf([tile]) < 1) continue;
           out.push({ kind: "roof", space: s.path, level: level.name, outline: tile, z0: top - t, z1: top });
         }
       }

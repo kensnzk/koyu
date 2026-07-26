@@ -85,7 +85,19 @@
       "attrs": {
         "fire": 60,
         "spec": "EW1"
-      }
+      },
+      "openings": [
+        {
+          "kind": "window",
+          "w": 2600,
+          "h": 1100,
+          "at": 0.5,
+          "edge": "S",
+          "attrs": {
+            "name": "腰窓"
+          }
+        }
+      ]
     },
     {
       "between": [
@@ -108,6 +120,16 @@
           "edge": "S",
           "attrs": {
             "name": "玄関"
+          }
+        },
+        {
+          "kind": "window",
+          "w": 2600,
+          "h": 1100,
+          "at": 0.5,
+          "edge": "E",
+          "attrs": {
+            "name": "腰窓"
           }
         }
       ]

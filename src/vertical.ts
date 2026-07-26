@@ -702,8 +702,11 @@ function drawRun(
 
 // ---- 検査の材料 (check.ts が言葉にする) ----
 
+/** runIssues が出しうる診断コード (ADR-0016 の台帳の部分集合 — check の emit が型で受ける) */
+export type RunCode = "RUN01" | "RUN02" | "RUN03" | "RUN04" | "RUN05" | "RUN06" | "RUN07" | "RUN08";
+
 export interface RunIssue {
-  code: string;
+  code: RunCode;
   message: string;
   path: string;
   line: number;

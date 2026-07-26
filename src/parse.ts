@@ -77,8 +77,11 @@ export type LayerLoader = (
 export function parse(source: string): Model {
   const model = emptyModel();
   ingest(model, source, undefined, new Set(), undefined);
-  deriveDefaultBoundaries(model); // 水平の既定は壁 (ADR-0014) — 合成・展開の完了後に一度だけ
-  derivePieces(model); // 描かれた線で領域を切り分ける (ADR-0022) — 既定境界の導出の後に
+  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / ADR-0027)。
+  // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
+  // 出所の無い BND04 が出る — 書いていない関係を責めることになる
+  derivePieces(model);
+  deriveDefaultBoundaries(model);
   return model;
 }
 
@@ -92,8 +95,11 @@ export function parseWith(loader: LayerLoader, entry: string): Model {
     throw new SourceError(0, `ファイルが読めません: ${entry}`);
   }
   ingestLayer(model, layer.key, layer.src, new Set(), loader);
-  deriveDefaultBoundaries(model); // 水平の既定は壁 (ADR-0014) — 合成・展開の完了後に一度だけ
-  derivePieces(model); // 描かれた線で領域を切り分ける (ADR-0022) — 既定境界の導出の後に
+  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / ADR-0027)。
+  // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
+  // 出所の無い BND04 が出る — 書いていない関係を責めることになる
+  derivePieces(model);
+  deriveDefaultBoundaries(model);
   return model;
 }
 

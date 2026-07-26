@@ -2,6 +2,7 @@
 # 室を二つ並べ、その間に扉を一枚、外へ出る扉を一枚。
 # 室と室のあいだの壁は書かない — 接する空間の既定は壁である (ADR-0014)。
 # 書いてあるのは、扉を吊るために宣言した境界と、外皮の境界だけ。
+# 両室に daylight:1 を書いたので、窓が要る — `koyu light` が 1/7 を確かめる (ADR-0020)。
 
 koyu 0.5
 name 二室
@@ -19,5 +20,7 @@ boundary /L1/a /L1/b t:120 spec:PW1
   door w:780 h:2000
 
 boundary /L1/a /out t:150 spec:EW1 fire:60
+  window w:2600 h:1100 edge:S name:腰窓
 boundary /L1/b /out t:150 spec:EW1 fire:60
   door w:900 h:2100 edge:S name:玄関
+  window w:2600 h:1100 edge:E name:腰窓

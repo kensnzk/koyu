@@ -15,20 +15,20 @@ import {
   segmentsFor,
   segmentLength,
   envelopeGaps,
-  resolveSides,
-  soloSide,
+  drawnCut,
   spacesOverlap,
 } from "./graph.js";
 import { heff, isSemiOutdoor, levelsSorted, type Attrs, type Boundary, type Model, type Pt, type Rect, type Space,
-  clipHalfPlane,
   columnsFor,
-  polyBounds,
+  pointInPolygon,
   rectToPoly,
+  regionOf,
   srcRef,
   polygonAreaM2,
   polygonSelfIntersection,
   shapeEscapesPolygon,
 } from "./model.js";
+import { cutsInWindow } from "./poly.js";
 import { runDecls, runIssues } from "./vertical.js";
 
 export interface CheckResult {
@@ -39,7 +39,7 @@ export interface CheckResult {
 /** 構造化診断 (ADR-0016)。message は本文のみ — 位置接頭辞「file:N行目: 」を含まない */
 export interface Diagnostic {
   /** 台帳 DIAGNOSTIC_CODES のコード (領域2-3字 + 2桁連番) */
-  code: string;
+  code: DiagnosticCode;
   severity: "error" | "warning";
   /** 日本語の本文 (位置接頭辞なし) */
   message: string;
@@ -58,7 +58,7 @@ export interface Diagnostic {
  * BND07 は欠番 — 「接しているのに境界が無い」警告はADR-0014 (既定境界) で廃止された。
  * SYN01 は構文・合成エラー (SourceError) の写し — checkは例外を診断にしない。CLIの check --json だけが写す。
  */
-export const DIAGNOSTIC_CODES: Record<string, "error" | "warning"> = {
+export const DIAGNOSTIC_CODES = {
   REF01: "error", // 境界が未定義の空間パスを参照
   BND01: "error", // 同一空間同士の境界
   BND02: "error", // 同一空間対の境界の重複 (edge限定まで同一 — ADR-0013)
@@ -125,7 +125,15 @@ export const DIAGNOSTIC_CODES: Record<string, "error" | "warning"> = {
   VER02: "error", // koyu 0.3以前で採光の推定対象だった型に daylight が無い (ADR-0020)
   VER03: "error", // koyu 0.4以前のファイルに0.5の語 (縦動線・線・柱・地下)
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
-};
+} as const satisfies Record<string, "error" | "warning">;
+
+/**
+ * 診断コードの型 (ADR-0016)。台帳が唯一の出所であり、**登録していないコードは型が通らない**。
+ * 以前は Record<string, ...> だったので、台帳に無いコードを emit すると severity が
+ * undefined になり、error が黙って warning に落ち、--strict でも終了コード0になった。
+ * 「忘れる自由は無い」という契約を、文ではなく型が守る。
+ */
+export type DiagnosticCode = keyof typeof DIAGNOSTIC_CODES;
 
 const EPS = 0.5;
 /** 敷地まわりの幾何の許容 (境界上は内側扱い) — ADR-0011の1mm */
@@ -149,7 +157,7 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   const diags: Diagnostic[] = [];
   /** line:0 は「位置なし」— フィールドごと省略する (既定境界などの導出物) */
   const emit = (
-    code: string,
+    code: DiagnosticCode,
     message: string,
     at: {
       line?: number;
@@ -160,7 +168,7 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   ) => {
     diags.push({
       code,
-      severity: DIAGNOSTIC_CODES[code]!,
+      severity: DIAGNOSTIC_CODES[code],
       message,
       ...(at.line ? { line: at.line } : {}),
       ...(at.line && at.file !== undefined ? { file: at.file } : {}),
@@ -291,37 +299,22 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       emit("LIN01", `領域を持たない空間同士に線は描けません: ${b.a} | ${b.b}`, bAt);
       continue;
     }
-    // 両側が領域を持つときは「線が二つを分離するか」、片側だけのときは
-    // 「線が外皮を実際に切るか」— 問いが違うので判定も分ける
-    if (sa.rects.length > 0 && sb.rects.length > 0) {
-      if (!resolveSides(sa, sb, b.drawn.a, b.drawn.b)) {
-        emit(
-          "LIN01",
-          `線 ${b.drawn.aRef}..${b.drawn.bRef} は ${b.a} と ${b.b} を分離していません (二つの割付が線の両側に来るように引きます)`,
-          bAt,
-        );
-        continue;
-      }
-    } else if (soloSide(sa.rects.length > 0 ? sa : sb, b.drawn.a, b.drawn.b) === 0) {
+    // 判定と操作を同じ関数に通す (ADR-0027)。窓の中で分離が決まらなければ LIN01、
+    // 決まるが実際には何も切っていなければ LIN03。以前は判定だけが別の窓 (線分の
+    // 外接矩形) を使っていたので、軸平行の線では窓が潰れて必ず誤報していた
+    const cut = drawnCut(sa, sb, b.drawn.a, b.drawn.b);
+    if (!cut) {
       emit(
         "LIN01",
-        `線 ${b.drawn.aRef}..${b.drawn.bRef} が割付をちょうど二等分していて、どちらを残すか決まりません`,
+        sa.rects.length > 0 && sb.rects.length > 0
+          ? `線 ${b.drawn.aRef}..${b.drawn.bRef} は ${b.a} と ${b.b} を分離していません (二つの割付が線の両側に来るように引きます)`
+          : `線 ${b.drawn.aRef}..${b.drawn.bRef} が割付をちょうど二等分していて、どちらを残すか決まりません`,
         bAt,
       );
       continue;
     }
-    // 線が実際に割付を切っているか — 両側に面積が残る割付が一つでもあれば切っている
-    const box = polyBounds([b.drawn.a, b.drawn.b]);
-    const cuts = [sa, sb].some((s) =>
-      s.rects.some((r) => {
-        const win = clipToBox(rectToPoly(r), box);
-        if (win.length === 0) return false;
-        const l = clipHalfPlane(win, b.drawn!.a, b.drawn!.b, true);
-        const rr = clipHalfPlane(win, b.drawn!.a, b.drawn!.b, false);
-        return l.length > 0 && rr.length > 0;
-      }),
-    );
-    if (!cuts) {
+    const target = cut.solo ? [cut.solo] : [sa, sb];
+    if (!target.some((s) => cutsInWindow(s.rects.map(rectToPoly), cut.window, b.drawn!.a, b.drawn!.b))) {
       emit(
         "LIN03",
         `線 ${b.drawn.aRef}..${b.drawn.bRef} は何も切っていません (既定の隣接線と同じか、割付の外にあります)`,
@@ -332,11 +325,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
 
   // 外皮の穴 (ADR-0025): 既定境界は領域を持たない空間との間には導かれない (ADR-0014) ので、
   // 外部への境界の書き忘れは黙って壁の不在になる。導出された外周のうち、
-  // 他の空間とも宣言された境界とも向かい合っていない区間を数える
+  // 他の空間とも宣言された境界とも向かい合っていない区間を数える。
   // 外構のタイル (site:1 ゾーンの配下)・外部・半屋外は囲われていないのが正常なので数えない。
   // そして**外皮を書き始めているレベルだけ**を見る — 外部への境界が一本も無い階は
   // 外皮をまだ模型にしていないだけであって、穴が開いているのではない。
-  // 「書き始めたなら閉じきる」という整合の検査であって、完全性の要求ではない (ADR-0025)
+  // 「書き始めたなら閉じきる」という整合の検査であって、完全性の要求ではない
   const siteZones = [...model.zones.values()].filter((z) => z.attrs["site"] === 1).map((z) => z.path);
   const envelopedLevels = new Set<string>();
   for (const b of model.boundaries) {
@@ -613,12 +606,9 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
         });
         continue;
       }
-      const inside = s.rects.some(
-        (r) =>
-          a.rect.x1 >= r.x1 - EPS &&
-          a.rect.x2 <= r.x2 + EPS &&
-          a.rect.y1 >= r.y1 - EPS &&
-          a.rect.y2 <= r.y2 + EPS,
+      // 内包も導出された形で見る — 割付で見ると、切り落とした側に置いた床材が通ってしまう
+      const inside = regionOf(s).some((g) =>
+        rectToPoly(a.rect).every((pt) => pointInPolygon(pt, g, EPS)),
       );
       if (!inside) {
         emit("SEG02", `area が ${s.path} の領域からはみ出しています`, { line: a.line, file: s.file, path: [s.path] });
@@ -776,7 +766,7 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     for (const s of withRect) {
       if (s.type === "exterior" || s.path.startsWith(poly.path + "/")) continue;
       // 照合するのは割付ではなく**導出された領域** — 敷地なりに切った外形はここで通る
-      for (const r of s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly)) {
+      for (const r of regionOf(s)) {
         const out = shapeEscapesPolygon(r, poly.points, EPS_SITE);
         if (out) {
           emit("SIT03", `${s.path} が敷地形状からはみ出しています (${Math.round(out.x)},${Math.round(out.y)} 付近)`, {
@@ -793,22 +783,6 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   return diags;
 }
 
-/** 凸多角形を軸平行の窓で切る (線の及ぶ範囲に限る — LIN03の判定用) */
-function clipToBox(poly: Pt[], box: Rect): Pt[] {
-  let p = poly;
-  const corners: Array<[Pt, Pt]> = [
-    [{ x: box.x1, y: box.y1 }, { x: box.x2, y: box.y1 }],
-    [{ x: box.x2, y: box.y1 }, { x: box.x2, y: box.y2 }],
-    [{ x: box.x2, y: box.y2 }, { x: box.x1, y: box.y2 }],
-    [{ x: box.x1, y: box.y2 }, { x: box.x1, y: box.y1 }],
-  ];
-  for (const [u, v] of corners) {
-    if (Math.abs(u.x - v.x) < 1e-9 && Math.abs(u.y - v.y) < 1e-9) continue;
-    p = clipHalfPlane(p, u, v, true);
-    if (p.length === 0) return [];
-  }
-  return p;
-}
 
 /** 吹抜けが下階の空間の平面をどれだけ覆うか (0..1) */
 function voidCoverage(s: Space, partners: Space[]): number {
