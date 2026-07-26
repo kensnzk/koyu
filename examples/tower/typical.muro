@@ -6,10 +6,16 @@
 zone /L3..L10/A name:Aタイプ use:exclusive
 
 space /L3..L10/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク
-space /L3..L10/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1
-space /L3..L10/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2
-space /L3..L10/A/wet wet X1+3200..X2+1600 Y1+4000..Y2 name:水回り
-space /L3..L10/A/hall hall X2+1600..X2+3200 Y1+4000..Y2 name:玄関
+# 帯 (ADR-0019): 位置ではなく寸法と並びを書き、位置は導出させる。
+# 西列を南から (洋室2 2400 / 洋室1 3200)、玄関側の帯を西から (水回り 4800 / 玄関 1600)。
+# どちらも「閉じた帯」— 合計が帯幅と一致することを parse が照合する (寸法の打ち間違いの検算)。
+band Y X1..X1+3200 Y1..Y2
+  space /L3..L10/A/bed2 bedroom w:2400 name:洋室2
+  space /L3..L10/A/bed1 bedroom w:3200 name:洋室1
+
+band X X1+3200..X2+3200 Y1+4000..Y2
+  space /L3..L10/A/wet  wet  w:4800 name:水回り
+  space /L3..L10/A/hall hall w:1600 name:玄関
 
 space /L3..L10/B unit X3..X4+3200 Y1..Y2 + X2+3200..X3 Y1+2400..Y2 name:Bタイプ use:exclusive
 space /L3..L10/C unit X4+3200..X6 Y1..Y2 name:Cタイプ use:exclusive

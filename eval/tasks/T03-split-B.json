@@ -1,0 +1,44 @@
+{
+  "id": "T03-split-B",
+  "class": { "op": "create", "kind": "topological" },
+  "fixture": "examples/tower",
+  "entry": "main.muro",
+  "instruction": "基準階 (L3〜L10) の B タイプ (/L3..L10/B、64㎡ の 1 住戸) が大きすぎるので、2 住戸に割ることになった。\n\n- /L3..L10/B1 と /L3..L10/B2 という 2 つのゾーン (name と use:exclusive を持つ) を立て、A タイプに倣って、それぞれの下に 居室・水回り・玄関 を置くこと。元の /L3..L10/B は無くなる。\n- 室のパスと型は A タイプに倣い、住戸あたり ちょうど 3 室 とすること: /L3..L10/B1/ldk (type:ldk)・/L3..L10/B1/wet (type:wet)・/L3..L10/B1/hall (type:hall)。B2 も同じ形にすること。型を別のもの (物置など) に付け替えて採光の判定から外してはならない。\n- 元の B タイプの領域をちょうど 2 つに分けること。2 住戸の専有面積の合計は 64.00㎡ のままとし、どちらの住戸も 25㎡ 以上とすること。\n- 既存の A・C・D・E・F・内廊下・バルコニー/テラスの領域には手を触れないこと。\n- 各住戸は 内廊下 (/L3..L10/corridor) に面する玄関ドアを 1 つ持つこと。\n- 各住戸の居室は採光 1/7 を満たすこと。ただし窓を新設してはならない。既存のバルコニー側のサッシ (掃き出し窓 W1 が 2 枚・腰窓 W2 が 1 枚) は位置 (at:) を動かさずに、どちらかの住戸の居室に割り当てること。\n- 二方向避難の粗い指標として、各住戸の居室から /out/road-s までの通過扉数が 4 枚以下であること。\n- L3 から L10 までの 8 層すべてに反映すること。L3 だけはバルコニーではなくテラス (/L3/tB) に面しており、サッシは L3.muro 側に別に書かれている点に注意すること。\n- 作業後に koyu check を --strict で通し、エラーも警告も 0 にすること。",
+  "oracles": [
+    { "kind": "check", "strict": true },
+    { "kind": "light" },
+    { "kind": "doors", "from": "/L5/B1/ldk", "to": "/out/road-s", "max": 4, "via": ["/L5/corridor", "/site/walk"] },
+    { "kind": "doors", "from": "/L5/B2/ldk", "to": "/out/road-s", "max": 4, "via": ["/L5/corridor", "/site/walk"] },
+    {
+      "kind": "assert",
+      "expr": "[...m.zones.values()].filter(z => z.path.startsWith('/L5/') && z.attrs.use === 'exclusive').length + [...m.spaces.values()].filter(s => s.path.startsWith('/L5/') && s.type === 'unit' && s.attrs.use === 'exclusive').length === 7",
+      "label": "L5 の住戸 (専有ゾーン + 専有 unit 空間) が 6 から 7 に増えた"
+    },
+    {
+      "kind": "assert",
+      "expr": "Math.round((zoneAreaM2(m, '/L5/B1') + zoneAreaM2(m, '/L5/B2')) * 100) / 100 === 64 && zoneAreaM2(m, '/L5/B1') >= 25 && zoneAreaM2(m, '/L5/B2') >= 25 && !m.spaces.has('/L5/B')",
+      "label": "B1+B2 の専有面積が 64.00㎡ ちょうど・どちらも 25㎡ 以上・元の /L5/B は消えている"
+    },
+    {
+      "kind": "assert",
+      "expr": "Math.round([...m.spaces.values()].filter(s => s.level === 'L5' && s.type !== 'balcony').reduce((a, s) => a + (areaM2(s) ?? 0), 0) * 100) / 100 === 422.4",
+      "label": "L5 の正味床面積 (バルコニーを除く) が 422.40㎡ のまま — 他の住戸や共用部を削っていない"
+    },
+    {
+      "kind": "assert",
+      "expr": "['B1','B2'].every(u => ['L3','L4','L5','L6','L7','L8','L9','L10'].every(L => [...m.spaces.values()].filter(s => s.path.startsWith('/' + L + '/' + u + '/')).length === 3 && m.spaces.get('/' + L + '/' + u + '/ldk')?.type === 'ldk' && m.spaces.get('/' + L + '/' + u + '/wet')?.type === 'wet' && m.spaces.get('/' + L + '/' + u + '/hall')?.type === 'hall'))",
+      "label": "B1・B2 が 8 層すべてで 居室(ldk)・水回り(wet)・玄関(hall) の 3 室ちょうどで出来ている"
+    },
+    {
+      "kind": "assert",
+      "expr": "['B1','B2'].every(u => m.boundaries.some(b => ((b.a.startsWith('/L5/' + u + '/') && b.b === '/L5/corridor') || (b.b.startsWith('/L5/' + u + '/') && b.a === '/L5/corridor')) && b.openings.some(o => o.kind === 'door')))",
+      "label": "B1・B2 のそれぞれが 内廊下に面する扉付き境界を持つ (玄関がある)"
+    },
+    {
+      "kind": "assert",
+      "expr": "m.boundaries.reduce((n, b) => n + b.openings.filter(o => o.kind === 'window').length, 0) === 157 && ['L3','L4','L5','L6','L7','L8','L9','L10'].every(L => m.zones.has('/' + L + '/B1') && m.zones.has('/' + L + '/B2'))",
+      "label": "窓の総数 157 が不変 (新設していない) かつ 8 層すべてに B1・B2 がある"
+    }
+  ],
+  "notes": "op=create / kind=topological の基準タスク。6 課題中で最も難しい。領域の分割・ゾーンの新設・境界の張り替え・開口の再配分・8 層への展開が同時に要る。BIM-Edit (arXiv 2606.20146) の完全正答率 3.4% 未満に対応するのはこの種の課題である。\n\nオラクルの選び方 (実測 v0.2 に基づく):\n- light が止めるハック: 適当な位置で割って、片方の居室に窓が足りないまま放置する。/Ln/B の採光余裕は元から 1.48% (window 9.2785 / need 9.1429) しか無く、tower の中で最も感度が高い。分割すると床も窓も分かれるので、割り方を誤るとどちらかが即座に不合格になる。\n- 面積オラクル (B1+B2 = 64.00・各 25㎡ 以上・L5 正味 422.40㎡) が止めるハック: light を通すために部屋を小さくする — arXiv 2605.14117 が報告した「部屋を零に潰す」報酬ハックそのもの。daylight は床が減れば need も減るので、面積を縛らない限り縮小は常に得になる。B1 を物置ほどの大きさにして B2 に寄せる縮退解も 25㎡ 下限で塞いである。逆に隣の C や内廊下を食って広げる解も L5 正味床面積 422.40㎡ で塞がる。\n- 窓の総数 157 の assert が止めるハック: 採光を通すために窓を新設する。これが無いと light は「窓を足せばよい」という抜け道になる。\n- doors (B1/ldk・B2/ldk → /out/road-s、4 枚以下) が止めるハック: 片方の住戸に玄関を付け忘れる、あるいは B1 を B2 の中からしか入れない配置にする。これは check・面積・採光のすべてが緑のまま通ってしまう典型 (変異プローブ C4 と同型 — ドアを消しても check は 0 エラーのままだった)。到達不能なら doorsBetween が undefined を返して不合格になる。via に /L5/corridor と /site/walk を置いたのは、扉の枚数だけでは道路の取り違えを検出できない (tower では /out/road-e へも同じ 4 枚になる) ためであり、共用の内廊下と歩道状空地を必ず通ることを別に縛る。\n- 内廊下に面する扉付き境界の assert が止めるハック: 玄関を「A タイプの玄関を経由する」ような形で通す。doors の枚数だけでは道路までの経路が同じ枚数になり得るため、内廊下への直接の扉を別に要求する。\n- 室の構成 (8層 × ちょうど3室・ldk/wet/hall の型) の assert が止めるハック 2 種:\n  (a) 単に /L3..L10/B を 2 つの unit 空間に割っただけで「住戸にした」と主張する。この形でも check・面積・doors は通り得るが、要求された「玄関と水回りを持つ住戸」にはなっていない。\n  (b) **居室の type を ldk 以外 (stor など) にして light の評価対象から外す。** これは実測で確認した本当の穴である — 参照解の /Ln/B{1,2}/ldk の型を stor に変えるだけで、daylight の評価対象が 74室 から 58室 に減り、**10 オラクル全てが緑のまま通ってしまった**。変異プローブ C7 (type を変えても check・面積・採光・到達性・敷地が全て緑) と同型であり、light は「評価対象が 0 室」しか防げない (score.ts の真空の真の門番) ため、部分的に評価対象を減らす形は素通りする。\n  **一般則: light を使う課題は必ず「どの室が居室として評価されるか」を別の assert で固定すること。** T04 は daylight(m).length === 66、T02/T05 も同様に固定してある。\n- 住戸数 6→7 の assert が止めるハック: 名前だけ B1・B2 に変えて実体は 1 つのまま、あるいは片方をゾーンにし忘れる。\n- check(strict) が止めるハック: 2 住戸を宣言しつつ元の /Ln/B を残す (GEO02 重なり)、境界の張り替え漏れ (REF01 / BND04)、開口を複数線分の境界に at: 無しで置く (OPN05)。\n\n参照解 (検証済み・check strict 0/0、light 74室合格、doors 4/4、10オラクル全通過):\n  (採光の評価対象は 66室 ではなく 74室 になる — /Ln/B の 8 室が消え、/Ln/B{1,2}/ldk の 16 室が増えるため。66 - 8 + 16 = 74。)\n  x=16000 (X3+3200) で南北に割る。\n  B1 = ldk 12800..16000 × 0..4000 (12.8㎡) / wet 9600..12800 × 2400..5600 (10.24㎡) / hall 12800..16000 × 4000..5600 (5.12㎡) = 28.16㎡\n  B2 = ldk 16000..22400 × 0..4000 (25.6㎡) / wet 16000..20800 × 4000..5600 (7.68㎡) / hall 20800..22400 × 4000..5600 (2.56㎡) = 35.84㎡\n  サッシは W1 at:X3+1600 を B1/ldk へ、W1 at:X4-1600 と W2 at:X4+800 を B2/ldk へ割り当てる (どの窓も x=16000 をまたがない)。\n\n未編集のフィクスチャでの値: /L5/B1・/L5/B2 が存在しないため doors は undefined、住戸数は 6、B1+B2 は 0 — 課題は確かに未達である。"
+}

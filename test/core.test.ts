@@ -11,9 +11,9 @@ import { svgPlan } from "../src/plan.js";
 const examplePath = fileURLToPath(new URL("../examples/two-rooms.muro", import.meta.url));
 const exampleSrc = readFileSync(examplePath, "utf8");
 
-test("二室一扉が読める", () => {
+test("二室の例が読める", () => {
   const m = parse(exampleSrc);
-  assert.equal(m.name, "二室一扉");
+  assert.equal(m.name, "二室");
   assert.equal(m.spaces.size, 3);
   assert.equal(m.boundaries.length, 3);
   const a = m.spaces.get("/L1/a")!;
@@ -163,7 +163,7 @@ test("正準JSONは安定している", () => {
   const j2 = toCanonical(parse(exampleSrc));
   assert.equal(j1, j2);
   assert.ok(j1.includes('"between"'));
-  assert.ok(j1.includes('"koyu": "0.2"'));
+  assert.ok(j1.includes('"koyu": "0.3"'));
 });
 
 test("平面図SVGが生成される", () => {

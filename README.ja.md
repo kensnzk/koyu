@@ -6,20 +6,41 @@
 
 空間を一次要素とするテキストネイティブな建築記述の探求。壁は物ではなく二つの空間の境界という関係である。原本に書かれるのは空間の領域と境界の関係であり、部材の形はソースではなく生成物である。建物一棟を数百行のテキストで書き、git・LLMと同じ土俵に載せ、都市接続の候補になる軽さを狙う。主張の全文は [docs/writing-architecture.md](docs/writing-architecture.md)。
 
-二室一扉はこう書く (全文 [examples/two-rooms.muro](examples/two-rooms.muro)):
+## ドキュメント
 
+文書は二冊に分かれている。**[guide/](guide/README.md) が最初の扉**で、[spec/](spec/README.md) が規範である。
+
+- **[guide/](guide/README.md)** — 学ぶ本。チュートリアル・六つの考え・how-to・診断コード事典・CLI/APIリファレンス。**koyu を初めて書くなら [guide/start.md](guide/start.md) から** (30〜45分で二階建て一棟と平面図まで届く)
+- **[spec/](spec/README.md)** — 規範リファレンス。文法・意味論・語彙の台帳・正準JSON・ツール契約を現在形で
+- **[docs/decisions/](docs/decisions/)** — ADR。なぜそう決めたか、何を棄却したか
+- **[AGENTS.md](AGENTS.md)** — このリポジトリで作業するLLMエージェントの入口
+
+一室はこう書く。4行で、これで完全なファイルである。
+
+```muro
+grid X 0 3600
+grid Y 0 4000
+level L1 0
+space /L1/a room X1..X2 Y1..Y2
 ```
-space /L1/a room X1..X2 Y1..Y2 name:居室A
-space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out  exterior name:外部
 
-boundary /L1/a /L1/b t:120 spec:PW1
-  door w:780 h:2000
+`koyu plan` が平面図を出す。壁は一本も描かれていない — 空間はあるが、境界が一つも無いからである。
+
+![一室の平面図](guide/img/start-01-one-room.svg)
+
+`space` をもう一行足す。他は何も変えない。
+
+```muro
+grid X 0 3600 5400
+grid Y 0 4000
+level L1 0
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
 ```
 
-ここから平面図が生成される。壁を描く操作はどこにも無い — 壁の線分は空間の割付と境界の宣言から導出される。
+![二室の平面図。中央に壁が一枚立っている](guide/img/start-02-two-rooms.svg)
 
-![二室一扉の平面図](docs/img/two-rooms.svg)
+**壁が一枚現れる。壁を描く操作はどこにも無い。** 壁は二つの空間の境界という関係であり、空間の割付から導出される。接する空間の組に宣言が無ければ、それは「未定義」ではなく「壁」を意味する。
 
 2フロアのオフィス (廊下・コア・通り芯オフセット壁・階段/EV・高さの整合つき) でも約100行 ([examples/office.muro](examples/office.muro))。解像度は基本計画レベル — 垂れ壁を表現しないのは省略ではなく抽象度の選択で、計画初期にBIMが重すぎたという弱点の裏側がこの記述の主戦場である。高さ方向の一貫性は「天井高+上階slab ≤ 階高」という宣言された不変量の検査で担保する (ADR-0002)。
 
@@ -63,7 +84,7 @@ npm run koyu -- site   examples/tower/main.muro      # ショーケース: polyg
 
 ## 構成
 
-現在の仕様は [spec/](spec/README.md) に体系化した — 言語リファレンス ([language.md](spec/language.md))・意味論 ([semantics.md](spec/semantics.md))・語彙の台帳 ([vocabulary.md](spec/vocabulary.md))・正準JSON・ツールリファレンス (CLI/MCP/API)。ADRは「なぜ」を、specは「いま何が真か」を持つ。記法の成立記録 (DSL/YAML/JSON書き比べ) は [spec/notation-v0.md](spec/notation-v0.md)、IFC4とのカバレッジ照合は [docs/ifc-coverage.md](docs/ifc-coverage.md)、設計判断の記録は [docs/decisions/](docs/decisions/)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [koyu](https://linear.app/munipersonal/project/koyu-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。実装は src/ に約4,200行 (パーサ・グラフ・チェック・平面図生成・CLI・MCPサーバー)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室一扉をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。
+現在の仕様は [spec/](spec/README.md) に体系化した — 言語リファレンス ([language.md](spec/language.md))・意味論 ([semantics.md](spec/semantics.md))・語彙の台帳 ([vocabulary.md](spec/vocabulary.md))・正準JSON・ツールリファレンス (CLI/MCP/API)。ADRは「なぜ」を、specは「いま何が真か」を持つ。記法の成立記録 (DSL/YAML/JSON書き比べ) は [spec/notation-v0.md](spec/notation-v0.md)、IFC4とのカバレッジ照合は [docs/ifc-coverage.md](docs/ifc-coverage.md)、設計判断の記録は [docs/decisions/](docs/decisions/)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [koyu](https://linear.app/munipersonal/project/koyu-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。実装は src/ に約4,500行 (パーサ・グラフ・チェック・平面図生成・CLI・MCPサーバー)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。
 
 ## 技術方針
 

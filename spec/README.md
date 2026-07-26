@@ -1,4 +1,8 @@
+[English](en/README.md) · **日本語**
+
 # spec/ — koyuの仕様 (現在形)
+
+> **これはリファレンスである。koyuをこれから学ぶなら [guide/start.md](../guide/start.md) から始めること。**引くための文書であって、通して読んで身につく作りにはしていない。
 
 このフォルダは**いまのkoyuがどう振る舞うか**の規範文書 (normative reference) である。経緯や理由は書かない — それは [docs/decisions/](../docs/decisions/) (ADR) と [docs/log/](../docs/log/) の仕事で、specは決定が積もった後の**結論の現在形**だけを保つ。両者が食い違ったら、実装とテストが正であり、specを直す。
 
@@ -12,6 +16,7 @@
 | [canonical-json.md](canonical-json.md) | **機械形式** — 正準JSONのスキーマと安定性の規則 | 外部接続・diff・合成を作る人 |
 | [tools.md](tools.md) | **ツールリファレンス** — CLI・MCPサーバー・公開API | koyuを使うプログラム・エージェント |
 | [notation-v0.md](notation-v0.md) | 記法の**成立記録** — v0の書き比べ (DSL/YAML/JSON) と各版の追補。歴史文書であり現在形はlanguage.mdが正 | 経緯を知りたい人 |
+| [../guide/](../guide/README.md) | **学ぶための対の本** — チュートリアル・六つの考え・how-to・診断の原因と直し方・実例集。規範は持たず、ここへリンクする | koyuを学ぶ人・使い方から引きたい人 |
 
 ## 更新の作法
 
@@ -19,4 +24,4 @@
 
 ## 対象の版
 
-この文書群は koyu v0.10.0 の記述である。パッケージの版と乖離したら、乖離した箇所を直す。
+この文書群は koyu v0.11.0 の記述である。パッケージの版と乖離したら、乖離した箇所を直す。

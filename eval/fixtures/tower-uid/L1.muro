@@ -1,0 +1,80 @@
+# 1階の層 — 商業と共用部。低層部は塔状部より南へ4.6m張り出す。
+# 店舗前面は自動ドア (アセットAD1 — 平面は引き戸系の表現)、位置は通り芯基準の明示。
+
+space /L1/s1 shop X1..X3 Y1-4600..Y2 + X3..X4 Y1-4600..Y1 name:店舗1 use:rentable floor:モルタル
+  area X1..X2 Y1-4600..Y1-2600 name:土間 floor:タイル
+space /L1/s2 shop X4..X5 Y1-4600..Y2 name:店舗2 use:rentable
+space /L1/hall lobby X5..X6 Y1-4600..Y2 h:7000 name:エントランスホール use:common floor:タイル
+space /L1/back backyard X3..X4 Y1..Y2 name:荷解き・倉庫 use:common
+space /L1/corridor corridor X1..X6 Y2..Y3 + X4..X4+3200 Y3..Y3+3200 name:管理廊下 use:common
+space /L1/st2 stair X1..X1+3200 Y3..Y4 name:西階段 use:common
+space /L1/garb service X1+3200..X2+3200 Y3..Y4 name:ゴミ置場 use:common
+space /L1/mech machine X2+3200..X3+1600 Y3..Y4 name:機械室 use:common
+space /L1/elec machine X3+1600..X4 Y3..Y4 name:電気室 use:common
+space /L1/ev shaft X4..X4+3200 Y3+3200..Y4 name:EV use:common
+space /L1/mgr office X4+3200..X5+3200 Y3..Y4 name:管理室・防災センター use:common
+space /L1/st1 stair X5+3200..X6 Y3..Y4 name:東階段 use:common
+
+# ---- 内部 ----
+boundary /L1/s1 /L1/s2 t:150 spec:LGS
+boundary /L1/s1 /L1/back t:150 spec:LGS
+  door w:900 edge:E
+boundary /L1/s2 /L1/back t:150 spec:LGS
+  door w:900
+boundary /L1/s2 /L1/hall t:150 spec:LGS
+boundary /L1/back /L1/corridor t:150 spec:LGS
+  door w:900 name:搬入口
+boundary /L1/s1 /L1/corridor t:150 spec:LGS
+  door w:800
+boundary /L1/s2 /L1/corridor t:150 spec:LGS
+  door w:800
+boundary /L1/hall /L1/corridor t:150 spec:LGS
+  door AD1 at:X5+3200 name:オートロック
+boundary /L1/corridor /L1/st2 t:200 spec:RC
+  door FD1 name:西階段防火戸
+boundary /L1/corridor /L1/st1 t:200 spec:RC
+  door FD1 name:東階段防火戸
+boundary /L1/corridor /L1/garb t:150 spec:LGS
+  door w:900
+boundary /L1/corridor /L1/mech t:200 spec:RC
+  door w:900
+boundary /L1/elec /L1/corridor t:200 spec:RC
+  door w:900 edge:S
+boundary /L1/mgr /L1/corridor t:150 spec:LGS
+  door w:900 edge:S
+  seg w:1800 at:X5 edge:S spec:受付ガラス
+boundary /L1/corridor /L1/ev t:200 spec:RC
+
+# ---- 北列の間仕切り ----
+boundary /L1/st2 /L1/garb t:200 spec:RC
+boundary /L1/garb /L1/mech t:200 spec:RC
+boundary /L1/mech /L1/elec t:200 spec:RC
+boundary /L1/elec /L1/ev t:200 spec:RC
+boundary /L1/ev /L1/mgr t:200 spec:RC
+boundary /L1/mgr /L1/st1 t:200 spec:RC
+
+# ---- 外周 (南=商業前面、東=駐車・駐輪、西=通路、北=植栽帯) ----
+boundary /L1/s1 /site/walk edge:S t:100 spec:店舗サッシ
+  door AD1 at:X2 name:店舗1入口
+boundary /L1/s2 /site/walk edge:S t:100 spec:店舗サッシ
+  door AD1 at:X4+3200 name:店舗2入口
+boundary /L1/hall /site/walk edge:S t:100 spec:カーテンウォール
+  door AD1 at:X5+3200 name:エントランス
+boundary /L1/s1 /site/west edge:W t:200 spec:RC
+boundary /L1/corridor /site/west edge:W t:200 spec:RC
+boundary /L1/st2 /site/west edge:W t:200 spec:RC
+  door FD1 name:西階段屋外出口
+boundary /L1/hall /site/park edge:E t:200 spec:RC
+  window W2
+boundary /L1/corridor /site/cycle edge:E t:200 spec:RC
+  door w:900 name:通用口
+boundary /L1/st1 /site/cycle edge:E t:200 spec:RC
+  door FD1 name:東階段屋外出口
+boundary /L1/st2 /site/green edge:N t:200 spec:RC
+boundary /L1/garb /site/green edge:N t:200 spec:RC
+  door w:1200 name:ゴミ搬出口
+boundary /L1/mech /site/green edge:N t:200 spec:RC
+boundary /L1/elec /site/green edge:N t:200 spec:RC
+boundary /L1/ev /site/green edge:N t:200 spec:RC
+boundary /L1/mgr /site/green edge:N t:200 spec:RC
+boundary /L1/st1 /site/green edge:N t:200 spec:RC

@@ -1,0 +1,47 @@
+# 11階の層 — ペントハウス2住戸と共用ルーフテラス。
+# コア (階段・EV・内廊下) は typical.muro の L3..L11 スパンが供給する。
+
+space /L11/PA unit X1..X3+3200 Y1..Y2 name:ペントハウスA use:exclusive
+space /L11/PB unit X3+3200..X6 Y1..Y2 name:ペントハウスB use:exclusive
+space /L11/bPA balcony X1..X3+3200 Y1-1500..Y1 name:バルコニーPA
+space /L11/bPB balcony X3+3200..X6 Y1-1500..Y1 name:バルコニーPB
+space /L11/roof terrace X1+3200..X4 Y3..Y4 name:共用ルーフテラス use:common
+space /L11/store service X4+3200..X5+3200 Y3..Y4 name:トランクルーム use:common
+
+# ---- 住戸 ----
+boundary /L11/PA /L11/PB t:180 spec:戸境RC
+boundary /L11/PA /L11/corridor t:180 spec:RC
+  door D1 at:X2 name:PA玄関
+boundary /L11/PB /L11/corridor t:180 spec:RC
+  door D1 at:X5 name:PB玄関
+boundary /L11/PA /L11/bPA t:100 spec:サッシ
+  window W1 at:X1+3200
+  window W1 at:X2+3200
+  window W2 at:X3+1200
+boundary /L11/PB /L11/bPB t:100 spec:サッシ
+  window W1 at:X4
+  window W1 at:X5
+  window W2 at:X5+4800
+boundary /L11/PA /out/w edge:W t:200 spec:RC
+  window W2
+boundary /L11/PB /out/road-e edge:E t:200 spec:RC
+  window W2
+
+# ---- バルコニー ----
+boundary /L11/bPA /L11/bPB t:60 spec:隔て板 air:1
+boundary /L11/bPA /out/road-s edge:S t:120 spec:手すり air:1 h:1200
+boundary /L11/bPB /out/road-s edge:S t:120 spec:手すり air:1 h:1200
+boundary /L11/bPA /out/w edge:W t:120 spec:手すり air:1 h:1200
+boundary /L11/bPB /out/road-e edge:E t:120 spec:手すり air:1 h:1200
+
+# ---- ルーフテラスとトランクルーム ----
+boundary /L11/roof /L11/corridor t:120 spec:サッシ
+  door w:900 edge:S name:テラス出入口
+boundary /L11/roof /L11/st2 t:180 spec:RC
+boundary /L11/roof /L11/ev t:180 spec:RC
+boundary /L11/roof /out/n edge:N t:120 spec:手すり air:1 h:1200
+boundary /L11/store /L11/corridor t:150 spec:LGS
+  door w:800 edge:S
+boundary /L11/store /L11/ev t:180 spec:RC
+boundary /L11/store /L11/st1 t:180 spec:RC
+boundary /L11/store /out/n edge:N t:200 spec:RC
