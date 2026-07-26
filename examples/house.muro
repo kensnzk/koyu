@@ -7,7 +7,7 @@
 # 敷地 = zone site:1 (宣言面積と導出面積を site コマンドが突き合わせる)。
 # L1の平面図はそのまま配置図兼用になる。
 
-koyu 0.3
+koyu 0.4
 name 小さな戸建住宅
 unit mm
 
@@ -33,9 +33,9 @@ space /site/north  yard   X1..X3 Y3..Y3+1000           level:L1 name:北側通�
 
 zone /home name:住戸 use:exclusive
 
-space /home/ldk   ldk     X1..X2 Y1..Y3 + X2..X3 Y1..Y2 level:L1 name:LDK floor:オーク
+space /home/ldk   ldk     X1..X2 Y1..Y3 + X2..X3 Y1..Y2 level:L1 name:LDK floor:オーク daylight:1
 space /home/hall1 hall    X2..X3 Y2..Y3 level:L1 name:玄関・階段
-space /home/bed1  bedroom X1..X2 Y1..Y3 level:L2 name:主寝室
+space /home/bed1  bedroom X1..X2 Y1..Y3 level:L2 name:主寝室 daylight:1
 space /home/void  void    X2..X3 Y1..Y2 level:L2 name:リビング上部
 space /home/hall2 hall    X2..X3 Y2..Y3 level:L2 name:2階ホール
 

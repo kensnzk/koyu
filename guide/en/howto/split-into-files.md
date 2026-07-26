@@ -18,7 +18,7 @@ The file paths in the output below are actually absolute; the head of the direct
 The consistencies of the whole building — `koyu` (the version), `name`, `unit`, `grid`, `level` — are declared **once** by the base layer. The file that gathers these into one layer becomes the entry.
 
 ```muro-part
-koyu 0.3
+koyu 0.4
 name 小さな戸建住宅
 unit mm
 

@@ -8,7 +8,7 @@ This document puts the essay's position — "meaning is given by a vocabulary, n
 
 ## Five rules
 
-**1. A kind states only the topology of a relation.** A boundary's type (wall/open/stair/shaft/void) is a word that the graph, the derivations, and the checks interpret structurally, and adding to that set is the last resort. This is the same stance IFC takes in letting a space boundary (IfcRelSpaceBoundary) say only Physical or Virtual.
+**1. A kind states only the topology of a relation.** A boundary's type (wall/open/stair/shaft/void) is a word that the graph, the derivations, and the checks interpret structurally, and adding to that set is the last resort. This is the same stance IFC takes in letting a space boundary (IfcRelSpaceBoundary) say only Physical or Virtual. On a space, exactly two type words are interpreted structurally — `exterior` and `void` — and both correspond to a fact of composition (is it outside; does it count towards floor area). **The entrance to a verdict is never the type; it is an attribute, and each attribute names what the tool does** (`daylight` for the daylight check, `road` for street frontage width, `site` for site aggregation, `use` for the aggregation axis — ADR-0020).
 
 **2. The name of a thing belongs to the `spec` vocabulary.** Railing, RC, LGS, EW, glass partition… the value of `spec` is a free word, and tools do not interpret it (they only carry it). What IFC would make an element class (IfcRailing, IfcCurtainWall) is a value of `spec` here — the consequence of the turn by which a thing is an attribute of a relation.
 
@@ -23,13 +23,13 @@ This document puts the essay's position — "meaning is given by a vocabulary, n
 ### space
 | Attribute | Interpreted | Meaning |
 |---|---|---|
-| type | ★ in part | An open vocabulary. Interpreted structurally: `exterior` (outside — may split into several: /out/road etc.) and `void` (a void through the floor). Subjects of the daylight check: `unit` `room` `ldk` `bedroom` `living` |
+| type | ★ in part | An open vocabulary. The only two words interpreted structurally are `exterior` (outside — may split into several: /out/road etc.) and `void` (a void through the floor). Everything else is a free word, and whether the daylight check applies is in particular never inferred from the type (ADR-0020) |
 | road | ★ | The width in mm of an exterior space — the mark of a road. The site command derives road frontage from it (ADR-0009) |
 | region | ★ | `X?..X? Y?..Y?`, joined with `+` (for an L shape). Offsets such as `X2+600` are allowed |
 | level: | ★ | States the level explicitly. The default is the first path segment. Used for a grouping that spans levels (a maisonette) |
 | h | ★ | Ceiling height in mm (default: the level's h). The height invariant and `levels` read it |
 | use | ★ | An aggregation axis for stats (rentable/exclusive/common…). Inherited from the zone |
-| hab | ★ | Controls the subjects of the daylight check (1 to add, 0 to exclude) |
+| daylight | ★ | **Declares that the daylight check applies to this space** — `1` subjects it to `light`'s 1/7 test; `0` and absence leave it out (ADR-0020). Only 0 and 1 are accepted. It is not inherited (it differs room by room). The attribute names what the tool does, not a legal category (the habitable room of Article 2(iv)) — the scoping of Article 28(1) by building use, and the per-use ratios of Order Article 19(3), are not modelled, so what the 1/7 applies to is the author's call |
 | uid | ★ | An optional persistent identity token (ADR-0015). Opaque, unique across the whole model (spanning space and zone), and never derived from the path. Digits alone, or whitespace, is an error. It exists for external joins across renames (sensors, registers) — references inside the repository stay on paths |
 | w | ★ (band members only) | The dimension along the band's direction, in mm. `w:rest` marks the member that absorbs the remainder (at most one per band). It may not be written on a `space` outside a band |
 | name / floor / … | — | Free. `floor` may be overridden by an `area` |

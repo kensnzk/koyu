@@ -68,7 +68,7 @@ console.log(m.spaces.size, m.version, m.layers);
 ```
 
 ```text
-1 0.3 []
+1 0.4 []
 ```
 
 `model.layers` は合成に参加したレイヤーの一覧 (合成順、entry が先頭) である。`parse` は単一ソースなので空になる。
@@ -375,7 +375,7 @@ interface DaylightResult {
 }
 ```
 
-対象は型が `unit` `room` `ldk` `bedroom` `living` の空間 (`hab:1` で追加、`hab:0` で除外)。**対象が一つも無ければ空配列が返る** — 「全部合格」と区別が付かないので、`length` を見ること。
+対象は `daylight:1` を書いた空間だけで、型は見ない ([ADR-0020](../docs/decisions/0020-daylight-scope-is-declared.md))。**対象が一つも無ければ空配列が返る** — 「全部合格」と区別が付かないので、`length` を見ること。
 
 ```ts
 import { daylight } from "@kensnzk/koyu";
@@ -752,7 +752,7 @@ console.log(toCanonical(a).split("\n").slice(0, 6).join("\n"));
 
 ```text
 {
-  "koyu": "0.3",
+  "koyu": "0.4",
   "name": "二室",
   "unit": "mm",
   "grid": {
@@ -913,7 +913,7 @@ console.log(SUPPORTED_LANGUAGE_VERSIONS, DEFAULT_LANGUAGE_VERSION);
 ```
 
 ```text
-[ '0.1', '0.2', '0.3' ] 0.3
+[ '0.1', '0.2', '0.3', '0.4' ] 0.4
 ```
 
 ## 型

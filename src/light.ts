@@ -1,11 +1,9 @@
 // koyu — 採光の粗い判定 (法規検証の芽・第一号)
-// 住居系の居室について 窓面積/床面積 ≥ 1/7 を確かめる。
+// 採光の対象と宣言された室について 窓面積/床面積 ≥ 1/7 を確かめる。
 // 採光補正係数は掛けない甘い判定であり、基本計画の解像度に合わせた早期警報である。
-// 対象: unit / room / ldk / bedroom / living (hab:0 で除外、hab:1 で他の型も対象に)
+// 対象は `daylight:1` を書いた空間だけ — 型からは推定しない (ADR-0020)。
 
 import { areaM2, isCoveredAbove, isSemiOutdoor, type Model, type Space } from "./model.js";
-
-const HABITABLE = new Set(["unit", "room", "ldk", "bedroom", "living"]);
 
 /** 庇下・バルコニー下 (上に空間がある半屋外) 越しの窓の係数 — 縁側補正に倣う粗い値。
  *  上が開いた半屋外 (庭・最上階バルコニー) 越しは 1.0 (ADR-0009) */
@@ -28,9 +26,8 @@ export function daylight(model: Model): DaylightResult[] {
   const out: DaylightResult[] = [];
   for (const s of model.spaces.values()) {
     if (s.rects.length === 0) continue;
-    const hab = s.attrs["hab"];
-    const target = hab === 1 || (HABITABLE.has(s.type) && hab !== 0);
-    if (!target) continue;
+    // 採光の対象は宣言である (ADR-0020) — 型は解釈しない。既定は対象外
+    if (s.attrs["daylight"] !== 1) continue;
     const floor = areaM2(s)!;
     let win = 0;
     let missingH = false;

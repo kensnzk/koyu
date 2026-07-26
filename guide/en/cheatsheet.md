@@ -33,7 +33,7 @@ The smallest four lines on which `check` is green and `plan` draws a drawing.
 | `grid X` / `grid Y` | **Required** | Coordinates are never written directly, so without grid lines a region cannot be written. Put them **before** any line that uses them |
 | `level L1 0` | Effectively required for a space with a region | Without it `check` stops at a warning, but `plan` dies with `レベルが定義されていません` ("no level is defined") |
 | The type of `space` (2nd positional) | **Required** | Omit it and the first region token is read as the type, giving `領域は X?..X? と Y?..Y? の2つで指定します` |
-| `koyu 0.3` | Optional | Omitted, the file is read with the newest semantics, 0.3. Write it in files whose meaning you want pinned ([language.md §2](../../spec/en/language.md)) |
+| `koyu 0.4` | Optional | Omitted, the file is read with the newest semantics, 0.4. Write it in files whose meaning you want pinned ([language.md §2](../../spec/en/language.md)) |
 | `name …` / `unit mm` | Optional | |
 | `h:` / `slab:` | Optional | Omit them with a storey above and you get `レベル L2 に slab が未宣言のため、L1 との高さ検査ができません` |
 | `space /out exterior` | Optional | But without it the building has no envelope (see "Defaults" below) |
@@ -45,7 +45,7 @@ An empty file also gives `✔ 整合 — 空間 0 / 境界 0`. **Green means "wh
 
 | How it is written | Meaning |
 |---|---|
-| `koyu 0.3` | The language version. Base layer (the entry) only, once. `0.1`, `0.2`, `0.3` are accepted |
+| `koyu 0.4` | The language version. Base layer (the entry) only, once. `0.1`, `0.2`, `0.3`, `0.4` are accepted |
 | `name 街角の複合ビル` | The building name. Takes the rest of the line as its value (whitespace allowed). Once |
 | `unit mm` | v0 is mm only |
 | `grid X 0 6400 12800 19200` | The X-axis grid coordinates. Ascending, two or more. Named `X1`, `X2`, … automatically |
@@ -92,7 +92,7 @@ space /out/road-s exterior name:南側道路 road:12000
 | `level:L1` | Attribute | States the level explicitly. Used for a grouping that spans levels (a maisonette) |
 | `h:2400` | Attribute | Ceiling height. Defaults to the level's `h` |
 | `use:exclusive` | Attribute | An aggregation axis. Inherited from `zone` |
-| `hab:1` / `hab:0` | Attribute | Adds to or removes from the daylight scope |
+| `daylight:1` / `daylight:0` | Attribute | Adds to or removes from the daylight scope |
 | `road:12000` | Attribute | The width of an exterior space — the mark of a road |
 | `uid:…` | Attribute | A persistent identity token across renames. Digits alone, or whitespace, is an error |
 
@@ -102,7 +102,7 @@ space /out/road-s exterior name:南側道路 road:12000
 |---|---|
 | `exterior` | The outside. May have no region. Splits into several, as in `/out/road-s` |
 | `void` | A void through the floor. Not counted in floor area, and not passable |
-| `unit` `room` `ldk` `bedroom` `living` | Subjects of the daylight check (`light`) |
+| `daylight:1` (an attribute, not a type) | Declares that `light`'s 1/7 daylight test applies to this room |
 
 **Every other type is merely carried.** Write a `wc` as `room` and it enters the daylight check; spell it `rooom` and it passes silently.
 
@@ -297,7 +297,7 @@ stack ev L1..L10 type:shaft
 | space level | The first path segment (when it is a level name) |
 | space h | The level's `h` |
 | Area measurement | To wall centerlines |
-| Language version | `0.3` (when the declaration is omitted) |
+| Language version | `0.4` (when the declaration is omitted) |
 
 The third row (the boundary with a space that has no region) is the heart of the asymmetry. **Internal walls stand automatically; the envelope does not.** `check` is green even with not one `boundary /L1/living /out …` written.
 
@@ -333,7 +333,7 @@ Only the words in the ledger are read by the tools. **Any `key:value` not listed
 
 | Element | Interpreted attributes |
 |---|---|
-| space | `type` (in part), `level`, `h`, `use`, `hab`, `road`, `uid`; the region; `w` (only as a band member) |
+| space | `type` (in part), `level`, `h`, `use`, `daylight`, `road`, `uid`; the region; `w` (only as a band member) |
 | boundary | `type`, `t`, `air`, `edge` |
 | opening | `kind` (door/window); the asset reference; `w`, `h`, `at`, `edge`, `hinge`, `swing`, `style` |
 | level | `z`, `h`, `slab`, `pitch` |

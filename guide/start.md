@@ -256,7 +256,11 @@ npx tsx src/cli.ts plan out/house.muro
 
 黒い帯は1本から7本になった — 内壁1本と外周6本である。**内壁は自動、外壁は宣言。** 外部との境界は書かなければ存在せず、書かなくても `check` は緑のままである。外皮は自分の目で確かめる持ち場だと憶えてほしい。
 
-窓を入れたので、採光を訊ける。
+窓を入れたので、採光を訊ける。ただしその前に一つ宣言が要る。**koyu は「どの室を判定すべきか」を推測しない** — 型を `ldk` と綴ったことも `bedroom` と綴ったことも、判定の根拠にはならない ([ADR-0020](../docs/decisions/0020-daylight-scope-is-declared.md))。判定してほしい室に `daylight:1` を書く。5行目をこう直す。
+
+```muro-part
+space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
+```
 
 ```sh
 npx tsx src/cli.ts light out/house.muro
@@ -267,7 +271,7 @@ npx tsx src/cli.ts light out/house.muro
 ✔ 全1室が 1/7 を満たします (補正係数なしの粗い判定)
 ```
 
-`hall` が出てこないのは、`light` の対象が住居系の五つの型 (`unit` `room` `ldk` `bedroom` `living`) だけだからである。型は開かれた語彙で、`hall` は koyu が解釈しない自由な語である。どの語が構造として解釈されるかは [spec/vocabulary.md](../spec/vocabulary.md) の台帳にある。
+`hall` が出てこないのは、`daylight:1` を書いたのが `ldk` だけだからである。型は判定に一切関与しない — `hall` を `room` に書き換えても対象にはならず、`hall` のまま `daylight:1` を足せば対象になる。空間の型で構造として解釈されるのは `exterior` と `void` の二語だけで、残りは koyu が解釈しない自由な語である。台帳は [spec/vocabulary.md](../spec/vocabulary.md) にある。
 
 ## 第5段 — 二階、そして緑の罠
 
@@ -279,9 +283,9 @@ grid Y 0 4000
 level L1 0 h:2400
 level L2 2800 h:2400 slab:400
 
-space /L1/ldk ldk X1..X2 Y1..Y2
+space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
-space /L2/bed bedroom X1..X2 Y1..Y2
+space /L2/bed bedroom X1..X2 Y1..Y2 daylight:1
 space /L2/hall hall X2..X3 Y1..Y2
 space /out exterior
 
@@ -360,9 +364,9 @@ grid Y 0 4000
 level L1 0 h:2400
 level L2 2800 h:2400 slab:400
 
-space /L1/ldk ldk X1..X2 Y1..Y2
+space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
-space /L2/bed bedroom X1..X2 Y1..Y2
+space /L2/bed bedroom X1..X2 Y1..Y2 daylight:1
 space /L2/hall hall X2..X3 Y1..Y2
 space /out exterior
 
@@ -417,7 +421,7 @@ npx tsx src/cli.ts plan out/house.muro -l L2
 最後に、これまで省いてきたものを足す。
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 小さな家
 
 grid X 0 3600 5400
@@ -425,9 +429,9 @@ grid Y 0 4000
 level L1 0 h:2400
 level L2 2800 h:2400 slab:400
 
-space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク
+space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク daylight:1
 space /L1/hall hall X2..X3 Y1..Y2 name:玄関ホール floor:タイル
-space /L2/bed bedroom X1..X2 Y1..Y2 name:寝室 floor:オーク
+space /L2/bed bedroom X1..X2 Y1..Y2 name:寝室 floor:オーク daylight:1
 space /L2/hall hall X2..X3 Y1..Y2 name:階段ホール
 space /out exterior name:外部
 
@@ -451,7 +455,7 @@ boundary /L2/hall /out t:150 spec:EW1
 
 足したものは三種類である。
 
-- **`koyu 0.3`** — 言語版の宣言。省いたファイルは常に最新版の意味論で読まれるので、ツールの版が上がると意味が動きうる。**新しく作るファイルには書く。**
+- **`koyu 0.4`** — 言語版の宣言。省いたファイルは常に最新版の意味論で読まれるので、ツールの版が上がると意味が動きうる。**新しく作るファイルには書く。**
 - **`name`** — 建物名 (図面のタイトルになる) と、空間・境界・開口それぞれの名前。
 - **`floor:` `spec:`** — koyu が解釈しない自由な属性。そのまま運ばれる。物の名 (RC・LGS・EW1…) は `spec` の値として書く、というのがこの記法の構えである。
 

@@ -264,7 +264,11 @@ npx tsx src/cli.ts plan out/house.muro
 
 The black bands have gone from one to seven — one internal wall and six around the perimeter. **Internal walls are automatic; external walls are declared.** A boundary with the outside does not exist unless you write it, and `check` stays green whether you write it or not. Remember the envelope as a post you have to hold with your own eyes.
 
-Now that there is a window, you can ask about daylight.
+Now that there is a window, you can ask about daylight — but one declaration is needed first. **koyu never guesses which rooms should be tested**: spelling a type `ldk`, or `bedroom`, is no grounds for a verdict ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). Write `daylight:1` on the room you want tested. Change line 5 to this.
+
+```muro-part
+space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
+```
 
 ```sh
 npx tsx src/cli.ts light out/house.muro
@@ -277,7 +281,7 @@ npx tsx src/cli.ts light out/house.muro
 
 ("Window 4.32 m² / floor 14.40 m² = 1/3.3, requires 1/7 ≈ 2.06 m². All 1 room satisfies 1/7 — a coarse test with no correction factors.")
 
-`hall` does not appear because the subjects of `light` are only the five residential types (`unit`, `room`, `ldk`, `bedroom`, `living`). The type is an open vocabulary, and `hall` is a free word that koyu does not interpret. Which words are interpreted structurally is in the ledger in [spec/vocabulary.md](../../spec/en/vocabulary.md).
+`hall` does not appear because `daylight:1` was written only on `ldk`. The type plays no part in the verdict whatsoever — rewrite `hall` as `room` and it still stays out of scope; leave it as `hall` and add `daylight:1` and it comes into scope. Of the space types, exactly two are interpreted structurally, `exterior` and `void`; the rest are free words that koyu does not interpret. The ledger is in [spec/vocabulary.md](../../spec/en/vocabulary.md).
 
 ## Stage 5 — a second storey, and the trap of green
 
@@ -289,9 +293,9 @@ grid Y 0 4000
 level L1 0 h:2400
 level L2 2800 h:2400 slab:400
 
-space /L1/ldk ldk X1..X2 Y1..Y2
+space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
-space /L2/bed bedroom X1..X2 Y1..Y2
+space /L2/bed bedroom X1..X2 Y1..Y2 daylight:1
 space /L2/hall hall X2..X3 Y1..Y2
 space /out exterior
 
@@ -374,9 +378,9 @@ grid Y 0 4000
 level L1 0 h:2400
 level L2 2800 h:2400 slab:400
 
-space /L1/ldk ldk X1..X2 Y1..Y2
+space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
-space /L2/bed bedroom X1..X2 Y1..Y2
+space /L2/bed bedroom X1..X2 Y1..Y2 daylight:1
 space /L2/hall hall X2..X3 Y1..Y2
 space /out exterior
 
@@ -431,7 +435,7 @@ What `check` answers is whether the authored composition is consistent, not whet
 Finally, add what has been left out until now.
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 小さな家
 
 grid X 0 3600 5400
@@ -439,9 +443,9 @@ grid Y 0 4000
 level L1 0 h:2400
 level L2 2800 h:2400 slab:400
 
-space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク
+space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク daylight:1
 space /L1/hall hall X2..X3 Y1..Y2 name:玄関ホール floor:タイル
-space /L2/bed bedroom X1..X2 Y1..Y2 name:寝室 floor:オーク
+space /L2/bed bedroom X1..X2 Y1..Y2 name:寝室 floor:オーク daylight:1
 space /L2/hall hall X2..X3 Y1..Y2 name:階段ホール
 space /out exterior name:外部
 
@@ -465,7 +469,7 @@ boundary /L2/hall /out t:150 spec:EW1
 
 Three kinds of thing were added. (The Japanese values are names: 小さな家 "a small house", 寝室 "bedroom", オーク "oak", 掃き出し窓 "full-height window".)
 
-- **`koyu 0.3`** — the language version declaration. A file that omits it is always read with the newest version's semantics, so its meaning can move when the tool's version rises. **Write it in files you create.**
+- **`koyu 0.4`** — the language version declaration. A file that omits it is always read with the newest version's semantics, so its meaning can move when the tool's version rises. **Write it in files you create.**
 - **`name`** — the building's name (it becomes the drawing's title), plus a name for each space, boundary, and opening.
 - **`floor:` and `spec:`** — free attributes that koyu does not interpret. They are carried through as they are. That the name of a thing (RC, LGS, EW1…) is written as the value of `spec` is the stance of this notation.
 

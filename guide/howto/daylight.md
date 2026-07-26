@@ -9,20 +9,25 @@
 ## 前提
 
 - `check` がエラー0で通っていること。
-- 窓を開けたい空間の型 (`space` の第2位置引数) が分かっていること。
+- どの室に採光の判定を掛けたいかが決まっていること (koyu は推し量らない — 書き手が宣言する)。
 
 ## 手順
 
-### 1. その空間が判定の対象か確かめる
+### 1. その空間に判定を掛けると宣言する
 
-`light` が見るのは型が `unit` `room` `ldk` `bedroom` `living` の空間である。型は開かれた語彙で、それ以外の語 (`wet` `hall` `corridor` `shop` …) は黙って対象外になる。浴室を `room` と書けば判定に入り、`wet` と書けば入らない — どちらもエラーにはならない。
-
-型を変えずに対象を増減するときは `hab:` を使う。`hab:1` で対象に加え、`hab:0` で外す。
+`light` が見るのは `daylight:1` を書いた空間**だけ**である。型は一切見ない — 判定を掛けるかどうかは書き手が宣言することであって、室の名前から推し量るものではない ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md))。既定は対象外なので、`daylight` を一つも書かなければ何も判定されない。
 
 ```muro-part
-space /L1/a room X1..X2 Y1..Y2 name:居室A hab:0        # 型は room のまま対象外
-space /L1/b wet  X2..X3 Y1..Y2 name:洗面脱衣 hab:1     # 型は wet のまま対象
+space /L1/a bedroom X1..X2 Y1..Y2 name:寝室 daylight:1     # 判定に入る
+space /L1/b wet     X2..X3 Y1..Y2 name:洗面脱衣       # 既定は対象外 — 入らない
+space /L1/c wet     X3..X4 Y1..Y2 name:浴室 daylight:1     # 型は wet のまま判定する
 ```
+
+`daylight:0` は既定と同じ意味だが、「意図して対象から外した」と読み手に伝えるために書いてよい。値は 0 か 1 だけで、`daylight:yes` のような綴りはエラーになる (DAY01)。
+
+判定の分母をどの粒度に置くかも、`daylight:1` を書く位置で決まる。住戸を割らずに `unit` の行に書けば住戸まるごとが一室として判定され、ldk・bedroom に割って書けば室ごとに判定される。どちらも正しく、基本計画の解像度をどこに置くかの選択である。
+
+**対象が一つも無いとき `light` は終了コード 0 を返す** — 「全室合格」と見分けが付かない。判定されるはずの室が出てこないときは、まず `daylight:1` の書き忘れを疑う。
 
 ### 2. 外に面する境界に `window` を書く
 
@@ -68,7 +73,7 @@ boundary /L1/a /out t:150 spec:EW
 次のファイルは二室とも判定を通る。
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 採光の稽古
 unit mm
 
@@ -76,8 +81,8 @@ grid X 0 3600 7200
 grid Y 0 4500
 level L1 0 h:2400
 
-space /L1/a room X1..X2 Y1..Y2 name:居室A
-space /L1/b room X2..X3 Y1..Y2 name:居室B
+space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
+space /L1/b room X2..X3 Y1..Y2 name:居室B daylight:1
 space /out exterior name:外部
 
 boundary /L1/a /L1/b t:120
@@ -113,7 +118,7 @@ $ npx tsx src/cli.ts light daylight.muro
 上が開いたテラス越しの掃き出し窓 (2600×2200 = 5.72㎡) は、そのまま 5.72㎡ と数えられる。
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 半屋外越しの採光
 unit mm
 
@@ -121,7 +126,7 @@ grid X 0 4000
 grid Y 0 4000
 level L1 0 h:2400
 
-space /L1/liv living  X1..X2 Y1..Y2      name:居間
+space /L1/liv living  X1..X2 Y1..Y2      name:居間 daylight:1
 space /L1/bal balcony X1..X2 Y1-1500..Y1 name:テラス
 space /out exterior name:外部
 
@@ -137,7 +142,7 @@ boundary /L1/bal /out edge:S t:120 spec:手すり air:1 h:1100
 同じ位置に上階のバルコニーを足すと、テラスは庇下になり 0.7 がかかる。窓も床も一切変えていない。
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 半屋外越しの採光
 unit mm
 
@@ -147,7 +152,7 @@ level L1 0 h:2400
 level L2 2900 h:2400 slab:500
 level R 5800 slab:500
 
-space /L1/liv living  X1..X2 Y1..Y2      name:居間
+space /L1/liv living  X1..X2 Y1..Y2      name:居間 daylight:1
 space /L1/bal balcony X1..X2 Y1-1500..Y1 name:テラス
 space /L2/bal balcony X1..X2 Y1-1500..Y1 name:上階バルコニー
 space /out exterior name:外部
@@ -170,7 +175,7 @@ boundary /L2/bal /out edge:S t:120 spec:手すり air:1 h:1100
 
 - 窓を大きくする、または枚数を増やす。有効窓面積は同じ空間に接する全境界上の窓の合計である。
 - 半屋外越しなら、直接外部に面する境界へ窓を移す (係数が 1.0 になる)。
-- その室が居室でないなら、型を改めるか `hab:0` を付ける。
+- そもそも判定を要さない室なら、`daylight:1` を外す (意図を残すなら `daylight:0` と明記する)。
 
 `light` は補正係数を掛けない粗い早期警報であり、法適合の判定ではない ([spec/semantics.md §6](../../spec/semantics.md))。
 

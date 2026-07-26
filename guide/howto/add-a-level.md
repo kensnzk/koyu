@@ -92,7 +92,7 @@ boundary /L2/bed /L2/hall t:120
 次のファイルが、ここまでの手順をすべて含んだ二階建てである。
 
 ```muro
-koyu 0.3
+koyu 0.4
 name 二階建ての稽古
 unit mm
 

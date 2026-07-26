@@ -369,7 +369,7 @@ L1	z:0	h:2700
 
 ## light — 居室は 1/7 を満たすか
 
-住居系の居室について、窓面積が床面積の 1/7 以上かを確かめる。補正係数を掛けない粗い判定であり、基本計画の解像度に合わせた早期警報である。
+居室 (`daylight:1` を書いた空間) について、窓面積が床面積の 1/7 以上かを確かめる。補正係数を掛けない粗い判定であり、基本計画の解像度に合わせた早期警報である。
 
 ```sh
 npx tsx src/cli.ts light examples/house/main.muro
@@ -383,10 +383,10 @@ npx tsx src/cli.ts light examples/house/main.muro
 
 | 終了コード | 意味 |
 |---|---|
-| 0 | 全て満たす、**または対象の居室が一つも無い** |
+| 0 | 全て満たす、**または `daylight:1` の空間が一つも無い** |
 | 1 | 不足している室がある |
 
-対象は型が `unit` `room` `ldk` `bedroom` `living` の空間である (`hab:1` で追加、`hab:0` で除外)。**窓を一枚も書いていなければ当然落ちる。**
+対象は `daylight:1` を書いた空間だけである — 型は見ない ([ADR-0020](../docs/decisions/0020-daylight-scope-is-declared.md))。**窓を一枚も書いていなければ当然落ちる。**
 
 ```sh
 npx tsx src/cli.ts light examples/two-rooms.muro
@@ -398,17 +398,17 @@ npx tsx src/cli.ts light examples/two-rooms.muro
 ✖ 2室中 2室が不足しています
 ```
 
-**対象が無いときも終了コードは 0 である。** 住居系の型を使っていないモデル (事務所など) では判定そのものが行われない。
+**対象が無いときも終了コードは 0 である。** `daylight:1` を一つも書いていないモデル (事務所など) では判定そのものが行われない。
 
 ```sh
 npx tsx src/cli.ts light examples/office.muro
 ```
 
 ```text
-対象の居室 (住居系) がありません
+採光の対象がありません (判定する室に daylight:1 を書きます)
 ```
 
-これを「合格」と読まないこと。型の綴りを間違えると同じ出力になる。`h` を持たない `window` は数えられず、その旨が行末に付く (`⚠ h未指定の窓は数えていません`)。判定の定義は [spec/semantics.md §6](../spec/semantics.md)。
+これを「合格」と読まないこと。`daylight:1` を書き忘れても同じ出力になる。`h` を持たない `window` は数えられず、その旨が行末に付く (`⚠ h未指定の窓は数えていません`)。判定の定義は [spec/semantics.md §6](../spec/semantics.md)。
 
 ## site — 敷地の数字
 
@@ -469,7 +469,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```text
 {
-  "koyu": "0.3",
+  "koyu": "0.4",
   "name": "二室",
   "unit": "mm",
   "grid": {

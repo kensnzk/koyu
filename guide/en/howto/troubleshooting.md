@@ -339,12 +339,11 @@ The type (the second positional of `space`) is an open vocabulary. Only the foll
 |---|---|
 | `exterior` | The outside. May have no region. Not counted in floor area |
 | `void` | A void through the floor. Not counted in floor area, and not passable |
-| `unit` `room` `ldk` `bedroom` `living` | Habitable rooms, the subjects of the daylight check (`light`) |
 
-`hall`, `wet`, `plaza`, and `yard` are all free words, neither checked nor warned about. Write a bathroom as `room` and it enters the daylight check as a habitable room.
+`hall`, `wet`, `room`, and `ldk` are all free words, neither checked nor warned about. Whether a space enters the daylight check is not decided by the type either — only the rooms carrying `daylight:1` are judged. Write `daylight:1` on a bathroom and it enters the check, with the type left as `wet`.
 
 ```muro-part
-space /L1/bath room X1..X2 Y1..Y2 nmae:浴室
+space /L1/bath wet X1..X2 Y1..Y2 nmae:浴室 daylight:1
 ```
 
 ```text
@@ -352,13 +351,13 @@ space /L1/bath room X1..X2 Y1..Y2 nmae:浴室
 ✖ 1室中 1室が不足しています
 ```
 
-Correct the type to `wet` and it drops out of the verdict.
+Drop the `daylight:1` and it falls out of the verdict, without a character of the type changing.
 
 ```text
-対象の居室 (住居系) がありません
+採光の対象がありません (判定する室に daylight:1 を書きます)
 ```
 
-("There are no habitable rooms in scope.")
+("Nothing is in scope for the daylight check — write daylight:1 on the rooms to test.")
 
 A misspelled attribute key passes just as silently. The `nmae:浴室` above is not an error and rides straight into the canonical JSON. No display name is attached, and the tail of the path (`bath`) is used instead.
 
@@ -368,7 +367,7 @@ A misspelled attribute key passes just as silently. The `nmae:浴室` above is n
       }
 ```
 
-**The fix.** The ledger in [spec/vocabulary.md](../../../spec/en/vocabulary.md) is the contract for which attributes the tools read. When an attribute has no effect, check it against the ledger first. To state the verdict explicitly, `hab:1` / `hab:0` sets the daylight scope directly.
+**The fix.** The ledger in [spec/vocabulary.md](../../../spec/en/vocabulary.md) is the contract for which attributes the tools read. When an attribute has no effect, check it against the ledger first. To state the verdict explicitly, `daylight:1` / `daylight:0` sets the daylight scope directly.
 
 ### 12. An empty file is green too
 

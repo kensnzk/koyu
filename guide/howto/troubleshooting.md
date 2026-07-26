@@ -339,12 +339,11 @@ boundary /L1/b /out t:150 spec:EW
 |---|---|
 | `exterior` | 外部。領域なし可。床面積に算入しない |
 | `void` | 吹抜け。床面積に算入せず、通行もしない |
-| `unit` `room` `ldk` `bedroom` `living` | 採光 (`light`) の対象になる居室 |
 
-`hall` も `wet` も `plaza` も `yard` も自由語で、検査も警告もされない。浴室を `room` と書くと、居室として採光の対象に入る。
+`hall` も `wet` も `room` も `ldk` も自由語で、検査も警告もされない。採光の対象になるかどうかも型では決まらない — `daylight:1` を書いた室だけが判定される。浴室に `daylight:1` を書けば、型が `wet` のままでも判定に入る。
 
 ```muro-part
-space /L1/bath room X1..X2 Y1..Y2 nmae:浴室
+space /L1/bath wet X1..X2 Y1..Y2 nmae:浴室 daylight:1
 ```
 
 ```text
@@ -352,10 +351,10 @@ space /L1/bath room X1..X2 Y1..Y2 nmae:浴室
 ✖ 1室中 1室が不足しています
 ```
 
-型を `wet` に直すと、判定から外れる。
+`daylight:1` を落とすと、型を一字も変えずに判定から外れる。
 
 ```text
-対象の居室 (住居系) がありません
+採光の対象がありません (判定する室に daylight:1 を書きます)
 ```
 
 属性キーの綴り違いも同じく黙って通る。上の例の `nmae:浴室` はエラーにならず、正準 JSON にそのまま乗る。表示名は付かず、パスの末尾 (`bath`) が使われている。
@@ -366,7 +365,7 @@ space /L1/bath room X1..X2 Y1..Y2 nmae:浴室
       }
 ```
 
-**直し方。** ツールが読む属性は [spec/vocabulary.md](../../spec/vocabulary.md) の台帳が契約である。効かない属性はまず台帳と照合する。判定を明示したいときは `hab:1` / `hab:0` で採光の対象を直接指定できる。
+**直し方。** ツールが読む属性は [spec/vocabulary.md](../../spec/vocabulary.md) の台帳が契約である。効かない属性はまず台帳と照合する。判定を明示したいときは `daylight:1` / `daylight:0` で採光の対象を直接指定できる。
 
 ### 12. 空のファイルも緑になる
 

@@ -375,7 +375,7 @@ When the decomposition does not appear, either the storey below has no `h` or th
 
 ## light — do the habitable rooms meet 1/7
 
-For residential habitable rooms, confirms whether the window area is at least a seventh of the floor area. It is a coarse test applying no correction factors — an early warning matched to schematic-design resolution. The 1/7 ratio comes from the Japanese Building Standards Act.
+For the habitable rooms (the spaces carrying `daylight:1`), confirms whether the window area is at least a seventh of the floor area. It is a coarse test applying no correction factors — an early warning matched to schematic-design resolution. The 1/7 ratio comes from the Japanese Building Standards Act.
 
 ```sh
 npx tsx src/cli.ts light examples/house/main.muro
@@ -389,10 +389,10 @@ npx tsx src/cli.ts light examples/house/main.muro
 
 | Exit code | Meaning |
 |---|---|
-| 0 | All pass, **or there is not one habitable room in scope** |
+| 0 | All pass, **or not one space carries `daylight:1`** |
 | 1 | Some room falls short |
 
-The subjects are spaces whose type is `unit`, `room`, `ldk`, `bedroom`, or `living` (added with `hab:1`, excluded with `hab:0`). **With not one window written it fails, of course.**
+The subjects are only the spaces carrying `daylight:1` — the type is not consulted ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). **With not one window written it fails, of course.**
 
 ```sh
 npx tsx src/cli.ts light examples/two-rooms.muro
@@ -404,17 +404,17 @@ npx tsx src/cli.ts light examples/two-rooms.muro
 ✖ 2室中 2室が不足しています
 ```
 
-**With nothing in scope the exit code is 0 too.** In a model that uses no residential types (an office, say) the test simply does not run.
+**With nothing in scope the exit code is 0 too.** In a model where no space carries `daylight:1` (an office, say) the test simply does not run.
 
 ```sh
 npx tsx src/cli.ts light examples/office.muro
 ```
 
 ```text
-対象の居室 (住居系) がありません
+採光の対象がありません (判定する室に daylight:1 を書きます)
 ```
 
-("There are no habitable rooms in scope.") Do not read this as a pass — misspell a type and you get the same output. A `window` with no `h` is not counted, and a note saying so is appended to the line (`⚠ h未指定の窓は数えていません`). The definition of the test is in [spec/semantics.md §6](../../spec/en/semantics.md).
+("Nothing is in scope for the daylight check — write daylight:1 on the rooms to test.") Do not read this as a pass — forget a `daylight:1` and you get the same output. A `window` with no `h` is not counted, and a note saying so is appended to the line (`⚠ h未指定の窓は数えていません`). The definition of the test is in [spec/semantics.md §6](../../spec/en/semantics.md).
 
 ## site — the site's figures
 
@@ -477,7 +477,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```text
 {
-  "koyu": "0.3",
+  "koyu": "0.4",
   "name": "二室",
   "unit": "mm",
   "grid": {

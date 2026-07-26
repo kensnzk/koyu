@@ -5,7 +5,7 @@
 #   L1-L2 商業 / L3-L10 住宅基準階 (L3は低層部屋根のテラス付き例外階) / L11 ペントハウス
 #   koyu check examples/tower/main.muro が一棟のビルドの門番。
 
-koyu 0.3
+koyu 0.4
 name 街角の複合ビル — 低層商業+高層住宅
 unit mm
 

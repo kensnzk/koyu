@@ -3,9 +3,9 @@ grid Y 0 4000
 level L1 0 h:2400
 level L2 2800 h:2400 slab:400
 
-space /L1/ldk ldk X1..X2 Y1..Y2
+space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
-space /L2/bed bedroom X1..X2 Y1..Y2
+space /L2/bed bedroom X1..X2 Y1..Y2 daylight:1
 space /L2/hall hall X2..X3 Y1..Y2
 space /out exterior
 
