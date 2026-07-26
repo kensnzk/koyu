@@ -17,7 +17,7 @@ The norm for the notation as of koyu v0.11.0. For semantics (derivation, checkin
 ## 2. Foundation declarations (the base layer holds these, once)
 
 ```
-koyu 0.4                      # version declaration (base layer only, once)
+koyu 0.5                      # version declaration (base layer only, once)
 name 街角の複合ビル             # building name (the rest of the line, whitespace allowed)
 unit mm                       # v0 is mm only
 grid X 0 6400 12800 19200     # X-axis grid-line coordinates (ascending, two or more). X1, X2, … are named automatically
@@ -28,7 +28,7 @@ level L4..L10 11000 pitch:3000 h:2500 slab:450   # range declaration (arithmetic
 
 `grid` is declared once per axis (in the base layer when composing). `name` is also declared once (it may be repeated only if identical). A `level` range declaration `L4..L10` is a prefix plus consecutive numbers, expanded to `z + pitch×k`. Duplicate level names are an error. Declaring a level that holds no space (a roof `R`, say) makes it the upper bound for the topmost floor's height check.
 
-**The version norm (ADR-0017).** The language versions this tool accepts are `0.1, 0.2, 0.3, 0.4`; when the declaration is omitted the file is read with the semantics of the newest version, `0.4` (omission is *not* stable in meaning across tool versions — write the version in any file whose meaning you want pinned). The version declaration is the two tokens `koyu <version>` (a missing version, or extra tokens, is an error), in the base layer (the entry) only, and only once (the same discipline as `grid` — re-declaring is an error even with an identical value, which forbids a silent override that depends on composition order). An older version is accepted **only when meaning is preserved** — the parser reads it, but a file whose meaning would change is made an error by check, which offers two ways out. For `0.1`, that is a file in which default boundaries (§4) would be derived (**VER01** — declare the boundaries, or raise the file to `koyu 0.2`). For `0.3` and earlier, which inferred the daylight scope from the type, it is a space of one of those types (`unit`, `room`, `ldk`, `bedroom`, `living`) carrying no `daylight` (**VER02** — write `daylight:1`/`daylight:0`, then raise the file to `koyu 0.4`; ADR-0020). A change that changes the language raises the version, and the migration is written in an ADR.
+**The version norm (ADR-0017).** The language versions this tool accepts are `0.1, 0.2, 0.3, 0.4, 0.5`; when the declaration is omitted the file is read with the semantics of the newest version, `0.4` (omission is *not* stable in meaning across tool versions — write the version in any file whose meaning you want pinned). The version declaration is the two tokens `koyu <version>` (a missing version, or extra tokens, is an error), in the base layer (the entry) only, and only once (the same discipline as `grid` — re-declaring is an error even with an identical value, which forbids a silent override that depends on composition order). An older version is accepted **only when meaning is preserved** — the parser reads it, but a file whose meaning would change is made an error by check, which offers two ways out. For `0.1`, that is a file in which default boundaries (§4) would be derived (**VER01** — declare the boundaries, or raise the file to `koyu 0.2`). For `0.3` and earlier, which inferred the daylight scope from the type, it is a space of one of those types (`unit`, `room`, `ldk`, `bedroom`, `living`) carrying no `daylight` (**VER02** — write `daylight:1`/`daylight:0`, then raise the file to `koyu 0.5`; ADR-0020). A change that changes the language raises the version, and the migration is written in an ADR.
 
 ### Grid references and offsets
 
@@ -129,7 +129,13 @@ Loads a layer by a path relative to the file it is written in and **composes it 
 - The list of composition entry points is in the public API section of [tools.md](tools.md) (`parse` / `parseFile` / `parseFiles` / `parseFileWith` / `parseWith`). Check's errors and warnings also come back tagged with the layer they came from.
 - The canonical JSON is the single composed model; imports do not survive in it.
 
-## 9. The defaults, in one table
+## 9. column — an element with no written position
+
+`column <size mm> <level range|level name> [d:depth] [x:grid,..] [y:grid,..] [free attributes]`
+
+**No position is written anywhere.** Columns stand where grid lines cross and that level has floor (ADR-0023) — the same rule that makes walls appear where two spaces touch. "Has floor" means the point falls inside a space with a region that is neither `exterior` nor `void`. `x:` / `y:` restrict which grid lines carry columns (comma-separated; all by default). Two columns never stand at the same intersection — the earlier declaration wins. Writing three declarations for three level ranges gives columns that slim down as the building rises. A column is neither a space nor a boundary, so it appears in no area total and in no graph.
+
+## 10. The defaults, in one table
 
 | Item | Default |
 |---|---|

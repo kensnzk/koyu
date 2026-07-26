@@ -1,0 +1,55 @@
+# 1階 — 基壇の地表面。商業と、敷地を斜めに貫く通路。
+#
+# **設計された斜めがここにある。** 貫通通路は南北の道路をつなぐ通り抜けで、
+# 敷地を斜めに横切る。その二枚の壁は `line` で引かれた線であり、
+# 通り芯の語 (X2,Y1 → X2+4000,Y6) で書かれているので**読めば斜めと分かる** (ADR-0022)。
+# 通路の形も、両隣の商業区画の形も、ビルドが導く — 頂点座標はどこにも書かれていない。
+#
+# 北西と北東の隅切りは所与の線 (隣地境界) に従った外形の切り落としで、
+# 相手が領域を持たない外部なので、切られた側は面積を失うだけで誰も得ない。
+
+space /L1/ramp parking X1..X2 Y1..Y1+7000 name:車路出口 use:parking
+space /L1/mallW shop X1..X2 Y1+7000..Y6 name:物販西 use:rentable
+space /L1/atrium corridor X2..X3 Y1..Y6 name:貫通通路 use:common floor:石張り
+space /L1/mallE shop X3..X8 Y1..Y4-3200 + X3..X4 Y4-3200..Y6 + X7..X8 Y4-3200..Y6 + X4..X4+3000 Y5..Y6 + X4+15000..X7 Y5..Y6 + X4+3000..X4+15000 Y5..Y5+2700 + X4+3000..X4+15000 Y5+5300..Y6 name:物販・飲食東 use:rentable
+space /L1/es escalator X4+3000..X4+15000 Y5+2700..Y5+5300 name:エスカレーター use:common escalator:E
+
+# ---- 設計された斜め: 貫通通路の二枚の壁 ----
+boundary /L1/mallW /L1/atrium t:200 spec:ガラスパーティション
+  line X2,Y1 X2+4000,Y6
+  door AD1 at:0.3 name:西区画入口
+boundary /L1/atrium /L1/mallE t:200 spec:ガラスパーティション
+  line X3,Y1 X3+4000,Y6
+  door AD1 at:0.35 name:東区画入口1
+  door AD1 at:0.75 name:東区画入口2
+
+# ---- 所与の斜め: 隣地境界なりの隅切り ----
+boundary /L1/mallW /out t:300 spec:カーテンウォール
+  line X1,Y5 X2,Y6
+boundary /L1/mallE /out t:300 spec:カーテンウォール
+  line X7+4000,Y6 X8,Y5+2000
+
+# ---- 内部 ----
+boundary /L1/ramp /L1/mallW t:250 spec:RC
+boundary /L1/ramp /L1/atrium t:250 spec:RC
+boundary /L1/mallE /L1/es type:open
+boundary /L1/mallE /L1/hall type:open
+boundary /L1/mallE /L1/ps t:250 spec:RC
+boundary /L1/mallE /L1/tea t:180 spec:LGS
+boundary /L1/mallE /L1/st1 t:250 spec:RC
+boundary /L1/mallE /L1/st2 t:250 spec:RC
+
+# ---- 外周 ----
+boundary /L1/atrium /site/walk edge:S t:300 spec:カーテンウォール
+  door AD1 name:南側通り抜け口
+boundary /L1/atrium /out edge:N t:300 spec:カーテンウォール
+  door AD1 name:北側通り抜け口
+boundary /L1/mallW /site/plaza edge:W t:300 spec:カーテンウォール
+  window CW1 at:0.5
+boundary /L1/ramp /site/walk edge:S t:300 spec:RC
+boundary /L1/ramp /site/plaza edge:W t:300 spec:RC
+boundary /L1/mallE /site/walk edge:S t:300 spec:カーテンウォール
+  door AD1 at:X5 name:南側主入口
+boundary /L1/mallE /site/east edge:E t:300 spec:カーテンウォール
+  door AD1 at:Y2 name:東側入口
+boundary /L1/mallE /out edge:N t:300 spec:カーテンウォール

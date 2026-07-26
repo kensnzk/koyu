@@ -1110,6 +1110,284 @@ space /L1/a room X1..X2 Y1..Y2 daylight:yes
 
 **Fix** — write `daylight:1` (test it) or `daylight:0` (do not). The type may be anything at all: `wet` with `daylight:1` is in scope, and `bedroom` with nothing written is not.
 
+## Vertical circulation — RUN
+
+Stairs, ramps, escalators and lifts are one relation — "you can pass between levels" — differing only in the device ([ADR-0021](../../docs/decisions/0021-vertical-circulation.md)). The **topology** (which level connects to which) is carried by vertical boundaries (`stack` / `boundary type:stair`); the **shape** (flights, landings, slope) is derived from the space's declaration. RUN codes name the mismatches between those two, and the soundness of values that were never written.
+
+<a id="run01"></a>
+### RUN01 — more than one vertical-circulation declaration
+
+`error`
+
+```muro-bad
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/s stair X1..X2 Y1..Y2 stair:N ramp:N
+space /L2/s stair X1..X2 Y1..Y2
+```
+
+`縦動線の宣言が複数あります: stair:N ramp:N (一つの空間に一つです)`
+
+**Why** — `stair:` `ramp:` `escalator:` `lift:` each select a **shape-generation rule**, and one space cannot have its shape produced by two rules. A space where a stair and a ramp coexist is, in fact, two spaces.
+
+**Fix** — split the space and write one declaration in each.
+
+<a id="run02"></a>
+### RUN02 — the value must be a direction of travel, N/E/S/W
+
+`error`
+
+```muro-bad
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/s stair X1..X2 Y1..Y2 stair:up
+space /L2/s stair X1..X2 Y1..Y2
+```
+
+`stair の値は上る向き N/E/S/W です: stair:up`
+
+**Why** — laying out treads needs to know which way the run climbs. It is the one piece of information that cannot be derived from the region, so it has to be written. The value is a compass direction (N=+Y, S=-Y, E=+X, W=-X); only `lift:` has no direction and takes `1`.
+
+**Fix** — write a direction, e.g. `stair:N`.
+
+<a id="run03"></a>
+### RUN03 — a run's region must be a single rectangle
+
+`error`
+
+```muro-bad
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/s stair X1..X2 Y1..Y2 + X2..X3 Y1..Y2 stair:N
+space /L2/s stair X1..X3 Y1..Y2
+```
+
+`縦動線の領域は矩形一つです (合併は段割りが決まりません): /L1/s`
+
+**Why** — the layout is fixed by a length along travel and a width across it. A union of rectangles has no single answer for either.
+
+**Fix** — give the stair shaft one rectangle. An L-shaped shaft is usually better written as a stair plus a landing hall.
+
+<a id="run04"></a>
+### RUN04 — no level above, so no shape is generated
+
+`warning`
+
+```muro-warn
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/a room X1..X2 Y1..Y2
+space /L2/s stair X1..X2 Y1..Y2 stair:N
+```
+
+`L2 の上にレベルが無いため、/L2/s の形は生成されません`
+
+**Why** — a run's shape spans from its own level's FL to the next level's FL. The top storey's stair has nowhere to climb, so no treads are generated (its plan shows only the flight arriving from below).
+
+**Fix** — if the stair reaches the roof, declare the roof as a `level R`. If it does not, drop the declaration.
+
+<a id="run05"></a>
+### RUN05 — invalid `form`
+
+`error`
+
+```muro-bad
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/s stair X1..X2 Y1..Y2 stair:N form:spiral
+space /L2/s stair X1..X2 Y1..Y2
+```
+
+`form は straight / return です: form:spiral (螺旋は折返しの連続として書きます)`
+
+**Why** — koyu has no curves. Spiral stairs and helical ramps are approximated as a succession of half-turns ([ADR-0021](../../docs/decisions/0021-vertical-circulation.md) records this as an explicit surrender rather than a silent approximation).
+
+**Fix** — use `form:return`, or stack half-turns across several levels.
+
+<a id="run06"></a>
+### RUN06 — the derived step dimensions are cramped
+
+`warning`
+
+```muro-warn
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/s stair X1..X2 Y1..Y1+2400 stair:N
+space /L2/s stair X1..X2 Y1..Y1+2400
+stack s L1..L2 type:stair
+```
+
+`導出された段の寸法が窮屈です: 17段 蹴上177mm / 踏面150mm (2×蹴上+踏面 = 504mm、目安 550〜700mm)`
+
+**Why** — **neither the number of risers nor the going is written anywhere.** Both fall out of the storey height and the region, which is precisely why checking the derived result is worth doing ([ADR-0021](../../docs/decisions/0021-vertical-circulation.md) — write nothing, check everything). Here the shaft is too shallow and the going comes out at 150mm.
+
+**Fix** — deepen the shaft along travel, fold it with `form:return`, or raise `riser:` to use fewer steps. This is a dimensional warning, not a code-compliance verdict.
+
+<a id="run07"></a>
+### RUN07 — the derived slope is steeper than declared
+
+`warning`
+
+```muro-warn
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/r ramp X1..X2 Y1..Y2 ramp:N slope:12
+space /L2/r ramp X1..X2 Y1..Y2
+stack r L1..L2 type:stair
+```
+
+`導出された勾配 1/2 が宣言 1/12 より急です (走り長を伸ばすか階高を下げます)`
+
+**Why** — the slope is not written either; it is the level difference over the derived run length. `slope:` is **not the slope but the limit you will accept**, and exists only so that this check can be made. Escalators get the same code without any `slope:` when the derived pitch leaves the usual band (about 1/1.7, i.e. 30°).
+
+**Fix** — lengthen the ramp along travel, fold it with `form:return` to double the run, or lower the storey height.
+
+<a id="run08"></a>
+### RUN08 — no vertical boundary connects the levels
+
+`warning`
+
+```muro-warn
+grid X 0 3000 6000
+grid Y 0 8000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L2/s stair X1..X2 Y1..Y1+7000
+```
+
+`/L1/s は縦動線の形を持ちますが、上下を繋ぐ垂直境界がありません (stack か boundary type:stair を書きます — 形はあってもグラフでは通れません)`
+
+**Why** — **shape and topology are written separately.** `stair:N` builds treads; it does not claim the two levels are connected. Without a vertical boundary (`stack` / `boundary type:stair`), `doors` will not find a route upstairs. A stair that is drawn but not walkable is the hardest mismatch to notice, so it warns.
+
+**Fix** — add `stack s L1..L2 type:stair`. Conversely, if you want connection without a generated shape (a lift shaft, say), drop the space declaration and keep the vertical boundary.
+
+## Lines — LIN
+
+`line` realises a boundary as **an act of design** rather than as something derived from adjacency ([ADR-0022](../../docs/decisions/0022-lines.md)). Space is the noun, line is the verb, boundary is where they meet — everything that fixes a position is a line, and grid lines (shared), site edges (given) and `line` (drawn) differ only in provenance.
+
+<a id="lin01"></a>
+### LIN01 — the line does not separate the two spaces
+
+`error`
+
+```muro-bad
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+boundary /L1/a /L1/b t:120
+  line X1,Y1 X1,Y2
+```
+
+`線 X1,Y1..X1,Y2 は /L1/a と /L1/b を分離していません (二つの割付が線の両側に来るように引きます)`
+
+**Why** — a drawn line redistributes the union of the two spaces' declared cells across its two sides. If both cells lie on the same side there is nothing to redistribute. Which side a space takes is decided by where its area lies; a space the line bisects exactly takes the side opposite its partner — and if neither has a bias, nothing decides.
+
+**Fix** — draw the line between the two cells. Check that you meant to move the boundary's realisation rather than to move the cells themselves.
+
+<a id="lin02"></a>
+### LIN02 — a vertical boundary cannot carry a line
+
+`error`
+
+```muro-bad
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700
+level L2 3000 slab:300
+space /L1/a room X1..X2 Y1..Y2
+space /L2/a void X1..X2 Y1..Y2
+boundary /L1/a /L2/a type:void
+  line X1,Y1 X2,Y2
+```
+
+`垂直境界に線は描けません (線は平面を区切る行為です): /L1/a | /L2/a`
+
+**Why** — a line divides space in plan, and vertical boundaries (`stair` / `shaft` / `void`) have no segment in plan. To make the edge of a void diagonal, draw the line on **the horizontal boundary of that level** — between the void and the room next to it.
+
+**Fix** — move the line onto a horizontal boundary of the same level.
+
+<a id="lin03"></a>
+### LIN03 — the line cuts nothing
+
+`warning`
+
+```muro-warn
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+boundary /L1/a /L1/b t:120
+  line X2,Y1 X2,Y2
+```
+
+`線 X2,Y1..X2,Y2 は何も切っていません (既定の隣接線と同じか、割付の外にあります)`
+
+**Why** — either the line sits exactly where the derived adjacency line already is (so writing it changes nothing), or the cells do not reach the extent the line covers. The first is harmless, but **a line that does nothing should still say so**.
+
+**Fix** — redraw the line where you meant it, or delete it. A mistyped endpoint that was meant to be diagonal shows up here.
+
+## Columns — COL
+
+A column declaration carries a size, the levels and (optionally) the grid lines — **never a position** ([ADR-0023](../../docs/decisions/0023-columns.md)). Columns stand where grid lines cross and there is floor on that level: the same move that makes walls appear from boundaries, applied to a point element.
+
+<a id="col01"></a>
+### COL01 — the declaration produces no columns
+
+`warning`
+
+```muro-warn
+grid X 0 3000
+grid Y 0 6000
+level L1 0 h:2700
+level L2 3000 slab:300
+space /L1/a room X1..X2 Y1..Y2
+column 600 L2
+```
+
+`柱の宣言に対して立つ柱がありません (通りの交点にその階の床がありません): L2 600角`
+
+**Why** — a column stands at "grid intersection ∩ floor on that level". If no space of that level covers any intersection, nothing is generated. Usually the level is wrong, the `x:` / `y:` restriction is mistyped, or that floor has not been written yet.
+
+**Fix** — correct the level or drop the restriction. If the intent was only to slim the columns higher up, check that the level range matches floors that actually exist.
+
+<a id="col02"></a>
+### COL02 — overlapping column declarations
+
+`warning`
+
+```muro-warn
+grid X 0 3000
+grid Y 0 6000
+level L1 0 h:2700
+space /L1/a room X1..X2 Y1..Y2
+column 600 L1
+column 800 L1
+```
+
+`レベル L1 に通りを限定しない柱の宣言が複数あります (同じ交点では先の宣言が勝ちます)`
+
+**Why** — two columns never stand at the same intersection, so the earlier declaration wins and the later size is silently ignored. There is no implicit "take the larger" rule.
+
+**Fix** — restrict the declarations with `x:` / `y:` so they do not overlap, or merge them into one.
+
 ## Versions — VER
 
 <a id="ver01"></a>
@@ -1150,7 +1428,7 @@ level L1 0
 space /L1/a room X1..X2 Y1..Y2
 ```
 
-`koyu 0.3 のファイルに daylight の無い room があります: /L1/a — 0.4では型から採光の対象を推定しないので判定から外れます。daylight:1 (対象) か daylight:0 (対象外) を書いてから koyu 0.4 へ上げます` — "0.4 does not infer the daylight scope from the type, so this room falls out of the check; write daylight:1 or daylight:0, then raise the file to koyu 0.4".
+`koyu 0.3 のファイルに daylight の無い room があります: /L1/a — 0.4では型から採光の対象を推定しないので判定から外れます。daylight:1 (対象) か daylight:0 (対象外) を書いてから koyu 0.5 へ上げます` — "0.4 does not infer the daylight scope from the type, so this room falls out of the check; write daylight:1 or daylight:0, then raise the file to koyu 0.5".
 
 **Cause** — 0.3 and earlier inferred five types (`unit`, `room`, `ldk`, `bedroom`, `living`) to be in scope and put them in the daylight check. 0.4 does not infer the scope from the type at all ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). Raise the version without writing `daylight` and this room **falls silently out of scope, and `light` returns output indistinguishable from "everything passed"**. Since an older version is accepted only when meaning is preserved ([ADR-0017](../../docs/decisions/0017-language-versioning.md)), it is stopped here.
 
@@ -1158,9 +1436,31 @@ space /L1/a room X1..X2 Y1..Y2
 
 - It is to be tested → add `daylight:1`
 - It is not (you had been writing storage or a closet) → add `daylight:0`
-- Either way, once that is written, make the first line `koyu 0.4`
+- Either way, once that is written, make the first line `koyu 0.5`
 
 **Note** — a room that already carries `daylight` means the same thing under both versions, so this code does not appear for it. Nor does it appear in a file that omits the version declaration, which is read as the newest version.
+
+<a id="ver03"></a>
+### VER03 — a koyu 0.4-or-earlier file uses 0.5 vocabulary
+
+`error`
+
+```muro-bad
+koyu 0.4
+grid X 0 3000
+grid Y 0 8000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L2/s stair X1..X2 Y1..Y1+7000
+stack s L1..L2 type:stair
+```
+
+`koyu 0.4 のファイルに 0.5 の語があります: /L1/s の stair: (縦動線) — koyu 0.5 へ上げます`
+
+**Why** — the words introduced in 0.5 — vertical-circulation declarations (`stair:` `ramp:` `escalator:` `lift:`), drawn lines (`line`), columns (`column`) and basements (`underground:`) — mean nothing to a 0.4 toolchain. There they are read as free attributes and **the shape is silently not generated**. Old versions are accepted only when meaning is preserved ([ADR-0017](../../docs/decisions/0017-language-versioning.md)), so this stops here.
+
+**Fix** — make the first line `koyu 0.5`. If you are not using the new words, 0.4 remains fine.
 
 ## Syntax — SYN
 

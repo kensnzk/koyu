@@ -13,14 +13,21 @@ import {
   placeOpening,
   planOverlap,
   segmentsFor,
+  resolveSides,
+  soloSide,
   spacesOverlap,
 } from "./graph.js";
-import { heff, isSemiOutdoor, levelsSorted, type Attrs, type Boundary, type Model, type Space,
+import { heff, isSemiOutdoor, levelsSorted, type Attrs, type Boundary, type Model, type Pt, type Rect, type Space,
+  clipHalfPlane,
+  columnsFor,
+  polyBounds,
+  rectToPoly,
   srcRef,
   polygonAreaM2,
   polygonSelfIntersection,
-  rectEscapesPolygon,
+  shapeEscapesPolygon,
 } from "./model.js";
+import { runDecls, runIssues } from "./vertical.js";
 
 export interface CheckResult {
   errors: string[];
@@ -98,8 +105,22 @@ export const DIAGNOSTIC_CODES: Record<string, "error" | "warning"> = {
   UID02: "error", // 空白を含むuid
   UID03: "error", // uidの重複
   DAY01: "error", // daylightの値が 0/1 以外 (ADR-0020)
+  RUN01: "error", // 一つの空間に縦動線の宣言が複数 (ADR-0021)
+  RUN02: "error", // 縦動線の値が上る向き (N/E/S/W) でない
+  RUN03: "error", // 縦動線の領域が矩形一つでない / レベルが不明
+  RUN04: "warning", // 上にレベルが無く縦動線の形が生成できない
+  RUN05: "error", // form の値が不正、または形が決まらない
+  RUN06: "warning", // 導出された段の寸法が窮屈 (書かないが検査する)
+  RUN07: "warning", // 導出された勾配が宣言・常用域から外れる
+  RUN08: "warning", // 縦動線の形はあるが上下を繋ぐ垂直境界が無い
+  LIN01: "error", // 描かれた線が二つの空間を分離しない (ADR-0022)
+  LIN02: "error", // 垂直境界に描かれた線
+  LIN03: "warning", // 描かれた線が何も切っていない
+  COL01: "warning", // 柱の宣言に対して立つ柱が0本 (ADR-0023)
+  COL02: "warning", // 同じ通りの交点に複数の柱宣言が重なる (先の宣言が勝つ)
   VER01: "error", // koyu 0.1 での既定境界の導出 (ADR-0017)
   VER02: "error", // koyu 0.3以前で採光の推定対象だった型に daylight が無い (ADR-0020)
+  VER03: "error", // koyu 0.4以前のファイルに0.5の語 (縦動線・線・柱・地下)
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
 };
 
@@ -167,7 +188,9 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   const pairEdges = new Map<string, Set<string>>();
   for (const b of model.boundaries) {
     const pair = [b.a, b.b].sort().join(" | ");
-    const key = `${pair}#${b.edge ?? ""}`;
+    // 描かれた線を持つ境界は、線そのものが実現なので同一性の鍵に線の綴りが入る。
+    // 同じ空間対に二本の線 (二箇所の隅切りなど) を引くのは矛盾ではない
+    const key = `${pair}#${b.edge ?? ""}#${b.drawn ? `${b.drawn.aRef}..${b.drawn.bRef}` : ""}`;
     const prev = seenBoundary.get(key);
     if (prev) {
       emit(
@@ -178,9 +201,12 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     } else {
       seenBoundary.set(key, b);
     }
-    const set = pairEdges.get(pair) ?? new Set<string>();
-    set.add(b.edge ?? "");
-    pairEdges.set(pair, set);
+    // 線を持つ境界は外周の残りを取らない (線が線分そのもの) ので、edge の混在の話に入れない
+    if (!b.drawn) {
+      const set = pairEdges.get(pair) ?? new Set<string>();
+      set.add(b.edge ?? "");
+      pairEdges.set(pair, set);
+    }
   }
   for (const [pair, edges] of pairEdges) {
     if (edges.has("") && edges.size > 1) {
@@ -240,6 +266,91 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     }
   }
 
+  // 縦動線 (ADR-0021): 宣言の妥当性と、**書かれていない導出値**の妥当性。
+  // 段数も踏面も勾配も書かない — だから導出したものを検査する
+  for (const i of runIssues(model)) {
+    emit(i.code, i.message, { line: i.line, file: i.file, path: [i.path] });
+  }
+
+  // 描かれた線 (ADR-0022): 線は二つの空間を実際に分離しなければならない。
+  // 「宣言どおりに切れているか」は arrangement の検査であり、check の仕事
+  for (const b of model.boundaries) {
+    if (!b.drawn) continue;
+    const bAt = { line: b.drawn.line, file: b.file, path: [b.a, b.b] };
+    if (VERTICAL.has(b.kind)) {
+      emit("LIN02", `垂直境界に線は描けません (線は平面を区切る行為です): ${b.a} | ${b.b}`, bAt);
+      continue;
+    }
+    const sa = model.spaces.get(b.a);
+    const sb = model.spaces.get(b.b);
+    if (!sa || !sb) continue;
+    if (sa.rects.length === 0 && sb.rects.length === 0) {
+      emit("LIN01", `領域を持たない空間同士に線は描けません: ${b.a} | ${b.b}`, bAt);
+      continue;
+    }
+    // 両側が領域を持つときは「線が二つを分離するか」、片側だけのときは
+    // 「線が外皮を実際に切るか」— 問いが違うので判定も分ける
+    if (sa.rects.length > 0 && sb.rects.length > 0) {
+      if (!resolveSides(sa, sb, b.drawn.a, b.drawn.b)) {
+        emit(
+          "LIN01",
+          `線 ${b.drawn.aRef}..${b.drawn.bRef} は ${b.a} と ${b.b} を分離していません (二つの割付が線の両側に来るように引きます)`,
+          bAt,
+        );
+        continue;
+      }
+    } else if (soloSide(sa.rects.length > 0 ? sa : sb, b.drawn.a, b.drawn.b) === 0) {
+      emit(
+        "LIN01",
+        `線 ${b.drawn.aRef}..${b.drawn.bRef} が割付をちょうど二等分していて、どちらを残すか決まりません`,
+        bAt,
+      );
+      continue;
+    }
+    // 線が実際に割付を切っているか — 両側に面積が残る割付が一つでもあれば切っている
+    const box = polyBounds([b.drawn.a, b.drawn.b]);
+    const cuts = [sa, sb].some((s) =>
+      s.rects.some((r) => {
+        const win = clipToBox(rectToPoly(r), box);
+        if (win.length === 0) return false;
+        const l = clipHalfPlane(win, b.drawn!.a, b.drawn!.b, true);
+        const rr = clipHalfPlane(win, b.drawn!.a, b.drawn!.b, false);
+        return l.length > 0 && rr.length > 0;
+      }),
+    );
+    if (!cuts) {
+      emit(
+        "LIN03",
+        `線 ${b.drawn.aRef}..${b.drawn.bRef} は何も切っていません (既定の隣接線と同じか、割付の外にあります)`,
+        bAt,
+      );
+    }
+  }
+
+  // 柱 (ADR-0023): 位置は書かれない。宣言に対して一本も立たなければ、
+  // 通りか階の指定が実際の床とすれ違っている
+  const colGrid = new Map<string, number[]>();
+  for (const c of model.columns) {
+    let total = 0;
+    for (const lv of c.levels) total += columnsFor(model, lv).length;
+    if (total === 0) {
+      emit("COL01", `柱の宣言に対して立つ柱がありません (通りの交点に床がありません): ${c.levels.join(",")} ${c.size}角`, {
+        line: c.line,
+        file: c.file,
+      });
+    }
+    for (const lv of c.levels) {
+      const arr = colGrid.get(lv) ?? [];
+      arr.push(c.size);
+      colGrid.set(lv, arr);
+    }
+  }
+  for (const [lv, sizes] of colGrid) {
+    if (new Set(sizes).size > 1 && model.columns.filter((c) => c.levels.includes(lv) && !c.xNames && !c.yNames).length > 1) {
+      emit("COL02", `レベル ${lv} に通りを限定しない柱の宣言が複数あります (同じ交点では先の宣言が勝ちます)`);
+    }
+  }
+
   // 言語版の受理条件 (ADR-0017): 旧版は意味保存の場合のみ受理する。
   // 既定境界 (ADR-0014) が導出されるファイルは、0.1の意味 (境界なし+警告) と食い違う — エラーで二択を示す
   if (model.version === "0.1") {
@@ -256,7 +367,7 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
 
   // 0.3以前は型から採光の対象を推定していた (ADR-0020で廃止)。推定対象だった型の空間に daylight が
   // 書かれていなければ、0.4では判定から黙って外れる — 意味が変わるのでエラーで二択を示す
-  if (model.version !== "0.4") {
+  if (["0.1", "0.2", "0.3"].includes(model.version)) {
     for (const s of model.spaces.values()) {
       if (!LEGACY_DAYLIT.has(s.type) || s.attrs["daylight"] !== undefined) continue;
       emit(
@@ -264,6 +375,39 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
         `koyu ${model.version} のファイルに daylight の無い ${s.type} があります: ${s.path} — 0.4では型から採光の対象を推定しないので判定から外れます。daylight:1 (対象) か daylight:0 (対象外) を書いてから koyu 0.4 へ上げます`,
         { line: s.line, file: s.file, path: [s.path] },
       );
+    }
+  }
+
+  // 0.5 で入った語 (縦動線の宣言・描かれた線・柱・地下) は 0.4 以前の処理系が知らない。
+  // 知らない処理系では黙って形が生成されないので、版を上げずに使うのはエラー (ADR-0017 決定3)
+  if (model.version !== "0.5") {
+    const older = `koyu ${model.version} のファイルに 0.5 の語があります`;
+    for (const s of model.spaces.values()) {
+      const d = runDecls(s);
+      if (d.length > 0) {
+        emit("VER03", `${older}: ${s.path} の ${d[0]!.device}: (縦動線) — koyu 0.5 へ上げます`, {
+          line: s.line,
+          file: s.file,
+          path: [s.path],
+        });
+      }
+    }
+    for (const b of model.boundaries) {
+      if (b.drawn) {
+        emit("VER03", `${older}: ${b.a} | ${b.b} の line (描かれた線) — koyu 0.5 へ上げます`, {
+          line: b.drawn.line,
+          file: b.file,
+          path: [b.a, b.b],
+        });
+      }
+    }
+    for (const c of model.columns) {
+      emit("VER03", `${older}: column (柱) — koyu 0.5 へ上げます`, { line: c.line, file: c.file });
+    }
+    for (const l of Object.values(model.levels)) {
+      if (l.underground) {
+        emit("VER03", `${older}: level ${l.name} の underground: — koyu 0.5 へ上げます`);
+      }
     }
   }
 
@@ -494,6 +638,10 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     let slabMissing = false;
     for (const s of below) {
       if (isSemiOutdoor(model, s)) continue; // 屋外・半屋外 (庭・バルコニー等) に天井は無い
+      // 縦動線の宣言的免除 (ADR-0021)。void の免除が「床の不在」だったのに対し、
+      // こちらは「天井が面でない」— 階段室・斜路の天井は上の走りに沿って傾いている。
+      // h を一つの数で語れない以上、この不変量は成立しない。頭上高さの検査は別の問い
+      if (runDecls(s).length > 0) continue;
       const covered = above.some((u) => spacesOverlap(s, u)) || above.length === 0;
       if (!covered) continue;
       if (lu.slab === undefined) {
@@ -589,8 +737,9 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     }
     for (const s of withRect) {
       if (s.type === "exterior" || s.path.startsWith(poly.path + "/")) continue;
-      for (const r of s.rects) {
-        const out = rectEscapesPolygon(r, poly.points, EPS_SITE);
+      // 照合するのは割付ではなく**導出された領域** — 敷地なりに切った外形はここで通る
+      for (const r of s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly)) {
+        const out = shapeEscapesPolygon(r, poly.points, EPS_SITE);
         if (out) {
           emit("SIT03", `${s.path} が敷地形状からはみ出しています (${Math.round(out.x)},${Math.round(out.y)} 付近)`, {
             line: s.line,
@@ -604,6 +753,23 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   }
 
   return diags;
+}
+
+/** 凸多角形を軸平行の窓で切る (線の及ぶ範囲に限る — LIN03の判定用) */
+function clipToBox(poly: Pt[], box: Rect): Pt[] {
+  let p = poly;
+  const corners: Array<[Pt, Pt]> = [
+    [{ x: box.x1, y: box.y1 }, { x: box.x2, y: box.y1 }],
+    [{ x: box.x2, y: box.y1 }, { x: box.x2, y: box.y2 }],
+    [{ x: box.x2, y: box.y2 }, { x: box.x1, y: box.y2 }],
+    [{ x: box.x1, y: box.y2 }, { x: box.x1, y: box.y1 }],
+  ];
+  for (const [u, v] of corners) {
+    if (Math.abs(u.x - v.x) < 1e-9 && Math.abs(u.y - v.y) < 1e-9) continue;
+    p = clipHalfPlane(p, u, v, true);
+    if (p.length === 0) return [];
+  }
+  return p;
 }
 
 /** 吹抜けが下階の空間の平面をどれだけ覆うか (0..1) */

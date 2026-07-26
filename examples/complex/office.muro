@@ -1,0 +1,43 @@
+# 中層 7〜13階 — 事務所。7層の基準階を一度だけ書く。
+#
+# 矩形に戻る。基壇の変則は地表面と敷地の要求から来ていて、上へ行くほど消える —
+# それが実際の複合建築の姿であり、記法の側も基壇でだけ線を引き、ここでは引かない。
+# 貸室はコアを三方から囲む。コアが偏っているので西が広く東が狭い。
+#
+# 事務室に daylight は書かない。法28条1項の採光義務が事務所の居室に無いので、
+# 1/7 を掛ける意味が無いからである (ADR-0020 — 属性は法概念ではなく判定を名指す)。
+
+space /L7..L13/officeW office X1..X4 Y2..Y5 name:事務室西 use:rentable
+space /L7..L13/officeS office X4..X7 Y2..Y4-3200 name:事務室南 use:rentable
+space /L7..L13/officeE office X7..X8 Y2..Y5 name:事務室東 use:rentable
+
+boundary /L7..L13/officeW /L7..L13/officeS type:open
+boundary /L7..L13/officeS /L7..L13/officeE type:open
+boundary /L7..L13/officeS /L7..L13/hall t:120 spec:ガラスパーティション
+  door AD2 name:貸室入口
+boundary /L7..L13/officeW /L7..L13/ps t:250 spec:RC
+boundary /L7..L13/officeW /L7..L13/st1 t:250 spec:RC
+boundary /L7..L13/officeS /L7..L13/tea t:180 spec:LGS
+boundary /L7..L13/officeS /L7..L13/ps t:250 spec:RC
+boundary /L7..L13/officeE /L7..L13/tea t:180 spec:LGS
+boundary /L7..L13/officeE /L7..L13/st2 t:250 spec:RC
+
+# ---- 外周 ----
+boundary /L7..L13/officeW /out edge:W t:250 spec:カーテンウォール
+  window CW2 at:0.5
+boundary /L7..L13/officeW /out edge:S t:250 spec:カーテンウォール
+  window CW2 at:X2
+boundary /L7..L13/officeW /out edge:N t:250 spec:カーテンウォール
+  window CW2 at:X2
+boundary /L7..L13/officeS /out edge:S t:250 spec:カーテンウォール
+  window CW2 at:X5
+boundary /L7..L13/officeE /out edge:E t:250 spec:カーテンウォール
+  window CW2 at:0.5
+boundary /L7..L13/officeE /out edge:S t:250 spec:カーテンウォール
+boundary /L7..L13/officeE /out edge:N t:250 spec:カーテンウォール
+boundary /L7..L13/st1 /out edge:N t:250 spec:PC板
+boundary /L7..L13/ev1 /out edge:N t:250 spec:PC板
+boundary /L7..L13/ev2 /out edge:N t:250 spec:PC板
+boundary /L7..L13/wcm /out edge:N t:250 spec:PC板
+boundary /L7..L13/wcw /out edge:N t:250 spec:PC板
+boundary /L7..L13/st2 /out edge:N t:250 spec:PC板

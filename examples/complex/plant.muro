@@ -1,0 +1,36 @@
+# 6階 — 機械階。基壇と塔屋の間に設備を一層まるごと取る。
+#
+# 重厚な複合建築の断面には、用途の層と層の間に「使わない階」がある。空調機・受変電・
+# 受水槽が集まるこの階は、賃貸面積にも居室にも数えられないが、床面積には数えられる。
+# use:common がそれを言い、daylight を書かないことで採光の判定からも外れる。
+
+space /L6/ahu machine X1..X4 Y2..Y5 name:空調機械室 use:common
+space /L6/elec machine X4..X7 Y2..Y4-3200 name:電気室・受変電 use:common
+space /L6/tank machine X7..X8 Y2..Y5 name:受水槽・ポンプ室 use:common
+
+boundary /L6/ahu /L6/elec t:250 spec:RC
+  door MD1
+boundary /L6/elec /L6/tank t:250 spec:RC
+  door MD1
+boundary /L6/elec /L6/hall t:250 spec:RC
+  door FD2 name:機械階防火戸
+boundary /L6/ahu /L6/ps t:250 spec:RC
+boundary /L6/ahu /L6/st1 t:250 spec:RC
+boundary /L6/elec /L6/ps t:250 spec:RC
+boundary /L6/elec /L6/tea t:180 spec:LGS
+boundary /L6/tank /L6/tea t:180 spec:LGS
+boundary /L6/tank /L6/st2 t:250 spec:RC
+
+boundary /L6/ahu /out edge:W t:250 spec:PC板
+boundary /L6/ahu /out edge:S t:250 spec:PC板ガラリ
+boundary /L6/ahu /out edge:N t:250 spec:PC板ガラリ
+boundary /L6/elec /out edge:S t:250 spec:PC板
+boundary /L6/tank /out edge:E t:250 spec:PC板
+boundary /L6/tank /out edge:S t:250 spec:PC板ガラリ
+boundary /L6/tank /out edge:N t:250 spec:PC板ガラリ
+boundary /L6/st1 /out edge:N t:250 spec:PC板
+boundary /L6/ev1 /out edge:N t:250 spec:PC板
+boundary /L6/ev2 /out edge:N t:250 spec:PC板
+boundary /L6/wcm /out edge:N t:250 spec:PC板
+boundary /L6/wcw /out edge:N t:250 spec:PC板
+boundary /L6/st2 /out edge:N t:250 spec:PC板

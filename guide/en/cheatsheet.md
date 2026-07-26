@@ -33,7 +33,7 @@ The smallest four lines on which `check` is green and `plan` draws a drawing.
 | `grid X` / `grid Y` | **Required** | Coordinates are never written directly, so without grid lines a region cannot be written. Put them **before** any line that uses them |
 | `level L1 0` | Effectively required for a space with a region | Without it `check` stops at a warning, but `plan` dies with `レベルが定義されていません` ("no level is defined") |
 | The type of `space` (2nd positional) | **Required** | Omit it and the first region token is read as the type, giving `領域は X?..X? と Y?..Y? の2つで指定します` |
-| `koyu 0.4` | Optional | Omitted, the file is read with the newest semantics, 0.4. Write it in files whose meaning you want pinned ([language.md §2](../../spec/en/language.md)) |
+| `koyu 0.5` | Optional | Omitted, the file is read with the newest semantics, 0.4. Write it in files whose meaning you want pinned ([language.md §2](../../spec/en/language.md)) |
 | `name …` / `unit mm` | Optional | |
 | `h:` / `slab:` | Optional | Omit them with a storey above and you get `レベル L2 に slab が未宣言のため、L1 との高さ検査ができません` |
 | `space /out exterior` | Optional | But without it the building has no envelope (see "Defaults" below) |
@@ -45,7 +45,7 @@ An empty file also gives `✔ 整合 — 空間 0 / 境界 0`. **Green means "wh
 
 | How it is written | Meaning |
 |---|---|
-| `koyu 0.4` | The language version. Base layer (the entry) only, once. `0.1`, `0.2`, `0.3`, `0.4` are accepted |
+| `koyu 0.5` | The language version. Base layer (the entry) only, once. `0.1`, `0.2`, `0.3`, `0.4` are accepted |
 | `name 街角の複合ビル` | The building name. Takes the rest of the line as its value (whitespace allowed). Once |
 | `unit mm` | v0 is mm only |
 | `grid X 0 6400 12800 19200` | The X-axis grid coordinates. Ascending, two or more. Named `X1`, `X2`, … automatically |

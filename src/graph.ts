@@ -3,16 +3,19 @@
 // 変換なしにそのままグラフへの問いになる。
 // 空間の領域は矩形の合併 (L字など)。壁は合併の外周と共有辺から導出される。
 
-import type { Boundary, Edge, Model, Opening, Rect, Space } from "./model.js";
-import { srcRef } from "./model.js";
+import type { Boundary, Edge, Model, Opening, Pt, Rect, Space } from "./model.js";
+import { clipHalfPlane, pointInPolygon, polyBounds, rectToPoly, srcRef } from "./model.js";
 
-/** 壁芯線分 (mm)。水平なら y1===y2、垂直なら x1===x2 */
+/** 壁芯線分 (mm)。水平なら y1===y2、垂直なら x1===x2。
+ *  描かれた線 (ADR-0022) は斜めになりうる — その場合 diagonal が立つ */
 export interface Segment {
   x1: number;
   y1: number;
   x2: number;
   y2: number;
   horizontal: boolean;
+  /** 軸に平行でない (描かれた線) */
+  diagonal?: boolean;
   /** boundary.a 側 (領域を持つ側) の矩形から見た辺 */
   edgeOfA?: Edge;
 }
@@ -46,36 +49,71 @@ export function sharedSegment(a: Rect, b: Rect): Segment | undefined {
   return undefined;
 }
 
-/** 矩形の指定辺の線分から、他の矩形と重なる区間を除いた残り */
-function rectPerimeterRemainder(room: Rect, edge: Edge, others: Rect[]): Segment[] {
-  const horizontal = edge === "N" || edge === "S";
-  const fixed = edge === "N" ? room.y2 : edge === "S" ? room.y1 : edge === "E" ? room.x2 : room.x1;
-  const lo = horizontal ? room.x1 : room.y1;
-  const hi = horizontal ? room.x2 : room.y2;
-
-  let intervals: Array<[number, number]> = [[lo, hi]];
-  for (const o of others) {
-    const touches = horizontal
-      ? Math.abs((edge === "N" ? o.y1 : o.y2) - fixed) < EPS
-      : Math.abs((edge === "E" ? o.x1 : o.x2) - fixed) < EPS;
-    if (!touches) continue;
-    const olo = horizontal ? o.x1 : o.y1;
-    const ohi = horizontal ? o.x2 : o.y2;
-    intervals = intervals.flatMap(([s, e]) => {
-      const cs = Math.max(s, olo);
-      const ce = Math.min(e, ohi);
-      if (ce - cs <= EPS) return [[s, e] as [number, number]];
-      const out: Array<[number, number]> = [];
-      if (cs - s > EPS) out.push([s, cs]);
-      if (e - ce > EPS) out.push([ce, e]);
-      return out;
-    });
+/**
+ * 凸片の軸平行な辺 (向きから N/E/S/W を読む)。頂点列は反時計回りなので、
+ * +x へ進む辺が南、+y が東、-x が北、-y が西の面になる。
+ * 斜めの辺は返さない — それは描かれた線であり、自分の境界が実現を持っている
+ */
+function polyEdges(poly: Pt[]): Array<{ edge: Edge; fixed: number; lo: number; hi: number }> {
+  const out: Array<{ edge: Edge; fixed: number; lo: number; hi: number }> = [];
+  for (let i = 0; i < poly.length; i++) {
+    const p = poly[i]!;
+    const q = poly[(i + 1) % poly.length]!;
+    const dx = q.x - p.x;
+    const dy = q.y - p.y;
+    if (Math.abs(dy) < EPS && Math.abs(dx) > EPS) {
+      out.push({
+        edge: dx > 0 ? "S" : "N",
+        fixed: p.y,
+        lo: Math.min(p.x, q.x),
+        hi: Math.max(p.x, q.x),
+      });
+    } else if (Math.abs(dx) < EPS && Math.abs(dy) > EPS) {
+      out.push({
+        edge: dy > 0 ? "E" : "W",
+        fixed: p.x,
+        lo: Math.min(p.y, q.y),
+        hi: Math.max(p.y, q.y),
+      });
+    }
   }
-  return intervals.map(([s, e]) =>
-    horizontal
-      ? { x1: s, y1: fixed, x2: e, y2: fixed, horizontal: true, edgeOfA: edge }
-      : { x1: fixed, y1: s, x2: fixed, y2: e, horizontal: false, edgeOfA: edge },
-  );
+  return out;
+}
+
+const FACING: Record<Edge, Edge> = { N: "S", S: "N", E: "W", W: "E" };
+
+/** 凸片の外周のうち、他の空間の凸片と向かい合っていない区間 (= 外部に面する壁) */
+function pieceOutline(pieces: Pt[][], others: Pt[][]): Segment[] {
+  const otherEdges = others.flatMap(polyEdges);
+  const segs: Segment[] = [];
+  for (let i = 0; i < pieces.length; i++) {
+    const siblings = pieces.filter((_, k) => k !== i).flatMap(polyEdges);
+    for (const e of polyEdges(pieces[i]!)) {
+      let intervals: Array<[number, number]> = [[e.lo, e.hi]];
+      for (const o of [...otherEdges, ...siblings]) {
+        if (o.edge !== FACING[e.edge]) continue;
+        if (Math.abs(o.fixed - e.fixed) > EPS) continue;
+        intervals = intervals.flatMap(([s, t]) => {
+          const cs = Math.max(s, o.lo);
+          const ce = Math.min(t, o.hi);
+          if (ce - cs <= EPS) return [[s, t] as [number, number]];
+          const out: Array<[number, number]> = [];
+          if (cs - s > EPS) out.push([s, cs]);
+          if (t - ce > EPS) out.push([ce, t]);
+          return out;
+        });
+      }
+      const horizontal = e.edge === "N" || e.edge === "S";
+      for (const [s, t] of intervals) {
+        segs.push(
+          horizontal
+            ? { x1: s, y1: e.fixed, x2: t, y2: e.fixed, horizontal: true, edgeOfA: e.edge }
+            : { x1: e.fixed, y1: s, x2: e.fixed, y2: t, horizontal: false, edgeOfA: e.edge },
+        );
+      }
+    }
+  }
+  return segs;
 }
 
 /** 共線で連続する線分をまとめる (L字の合併外周を一本の壁にする) */
@@ -142,6 +180,120 @@ export function deriveDefaultBoundaries(model: Model): void {
   }
 }
 
+/**
+ * 描かれた線による領域の切り分け (ADR-0022)。
+ *
+ * 空間の `rects` は**書かれた割付** (セル) であって形ではない。形は凸片 `pieces` として
+ * ここで導かれる — 既定は矩形そのまま、境界に線が描かれていればその半平面で切り直す。
+ * 切り直しは「二空間の割付の合併を、線の両側へ分け直す」操作なので、
+ * 一方が失う三角形をもう一方が得る (合計面積は保存される)。
+ *
+ * 線の及ぶ範囲は**書かれた区間の外接矩形**に限る。無限直線として全体を切ると、
+ * 離れた翼まで巻き添えにするため。冪等ではないので parse の出口で一度だけ呼ぶ。
+ */
+export function derivePieces(model: Model): void {
+  for (const s of model.spaces.values()) s.pieces = s.rects.map(rectToPoly);
+
+  for (const b of model.boundaries) {
+    if (!b.drawn) continue;
+    const sa = model.spaces.get(b.a);
+    const sb = model.spaces.get(b.b);
+    if (!sa || !sb) continue;
+    const box = polyBounds([b.drawn.a, b.drawn.b]);
+    const near = (p: Pt[]): boolean => {
+      const r = polyBounds(p);
+      return r.x2 >= box.x1 - 1 && r.x1 <= box.x2 + 1 && r.y2 >= box.y1 - 1 && r.y1 <= box.y2 + 1;
+    };
+
+    // 片側が領域を持たない (外部) — 外皮を切る線。持つ側だけを自分の側へ切り落とす。
+    // 建物の外形が敷地の斜めに従う場面はこれで書ける (相手は面積を得ない)
+    const solo = sa.rects.length === 0 ? sb : sb.rects.length === 0 ? sa : undefined;
+    if (solo) {
+      if (solo.rects.length === 0) continue;
+      const keep = soloSide(solo, b.drawn.a, b.drawn.b);
+      if (keep === 0) continue; // LIN01
+      solo.pieces = [
+        ...solo.pieces.filter((p) => !near(p)),
+        ...solo.pieces
+          .filter(near)
+          .map((p) => clipHalfPlane(p, b.drawn!.a, b.drawn!.b, keep > 0))
+          .filter((p) => p.length > 0),
+      ];
+      continue;
+    }
+
+    const sides = resolveSides(sa, sb, b.drawn.a, b.drawn.b);
+    if (!sides) continue; // 分離しない — LIN01
+    const [sideA, sideB] = sides;
+
+    const pool = [...sa.pieces.filter(near), ...sb.pieces.filter(near)];
+    if (pool.length === 0) continue;
+    const keepA = sa.pieces.filter((p) => !near(p));
+    const keepB = sb.pieces.filter((p) => !near(p));
+    sa.pieces = [
+      ...keepA,
+      ...pool.map((p) => clipHalfPlane(p, b.drawn!.a, b.drawn!.b, sideA > 0)).filter((p) => p.length > 0),
+    ];
+    sb.pieces = [
+      ...keepB,
+      ...pool.map((p) => clipHalfPlane(p, b.drawn!.a, b.drawn!.b, sideB > 0)).filter((p) => p.length > 0),
+    ];
+  }
+}
+
+/** 有向線分 a→b から見た点の側 (正=左) */
+export function sideOf(p: Pt, a: Pt, b: Pt): number {
+  const v = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+  return Math.abs(v) < 1e-6 ? 0 : v > 0 ? 1 : -1;
+}
+
+/**
+ * 空間の割付が線のどちら側に偏っているか (正=左 / 負=右 / 0=偏りなし)。
+ * 重心では線が割付を二等分したときに判定できないので、面積の偏りで測る
+ */
+function sideByArea(s: Space, a: Pt, b: Pt): number {
+  let left = 0;
+  let right = 0;
+  for (const r of s.rects) {
+    const p = rectToPoly(r);
+    left += area2(clipHalfPlane(p, a, b, true));
+    right += area2(clipHalfPlane(p, a, b, false));
+  }
+  const d = left - right;
+  return Math.abs(d) < 1e-6 ? 0 : d > 0 ? 1 : -1;
+}
+
+function area2(poly: Pt[]): number {
+  if (poly.length < 3) return 0;
+  let sum = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i]!;
+    const b = poly[(i + 1) % poly.length]!;
+    sum += a.x * b.y - b.x * a.y;
+  }
+  return Math.abs(sum) / 2;
+}
+
+/**
+ * 線の両側に二つの空間を割り当てる。偏りの無い側 (線が割付をちょうど二等分する側) は
+ * 相手の反対側として決まる — 「線は二つを分ける」という宣言そのものが決め手になる。
+ * 両方とも偏りが無ければ分離は決まらない (LIN01)
+ */
+export function resolveSides(sa: Space, sb: Space, a: Pt, b: Pt): [number, number] | undefined {
+  let ia = sideByArea(sa, a, b);
+  let ib = sideByArea(sb, a, b);
+  if (ia === 0 && ib === 0) return undefined;
+  if (ia === 0) ia = -ib;
+  if (ib === 0) ib = -ia;
+  if (ia === ib) return undefined;
+  return [ia, ib];
+}
+
+/** 片側だけの線 (外皮を切る) — 残す側 */
+export function soloSide(s: Space, a: Pt, b: Pt): number {
+  return sideByArea(s, a, b);
+}
+
 /** 境界の壁芯線分を導く。壁の位置は空間の割付から生成される — 壁を置く操作は存在しない */
 export function segmentsFor(model: Model, b: Boundary): Segment[] {
   const sa = model.spaces.get(b.a);
@@ -150,6 +302,23 @@ export function segmentsFor(model: Model, b: Boundary): Segment[] {
 
   // 垂直境界 (stair/shaft/void/暗黙のslab) は壁線分を持たない
   if (b.kind === "stair" || b.kind === "shaft" || b.kind === "void") return [];
+
+  // 描かれた線 (ADR-0022): 隣接からの導出ではなく、書かれた線がそのまま境界の実現になる
+  if (b.drawn) {
+    const { a, b: q } = b.drawn;
+    const horizontal = Math.abs(a.y - q.y) < 0.5;
+    const vertical = Math.abs(a.x - q.x) < 0.5;
+    return [
+      {
+        x1: a.x,
+        y1: a.y,
+        x2: q.x,
+        y2: q.y,
+        horizontal,
+        ...(horizontal || vertical ? {} : { diagonal: true as const }),
+      },
+    ];
+  }
 
   let segs: Segment[] = [];
   const aHas = sa.rects.length > 0;
@@ -164,30 +333,29 @@ export function segmentsFor(model: Model, b: Boundary): Segment[] {
       }
     }
   } else if (aHas || bHas) {
-    // 片側が領域を持たない (外部など): 合併の外周から、同レベルで接する他室の区間を除いた残り
+    // 片側が領域を持たない (外部など): 導出された領域の外周から、
+    // 同レベルで向かい合う他室の区間を除いた残り。**割付ではなく形の縁を辿る** —
+    // 描かれた線で切り落とされた側には壁が立たない (ADR-0022)
     const roomSpace = aHas ? sa : sb;
-    const others: Rect[] = [];
+    const others: Pt[][] = [];
     for (const s of model.spaces.values()) {
       if (s === sa || s === sb) continue;
       if (s.level !== roomSpace.level) continue;
-      others.push(...s.rects);
+      others.push(...piecesOf(s));
     }
-    for (let ri = 0; ri < roomSpace.rects.length; ri++) {
-      const room = roomSpace.rects[ri]!;
-      const siblings = roomSpace.rects.filter((_, i) => i !== ri);
-      const blockers = [...others, ...siblings];
-      for (const e of ["N", "E", "S", "W"] as const) {
-        segs.push(...rectPerimeterRemainder(room, e, blockers));
-      }
-    }
+    segs.push(...pieceOutline(piecesOf(roomSpace), others));
   }
   segs = mergeCollinear(segs);
   if (b.edge) segs = segs.filter((s) => s.edgeOfA === b.edge);
   return segs;
 }
 
+function piecesOf(s: Space): Pt[][] {
+  return s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
+}
+
 export function segmentLength(s: Segment): number {
-  return s.horizontal ? s.x2 - s.x1 : s.y2 - s.y1;
+  return Math.hypot(s.x2 - s.x1, s.y2 - s.y1);
 }
 
 /** 平面上の重なり (垂直隣接の導出に使う)。重ならなければ undefined */
@@ -271,6 +439,13 @@ export function placeBand(
   const half = band.w / 2;
   let pos: number;
   if (band.atAbs !== undefined) {
+    // 斜めの線分 (描かれた線) の上では、通り参照は一意に位置を定めない — 比率で書く
+    if (seg.diagonal) {
+      return fail(
+        "07",
+        `${label} の位置 ${band.atRef} は斜めの線分では使えません (at:0..1 の比率で書きます)`,
+      );
+    }
     // 明示位置: 通り参照で置かれたものはクランプしない — はみ出しは言葉のエラーになる
     const axisOk = seg.horizontal ? band.atAxis === "X" : band.atAxis === "Y";
     if (!axisOk) {
@@ -296,10 +471,12 @@ export function placeBand(
   } else {
     pos = Math.min(Math.max(band.at * len, half), len - half);
   }
+  // 線分上の位置はパラメトリックに取る — 軸平行でも斜めでも同じ一つの式
+  const f = len > 0 ? pos / len : 0;
   return {
     segment: seg,
-    cx: seg.horizontal ? seg.x1 + pos : seg.x1,
-    cy: seg.horizontal ? seg.y1 : seg.y1 + pos,
+    cx: seg.x1 + f * (seg.x2 - seg.x1),
+    cy: seg.y1 + f * (seg.y2 - seg.y1),
   };
 }
 

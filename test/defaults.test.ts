@@ -72,7 +72,7 @@ test("版: 導出の起きない0.1ファイルはそのまま受理される", 
 
 test("版: 宣言の省略は最新版の意味論 (既定境界が導出され、エラーにならない)", () => {
   const m = parse(`unit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0\n${ROOMS}`);
-  assert.equal(m.version, "0.4");
+  assert.equal(m.version, "0.5");
   assert.equal(m.boundaries.filter((b) => b.derived).length, 1);
   assert.deepEqual(check(m).errors, []);
 });

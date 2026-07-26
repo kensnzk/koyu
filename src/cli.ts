@@ -30,6 +30,7 @@ import {
 } from "./model.js";
 import { parseFile } from "./parse-file.js";
 import { svgPlan } from "./plan.js";
+import { slopeText, verticalRuns } from "./vertical.js";
 
 function load(file: string): Model {
   return parseFile(file); // import による合成もここで働く
@@ -47,7 +48,7 @@ function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
-      "使い方: koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <file.muro> [引数...]\n" +
+      "使い方: koyu <check|diff|plan|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]\n" +
         "  check: --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1)\n" +
         "  diff:  koyu diff <a.muro> <b.muro> [--json] — 構成の言葉の差分 (0=差分なし / 1=差分あり / 2=入力が壊れている)",
     );
@@ -296,6 +297,32 @@ function main(argv: string[]): number {
       console.log(`  延べ面積: ${r.totalFloor.toFixed(2)}㎡ → 容積率 ${((r.totalFloor / site) * 100).toFixed(1)}%`);
       return 0;
     }
+    case "runs": {
+      // 縦動線 (ADR-0021): 段数も踏面も勾配も原本には書かれていない。全て導出値である
+      const runs = verticalRuns(model);
+      if (runs.length === 0) {
+        console.log("縦動線がありません (stair:N / ramp:N / escalator:N / lift:1 を空間に書きます)");
+        return 0;
+      }
+      for (const r of runs) {
+        const s = model.spaces.get(r.path);
+        const nm = s ? displayName(s) : r.path;
+        const head = `${r.level}${r.upper ? `→${r.upper}` : ""}\t${r.device}\t${nm}`;
+        if (r.device === "lift") {
+          console.log(`${head}\t${r.path}`);
+          continue;
+        }
+        const shape =
+          r.device === "stair"
+            ? `${r.risers}段 蹴上${Math.round(r.riser)} 踏面${Math.round(r.tread)}`
+            : `勾配 ${slopeText(r.slope)}`;
+        console.log(
+          `${head}\t上り${r.rise}mm\t${r.form === "return" ? "折返し" : "直"}\t${shape}\t走り${Math.round(r.going)}mm\t${r.path}`,
+        );
+      }
+      return 0;
+    }
+
     case "levels": {
       // テキストの矩計: レベルの積み上がりと高さの検算
       const levels = levelsSorted(model);

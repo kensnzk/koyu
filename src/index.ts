@@ -16,5 +16,27 @@ export {
   type BoundaryChange,
 } from "./diff.js";
 export { daylight, type DaylightResult } from "./light.js";
+export {
+  verticalRuns,
+  verticalRun,
+  runDecls,
+  runSolids,
+  runDrawsForLevel,
+  runIssues,
+  slopeText,
+  toWorld,
+  CUT_HEIGHT,
+  RUN_KEYS,
+  RUN_FORMS,
+  type RunDevice,
+  type RunForm,
+  type RunPart,
+  type VerticalRun,
+  type RunSolid,
+  type RunDraw,
+  type RunArrow,
+  type RunIssue,
+  type Seg2,
+} from "./vertical.js";
 export { siteReport, type SiteReport, type RoadFrontage } from "./site.js";
 export { svgPlan, type PlanOptions } from "./plan.js";

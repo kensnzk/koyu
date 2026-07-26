@@ -27,7 +27,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 ("Consistent — 1 space / 0 boundaries.")
 
-Neither `koyu 0.4`, nor `unit mm`, nor `name` is needed. **All that is required is that there be a grid on both axes, that it precede any line using it, that a level be declared, and that `space` carry a type (its second positional).** Coordinates are never written directly — position is always written in the language of grid lines ([spec/language.md §2, grid references and offsets](../../spec/en/language.md)).
+Neither `koyu 0.5`, nor `unit mm`, nor `name` is needed. **All that is required is that there be a grid on both axes, that it precede any line using it, that a level be declared, and that `space` carry a type (its second positional).** Coordinates are never written directly — position is always written in the language of grid lines ([spec/language.md §2, grid references and offsets](../../spec/en/language.md)).
 
 Add one room. Not one boundary line is written.
 
@@ -340,7 +340,7 @@ What `check` looks at is whether the authored composition stands up. **It is not
 The first is the dangerous one. As §3 says, the default between touching spaces is a wall, and **a wall with no door cannot be passed**. So writing a two-storey building without a single door gets you a sealed building, in green.
 
 ```muro
-koyu 0.4
+koyu 0.5
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400

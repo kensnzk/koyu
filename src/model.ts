@@ -6,9 +6,9 @@ export type AttrValue = string | number;
 export type Attrs = Record<string, AttrValue>;
 
 /** このツールが受理する言語版 (ADR-0017)。旧版は意味保存の場合のみ受理される (checkが検査する) */
-export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2", "0.3", "0.4"];
+export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2", "0.3", "0.4", "0.5"];
 /** 版宣言を省略したときの解釈 — 常に最新版の意味論 (省略はツール版を跨いで意味安定ではない) */
-export const DEFAULT_LANGUAGE_VERSION = "0.4";
+export const DEFAULT_LANGUAGE_VERSION = "0.5";
 
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";
@@ -21,6 +21,12 @@ export interface Level {
   h?: number;
   /** この階の床組み厚 mm (下階の天井面から自階FLまで: スラブ+懐+仕上) */
   slab?: number;
+  /**
+   * 地下の宣言 (ADR-0022)。zの負値から推定はしない — 地盤面は敷地の事実であって
+   * 座標系の原点の事実ではないため。集計 (地上/地下の床面積) と矩計の表示が読む。
+   * 接土境界の語彙は導入しない (物の名は spec 語彙 — 台帳の規則2)
+   */
+  underground?: boolean;
 }
 
 export interface GridAxis {
@@ -67,8 +73,14 @@ export interface Space {
   level?: string;
   /** グリッド参照。複数矩形の合併でL字などを表す (rectsと同順) */
   grids: GridRef[];
-  /** グリッド解決後のmm矩形の合併。exteriorなどは空 */
+  /** グリッド解決後のmm矩形の合併。exteriorなどは空。**書かれた割付** (セル) であって形ではない */
   rects: Rect[];
+  /**
+   * 導出された領域 — 凸片の集合 (ADR-0022)。既定は rects をそのまま写したもので、
+   * 境界に描かれた線 (line) があればその半平面で切り分けた結果になる。
+   * 面積・平面図・立体はこちらを読む。rects は「書かれた綴り」として正準JSONに残る
+   */
+  pieces: Pt[][];
   /** 数えない分節 (字下げのarea行) */
   areas: Area[];
   attrs: Attrs;
@@ -157,11 +169,27 @@ export interface Seg {
   line: number;
 }
 
+/**
+ * 描かれた線 (ADR-0022) — 空間を区切る設計の行為そのもの。
+ * 端点は通り語 (`X3,Y1` / `X3+600,Y2-900`) で書く。生座標も角度も導入しない。
+ * 境界が既定で持つ「隣接から導かれる線分」を、この線が置き換える
+ */
+export interface DrawnLine {
+  /** 書かれた綴り — 正準JSONと差分が共有する */
+  aRef: string;
+  bRef: string;
+  a: Pt;
+  b: Pt;
+  line: number;
+}
+
 /** 境界はどちらの空間にも属さない。二つの空間パスを結ぶ第一級の関係 */
 export interface Boundary {
   a: string;
   b: string;
   kind: BoundaryKind;
+  /** 描かれた線 (字下げの line 行)。あれば境界の実現はこの線になる */
+  drawn?: DrawnLine;
   /** 壁厚 mm (通り芯・境界線に対して芯振り分け) */
   t?: number;
   /** 遮蔽しない (air:1) — 手すり・柵など、物はあるが外気・光を遮らない。
@@ -199,6 +227,8 @@ export interface Model {
   /** 敷地形状 — 所与のジオメトリ (ADR-0011)。パス→頂点列 (mm)。
    *  唯一の自由頂点列 — 空間の領域はグリッド参照の矩形として書かれる */
   polygons: Map<string, SitePolygon>;
+  /** 柱の宣言 (ADR-0023)。位置は書かれない — 通り芯の交点から導出される */
+  columns: ColumnDecl[];
   /** 合成に参加したレイヤー (ローダーのキー、合成順 — entryが先頭)。単一ソースのparseでは空 */
   layers: string[];
   /** koyu版が明示宣言されたか (base層でのみ・一度だけ — ADR-0017の合成規則の管理用) */
@@ -209,6 +239,38 @@ export interface Model {
 export interface Pt {
   x: number;
   y: number;
+}
+
+/**
+ * 柱の宣言 (ADR-0023) — 「どの通りに、どの階に、どの寸法で」だけを書く。
+ * **位置は書かない**。通り芯 (共有線) の交点のうち、そのレベルの床のある所に立つ、
+ * という規則で導出される。壁が境界から現れるのと同じ構えを、点の要素に適用したもの
+ */
+export interface ColumnDecl {
+  /** 一辺 mm (角柱)。`d:` があれば矩形断面の奥行 */
+  size: number;
+  depth?: number;
+  /** 展開済みレベル名 (宣言順ではなくz昇順) */
+  levels: string[];
+  /** 限定する通り名。未指定は全通り */
+  xNames?: string[];
+  yNames?: string[];
+  attrs: Attrs;
+  line: number;
+  file?: string;
+}
+
+/** 導出された柱 — 一本の柱 */
+export interface Column {
+  x: number;
+  y: number;
+  /** X方向の幅 mm / Y方向の奥行 mm */
+  w: number;
+  d: number;
+  level: string;
+  /** 立っている通りの名 (X3・Y2 のような組) — 図面の言葉 */
+  grid: string;
+  attrs: Attrs;
 }
 
 /** 敷地形状 (ADR-0011) — 測量に由来する所与の多角形。建物の形は生成物のままで、
@@ -264,31 +326,41 @@ export function polygonSelfIntersection(poly: Pt[], eps = 1): Pt | undefined {
  * 四隅の内包に加え、多角形の頂点の矩形内への入り込みと、辺同士の内部交差を検査する
  */
 export function rectEscapesPolygon(r: Rect, poly: Pt[], eps = 1): Pt | undefined {
-  const corners: Pt[] = [
-    { x: r.x1, y: r.y1 },
-    { x: r.x2, y: r.y1 },
-    { x: r.x2, y: r.y2 },
-    { x: r.x1, y: r.y2 },
-  ];
-  for (const c of corners) if (!pointInPolygon(c, poly, eps)) return c;
+  return shapeEscapesPolygon(rectToPoly(r), poly, eps);
+}
+
+/** 凸片が多角形からはみ出す点 (導出された領域を敷地形状と照合する — ADR-0022) */
+export function shapeEscapesPolygon(shape: Pt[], poly: Pt[], eps = 1): Pt | undefined {
+  for (const c of shape) if (!pointInPolygon(c, poly, eps)) return c;
   for (const p of poly) {
-    if (p.x > r.x1 + eps && p.x < r.x2 - eps && p.y > r.y1 + eps && p.y < r.y2 - eps) return p;
+    // 多角形の頂点が凸片の内部に食い込む (境界上は食い込みではない)
+    if (pointInPolygon(p, shape, eps) && !onPolygonEdge(p, shape, eps)) return p;
   }
-  const edges: Array<[Pt, Pt]> = [
-    [corners[0]!, corners[1]!],
-    [corners[1]!, corners[2]!],
-    [corners[2]!, corners[3]!],
-    [corners[3]!, corners[0]!],
-  ];
   for (let i = 0; i < poly.length; i++) {
     const a = poly[i]!;
     const b = poly[(i + 1) % poly.length]!;
-    for (const [p, q] of edges) {
-      const x = properCrossing(a, b, p, q, eps);
+    for (let k = 0; k < shape.length; k++) {
+      const x = properCrossing(a, b, shape[k]!, shape[(k + 1) % shape.length]!, eps);
       if (x) return x;
     }
   }
   return undefined;
+}
+
+/** 点が多角形の辺の上にあるか (許容誤差eps mm) */
+export function onPolygonEdge(p: Pt, poly: Pt[], eps = 1): boolean {
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i]!;
+    const b = poly[(i + 1) % poly.length]!;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len2 = dx * dx + dy * dy;
+    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2));
+    const qx = a.x + t * dx;
+    const qy = a.y + t * dy;
+    if ((p.x - qx) ** 2 + (p.y - qy) ** 2 <= eps * eps) return true;
+  }
+  return false;
 }
 
 /** 点が多角形の内側にあるか (境界上は内側扱い、許容誤差eps mm) */
@@ -330,11 +402,101 @@ export class SourceError extends Error {
   }
 }
 
-/** 面積 (壁芯) m²。複数矩形は合計 (重なりはcheckが禁じる) */
+/** 面積 (壁芯) m²。導出された凸片の合計 — 描かれた線で切られていればその形の面積になる */
 export function areaM2(s: Space): number | undefined {
   if (s.rects.length === 0) return undefined;
-  const a = s.rects.reduce((sum, r) => sum + (r.x2 - r.x1) * (r.y2 - r.y1), 0) / 1e6;
+  const pieces = s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
+  const a = pieces.reduce((sum, p) => sum + polygonAreaM2(p), 0);
   return Math.round(a * 100) / 100;
+}
+
+/** 矩形を頂点列へ (反時計回り) */
+export function rectToPoly(r: Rect): Pt[] {
+  return [
+    { x: r.x1, y: r.y1 },
+    { x: r.x2, y: r.y1 },
+    { x: r.x2, y: r.y2 },
+    { x: r.x1, y: r.y2 },
+  ];
+}
+
+/** 凸多角形を半平面で切る (Sutherland–Hodgman)。
+ *  半平面は有向線分 a→b の左側 (外積>0)。切り落とされて空なら [] */
+export function clipHalfPlane(poly: Pt[], a: Pt, b: Pt, keepLeft: boolean, eps = 1e-6): Pt[] {
+  const side = (p: Pt): number => {
+    const v = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+    return keepLeft ? v : -v;
+  };
+  const out: Pt[] = [];
+  for (let i = 0; i < poly.length; i++) {
+    const p = poly[i]!;
+    const q = poly[(i + 1) % poly.length]!;
+    const sp = side(p);
+    const sq = side(q);
+    if (sp >= -eps) out.push(p);
+    if ((sp > eps && sq < -eps) || (sp < -eps && sq > eps)) {
+      const t = sp / (sp - sq);
+      out.push({ x: p.x + t * (q.x - p.x), y: p.y + t * (q.y - p.y) });
+    }
+  }
+  // 退化 (面積ゼロ) は捨てる
+  return out.length >= 3 && polygonAreaM2(out) > 1e-9 ? out : [];
+}
+
+/** 頂点列の外接矩形 */
+export function polyBounds(poly: Pt[]): Rect {
+  return {
+    x1: Math.min(...poly.map((p) => p.x)),
+    x2: Math.max(...poly.map((p) => p.x)),
+    y1: Math.min(...poly.map((p) => p.y)),
+    y2: Math.max(...poly.map((p) => p.y)),
+  };
+}
+
+/**
+ * そのレベルに立つ柱を導く (ADR-0023)。
+ * 通り芯の交点のうち、床のある空間 (exterior・void を除く) の内側にあるものへ柱を置く。
+ * 位置はどこにも書かれていない — 通りと床という既にある事実の交わりから現れる
+ */
+export function columnsFor(model: Model, level: string): Column[] {
+  const floors = [...model.spaces.values()].filter(
+    (s) => s.level === level && s.type !== "exterior" && s.type !== "void" && s.rects.length > 0,
+  );
+  if (floors.length === 0) return [];
+  const out: Column[] = [];
+  const seen = new Set<string>();
+  for (const c of model.columns) {
+    if (!c.levels.includes(level)) continue;
+    const xs = model.grid.X.names
+      .map((n, i) => ({ n, v: model.grid.X.coords[i]! }))
+      .filter((g) => !c.xNames || c.xNames.includes(g.n));
+    const ys = model.grid.Y.names
+      .map((n, i) => ({ n, v: model.grid.Y.coords[i]! }))
+      .filter((g) => !c.yNames || c.yNames.includes(g.n));
+    for (const gx of xs) {
+      for (const gy of ys) {
+        const key = `${gx.n}|${gy.n}`;
+        if (seen.has(key)) continue; // 同じ交点に二本は立たない (先の宣言が勝つ)
+        const inside = floors.some((s) =>
+          (s.pieces.length ? s.pieces : s.rects.map(rectToPoly)).some((p) =>
+            pointInPolygon({ x: gx.v, y: gy.v }, p, 1),
+          ),
+        );
+        if (!inside) continue;
+        seen.add(key);
+        out.push({
+          x: gx.v,
+          y: gy.v,
+          w: c.size,
+          d: c.depth ?? c.size,
+          level,
+          grid: `${gx.n}・${gy.n}`,
+          attrs: c.attrs,
+        });
+      }
+    }
+  }
+  return out;
 }
 
 /**
@@ -500,6 +662,8 @@ export function canonicalBoundaryEntry(b: Boundary): Record<string, unknown> {
     ...(b.t !== undefined ? { t: b.t } : {}),
     ...(b.air ? { air: true } : {}),
     ...(b.edge ? { edge: b.edge } : {}),
+    // 描かれた線は書かれた綴りのまま残す — 頂点座標はビルドの産物であって構成ではない
+    ...(b.drawn ? { line: [b.drawn.aRef, b.drawn.bRef] } : {}),
     ...(Object.keys(b.attrs).length ? { attrs: sortObj(b.attrs) } : {}),
     ...(b.openings.length ? { openings: sortBySerial(b.openings.map(canonicalOpeningEntry)) } : {}),
     ...(b.segs.length ? { segs: sortBySerial(b.segs.map(canonicalSegEntry)) } : {}),
@@ -546,12 +710,27 @@ export function toCanonical(model: Model): string {
             z: v.z,
             ...(v.h !== undefined ? { h: v.h } : {}),
             ...(v.slab !== undefined ? { slab: v.slab } : {}),
+            ...(v.underground ? { underground: 1 } : {}),
           },
         ]),
       ),
     ),
     ...(Object.keys(assets).length ? { assets } : {}),
     ...(Object.keys(polygons).length ? { polygons } : {}),
+    ...(model.columns.length
+      ? {
+          columns: sortBySerial(
+            model.columns.map((c) => ({
+              size: c.size,
+              ...(c.depth !== undefined ? { d: c.depth } : {}),
+              levels: c.levels,
+              ...(c.xNames ? { x: c.xNames } : {}),
+              ...(c.yNames ? { y: c.yNames } : {}),
+              ...(Object.keys(c.attrs).length ? { attrs: sortObj(c.attrs) } : {}),
+            })),
+          ),
+        }
+      : {}),
     ...(Object.keys(zones).length ? { zones } : {}),
     spaces,
     boundaries,

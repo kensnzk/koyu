@@ -1,0 +1,40 @@
+# 基壇 2〜5階 — 商業。1階の貫通通路の上に矩形の吹抜けが抜ける。
+#
+# **斜めは1階の通路にだけある。**吹抜けは矩形である — 斜めは動線の決定から来た線であって、
+# 上階の吹抜けまで引きずる理由が無い。線を引く数は設計判断の数と一致すべきで、
+# 「一度斜めにしたから上まで斜め」は判断ではなく惰性である (ADR-0022 の線の経済)。
+# 外形の隅切りだけは所与の線 (隣地境界) に従うので基壇の全層に現れる。
+
+space /L2..L5/atrium void X2..X3 Y2..Y5 name:吹抜け
+space /L2..L5/mallW shop X1..X2 Y1..Y6 + X2..X3 Y1..Y2 + X2..X3 Y5..Y6 name:物販西 use:rentable
+space /L2..L5/mallE shop X3..X8 Y1..Y4-3200 + X3..X4 Y4-3200..Y6 + X7..X8 Y4-3200..Y6 + X4..X4+3000 Y5..Y6 + X4+15000..X7 Y5..Y6 + X4+3000..X4+15000 Y5..Y5+2700 + X4+3000..X4+15000 Y5+5300..Y6 name:物販・飲食東 use:rentable
+space /L2..L4/es escalator X4+3000..X4+15000 Y5+2700..Y5+5300 name:エスカレーター use:common escalator:E
+space /L5/es corridor X4+3000..X4+15000 Y5+2700..Y5+5300 name:エスカレーター上部 use:common
+
+# ---- 吹抜けの縁は手すり (遮蔽しない物 — air:1) ----
+boundary /L2..L5/mallW /L2..L5/atrium t:120 spec:手すり air:1 h:1100
+boundary /L2..L5/atrium /L2..L5/mallE t:120 spec:手すり air:1 h:1100
+
+# ---- 所与の斜め: 隣地境界なりの隅切り ----
+boundary /L2..L5/mallW /out t:300 spec:カーテンウォール
+  line X1,Y5 X2,Y6
+boundary /L2..L5/mallE /out t:300 spec:カーテンウォール
+  line X7+4000,Y6 X8,Y5+2000
+
+# ---- 内部 ----
+boundary /L2..L5/mallE /L2..L5/es type:open
+boundary /L2..L5/mallE /L2..L5/hall type:open
+boundary /L2..L5/mallE /L2..L5/ps t:250 spec:RC
+boundary /L2..L5/mallE /L2..L5/tea t:180 spec:LGS
+boundary /L2..L5/mallE /L2..L5/st1 t:250 spec:RC
+boundary /L2..L5/mallE /L2..L5/st2 t:250 spec:RC
+
+# ---- 外周 ----
+boundary /L2..L5/mallW /out edge:W t:300 spec:カーテンウォール
+  window CW1 at:0.5
+boundary /L2..L5/mallW /out edge:S t:300 spec:カーテンウォール
+boundary /L2..L5/mallE /out edge:S t:300 spec:カーテンウォール
+  window CW1 at:X5
+boundary /L2..L5/mallE /out edge:E t:300 spec:カーテンウォール
+  window CW1 at:Y2
+boundary /L2..L5/mallE /out edge:N t:300 spec:カーテンウォール

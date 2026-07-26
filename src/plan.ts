@@ -5,17 +5,25 @@
 import { placeBand, placeOpening, segmentsFor, type Segment } from "./graph.js";
 import {
   areaM2,
+  columnsFor,
   displayName,
   isSemiOutdoor,
+  polygonAreaM2,
+  polyBounds,
+  rectToPoly,
   type Boundary,
   type Model,
   type Opening,
+  type Pt,
 } from "./model.js";
+import { runDrawsForLevel, CUT_HEIGHT } from "./vertical.js";
 
 export interface PlanOptions {
   level?: string;
   /** px per mm */
   scale?: number;
+  /** 切断面の高さ mm (FLから) — 縦動線がどこで切れるかを決める */
+  cut?: number;
 }
 
 const WALL_DEFAULT_T = 100;
@@ -39,7 +47,10 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   const sitePolys = level === lowest ? [...model.polygons.values()] : [];
 
   const allRects = rooms.flatMap((s) => s.rects);
-  const polyPts = sitePolys.flatMap((p) => p.points);
+  const polyPts = [
+    ...sitePolys.flatMap((p) => p.points),
+    ...rooms.flatMap((s) => s.pieces.flat()),
+  ];
   const minX = Math.min(...allRects.map((r) => r.x1), ...polyPts.map((p) => p.x));
   const maxX = Math.max(...allRects.map((r) => r.x2), ...polyPts.map((p) => p.x));
   const minY = Math.min(...allRects.map((r) => r.y1), ...polyPts.map((p) => p.y));
@@ -65,17 +76,22 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     );
   }
 
-  // 空間の面 (合併の各矩形。同色・輪郭なしなのでL字は一体に見える)
+  // 空間の面 — 導出された凸片 (ADR-0022)。描かれた線で切られていれば斜めの面になる。
+  // 同色・輪郭なしなのでL字も切られた形も一体に見える。
   // 半屋外 (外部にopen/railで接する空間) は淡く塗り分け、屋外であることが図から読めるように
+  const path2d = (poly: Pt[]): string =>
+    poly.map((p, i) => `${i === 0 ? "M" : "L"} ${sx(p.x)} ${sy(p.y)}`).join(" ") + " Z";
   for (const s of rooms) {
     const isVoid = s.type === "void";
     const semi = isSemiOutdoor(model, s);
-    for (const r of s.rects) {
+    const pieces = s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
+    for (const poly of pieces) {
       parts.push(
-        `<rect x="${sx(r.x1)}" y="${sy(r.y2)}" width="${(r.x2 - r.x1) * scale}" height="${(r.y2 - r.y1) * scale}" fill="${isVoid ? PAPER : semi ? "#f8f5ec" : ROOM}"/>`,
+        `<path d="${path2d(poly)}" fill="${isVoid ? PAPER : semi ? "#f8f5ec" : ROOM}"/>`,
       );
       if (isVoid) {
         // 吹抜け: 破線の対角線 (作図慣習)
+        const r = polyBounds(poly);
         parts.push(
           `<line x1="${sx(r.x1)}" y1="${sy(r.y1)}" x2="${sx(r.x2)}" y2="${sy(r.y2)}" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>`,
           `<line x1="${sx(r.x1)}" y1="${sy(r.y2)}" x2="${sx(r.x2)}" y2="${sy(r.y1)}" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>`,
@@ -203,11 +219,58 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     }
   }
 
-  // 空間ラベル (最大の矩形の中心に置く)
+  // 柱 (ADR-0023) — 位置はどこにも書かれていない。通り芯の交点と床の交わりから現れる
+  for (const c of columnsFor(model, level)) {
+    parts.push(
+      `<rect x="${sx(c.x - c.w / 2)}" y="${sy(c.y + c.d / 2)}" width="${c.w * scale}" height="${c.d * scale}" fill="${INK}"/>`,
+    );
+  }
+
+  // 縦動線 (ADR-0021) — そのレベルで切った姿。上る走りは切断線で切れ、
+  // その先には下りる走り (下階の走りを上から見たもの) が現れる。
+  // 階段が階ごとに違う顔をするのは、平面図が「切った断面」だという事実そのものである
+  for (const d of runDrawsForLevel(model, level, opts.cut ?? CUT_HEIGHT)) {
+    for (const g of d.outline) {
+      parts.push(
+        `<line x1="${sx(g.x1)}" y1="${sy(g.y1)}" x2="${sx(g.x2)}" y2="${sy(g.y2)}" stroke="${INK}" stroke-width="1.1"/>`,
+      );
+    }
+    for (const g of d.treads) {
+      parts.push(
+        `<line x1="${sx(g.x1)}" y1="${sy(g.y1)}" x2="${sx(g.x2)}" y2="${sy(g.y2)}" stroke="${INK}" stroke-width="0.7"/>`,
+      );
+    }
+    for (const g of d.breaks) {
+      parts.push(
+        `<line x1="${sx(g.x1)}" y1="${sy(g.y1)}" x2="${sx(g.x2)}" y2="${sy(g.y2)}" stroke="${INK}" stroke-width="1.4"/>`,
+      );
+    }
+    for (const a of d.arrows) {
+      const dx = a.x2 - a.x1;
+      const dy = a.y2 - a.y1;
+      const len = Math.hypot(dx, dy) || 1;
+      const hx = (dx / len) * 420;
+      const hy = (dy / len) * 420;
+      const px = (-dy / len) * 200;
+      const py = (dx / len) * 200;
+      parts.push(
+        `<line x1="${sx(a.x1)}" y1="${sy(a.y1)}" x2="${sx(a.x2)}" y2="${sy(a.y2)}" stroke="${INK}" stroke-width="1"/>`,
+        `<path d="M ${sx(a.x2)} ${sy(a.y2)} L ${sx(a.x2 - hx + px)} ${sy(a.y2 - hy + py)} L ${sx(a.x2 - hx - px)} ${sy(a.y2 - hy - py)} Z" fill="${INK}"/>`,
+        `<text x="${sx(a.x1) + 4}" y="${sy(a.y1) + 4}" font-size="9" fill="${INK}">${a.label}</text>`,
+      );
+    }
+    for (const n of d.notes) {
+      parts.push(
+        `<text x="${sx(n.x)}" y="${sy(n.y) + 42}" text-anchor="middle" font-size="8" fill="#8a8171">${esc(n.text)}</text>`,
+      );
+    }
+  }
+
+  // 空間ラベル (最大の凸片の中心に置く)
   for (const s of rooms) {
-    const r = [...s.rects].sort(
-      (a, b) => (b.x2 - b.x1) * (b.y2 - b.y1) - (a.x2 - a.x1) * (a.y2 - a.y1),
-    )[0]!;
+    const pieces = s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
+    const poly = [...pieces].sort((a, b) => polygonAreaM2(b) - polygonAreaM2(a))[0]!;
+    const r = polyBounds(poly);
     const cx = sx((r.x1 + r.x2) / 2);
     const cy = sy((r.y1 + r.y2) / 2);
     const sub =
@@ -259,6 +322,22 @@ function wallRect(
   sx: (x: number) => number,
   sy: (y: number) => number,
 ): string {
+  if (seg.diagonal) {
+    // 斜めの壁 (描かれた線 — ADR-0022): 芯線に対して法線方向へ t/2 ずつ振り分けた四辺形
+    const dx = seg.x2 - seg.x1;
+    const dy = seg.y2 - seg.y1;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = (-dy / len) * (t / 2);
+    const ny = (dx / len) * (t / 2);
+    const q: Array<[number, number]> = [
+      [seg.x1 + nx, seg.y1 + ny],
+      [seg.x2 + nx, seg.y2 + ny],
+      [seg.x2 - nx, seg.y2 - ny],
+      [seg.x1 - nx, seg.y1 - ny],
+    ];
+    const d = q.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${sx(x)} ${sy(y)}`).join(" ");
+    return `<path d="${d} Z" fill="${INK}"/>`;
+  }
   if (seg.horizontal) {
     const x = sx(seg.x1);
     const y = sy(seg.y1 + t / 2);
@@ -280,6 +359,23 @@ function bandRect(
   sy: (y: number) => number,
   fill: string,
 ): string {
+  if (seg.diagonal) {
+    const dx = seg.x2 - seg.x1;
+    const dy = seg.y2 - seg.y1;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = (dx / len) * (w / 2);
+    const uy = (dy / len) * (w / 2);
+    const nx = (-dy / len) * (t / 2);
+    const ny = (dx / len) * (t / 2);
+    const q: Array<[number, number]> = [
+      [cx - ux + nx, cy - uy + ny],
+      [cx + ux + nx, cy + uy + ny],
+      [cx + ux - nx, cy + uy - ny],
+      [cx - ux - nx, cy - uy - ny],
+    ];
+    const d = q.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${sx(x)} ${sy(y)}`).join(" ");
+    return `<path d="${d} Z" fill="${fill}"/>`;
+  }
   if (seg.horizontal) {
     return `<rect x="${sx(cx - w / 2)}" y="${sy(cy + t / 2)}" width="${w * scale}" height="${t * scale}" fill="${fill}"/>`;
   }
@@ -315,7 +411,19 @@ function doorSwing(
   let hinge: { x: number; y: number };
   let along: { x: number; y: number };
   let inward: { x: number; y: number };
-  if (seg.horizontal) {
+  if (seg.diagonal) {
+    // 斜めの線分では吊元は始端側に固定し (hingeのN/E/S/Wは軸の言葉なので使えない)、
+    // 開く側は法線のうち開く空間の重心へ向く方をとる
+    const dx = seg.x2 - seg.x1;
+    const dy = seg.y2 - seg.y1;
+    const len = Math.hypot(dx, dy) || 1;
+    along = { x: dx / len, y: dy / len };
+    const n = { x: -along.y, y: along.x };
+    const toC = { x: c.x - cx, y: c.y - cy };
+    const sign = n.x * toC.x + n.y * toC.y >= 0 ? 1 : -1;
+    inward = { x: n.x * sign, y: n.y * sign };
+    hinge = { x: cx - along.x * (o.w / 2), y: cy - along.y * (o.w / 2) };
+  } else if (seg.horizontal) {
     const fromEast = o.hinge === "E";
     hinge = { x: fromEast ? cx + o.w / 2 : cx - o.w / 2, y: cy };
     along = { x: fromEast ? -1 : 1, y: 0 };

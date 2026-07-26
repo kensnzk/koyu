@@ -138,7 +138,7 @@ test("parse: 同一行の属性キーの重複はエラー (後勝ちで隠さ�
 });
 
 test("parse: 対応しないkoyu版はエラー", () => {
-  assert.throws(() => parse("koyu 0.5\nunit mm"), /対応していないkoyuの版です: 0\.5/);
+  assert.throws(() => parse("koyu 0.9\nunit mm"), /対応していないkoyuの版です: 0\.9/);
 });
 
 // ---- 合成: レイヤー記録の完全性 ----

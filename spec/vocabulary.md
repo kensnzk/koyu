@@ -27,6 +27,15 @@
 | level: | ★ | 所属レベルの明示。既定はパス先頭セグメント。階を跨ぐくくり (メゾネット) で使う |
 | h | ★ | 天井高mm (既定はレベルのh)。高さ不変量とlevelsが読む |
 | use | ★ | statsの集計軸 (rentable/exclusive/common…)。zoneから継承 |
+| stair / ramp / escalator | ★ | **縦動線の宣言** (ADR-0021)。キーが装置 (=形の生成規則) を名指し、値が上る向き `N`/`E`/`S`/`W`。段数・踏面・踊り場・勾配は書かない — 領域と階高から導出される。一つの空間に一つだけ |
+| lift | ★ | 昇降機の宣言。値は `1` (向きを持たない)。平面はかごの記号、立体はかごの箱になる |
+| form | ★ | 縦動線の折返し `straight` (既定) / `return`。曲線は無い — 螺旋は折返しの連続として書く |
+| turn | ★ | 折返しの向き `R` (既定・踊り場で右へ回る) / `L` |
+| entry | ★ | 乗り込みの床の奥行mm (既定1100)。走りが領域の縁から始まらないための帯 — **踊り場ではなく階の床**で、扉はここに開く |
+| landing | ★ | 折返しの中間踊り場の奥行mm。既定は導出 (目標踏面から残余として決まる)。書けば踏面が残余になる |
+| riser / tread | ★ | 蹴上げの上限mm (既定180) / 目標踏面mm (既定300)。どちらも導出の入力であって結果ではない |
+| lane | ★ | 一台/一車線の幅mm (エスカレーターの既定1200)。幅を割った台数が並び、**台ごとに走る向きが交互になる** (上りの隣は下り) |
+| slope | ★ | 斜路の**許容勾配の分母** (`slope:6` = 1/6 まで)。書く勾配ではなく検査の上限 |
 | daylight | ★ | **採光判定の対象の宣言** — `1` で `light` の 1/7 判定を掛ける、`0`・未指定で対象外 (ADR-0020)。値は0/1のみ。継承しない (室ごとに違うため)。属性は法概念 (法2条4号の居室) ではなくツールの振る舞いを名指す — 法28条1項の適用建築物と令19条3項の用途別割合は扱わないので、1/7を掛ける先は書き手が決める |
 | uid | ★ | 任意の永続同一性トークン (ADR-0015)。不透明・モデル全体 (space/zone横断) で一意・パスから導出しない。数字だけの形と空白はエラー。renameを跨ぐ外部join (センサー・台帳) 用 — リポジトリ内の参照は従来どおりパス |
 | w | ★ (帯の要素のみ) | 帯の向きの寸法mm。`w:rest` は残りを吸収する印 (帯に高々一つ)。帯の外の `space` には書けない |
@@ -35,7 +44,7 @@
 ### boundary
 | 属性 | 解釈 | 意味 |
 |---|---|---|
-| type | ★ | wall / open (水平) / stair / shaft / void (垂直)。既定 wall |
+| type | ★ | wall / open (水平) / stair / shaft / void (垂直)。既定 wall。**縦の通行可能性は `stair` の一語が引き受ける** — 斜路もエスカレーターもトポロジーは同じなので型は増やさない (ADR-0021) |
 | t | ★ | 壁厚mm (芯振り分け)。描画と既定値100 |
 | air | ★ | 1=遮蔽しない物 (手すり・柵)。半屋外の導出・細線描画・light 0.7 に効く |
 | edge | ★ | 線分をa側矩形の特定の辺に限定 (N/E/S/W) |
@@ -67,6 +76,20 @@
 
 `key:value` は書けない — 帯はモデルに残らないので属性の運び先が無い (属性は要素の `space` 行に書く)。帯は parse 時に通常の空間へ展開され、正準JSONにも残らない。
 
+### line (描かれた線 — ADR-0022)
+`line <始点> <終点>` を boundary の直下に字下げして書く。端点は通り語の対 `X3,Y1` / `X3+600,Y2-900` で、**生の座標も角度も書けない**。境界の実現を、隣接からの導出ではなく設計の行為として与える (★)。二空間の割付の合併を線の両側へ分け直すので、一方が失う面積をもう一方が得る。片側が領域を持たない外部なら外皮を切る線になり、切られた側は面積を失うだけである。一つの境界に線は一本。斜めの線分の上では開口の `at:` は 0..1 の比率でしか書けない (通り参照は位置を一意に定めない)。
+
+### column (柱 — ADR-0023)
+`column <一辺mm> <レベル範囲|レベル名> [属性...]` — **位置は書かない**。通り芯の交点のうち、そのレベルに床のある (exterior でも void でもない領域つき空間の内側にある) 所に立つ (★)。
+
+| 属性 | 解釈 | 意味 |
+|---|---|---|
+| d | ★ | 矩形断面の奥行mm (既定は一辺と同じ = 角柱) |
+| x / y | ★ | 立てる通りの限定 (カンマ区切り。未指定は全通り) |
+| spec / … | — | 自由 |
+
+同じ交点に二本は立たない (先の宣言が勝つ)。柱は空間でも境界でもないので、面積にもグラフにも現れない。
+
 ### polygon (敷地形状 — ADR-0011)
 `polygon /ゾーンパス x,y x,y x,y ...` — 所与のジオメトリ (測量由来)。この記法で唯一「書かれる形」で、site:1のゾーンに対応する (無ければ警告)。導出面積 (シューレース)・建物のはみ出し検査・配置図の敷地境界線をツールが解釈する (★)。別ファイル+importの隔離レイヤー運用を標準とする。
 
@@ -74,7 +97,7 @@
 `import ./L1.muro` — 書かれたファイルからの相対パス。base層が基盤 (koyu/name/unit/grid/level) を一度だけ宣言し、層は空間・境界・ゾーン・アセットを加算する。衝突 (空間パス・アセット名の重複、grid/nameの再宣言) は出所つきのビルドエラー。同一ファイルの二重importは冪等。
 
 ### level
-`z` (位置引数)、`h` (基準天井高)、`slab` (床組み厚)、`pitch` (範囲宣言のみ) — すべて★。
+`z` (位置引数)、`h` (基準天井高)、`slab` (床組み厚)、`pitch` (範囲宣言のみ)、`underground` (1=地下) — すべて★。`underground` は宣言であって推定ではない (ADR-0022) — 地盤面は敷地の事実であり、zの負値は座標系の原点の事実にすぎない。土に接する壁は境界の型でも属性でもなく **spec 語彙** が運ぶ (`spec:RC土圧壁` — 規則2)。
 
 ### zone
 `name` (自由)、`use` (★継承元)、`site` (★ 1=敷地の集約 — siteコマンドの対象)、`area` (★ 敷地の宣言面積㎡ — 導出面積と照合される)、`uid` (★ 永続同一性トークン — spaceと同じ規則で一意)。幾何を持たない。
@@ -84,4 +107,4 @@
 
 ## IFCとの対応 (参考)
 
-boundary wall/open ↔ IfcRelSpaceBoundary の PHYSICAL/VIRTUAL。内外の別 ↔ InternalOrExternalBoundary (こちらは宣言でなく導出)。spec:手すり ↔ IfcRailing (要素クラスは語彙の値になる)。opening ↔ IfcOpeningElement + IfcDoor/IfcWindow。asset ↔ IfcDoorType/IfcWindowType (タイプとオカレンス — RevitのFamily)、style ↔ IfcDoorTypeOperationEnum の粗い射影 (SINGLE_SWING/SLIDING…)。zone ↔ IfcZone。stair/shaft/void の垂直境界と slab の既定は、空間一次ゆえにIFCに直接の相当物を持たない。importの合成はIFC4に相当物がなく (単一ファイルが原則)、IFCX/USDのレイヤー合成に対応する。
+縦動線 (stair:/ramp:/escalator:/lift:) ↔ IfcStair / IfcRamp / IfcTransportElement (段割りや傾きは IFC では形状として持つが、koyu では宣言から導出される)。column ↔ IfcColumn (位置は IfcLocalPlacement が持つが、koyu では通り芯の交点から導出される)。boundary wall/open ↔ IfcRelSpaceBoundary の PHYSICAL/VIRTUAL。内外の別 ↔ InternalOrExternalBoundary (こちらは宣言でなく導出)。spec:手すり ↔ IfcRailing (要素クラスは語彙の値になる)。opening ↔ IfcOpeningElement + IfcDoor/IfcWindow。asset ↔ IfcDoorType/IfcWindowType (タイプとオカレンス — RevitのFamily)、style ↔ IfcDoorTypeOperationEnum の粗い射影 (SINGLE_SWING/SLIDING…)。zone ↔ IfcZone。stair/shaft/void の垂直境界と slab の既定は、空間一次ゆえにIFCに直接の相当物を持たない。importの合成はIFC4に相当物がなく (単一ファイルが原則)、IFCX/USDのレイヤー合成に対応する。
