@@ -1,19 +1,19 @@
-# 1階 — 基壇の地表面。テナント区画・モール・そして敷地を斜めに貫く通路。
+# 1階 — 基壇の地表面。テナント区画・モール・南北をつなぐ貫通通路。
 #
-# **設計された斜めがここにある。** 貫通通路は南北をつなぐ通り抜けで、敷地を斜めに
-# 横切る。その二枚の壁は `line` で引かれた線であり、通り芯の語 (X2,Y1 → X2+4000,Y6)
-# で書かれているので**読めば斜めと分かる** (ADR-0022)。通路の形も、両隣の区画の形も、
-# ビルドが導く — 頂点座標はどこにも書かれていない。
+# **斜めは所与の線 (隣地境界) にしか無い。**基壇の北西と北東の隅切りは敷地なりに
+# 外形を切ったもので、`line` で引かれている (ADR-0022)。設計された斜めは書いていない —
+# 規則正しい区画の並ぶモールに斜めの通路を通すのは、記法ができるからやっただけの
+# 判断であって、設計判断ではなかった。**線の本数は設計判断の数と一致すべきである。**
+# 斜めを設計として引く記法そのものは残っていて、test/runs.test.ts が保証している。
 #
-# 一本の設計線が多くの室の前を通ると、境界ごとに同じ線を書くことになる。これは
-# 「線を第一級にして一度名付けN回参照する」という ADR-0022 の宿題の実証である。
+# 区画は帯 (band) が割る (ADR-0019)。幅の数字を書き換えれば隣の位置は自動で動く。
 
 space /L1/ramp parking X1..X2 Y1..Y1+7000 name:車路出口 use:parking
 space /L1/atrium corridor X2..X3 Y1..Y6 name:貫通通路 use:common floor:石張り
 space /L1/mall corridor X3..X8 Y2..Y2+3600 name:モール use:common floor:石張り
-space /L1/north backyard X4..X4+3000 Y5..Y6 + X4+15000..X7 Y5..Y6 + X4+3000..X4+15000 Y5..Y5+2700 + X4+3000..X4+15000 Y5+5300..Y6 name:北側サービス use:common
 space /L1/bohW backyard X3..X4 Y4-3200..Y6 name:バックヤード西 use:common
 space /L1/bohE backyard X7..X8 Y4-3200..Y6 name:荷捌き・搬入 use:common
+space /L1/north backyard X4..X4+3000 Y5..Y6 + X4+15000..X7 Y5..Y6 + X4+3000..X4+15000 Y5..Y5+2700 + X4+3000..X4+15000 Y5+5300..Y6 name:北側サービス use:common
 space /L1/es escalator X4+3000..X4+15000 Y5+2700..Y5+5300 name:エスカレーター use:common escalator:E
 
 band Y X1..X2 Y1+7000..Y6
@@ -36,41 +36,13 @@ band X X3..X8 Y2+3600..Y4-3200
   space /L1/n04 shop w:8000 name:北区画04 use:rentable
   space /L1/n05 shop w:rest name:北区画05 use:rentable
 
-# ---- 設計された斜め: 貫通通路の西の壁 ----
-boundary /L1/ramp /L1/atrium t:250 spec:RC
-  line X2,Y1 X2+4000,Y6
-boundary /L1/w01 /L1/atrium t:200 spec:店舗サッシ
-  line X2,Y1 X2+4000,Y6
-  door AD1
-boundary /L1/w02 /L1/atrium t:200 spec:店舗サッシ
-  line X2,Y1 X2+4000,Y6
-  door AD1
-boundary /L1/w03 /L1/atrium t:200 spec:店舗サッシ
-  line X2,Y1 X2+4000,Y6
-  door AD1
-boundary /L1/w04 /L1/atrium t:200 spec:店舗サッシ
-  line X2,Y1 X2+4000,Y6
-  door AD1
-
-# ---- 設計された斜め: 貫通通路の東の壁 (二本は平行) ----
-boundary /L1/atrium /L1/s01 t:200 spec:店舗サッシ
-  line X3,Y1 X3+4000,Y6
-  door AD1
-boundary /L1/atrium /L1/mall type:open
-  line X3,Y1 X3+4000,Y6
-boundary /L1/atrium /L1/n01 t:200 spec:店舗サッシ
-  line X3,Y1 X3+4000,Y6
-  door AD1
-boundary /L1/atrium /L1/bohW t:250 spec:RC
-  line X3,Y1 X3+4000,Y6
-
 # ---- 所与の斜め: 隣地境界なりの隅切り ----
 boundary /L1/w04 /out t:300 spec:カーテンウォール
   line X1,Y5+2000 X2,Y6
 boundary /L1/bohE /out t:300 spec:カーテンウォール
   line X7+4000,Y6 X8,Y5+2000
 
-# ---- 区画はモールに面して開く ----
+# ---- 区画はモールと貫通通路に面して開く ----
 boundary /L1/s01 /L1/mall t:120 spec:店舗サッシ
   door AD1
 boundary /L1/s02 /L1/mall t:120 spec:店舗サッシ
@@ -91,6 +63,21 @@ boundary /L1/n04 /L1/mall t:120 spec:店舗サッシ
   door AD1
 boundary /L1/n05 /L1/mall t:120 spec:店舗サッシ
   door AD1
+boundary /L1/w01 /L1/atrium t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/w02 /L1/atrium t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/w03 /L1/atrium t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/w04 /L1/atrium t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/atrium /L1/mall type:open
+boundary /L1/atrium /L1/s01 t:200 spec:店舗サッシ
+  door AD1
+boundary /L1/atrium /L1/n01 t:200 spec:店舗サッシ
+  door AD1
+boundary /L1/atrium /L1/bohW t:250 spec:RC
+boundary /L1/ramp /L1/atrium t:250 spec:RC
 
 # ---- コアとサービス ----
 boundary /L1/n02 /L1/hall type:open
@@ -106,7 +93,7 @@ boundary /L1/north /L1/bohW t:200 spec:RC
 boundary /L1/north /L1/bohE t:200 spec:RC
   door w:1200
 
-# ---- 外周 (南は歩道状空地、東は道路側の空地) ----
+# ---- 外周 ----
 boundary /L1/atrium /site/walk edge:S t:300 spec:カーテンウォール
   door AD1 name:南側通り抜け口
 boundary /L1/atrium /out edge:N t:300 spec:カーテンウォール
@@ -120,7 +107,6 @@ boundary /L1/w02 /site/plaza edge:W t:300 spec:カーテンウォール
 boundary /L1/w03 /site/plaza edge:W t:300 spec:カーテンウォール
   door AD1
 boundary /L1/w04 /site/plaza edge:W t:300 spec:カーテンウォール
-boundary /L1/w04 /out edge:N t:300 spec:カーテンウォール
 boundary /L1/s01 /site/walk edge:S t:300 spec:カーテンウォール
   door AD1
 boundary /L1/s02 /site/walk edge:S t:300 spec:カーテンウォール
