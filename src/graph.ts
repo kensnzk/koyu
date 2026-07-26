@@ -226,19 +226,67 @@ export function derivePieces(model: Model): void {
     if (!sides) continue; // 分離しない — LIN01
     const [sideA, sideB] = sides;
 
-    const pool = [...sa.pieces.filter(near), ...sb.pieces.filter(near)];
+    // **分け直しは二空間が向かい合っている範囲だけで起きる。**
+    // 一本の設計線は複数の境界に共有されるので、線の全長で分け直すと、
+    // 遠くの相手の領域まで奪ってしまう。窓は「線に沿っては両者の和、線を横切っては
+    // 両者の積」— 縦に走る線なら、yは重なる範囲、xは両者を覆う範囲になる
+    const win = shareWindow(polyBounds(sa.pieces.flat()), polyBounds(sb.pieces.flat()), b.drawn);
+    if (!win) continue;
+    const splitA = splitByBox(sa.pieces, win);
+    const splitB = splitByBox(sb.pieces, win);
+    const pool = [...splitA.inside, ...splitB.inside];
     if (pool.length === 0) continue;
-    const keepA = sa.pieces.filter((p) => !near(p));
-    const keepB = sb.pieces.filter((p) => !near(p));
     sa.pieces = [
-      ...keepA,
+      ...splitA.outside,
       ...pool.map((p) => clipHalfPlane(p, b.drawn!.a, b.drawn!.b, sideA > 0)).filter((p) => p.length > 0),
     ];
     sb.pieces = [
-      ...keepB,
+      ...splitB.outside,
       ...pool.map((p) => clipHalfPlane(p, b.drawn!.a, b.drawn!.b, sideB > 0)).filter((p) => p.length > 0),
     ];
   }
+}
+
+/** 分け直しが起きる窓。線に沿っては和、線を横切っては積 */
+function shareWindow(a: Rect, b: Rect, line: { a: Pt; b: Pt }): Rect | undefined {
+  const vertical = Math.abs(line.b.y - line.a.y) >= Math.abs(line.b.x - line.a.x);
+  const win = vertical
+    ? {
+        x1: Math.min(a.x1, b.x1),
+        x2: Math.max(a.x2, b.x2),
+        y1: Math.max(a.y1, b.y1),
+        y2: Math.min(a.y2, b.y2),
+      }
+    : {
+        x1: Math.max(a.x1, b.x1),
+        x2: Math.min(a.x2, b.x2),
+        y1: Math.min(a.y1, b.y1),
+        y2: Math.max(a.y2, b.y2),
+      };
+  return win.x2 - win.x1 > EPS && win.y2 - win.y1 > EPS ? win : undefined;
+}
+
+/** 凸片の集合を軸平行の窓の内外へ割る (どちらも凸片のまま) */
+function splitByBox(pieces: Pt[][], box: Rect): { inside: Pt[][]; outside: Pt[][] } {
+  const edges: Array<[Pt, Pt]> = [
+    [{ x: box.x1, y: box.y1 }, { x: box.x2, y: box.y1 }],
+    [{ x: box.x2, y: box.y1 }, { x: box.x2, y: box.y2 }],
+    [{ x: box.x2, y: box.y2 }, { x: box.x1, y: box.y2 }],
+    [{ x: box.x1, y: box.y2 }, { x: box.x1, y: box.y1 }],
+  ];
+  const outside: Pt[][] = [];
+  let inside = pieces;
+  for (const [u, v] of edges) {
+    const next: Pt[][] = [];
+    for (const p of inside) {
+      const keep = clipHalfPlane(p, u, v, true);
+      const drop = clipHalfPlane(p, u, v, false);
+      if (keep.length > 0) next.push(keep);
+      if (drop.length > 0) outside.push(drop);
+    }
+    inside = next;
+  }
+  return { inside, outside };
 }
 
 /** 有向線分 a→b から見た点の側 (正=左) */
@@ -303,22 +351,11 @@ export function segmentsFor(model: Model, b: Boundary): Segment[] {
   // 垂直境界 (stair/shaft/void/暗黙のslab) は壁線分を持たない
   if (b.kind === "stair" || b.kind === "shaft" || b.kind === "void") return [];
 
-  // 描かれた線 (ADR-0022): 隣接からの導出ではなく、書かれた線がそのまま境界の実現になる
-  if (b.drawn) {
-    const { a, b: q } = b.drawn;
-    const horizontal = Math.abs(a.y - q.y) < 0.5;
-    const vertical = Math.abs(a.x - q.x) < 0.5;
-    return [
-      {
-        x1: a.x,
-        y1: a.y,
-        x2: q.x,
-        y2: q.y,
-        horizontal,
-        ...(horizontal || vertical ? {} : { diagonal: true as const }),
-      },
-    ];
-  }
+  // 描かれた線 (ADR-0022): 隣接からの導出ではなく、書かれた線がそのまま境界の実現になる。
+  // ただし**一本の設計線は複数の境界に共有されうる** — 貫通通路の壁は、その前を通る
+  // 区画の数だけ境界を持つ。この境界が実現するのは、線の両側がちょうど a と b に
+  // なっている区間だけであり、線の全長ではない
+  if (b.drawn) return drawnShare(model, sa, sb, b.drawn.a, b.drawn.b);
 
   let segs: Segment[] = [];
   const aHas = sa.rects.length > 0;
@@ -350,8 +387,144 @@ export function segmentsFor(model: Model, b: Boundary): Segment[] {
   return segs;
 }
 
+/**
+ * 空間の外周のうち、**何にも面していない**区間 (ADR-0025)。
+ * 他の空間とも、宣言された外部境界とも向かい合っていない縁 — 外皮の穴である。
+ * 既定境界 (ADR-0014) は領域を持たない空間との間には導かれないので、
+ * 外部への境界の書き忘れは黙って壁の不在になる。これを言葉にするための導出。
+ */
+export function envelopeGaps(model: Model, s: Space): Segment[] {
+  if (s.rects.length === 0 || !s.level) return [];
+  const others: Pt[][] = [];
+  for (const o of model.spaces.values()) {
+    if (o === s || o.level !== s.level) continue;
+    others.push(...piecesOf(o));
+  }
+  let gaps = pieceOutline(piecesOf(s), others);
+  // 宣言された境界 (外部・斜めを含む) が覆う区間を引く
+  for (const b of model.boundaries) {
+    if (b.a !== s.path && b.b !== s.path) continue;
+    if (b.kind === "stair" || b.kind === "shaft" || b.kind === "void") continue;
+    for (const seg of segmentsFor(model, b)) {
+      gaps = gaps.flatMap((g) => subtractOverlap(g, seg));
+    }
+  }
+  return gaps.filter((g) => segmentLength(g) > 1);
+}
+
+/** 軸平行の線分から、同一直線上で重なる区間を引く */
+function subtractOverlap(g: Segment, o: Segment): Segment[] {
+  if (o.diagonal || g.horizontal !== o.horizontal) return [g];
+  const fixedG = g.horizontal ? g.y1 : g.x1;
+  const fixedO = o.horizontal ? o.y1 : o.x1;
+  if (Math.abs(fixedG - fixedO) > EPS) return [g];
+  const [gl, gh] = g.horizontal ? [g.x1, g.x2] : [g.y1, g.y2];
+  const [ol, oh] = o.horizontal
+    ? [Math.min(o.x1, o.x2), Math.max(o.x1, o.x2)]
+    : [Math.min(o.y1, o.y2), Math.max(o.y1, o.y2)];
+  const cs = Math.max(gl, ol);
+  const ce = Math.min(gh, oh);
+  if (ce - cs <= EPS) return [g];
+  const parts: Array<[number, number]> = [];
+  if (cs - gl > EPS) parts.push([gl, cs]);
+  if (gh - ce > EPS) parts.push([ce, gh]);
+  return parts.map(([a, b]) =>
+    g.horizontal
+      ? { ...g, x1: a, x2: b }
+      : { ...g, y1: a, y2: b },
+  );
+}
+
 function piecesOf(s: Space): Pt[][] {
   return s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
+}
+
+/** 線の左右へ少し離れた点。どちらの空間に属するかを見るための探り */
+const PROBE = 5;
+
+/**
+ * 描かれた線のうち、この二空間が実際に向かい合っている区間だけを返す (ADR-0022)。
+ *
+ * 一本の設計線は複数の境界に共有される — 貫通通路の壁は、その前を通る区画の数だけ
+ * 境界を持つ。各境界が線の全長を実現すると、平面には同じ壁が何本も重なって現れる。
+ * 線を両空間の縁で切り、左右がちょうど a と b になっている区間だけを残す。
+ */
+function drawnShare(model: Model, sa: Space, sb: Space, p: Pt, q: Pt): Segment[] {
+  const dx = q.x - p.x;
+  const dy = q.y - p.y;
+  const len = Math.hypot(dx, dy);
+  if (len < EPS) return [];
+  const nx = -dy / len;
+  const ny = dx / len;
+  const A = piecesOf(sa);
+  const B = piecesOf(sb);
+
+  // 切り位置: 両空間の凸片の辺と線の交点
+  const cuts = new Set<number>([0, 1]);
+  for (const poly of [...A, ...B]) {
+    for (let i = 0; i < poly.length; i++) {
+      const t = lineHit(p, q, poly[i]!, poly[(i + 1) % poly.length]!);
+      if (t !== undefined && t > 1e-9 && t < 1 - 1e-9) cuts.add(t);
+    }
+  }
+  const ts = [...cuts].sort((x, y) => x - y);
+
+  const kept: Array<[number, number]> = [];
+  for (let i = 0; i + 1 < ts.length; i++) {
+    const m = (ts[i]! + ts[i + 1]!) / 2;
+    const cx = p.x + m * dx;
+    const cy = p.y + m * dy;
+    const left = { x: cx + nx * PROBE, y: cy + ny * PROBE };
+    const right = { x: cx - nx * PROBE, y: cy - ny * PROBE };
+    const inA = (pt: Pt) => A.some((g) => pointInPolygon(pt, g, 0));
+    const inB = (pt: Pt) => B.some((g) => pointInPolygon(pt, g, 0));
+    // 片側が領域を持たない (外部) 相手なら、持つ側が片側に居るだけで境界になる
+    const soloB = sb.rects.length === 0;
+    const soloA = sa.rects.length === 0;
+    const ok = soloB
+      ? inA(left) !== inA(right)
+      : soloA
+        ? inB(left) !== inB(right)
+        : (inA(left) && inB(right)) || (inB(left) && inA(right));
+    if (ok) kept.push([ts[i]!, ts[i + 1]!]);
+  }
+
+  // 連続する区間をまとめる
+  const out: Segment[] = [];
+  for (const [a0, a1] of kept) {
+    const last = out[out.length - 1];
+    const start = { x: p.x + a0 * dx, y: p.y + a0 * dy };
+    const end = { x: p.x + a1 * dx, y: p.y + a1 * dy };
+    if (last && Math.hypot(last.x2 - start.x, last.y2 - start.y) < EPS) {
+      last.x2 = end.x;
+      last.y2 = end.y;
+      continue;
+    }
+    const horizontal = Math.abs(dy) < 0.5;
+    const vertical = Math.abs(dx) < 0.5;
+    out.push({
+      x1: start.x,
+      y1: start.y,
+      x2: end.x,
+      y2: end.y,
+      horizontal,
+      ...(horizontal || vertical ? {} : { diagonal: true as const }),
+    });
+  }
+  return out;
+}
+
+/** 無限直線 p→q と線分 u→v の交点の、線側のパラメータ t (平行・範囲外は undefined) */
+function lineHit(p: Pt, q: Pt, u: Pt, v: Pt): number | undefined {
+  const rx = q.x - p.x;
+  const ry = q.y - p.y;
+  const sx = v.x - u.x;
+  const sy = v.y - u.y;
+  const d = rx * sy - ry * sx;
+  if (Math.abs(d) < 1e-9) return undefined;
+  const t = ((u.x - p.x) * sy - (u.y - p.y) * sx) / d;
+  const w = ((u.x - p.x) * ry - (u.y - p.y) * rx) / d;
+  return w >= -1e-9 && w <= 1 + 1e-9 ? t : undefined;
 }
 
 export function segmentLength(s: Segment): number {

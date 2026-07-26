@@ -70,6 +70,8 @@ boundary /L1/st /L1/ev t:250 spec:RC
 boundary /L1/ramp /road edge:E t:200 spec:RC
 boundary /L1/ramp /out edge:S t:200 spec:RC
 boundary /L1/ramp /out edge:N t:200 spec:RC
+boundary /L1/ramp /out edge:W t:200 spec:RC
+boundary /L1/ev /out edge:E t:200 spec:RC
 boundary /L1/st /out edge:W t:200 spec:RC
   door FD1 name:屋外への出口
 boundary /L1/st /out edge:N t:200 spec:RC

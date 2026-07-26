@@ -200,6 +200,10 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out exterior
 boundary /L1/a /out edge:E t:150
+boundary /L1/a /out edge:N t:150
+boundary /L1/a /out edge:S t:150
+boundary /L1/a /out edge:W t:150
+boundary /L1/b /out t:150
 ```
 
 `外周に残る辺が無く、境界線分がゼロです: /L1/a | /out`
@@ -423,6 +427,7 @@ space /L1/b room X2..X3 Y1..Y2
 space /out exterior
 boundary /L1/a /out t:150
   door w:800
+boundary /L1/b /out t:150
 ```
 
 `境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/a | /out)` — "specify the side with edge:N/E/S/W".
@@ -552,6 +557,7 @@ space /L1/b room X2..X3 Y1..Y2
 space /out exterior
 boundary /L1/a /out t:150
   seg w:800 spec:X
+boundary /L1/b /out t:150
 ```
 
 `境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/a | /out)`
@@ -1343,6 +1349,34 @@ boundary /L1/a /L1/b t:120
 **Why** — either the line sits exactly where the derived adjacency line already is (so writing it changes nothing), or the cells do not reach the extent the line covers. The first is harmless, but **a line that does nothing should still say so**.
 
 **Fix** — redraw the line where you meant it, or delete it. A mistyped endpoint that was meant to be diagonal shows up here.
+
+## The envelope — ENV
+
+Walls appear from boundaries, but **boundaries to the outside are never derived** — the default boundary (ADR-0014) is not drawn against a space with no region, because naming the other side is itself information. As a result, a forgotten boundary to the outside becomes **a silently missing wall**. This code puts into words what you could previously only catch by looking at the drawing ([ADR-0025](../../docs/decisions/0025-envelope-gaps.md)).
+
+<a id="env01"></a>
+### ENV01 — part of the outline faces nothing
+
+`warning`
+
+```muro-warn
+grid X 0 4000 8000
+grid Y 0 5000
+level L1 0 h:2700
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+space /out exterior
+boundary /L1/a /out edge:W t:200
+boundary /L1/b /out t:150
+```
+
+`外皮に面していない外周があります: /L1/a — 合計 15000mm (3区間)。外部への境界を書きます`
+
+**Why** — of `/L1/a`'s outline, everything except the east side it shares with `/L1/b` — the north, the south and the rest of the west — faces neither another space nor a declared boundary. Because a boundary was written on the west, this level counts as **having started to describe its envelope**, so the remaining holes are counted.
+
+**What is checked is the consistency of "finish what you started", not completeness.** A level with no boundary to the outside at all says nothing — it simply has not modelled its envelope yet, and a two-room example should not be nagged. Exterior spaces, semi-outdoor spaces (derived) and the site tiles under a `site:1` zone are not counted either: not being enclosed is normal for them.
+
+**Fix** — write boundaries for the remaining edges, choosing them with `edge:N/E/S/W` or catching the whole remainder with one unrestricted boundary. If an edge is genuinely open, write `type:open`; if it is a railing, write `air:1` — **all of these differ from writing nothing.**
 
 ## Columns — COL
 

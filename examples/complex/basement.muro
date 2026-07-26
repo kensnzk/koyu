@@ -30,6 +30,8 @@ boundary /B2..B1/mech /out edge:W t:600 spec:RC土圧壁
 boundary /B2..B1/mech /out edge:N t:600 spec:RC土圧壁
 boundary /B2..B1/store /out edge:E t:600 spec:RC土圧壁
 boundary /B2..B1/store /out edge:N t:600 spec:RC土圧壁
+boundary /B2..B1/ps /out edge:N t:600 spec:RC土圧壁
+boundary /B2..B1/tea /out edge:N t:600 spec:RC土圧壁
 boundary /B2..B1/st1 /out edge:N t:600 spec:RC土圧壁
 boundary /B2..B1/ev1 /out edge:N t:600 spec:RC土圧壁
 boundary /B2..B1/ev2 /out edge:N t:600 spec:RC土圧壁

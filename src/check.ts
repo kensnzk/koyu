@@ -13,6 +13,8 @@ import {
   placeOpening,
   planOverlap,
   segmentsFor,
+  segmentLength,
+  envelopeGaps,
   resolveSides,
   soloSide,
   spacesOverlap,
@@ -116,6 +118,7 @@ export const DIAGNOSTIC_CODES: Record<string, "error" | "warning"> = {
   LIN01: "error", // 描かれた線が二つの空間を分離しない (ADR-0022)
   LIN02: "error", // 垂直境界に描かれた線
   LIN03: "warning", // 描かれた線が何も切っていない
+  ENV01: "warning", // 外皮に穴 — 何にも面していない外周 (ADR-0025)
   COL01: "warning", // 柱の宣言に対して立つ柱が0本 (ADR-0023)
   COL02: "warning", // 同じ通りの交点に複数の柱宣言が重なる (先の宣言が勝つ)
   VER01: "error", // koyu 0.1 での既定境界の導出 (ADR-0017)
@@ -327,6 +330,37 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     }
   }
 
+  // 外皮の穴 (ADR-0025): 既定境界は領域を持たない空間との間には導かれない (ADR-0014) ので、
+  // 外部への境界の書き忘れは黙って壁の不在になる。導出された外周のうち、
+  // 他の空間とも宣言された境界とも向かい合っていない区間を数える
+  // 外構のタイル (site:1 ゾーンの配下)・外部・半屋外は囲われていないのが正常なので数えない。
+  // そして**外皮を書き始めているレベルだけ**を見る — 外部への境界が一本も無い階は
+  // 外皮をまだ模型にしていないだけであって、穴が開いているのではない。
+  // 「書き始めたなら閉じきる」という整合の検査であって、完全性の要求ではない (ADR-0025)
+  const siteZones = [...model.zones.values()].filter((z) => z.attrs["site"] === 1).map((z) => z.path);
+  const envelopedLevels = new Set<string>();
+  for (const b of model.boundaries) {
+    if (b.derived || VERTICAL.has(b.kind)) continue;
+    const sa = model.spaces.get(b.a);
+    const sb = model.spaces.get(b.b);
+    if (!sa || !sb) continue;
+    const outer = sa.rects.length === 0 ? sb : sb.rects.length === 0 ? sa : undefined;
+    if (outer?.level) envelopedLevels.add(outer.level);
+  }
+  for (const s of withRect) {
+    if (!s.level || !envelopedLevels.has(s.level)) continue;
+    if (s.type === "exterior" || isSemiOutdoor(model, s)) continue;
+    if (siteZones.some((z) => s.path.startsWith(z + "/"))) continue;
+    const gaps = envelopeGaps(model, s);
+    if (gaps.length === 0) continue;
+    const total = gaps.reduce((a, g) => a + segmentLength(g), 0);
+    emit(
+      "ENV01",
+      `外皮に面していない外周があります: ${s.path} — 合計 ${Math.round(total)}mm (${gaps.length}区間)。外部への境界を書きます`,
+      { line: s.line, file: s.file, path: [s.path] },
+    );
+  }
+
   // 柱 (ADR-0023): 位置は書かれない。宣言に対して一本も立たなければ、
   // 通りか階の指定が実際の床とすれ違っている
   const colGrid = new Map<string, number[]>();
@@ -491,11 +525,15 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       continue;
     }
     const segs = segmentsFor(model, b);
-    if (sa.rects.length > 0 && sb.rects.length > 0 && segs.length === 0) {
-      emit("BND04", `空間が接していないため境界を導けません: ${b.a} | ${b.b}`, bAt);
-    }
-    if ((sa.rects.length > 0 ? 1 : 0) + (sb.rects.length > 0 ? 1 : 0) === 1 && segs.length === 0) {
-      emit("BND06", `外周に残る辺が無く、境界線分がゼロです: ${b.a} | ${b.b}`, bAt);
+    // 線を持つ境界の線分ゼロは「接していない」ではない — 線が分離していないか
+    // 何も切っていないかであり、それは LIN01 / LIN03 が言う
+    if (!b.drawn) {
+      if (sa.rects.length > 0 && sb.rects.length > 0 && segs.length === 0) {
+        emit("BND04", `空間が接していないため境界を導けません: ${b.a} | ${b.b}`, bAt);
+      }
+      if ((sa.rects.length > 0 ? 1 : 0) + (sb.rects.length > 0 ? 1 : 0) === 1 && segs.length === 0) {
+        emit("BND06", `外周に残る辺が無く、境界線分がゼロです: ${b.a} | ${b.b}`, bAt);
+      }
     }
     if (b.kind === "open" && b.openings.length > 0) {
       emit("OPN03", `open境界の開口は通行に影響しません (常に通れます)`, bAt);

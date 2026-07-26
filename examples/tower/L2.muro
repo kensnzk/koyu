@@ -53,6 +53,8 @@ boundary /L2/s3 /out/w edge:W t:200 spec:RC
   window W2
 boundary /L2/corridor /out/w edge:W t:200 spec:RC
   window W2
+boundary /L2/corridor /out/road-e edge:E t:200 spec:RC
+  window W2
 boundary /L2/st2 /out/w edge:W t:200 spec:RC
   window W2
 boundary /L2/void /out/road-e edge:E t:100 spec:カーテンウォール

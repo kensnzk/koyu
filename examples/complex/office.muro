@@ -31,6 +31,8 @@ boundary /L7..L13/officeE /out edge:E t:250 spec:カーテンウォール
   window CW2 at:0.5
 boundary /L7..L13/officeE /out edge:S t:250 spec:カーテンウォール
 boundary /L7..L13/officeE /out edge:N t:250 spec:カーテンウォール
+boundary /L7..L13/ps /out edge:N t:250 spec:PC板
+boundary /L7..L13/tea /out edge:N t:250 spec:PC板
 boundary /L7..L13/st1 /out edge:N t:250 spec:PC板
 boundary /L7..L13/ev1 /out edge:N t:250 spec:PC板
 boundary /L7..L13/ev2 /out edge:N t:250 spec:PC板

@@ -24,6 +24,8 @@ boundary /L6/elec /out edge:S t:250 spec:PC板
 boundary /L6/tank /out edge:E t:250 spec:PC板
 boundary /L6/tank /out edge:S t:250 spec:PC板ガラリ
 boundary /L6/tank /out edge:N t:250 spec:PC板ガラリ
+boundary /L6/ps /out edge:N t:250 spec:PC板
+boundary /L6/tea /out edge:N t:250 spec:PC板
 boundary /L6/st1 /out edge:N t:250 spec:PC板
 boundary /L6/ev1 /out edge:N t:250 spec:PC板
 boundary /L6/ev2 /out edge:N t:250 spec:PC板

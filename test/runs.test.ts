@@ -33,7 +33,10 @@ stack s L1..L2 type:stair
   assert.equal(up.risers, 17);
   assert.equal(Math.round(up.riser), 176);
   assert.equal(Math.round(up.tread), 300);
-  assert.deepEqual(check(m), { errors: [], warnings: [] });
+  // 最小の模型なので外皮 (ENV01) は書いていない — 縦動線まわりの診断が無いことを見る
+  const r = check(m);
+  assert.deepEqual(r.errors, []);
+  assert.deepEqual(r.warnings.filter((w) => !w.includes("外皮")), []);
 });
 
 test("同じ階段室でも階高が変われば段割りが変わる (書き分けはどこにも無い)", () => {

@@ -120,6 +120,7 @@ boundary /L1/w02 /site/plaza edge:W t:300 spec:カーテンウォール
 boundary /L1/w03 /site/plaza edge:W t:300 spec:カーテンウォール
   door AD1
 boundary /L1/w04 /site/plaza edge:W t:300 spec:カーテンウォール
+boundary /L1/w04 /out edge:N t:300 spec:カーテンウォール
 boundary /L1/s01 /site/walk edge:S t:300 spec:カーテンウォール
   door AD1
 boundary /L1/s02 /site/walk edge:S t:300 spec:カーテンウォール
