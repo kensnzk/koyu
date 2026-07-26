@@ -645,7 +645,9 @@ export function canonicalBoundaryEntry(b: Boundary): Record<string, unknown> {
     ...(b.air ? { air: true } : {}),
     ...(b.edge ? { edge: b.edge } : {}),
     // 描かれた線は書かれた綴りのまま残す — 頂点座標はビルドの産物であって構成ではない
-    ...(b.drawn ? { line: [b.drawn.aRef, b.drawn.bRef] } : {}),
+    // 端点の書き順は図形を変えない (線分は向きを持たない — 導出される凸片は同一) ので、
+    // 解決座標の昇順に正準化する。**綴りは保つ** (通り参照のまま — 規則3)
+    ...(b.drawn ? { line: canonicalLineEnds(b.drawn) } : {}),
     ...(Object.keys(b.attrs).length ? { attrs: sortObj(b.attrs) } : {}),
     ...(b.openings.length ? { openings: sortBySerial(b.openings.map(canonicalOpeningEntry)) } : {}),
     ...(b.segs.length ? { segs: sortBySerial(b.segs.map(canonicalSegEntry)) } : {}),
@@ -699,18 +701,19 @@ export function toCanonical(model: Model): string {
     ),
     ...(Object.keys(assets).length ? { assets } : {}),
     ...(Object.keys(polygons).length ? { polygons } : {}),
+    // **柱の宣言順は意味である。**同じ交点に二本は立たず、先の宣言が勝つ (ADR-0023) ので、
+    // 並べ替えると別の建物が同一のJSONになる。並べ替えてよいのは宣言の**中**の、
+    // 順序に意味の無い通り名の列だけである (ADR-0029)
     ...(model.columns.length
       ? {
-          columns: sortBySerial(
-            model.columns.map((c) => ({
-              size: c.size,
-              ...(c.depth !== undefined ? { d: c.depth } : {}),
-              levels: c.levels,
-              ...(c.xNames ? { x: c.xNames } : {}),
-              ...(c.yNames ? { y: c.yNames } : {}),
-              ...(Object.keys(c.attrs).length ? { attrs: sortObj(c.attrs) } : {}),
-            })),
-          ),
+          columns: model.columns.map((c) => ({
+            size: c.size,
+            ...(c.depth !== undefined ? { d: c.depth } : {}),
+            levels: c.levels,
+            ...(c.xNames ? { x: sortGridNames(model.grid.X.names, c.xNames) } : {}),
+            ...(c.yNames ? { y: sortGridNames(model.grid.Y.names, c.yNames) } : {}),
+            ...(Object.keys(c.attrs).length ? { attrs: sortObj(c.attrs) } : {}),
+          })),
         }
       : {}),
     ...(Object.keys(zones).length ? { zones } : {}),
@@ -720,11 +723,37 @@ export function toCanonical(model: Model): string {
   return JSON.stringify(doc, null, 2) + "\n";
 }
 
+/**
+ * 描かれた線の端点の対を、解決座標の昇順に並べる。
+ * 線分は向きを持たない — 端点をどちらから書いても導出される凸片は同一なので、
+ * 書き順は綴りの揺れである (規則1)。綴り自体は通り参照のまま保つ (規則3)
+ */
+function canonicalLineEnds(d: DrawnLine): [string, string] {
+  const forward = d.a.x < d.b.x || (d.a.x === d.b.x && d.a.y <= d.b.y);
+  return forward ? [d.aRef, d.bRef] : [d.bRef, d.aRef];
+}
+
+/** 通り名の列を通りの並び順に整える — `x:X2,X1` と `x:X1,X2` は同じ構成である */
+function sortGridNames(axis: string[], names: string[]): string[] {
+  return [...names].sort((p, q) => {
+    const ip = axis.indexOf(p);
+    const iq = axis.indexOf(q);
+    if (ip < 0 || iq < 0) return p < q ? -1 : p > q ? 1 : 0; // 未宣言の通りは辞書順で安定させる
+    return ip - iq;
+  });
+}
+
 function sortObj<T>(o: Record<string, T>): Record<string, T> {
   return Object.fromEntries(Object.entries(o).sort(([a], [b]) => (a < b ? -1 : 1)));
 }
 
-/** 宣言順に意味の無い集合を、直列化したJSONの辞書順に並べる — 正準順の土台 (diffも同じ順で比べる) */
+/**
+ * 宣言順に意味の無い集合を、直列化したJSONの辞書順に並べる — 正準順の土台 (diffも同じ順で比べる)。
+ *
+ * **掛ける前に問う: この配列の順序を入れ替えたら別の構成になるか。**なるなら掛けてはならない。
+ * 並べ替えは整形ではなく「順序に意味が無い」ことの表明である。柱 (columns) は先勝ちの規則を
+ * 持つので掛けない — 掛けていたとき、別の建物が同一バイトの正準JSONになっていた (ADR-0029)
+ */
 export function sortBySerial<T>(items: T[]): T[] {
   return items
     .map((it) => [JSON.stringify(it), it] as const)

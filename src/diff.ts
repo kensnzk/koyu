@@ -15,6 +15,8 @@ import {
   type Attrs,
   type AttrValue,
   type Boundary,
+  type ColumnDecl,
+  type DrawnLine,
   type Edge,
   type Model,
   type Opening,
@@ -65,6 +67,16 @@ export interface BoundaryItem {
   t?: number;
 }
 
+/**
+ * 柱の宣言 (ADR-0023)。**宣言順が意味を持つ** (同じ交点は先の宣言が勝つ) ので、
+ * 順位も差分の対象である — 二行を入れ替えると実際に立つ柱が変わる
+ */
+export interface ColumnItem {
+  /** 宣言の順位 (1始まり) */
+  at: number;
+  label: string;
+}
+
 export interface BoundaryChange {
   between: [string, string];
   edge?: Edge;
@@ -81,6 +93,8 @@ export interface ModelDiff {
   zones: { added: string[]; removed: string[]; renamed: RenamedItem[]; changed: ChangedItem[] };
   spaces: { added: SpaceItem[]; removed: SpaceItem[]; renamed: RenamedItem[]; changed: ChangedItem[] };
   boundaries: { added: BoundaryItem[]; removed: BoundaryItem[]; changed: BoundaryChange[] };
+  /** 柱 (ADR-0023) — 宣言の集合と、その順位 */
+  columns: { added: ColumnItem[]; removed: ColumnItem[]; changed: ChangedItem[] };
 }
 
 // ---- 対応付け ----
@@ -335,6 +349,13 @@ function openingFields(oa: Opening, ob: Opening): FieldChange[] {
   return out;
 }
 
+/** 描かれた線の綴り (端点は正準順 — 書き順は図形を変えない) */
+function lineLabel(d: DrawnLine | undefined): string | undefined {
+  if (!d) return undefined;
+  const forward = d.a.x < d.b.x || (d.a.x === d.b.x && d.a.y <= d.b.y);
+  return forward ? `${d.aRef}..${d.bRef}` : `${d.bRef}..${d.aRef}`;
+}
+
 function boundaryFields(ba: Boundary, bb: Boundary, tokA: (p: string) => string, tokB: (p: string) => string): FieldChange[] {
   const out: FieldChange[] = [];
   if (ba.kind !== bb.kind) out.push(fieldChange("kind", ba.kind, bb.kind));
@@ -342,6 +363,12 @@ function boundaryFields(ba: Boundary, bb: Boundary, tokA: (p: string) => string,
   if ((ba.air ?? false) !== (bb.air ?? false)) out.push(fieldChange("air", ba.air ? "1" : undefined, bb.air ? "1" : undefined));
   if ((orientationMatters(ba) || orientationMatters(bb)) && tokA(ba.a) !== tokB(bb.a)) {
     out.push(fieldChange("向き(a側)", ba.a, bb.a));
+  }
+  // 描かれた線 (ADR-0022) — 境界の実現そのものなので、動かせば建物の形が変わる。
+  // 面積の変化として空間側に間接的に出ることはあるが、それは導出値であって原因ではない。
+  // 面積が偶然一致する変更 (隅切りを反対の隅へ移す) は、ここが無いと完全に不可視になる
+  if (lineLabel(ba.drawn) !== lineLabel(bb.drawn)) {
+    out.push(fieldChange("line", lineLabel(ba.drawn), lineLabel(bb.drawn)));
   }
   out.push(...attrFields(ba.attrs, bb.attrs));
   // 開口 — (kind, edge, at) で対にし、対はフィールド差分、残りは追加/削除
@@ -390,6 +417,7 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
     zones: { added: [], removed: [], renamed: [], changed: [] },
     spaces: { added: [], removed: [], renamed: [], changed: [] },
     boundaries: { added: [], removed: [], changed: [] },
+    columns: { added: [], removed: [], changed: [] },
   };
   if (a.version !== b.version) d.version = { from: a.version, to: b.version };
   if (a.name !== b.name) {
@@ -426,6 +454,10 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
       if (la.z !== lb.z) fields.push(fieldChange("z", str(la.z), str(lb.z)));
       if (la.h !== lb.h) fields.push(fieldChange("h", str(la.h), str(lb.h)));
       if (la.slab !== lb.slab) fields.push(fieldChange("slab", str(la.slab), str(lb.slab)));
+      // 地下の宣言 (ADR-0022) は集計 (地上/地下の床面積) と矩計が読む — 落とすと意味が変わる
+      if (!!la.underground !== !!lb.underground) {
+        fields.push(fieldChange("underground", la.underground ? "1" : "—", lb.underground ? "1" : "—"));
+      }
       if (fields.length) d.levels.changed.push({ path: name, fields });
     }
   }
@@ -451,13 +483,46 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
     if (!pa && pb) d.polygons.added.push(path);
     else if (pa && !pb) d.polygons.removed.push(path);
     else if (pa && pb && polygonNormal(pa.points) !== polygonNormal(pb.points)) {
-      d.polygons.changed.push({
-        path,
-        fields: [
-          fieldChange("頂点", String(pa.points.length), String(pb.points.length)),
-          fieldChange("面積", fmtArea(round2(polygonAreaM2(pa.points))), fmtArea(round2(polygonAreaM2(pb.points)))),
-        ],
-      });
+      // 変わった項だけを言う — 「頂点 4 → 4 / 面積 100.00㎡ → 100.00㎡」は
+      // 何も伝えない。形が変わって頂点数も面積も同じなら、そう言う
+      const fields: FieldChange[] = [];
+      if (pa.points.length !== pb.points.length) {
+        fields.push(fieldChange("頂点", String(pa.points.length), String(pb.points.length)));
+      }
+      const ar = round2(polygonAreaM2(pa.points));
+      const br = round2(polygonAreaM2(pb.points));
+      if (ar !== br) fields.push(fieldChange("面積", fmtArea(ar), fmtArea(br)));
+      if (fields.length === 0) fields.push(fieldChange("形", "頂点数も面積も同じ", "頂点の位置が違う"));
+      d.polygons.changed.push({ path, fields });
+    }
+  }
+
+  // 柱 (ADR-0023) — 位置は書かれないので、比べるのは宣言そのものである。
+  // **宣言順が意味を持つ** (同じ交点は先の宣言が勝つ) ので、順位の入替も差分になる
+  {
+    const label = (c: ColumnDecl): string =>
+      [
+        `${c.size}角`,
+        ...(c.depth !== undefined ? [`d:${c.depth}`] : []),
+        c.levels.length > 2 ? `${c.levels[0]}..${c.levels[c.levels.length - 1]}` : c.levels.join(","),
+        ...(c.xNames ? [`x:${c.xNames.join(",")}`] : []),
+        ...(c.yNames ? [`y:${c.yNames.join(",")}`] : []),
+        ...Object.entries(c.attrs).map(([k, v]) => `${k}:${v}`),
+      ].join(" ");
+    const rank = (cs: ColumnDecl[]): Map<string, number> => {
+      const m = new Map<string, number>();
+      cs.forEach((c, i) => m.set(label(c), i + 1));
+      return m;
+    };
+    const ra = rank(a.columns);
+    const rb = rank(b.columns);
+    for (const [lab, at] of ra) if (!rb.has(lab)) d.columns.removed.push({ at, label: lab });
+    for (const [lab, at] of rb) if (!ra.has(lab)) d.columns.added.push({ at, label: lab });
+    for (const [lab, at] of ra) {
+      const to = rb.get(lab);
+      if (to !== undefined && to !== at) {
+        d.columns.changed.push({ path: lab, fields: [fieldChange("順位", String(at), String(to))] });
+      }
     }
   }
 
@@ -604,5 +669,8 @@ export function renderDiff(d: ModelDiff): string[] {
   }
   for (const x of d.boundaries.removed) out.push(`− 境界 ${betweenLabel(x)}`);
   for (const c of d.boundaries.changed) out.push(`± 境界 ${betweenLabel(c)}: ${fmtFields(c.fields)}`);
+  for (const c of d.columns.added) out.push(`+ 柱 ${c.label}`);
+  for (const c of d.columns.removed) out.push(`− 柱 ${c.label}`);
+  for (const c of d.columns.changed) out.push(`± 柱 ${c.path}: ${fmtFields(c.fields)}`);
   return out;
 }

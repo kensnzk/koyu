@@ -2,7 +2,7 @@
 
 # Semantics reference — derivation, checking, queries
 
-As of koyu v0.12.0. For the grammar see [language.md](language.md). What is written here is what is derived from what was authored, what is checked, and what the queries answer — form, quantity, and the inside/outside distinction are all absent from the authored source, and all defined here as derivations.
+As of koyu v0.13.0. For the grammar see [language.md](language.md). What is written here is what is derived from what was authored, what is checked, and what the queries answer — form, quantity, and the inside/outside distinction are all absent from the authored source, and all defined here as derivations.
 
 > This is a reference. If you are learning koyu, start at [guide/en/start.md](../../guide/en/start.md).
 
