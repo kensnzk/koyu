@@ -130,12 +130,17 @@ export function slabs(model: Model): Slab[] {
 
       // 屋根: 上に空間が重なっていない範囲に架かる。
       // **一部だけ覆われている空間には、覆われていない範囲にだけ屋根が架かる** —
-      // 基壇の上に塔屋が載る建物では、これが基壇屋上として現れる。書かれていない
-      if (isVoid || isExterior) continue;
+      // 基壇の上に塔屋が載る建物では、これが基壇屋上として現れる。書かれていない。
+      //
+      // **床の不在は屋根の不在ではない。**吹抜けにも屋根は架かる — 上に何も無い
+      // 吹抜けは、天窓で塞がれた竪穴か、空に開いた中庭かのどちらかであり、
+      // 後者は半屋外として導出される (ADR-0007)。だから除くのは外部と半屋外だけである。
+      // 逆に**覆っている側には吹抜けも数える** — 竪穴の途中の階に屋根は架からない。
+      if (isExterior || semi) continue;
       const covers: Rect[] = [];
       for (const up of levels.slice(li + 1)) {
         for (const o of byLevel.get(up.name) ?? []) {
-          if (o.type === "void") continue; // 吹抜けは覆わない (床の不在)
+          if (o.type === "exterior") continue;
           covers.push(...o.rects);
         }
       }

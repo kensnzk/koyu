@@ -8,10 +8,10 @@ koyu は建築をテキストで書く記法 (`.muro`) とその処理系であ�
 
 | 場所 | 中身 | 触るときの規律 |
 |---|---|---|
-| `src/` | 実装 約6,000行 — `parse.ts` `parse-file.ts` (合成) `model.ts` `check.ts` `graph.ts` `vertical.ts` (縦動線) `fabric.ts` (床・天井・屋根) `light.ts` `site.ts` `plan.ts` `diff.ts` `cli.ts` `mcp.ts` `index.ts` | 実行時依存ゼロ。挙動を変えたら spec とテストを同じ変更で直す |
+| `src/` | 実装 約6,000行 — `parse.ts` `parse-file.ts` (合成) `model.ts` `check.ts` `graph.ts` `vertical.ts` (縦動線) `fabric.ts` (床・天井・屋根) `light.ts` `site.ts` `plan.ts` `axo.ts` (軸測図) `diff.ts` `cli.ts` `mcp.ts` `index.ts` | 実行時依存ゼロ。挙動を変えたら spec とテストを同じ変更で直す |
 | `spec/` | **規範リファレンス** (現在形) — 文法・意味論・語彙台帳・正準JSON・ツール契約 | 追補を積まない。本文をその場で書き換える |
 | `guide/` | **学ぶ本** — チュートリアル・概念・how-to・診断事典・CLI/API | 規範を書かない。spec へリンクする |
-| `docs/decisions/` | **ADR** — なぜそう決めたか、何を棄却したか (0001〜0025) | 決定は追記のみ。覆すときは新しいADRを書く |
+| `docs/decisions/` | **ADR** — なぜそう決めたか、何を棄却したか (0001〜0026) | 決定は追記のみ。覆すときは新しいADRを書く |
 | `docs/` | `writing-architecture.md` (主張の本文)・`roadmap.md`・`horizon.md`・`ifc-coverage.md`・`log/`・`reviews/` | |
 | `examples/` | 同梱の建物 — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (縦動線の最小例) `complex/` (延床31,116㎡) `comparison/`。`steps/` は guide/start.md の各段の到達点 | 触ったら `npm run check:examples` が門番 |
 | `test/` | `node --test` の20ファイル。206件が緑 | 保証はテストで固定する。仕様の文だけでは着地していない |
@@ -29,11 +29,12 @@ npx tsx src/cli.ts check examples/two-rooms.muro            # 整合の門番
 npx tsx src/cli.ts check bad.muro --json                    # 診断コードつき (人向け出力にコードは出ない)
 npx tsx src/cli.ts check bad.muro --strict                  # 警告も終了コード1
 npx tsx src/cli.ts plan  examples/office.muro -l L2 -o out/office-L2.svg
+npx tsx src/cli.ts axo   examples/complex/main.muro -o out/axo.svg   # 立体もSVGで出る (ADR-0026)
 npx tsx src/cli.ts doors examples/mansion.muro /L9/A/ldk /out
 npx tsx src/cli.ts json  examples/two-rooms.muro            # 正準JSON
 ```
 
-サブコマンドは `check` `diff` `plan` `doors` `graph` `stats` `levels` `runs` `light` `site` `json`。実際の出力つきの解説は [guide/cli.md](guide/cli.md)、契約は [spec/tools.md](spec/tools.md)。
+サブコマンドは `check` `diff` `plan` `axo` `doors` `graph` `stats` `levels` `runs` `light` `site` `json`。実際の出力つきの解説は [guide/cli.md](guide/cli.md)、契約は [spec/tools.md](spec/tools.md)。
 
 専用の `--help` は無い。引数を欠いた呼び出し (`--help` を含む) が使い方を印字して**終了コード2**を返す。使い方行は `plan` の `-l/-o` と `doors` の二つのパス引数を落としているので、そこは [guide/cli.md](guide/cli.md) を見る。
 

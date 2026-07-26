@@ -7,6 +7,7 @@ import { check } from "../src/check.js";
 import { doorsBetween, segmentsFor } from "../src/graph.js";
 import { areaM2, columnsFor, polyBounds } from "../src/model.js";
 import { slabs } from "../src/fabric.js";
+import { svgAxo } from "../src/axo.js";
 import { parse } from "../src/parse.js";
 import { runDrawsForLevel, runSolids, verticalRuns } from "../src/vertical.js";
 
@@ -310,4 +311,53 @@ stack s L1..L2 type:stair
   assert.ok(!kinds("/L1/s").includes("ceiling"), "縦動線に天井は無い (面でない)");
   assert.ok(!kinds("/L1/a").includes("ceiling"), "ceiling:0 は現し天井");
   assert.ok(kinds("/L1/a").includes("floor"), "床はある");
+});
+
+// ---- 軸測図 (ADR-0026) ----
+
+test("軸測: 立体がSVGとして出る — 床・壁・柱・縦動線がすべて投影される", () => {
+  const m = parse(`koyu 0.5
+grid X 0 3000 6000
+grid Y 0 8000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+level R 6000 slab:300
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L2/s stair X1..X2 Y1..Y1+7000
+space /L1/a room X2..X3 Y1..Y1+7000
+space /L2/a room X2..X3 Y1..Y1+7000
+space /out exterior
+boundary /L1/a /out t:200
+boundary /L2/a /out t:200
+boundary /L1/s /out t:200
+boundary /L2/s /out t:200
+column 600 L1..L2
+stack s L1..L2 type:stair
+`);
+  const svg = svgAxo(m);
+  assert.match(svg, /^<svg xmlns/);
+  assert.match(svg, /軸測/);
+  // 段板・柱・床がそれぞれ面として出る (面の数が桁で足りていることを見る)
+  assert.ok(svg.split("<path").length > 100, "面が生成されている");
+  // 向きを変えると別の投影になる
+  assert.notEqual(svgAxo(m, { dir: "NW" }), svg);
+});
+
+test("軸測: 床の不在は屋根の不在ではない — 吹抜けの上は塞がる", () => {
+  const m = parse(`koyu 0.5
+grid X 0 4000 8000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+level R 6000 slab:300
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+space /L2/v void X1..X2 Y1..Y2
+space /L2/b room X2..X3 Y1..Y2
+boundary /L1/a /L2/v type:void
+`);
+  const roofs = slabs(m).filter((s) => s.kind === "roof");
+  // 吹抜けは上に何も無いので屋根が架かる (天窓)。下の /L1/a は吹抜けに覆われるので架からない
+  assert.deepEqual(roofs.filter((r) => r.space === "/L2/v").length, 1);
+  assert.deepEqual(roofs.filter((r) => r.space === "/L1/a").length, 0);
 });

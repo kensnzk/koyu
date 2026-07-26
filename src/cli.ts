@@ -30,10 +30,24 @@ import {
 } from "./model.js";
 import { parseFile } from "./parse-file.js";
 import { svgPlan } from "./plan.js";
+import { svgAxo } from "./axo.js";
 import { slopeText, verticalRuns } from "./vertical.js";
 
 function load(file: string): Model {
   return parseFile(file); // import による合成もここで働く
+}
+
+/** `-l L1..L5` / `-l L1,L3` をレベル名の列へ */
+function expandLevelArg(model: Model, arg: string): string[] {
+  const all = levelsSorted(model).map((l) => l.name);
+  const m = /^([A-Za-z]+\d+)\.\.([A-Za-z]+\d+)$/.exec(arg);
+  if (!m) return arg.split(",").filter((n) => all.includes(n));
+  const za = model.levels[m[1]!]?.z;
+  const zb = model.levels[m[2]!]?.z;
+  if (za === undefined || zb === undefined) return [];
+  return levelsSorted(model)
+    .filter((l) => l.z >= Math.min(za, zb) && l.z <= Math.max(za, zb))
+    .map((l) => l.name);
 }
 
 function opt(rest: string[], ...names: string[]): string | undefined {
@@ -48,7 +62,7 @@ function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
-      "使い方: koyu <check|diff|plan|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]\n" +
+      "使い方: koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]\n" +
         "  check: --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1)\n" +
         "  diff:  koyu diff <a.muro> <b.muro> [--json] — 構成の言葉の差分 (0=差分なし / 1=差分あり / 2=入力が壊れている)",
     );
@@ -297,6 +311,26 @@ function main(argv: string[]): number {
       console.log(`  延べ面積: ${r.totalFloor.toFixed(2)}㎡ → 容積率 ${((r.totalFloor / site) * 100).toFixed(1)}%`);
       return 0;
     }
+    case "axo": {
+      // 軸測図 — 立体をそのまま投影する。平面と同じく生成物のSVGなので、
+      // 実行環境もWebGLも要らず、生成して見るという同じ手で立体を確かめられる
+      const outPath = opt(rest, "-o", "--out") ?? "out/axo.svg";
+      const dirOpt = opt(rest, "-d", "--dir") as "NE" | "NW" | "SE" | "SW" | undefined;
+      const lv = opt(rest, "-l", "--levels");
+      const sc = opt(rest, "-s", "--scale");
+      const svg = svgAxo(model, {
+        ...(dirOpt ? { dir: dirOpt } : {}),
+        ...(lv ? { levels: expandLevelArg(model, lv) } : {}),
+        ...(sc ? { scale: Number(sc) } : {}),
+        ...(rest.includes("--ceilings") ? { ceilings: true } : {}),
+        ...(rest.includes("--no-walls") ? { walls: false } : {}),
+      });
+      mkdirSync(dirname(outPath), { recursive: true });
+      writeFileSync(outPath, svg);
+      console.log(`軸測図を生成しました: ${outPath}`);
+      return 0;
+    }
+
     case "runs": {
       // 縦動線 (ADR-0021): 段数も踏面も勾配も原本には書かれていない。全て導出値である
       const runs = verticalRuns(model);

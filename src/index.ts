@@ -41,3 +41,4 @@ export {
 } from "./vertical.js";
 export { siteReport, type SiteReport, type RoadFrontage } from "./site.js";
 export { svgPlan, type PlanOptions } from "./plan.js";
+export { svgAxo, type AxoOptions } from "./axo.js";
