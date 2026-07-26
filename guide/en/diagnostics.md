@@ -1096,6 +1096,58 @@ space /L1/b room X2..X3 Y1..Y2 uid:sp-1
 
 **Fix** — change one to a different token. When it collides with another layer under composition (`import`), deciding a prefix per layer reduces the accidents.
 
+## Interpreted attribute values — ATT
+
+**A value you wrote but that could not be interpreted does not quietly fall back to the default**
+([ADR-0028](../../docs/decisions/0028-diagnostics-per-declaration.md)).
+Which attributes the tools read is the contract in [spec/vocabulary.md](../../spec/vocabulary.md) (marked ★),
+and a value that does not match the ledger's type is an error.
+
+The silence costs most when **the attribute is the entrance to another check**.
+Writing `site:yes` stops the site checks (SIT03 — the building escaping the site outline, an error) from
+running at all, and writing `h:35OO` erases the height invariant (HGT01 — eating into the storey above).
+In both cases `check` stays green and only the answer disappears.
+
+<a id="att01"></a>
+### ATT01 — the attribute takes a positive number
+
+`error`
+
+```muro-bad
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400 slab:300
+level L2 3000 h:2400 slab:300
+space /L1/a room X1..X2 Y1..Y2 h:35OO
+space /L2/a room X1..X2 Y1..Y2
+```
+
+`/L1/a の h は正の数値で書きます: h:35OO`
+
+**Why** — a value meant as a number does not read as one. `35OO` (letter O instead of digit 0), `3500mm` (with a unit) and `1/12` (a fraction) are all carried as strings, and the reader treats them as unwritten and falls back to the default. `level`'s own `h:` turns the same mistake into a syntax error on the spot; only a space's `h:` sat outside that guard.
+
+**Fix** — write a positive number with no unit. Every length is in mm, so units are never written. A ramp's `slope:` takes **the denominator only** (`slope:12` means 1/12).
+
+<a id="att02"></a>
+### ATT02 — the value is not in the ledger's vocabulary
+
+`error`
+
+```muro-bad
+grid X 0 5000
+grid Y 0 5000
+level L1 0 h:2400
+zone /site name:敷地 site:yes
+polygon /site 0,0 5000,0 5000,5000 0,5000
+space /site/a room X1..X2 Y1..Y2 level:L1
+```
+
+`ゾーン /site の site は 0 / 1 のどれかです: site:yes`
+
+**Why** — an attribute whose value set is fixed was given a spelling outside that set: `site` (0/1), `ceiling` (0/1), `turn` (R/L), `style` (hinged/sliding/auto). Case matters — `turn:l` is not `turn:L`.
+
+**Fix** — use the ledger's spelling. `site:1` declares that this zone is the site, and it is the entrance to the site's area, frontage and containment checks (SIT01–SIT05) as well as to the `site` subcommand.
+
 ## Daylight — DAY
 
 <a id="day01"></a>

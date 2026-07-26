@@ -18,7 +18,8 @@ import {
   drawnCut,
   spacesOverlap,
 } from "./graph.js";
-import { heff, isSemiOutdoor, levelsSorted, type Attrs, type Boundary, type Model, type Pt, type Rect, type Space,
+import { heff, isSemiOutdoor, levelsSorted, type Attrs, type Boundary, type Edge, type Model, type Pt, type Rect, type Space,
+  columnSites,
   columnsFor,
   pointInPolygon,
   rectToPoly,
@@ -106,6 +107,8 @@ export const DIAGNOSTIC_CODES = {
   UID01: "error", // 数字だけのuid (ADR-0015)
   UID02: "error", // 空白を含むuid
   UID03: "error", // uidの重複
+  ATT01: "error", // 解釈される属性の値が数値でない (ADR-0028)
+  ATT02: "error", // 解釈される属性の値が台帳の語彙にない (ADR-0028)
   DAY01: "error", // daylightの値が 0/1 以外 (ADR-0020)
   RUN01: "error", // 一つの空間に縦動線の宣言が複数 (ADR-0021)
   RUN02: "error", // 縦動線の値が上る向き (N/E/S/W) でない
@@ -143,6 +146,69 @@ const VERTICAL = new Set(["stair", "shaft", "void"]);
 const LEGACY_DAYLIT = new Set(["unit", "room", "ldk", "bedroom", "living"]);
 
 /** 互換層 — 従来の文字列形式。位置を持つ診断は「file:N行目: 本文」に組み立てる */
+/**
+ * 解釈される属性の値の台帳 (ADR-0028)。**spec/vocabulary.md の★が契約であり、これはその写しである。**
+ *
+ * `of` があれば列挙、無ければ正の数値。ここに無い属性は自由に書けてそのまま運ばれる
+ * (台帳の規則3)。daylight は DAY01 が、form は RUN05 が、縦動線の向きは RUN02 が
+ * 既に守っているので重ねない。
+ */
+const ATTR_RULES: Record<string, Record<string, { of?: Array<string | number> }>> = {
+  space: {
+    h: {},
+    ceiling: { of: [0, 1] },
+    turn: { of: ["R", "L"] },
+    riser: {},
+    tread: {},
+    entry: {},
+    landing: {},
+    lane: {},
+    slope: {},
+    road: {},
+  },
+  zone: { site: { of: [0, 1] }, area: {} },
+  // air:1 の境界の天端高 (手すり・腰壁) — 立体が読むので台帳に載る (ADR-0028)
+  boundary: { h: {} },
+  opening: { style: { of: ["hinged", "sliding", "auto"] } },
+};
+
+interface AttrSubject {
+  rules: Record<string, { of?: Array<string | number> }>;
+  of: Attrs;
+}
+
+/** 値を検査すべき宣言を、出所つきで数え上げる — 母集団は**書かれた宣言**である */
+function attrSubjects(
+  model: Model,
+): Array<[string, AttrSubject, { line?: number; file?: string; path?: string[] }]> {
+  const out: Array<[string, AttrSubject, { line?: number; file?: string; path?: string[] }]> = [];
+  for (const s of model.spaces.values()) {
+    out.push([s.path, { rules: ATTR_RULES["space"]!, of: s.attrs }, { line: s.line, file: s.file, path: [s.path] }]);
+  }
+  for (const z of model.zones.values()) {
+    out.push([`ゾーン ${z.path}`, { rules: ATTR_RULES["zone"]!, of: z.attrs }, { line: z.line, file: z.file, path: [z.path] }]);
+  }
+  for (const b of model.boundaries) {
+    const at = { line: b.line, file: b.file, path: [b.a, b.b] };
+    out.push([`境界 ${b.a} | ${b.b}`, { rules: ATTR_RULES["boundary"]!, of: b.attrs }, at]);
+    for (const o of b.openings) {
+      out.push([
+        `${o.kind} (${b.a} | ${b.b})`,
+        { rules: ATTR_RULES["opening"]!, of: o.attrs },
+        { line: o.line, file: b.file, path: [b.a, b.b] },
+      ]);
+    }
+  }
+  return out;
+}
+
+/** 書かれた通り語で矩形を名指す — 「どの組が重なっているか」を言えるようにする */
+function gridRefText(s: Space, i: number): string {
+  const g = s.grids[i];
+  if (!g) return `#${i + 1}`;
+  return `${g.xa}..${g.xb} ${g.ya}..${g.yb}`;
+}
+
 export function check(model: Model): CheckResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -221,8 +287,14 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   }
   for (const [pair, edges] of pairEdges) {
     if (edges.has("") && edges.size > 1) {
+      // 集合に対する診断でも、集合を作った宣言の行は必ず指す —
+      // 「どこかで併存している」だけでは直す場所が無い
+      const members = model.boundaries.filter((b) => !b.drawn && [b.a, b.b].sort().join(" | ") === pair);
+      const first = members.find((b) => !b.edge) ?? members[0];
       emit("BND05", `同じ空間対に edge 限定つきと無しの境界が併存しています (線分が重なります): ${pair}`, {
+        ...(first ? { line: first.line, file: first.file } : {}),
         path: pair.split(" | "),
+        related: members.filter((b) => b !== first).map((b) => loc(b.line, b.file)),
       });
     }
   }
@@ -233,7 +305,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   // レベルの重複
   for (let i = 1; i < levels.length; i++) {
     if (Math.abs(levels[i]!.z - levels[i - 1]!.z) < EPS) {
-      emit("LVL01", `レベル ${levels[i - 1]!.name} と ${levels[i]!.name} のzが同じです`);
+      emit("LVL01", `レベル ${levels[i - 1]!.name} と ${levels[i]!.name} のzが同じです`, {
+        line: levels[i]!.line,
+        file: levels[i]!.file,
+        related: [loc(levels[i - 1]!.line, levels[i - 1]!.file)],
+      });
     }
   }
 
@@ -242,7 +318,12 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     for (let i = 0; i < s.rects.length; i++) {
       for (let j = i + 1; j < s.rects.length; j++) {
         if (planOverlap(s.rects[i]!, s.rects[j]!)) {
-          emit("GEO01", `${s.path} の領域同士が重なっています`, { line: s.line, file: s.file, path: [s.path] });
+          // どの組かを言わなければ、三つ重なる空間にバイト同一の診断が三件並ぶ
+          emit("GEO01", `${s.path} の領域同士が重なっています: ${gridRefText(s, i)} と ${gridRefText(s, j)}`, {
+            line: s.line,
+            file: s.file,
+            path: [s.path],
+          });
         }
       }
     }
@@ -256,6 +337,8 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       if (a.level !== b.level) continue;
       if (spacesOverlap(a, b)) {
         emit("GEO02", `空間の領域が重なっています: ${a.path} と ${b.path}`, {
+          line: a.line,
+          file: a.file,
           path: [a.path, b.path],
           related: [loc(b.line, b.file)],
         });
@@ -274,6 +357,27 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
         file: s.file,
         path: [s.path],
       });
+    }
+  }
+
+  // 解釈される属性の値 (ADR-0028): **書いたのに解釈されなかった値は、黙って既定へ落とさない。**
+  //
+  // daylight だけが DAY01 で守られていて、他の★属性は素通りだった。帰結は黙殺である —
+  // `site:yes` は敷地の検査 (SIT03 error) を丸ごと無効にし、`h:35OO` は高さ不変量
+  // (HGT01 error) を消し、`ceiling:none` は天井を張り、`turn:l` は階段を鏡像にする。
+  // どれも check は緑のままだった。台帳 (spec/vocabulary.md) が契約である以上、
+  // 台帳の型に合わない値はエラーである。
+  for (const [where, attrs, at] of attrSubjects(model)) {
+    for (const [key, rule] of Object.entries(attrs.rules)) {
+      const v = attrs.of[key];
+      if (v === undefined) continue;
+      if (rule.of) {
+        if (!rule.of.includes(v as string | number)) {
+          emit("ATT02", `${where} の ${key} は ${rule.of.join(" / ")} のどれかです: ${key}:${v}`, at);
+        }
+      } else if (typeof v !== "number" || !(v > 0)) {
+        emit("ATT01", `${where} の ${key} は正の数値で書きます: ${key}:${v}`, at);
+      }
     }
   }
 
@@ -346,35 +450,60 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     if (siteZones.some((z) => s.path.startsWith(z + "/"))) continue;
     const gaps = envelopeGaps(model, s);
     if (gaps.length === 0) continue;
+    // **どの辺かを言う。**合計長だけでは、edge を書き分けている図面で直す辺が特定できない。
+    // envelopeGaps は座標つきの線分を返しているので、方角は既に手元にある
+    const byDir = new Map<string, number>();
+    for (const g of gaps) {
+      const d = g.edgeOfA ?? (g.horizontal ? "N/S" : "E/W");
+      byDir.set(d, (byDir.get(d) ?? 0) + segmentLength(g));
+    }
     const total = gaps.reduce((a, g) => a + segmentLength(g), 0);
+    const where = [...byDir].map(([d, mm]) => `${d} ${Math.round(mm)}mm`).join(" / ");
     emit(
       "ENV01",
-      `外皮に面していない外周があります: ${s.path} — 合計 ${Math.round(total)}mm (${gaps.length}区間)。外部への境界を書きます`,
+      `外皮に面していない外周があります: ${s.path} — ${where} (合計 ${Math.round(total)}mm・${gaps.length}区間)。外部への境界を書きます`,
       { line: s.line, file: s.file, path: [s.path] },
     );
   }
 
   // 柱 (ADR-0023): 位置は書かれない。宣言に対して一本も立たなければ、
   // 通りか階の指定が実際の床とすれ違っている
-  const colGrid = new Map<string, number[]>();
-  for (const c of model.columns) {
-    let total = 0;
-    for (const lv of c.levels) total += columnsFor(model, lv).length;
-    if (total === 0) {
-      emit("COL01", `柱の宣言に対して立つ柱がありません (通りの交点に床がありません): ${c.levels.join(",")} ${c.size}角`, {
-        line: c.line,
-        file: c.file,
-      });
-    }
-    for (const lv of c.levels) {
-      const arr = colGrid.get(lv) ?? [];
-      arr.push(c.size);
-      colGrid.set(lv, arr);
-    }
+  //
+  // **母集団は宣言である。**「このレベルに何本立ったか」ではなく「この宣言から何本立ったか」を
+  // 問う。前者を数えると、同じ階の別の宣言が一本でも立てた瞬間に、一本も立たない宣言が
+  // 黙って通る (ADR-0028)。Column.decl がその帰属を持つ。
+  const stood = new Map<number, number>();
+  const levelsOfDecl = new Set<string>();
+  for (const c of model.columns) for (const lv of c.levels) levelsOfDecl.add(lv);
+  for (const lv of levelsOfDecl) {
+    for (const col of columnsFor(model, lv)) stood.set(col.decl, (stood.get(col.decl) ?? 0) + 1);
   }
-  for (const [lv, sizes] of colGrid) {
-    if (new Set(sizes).size > 1 && model.columns.filter((c) => c.levels.includes(lv) && !c.xNames && !c.yNames).length > 1) {
-      emit("COL02", `レベル ${lv} に通りを限定しない柱の宣言が複数あります (同じ交点では先の宣言が勝ちます)`);
+  for (let ci = 0; ci < model.columns.length; ci++) {
+    const c = model.columns[ci]!;
+    if ((stood.get(ci) ?? 0) > 0) continue;
+    const at = { line: c.line, file: c.file };
+    // 一本も立たない理由は二つある。**狙う交点に床が無い**か、床はあるが先の宣言に
+    // 取られたか。後者を「床がありません」と言うと、直しようのない場所へ人を送る
+    const sites = new Set(c.levels.flatMap((lv) => columnSites(model, c, lv).map((p) => `${lv}|${p.grid}`)));
+    if (sites.size > 0) {
+      // 影を作ったのは、この宣言と同じ交点に**実際に立った**先の宣言だけである
+      const shadow = model.columns.filter((o, oi) => {
+        if (oi >= ci) return false;
+        return o.levels.some((lv) =>
+          columnsFor(model, lv).some((k) => k.decl === oi && sites.has(`${lv}|${k.grid}`)),
+        );
+      });
+      emit(
+        "COL02",
+        `この柱の宣言 (${c.levels.join(",")} ${c.size}角) は同じ交点を先の宣言に取られていて、一本も立ちません (同じ交点では先の宣言が勝ちます)`,
+        { ...at, related: shadow.map((o) => loc(o.line, o.file)) },
+      );
+    } else {
+      emit(
+        "COL01",
+        `柱の宣言に対して立つ柱がありません (通りの交点に床がありません): ${c.levels.join(",")} ${c.size}角`,
+        at,
+      );
     }
   }
 
@@ -433,7 +562,10 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     }
     for (const l of Object.values(model.levels)) {
       if (l.underground) {
-        emit("VER03", `${older}: level ${l.name} の underground: — koyu 0.5 へ上げます`);
+        emit("VER03", `${older}: level ${l.name} の underground: — koyu 0.5 へ上げます`, {
+        line: l.line,
+        file: l.file,
+      });
       }
     }
   }
@@ -499,11 +631,13 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
           emit("VRT04", `void境界の上側は type:void の空間を想定しています: ${upper.path}`, bAt);
         }
       }
-      if (b.openings.length > 0) {
-        emit("VRT05", `垂直境界の開口は解釈されません`, bAt);
+      // 咎めているのは字下げされた door / window / seg の行そのものなので、
+      // 親の境界宣言ではなくその行を指す。宣言が複数あれば診断も複数出る
+      for (const o of b.openings) {
+        emit("VRT05", `垂直境界の${o.kind}は解釈されません`, { line: o.line, file: b.file, path: [b.a, b.b] });
       }
-      if (b.segs.length > 0) {
-        emit("VRT06", `垂直境界の seg は解釈されません`, bAt);
+      for (const g of b.segs) {
+        emit("VRT06", `垂直境界の seg は解釈されません`, { line: g.line, file: b.file, path: [b.a, b.b] });
       }
       continue;
     }
@@ -522,14 +656,39 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
     // 何も切っていないかであり、それは LIN01 / LIN03 が言う
     if (!b.drawn) {
       if (sa.rects.length > 0 && sb.rects.length > 0 && segs.length === 0) {
-        emit("BND04", `空間が接していないため境界を導けません: ${b.a} | ${b.b}`, bAt);
+        // **線分がゼロの理由は二つある。**接していないか、edge: で絞った先に共有辺が
+        // 無いか。前者だと断言すると、実際には接している二室について「割付を直せ」と
+        // 言うことになる — 直すべきは方角一語である (N=+Y, S=-Y, E=+X, W=-X)
+        const without = b.edge ? segmentsFor(model, { ...b, edge: undefined }) : [];
+        if (without.length > 0) {
+          const dirs = [...new Set(without.map((g) => g.edgeOfA))].filter((d): d is Edge => d !== undefined);
+          emit(
+            "BND04",
+            `edge:${b.edge} に共有辺がありません: ${b.a} | ${b.b} (実際に接しているのは ${
+              dirs.join("・") || "別の辺"
+            } です)`,
+            bAt,
+          );
+        } else {
+          emit("BND04", `空間が接していないため境界を導けません: ${b.a} | ${b.b}`, bAt);
+        }
       }
       if ((sa.rects.length > 0 ? 1 : 0) + (sb.rects.length > 0 ? 1 : 0) === 1 && segs.length === 0) {
-        emit("BND06", `外周に残る辺が無く、境界線分がゼロです: ${b.a} | ${b.b}`, bAt);
+        emit(
+          "BND06",
+          `${b.edge ? `edge:${b.edge} の` : ""}外周に残る辺が無く、境界線分がゼロです: ${b.a} | ${b.b}`,
+          bAt,
+        );
       }
     }
     if (b.kind === "open" && b.openings.length > 0) {
-      emit("OPN03", `open境界の開口は通行に影響しません (常に通れます)`, bAt);
+      for (const o of b.openings) {
+        emit("OPN03", `open境界の${o.kind}は通行に影響しません (常に通れます)`, {
+          line: o.line,
+          file: b.file,
+          path: [b.a, b.b],
+        });
+      }
     }
     const placedOnSeg: Array<{ o: (typeof b.openings)[number]; key: string; c: number }> = [];
     for (const o of b.openings) {
@@ -678,7 +837,11 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
       }
       const h = heff(model, s);
       if (h === undefined) {
-        emit("HGT04", `${s.path} の天井高が不明で、${lu.name} との高さ検査ができません`, { path: [s.path] });
+        emit("HGT04", `${s.path} の天井高が不明で、${lu.name} との高さ検査ができません`, {
+          line: s.line,
+          file: s.file,
+          path: [s.path],
+        });
         continue;
       }
       if (h + lu.slab > pitch + EPS) {
@@ -686,24 +849,30 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
         const cover = partners.length ? voidCoverage(s, partners) : 0;
         if (cover >= 0.99) continue; // 全面吹抜け — 宣言的免除
         if (partners.length) {
+          // 本文は HGT01 と同じ三項を出す — 決め手が上階の slab のとき
+          // 「天井高3000は階高3000を超えます」という成り立たない不等式になっていた。
+          // 被覆は免除しきい値 (99%) と衝突しないよう小数一桁で言う
           emit(
             "HGT02",
-            `${s.path} の天井高${h}は階高${pitch}を超えますが、吹抜けの被覆は${Math.round(
-              cover * 100,
-            )}%です。部分吹抜けでは天井高を階高内に収めます (吹抜け部分の高さは導出)`,
-            { path: [s.path] },
+            `${s.path} が上階に食い込みます: 天井高${h} + ${lu.name}のslab${lu.slab} = ${
+              h + lu.slab
+            } > 階高${pitch}。吹抜けの被覆は${(cover * 100).toFixed(1)}%しかありません — 部分吹抜けでは天井高を階高内に収めます (吹抜け部分の高さは導出)`,
+            { line: s.line, file: s.file, path: [s.path] },
           );
         } else {
           emit(
             "HGT01",
             `${s.path} が上階に食い込みます: 天井高${h} + ${lu.name}のslab${lu.slab} = ${h + lu.slab} > 階高${pitch}`,
-            { path: [s.path] },
+            { line: s.line, file: s.file, path: [s.path] },
           );
         }
       }
     }
     if (slabMissing) {
-      emit("HGT03", `レベル ${lu.name} に slab が未宣言のため、${lb.name} との高さ検査ができません`);
+      emit("HGT03", `レベル ${lu.name} に slab が未宣言のため、${lb.name} との高さ検査ができません`, {
+        line: lu.line,
+        file: lu.file,
+      });
     }
   }
 

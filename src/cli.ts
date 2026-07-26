@@ -38,16 +38,38 @@ function load(file: string): Model {
 }
 
 /** `-l L1..L5` / `-l L1,L3` をレベル名の列へ */
+/**
+ * `-l` の解決。**解決できない指定は空配列に落とさない** — 空配列は「一枚も描かない」を
+ * 意味するので、中身の無いSVGを終了コード0で「生成しました」と印字することになる。
+ * 呼び方の問題は呼び方の問題として返す (ADR-0028)。
+ */
 function expandLevelArg(model: Model, arg: string): string[] {
   const all = levelsSorted(model).map((l) => l.name);
-  const m = /^([A-Za-z]+\d+)\.\.([A-Za-z]+\d+)$/.exec(arg);
-  if (!m) return arg.split(",").filter((n) => all.includes(n));
+  // 端点に数字を要求しない — complex の `R` (屋上) のようなレベル名も端点に取れる
+  const m = /^([^.,]+)\.\.([^.,]+)$/.exec(arg);
+  if (!m) {
+    const names = arg.split(",");
+    const unknown = names.filter((n) => !all.includes(n));
+    if (unknown.length > 0) die(`レベルが宣言されていません: ${unknown.join(",")} (宣言済み: ${all.join(" ")})`);
+    return names;
+  }
   const za = model.levels[m[1]!]?.z;
   const zb = model.levels[m[2]!]?.z;
-  if (za === undefined || zb === undefined) return [];
-  return levelsSorted(model)
-    .filter((l) => l.z >= Math.min(za, zb) && l.z <= Math.max(za, zb))
+  if (za === undefined || zb === undefined) {
+    const bad = [m[1]!, m[2]!].filter((n) => model.levels[n] === undefined);
+    die(`レベルが宣言されていません: ${bad.join(",")} (宣言済み: ${all.join(" ")})`);
+  }
+  const out = levelsSorted(model)
+    .filter((l) => l.z >= Math.min(za!, zb!) && l.z <= Math.max(za!, zb!))
     .map((l) => l.name);
+  if (out.length === 0) die(`レベル範囲 ${arg} に当たるレベルがありません`);
+  return out;
+}
+
+/** 呼び方の問題は終了コード2 (使い方と同じ扱い — 構成の問題ではない) */
+function die(message: string): never {
+  console.error(message);
+  process.exit(2);
 }
 
 function opt(rest: string[], ...names: string[]): string | undefined {
@@ -149,6 +171,12 @@ function main(argv: string[]): number {
     }
     case "plan": {
       const level = opt(rest, "-l", "--level") ?? Object.keys(model.levels)[0];
+      // 未宣言のレベルは呼び方の問題 — 生のスタックトレースで落ちない (ADR-0028)
+      if (level !== undefined && model.levels[level] === undefined) {
+        die(
+          `レベルが宣言されていません: ${level} (宣言済み: ${levelsSorted(model).map((l) => l.name).join(" ")})`,
+        );
+      }
       const explicit = opt(rest, "-o");
       const outFile =
         explicit ?? `${file.replace(/\.muro$/, "")}-${level}.svg`;
@@ -206,6 +234,7 @@ function main(argv: string[]): number {
       const byType = new Map<string, number>();
       const byUse = new Map<string, number>();
       let semiTotal = 0;
+      let outdoorTotal = 0;
       for (const l of levels) {
         const onLevel = spaces.filter((s) => s.level === l.name && s.rects.length > 0);
         if (onLevel.length === 0) continue;
@@ -217,6 +246,11 @@ function main(argv: string[]): number {
             continue;
           }
           const a = areaM2(s)!;
+          if (s.type === "exterior") {
+            outdoorTotal += a;
+            console.log(`  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)}㎡ (屋外・不算入)`);
+            continue;
+          }
           if (isSemiOutdoor(model, s)) {
             semiTotal += a;
             console.log(
@@ -234,6 +268,9 @@ function main(argv: string[]): number {
         console.log(`  小計 ${sub.toFixed(2)}㎡`);
       }
       console.log(`合計 ${total.toFixed(2)}㎡ (屋内床面積)`);
+      if (outdoorTotal > 0) {
+        console.log(`屋外 ${outdoorTotal.toFixed(2)}㎡ (広場・空地等 — 床面積に算入しない)`);
+      }
       if (semiTotal > 0) {
         console.log(`半屋外 ${semiTotal.toFixed(2)}㎡ (バルコニー・屋外階段等 — 算入条件は法規細部のため別掲)`);
       }

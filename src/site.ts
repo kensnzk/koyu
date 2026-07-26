@@ -7,6 +7,7 @@ import { unionArea } from "./poly.js";
 import { segmentLength, segmentsFor } from "./graph.js";
 import {
   areaM2,
+  isIndoor,
   isSemiOutdoor,
   polygonAreaM2,
   regionOf,
@@ -45,11 +46,7 @@ export function siteReport(model: Model): SiteReport {
   const declared = siteZone?.attrs["area"];
 
   const spaces = [...model.spaces.values()];
-  const indoor = spaces.filter(
-    (s) =>
-      s.rects.length > 0 && s.level && s.type !== "void" && s.type !== "exterior" &&
-      !isSemiOutdoor(model, s),
-  );
+  const indoor = spaces.filter((s) => s.level && isIndoor(model, s));
   const siteChildren = siteZone
     ? spaces.filter((s) => s.path.startsWith(siteZone.path + "/") && s.rects.length > 0)
     : [];

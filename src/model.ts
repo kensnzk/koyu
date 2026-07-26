@@ -29,6 +29,9 @@ export interface Level {
    * 接土境界の語彙は導入しない (物の名は spec 語彙 — 台帳の規則2)
    */
   underground?: boolean;
+  /** 宣言の出所 — level 由来の診断 (LVL01/HGT03/VER03) が位置を持てるように (ADR-0028) */
+  line: number;
+  file?: string;
 }
 
 export interface GridAxis {
@@ -272,6 +275,11 @@ export interface Column {
   level: string;
   /** 立っている通りの名 (X3・Y2 のような組) — 図面の言葉 */
   grid: string;
+  /**
+   * どの宣言から立ったか (model.columns の添字)。**診断の母集団を宣言に戻すために要る** —
+   * これが無いと「この宣言に対して一本も立たない」を問えない (ADR-0028)
+   */
+  decl: number;
   attrs: Attrs;
 }
 
@@ -405,46 +413,64 @@ export function clipHalfPlane(poly: Pt[], a: Pt, b: Pt, keepLeft: boolean, eps =
 export const polyBounds = poly.bounds;
 
 /**
+ * 宣言 c がそのレベルで狙う交点のうち、**床の上にあるもの**。先勝ちの規則を適用する前の姿。
+ *
+ * 「一本も立たない」の理由を二つに割るために要る (ADR-0028) — ここが空なら床が無く、
+ * 空でないのに一本も立たないなら先の宣言に取られている。直す手が正反対である。
+ */
+export function columnSites(
+  model: Model,
+  c: ColumnDecl,
+  level: string,
+): Array<{ x: number; y: number; grid: string }> {
+  if (!c.levels.includes(level)) return [];
+  const floors = [...model.spaces.values()].filter(
+    (s) => s.level === level && s.type !== "exterior" && s.type !== "void" && s.rects.length > 0,
+  );
+  if (floors.length === 0) return [];
+  const xs = model.grid.X.names
+    .map((n, i) => ({ n, v: model.grid.X.coords[i]! }))
+    .filter((g) => !c.xNames || c.xNames.includes(g.n));
+  const ys = model.grid.Y.names
+    .map((n, i) => ({ n, v: model.grid.Y.coords[i]! }))
+    .filter((g) => !c.yNames || c.yNames.includes(g.n));
+  const out: Array<{ x: number; y: number; grid: string }> = [];
+  for (const gx of xs) {
+    for (const gy of ys) {
+      const inside = floors.some((s) =>
+        (s.pieces.length ? s.pieces : s.rects.map(rectToPoly)).some((p) =>
+          pointInPolygon({ x: gx.v, y: gy.v }, p, 1),
+        ),
+      );
+      if (inside) out.push({ x: gx.v, y: gy.v, grid: `${gx.n}・${gy.n}` });
+    }
+  }
+  return out;
+}
+
+/**
  * そのレベルに立つ柱を導く (ADR-0023)。
  * 通り芯の交点のうち、床のある空間 (exterior・void を除く) の内側にあるものへ柱を置く。
  * 位置はどこにも書かれていない — 通りと床という既にある事実の交わりから現れる
  */
 export function columnsFor(model: Model, level: string): Column[] {
-  const floors = [...model.spaces.values()].filter(
-    (s) => s.level === level && s.type !== "exterior" && s.type !== "void" && s.rects.length > 0,
-  );
-  if (floors.length === 0) return [];
   const out: Column[] = [];
   const seen = new Set<string>();
-  for (const c of model.columns) {
-    if (!c.levels.includes(level)) continue;
-    const xs = model.grid.X.names
-      .map((n, i) => ({ n, v: model.grid.X.coords[i]! }))
-      .filter((g) => !c.xNames || c.xNames.includes(g.n));
-    const ys = model.grid.Y.names
-      .map((n, i) => ({ n, v: model.grid.Y.coords[i]! }))
-      .filter((g) => !c.yNames || c.yNames.includes(g.n));
-    for (const gx of xs) {
-      for (const gy of ys) {
-        const key = `${gx.n}|${gy.n}`;
-        if (seen.has(key)) continue; // 同じ交点に二本は立たない (先の宣言が勝つ)
-        const inside = floors.some((s) =>
-          (s.pieces.length ? s.pieces : s.rects.map(rectToPoly)).some((p) =>
-            pointInPolygon({ x: gx.v, y: gy.v }, p, 1),
-          ),
-        );
-        if (!inside) continue;
-        seen.add(key);
-        out.push({
-          x: gx.v,
-          y: gy.v,
-          w: c.size,
-          d: c.depth ?? c.size,
-          level,
-          grid: `${gx.n}・${gy.n}`,
-          attrs: c.attrs,
-        });
-      }
+  for (let ci = 0; ci < model.columns.length; ci++) {
+    const c = model.columns[ci]!;
+    for (const site of columnSites(model, c, level)) {
+      if (seen.has(site.grid)) continue; // 同じ交点に二本は立たない (先の宣言が勝つ)
+      seen.add(site.grid);
+      out.push({
+        x: site.x,
+        y: site.y,
+        w: c.size,
+        d: c.depth ?? c.size,
+        level,
+        grid: site.grid,
+        decl: ci,
+        attrs: c.attrs,
+      });
     }
   }
   return out;
@@ -505,11 +531,22 @@ export function zoneAreaM2(model: Model, zonePath: string): number {
   let sum = 0;
   for (const s of model.spaces.values()) {
     if (!s.path.startsWith(zonePath + "/")) continue;
-    if (s.type === "void") continue;
-    if (isSemiOutdoor(model, s)) continue;
+    if (!isIndoor(model, s)) continue;
     sum += areaM2(s) ?? 0;
   }
   return Math.round(sum * 100) / 100;
+}
+
+/**
+ * 屋内の床面積に数えるか。**「延べ面積」を問う三箇所 (stats / site / MCP) の唯一の答え**。
+ *
+ * 判定が散っていたときは、外部そのものが屋内床に入り、しかも「隣に道路を書いたか」で
+ * 半屋外に落ちるかどうかが変わっていた。母集団は場所ごとに決めるものではない (ADR-0028)。
+ */
+export function isIndoor(model: Model, s: Space): boolean {
+  if (s.rects.length === 0) return false;
+  if (s.type === "exterior" || s.type === "void") return false;
+  return !isSemiOutdoor(model, s);
 }
 
 /** 実効use属性 — 自分に無ければ、最も深いゾーン祖先から継承する */

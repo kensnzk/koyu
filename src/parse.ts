@@ -379,6 +379,8 @@ function ingest(
             model.levels[nm] = {
               name: nm,
               z: z + pitch * (k - Number(n1)),
+              line: ln,
+              ...(file !== undefined ? { file } : {}),
               ...(h !== undefined ? { h } : {}),
               ...(slab !== undefined ? { slab } : {}),
               ...ug,
@@ -393,6 +395,8 @@ function ingest(
         model.levels[name] = {
           name,
           z,
+          line: ln,
+          ...(file !== undefined ? { file } : {}),
           ...(h !== undefined ? { h } : {}),
           ...(slab !== undefined ? { slab } : {}),
           ...ug,

@@ -70,6 +70,8 @@ koyu v0.12.0 現在。文法は [language.md](language.md)。ここに書くの�
 | UID01 | error | 数字だけのuid (parseの数値化でトークンの区別が失われる — ADR-0015) |
 | UID02 | error | 空白を含むuid |
 | UID03 | error | uidの重複 (space/zone横断でモデル全体一意) |
+| ATT01 | error | 解釈される属性の値が正の数値でない (`h` `riser` `tread` `entry` `landing` `lane` `slope` `road` `area` — 台帳の型に合わない値は黙って既定へ落とさない。ADR-0028) |
+| ATT02 | error | 解釈される属性の値が台帳の語彙にない (`ceiling` 0/1・`turn` R/L・`site` 0/1・`style` hinged/sliding/auto — ADR-0028) |
 | DAY01 | error | daylightの値が 0/1 以外 (採光の対象は二値の宣言 — ADR-0020) |
 | RUN01 | error | 一つの空間に縦動線の宣言が複数 (stair/ramp/escalator/lift は一つの空間に一つ — ADR-0021) |
 | RUN02 | error | 縦動線の値が上る向き (N/E/S/W) でない (lift は 1) |
