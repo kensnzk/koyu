@@ -320,7 +320,7 @@ function handle(msg: Json): void {
       result(id, {
         protocolVersion: (params.protocolVersion as string) ?? "2025-06-18",
         capabilities: { tools: {} },
-        serverInfo: { name: "koyu", version: "0.11.0" },
+        serverInfo: { name: "koyu", version: "0.12.0" },
         instructions:
           "空間一次の建築記述koyuのサーバー。model_summaryで建物を掴み、layersで原本 (.muroレイヤー群) を読み、" +
           "write_layerで編集する。checkが一棟のビルドの門番 — エラーは出所レイヤー:行つきで返る。" +

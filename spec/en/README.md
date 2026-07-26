@@ -26,4 +26,4 @@ Translations follow the same discipline. Japanese is the default locale and `spe
 
 ## The version this describes
 
-This set of documents describes koyu v0.11.0. If it diverges from the package version, fix whatever diverged.
+This set of documents describes koyu v0.12.0. If it diverges from the package version, fix whatever diverged.

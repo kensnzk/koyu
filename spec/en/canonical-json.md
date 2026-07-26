@@ -2,7 +2,7 @@
 
 # Machine-format reference — the canonical JSON
 
-As of koyu v0.11.0. Emitted by `koyu json <entry>` / `toCanonical(model)`. The authored form (.muro) is what people and LLMs work from; the canonical JSON is the footing for machines — diffs, hashes, layer composition, and external connections (RDF and so on) are built on top of it.
+As of koyu v0.12.0. Emitted by `koyu json <entry>` / `toCanonical(model)`. The authored form (.muro) is what people and LLMs work from; the canonical JSON is the footing for machines — diffs, hashes, layer composition, and external connections (RDF and so on) are built on top of it.
 
 > This is a reference. If you are learning koyu, start at [guide/en/start.md](../../guide/en/start.md).
 
