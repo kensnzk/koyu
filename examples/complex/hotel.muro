@@ -58,11 +58,7 @@ boundary /L14..L19/s05 /L14..L19/corridor t:180 spec:戸境RC
 
 # ---- コア ----
 boundary /L14..L19/corridor /L14..L19/hall type:open
-boundary /L14..L19/corridor /L14..L19/ps t:250 spec:RC
-boundary /L14..L19/corridor /L14..L19/tea t:180 spec:LGS
-boundary /L14..L19/s03 /L14..L19/st1 t:250 spec:RC
 boundary /L14..L19/s03 /L14..L19/ps t:250 spec:RC
-boundary /L14..L19/s04 /L14..L19/tea t:180 spec:LGS
 boundary /L14..L19/s04 /L14..L19/st2 t:250 spec:RC
 
 # ---- 外周 ----

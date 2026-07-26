@@ -17,11 +17,7 @@ boundary /B2..B1/park /B2..B1/store t:250 spec:RC
   door GD1 edge:N
 boundary /B2..B1/park /B2..B1/hall t:250 spec:RC
   door FD2 edge:N name:駐車場からEVホールへ
-boundary /B2..B1/park /B2..B1/ps t:250 spec:RC
-boundary /B2..B1/park /B2..B1/tea t:180 spec:LGS
 boundary /B2..B1/mech /B2..B1/ps t:250 spec:RC
-boundary /B2..B1/mech /B2..B1/st1 t:250 spec:RC
-boundary /B2..B1/store /B2..B1/tea t:180 spec:LGS
 boundary /B2..B1/store /B2..B1/st2 t:250 spec:RC
 
 # 外周は土。境界の型ではなく spec の値が「何であるか」を運ぶ

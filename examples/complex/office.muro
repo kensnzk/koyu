@@ -16,10 +16,6 @@ boundary /L7..L13/officeS /L7..L13/officeE type:open
 boundary /L7..L13/officeS /L7..L13/hall t:120 spec:ガラスパーティション
   door AD2 name:貸室入口
 boundary /L7..L13/officeW /L7..L13/ps t:250 spec:RC
-boundary /L7..L13/officeW /L7..L13/st1 t:250 spec:RC
-boundary /L7..L13/officeS /L7..L13/tea t:180 spec:LGS
-boundary /L7..L13/officeS /L7..L13/ps t:250 spec:RC
-boundary /L7..L13/officeE /L7..L13/tea t:180 spec:LGS
 boundary /L7..L13/officeE /L7..L13/st2 t:250 spec:RC
 
 # ---- 外周 ----

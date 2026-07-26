@@ -1,55 +1,142 @@
-# 1階 — 基壇の地表面。商業と、敷地を斜めに貫く通路。
+# 1階 — 基壇の地表面。テナント区画・モール・そして敷地を斜めに貫く通路。
 #
-# **設計された斜めがここにある。** 貫通通路は南北の道路をつなぐ通り抜けで、
-# 敷地を斜めに横切る。その二枚の壁は `line` で引かれた線であり、
-# 通り芯の語 (X2,Y1 → X2+4000,Y6) で書かれているので**読めば斜めと分かる** (ADR-0022)。
-# 通路の形も、両隣の商業区画の形も、ビルドが導く — 頂点座標はどこにも書かれていない。
+# **設計された斜めがここにある。** 貫通通路は南北をつなぐ通り抜けで、敷地を斜めに
+# 横切る。その二枚の壁は `line` で引かれた線であり、通り芯の語 (X2,Y1 → X2+4000,Y6)
+# で書かれているので**読めば斜めと分かる** (ADR-0022)。通路の形も、両隣の区画の形も、
+# ビルドが導く — 頂点座標はどこにも書かれていない。
 #
-# 北西と北東の隅切りは所与の線 (隣地境界) に従った外形の切り落としで、
-# 相手が領域を持たない外部なので、切られた側は面積を失うだけで誰も得ない。
+# 一本の設計線が多くの室の前を通ると、境界ごとに同じ線を書くことになる。これは
+# 「線を第一級にして一度名付けN回参照する」という ADR-0022 の宿題の実証である。
 
 space /L1/ramp parking X1..X2 Y1..Y1+7000 name:車路出口 use:parking
-space /L1/mallW shop X1..X2 Y1+7000..Y6 name:物販西 use:rentable
 space /L1/atrium corridor X2..X3 Y1..Y6 name:貫通通路 use:common floor:石張り
-space /L1/mallE shop X3..X8 Y1..Y4-3200 + X3..X4 Y4-3200..Y6 + X7..X8 Y4-3200..Y6 + X4..X4+3000 Y5..Y6 + X4+15000..X7 Y5..Y6 + X4+3000..X4+15000 Y5..Y5+2700 + X4+3000..X4+15000 Y5+5300..Y6 name:物販・飲食東 use:rentable
+space /L1/mall corridor X3..X8 Y2..Y2+3600 name:モール use:common floor:石張り
+space /L1/north backyard X4..X4+3000 Y5..Y6 + X4+15000..X7 Y5..Y6 + X4+3000..X4+15000 Y5..Y5+2700 + X4+3000..X4+15000 Y5+5300..Y6 name:北側サービス use:common
+space /L1/bohW backyard X3..X4 Y4-3200..Y6 name:バックヤード西 use:common
+space /L1/bohE backyard X7..X8 Y4-3200..Y6 name:荷捌き・搬入 use:common
 space /L1/es escalator X4+3000..X4+15000 Y5+2700..Y5+5300 name:エスカレーター use:common escalator:E
 
-# ---- 設計された斜め: 貫通通路の二枚の壁 ----
-boundary /L1/mallW /L1/atrium t:200 spec:ガラスパーティション
+band Y X1..X2 Y1+7000..Y6
+  space /L1/w01 shop w:8000 name:西区画01 use:rentable
+  space /L1/w02 shop w:8000 name:西区画02 use:rentable
+  space /L1/w03 shop w:8000 name:西区画03 use:rentable
+  space /L1/w04 shop w:rest name:西区画04 use:rentable
+
+band X X3..X8 Y1..Y2
+  space /L1/s01 shop w:8000 name:南区画01 use:rentable
+  space /L1/s02 shop w:8000 name:南区画02 use:rentable
+  space /L1/s03 shop w:8000 name:南区画03 use:rentable
+  space /L1/s04 shop w:8000 name:南区画04 use:rentable
+  space /L1/s05 shop w:rest name:南区画05 use:rentable
+
+band X X3..X8 Y2+3600..Y4-3200
+  space /L1/n01 shop w:8000 name:北区画01 use:rentable
+  space /L1/n02 shop w:8000 name:北区画02 use:rentable
+  space /L1/n03 shop w:8000 name:北区画03 use:rentable
+  space /L1/n04 shop w:8000 name:北区画04 use:rentable
+  space /L1/n05 shop w:rest name:北区画05 use:rentable
+
+# ---- 設計された斜め: 貫通通路の西の壁 ----
+boundary /L1/ramp /L1/atrium t:250 spec:RC
   line X2,Y1 X2+4000,Y6
-  door AD1 at:0.3 name:西区画入口
-boundary /L1/atrium /L1/mallE t:200 spec:ガラスパーティション
+boundary /L1/w01 /L1/atrium t:200 spec:店舗サッシ
+  line X2,Y1 X2+4000,Y6
+  door AD1
+boundary /L1/w02 /L1/atrium t:200 spec:店舗サッシ
+  line X2,Y1 X2+4000,Y6
+  door AD1
+boundary /L1/w03 /L1/atrium t:200 spec:店舗サッシ
+  line X2,Y1 X2+4000,Y6
+  door AD1
+boundary /L1/w04 /L1/atrium t:200 spec:店舗サッシ
+  line X2,Y1 X2+4000,Y6
+  door AD1
+
+# ---- 設計された斜め: 貫通通路の東の壁 (二本は平行) ----
+boundary /L1/atrium /L1/s01 t:200 spec:店舗サッシ
   line X3,Y1 X3+4000,Y6
-  door AD1 at:0.35 name:東区画入口1
-  door AD1 at:0.75 name:東区画入口2
+  door AD1
+boundary /L1/atrium /L1/mall type:open
+  line X3,Y1 X3+4000,Y6
+boundary /L1/atrium /L1/n01 t:200 spec:店舗サッシ
+  line X3,Y1 X3+4000,Y6
+  door AD1
+boundary /L1/atrium /L1/bohW t:250 spec:RC
+  line X3,Y1 X3+4000,Y6
 
 # ---- 所与の斜め: 隣地境界なりの隅切り ----
-boundary /L1/mallW /out t:300 spec:カーテンウォール
-  line X1,Y5 X2,Y6
-boundary /L1/mallE /out t:300 spec:カーテンウォール
+boundary /L1/w04 /out t:300 spec:カーテンウォール
+  line X1,Y5+2000 X2,Y6
+boundary /L1/bohE /out t:300 spec:カーテンウォール
   line X7+4000,Y6 X8,Y5+2000
 
-# ---- 内部 ----
-boundary /L1/ramp /L1/mallW t:250 spec:RC
-boundary /L1/ramp /L1/atrium t:250 spec:RC
-boundary /L1/mallE /L1/es type:open
-boundary /L1/mallE /L1/hall type:open
-boundary /L1/mallE /L1/ps t:250 spec:RC
-boundary /L1/mallE /L1/tea t:180 spec:LGS
-boundary /L1/mallE /L1/st1 t:250 spec:RC
-boundary /L1/mallE /L1/st2 t:250 spec:RC
+# ---- 区画はモールに面して開く ----
+boundary /L1/s01 /L1/mall t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/s02 /L1/mall t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/s03 /L1/mall t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/s04 /L1/mall t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/s05 /L1/mall t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/n01 /L1/mall t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/n02 /L1/mall t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/n03 /L1/mall t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/n04 /L1/mall t:120 spec:店舗サッシ
+  door AD1
+boundary /L1/n05 /L1/mall t:120 spec:店舗サッシ
+  door AD1
 
-# ---- 外周 ----
+# ---- コアとサービス ----
+boundary /L1/n02 /L1/hall type:open
+boundary /L1/n03 /L1/hall type:open
+boundary /L1/n04 /L1/hall type:open
+boundary /L1/bohW /L1/hall t:200 spec:RC
+  door FD2 name:バックヤード扉
+boundary /L1/bohE /L1/hall t:200 spec:RC
+  door FD2 name:荷捌きから
+boundary /L1/north /L1/es type:open
+boundary /L1/north /L1/bohW t:200 spec:RC
+  door w:1200
+boundary /L1/north /L1/bohE t:200 spec:RC
+  door w:1200
+
+# ---- 外周 (南は歩道状空地、東は道路側の空地) ----
 boundary /L1/atrium /site/walk edge:S t:300 spec:カーテンウォール
   door AD1 name:南側通り抜け口
 boundary /L1/atrium /out edge:N t:300 spec:カーテンウォール
   door AD1 name:北側通り抜け口
-boundary /L1/mallW /site/plaza edge:W t:300 spec:カーテンウォール
-  window CW1 at:0.5
 boundary /L1/ramp /site/walk edge:S t:300 spec:RC
 boundary /L1/ramp /site/plaza edge:W t:300 spec:RC
-boundary /L1/mallE /site/walk edge:S t:300 spec:カーテンウォール
-  door AD1 at:X5 name:南側主入口
-boundary /L1/mallE /site/east edge:E t:300 spec:カーテンウォール
-  door AD1 at:Y2 name:東側入口
-boundary /L1/mallE /out edge:N t:300 spec:カーテンウォール
+boundary /L1/w01 /site/plaza edge:W t:300 spec:カーテンウォール
+  door AD1
+boundary /L1/w02 /site/plaza edge:W t:300 spec:カーテンウォール
+  door AD1
+boundary /L1/w03 /site/plaza edge:W t:300 spec:カーテンウォール
+  door AD1
+boundary /L1/w04 /site/plaza edge:W t:300 spec:カーテンウォール
+boundary /L1/s01 /site/walk edge:S t:300 spec:カーテンウォール
+  door AD1
+boundary /L1/s02 /site/walk edge:S t:300 spec:カーテンウォール
+  door AD1
+boundary /L1/s03 /site/walk edge:S t:300 spec:カーテンウォール
+  door AD1
+boundary /L1/s04 /site/walk edge:S t:300 spec:カーテンウォール
+  door AD1
+boundary /L1/s05 /site/walk edge:S t:300 spec:カーテンウォール
+  door AD1
+boundary /L1/s05 /site/east edge:E t:300 spec:カーテンウォール
+  door AD1 name:東側入口
+boundary /L1/n05 /site/east edge:E t:300 spec:カーテンウォール
+boundary /L1/mall /site/east edge:E t:300 spec:カーテンウォール
+  door AD1 name:東側モール入口
+boundary /L1/bohE /site/east edge:E t:300 spec:RC
+  door GD1 name:荷捌き入口
+boundary /L1/bohW /out edge:N t:300 spec:RC
+boundary /L1/bohE /out edge:N t:300 spec:RC
+boundary /L1/north /out edge:N t:300 spec:RC

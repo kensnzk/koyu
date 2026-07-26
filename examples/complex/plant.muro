@@ -15,10 +15,6 @@ boundary /L6/elec /L6/tank t:250 spec:RC
 boundary /L6/elec /L6/hall t:250 spec:RC
   door FD2 name:機械階防火戸
 boundary /L6/ahu /L6/ps t:250 spec:RC
-boundary /L6/ahu /L6/st1 t:250 spec:RC
-boundary /L6/elec /L6/ps t:250 spec:RC
-boundary /L6/elec /L6/tea t:180 spec:LGS
-boundary /L6/tank /L6/tea t:180 spec:LGS
 boundary /L6/tank /L6/st2 t:250 spec:RC
 
 boundary /L6/ahu /out edge:W t:250 spec:PC板
