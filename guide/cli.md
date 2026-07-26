@@ -17,7 +17,7 @@ npx tsx src/cli.ts check examples/two-rooms.muro
 ## 共通のかたち
 
 ```text
-koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [args...]
+koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <entry.muro> [args...]
 ```
 
 **渡すのは常に entry のファイルパス一つである。** `import` で分割されたモデルでも、base層のファイル (`examples/house/main.muro` など) だけを渡す — レイヤーの合成は毎回自動で行われる。分割されたファイルの一枚を単体で渡すと、そのファイルには grid も level も無いので落ちる。
@@ -53,7 +53,7 @@ npx tsx src/cli.ts --help
 ```
 
 ```text
-使い方: koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <file.muro> [引数...]
+使い方: koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]
   check: --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1)
   diff:  koyu diff <a.muro> <b.muro> [--json] — 構成の言葉の差分 (0=差分なし / 1=差分あり / 2=入力が壊れている)
 ```
@@ -206,6 +206,56 @@ Error: レベル R に領域を持つ空間がありません
 **`check` が緑でも `plan` は落ちうる。** 特に、空間がレベルに載っていないとき (診断 [HGT05](diagnostics.md#hgt05) は警告どまり) がこれである。`plan` が落ちたら、まず `check --strict` を通してみるとよい。
 
 描画の規約 (壁の黒帯・open の破線・扉の軌跡・吹抜けの対角線・敷地境界線) は [spec/semantics.md §7](../spec/semantics.md)。同梱例の出来上がりは [gallery.md](gallery.md)。
+
+## axo — 立体を見る (軸測図)
+
+平面と同じ「生成して見る」手で立体を確かめる ([ADR-0026](../docs/decisions/0026-axonometric.md))。
+**実行環境もWebGLも要らない** — 出るのはSVGなので、そのままブラウザでもエディタでも開ける。
+
+```sh
+npx tsx src/cli.ts axo examples/basement/main.muro -o out/axo.svg
+```
+
+```text
+軸測図を生成しました: out/axo.svg
+```
+
+床・屋根・壁・柱・縦動線が投影される。`-d NE|NW|SE|SW` で見る向き (既定 SE)、
+`-l L1..L5` または `-l L1,L3` で描く階、`-s` で縮尺、`--no-walls` で壁を落とし、
+`--ceilings` で天井を描く。
+
+**未宣言のレベル名は終了コード2で落ちる。**空のSVGを黙って書いて「生成しました」と
+言うことはしない ([ADR-0028](../docs/decisions/0028-diagnostics-per-declaration.md))。
+
+```sh
+npx tsx src/cli.ts axo examples/complex/main.muro -l ZZ9
+```
+
+```text
+レベルが宣言されていません: ZZ9 (宣言済み: B2 B1 L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 R)
+```
+
+## runs — 縦動線はどう導かれたか
+
+段数も踏面も踊り場も勾配も**書かれていない** ([ADR-0021](../docs/decisions/0021-vertical-circulation.md))。
+領域と階高から導かれる。何が導かれたかを一覧で見るのがこのコマンドである。
+
+```sh
+npx tsx src/cli.ts runs examples/basement/main.muro
+```
+
+```text
+B2→B1	lift	EV	/B2/ev
+B2→B1	ramp	車路	上り3700mm	折返し	勾配 1/7.2	走り26800mm	/B2/ramp
+B2→B1	stair	避難階段	上り3700mm	折返し	21段 蹴上176 踏面300	走り6000mm	/B2/st
+B1→L1	lift	EV	/B1/ev
+B1→L1	ramp	車路	上り3700mm	折返し	勾配 1/7.2	走り26800mm	/B1/ramp
+B1→L1	stair	避難階段	上り3700mm	折返し	21段 蹴上176 踏面300	走り6000mm	/B1/st
+```
+
+同じ階段室でも階高が違えば段割りが変わる。書き分けはどこにも無い —
+**階高を変えれば段数が変わるのが導出である。**
+導いた結果が使える寸法かどうかは `check` の RUN06 / RUN07 が言う。
 
 ## doors — そこからそこへ、扉を何枚通るか
 
@@ -367,9 +417,9 @@ L1	z:0	h:2700
 
 分解が出ないときは、下階に `h` が無いか、上階に `slab` が無い。そのときは高さの検査も行われず、[HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) の警告が出る。**空間を持たない屋上レベル (`level R 5800 slab:500`) を宣言しておくと、最上階も検査の対象になる。**
 
-## light — 居室は 1/7 を満たすか
+## light — 採光の対象は 1/7 を満たすか
 
-居室 (`daylight:1` を書いた空間) について、窓面積が床面積の 1/7 以上かを確かめる。補正係数を掛けない粗い判定であり、基本計画の解像度に合わせた早期警報である。
+**`daylight:1` と宣言された空間**について、窓面積が床面積の 1/7 以上かを確かめる。型は見ない ([ADR-0020](../docs/decisions/0020-daylight-scope-is-declared.md)) — どの室に 1/7 が掛かるかは法の判断であって型から導けないからである (共同住宅の居室は対象、ホテルの客室は対象外)。補正係数を掛けない粗い判定であり、基本計画の解像度に合わせた早期警報である。
 
 ```sh
 npx tsx src/cli.ts light examples/house/main.muro
@@ -386,16 +436,16 @@ npx tsx src/cli.ts light examples/house/main.muro
 | 0 | 全て満たす、**または `daylight:1` の空間が一つも無い** |
 | 1 | 不足している室がある |
 
-対象は `daylight:1` を書いた空間だけである — 型は見ない ([ADR-0020](../docs/decisions/0020-daylight-scope-is-declared.md))。**窓を一枚も書いていなければ当然落ちる。**
+対象は `daylight:1` を書いた空間だけである — 型は見ない ([ADR-0020](../docs/decisions/0020-daylight-scope-is-declared.md))。**窓を一枚も書いていなければ当然落ちる** — 逆に、窓を書けば通る。
 
 ```sh
 npx tsx src/cli.ts light examples/two-rooms.muro
 ```
 
 ```text
-✖ /L1/a	居室A	窓 0.00㎡ / 床 16.20㎡ = 窓なし (必要 1/7 ≈ 2.31㎡)
-✖ /L1/b	居室B	窓 0.00㎡ / 床 16.20㎡ = 窓なし (必要 1/7 ≈ 2.31㎡)
-✖ 2室中 2室が不足しています
+✔ /L1/a	居室A	窓 2.86㎡ / 床 16.20㎡ = 1/5.7 (必要 1/7 ≈ 2.31㎡)
+✔ /L1/b	居室B	窓 2.86㎡ / 床 16.20㎡ = 1/5.7 (必要 1/7 ≈ 2.31㎡)
+✔ 全2室が 1/7 を満たします (補正係数なしの粗い判定)
 ```
 
 **対象が無いときも終了コードは 0 である。** `daylight:1` を一つも書いていないモデル (事務所など) では判定そのものが行われない。

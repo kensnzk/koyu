@@ -246,6 +246,44 @@ polygon /site -2600,-7000 38000,-7000 38000,19600 2000,21000 -2600,15000
 
 `polygon /ゾーンパス x,y x,y x,y …`。頂点は3つ以上、mm座標 (グリッドと同じ座標系)。**この記法で唯一、格子に載らない「書かれる形」**である — 敷地は測量由来の所与だから。`site:1` のゾーンに対応させる (対応が無ければ警告)。別ファイル+`import` の隔離レイヤーに置く運用が標準。
 
+## column — 柱 ([language.md §3](../spec/language.md)・ADR-0023)
+
+```muro-part
+column 800 L1..L6
+column 900 B2..L6 x:X2,X3 y:Y2 d:1200 spec:SRC
+```
+
+`column <一辺mm> <レベル範囲|レベル名> [属性…]`。**位置は書かない** — 通り芯の交点のうち、
+そのレベルに床のある所に立つ。`x:` / `y:` で通りを限定 (未指定は全通り)、`d:` で矩形断面の奥行。
+**同じ交点に二本は立たず、先に書いた宣言が勝つ** — だから**宣言の順序は意味**であり、
+正準JSONでも並べ替えられない (ADR-0029)。
+
+## line — 描かれた線 ([language.md §4](../spec/language.md)・ADR-0022)
+
+```muro-part
+boundary /L1/a /L1/b t:120
+  line X3,Y1 X3+600,Y2-900
+```
+
+境界の直下に字下げして書く。端点は**通り語の対** (`X3,Y1` / `X3+600,Y2-900`) で、
+生の座標も角度も書けない。境界の実現を、隣接からの導出ではなく**設計の行為**として与える —
+二空間の割付の合併を線の両側へ分け直すので、一方が失う面積をもう一方が得る。
+一つの境界に線は一本。線は**平面を区切る行為**なので、垂直境界には引けない。
+
+## 縦動線 — stair / ramp / escalator / lift ([vocabulary.md](../spec/vocabulary.md)・ADR-0021)
+
+```muro-part
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:N form:return turn:R
+space /L1/e escalator X4..X5 Y1..Y2 escalator:E lane:1200
+space /L1/ev shaft X2..X3 Y1..Y2 lift:1
+```
+
+キーが装置を名指し、値が**上る向き** (`N`/`E`/`S`/`W`。lift は `1`)。
+**段数も踏面も踊り場も勾配も書かない** — 領域と階高から導かれ、`check` の RUN06/RUN07 が
+導出結果を検査する。`form:return` で折返し、`turn:R|L` で回り方、
+`riser:` `tread:` `entry:` `landing:` `lane:` `slope:` で規則の側を上書きする。
+トポロジー (どの階と繋がるか) は別に垂直境界 (`stack` / `type:stair`) が持つ。
+
 ## import — 合成 ([language.md §8](../spec/language.md))
 
 ```muro-part
@@ -311,12 +349,14 @@ entryは常にファイルパスで、`import` は自動で合成される。
 | コマンド | 引数 | 返るもの | 終了コード |
 |---|---|---|---|
 | `check` | `--json` / `--strict` | 整合の可否・エラー/警告 (出所つき) | 0=緑 / 1=エラー (`--strict` は警告も) |
-| `plan` | `-l レベル` `-o 出力.svg` | 平面SVG。既定は最初のレベル / `<entry>-<レベル>.svg` | 0 |
+| `plan` | `-l レベル` `-o 出力.svg` | 平面SVG。既定は最初のレベル / `<entry>-<レベル>.svg` | 0 / 2=未宣言のレベル名 |
 | `doors` | `/パスA /パスB` | 最少扉数と経由列 | 0 / 1=到達不能 / 2 |
 | `graph` | — | 空間ごとの隣接 (境界種別・扉数) | 0 |
 | `stats` | — | レベル別面積・半屋外別掲・ゾーン別・型別・use別 | 0 |
 | `levels` | — | テキストの矩計 (階高の積み上がり) | 0 |
-| `light` | — | 居室ごとの1/7採光判定 | 0=全て✔ / 1 |
+| `axo` | `-o 出力.svg` `-d NE\|NW\|SE\|SW` `-l L1..L5` `-s 縮尺` `--no-walls` `--ceilings` | 軸測図SVG (床・屋根・壁・柱・縦動線) | 0 / 2=未宣言のレベル名 |
+| `runs` | — | 縦動線の一覧 (装置・上る高さ・導出された勾配と走り長) | 0 |
+| `light` | — | **`daylight:1` と宣言された室**の1/7採光判定 | 0=全て✔ / 1 |
 | `site` | — | 敷地面積 (宣言/導出照合)・接道・建蔽率・容積率 | 0 / 1=敷地なし |
 | `json` | — | 正準JSON ([canonical-json.md](../spec/canonical-json.md)) | 0 |
 | `diff` | `<b.muro>` `--json` | 構成の言葉の差分 | 0=差分なし / 1=差分あり / 2=入力が壊れている |
@@ -331,13 +371,17 @@ entryは常にファイルパスで、`import` は自動で合成される。
 
 | 要素 | 解釈される属性 |
 |---|---|
-| space | `type` (一部) `level` `h` `use` `daylight` `road` `uid` ・ 領域 ・ `w` (帯の要素のときのみ) |
-| boundary | `type` `t` `air` `edge` |
+| space | `type` (一部) `level` `h` `use` `daylight` `ceiling` `road` `uid` ・ 領域 ・ `w` (帯の要素のときのみ) ・ 縦動線 (`stair` `ramp` `escalator` `lift` `form` `turn` `entry` `landing` `riser` `tread` `lane` `slope`) |
+| boundary | `type` `t` `air` `edge` ・ `h` (`air:1` の天端高) |
 | opening | `kind` (door/window) ・ アセット参照 ・ `w` `h` `at` `edge` `hinge` `swing` `style` |
-| level | `z` `h` `slab` `pitch` |
+| level | `z` `h` `slab` `pitch` `underground` |
 | zone | `use` `site` `area` `uid` |
 | asset | 開口の属性すべて (既定値として) |
 | polygon | 頂点列 |
+| column | 一辺 ・ レベル ・ `d` `x` `y` (**宣言順も意味**) |
+| line | 端点の対 (通り語) |
 | area / seg | 位置 (領域 / `at`・`w`・`edge`) |
+
+**★の値は検査される** — 数値でなければ [ATT01](diagnostics.md#att01)、決まった語彙の外なら [ATT02](diagnostics.md#att02) ([ADR-0028](../docs/decisions/0028-diagnostics-per-declaration.md))。書いたのに解釈されなかった値は黙って既定へ落ちない。
 
 `name` `floor` `spec` `fire` `sound` `sill` などは自由語である。`spec` は物の名 (RC・LGS・手すり・カーテンウォール…) を書く場所で、ツールは解釈しない。

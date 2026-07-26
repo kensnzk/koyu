@@ -362,6 +362,18 @@ test("台帳: DIAGNOSTIC_CODESとsemantics.md §5の表が集合一致し、BND0
   assert.equal("BND07" in DIAGNOSTIC_CODES, false);
 });
 
+test("台帳: 英訳の §5 の表も実装と集合一致する (訳の欠落は黙って溜まる)", () => {
+  // 訳の同期テストは見出しとコードブロックしか見ないので、**表の行が17本落ちても緑だった**。
+  // 台帳は三者 (実装・spec・spec/en) が一致して初めて契約である (ADR-0016)
+  const en = readFileSync(join(root, "spec/en/semantics.md"), "utf8");
+  const table: Record<string, string> = {};
+  for (const m of en.matchAll(/^\| ([A-Z]{3}\d{2}) \| (error|warning) \|/gm)) {
+    table[m[1]!] = m[2]!;
+  }
+  assert.deepEqual(table, DIAGNOSTIC_CODES);
+  assert.match(en, /\| BND07 \| — \|/);
+});
+
 // ---- (d)(e) CLI: --json / --strict ----
 
 test("CLI: check --json は有効JSON、--strict は警告で終了コード1、SourceErrorはSYN01", { timeout: 60000 }, () => {

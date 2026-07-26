@@ -206,7 +206,7 @@ boundary /L1/a /out edge:W t:150
 boundary /L1/b /out t:150
 ```
 
-`外周に残る辺が無く、境界線分がゼロです: /L1/a | /out`
+`edge:E の外周に残る辺が無く、境界線分がゼロです: /L1/a | /out`
 
 **Cause** — a boundary with a space that has no region (an `exterior`, say) is **what remains of the room's perimeter after removing the intervals that touch other spaces**. In the example, `/L1/a`'s E side is occupied entirely by `/L1/b`, so nothing remains facing `/out`. The boundary you wrote points at nothing.
 
@@ -249,7 +249,7 @@ level L1 0
 space /L1/a room X1..X3 Y1..Y2 + X2..X3 Y1..Y2
 ```
 
-`/L1/a の領域同士が重なっています`
+`/L1/a の領域同士が重なっています: X1..X3 Y1..Y2 と X2..X3 Y1..Y2`
 
 **Cause** — the rectangles one space bundles with `+` overlap each other. It appears when you meant to write an L and got the start of the second rectangle wrong. The overlapping part would be counted twice in the area, so it is not let through.
 
@@ -386,7 +386,7 @@ boundary /L1/a /L1/b type:open
   door w:800
 ```
 
-`open境界の開口は通行に影響しません (常に通れます)` — "it is always passable".
+`open境界のdoorは通行に影響しません (常に通れます)` — "it is always passable".
 
 **Cause** — `open` declares that there is nothing there. It is always passable to begin with, so adding a door changes nothing about passability. It is not counted in `doors` either.
 
@@ -737,7 +737,7 @@ boundary /L1/a /L2/a type:stair
   door w:800
 ```
 
-`垂直境界の開口は解釈されません`
+`垂直境界のdoorは解釈されません`
 
 **Cause** — an opening rides on a wall centerline segment, and a vertical boundary has no segment. Written, it affects neither daylight nor passage nor the drawing. A `stair` is passable without a door, and adding one does not raise the count in `doors`.
 
@@ -803,7 +803,7 @@ space /L2/b room X2..X3 Y1..Y2
 boundary /L1/a /L2/v type:void
 ```
 
-`/L1/a の天井高5400は階高3000を超えますが、吹抜けの被覆は50%です。部分吹抜けでは天井高を階高内に収めます (吹抜け部分の高さは導出)` — "the void's coverage is 50%; under a partial void keep the ceiling height within the storey (the void's height is derived)".
+`/L1/a が上階に食い込みます: 天井高5400 + L2のslab400 = 5800 > 階高3000。吹抜けの被覆は50.0%しかありません — 部分吹抜けでは天井高を階高内に収めます (吹抜け部分の高さは導出)` — "the void's coverage is 50%; under a partial void keep the ceiling height within the storey (the void's height is derived)".
 
 **Cause** — a void (a `type:void` boundary) is a **declarative exemption** from the height invariant, but the exemption holds only as far as the void covers the lower storey's plan. The example voids only half the lower storey, yet declares its ceiling height as 5400, piercing the storey. Over the other half there is a floor, and that part cannot be 5400. The exemption holds only at a coverage ratio of 99% or more (a full-height void).
 
@@ -1282,12 +1282,12 @@ grid X 0 3000 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
-space /L1/s stair X1..X2 Y1..Y1+2400 stair:N
-space /L2/s stair X1..X2 Y1..Y1+2400
+space /L1/s stair X1..X2 Y1..Y1+4600 stair:N
+space /L2/s stair X1..X2 Y1..Y1+4600
 stack s L1..L2 type:stair
 ```
 
-`導出された段の寸法が窮屈です: 17段 蹴上177mm / 踏面150mm (2×蹴上+踏面 = 504mm、目安 550〜700mm)`
+`導出された段の寸法が窮屈です: 17段 蹴上176mm / 踏面150mm (2×蹴上+踏面 = 502mm、目安 550〜700mm)`
 
 **Why** — **neither the number of risers nor the going is written anywhere.** Both fall out of the storey height and the region, which is precisely why checking the derived result is worth doing ([ADR-0021](../../docs/decisions/0021-vertical-circulation.md) — write nothing, check everything). Here the shaft is too shallow and the going comes out at 150mm.
 
@@ -1310,7 +1310,7 @@ space /L2/r ramp X1..X2 Y1..Y2
 stack r L1..L2 type:stair
 ```
 
-`導出された勾配 1/2 が宣言 1/12 より急です (走り長を伸ばすか階高を下げます)`
+`導出された勾配 1/1.3 が宣言 1/12 より急です (走り長を伸ばすか階高を下げます)`
 
 **Why** — the slope is not written either; it is the level difference over the derived run length. `slope:` is **not the slope but the limit you will accept**, and exists only so that this check can be made. Escalators get the same code without any `slope:` when the derived pitch leaves the usual band (about 1/1.7, i.e. 30°).
 
@@ -1424,7 +1424,7 @@ boundary /L1/a /out edge:W t:200
 boundary /L1/b /out t:150
 ```
 
-`外皮に面していない外周があります: /L1/a — 合計 15000mm (3区間)。外部への境界を書きます`
+`外皮に面していない外周があります: /L1/a — S 4000mm / N 4000mm (合計 8000mm・2区間)。外部への境界を書きます`
 
 **Why** — of `/L1/a`'s outline, everything except the east side it shares with `/L1/b` — the north, the south and the rest of the west — faces neither another space nor a declared boundary. Because a boundary was written on the west, this level counts as **having started to describe its envelope**, so the remaining holes are counted.
 
@@ -1450,7 +1450,7 @@ space /L1/a room X1..X2 Y1..Y2
 column 600 L2
 ```
 
-`柱の宣言に対して立つ柱がありません (通りの交点にその階の床がありません): L2 600角`
+`柱の宣言に対して立つ柱がありません (通りの交点に床がありません): L2 600角`
 
 **Why** — a column stands at "grid intersection ∩ floor on that level". If no space of that level covers any intersection, nothing is generated. Usually the level is wrong, the `x:` / `y:` restriction is mistyped, or that floor has not been written yet.
 
@@ -1470,7 +1470,7 @@ column 600 L1
 column 800 L1
 ```
 
-`レベル L1 に通りを限定しない柱の宣言が複数あります (同じ交点では先の宣言が勝ちます)`
+`この柱の宣言 (L1 800角) は同じ交点を先の宣言に取られていて、一本も立ちません (同じ交点では先の宣言が勝ちます)`
 
 **Why** — two columns never stand at the same intersection, so the earlier declaration wins and the later size is silently ignored. There is no implicit "take the larger" rule.
 

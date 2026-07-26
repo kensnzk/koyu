@@ -8,11 +8,13 @@ The five bundled examples are in order of difficulty, and each broadly builds on
 
 | Example | Size | First to demonstrate |
 |---|---|---|
-| [two-rooms](#examplestwo-roomsmuro) | 22 lines / 3 spaces / 3 boundaries / 32.40 m² | Space, boundary, door, the outside. The smallest unit of the notation |
+| [two-rooms](#examplestwo-roomsmuro) | 26 lines / 3 spaces / 3 boundaries / 32.40 m² | Space, boundary, door, the outside. The smallest unit of the notation |
 | [office](#examplesofficemuro) | 110 / 17 / 43 / 419.84 m² | Several levels, a void, vertical boundaries, uncounted subdivisions, open boundaries |
 | [house](#exampleshousemuro-and-exampleshouse) | 89 (single) / 102 in 5 files (composed) / 13 / 31 / 92.75 m² | The site and its exterior works, semi-outdoor, an L-shaped union, assets, layer composition |
-| [mansion](#examplesmansionmuro) | 187 / 122 / 332 / 2366.40 m² | Span expansion of a typical floor, stack, mixed granularity |
-| [tower](#examplestower) | 438 in 9 files / 178 / 542 / 4785.92 m² | The site shape as a polygon, an exception floor as a diff layer, several roads |
+| [mansion](#examplesmansionmuro) | 192 / 122 / 332 / 2366.40 m² | Span expansion of a typical floor, stack, mixed granularity |
+| [tower](#examplestower) | 453 in 9 files / 178 / 543 / 4785.92 m² | The site shape as a polygon, an exception floor as a diff layer, several roads |
+| basement | 84 in 3 files / 15 / 49 / 1242.08 m² | The smallest vertical-circulation example — a folded ramp, a stair, a lift, the underground declaration |
+| complex | 647 in 10 files / 425 / 1364 / 31606.24 m² | An extra-large mixed-use building (B2–19F). Bands, columns, drawn lines, escalators, a ten-sided site |
 
 `npm run check:examples` confirms the consistency of every example at once.
 
@@ -351,7 +353,7 @@ use別: common 662.40㎡ (28.0%) / exclusive 1704.00㎡ (72.0%)
 
 ![tower L1](../img/tower-L1.svg)
 
-438 lines in 9 files / 178 spaces / 542 boundaries / 4785.92 m². An eleven-storey mixed-use building (retail below, housing above) on a corner site of irregular shape. It is the showcase for this notation, and an example of layers written by divided work being built as one building.
+438 lines in 9 files / 178 spaces / 543 boundaries / 4785.92 m². An eleven-storey mixed-use building (retail below, housing above) on a corner site of irregular shape. It is the showcase for this notation, and an example of layers written by divided work being built as one building.
 
 The composition is `main.muro` as the base layer plus eight layers: `assets`, `site-geometry`, `site`, `L1`, `L2`, `typical`, `L3`, `L11`.
 
@@ -456,6 +458,6 @@ Measured in the unit an LLM reads and writes (o200k_base):
 
 57% of IFC4's tokens go to geometry and placement lines, and 26% of IFCX's to mesh coordinate arrays. Both spend a substantial amount on exactly the layer that "form is a generated artifact" banished from the source.
 
-Measured on the same scale, [tower](#examplestower) comes to **432 lines and 8,099 tokens across nine source files** — an eleven-storey building of 4,786 m², 178 spaces, and 542 boundaries that fits in any LLM's context.
+Measured on the same scale, [tower](#examplestower) comes to **453 lines and 8,574 tokens across nine source files** — an eleven-storey building of 4,786 m², 178 spaces, and 543 boundaries that fits in any LLM's context.
 
 The breakdown, what actually happens in the IFC4 version, and how to reproduce it are held by [examples/comparison/README.md](../../examples/comparison/README.md) (in Japanese). The figures on this page are quoted from there.

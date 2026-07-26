@@ -8,7 +8,7 @@ As of koyu v0.13.0. For the grammar see [language.md](language.md). What is writ
 
 ## 1. The model
 
-The composed model consists of: `spaces` (path → space: type, level, rectangle union, areas, attributes, provenance), `boundaries` (a list of relations: a/b paths, kind, t/air/edge, openings, segs, provenance), `zones` (path → aggregation), `assets` (name → opening type), `polygons` (path → site shape), `grid`, and `levels`. The provenance (`file`) is the name of the layer that took part in composition, and it is used in the position prefix of errors and warnings (`layer:line`).
+The composed model consists of: `spaces` (path → space: type, level, rectangle union, areas, attributes, provenance), `boundaries` (a list of relations: a/b paths, kind, t/air/edge, openings, segs, provenance), `zones` (path → aggregation), `assets` (name → opening type), `polygons` (path → site shape), `columns` (column declarations, in declared order — ADR-0023/0029), `grid`, and `levels`. The provenance (`file`) is **the key the loader gave**, used in the position prefix of errors and warnings (`file:line`). The CLI and MCP read files, so what lands there is **a resolved absolute path** (when `parseFiles` is handed a dictionary of strings, it is that key).
 
 ## 2. Derivation in plan
 
@@ -73,10 +73,13 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | SIT03 | error | The building escapes the site shape (against the polygon of the site:1 zone, for any space with a region that is neither beneath the site zone nor exterior — beyond the containment of the four corners it also looks at vertex intrusion and edge crossing, so it is correct for a concave site. On the boundary counts as inside, with a 1 mm tolerance. Exterior space tiles are not checked ⟨an approximation⟩) |
 | UID01 | error | A uid made only of digits (the parser's numeric coercion would lose the distinction between tokens — ADR-0015) |
 | UID02 | error | A uid containing whitespace |
+| ATT01 | error | An interpreted attribute's value is not a positive number (`h` `riser` `tread` `entry` `landing` `lane` `slope` `road` `area` — a value that does not match the ledger's type never quietly falls back to the default. ADR-0028) |
+| ATT02 | error | An interpreted attribute's value is not in the ledger's vocabulary (`ceiling` 0/1, `turn` R/L, `site` 0/1, `style` hinged/sliding/auto — ADR-0028) |
 | UID03 | error | A duplicate uid (unique across the whole model, spanning space and zone) |
 | DAY01 | error | The value of daylight is neither 0 nor 1 (being in scope is a binary declaration — ADR-0020) |
 | VER01 | error | A default boundary would be derived in a koyu 0.1 file (an older version is accepted only when meaning is preserved — ADR-0017) |
 | VER02 | error | In a koyu 0.3-or-earlier file, a space of a type that used to be inferred in scope (unit/room/ldk/bedroom/living) carries no daylight (in 0.4 it falls out of scope, so the meaning changes — ADR-0020) |
+| VER03 | error | A koyu 0.4-or-earlier file uses a 0.5 word (a vertical-circulation declaration, a drawn line, a column, underground) — the older processor does not know the word, so the form is silently never generated (ADR-0017/0021/0022/0023) |
 | SYN01 | error | A syntax or composition error (a copy of SourceError — `check --json` only; check does not turn thrown exceptions into diagnostics, the parser throws them) |
 | BND05 | warning | A pair of spaces carrying a mix of edge-restricted and unrestricted boundaries (the segments overlap) |
 | BND06 | warning | The boundary segment is of zero length (no edge remains on the perimeter) |
@@ -92,6 +95,20 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | HGT04 | warning | The ceiling height is unknown, so the height check cannot run |
 | HGT05 | warning | A space with a region whose level cannot be determined |
 | SIT04 | warning | A polygon with no corresponding zone |
+| RUN01 | error | More than one vertical-circulation declaration on one space (stair/ramp/escalator/lift — one per space. ADR-0021) |
+| RUN02 | error | The value of a vertical-circulation declaration is not an ascending direction (N/E/S/W; for lift it is 1) |
+| RUN03 | error | The region of a vertical circulation is not a single rectangle, or its level cannot be determined (a union gives no step division) |
+| RUN05 | error | `form` is not straight/return, or a device that cannot fold declares one, or the flight length comes out at zero or less |
+| LIN01 | error | A drawn line does not separate the two spaces (both allocations must fall on opposite sides), or neither space has a region |
+| LIN02 | error | A line is drawn on a vertical boundary (drawing a line is an act of dividing a plan) |
+| LIN03 | warning | A drawn line cuts nothing (one side comes out empty) |
+| COL01 | warning | Not one column stands for a column declaration (the grid intersections have no floor — ADR-0023) |
+| COL02 | warning | A column declaration stands nowhere because an earlier declaration took the same intersections (the earlier one wins) |
+| ENV01 | warning | A perimeter faces no envelope (on a level that already declares one — the missing boundary to the outside would otherwise be a silent absence of wall. ADR-0025) |
+| RUN04 | warning | No level above, so no form can be generated for the vertical circulation (a stair on the top floor and the like) |
+| RUN06 | warning | The derived step dimensions are cramped (going < 240mm, or 2×riser+going outside 550–700mm; in a return stair the tightest flight speaks — written nowhere, checked all the same. ADR-0021) |
+| RUN07 | warning | The derived slope is steeper than the declared `slope:`, or outside an escalator's usual range (about 1/1.7) |
+| RUN08 | warning | The form of a vertical circulation exists but no vertical boundary joins the levels (form without passage in the graph) |
 | SIT05 | warning | The declared and derived site areas disagree (by more than ±0.05 m² — when a polygon is present) |
 | BND07 | — | Retired — the "these touch but no boundary is declared" warning was abolished by ADR-0014 (an undeclared contact means the default wall) |
 

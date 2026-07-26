@@ -7,7 +7,7 @@ koyu v0.13.0 現在。すべてのツールは同じ導出 (semantics.md) の別
 ## CLI (`koyu` / `npm run koyu --`)
 
 ```
-koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [args...]
+koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]
 ```
 
 | コマンド | 引数 | 出力 | 終了コード |
@@ -19,8 +19,9 @@ koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [ar
 | `doors` | `/パスA /パスB` | 扉数と経由列、到達不能なら1 | 0/1/2 |
 | `graph` | — | 空間ごとの隣接 (境界種別・扉数) | 0 |
 | `stats` | — | レベル別面積・半屋外別掲・ゾーン別・型別・use別 | 0 |
-| `levels` | — | テキストの矩計 (階高の積み上がり) | 0 |
-| `light` | — | 居室ごとの1/7採光判定 | 0=全て✔ / 1 |
+| `levels` | — | テキストの矩計 (階高の積み上がり) | 0 / 1 |
+| `runs` | — | 縦動線の一覧 — 装置・上る高さ・折返しの有無・導出された勾配と走り長 (ADR-0021)。段数と踏面は `check` の RUN06 が検査する | 0 |
+| `light` | — | **`daylight:1` と宣言された室**の1/7採光判定 (対象は型から推定しない — ADR-0020) | 0=全て✔ / 1 / 1=対象なし |
 | `site` | — | 敷地面積 (宣言/導出照合)・接道・建蔽率・容積率 | 0 / 1=敷地なし |
 | `json` | — | 正準JSON (canonical-json.md) | 0 |
 

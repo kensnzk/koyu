@@ -8,13 +8,13 @@ koyu は建築をテキストで書く記法 (`.muro`) とその処理系であ�
 
 | 場所 | 中身 | 触るときの規律 |
 |---|---|---|
-| `src/` | 実装 約6,000行 — `parse.ts` `parse-file.ts` (合成) `model.ts` `poly.ts` (幾何の一枚岩) `check.ts` (診断。`checkDiagnostics` は19の節の列で、節の粒度は**走査単位**) `graph.ts` `vertical.ts` (縦動線) `fabric.ts` (床・天井・屋根) `light.ts` `site.ts` `plan.ts` `axo.ts` (軸測図) `diff.ts` `cli.ts` `mcp.ts` `index.ts` | 実行時依存ゼロ。挙動を変えたら spec とテストを同じ変更で直す |
+| `src/` | 実装 約7,500行 — `parse.ts` `parse-file.ts` (合成) `model.ts` `poly.ts` (幾何の一枚岩) `check.ts` (診断。`checkDiagnostics` は19の節の列で、節の粒度は**走査単位**) `graph.ts` `vertical.ts` (縦動線) `fabric.ts` (床・天井・屋根) `light.ts` `site.ts` `plan.ts` `axo.ts` (軸測図) `diff.ts` `cli.ts` `mcp.ts` `index.ts` | 実行時依存ゼロ。挙動を変えたら spec とテストを同じ変更で直す |
 | `spec/` | **規範リファレンス** (現在形) — 文法・意味論・語彙台帳・正準JSON・ツール契約 | 追補を積まない。本文をその場で書き換える |
 | `guide/` | **学ぶ本** — チュートリアル・概念・how-to・診断事典・CLI/API | 規範を書かない。spec へリンクする |
 | `docs/decisions/` | **ADR** — なぜそう決めたか、何を棄却したか (0001〜0026) | 決定は追記のみ。覆すときは新しいADRを書く |
 | `docs/` | `writing-architecture.md` (主張の本文)・`roadmap.md`・`horizon.md`・`ifc-coverage.md`・`log/`・`reviews/` | |
-| `examples/` | 同梱の建物 — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (縦動線の最小例) `complex/` (延床31,116㎡) `comparison/`。`steps/` は guide/start.md の各段の到達点 | 触ったら `npm run check:examples` が門番 |
-| `test/` | `node --test` の20ファイル。206件が緑 | 保証はテストで固定する。仕様の文だけでは着地していない |
+| `examples/` | 同梱の建物 — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (縦動線の最小例) `complex/` (延床31,606㎡) `comparison/`。`steps/` は guide/start.md の各段の到達点 | 触ったら `npm run check:examples` が門番 |
+| `test/` | `node --test` の22ファイル。254件が緑 | 保証はテストで固定する。仕様の文だけでは着地していない |
 | `eval/` | エージェント編集evalのハーネス (`run.ts` `score.ts` `tasks/` `fixtures/`) | |
 
 ## コマンド
@@ -69,7 +69,7 @@ model_summary → layers → write_layer → check ──エラー──→ 直�
 
 ## エラーに当たったら
 
-`check` の人間向け出力に診断コードは出ない。`--json` を付けるとコードが出る。コードから原因と直し方を引く表は [guide/diagnostics.md](guide/diagnostics.md) (全66コード)。規範の台帳 (コード・severity・概要) は [spec/semantics.md](spec/semantics.md)。
+`check` の人間向け出力に診断コードは出ない。`--json` を付けるとコードが出る。コードから原因と直し方を引く表は [guide/diagnostics.md](guide/diagnostics.md) (全68コード)。規範の台帳 (コード・severity・概要) は [spec/semantics.md](spec/semantics.md)。
 
 よく踏む罠は3つある。`grid` と `level` は使用より**前**に宣言しないと効かない (`boundary` は前方参照してよい)。空間を間取りに割るなら親は `space` ではなく `zone` にする。外部への開口は境界線分が複数になるので `edge:N/E/S/W` で辺を選ぶ (N=+Y, S=-Y, E=+X, W=-X)。詳細は [guide/howto/troubleshooting.md](guide/howto/troubleshooting.md)。
 

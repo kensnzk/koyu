@@ -17,7 +17,7 @@ npx tsx src/cli.ts check examples/two-rooms.muro
 ## The common shape
 
 ```text
-koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <entry.muro> [args...]
+koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <entry.muro> [args...]
 ```
 
 **What you pass is always one path, the entry.** Even for a model split up with `import`, pass only the base layer's file (`examples/house/main.muro`, say) — the layers are composed automatically each time. Pass one of the split files on its own and it dies, because that file has neither grid nor level.
@@ -55,7 +55,7 @@ npx tsx src/cli.ts --help
 ```
 
 ```text
-使い方: koyu <check|diff|plan|doors|graph|stats|levels|light|site|json> <file.muro> [引数...]
+使い方: koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]
   check: --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1)
   diff:  koyu diff <a.muro> <b.muro> [--json] — 構成の言葉の差分 (0=差分なし / 1=差分あり / 2=入力が壊れている)
 ```
@@ -212,6 +212,57 @@ Error: レベル R に領域を持つ空間がありません
 **`plan` can die even when `check` is green.** In particular when a space is not on a level (diagnostic [HGT05](diagnostics.md#hgt05) stops at a warning). When `plan` dies, try putting it through `check --strict` first.
 
 The drawing conventions (the black band of a wall, the dashed line of an `open`, the swing of a door, the diagonal of a void, the site boundary line) are in [spec/semantics.md §7](../../spec/en/semantics.md). What the bundled examples come out as is in [gallery.md](gallery.md).
+
+## axo — looking at the solid (axonometric)
+
+Check a solid with the same generate-and-look loop as a plan ([ADR-0026](../../docs/decisions/0026-axonometric.md)).
+**No runtime and no WebGL** — what comes out is SVG, which opens in a browser or an editor as it is.
+
+```sh
+npx tsx src/cli.ts axo examples/basement/main.muro -o out/axo.svg
+```
+
+```text
+軸測図を生成しました: out/axo.svg
+```
+
+Floors, roofs, walls, columns and vertical circulation are projected. `-d NE|NW|SE|SW`
+picks the viewing direction (SE by default), `-l L1..L5` or `-l L1,L3` picks the levels,
+`-s` the scale, `--no-walls` drops the walls and `--ceilings` draws the ceilings.
+
+**An undeclared level name exits with code 2.** It never quietly writes an empty SVG and
+says "generated" ([ADR-0028](../../docs/decisions/0028-diagnostics-per-declaration.md)).
+
+```sh
+npx tsx src/cli.ts axo examples/complex/main.muro -l ZZ9
+```
+
+```text
+レベルが宣言されていません: ZZ9 (宣言済み: B2 B1 L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 R)
+```
+
+## runs — how the vertical circulation was derived
+
+Riser counts, goings, landings and slopes are **written nowhere**
+([ADR-0021](../../docs/decisions/0021-vertical-circulation.md)). They follow from the region
+and the storey height. This command lists what was derived.
+
+```sh
+npx tsx src/cli.ts runs examples/basement/main.muro
+```
+
+```text
+B2→B1	lift	EV	/B2/ev
+B2→B1	ramp	車路	上り3700mm	折返し	勾配 1/7.2	走り26800mm	/B2/ramp
+B2→B1	stair	避難階段	上り3700mm	折返し	21段 蹴上176 踏面300	走り6000mm	/B2/st
+B1→L1	lift	EV	/B1/ev
+B1→L1	ramp	車路	上り3700mm	折返し	勾配 1/7.2	走り26800mm	/B1/ramp
+B1→L1	stair	避難階段	上り3700mm	折返し	21段 蹴上176 踏面300	走り6000mm	/B1/st
+```
+
+The same stair shaft divides differently when the storey height differs. The difference is
+written nowhere — **that the riser count changes when the height changes is what derivation means.**
+Whether the derived dimensions are usable is what `check`'s RUN06 / RUN07 says.
 
 ## doors — how many doors from there to there
 
@@ -373,7 +424,7 @@ L1	z:0	h:2700
 
 When the decomposition does not appear, either the storey below has no `h` or the one above has no `slab`. In that case the height check does not run either, and the warnings [HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) appear. **Declaring a roof level that holds no space (`level R 5800 slab:500`) brings the top storey into the check as well.**
 
-## light — do the habitable rooms meet 1/7
+## light — does what is in scope meet 1/7
 
 For the habitable rooms (the spaces carrying `daylight:1`), confirms whether the window area is at least a seventh of the floor area. It is a coarse test applying no correction factors — an early warning matched to schematic-design resolution. The 1/7 ratio comes from the Japanese Building Standards Act.
 
@@ -399,9 +450,9 @@ npx tsx src/cli.ts light examples/two-rooms.muro
 ```
 
 ```text
-✖ /L1/a	居室A	窓 0.00㎡ / 床 16.20㎡ = 窓なし (必要 1/7 ≈ 2.31㎡)
-✖ /L1/b	居室B	窓 0.00㎡ / 床 16.20㎡ = 窓なし (必要 1/7 ≈ 2.31㎡)
-✖ 2室中 2室が不足しています
+✔ /L1/a	居室A	窓 2.86㎡ / 床 16.20㎡ = 1/5.7 (必要 1/7 ≈ 2.31㎡)
+✔ /L1/b	居室B	窓 2.86㎡ / 床 16.20㎡ = 1/5.7 (必要 1/7 ≈ 2.31㎡)
+✔ 全2室が 1/7 を満たします (補正係数なしの粗い判定)
 ```
 
 **With nothing in scope the exit code is 0 too.** In a model where no space carries `daylight:1` (an office, say) the test simply does not run.

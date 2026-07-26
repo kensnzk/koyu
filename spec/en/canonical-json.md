@@ -2,7 +2,20 @@
 
 # Machine-format reference — the canonical JSON
 
-As of koyu v0.13.0. Emitted by `koyu json <entry>` / `toCanonical(model)`. The authored form (.muro) is what people and LLMs work from; the canonical JSON is the footing for machines — diffs, hashes, layer composition, and external connections (RDF and so on) are built on top of it.
+As of koyu v0.13.0. Emitted by `koyu json <entry>` / `toCanonical(model)`.
+
+**What is this for?** It is **the definition of what makes two buildings the same, written down.**
+The authored form (.muro) is free in line order and spelling, so whether two files are the same
+building is not decided by their text. The canonical form gives that question a single answer —
+the same composition always yields the same bytes, and a different composition always yields different bytes.
+
+That narrows its uses to two: **the yardstick that shows the semantic diff (`koyu diff`) is right**
+(asking the diff itself proves nothing, so an independent judgement is needed — the tests are written
+against this), and **an exit for programs that have no .muro parser** (Ugatsu's export, MCP's `canonical_json`).
+
+**It is not a substrate.** `semanticDiff` takes Models and never goes through the canonical JSON.
+Layer composition happens in `parse-file.ts`, over .muro layers, before canonicalisation.
+There is no reader (`fromCanonical`); the only way into the system is `parse` — one authored source is enough.
 
 > This is a reference. If you are learning koyu, start at [guide/en/start.md](../../guide/en/start.md).
 

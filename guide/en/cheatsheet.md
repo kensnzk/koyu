@@ -248,6 +248,46 @@ polygon /site -2600,-7000 38000,-7000 38000,19600 2000,21000 -2600,15000
 
 `polygon /<zone path> x,y x,y x,y …`. Three or more vertices, in mm (the same coordinate system as the grid). **The one written shape in this notation that does not sit on the grid** — because a site is surveyed input. Associate it with a `site:1` zone (its absence is a warning). The standard practice is a quarantined layer, a separate file plus `import`.
 
+## column — columns ([language.md §3](../../spec/en/language.md), ADR-0023)
+
+```muro-part
+column 800 L1..L6
+column 900 B2..L6 x:X2,X3 y:Y2 d:1200 spec:SRC
+```
+
+`column <side mm> <level range | level name> [attributes…]`. **The position is never written** —
+a column stands at each grid intersection that has a floor on that level. `x:` / `y:` restrict the
+grid lines (unrestricted means all of them); `d:` gives the depth of a rectangular section.
+**No two columns stand on the same intersection, and the earlier declaration wins** — so
+**the order of declarations is meaning**, and the canonical JSON never sorts them (ADR-0029).
+
+## line — a drawn line ([language.md §4](../../spec/en/language.md), ADR-0022)
+
+```muro-part
+boundary /L1/a /L1/b t:120
+  line X3,Y1 X3+600,Y2-900
+```
+
+Written indented under a boundary. The endpoints are **a pair of grid words**
+(`X3,Y1` / `X3+600,Y2-900`); raw coordinates and angles cannot be written. It gives the boundary's
+realisation as **an act of design** rather than as something derived from adjacency — the union of
+the two spaces' allocations is re-divided along the line, so what one loses the other gains.
+One line per boundary. Drawing a line is **an act of dividing a plan**, so it cannot go on a vertical boundary.
+
+## Vertical circulation — stair / ramp / escalator / lift ([vocabulary.md](../../spec/en/vocabulary.md), ADR-0021)
+
+```muro-part
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:N form:return turn:R
+space /L1/e escalator X4..X5 Y1..Y2 escalator:E lane:1200
+space /L1/ev shaft X2..X3 Y1..Y2 lift:1
+```
+
+The key names the device and the value is **the ascending direction** (`N`/`E`/`S`/`W`; `1` for a lift).
+**Riser counts, goings, landings and slopes are never written** — they follow from the region and the
+storey height, and `check`'s RUN06/RUN07 check the derived result. `form:return` folds it,
+`turn:R|L` picks the turn, and `riser:` `tread:` `entry:` `landing:` `lane:` `slope:` override the rule side.
+The topology (which levels it joins) is held separately by a vertical boundary (`stack` / `type:stair`).
+
 ## import — composition ([language.md §8](../../spec/en/language.md))
 
 ```muro-part
@@ -313,12 +353,14 @@ The entry is always a file path, and `import`s are composed automatically.
 | Command | Arguments | What comes back | Exit code |
 |---|---|---|---|
 | `check` | `--json` / `--strict` | Whether it is consistent; errors and warnings with provenance | 0 = green / 1 = errors (with `--strict`, warnings too) |
-| `plan` | `-l <level>` `-o <out.svg>` | The plan as SVG. Defaults to the first level / `<entry>-<level>.svg` | 0 |
+| `plan` | `-l <level>` `-o <out.svg>` | The plan as SVG. Defaults to the first level / `<entry>-<level>.svg` | 0 / 2 = an undeclared level name |
 | `doors` | `/pathA /pathB` | The fewest doors and the route | 0 / 1 = unreachable / 2 |
 | `graph` | — | The neighbors of each space (boundary kind, door count) | 0 |
 | `stats` | — | Area by level, semi-outdoor separately, by zone, by type, by use | 0 |
 | `levels` | — | The section stack-up as text | 0 |
-| `light` | — | The 1/7 daylight verdict per habitable room | 0 = all pass / 1 |
+| `axo` | `-o <out.svg>` `-d NE\|NW\|SE\|SW` `-l L1..L5` `-s <scale>` `--no-walls` `--ceilings` | An axonometric as SVG (floors, roofs, walls, columns, vertical circulation) | 0 / 2 = an undeclared level name |
+| `runs` | — | The vertical circulations (device, rise, derived slope and going length) | 0 |
+| `light` | — | The 1/7 daylight verdict for **each room declared `daylight:1`** | 0 = all pass / 1 |
 | `site` | — | Site area (declared vs derived), frontage, coverage ratio, floor area ratio | 0 / 1 = no site |
 | `json` | — | The canonical JSON ([canonical-json.md](../../spec/en/canonical-json.md)) | 0 |
 | `diff` | `<b.muro>` `--json` | The difference in the language of composition | 0 = no difference / 1 = differences / 2 = the input is broken |
@@ -333,13 +375,17 @@ Only the words in the ledger are read by the tools. **Any `key:value` not listed
 
 | Element | Interpreted attributes |
 |---|---|
-| space | `type` (in part), `level`, `h`, `use`, `daylight`, `road`, `uid`; the region; `w` (only as a band member) |
+| space | `type` (in part), `level`, `h`, `use`, `daylight`, `ceiling`, `road`, `uid`; the region; `w` (only as a band member); vertical circulation (`stair` `ramp` `escalator` `lift` `form` `turn` `entry` `landing` `riser` `tread` `lane` `slope`) |
 | boundary | `type`, `t`, `air`, `edge` |
 | opening | `kind` (door/window); the asset reference; `w`, `h`, `at`, `edge`, `hinge`, `swing`, `style` |
-| level | `z`, `h`, `slab`, `pitch` |
+| level | `z`, `h`, `slab`, `pitch`, `underground` |
 | zone | `use`, `site`, `area`, `uid` |
 | asset | Every opening attribute (as defaults) |
 | polygon | The vertex list |
+| column | The side, the levels, `d` `x` `y` (**the declared order is meaning too**) |
+| line | The endpoint pair (grid words) |
 | area / seg | The position (a region / `at`, `w`, `edge`) |
+
+**A ★ value is checked** — not a number gives [ATT01](diagnostics.md#att01), outside a fixed vocabulary gives [ATT02](diagnostics.md#att02) ([ADR-0028](../../docs/decisions/0028-diagnostics-per-declaration.md)). A value you wrote but that could not be interpreted never quietly falls back to the default.
 
 `name`, `floor`, `spec`, `fire`, `sound`, `sill`, and the like are free words. `spec` is where the name of a thing goes (RC, LGS, a railing, a curtain wall…), and the tools do not interpret it.

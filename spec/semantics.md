@@ -6,7 +6,7 @@ koyu v0.13.0 現在。文法は [language.md](language.md)。ここに書くの�
 
 ## 1. モデル
 
-合成後のモデルは次からなる: `spaces` (パス→空間: 型・レベル・矩形合併・areas・属性・出所)、`boundaries` (関係の列: a/b パス・kind・t/air/edge・openings・segs・出所)、`zones` (パス→集約)、`assets` (名→建具型)、`polygons` (パス→敷地形状)、`grid` / `levels`。出所 (`file`) は合成に参加したレイヤー名で、エラー・警告の位置表記 (`レイヤー:行`) に使われる。
+合成後のモデルは次からなる: `spaces` (パス→空間: 型・レベル・矩形合併・areas・属性・出所)、`boundaries` (関係の列: a/b パス・kind・t/air/edge・openings・segs・出所)、`zones` (パス→集約)、`assets` (名→建具型)、`polygons` (パス→敷地形状)、`grid` / `levels`。出所 (`file`) は**ローダーが与えたキー**で、エラー・警告の位置表記 (`file:行`) に使われる。CLI と MCP はファイルを読むので**解決済みの絶対パス**が入る (`parseFiles` に文字列の辞書を渡した場合はそのキー)。`columns` (柱の宣言 — ADR-0023) も合成後のモデルに含まれ、宣言順を保つ (ADR-0029)。
 
 ## 2. 平面の導出
 
