@@ -116,6 +116,31 @@ function pieceOutline(pieces: Pt[][], others: Pt[][]): Segment[] {
   return segs;
 }
 
+/**
+ * 二つの領域 (凸片の集合) が共有する軸平行な辺。
+ * `sharedSegment` の矩形版を凸片へ広げたもので、切られた形にも正しい。
+ * 斜めの辺は返さない — それは描かれた線であり、自分の境界が実現を持っている
+ */
+function sharedFromPieces(A: Pt[][], B: Pt[][]): Segment[] {
+  const eb = B.flatMap(polyEdges);
+  const out: Segment[] = [];
+  for (const ea of A.flatMap(polyEdges)) {
+    for (const o of eb) {
+      if (o.edge !== FACING[ea.edge]) continue;
+      if (Math.abs(o.fixed - ea.fixed) > EPS) continue;
+      const lo = Math.max(ea.lo, o.lo);
+      const hi = Math.min(ea.hi, o.hi);
+      if (hi - lo <= EPS) continue;
+      out.push(
+        ea.edge === "N" || ea.edge === "S"
+          ? { x1: lo, y1: ea.fixed, x2: hi, y2: ea.fixed, horizontal: true, edgeOfA: ea.edge }
+          : { x1: ea.fixed, y1: lo, x2: ea.fixed, y2: hi, horizontal: false, edgeOfA: ea.edge },
+      );
+    }
+  }
+  return out;
+}
+
 /** 共線で連続する線分をまとめる (L字の合併外周を一本の壁にする) */
 export function mergeCollinear(segs: Segment[]): Segment[] {
   const groups = new Map<string, Segment[]>();
@@ -363,12 +388,9 @@ export function segmentsFor(model: Model, b: Boundary): Segment[] {
 
   if (aHas && bHas) {
     if (sa.level !== sb.level) return []; // 異なるレベル間に壁は立たない
-    for (const ra of sa.rects) {
-      for (const rb of sb.rects) {
-        const s = sharedSegment(ra, rb);
-        if (s) segs.push(s);
-      }
-    }
+    // 共有辺も**導出された領域** (pieces) から取る。割付から取ると、
+    // 描かれた線で切り落とした側にまで壁が立つ (隅切りの外へ壁が飛び出す)
+    segs.push(...sharedFromPieces(piecesOf(sa), piecesOf(sb)));
   } else if (aHas || bHas) {
     // 片側が領域を持たない (外部など): 導出された領域の外周から、
     // 同レベルで向かい合う他室の区間を除いた残り。**割付ではなく形の縁を辿る** —

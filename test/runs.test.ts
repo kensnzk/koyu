@@ -361,3 +361,25 @@ boundary /L1/a /L2/v type:void
   assert.deepEqual(roofs.filter((r) => r.space === "/L2/v").length, 1);
   assert.deepEqual(roofs.filter((r) => r.space === "/L1/a").length, 0);
 });
+
+test("線: 切り落とされた側では隣室との共有辺も短くなる (壁が外へ飛び出さない)", () => {
+  const m = parse(`koyu 0.5
+grid X 0 8000 16000
+grid Y 0 8000 16000
+level L1 0 h:2700
+space /L1/a room X1..X2 Y1..Y3
+space /L1/b room X2..X3 Y1..Y3
+space /out exterior
+boundary /L1/b /out t:200
+  line X2,Y2 X3,Y3
+boundary /L1/a /out t:200
+`);
+  assert.equal(check(m).errors.length, 0);
+  // 隅切りで b の北西側が落ちるので、a と b の共有辺 (x=8000) は y 0..8000 だけになる
+  const shared = m.boundaries.find(
+    (x) => !x.drawn && [x.a, x.b].includes("/L1/a") && [x.a, x.b].includes("/L1/b"),
+  )!;
+  const segs = segmentsFor(m, shared);
+  assert.equal(segs.length, 1);
+  assert.deepEqual([segs[0]!.x1, segs[0]!.y1, segs[0]!.x2, segs[0]!.y2], [8000, 0, 8000, 8000]);
+});
