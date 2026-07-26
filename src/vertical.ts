@@ -53,10 +53,18 @@ export interface RunPart {
   /** 幅方向の区間 mm */
   s0: number;
   s1: number;
-  /** t0 における高さ / t1 における高さ (大小は問わない — 向きは reversed が言う) */
+  /**
+   * t0 における高さ / t1 における高さ。**幾何はこの二つが全てである** —
+   * どちらへ傾くかも、段がどちらから上がるかも、ここから決まる
+   */
   z0: number;
   z1: number;
-  /** 走る向きが宣言と逆か (折返しの二本目・並列の下り) */
+  /**
+   * **人の進む向きが「t の減る向き」か。**幾何とは独立である (ADR-0021 追記)。
+   * 折返しの二本目は幾何も逆 (t0 側が高い) だが、並列の下りエスカレーターは
+   * 幾何は上りと同じで進む向きだけが逆である。この一語を幾何の意味でも読んだために、
+   * 下りの台が鏡像に傾き、DN矢印が上向きに描かれ、二台目が平面から消えていた。
+   */
   reversed: boolean;
   /** 蹴上げの数 (階段の走りのみ) */
   risers?: number;
@@ -96,7 +104,7 @@ export interface VerticalRun {
   risers: number;
   /** 蹴上げ mm (階段のみ) */
   riser: number;
-  /** 代表踏面 mm (階段のみ) */
+  /** 踏面 mm (階段のみ)。走りごとに違うときは**最も窮屈な走り**が代表する (RUN06) */
   tread: number;
   /** 最も急な走りの勾配 (rise/走り長)。1/N の N は 1/slope */
   slope: number;
@@ -290,6 +298,11 @@ export function verticalRun(
     .filter((p) => p.kind === "flight" && (p.lane ?? 0) === 0)
     .reduce((a, p) => a + (p.t1 - p.t0), 0);
 
+  // **踏面は走りごとに違う。**折返しの二本目は段数が多い分だけ細かいので、
+  // 一本目だけを見ると窮屈な走りが検査 (RUN06) をすり抜ける。最も窮屈な走りが代表する
+  const perFlight = parts.flatMap((p) => (p.kind === "flight" && p.tread ? [p.tread] : []));
+  if (perFlight.length > 0) tread = Math.min(...perFlight);
+
   const slope = Math.max(
     ...parts
       .filter((p) => p.kind === "flight")
@@ -441,8 +454,9 @@ export function runSolids(run: VerticalRun): RunSolid[] {
       continue;
     }
     const len = p.t1 - p.t0;
-    // 走る向き: reversed なら t1 側が出発、t0 側が到着
-    const dir = p.reversed ? OPPOSITE[run.up] : run.up;
+    // **傾きは z から決める。**reversed (人の進む向き) では決めない —
+    // 下りのエスカレーターは幾何としては上りと同じ向きに傾いている
+    const dir = p.z1 >= p.z0 ? run.up : OPPOSITE[run.up];
     const zLow = Math.min(p.z0, p.z1);
     const zHigh = Math.max(p.z0, p.z1);
 
@@ -453,8 +467,9 @@ export function runSolids(run: VerticalRun): RunSolid[] {
       const rise = (zHigh - zLow) / k;
       for (let i = 1; i <= treads; i++) {
         // 走る向きに i 段目。段板は蹴上げ+控えの厚みを持ち、隣と重なって連続した段形になる
-        const a = p.reversed ? p.t1 - i * d : p.t0 + (i - 1) * d;
-        const b = p.reversed ? p.t1 - (i - 1) * d : p.t0 + i * d;
+        const fromT1 = p.z0 > p.z1; // 高いのが t0 側なら、段は t1 から t0 へ上がる
+        const a = fromT1 ? p.t1 - i * d : p.t0 + (i - 1) * d;
+        const b = fromT1 ? p.t1 - (i - 1) * d : p.t0 + i * d;
         const top = zLow + i * rise;
         out.push({
           kind: "box",
@@ -516,19 +531,44 @@ export interface RunDraw {
   notes: Array<{ x: number; y: number; text: string }>;
 }
 
-/** 走りが切断面と交わる位置 (部品の番号と、原点の枠での t) */
-function cutAt(run: VerticalRun, cutZ: number): { index: number; t: number } | undefined {
-  for (let i = 0; i < run.parts.length; i++) {
-    const p = run.parts[i]!;
-    if (p.kind !== "flight") continue;
+/**
+ * 上る走りのうち、**切断面より下に残る**区間 (部品ごと、原点の枠での [t0,t1])。
+ *
+ * 判定は幾何 — 部品の z の範囲と切断面の高さだけで決まる。部品の番号 (何本目か) では
+ * 決めない。並列の台は同じ高さで切られるので、この書き方でしか二台目に窓が出ない。
+ */
+function upWindows(run: VerticalRun, cutZ: number | undefined): Array<[number, number] | undefined> {
+  return run.parts.map((p) => {
+    if (cutZ === undefined) return [p.t0, p.t1] as [number, number];
     const lo = Math.min(p.z0, p.z1);
     const hi = Math.max(p.z0, p.z1);
-    if (cutZ < lo || cutZ > hi || hi - lo < 1) continue;
-    // z0 は t0 における高さなので、t は z について線形に引ける
-    const f = (cutZ - p.z0) / (p.z1 - p.z0);
-    return { index: i, t: p.t0 + f * (p.t1 - p.t0) };
-  }
-  return undefined;
+    if (cutZ >= hi - 1) return [p.t0, p.t1] as [number, number]; // 丸ごと切断面より下
+    if (cutZ <= lo + 1 || hi - lo < 1) return undefined; // 丸ごと上 (踊り場もここ)
+    const t = p.t0 + ((cutZ - p.z0) / (p.z1 - p.z0)) * (p.t1 - p.t0);
+    const [a, b] = p.z0 < p.z1 ? [p.t0, t] : [t, p.t1];
+    return b - a > 1 ? ([a, b] as [number, number]) : undefined;
+  });
+}
+
+/**
+ * 下りる走りは、**双子の上る走りが隠した残り**に現れる。
+ *
+ * 平面図が「そのレベルで切った断面」である以上、同じ枠を共有する二つの走りは
+ * 補い合う — 上りが切断線までを占め、その先に下りが見える。双子が無い (上る走りが
+ * 無い / 枠が違う) なら、下りる走りは丸ごと見える。
+ */
+function downWindows(
+  run: VerticalRun,
+  twin: Array<[number, number] | undefined> | undefined,
+): Array<[number, number] | undefined> {
+  return run.parts.map((p, i) => {
+    const w = twin?.[i];
+    if (!w) return [p.t0, p.t1] as [number, number];
+    const [a, b] = w;
+    // 上りが占めたのが手前側 ([t0,t]) なら残りは奥側、逆なら手前側
+    const out: [number, number] = a <= p.t0 + 1 ? [b, p.t1] : [p.t0, a];
+    return out[1] - out[0] > 1 ? out : undefined;
+  });
 }
 
 /**
@@ -538,9 +578,6 @@ function cutAt(run: VerticalRun, cutZ: number): { index: number; t: number } | u
  * このレベルへ**下りる**走り (下階の走りを上から見たもの)。切断より先には上る走りは
  * 描かれず、その位置から先に下りる走りが見える。これが階段が階ごとに違う姿で現れる
  * 理由であり、平面図が「そのレベルで切った断面」だという事実そのものである。
- *
- * 折返しでは切断は一本目の走り (片側の幅) にしか掛からない。もう一方の幅は
- * 丸ごと下りる走りのものなので、可視の判定は**部品ごと**に行う。
  */
 export function runDrawsForLevel(model: Model, level: string, cut = CUT_HEIGHT): RunDraw[] {
   const z = model.levels[level]?.z;
@@ -551,56 +588,51 @@ export function runDrawsForLevel(model: Model, level: string, cut = CUT_HEIGHT):
   const upRuns = runs.filter((r) => r.level === level);
 
   for (const r of upRuns) {
-    out.push(drawRun(r, r.device === "lift" ? undefined : cutAt(r, cutZ), "up"));
+    const wins = r.device === "lift" ? undefined : upWindows(r, cutZ);
+    out.push(drawRun(r, wins, r.device === "lift" ? undefined : crossings(r, cutZ), "up"));
   }
   for (const r of runs.filter((x) => x.upper === level)) {
     if (r.device === "lift") continue; // かごの記号は自レベルに一つで足りる
-    const twin = upRuns.find((u) => sameFootprint(u.rect, r.rect));
-    out.push(drawRun(r, twin ? cutAt(twin, cutZ) : undefined, "down"));
+    const twin = upRuns.find((u) => sameFrame(u, r));
+    out.push(drawRun(r, downWindows(r, twin ? upWindows(twin, cutZ) : undefined), undefined, "down"));
   }
   return out;
 }
 
-function sameFootprint(a: Rect, b: Rect): boolean {
+/**
+ * 同じ枠を共有する走りか。**位置だけでは足りない** — 向き (up) と形 (form) と
+ * 台数が揃って初めて部品が番号どおりに対応する。向きが違う走りに双子の切断位置を
+ * 当てると、鏡像の平面が出る。
+ */
+function sameFrame(a: VerticalRun, b: VerticalRun): boolean {
   return (
-    Math.abs(a.x1 - b.x1) < 1 &&
-    Math.abs(a.y1 - b.y1) < 1 &&
-    Math.abs(a.x2 - b.x2) < 1 &&
-    Math.abs(a.y2 - b.y2) < 1
+    Math.abs(a.rect.x1 - b.rect.x1) < 1 &&
+    Math.abs(a.rect.y1 - b.rect.y1) < 1 &&
+    Math.abs(a.rect.x2 - b.rect.x2) < 1 &&
+    Math.abs(a.rect.y2 - b.rect.y2) < 1 &&
+    a.up === b.up &&
+    a.form === b.form &&
+    a.device === b.device &&
+    a.parts.length === b.parts.length
   );
 }
 
-/** 切断が起きた高さ (切られた走りの t から逆算する) */
-function cutHeight(p: RunPart, t: number): number {
-  const f = p.t1 - p.t0 === 0 ? 0 : (t - p.t0) / (p.t1 - p.t0);
-  return p.z0 + f * (p.z1 - p.z0);
+/** 走りが切断面を跨ぐ位置 (部品ごと、跨がなければ undefined) */
+function crossings(run: VerticalRun, cutZ: number): Array<number | undefined> {
+  return run.parts.map((p) => {
+    if (p.kind !== "flight") return undefined;
+    const lo = Math.min(p.z0, p.z1);
+    const hi = Math.max(p.z0, p.z1);
+    if (cutZ < lo || cutZ > hi || hi - lo < 1) return undefined;
+    return p.t0 + ((cutZ - p.z0) / (p.z1 - p.z0)) * (p.t1 - p.t0);
+  });
 }
 
-/** 部品の可視区間 (原点の枠の [t0,t1])。見えなければ undefined */
-function visible(
-  run: VerticalRun,
-  index: number,
-  cut: { index: number; t: number } | undefined,
-  dir: "up" | "down",
-): [number, number] | undefined {
-  const p = run.parts[index]!;
-  // 切断が無い (階高が切断面より低い / 上る走りがそもそも無い) — 走りは丸ごと見える
-  if (!cut) return [p.t0, p.t1];
-  if (index === cut.index) {
-    // 切られた走り: 上りは出発側、下りはその先
-    const startSide = p.reversed ? [cut.t, p.t1] : [p.t0, cut.t];
-    const farSide = p.reversed ? [p.t0, cut.t] : [cut.t, p.t1];
-    const [a, b] = (dir === "up" ? startSide : farSide) as [number, number];
-    return b - a > 1 ? [a, b] : undefined;
-  }
-  // 折返しの二本目は幅が違うので、切断の手前/先という順序には従わない —
-  // 上りは切られる走りまで、下りはそれ以降が見える
-  return (dir === "up") === index < cut.index ? [p.t0, p.t1] : undefined;
-}
 
 function drawRun(
   run: VerticalRun,
-  cut: { index: number; t: number } | undefined,
+  windows: Array<[number, number] | undefined> | undefined,
+  cross: Array<number | undefined> | undefined,
   dir: "up" | "down",
 ): RunDraw {
   const draw: RunDraw = {
@@ -635,7 +667,7 @@ function drawRun(
 
   for (let i = 0; i < run.parts.length; i++) {
     const p = run.parts[i]!;
-    const win = visible(run, i, cut, dir);
+    const win = windows ? windows[i] : ([p.t0, p.t1] as [number, number]);
     if (!win) continue;
     const [lo, hi] = win;
     draw.outline.push(seg(lo, p.s0, hi, p.s0), seg(lo, p.s1, hi, p.s1));
@@ -660,29 +692,32 @@ function drawRun(
     const wantArrow = run.device === "escalator" ? true : dir === "up" ? isFirst : isLast;
     if (wantArrow && hi - lo > 900) {
       const c = (p.s0 + p.s1) / 2;
-      // 走る向き: 上りは走りの進行、下りはその逆 (人は下ってくる)
-      const forward = p.reversed ? false : true;
-      const goUp = run.device === "escalator" ? !p.reversed : dir === "up";
-      const from = goUp === forward ? lo + 150 : hi - 150;
-      const to = goUp === forward ? hi - 150 : lo + 150;
+      // **矢印は人の進む向きだけから決まる。**reversed が「t の減る向きに進む」、
+      // 昇り降りは進む先の高さで決まる。エスカレーターは機械の向きが固定なので
+      // どちらの平面でも同じ向きを指し、階段と斜路は下りの平面で反転する
+      const partUp = (p.reversed ? p.z0 : p.z1) > (p.reversed ? p.z1 : p.z0);
+      const flip = run.device !== "escalator" && dir === "down";
+      const goUp = flip ? !partUp : partUp;
+      const back = flip ? !p.reversed : p.reversed; // t が減る向きに進むか
+      const from = back ? hi - 150 : lo + 150;
+      const to = back ? lo + 150 : hi - 150;
       draw.arrows.push({ ...seg(from, c, to, c), label: goUp ? "UP" : "DN" });
     }
   }
 
   // 切断線: 走りを横切る平行な二本の斜線 (作図慣習)。交差させると吹抜けの対角線と紛れる
-  if (dir === "up" && cut) {
-    // 並列の台はどれも同じ高さで切られるので、切断線は切断面を跨ぐ走りすべてに引く
-    for (const p of run.parts) {
-      if (p.kind !== "flight") continue;
-      const lo = Math.min(p.z0, p.z1);
-      const hi = Math.max(p.z0, p.z1);
-      const cz = cutHeight(run.parts[cut.index]!, cut.t);
-      if (cz < lo - 1 || cz > hi + 1) continue;
+  if (dir === "up" && cross) {
+    // 並列の台はどれも同じ高さで切られる。切断線は**跨いだ走りに、その走り自身の
+    // 位置で**引く — 一台の位置を全台に配ると、何も無い所に線が乗る
+    for (let i = 0; i < run.parts.length; i++) {
+      const p = run.parts[i]!;
+      const ct = cross[i];
+      if (ct === undefined || !windows?.[i]) continue;
       const g = Math.min(300, (p.s1 - p.s0) / 4);
       const off = Math.min(220, g);
       draw.breaks.push(
-        seg(cut.t - g - off, p.s0, cut.t + g - off, p.s1),
-        seg(cut.t - g + off, p.s0, cut.t + g + off, p.s1),
+        seg(ct - g - off, p.s0, ct + g - off, p.s1),
+        seg(ct - g + off, p.s0, ct + g + off, p.s1),
       );
     }
   }

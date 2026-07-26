@@ -1241,6 +1241,8 @@ stack s L1..L2 type:stair
 
 **Fix** — deepen the shaft along travel, fold it with `form:return`, or raise `riser:` to use fewer steps. This is a dimensional warning, not a code-compliance verdict.
 
+In a return stair each flight has its own going. The check reads the **tightest flight**, so the going reported is that flight's.
+
 <a id="run07"></a>
 ### RUN07 — the derived slope is steeper than declared
 

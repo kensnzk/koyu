@@ -90,6 +90,99 @@ stack e L1..L2 type:stair
   assert.equal(flights[0]!.s1 - flights[0]!.s0, 1200);
 });
 
+test("エスカレーター: 下りの台も上りと同じ向きに傾く (進む向きは幾何ではない)", () => {
+  // reversed は「人が t の減る向きに進む」だけを言う。機械としては二台とも同じ向きに
+  // 架かっている — ここを混ぜたために、下りの台が鏡像に傾いていた
+  const m = parse(`${BASE}
+space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:N
+space /L2/e escalator X1..X2 Y1..Y1+7000
+stack e L1..L2 type:stair
+`);
+  const run = verticalRuns(m).find((r) => r.level === "L1")!;
+  const inc = runSolids(run).filter((s) => s.kind === "incline");
+  assert.equal(inc.length, 6); // 台ごとに版一枚と欄干二枚
+  const decks = inc.filter((s) => s.rect.x2 - s.rect.x1 > 500);
+  assert.equal(decks.length, 2);
+  assert.deepEqual(
+    inc.map((s) => (s.kind === "incline" ? s.up : "")),
+    ["N", "N", "N", "N", "N", "N"],
+    "下りの台も欄干も N 側へ上がる",
+  );
+});
+
+test("平面: 並列の台はどちらも切られて現れ、切断線はその台の位置に引かれる", () => {
+  // 可視を部品の番号で決めていたため、二台目が自分の階の平面から丸ごと消えていた
+  const m = parse(`${BASE}
+space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:N
+space /L2/e escalator X1..X2 Y1..Y1+7000
+stack e L1..L2 type:stair
+`);
+  const [d] = runDrawsForLevel(m, "L1");
+  assert.equal(d!.arrows.length, 2, "上りと下りの二本");
+  assert.deepEqual(d!.arrows.map((a) => a.label).sort(), ["DN", "UP"]);
+  // 矢印は台ごとに違う s (幅方向) に乗る — 同じ台に二本ではない
+  assert.notEqual(d!.arrows[0]!.x1, d!.arrows[1]!.x1);
+  // 下りの矢印は下流へ向かう。up は N (+Y) なので DN は y が減る向き
+  const dn = d!.arrows.find((a) => a.label === "DN")!;
+  assert.ok(dn.y2 < dn.y1, "DN は上り勾配の逆を指す");
+  const up = d!.arrows.find((a) => a.label === "UP")!;
+  assert.ok(up.y2 > up.y1);
+  assert.equal(d!.breaks.length, 4, "台ごとに平行二本");
+  // 切断線は台の幅の中に収まる (一台の位置を全台へ配っていない)
+  for (const b of d!.breaks) assert.ok(b.x2 - b.x1 <= 1200 + 1);
+});
+
+test("平面: 下りる走りは上る走りの残りに現れる — 並列でも台ごとに", () => {
+  const m = parse(`${BASE}
+level L3 6000 h:2700 slab:300
+space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:N
+space /L2/e escalator X1..X2 Y1..Y1+7000 escalator:N
+space /L3/e escalator X1..X2 Y1..Y1+7000
+stack e L1..L3 type:stair
+`);
+  const l2 = runDrawsForLevel(m, "L2");
+  assert.equal(l2.length, 2); // 上る走りと下りる走り
+  const down = l2.find((d) => d.arrows.length > 0 && d.breaks.length === 0)!;
+  assert.equal(down.arrows.length, 2, "下階の走りも二台とも見える");
+  assert.equal(down.outline.length, 4, "台ごとに側線二本");
+});
+
+test("平面: 双子は位置だけでなく向きも揃って初めて双子になる", () => {
+  // 上る走りの切断位置を、向きの違う下りの走りへ当てると鏡像の平面が出る。
+  // 揃っていないなら双子ではない — 下りる走りは丸ごと見える
+  const src = (upper: string) => `${BASE}
+level L3 6000 h:2700 slab:300
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L2/s stair X1..X2 Y1..Y1+7000 stair:${upper}
+space /L3/s stair X1..X2 Y1..Y1+7000
+stack s L1..L3 type:stair
+`;
+  const span = (upper: string) => {
+    const down = runDrawsForLevel(parse(src(upper)), "L2").find((d) => d.breaks.length === 0)!;
+    const ys = down.outline.flatMap((o) => [o.y1, o.y2]);
+    return Math.max(...ys) - Math.min(...ys);
+  };
+  // 向きが揃うなら、下りは上りが隠した残り (切断線から先) にだけ現れる
+  const same = span("N");
+  // 向きが違えば双子ではない — 切断位置を借りず、丸ごと見える
+  const flipped = span("S");
+  assert.ok(same < flipped - 1000, `揃う ${Math.round(same)} < 違う ${Math.round(flipped)}`);
+  assert.equal(Math.round(flipped), 4800); // 乗り込みを除いた走りの全長
+});
+
+test("階段: 折返しの踏面は走りごとに違う — 検査は最も窮屈な走りが代表する", () => {
+  const m = parse(`${BASE}
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:N form:return
+space /L2/s stair X1..X2 Y1..Y1+7000
+stack s L1..L2 type:stair
+`);
+  const run = verticalRuns(m).find((r) => r.level === "L1")!;
+  const per = run.parts.flatMap((p) => (p.kind === "flight" && p.tread ? [p.tread] : []));
+  assert.equal(per.length, 2);
+  assert.equal(Math.round(run.tread), Math.round(Math.min(...per)));
+  assert.ok(run.tread <= Math.max(...per) + 1);
+});
+
 test("斜路: 勾配は書かれず導出され、宣言 slope: より急なら警告", () => {
   const m = parse(`${BASE}
 space /L1/r ramp X1..X2 Y1..Y1+7000 ramp:N slope:12
