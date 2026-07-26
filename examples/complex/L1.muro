@@ -9,12 +9,14 @@
 # 区画は帯 (band) が割る (ADR-0019)。幅の数字を書き換えれば隣の位置は自動で動く。
 
 space /L1/ramp parking X1..X2 Y1..Y1+7000 name:車路出口 use:parking
-space /L1/atrium corridor X2..X3 Y1..Y6 name:貫通通路 use:common floor:石張り
+space /L1/atrium corridor X2..X2+2400 Y1..Y6 + X2+5600..X3 Y1..Y6 + X2+2400..X2+5600 Y1..Y4 + X2+2400..X2+5600 Y4+12000..Y6 name:貫通通路 use:common floor:石張り
 space /L1/mall corridor X3..X8 Y2..Y2+3600 name:モール use:common floor:石張り
 space /L1/bohW backyard X3..X4 Y4-3200..Y6 name:バックヤード西 use:common
 space /L1/bohE backyard X7..X8 Y4-3200..Y6 name:荷捌き・搬入 use:common
-space /L1/north backyard X4..X4+3000 Y5..Y6 + X4+15000..X7 Y5..Y6 + X4+3000..X4+15000 Y5..Y5+2700 + X4+3000..X4+15000 Y5+5300..Y6 name:北側サービス use:common
-space /L1/es escalator X4+3000..X4+15000 Y5+2700..Y5+5300 name:エスカレーター use:common escalator:E
+space /L1/north backyard X4..X7 Y5..Y6 name:北側サービス use:common
+# エスカレーターは吹抜けの中に立つ — 客はモールと貫通通路から乗る。
+# バックヤードの奥に置くと、平面としては閉じていても客は辿り着けない
+space /L1/es escalator X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター use:common escalator:N
 
 band Y X1..X2 Y1+7000..Y6
   space /L1/w01 shop w:8000 name:西区画01 use:rentable
@@ -31,7 +33,8 @@ band X X3..X8 Y1..Y2
 
 band X X3..X8 Y2+3600..Y4-3200
   space /L1/n01 shop w:8000 name:北区画01 use:rentable
-  space /L1/n02 shop w:8000 name:北区画02 use:rentable
+  space /L1/n02 shop w:6000 name:北区画02 use:rentable
+  space /L1/ncorr corridor w:4000 name:北連絡通路 use:common floor:石張り   # モールとコアを結ぶ — 避難は他人の区画を通らない
   space /L1/n03 shop w:8000 name:北区画03 use:rentable
   space /L1/n04 shop w:8000 name:北区画04 use:rentable
   space /L1/n05 shop w:rest name:北区画05 use:rentable
@@ -80,14 +83,13 @@ boundary /L1/atrium /L1/bohW t:250 spec:RC
 boundary /L1/ramp /L1/atrium t:250 spec:RC
 
 # ---- コアとサービス ----
-boundary /L1/n02 /L1/hall type:open
-boundary /L1/n03 /L1/hall type:open
-boundary /L1/n04 /L1/hall type:open
+boundary /L1/ncorr /L1/hall type:open
+boundary /L1/ncorr /L1/mall type:open
 boundary /L1/bohW /L1/hall t:200 spec:RC
   door FD2 name:バックヤード扉
 boundary /L1/bohE /L1/hall t:200 spec:RC
   door FD2 name:荷捌きから
-boundary /L1/north /L1/es type:open
+boundary /L1/atrium /L1/es type:open
 boundary /L1/north /L1/bohW t:200 spec:RC
   door w:1200
 boundary /L1/north /L1/bohE t:200 spec:RC
@@ -100,6 +102,7 @@ boundary /L1/atrium /out edge:N t:300 spec:カーテンウォール
   door AD1 name:北側通り抜け口
 boundary /L1/ramp /site/walk edge:S t:300 spec:RC
 boundary /L1/ramp /site/plaza edge:W t:300 spec:RC
+  door VG1 name:車路出入口   # 2層の駐車場はここからしか出入りできない
 boundary /L1/w01 /site/plaza edge:W t:300 spec:カーテンウォール
   door AD1
 boundary /L1/w02 /site/plaza edge:W t:300 spec:カーテンウォール

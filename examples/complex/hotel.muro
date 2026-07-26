@@ -5,28 +5,35 @@
 # 一致することを parse が照合する — 寸法の打ち間違いの検算になる。
 # 6層 × 13室 = 78室が、13行の帯の宣言から展開される。
 #
-# 客室には daylight:1 を書く。ここは 1/7 を掛けたい室である。
+# **客室に daylight:1 は書かない。**採光 (法28条) の対象となる居室は令19条が列挙していて、
+# 住宅・学校・病院・診療所・寄宿舎・下宿はそこにあるが、**旅館・ホテルの客室は無い**。
+# 窓の大きさの話ではなく、この室に 1/7 の規則が掛かるかどうかの判断である。
+#
+# ADR-0020 が採光の対象を「型からの推定」から「daylight: の宣言」へ移したのは、まさに
+# これが型では決まらないからである。同じ 6.0m × 9.0m の室でも、共同住宅の居室なら対象で、
+# ホテルの客室なら対象外になる。**判断は設計者が書き、処理系はそれに従う。**
+# (この割付を共同住宅として宣言し直すと、light は 78室中66室の不足を報告する — 実測)
 
 space /L14..L19/corridor corridor X2..X8 Y2+9000..Y4-3200 name:客室廊下 use:common
 
 band X X2..X8 Y2..Y2+9000
-  space /L14..L19/r01 room w:6000 name:客室01 use:rentable daylight:1
-  space /L14..L19/r02 room w:6000 name:客室02 use:rentable daylight:1
-  space /L14..L19/r03 room w:6000 name:客室03 use:rentable daylight:1
-  space /L14..L19/r04 room w:6000 name:客室04 use:rentable daylight:1
-  space /L14..L19/r05 room w:6000 name:客室05 use:rentable daylight:1
-  space /L14..L19/r06 room w:6000 name:客室06 use:rentable daylight:1
-  space /L14..L19/r07 room w:6000 name:客室07 use:rentable daylight:1
-  space /L14..L19/r08 room w:rest name:客室08 use:rentable daylight:1
+  space /L14..L19/r01 room w:6000 name:客室01 use:rentable daylight:0
+  space /L14..L19/r02 room w:6000 name:客室02 use:rentable daylight:0
+  space /L14..L19/r03 room w:6000 name:客室03 use:rentable daylight:0
+  space /L14..L19/r04 room w:6000 name:客室04 use:rentable daylight:0
+  space /L14..L19/r05 room w:6000 name:客室05 use:rentable daylight:0
+  space /L14..L19/r06 room w:6000 name:客室06 use:rentable daylight:0
+  space /L14..L19/r07 room w:6000 name:客室07 use:rentable daylight:0
+  space /L14..L19/r08 room w:rest name:客室08 use:rentable daylight:0
 
 band X X2..X4 Y4-3200..Y5
-  space /L14..L19/s01 room w:5000 name:スイート01 use:rentable daylight:1
-  space /L14..L19/s02 room w:5000 name:スイート02 use:rentable daylight:1
-  space /L14..L19/s03 room w:rest name:スイート03 use:rentable daylight:1
+  space /L14..L19/s01 room w:5000 name:スイート01 use:rentable daylight:0
+  space /L14..L19/s02 room w:5000 name:スイート02 use:rentable daylight:0
+  space /L14..L19/s03 room w:rest name:スイート03 use:rentable daylight:0
 
 band X X7..X8 Y4-3200..Y5
-  space /L14..L19/s04 room w:4000 name:スイート04 use:rentable daylight:1
-  space /L14..L19/s05 room w:rest name:スイート05 use:rentable daylight:1
+  space /L14..L19/s04 room w:4000 name:スイート04 use:rentable daylight:0
+  space /L14..L19/s05 room w:rest name:スイート05 use:rentable daylight:0
 
 # ---- 客室と廊下 ----
 boundary /L14..L19/r01 /L14..L19/corridor t:180 spec:戸境RC

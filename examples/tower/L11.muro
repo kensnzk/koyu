@@ -15,10 +15,12 @@ boundary /L11/PA /L11/corridor t:180 spec:RC
 boundary /L11/PB /L11/corridor t:180 spec:RC
   door D1 at:X5 name:PB玄関
 boundary /L11/PA /L11/bPA t:100 spec:サッシ
+  door BD1 at:X1+800 name:掃き出し引違い
   window W1 at:X1+3200
   window W1 at:X2+3200
   window W2 at:X3+1200
 boundary /L11/PB /L11/bPB t:100 spec:サッシ
+  door BD1 at:X4+3200 name:掃き出し引違い
   window W1 at:X4
   window W1 at:X5
   window W2 at:X5+4800

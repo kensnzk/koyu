@@ -10,6 +10,7 @@ asset HD1 door w:900  h:2100 style:hinged  fire:防火設備 name:客室扉
 asset MD1 door w:1800 h:2400 style:hinged  name:機械室扉
 asset GD1 door w:3600 h:3000 style:sliding name:荷捌きシャッター
 
+asset VG1 door w:6000 h:3000 style:sliding name:車路シャッター   # 車の出入口
 asset CW1 window w:7200 h:3600 sill:900  name:基壇カーテンウォール
 asset CW2 window w:7200 h:2100 sill:800  name:事務所カーテンウォール
 asset W1  window w:2600 h:2000 sill:400  name:客室窓

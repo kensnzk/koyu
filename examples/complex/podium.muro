@@ -10,13 +10,16 @@
 # 「一度斜めにしたから上まで斜め」は判断ではなく惰性である (ADR-0022 の線の経済)。
 # 外形の隅切りだけは所与の線 (隣地境界) に従うので基壇の全層に現れる。
 
-space /L2..L5/atrium void X2..X3 Y1..Y6 name:吹抜け
+# 吹抜けは**床の不在**である。区画の扉を吹抜けに開くと、そこは床の無い所なので出られない。
+# 西列の区画は回廊に面させ、回廊がモールへ回り込む — 吹抜けの縁は手すりになる
+space /L2..L5/wgal corridor X2..X2+2400 Y1..Y6 + X2+2400..X3 Y2..Y2+3600 name:西回廊 use:common floor:石張り
+space /L2..L5/atrium void X2+2400..X3 Y1..Y2 + X2+2400..X3 Y2+3600..Y4 + X2+5600..X3 Y4..Y4+12000 + X2+2400..X3 Y4+12000..Y6 name:吹抜け
 space /L2..L5/mall corridor X3..X8 Y2..Y2+3600 name:モール use:common floor:石張り
-space /L2..L5/north backyard X4..X4+3000 Y5..Y6 + X4+15000..X7 Y5..Y6 + X4+3000..X4+15000 Y5..Y5+2700 + X4+3000..X4+15000 Y5+5300..Y6 name:北側サービス use:common
+space /L2..L5/north backyard X4..X7 Y5..Y6 name:北側サービス use:common
 space /L2..L5/bohW backyard X3..X4 Y4-3200..Y6 name:バックヤード西 use:common
 space /L2..L5/bohE backyard X7..X8 Y4-3200..Y6 name:バックヤード東 use:common
-space /L2..L4/es escalator X4+3000..X4+15000 Y5+2700..Y5+5300 name:エスカレーター use:common escalator:E
-space /L5/es corridor X4+3000..X4+15000 Y5+2700..Y5+5300 name:エスカレーター上部 use:common
+space /L2..L4/es escalator X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター use:common escalator:N
+space /L5/es corridor X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター上部 use:common
 
 # ---- 西列: 吹抜けに面する区画 (南→北に5区画) ----
 band Y X1..X2 Y1..Y6
@@ -37,7 +40,8 @@ band X X3..X8 Y1..Y2
 # ---- モールの北列 (西→東に5区画) ----
 band X X3..X8 Y2+3600..Y4-3200
   space /L2..L5/n01 shop w:8000 name:北区画01 use:rentable
-  space /L2..L5/n02 shop w:8000 name:北区画02 use:rentable
+  space /L2..L5/n02 shop w:6000 name:北区画02 use:rentable
+  space /L2..L5/ncorr corridor w:4000 name:北連絡通路 use:common floor:石張り   # モールとコアを結ぶ — 避難は他人の区画を通らない
   space /L2..L5/n03 shop w:8000 name:北区画03 use:rentable
   space /L2..L5/n04 shop w:8000 name:北区画04 use:rentable
   space /L2..L5/n05 shop w:rest name:北区画05 use:rentable
@@ -63,19 +67,20 @@ boundary /L2..L5/n04 /L2..L5/mall t:120 spec:店舗サッシ
   door AD1
 boundary /L2..L5/n05 /L2..L5/mall t:120 spec:店舗サッシ
   door AD1
-boundary /L2..L5/w01 /L2..L5/atrium t:120 spec:店舗サッシ
+boundary /L2..L5/w01 /L2..L5/wgal t:120 spec:店舗サッシ
   door AD1
-boundary /L2..L5/w02 /L2..L5/atrium t:120 spec:店舗サッシ
+boundary /L2..L5/w02 /L2..L5/wgal t:120 spec:店舗サッシ
   door AD1
-boundary /L2..L5/w03 /L2..L5/atrium t:120 spec:店舗サッシ
+boundary /L2..L5/w03 /L2..L5/wgal t:120 spec:店舗サッシ
   door AD1
-boundary /L2..L5/w04 /L2..L5/atrium t:120 spec:店舗サッシ
+boundary /L2..L5/w04 /L2..L5/wgal t:120 spec:店舗サッシ
   door AD1
-boundary /L2..L5/w05 /L2..L5/atrium t:120 spec:店舗サッシ
+boundary /L2..L5/w05 /L2..L5/wgal t:120 spec:店舗サッシ
   door AD1
 
 # ---- 吹抜けの縁は手すり (遮蔽しない物 — air:1)、モールは吹抜けへ抜ける ----
-boundary /L2..L5/mall /L2..L5/atrium type:open
+boundary /L2..L5/mall /L2..L5/wgal type:open
+boundary /L2..L5/wgal /L2..L5/atrium t:60 spec:手すり air:1 h:1100
 boundary /L2..L5/s01 /L2..L5/atrium t:120 spec:店舗サッシ
 boundary /L2..L5/n01 /L2..L5/atrium t:120 spec:店舗サッシ
 boundary /L2..L5/bohW /L2..L5/atrium t:200 spec:RC
@@ -87,14 +92,13 @@ boundary /L2..L5/bohE /out t:300 spec:カーテンウォール
   line X7+4000,Y6 X8,Y5+2000
 
 # ---- コアとバックヤード ----
-boundary /L2..L5/n02 /L2..L5/hall type:open
-boundary /L2..L5/n03 /L2..L5/hall type:open
-boundary /L2..L5/n04 /L2..L5/hall type:open
+boundary /L2..L5/ncorr /L2..L5/hall type:open
+boundary /L2..L5/ncorr /L2..L5/mall type:open
 boundary /L2..L5/bohW /L2..L5/hall t:200 spec:RC
   door FD2 name:バックヤード扉
 boundary /L2..L5/bohE /L2..L5/hall t:200 spec:RC
   door FD2 name:バックヤード扉2
-boundary /L2..L5/north /L2..L5/es type:open
+boundary /L2..L5/wgal /L2..L5/es type:open
 boundary /L2..L5/north /L2..L5/bohW t:200 spec:RC
   door w:1200
 boundary /L2..L5/north /L2..L5/bohE t:200 spec:RC
@@ -111,6 +115,8 @@ boundary /L2..L5/w04 /out edge:W t:300 spec:カーテンウォール
   window CW1
 boundary /L2..L5/w05 /out edge:W t:300 spec:カーテンウォール
 boundary /L2..L5/w01 /out edge:S t:300 spec:カーテンウォール
+boundary /L2..L5/wgal /out edge:S t:300 spec:カーテンウォール
+boundary /L2..L5/wgal /out edge:N t:300 spec:カーテンウォール
 boundary /L2..L5/atrium /out edge:S t:300 spec:カーテンウォール
 boundary /L2..L5/atrium /out edge:N t:300 spec:カーテンウォール
 boundary /L2..L5/s01 /out edge:S t:300 spec:カーテンウォール
