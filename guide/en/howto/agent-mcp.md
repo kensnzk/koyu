@@ -18,15 +18,56 @@ The file paths in the output below are actually absolute; they are shortened to 
 
 ### 1. Register the server
 
+The launch command is the same pair of choices in every client. From npm, `npx -p @kensnzk/koyu koyu-mcp`; from a clone of the repository, `node /path/to/koyu/dist/mcp.js` (run `npm install && npm run build` first — `dist/mcp.js` has no runtime dependencies). The transport is stdio, and there are no environment variables and no authentication.
+
+**Claude Code (CLI).** One line registers it.
+
 ```sh
 claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp
 ```
 
-When you have cloned the repository and want the development build, point at the built `dist/mcp.js`.
-
 ```sh
-claude mcp add koyu -- node /path/to/koyu/dist/mcp.js
+claude mcp add koyu -- node /path/to/koyu/dist/mcp.js   # the development build
 ```
+
+`claude mcp list` answers whether it connected.
+
+```text
+koyu: node /home/user/koyu/dist/mcp.js - ✓ Connected
+```
+
+Inside a session, `/mcp` shows the tools as well.
+
+**Sharing it through the repository (project scope).** Put a `.mcp.json` at the root of the repository and commit it, and everyone who clones gets the same registration.
+
+```json
+{
+  "mcpServers": {
+    "koyu": {
+      "command": "npx",
+      "args": ["-p", "@kensnzk/koyu", "koyu-mcp"]
+    }
+  }
+}
+```
+
+A server that comes from `.mcp.json` is approved once before it is used; until then it is not connected.
+
+```text
+koyu: npx -p @kensnzk/koyu koyu-mcp - ⏸ Pending approval (run `claude` to approve)
+```
+
+**Claude Desktop.** Open `claude_desktop_config.json` through Settings → Developer → Edit Config, write the same `mcpServers` shape, and restart the app. The file lives at `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS and `%APPDATA%\Claude\claude_desktop_config.json` on Windows. The desktop app does not always inherit the shell's PATH, so writing `npx` or `node` as an absolute path (what `which node` / `where node` prints) is the surer route.
+
+**Other clients.** Most read JSON of the same `mcpServers` shape; follow that client's documentation for the key name and the location of the file. What koyu requires is only these four: stdio, the launch command above, no environment variables, no authentication.
+
+**Pass the entry as an absolute path.** A relative `file` argument is resolved against **the server process's cwd**, and which directory a client launches the server in is up to the client. Getting it wrong comes back like this.
+
+```text
+0行目: ファイルが読めません: /tmp/examples/two-rooms.muro
+```
+
+("Cannot read the file: …")
 
 ### 2. Confirm the tools
 
@@ -191,7 +232,7 @@ printf '%s\n' \
 ```
 
 ```text
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.11.0"},"instructions":"空間一次の建築記述koyuのサーバー。model_summaryで建物を掴み、layersで原本 (.muroレイヤー群) を読み、write_layerで編集する。checkが一棟のビルドの門番 — エラーは出所レイヤー:行つきで返る。doors/light/site/spacesは同じ記述への異なる問い。形 (plan_svg) は生成物。"}}
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.14.0"},"instructions":"空間一次の建築記述koyuのサーバー。model_summaryで建物を掴み、layersで原本 (.muroレイヤー群) を読み、write_layerで編集する。checkが一棟のビルドの門番 — エラーは出所レイヤー:行つきで返る。doors/light/site/spacesは同じ記述への異なる問い。形 (plan_svg) は生成物。"}}
 {"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"{\n \"doors\": 2,\n \"path\": [\n  \"/L1/a\",\n  \"/L1/b\",\n  \"/out\"\n ]\n}"}]}}
 ```
 

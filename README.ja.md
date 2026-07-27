@@ -82,6 +82,8 @@ npm run koyu -- site   examples/tower/main.muro      # ショーケース: polyg
 
 `koyu-mcp` は依存ゼロのMCPサーバー (stdio、ADR-0012)。LLMエージェントが建物を読み (`layers`)、編集し (`write_layer`)、`check` がビルドの門番になる — エラーは出所レイヤー:行つき。`doors` / `light` / `site` は同じ記述への異なる問い。延床4,786㎡のショーケース一棟が原本8,099トークン (実測 — IFC4は14倍、IFCXは25倍: [examples/comparison/](examples/comparison/README.md)) なので、一棟がコンテキストに余裕で載る。エージェントが正しく*編集*できるかは次の分水嶺 — 編集evalは計画段階でまだ実施していない ([docs/horizon.md](docs/horizon.md))。三軸の構想 (デジタルツイン・W3C BOTへのオントロジー整列・都市接続) も同文書。
 
+登録は一行 (`claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp`)。Claude Code・Claude Desktop・その他クライアントでの設定と標準ループは [guide/howto/agent-mcp.md](guide/howto/agent-mcp.md)。
+
 ## 構成
 
 現在の仕様は [spec/](spec/README.md) に体系化した — 言語リファレンス ([language.md](spec/language.md))・意味論 ([semantics.md](spec/semantics.md))・語彙の台帳 ([vocabulary.md](spec/vocabulary.md))・正準JSON・ツールリファレンス (CLI/MCP/API)。ADRは「なぜ」を、specは「いま何が真か」を持つ。記法の成立記録 (DSL/YAML/JSON書き比べ) は [spec/notation-v0.md](spec/notation-v0.md)、IFC4とのカバレッジ照合は [docs/ifc-coverage.md](docs/ifc-coverage.md)、設計判断の記録は [docs/decisions/](docs/decisions/)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [koyu](https://linear.app/munipersonal/project/koyu-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。実装は src/ に約7,500行 (パーサ・グラフ・チェック・平面図生成・CLI・MCPサーバー)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。

@@ -33,7 +33,16 @@ const GUIDE = join(root, "guide");
  * 未知の言語を足すときは「検証しなくてよい」と決めたうえでここに足す。
  * 情報文字列なしの裸のフェンスも禁じる (印を落とすのが最も起きやすい検証の抜けかたである)。
  */
-const FENCE_TAGS = new Set(["muro", "muro-part", "muro-bad", "muro-warn", "sh", "text", "ts"]);
+const FENCE_TAGS = new Set([
+  "muro",
+  "muro-part",
+  "muro-bad",
+  "muro-warn",
+  "sh",
+  "text",
+  "ts",
+  "json",
+]);
 
 // ---- markdown の走査 ----
 
@@ -167,6 +176,18 @@ test("guide: ```muro はすべて解析でき、checkのエラーが0件", () =>
       [],
       `${where(b)}: 完全なファイルのはずがエラーが出た (断片なら\`\`\`muro-partにする)\n${b.body}`,
     );
+  }
+});
+
+// ---- (1b) ```json は JSON として読める ----
+
+test("guide: ```json はすべて JSON.parse を通る (設定例を貼り間違えない)", () => {
+  for (const b of BLOCKS.filter((x) => x.tag === "json")) {
+    try {
+      JSON.parse(b.body);
+    } catch (e) {
+      assert.fail(`${where(b)}: JSONとして読めない — ${(e as Error).message}\n${b.body}`);
+    }
   }
 });
 

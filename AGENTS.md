@@ -14,7 +14,7 @@ koyu は建築をテキストで書く記法 (`.muro`) とその処理系であ�
 | `docs/decisions/` | **ADR** — なぜそう決めたか、何を棄却したか (0001〜0026) | 決定は追記のみ。覆すときは新しいADRを書く |
 | `docs/` | `writing-architecture.md` (主張の本文)・`modules.md` (寸法モジュールの台帳 — 生成は寸法を先に決める)・`roadmap.md`・`horizon.md`・`ifc-coverage.md`・`log/`・`reviews/` | |
 | `examples/` | 同梱の建物 — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (縦動線の最小例) `complex/` (延床31,606㎡) `twin/` (延床141,388㎡の双塔再開発) `comparison/`。`steps/` は guide/start.md の各段の到達点 | 触ったら `npm run check:examples` が門番 |
-| `test/` | `node --test` の22ファイル。254件が緑 | 保証はテストで固定する。仕様の文だけでは着地していない |
+| `test/` | `node --test` の22ファイル。257件が緑 | 保証はテストで固定する。仕様の文だけでは着地していない |
 | `eval/` | エージェント編集evalのハーネス (`run.ts` `score.ts` `tasks/` `fixtures/`) | |
 
 ## コマンド
