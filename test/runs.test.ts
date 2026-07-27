@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { check } from "../src/core/diagnose.js";
+import { validate } from "../src/validate/index.js";
 import { doorsBetween, segmentsFor } from "../src/core/graph.js";
 import { areaM2, columnsFor, polyBounds, polygonAreaM2 } from "../src/core/model.js";
 import { slabs } from "../src/core/fabric.js";
@@ -34,10 +35,11 @@ stack s L1..L2 type:stair
   assert.equal(up.risers, 17);
   assert.equal(Math.round(up.riser), 176);
   assert.equal(Math.round(up.tread), 300);
-  // 最小の模型なので外皮 (ENV01) は書いていない — 縦動線まわりの診断が無いことを見る
+  // 縦動線まわりの構造整合の診断が無いことを見る。外皮の穴は検証の面なので
+  // core の check には現れない (spec/scope.md §3)
   const r = check(m);
   assert.deepEqual(r.errors, []);
-  assert.deepEqual(r.warnings.filter((w) => !w.includes("外皮")), []);
+  assert.deepEqual(r.warnings, []);
 });
 
 test("同じ階段室でも階高が変われば段割りが変わる (書き分けはどこにも無い)", () => {
@@ -191,17 +193,19 @@ stack r L1..L2 type:stair
 `);
   const run = verticalRuns(m).find((r) => r.level === "L1")!;
   assert.ok(run.slope > 1 / 12);
-  assert.ok(check(m).warnings.some((w) => w.includes("勾配")));
+  // 勾配は建築の側の判断 — core は黙り、検証の面が言う
+  assert.deepEqual(check(m).warnings, []);
+  assert.ok(validate(m).some((f) => f.rule === "run.slope" && f.message.includes("勾配")));
 });
 
-test("形はあってもグラフでは通れない — 垂直境界が無ければ警告 (RUN08)", () => {
+test("形はあってもグラフでは通れない — 垂直境界が無ければ判定 (run.disconnected)", () => {
   const m = parse(`${BASE}
 space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
 `);
   const r = check(m);
   assert.equal(r.errors.length, 0);
-  assert.ok(r.warnings.some((w) => w.includes("垂直境界がありません")));
+  assert.ok(validate(m).some((f) => f.rule === "run.disconnected" && f.message.includes("垂直境界がありません")));
   assert.equal(doorsBetween(m, "/L1/s", "/L2/s"), undefined);
 });
 

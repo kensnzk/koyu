@@ -13,21 +13,17 @@ import {
   placeOpening,
   planOverlap,
   segmentsFor,
-  segmentLength,
-  envelopeGaps,
   drawnCut,
   spacesOverlap,
 } from "./graph.js";
 import { heff, isSemiOutdoor, levelsSorted, type Attrs, type Boundary, type Edge, type Level, type Model, type Pt, type Rect, type Space,
   columnSites,
+  regionOf,
   columnsFor,
   pointInPolygon,
   rectToPoly,
-  regionOf,
   srcRef,
-  polygonAreaM2,
   polygonSelfIntersection,
-  shapeEscapesPolygon,
 } from "./model.js";
 import { cutsInWindow } from "./poly.js";
 import { runDecls, runIssues } from "./vertical.js";
@@ -101,9 +97,7 @@ export const DIAGNOSTIC_CODES = {
   HGT05: "warning", // レベルが特定できない領域つき空間
   SIT01: "error", // 敷地形状の重複頂点
   SIT02: "error", // 敷地形状の自己交差
-  SIT03: "error", // 建物の敷地形状からのはみ出し
   SIT04: "warning", // 対応するゾーンの無いpolygon
-  SIT05: "warning", // 敷地面積の宣言と導出の食い違い
   UID01: "error", // 数字だけのuid (ADR-0015)
   UID02: "error", // 空白を含むuid
   UID03: "error", // uidの重複
@@ -115,13 +109,9 @@ export const DIAGNOSTIC_CODES = {
   RUN03: "error", // 縦動線の領域が矩形一つでない / レベルが不明
   RUN04: "warning", // 上にレベルが無く縦動線の形が生成できない
   RUN05: "error", // form の値が不正、または形が決まらない
-  RUN06: "warning", // 導出された段の寸法が窮屈 (書かないが検査する)
-  RUN07: "warning", // 導出された勾配が宣言・常用域から外れる
-  RUN08: "warning", // 縦動線の形はあるが上下を繋ぐ垂直境界が無い
   LIN01: "error", // 描かれた線が二つの空間を分離しない (ADR-0022)
   LIN02: "error", // 垂直境界に描かれた線
   LIN03: "warning", // 描かれた線が何も切っていない
-  ENV01: "warning", // 外皮に穴 — 何にも面していない外周 (ADR-0025)
   COL01: "warning", // 柱の宣言に対して立つ柱が0本 (ADR-0023)
   COL02: "warning", // 同じ通りの交点に複数の柱宣言が重なる (先の宣言が勝つ)
   VER01: "error", // koyu 0.1 での既定境界の導出 (ADR-0017)
@@ -295,7 +285,6 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   checkAttrValues(ctx);
   checkRuns(ctx);
   checkDrawnLines(ctx);
-  checkEnvelopeGaps(ctx);
   checkColumns(ctx);
   checkLanguageVersion(ctx);
   checkUids(ctx);
@@ -483,7 +472,7 @@ function checkAttrValues(ctx: Ctx): void {
   }
 }
 
-/** 縦動線 — RUN01〜RUN08 */
+/** 縦動線 — RUN01〜RUN05 (形が一意に決まるか。登りやすさは検証の面) */
 function checkRuns(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 縦動線 (ADR-0021): 宣言の妥当性と、**書かれていない導出値**の妥当性。
@@ -534,49 +523,6 @@ function checkDrawnLines(ctx: Ctx): void {
         bAt,
       );
     }
-  }
-}
-
-/** 外皮の穴 — ENV01 */
-function checkEnvelopeGaps(ctx: Ctx): void {
-  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
-  // 外皮の穴 (ADR-0025): 既定境界は領域を持たない空間との間には導かれない (ADR-0014) ので、
-  // 外部への境界の書き忘れは黙って壁の不在になる。導出された外周のうち、
-  // 他の空間とも宣言された境界とも向かい合っていない区間を数える。
-  // 外構のタイル (site:1 ゾーンの配下)・外部・半屋外は囲われていないのが正常なので数えない。
-  // そして**外皮を書き始めているレベルだけ**を見る — 外部への境界が一本も無い階は
-  // 外皮をまだ模型にしていないだけであって、穴が開いているのではない。
-  // 「書き始めたなら閉じきる」という整合の検査であって、完全性の要求ではない
-  const siteZones = [...model.zones.values()].filter((z) => z.attrs["site"] === 1).map((z) => z.path);
-  const envelopedLevels = new Set<string>();
-  for (const b of model.boundaries) {
-    if (b.derived || VERTICAL.has(b.kind)) continue;
-    const sa = model.spaces.get(b.a);
-    const sb = model.spaces.get(b.b);
-    if (!sa || !sb) continue;
-    const outer = sa.rects.length === 0 ? sb : sb.rects.length === 0 ? sa : undefined;
-    if (outer?.level) envelopedLevels.add(outer.level);
-  }
-  for (const s of withRect) {
-    if (!s.level || !envelopedLevels.has(s.level)) continue;
-    if (s.type === "exterior" || isSemiOutdoor(model, s)) continue;
-    if (siteZones.some((z) => s.path.startsWith(z + "/"))) continue;
-    const gaps = envelopeGaps(model, s);
-    if (gaps.length === 0) continue;
-    // **どの辺かを言う。**合計長だけでは、edge を書き分けている図面で直す辺が特定できない。
-    // envelopeGaps は座標つきの線分を返しているので、方角は既に手元にある
-    const byDir = new Map<string, number>();
-    for (const g of gaps) {
-      const d = g.edgeOfA ?? (g.horizontal ? "N/S" : "E/W");
-      byDir.set(d, (byDir.get(d) ?? 0) + segmentLength(g));
-    }
-    const total = gaps.reduce((a, g) => a + segmentLength(g), 0);
-    const where = [...byDir].map(([d, mm]) => `${d} ${Math.round(mm)}mm`).join(" / ");
-    emit(
-      "ENV01",
-      `外皮に面していない外周があります: ${s.path} — ${where} (合計 ${Math.round(total)}mm・${gaps.length}区間)。外部への境界を書きます`,
-      { line: s.line, file: s.file, path: [s.path] },
-    );
   }
 }
 
@@ -1061,7 +1007,7 @@ function checkOrphanSpaces(ctx: Ctx): void {
   }
 }
 
-/** 敷地形状 — SIT01〜SIT05 */
+/** 敷地形状 — SIT01 / SIT02 / SIT04 (与件の健全性。建物との関係の判断は検証の面) */
 function checkSite(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 敷地形状 (ADR-0011): 形の妥当性、対応ゾーンの存在、宣言面積との照合、建物のはみ出し検査。
@@ -1096,33 +1042,6 @@ function checkSite(ctx: Ctx): void {
         path: [poly.path],
       });
       continue;
-    }
-    if (zone.attrs["site"] !== 1) continue;
-    const declared = zone.attrs["area"];
-    if (typeof declared === "number") {
-      const derived = polygonAreaM2(poly.points);
-      if (Math.abs(declared - derived) >= 0.05) {
-        emit(
-          "SIT05",
-          `敷地面積の宣言と導出が食い違います: 宣言 ${declared}㎡ / 導出 ${derived.toFixed(2)}㎡`,
-          { line: zone.line, file: zone.file, path: [zone.path] },
-        );
-      }
-    }
-    for (const s of withRect) {
-      if (s.type === "exterior" || s.path.startsWith(poly.path + "/")) continue;
-      // 照合するのは割付ではなく**導出された領域** — 敷地なりに切った外形はここで通る
-      for (const r of regionOf(s)) {
-        const out = shapeEscapesPolygon(r, poly.points, EPS_SITE);
-        if (out) {
-          emit("SIT03", `${s.path} が敷地形状からはみ出しています (${Math.round(out.x)},${Math.round(out.y)} 付近)`, {
-            line: s.line,
-            file: s.file,
-            path: [s.path],
-          });
-          break;
-        }
-      }
     }
   }
 }

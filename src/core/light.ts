@@ -1,32 +1,41 @@
-// koyu — 採光の粗い判定 (法規検証の芽・第一号)
-// 採光の対象と宣言された室について 窓面積/床面積 ≥ 1/7 を確かめる。
-// 採光補正係数は掛けない甘い判定であり、基本計画の解像度に合わせた早期警報である。
+// koyu core — 採光の**入力**を返す (合否は言わない)
+//
+// 方針 §5.7: 「集計とグラフの問いは core が持つ。**ただし合否を言わない。**
+// 開口面積と床面積を返す。」1/7 の判定は建築の側の規則なので、検証の面
+// (src/validate/light.ts) が持つ。ここが返すのは数だけである。
+//
 // 対象は `daylight:1` を書いた空間だけ — 型からは推定しない (ADR-0020)。
+// 「どの室に採光の問いを掛けるか」は書き手の宣言であって、core の推定ではない。
 
 import { areaM2, isCoveredAbove, isSemiOutdoor, type Model, type Space } from "./model.js";
 
 /** 庇下・バルコニー下 (上に空間がある半屋外) 越しの窓の係数 — 縁側補正に倣う粗い値。
  *  上が開いた半屋外 (庭・最上階バルコニー) 越しは 1.0 (ADR-0009) */
-const COVERED_SEMI_FACTOR = 0.7;
+export const COVERED_SEMI_FACTOR = 0.7;
 
-export interface DaylightResult {
+/**
+ * 採光の問いの入力。**合否を持たない** — `need` も `ok` もここには無い。
+ * 閾値を掛けるのは検証の面である。
+ */
+export interface DaylightInput {
   space: Space;
-  /** 床面積 m² */
+  /** 床面積 m² (壁芯) */
   floor: number;
-  /** 外部に面する窓の面積 m² (w×h) */
+  /** 外部に面する窓の有効面積 m² (w×h×係数) */
   window: number;
-  /** 必要面積 m² (床/7) */
-  need: number;
-  ok: boolean;
-  /** h未指定で数えられなかった窓があるか */
+  /** h未指定で数えられなかった窓があるか — 数が信用できないことの印 */
   missingH: boolean;
 }
 
-export function daylight(model: Model): DaylightResult[] {
-  const out: DaylightResult[] = [];
+/**
+ * `daylight:1` と宣言された領域つき空間について、床面積と有効窓面積を返す。
+ * 係数は「窓の先が何か」の導出 — 外部に直接面すれば1、庇下の半屋外越しなら0.7、
+ * 上が開いた半屋外越しなら1.0。この係数は形の導出であって判定ではない。
+ */
+export function daylightInputs(model: Model): DaylightInput[] {
+  const out: DaylightInput[] = [];
   for (const s of model.spaces.values()) {
     if (s.rects.length === 0) continue;
-    // 採光の対象は宣言である (ADR-0020) — 型は解釈しない。既定は対象外
     if (s.attrs["daylight"] !== 1) continue;
     const floor = areaM2(s)!;
     let win = 0;
@@ -36,8 +45,6 @@ export function daylight(model: Model): DaylightResult[] {
       if (!other) continue;
       const os = model.spaces.get(other);
       if (!os) continue;
-      // 外部に直接面する窓は係数1。半屋外越しは、その半屋外が庇下 (上に空間がある) なら0.7、
-      // 上が開いていれば (庭・最上階バルコニー) 1.0
       const factor =
         os.type === "exterior"
           ? 1
@@ -56,8 +63,7 @@ export function daylight(model: Model): DaylightResult[] {
         win += (o.w * o.h * factor) / 1e6;
       }
     }
-    const need = floor / 7;
-    out.push({ space: s, floor, window: win, need, ok: win + 1e-9 >= need, missingH });
+    out.push({ space: s, floor, window: win, missingH });
   }
   return out;
 }

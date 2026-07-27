@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { check } from "../src/core/diagnose.js";
+import { validate } from "../src/validate/index.js";
 import { pointInPolygon, polygonAreaM2, toCanonical } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
 import { siteReport } from "../src/core/site.js";
@@ -55,18 +56,19 @@ boundary /site/yard /out edge:S t:120 air:1 spec:フェンス`,
   assert.equal(r.declaredArea, 96);
 });
 
-test("check: 建物が敷地形状からはみ出すとエラー、タイルは検査しない", () => {
+test("判定: 建物が敷地形状からはみ出すと違反、タイルは検査しない", () => {
   const src = (bldg: string) =>
     `${BASE}
 zone /site name:敷地 site:1
 polygon /site -1000,-1000 9000,-1000 9000,9000 -1000,9000
 ${bldg}
 space /site/yard yard X1-2000..X1 Y1..Y2 level:L1`; // タイルは西へ1mはみ出すが検査されない
-  const ok = check(parse(src("space /a room X1..X2 Y1..Y2 level:L1")));
-  assert.deepEqual(ok.errors, []);
-  const bad = check(parse(src("space /a room X1..X2+2000 Y1..Y2 level:L1"))); // 東へ1000はみ出す
-  assert.equal(bad.errors.length, 1);
-  assert.match(bad.errors[0]!, /敷地形状からはみ出しています \(10000,0 付近\)/);
+  const ok = validate(parse(src("space /a room X1..X2 Y1..Y2 level:L1")));
+  assert.deepEqual(ok.filter((f) => f.rule === "site.escape"), []);
+  const bad = validate(parse(src("space /a room X1..X2+2000 Y1..Y2 level:L1"))) // 東へ1000はみ出す
+    .filter((f) => f.rule === "site.escape");
+  assert.equal(bad.length, 1);
+  assert.match(bad[0]!.message, /敷地形状からはみ出しています \(10000,0 付近\)/);
 });
 
 test("check: 対応するゾーンのないpolygonは警告", () => {

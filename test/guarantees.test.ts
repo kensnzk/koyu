@@ -5,6 +5,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { check } from "../src/core/diagnose.js";
+import { validate } from "../src/validate/index.js";
 import { toCanonical } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
 
@@ -98,9 +99,9 @@ level L1 0
 zone /site site:1
 polygon /site 0,0 30000,0 30000,20000 20000,20000 20000,8000 10000,8000 10000,20000 0,20000
 space /L1/hall room X2..X3 Y2..Y4`;
-  const r = check(parse(src));
-  assert.equal(r.errors.length, 1);
-  assert.match(r.errors[0]!, /\/L1\/hall が敷地形状からはみ出しています/);
+  const f = validate(parse(src)).filter((x) => x.rule === "site.escape");
+  assert.equal(f.length, 1);
+  assert.match(f[0]!.message, /\/L1\/hall が敷地形状からはみ出しています/);
 });
 
 test("check: 建物の角が敷地境界線上に載るのは内側扱い (エラーにしない)", () => {
@@ -108,8 +109,7 @@ test("check: 建物の角が敷地境界線上に載るのは内側扱い (エ�
 zone /site site:1
 polygon /site 0,0 8000,0 8000,8000 0,8000
 space /L1/a room X1..X3 Y1..Y3`;
-  const r = check(parse(src));
-  assert.deepEqual(r.errors, []);
+  assert.deepEqual(validate(parse(src)).filter((f) => f.rule === "site.escape"), []);
 });
 
 test("check: 敷地形状の自己交差と重複頂点はエラー", () => {
@@ -119,13 +119,19 @@ test("check: 敷地形状の自己交差と重複頂点はエラー", () => {
   assert.match(dup.errors.join("\n"), /敷地形状に重複する頂点があります/);
 });
 
-test("check: 敷地面積の宣言と導出の食い違いは警告", () => {
+test("判定: 敷地面積の宣言と導出の食い違いは注意 (core ではなく検証の面)", () => {
   const src = (area: number) =>
     `${BASE}\nzone /site site:1 area:${area}\npolygon /site 0,0 10000,0 10000,10000 0,10000`;
-  const bad = check(parse(src(50)));
-  assert.match(bad.warnings.join("\n"), /敷地面積の宣言と導出が食い違います: 宣言 50㎡ \/ 導出 100\.00㎡/);
-  const good = check(parse(src(100)));
-  assert.equal(good.warnings.some((w) => w.includes("敷地面積の宣言と導出")), false);
+  const bad = validate(parse(src(50))).filter((f) => f.rule === "site.area");
+  assert.equal(bad.length, 1);
+  assert.equal(bad[0]!.level, "caution");
+  assert.match(bad[0]!.message, /敷地面積の宣言と導出が食い違います: 宣言 50㎡ \/ 導出 100\.00㎡/);
+  assert.deepEqual(validate(parse(src(100))).filter((f) => f.rule === "site.area"), []);
+  // core は面積の食い違いを言わない — 測量値との照合は建築の側の判断である
+  assert.equal(
+    check(parse(src(50))).warnings.some((w) => w.includes("敷地面積")),
+    false,
+  );
 });
 
 // ---- 字句・版 ----

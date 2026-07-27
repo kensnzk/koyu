@@ -738,7 +738,7 @@ function drawRun(
 // ---- 検査の材料 (check.ts が言葉にする) ----
 
 /** runIssues が出しうる診断コード (ADR-0016 の台帳の部分集合 — check の emit が型で受ける) */
-export type RunCode = "RUN01" | "RUN02" | "RUN03" | "RUN04" | "RUN05" | "RUN06" | "RUN07" | "RUN08";
+export type RunCode = "RUN01" | "RUN02" | "RUN03" | "RUN04" | "RUN05";
 
 export interface RunIssue {
   code: RunCode;
@@ -749,21 +749,13 @@ export interface RunIssue {
 }
 
 /**
- * 縦動線の検査。宣言の妥当性 (RUN01..05) と、**書かれていない導出値**の妥当性
- * (RUN06 段の寸法 / RUN07 勾配 / RUN08 トポロジーの欠落)。
- * 勾配も段数も書かない — だから検査する、という構えの実装 (ADR-0021)。
+ * 縦動線の構造整合 (RUN01..05) — **宣言から形が一意に決まるか**だけを見る。
+ * 決まった形が登りやすいか (段の窮屈さ・勾配・上下の繋がり) は建築の側の判断で、
+ * 検証の面 (src/validate/runs.ts) が持つ。ここは合否を言わない (ADR-0021)。
  */
 export function runIssues(model: Model): RunIssue[] {
   const out: RunIssue[] = [];
   const levels = levelsSorted(model);
-  const stairLinked = new Set<string>();
-  for (const b of model.boundaries) {
-    if (b.kind === "stair" || b.kind === "shaft") {
-      stairLinked.add(b.a);
-      stairLinked.add(b.b);
-    }
-  }
-
   for (const s of model.spaces.values()) {
     const decls = runDecls(s);
     if (decls.length === 0) continue;
@@ -839,45 +831,6 @@ export function runIssues(model: Model): RunIssue[] {
         ...at,
       });
       continue;
-    }
-    if (device === "lift") continue;
-
-    if (!stairLinked.has(s.path)) {
-      out.push({
-        code: "RUN08",
-        message: `${s.path} は縦動線の形を持ちますが、上下を繋ぐ垂直境界がありません (stack か boundary type:stair を書きます — 形はあってもグラフでは通れません)`,
-        ...at,
-      });
-    }
-
-    if (device === "stair") {
-      const t = Math.round(run.tread);
-      const r = Math.round(run.riser);
-      const rule = 2 * r + t;
-      if (t < TREAD_MIN || rule < STEP_RULE.lo || rule > STEP_RULE.hi) {
-        out.push({
-          code: "RUN06",
-          message: `導出された段の寸法が窮屈です: ${run.risers}段 蹴上${r}mm / 踏面${t}mm (2×蹴上+踏面 = ${Math.round(rule)}mm、目安 ${STEP_RULE.lo}〜${STEP_RULE.hi}mm)`,
-          ...at,
-        });
-      }
-    } else if (device === "ramp") {
-      const declared = s.attrs["slope"];
-      if (typeof declared === "number" && declared > 0 && run.slope > 1 / declared + 1e-9) {
-        out.push({
-          code: "RUN07",
-          message: `導出された勾配 ${slopeText(run.slope)} が宣言 1/${declared} より急です (走り長を伸ばすか階高を下げます)`,
-          ...at,
-        });
-      }
-    } else if (device === "escalator") {
-      if (run.slope < ESCALATOR_SLOPE.lo || run.slope > ESCALATOR_SLOPE.hi) {
-        out.push({
-          code: "RUN07",
-          message: `導出された勾配 ${slopeText(run.slope)} はエスカレーターの常用域 (約1/1.7 = 30度) から外れています`,
-          ...at,
-        });
-      }
     }
   }
   return out;

@@ -14,7 +14,8 @@ import { dirname } from "node:path";
 import { check, checkDiagnostics, type Diagnostic } from "./core/diagnose.js";
 import { renderDiff, semanticDiff } from "./core/diff.js";
 import { doorsBetween, neighbors } from "./core/graph.js";
-import { daylight } from "./core/light.js";
+import { daylightInputs } from "./core/light.js";
+import { validate, type Finding } from "./validate/index.js";
 import { siteReport } from "./core/site.js";
 import {
   areaM2,
@@ -27,6 +28,7 @@ import {
   toCanonical,
   zoneAreaM2,
   type Model,
+  srcRef,
 } from "./core/model.js";
 import { parseFile } from "./parse-file.js";
 import { svgPlan } from "./draw/plan.js";
@@ -84,8 +86,9 @@ function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
-      "使い方: koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]\n" +
-        "  check: --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1)\n" +
+      "使い方: koyu <check|validate|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]\n" +
+        "  check:    --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1) — 構造整合だけを見る\n" +
+        "  validate: --json (Finding[]をJSONで出力) — 建築的な判定 (checkの保証ではない)\n" +
         "  diff:  koyu diff <a.muro> <b.muro> [--json] — 構成の言葉の差分 (0=差分なし / 1=差分あり / 2=入力が壊れている)",
     );
     return 2;
@@ -161,9 +164,34 @@ function main(argv: string[]): number {
           `✔ 整合 — 空間 ${model.spaces.size} / 境界 ${model.boundaries.length}` +
             (warnings.length ? ` (警告 ${warnings.length})` : ""),
         );
+        // **緑の意味を、緑を出す場所で言う。**構造整合が成り立っただけであって、
+        // 建築として妥当かはここでは何も言っていない (spec/scope.md §3)
+        console.log("  構造整合のみ — 建築的な妥当性は koyu validate が別に言います");
         return strict && warnings.length > 0 ? 1 : 0;
       }
       return 1;
+    }
+    case "validate": {
+      // 建築的な判定 (spec/scope.md §3)。**check の保証ではない** — 型もコードの綴りも別で、
+      // 終了コードだけが同じ流儀 (0=違反なし / 1=違反あり)
+      const findings = validate(model);
+      if (rest.includes("--json")) {
+        console.log(JSON.stringify(findings, null, 1));
+        return findings.some((f) => f.level === "violation") ? 1 : 0;
+      }
+      const label = (f: Finding) => (f.level === "violation" ? "✖" : "⚠");
+      for (const f of findings) {
+        const where = f.line !== undefined ? `${srcRef(f.line, f.file)}: ` : "";
+        console.log(`${label(f)} [${f.rule}] ${where}${f.message}`);
+      }
+      const violations = findings.filter((f) => f.level === "violation").length;
+      const cautions = findings.length - violations;
+      console.log(
+        findings.length === 0
+          ? "✔ 判定に引っかかるものはありません (判定であって、構成の保証ではありません)"
+          : `判定 — 違反 ${violations} / 注意 ${cautions}`,
+      );
+      return violations > 0 ? 1 : 0;
     }
     case "json": {
       process.stdout.write(toCanonical(model));
@@ -294,26 +322,30 @@ function main(argv: string[]): number {
       return 0;
     }
     case "light": {
-      const results = daylight(model);
-      if (results.length === 0) {
+      // 採光は**判定**である — core が返すのは床面積と有効窓面積という数だけで、
+      // 1/7 の合否は検証の面 (validate) が言う (spec/scope.md §4)
+      const inputs = daylightInputs(model);
+      if (inputs.length === 0) {
         console.log("採光の対象がありません (判定する室に daylight:1 を書きます)");
         return 0;
       }
-      let fail = 0;
-      for (const r of results) {
-        if (!r.ok) fail++;
-        const ratio = r.window > 0 ? `1/${(r.floor / r.window).toFixed(1)}` : "窓なし";
+      const failing = new Set(
+        validate(model).filter((f) => f.rule === "daylight.ratio").flatMap((f) => f.path ?? []),
+      );
+      for (const d of inputs) {
+        const ok = !failing.has(d.space.path);
+        const ratio = d.window > 0 ? `1/${(d.floor / d.window).toFixed(1)}` : "窓なし";
         console.log(
-          `${r.ok ? "✔" : "✖"} ${r.space.path}\t${displayName(r.space)}\t窓 ${r.window.toFixed(2)}㎡ / 床 ${r.floor.toFixed(2)}㎡ = ${ratio} (必要 1/7 ≈ ${r.need.toFixed(2)}㎡)` +
-            (r.missingH ? " ⚠ h未指定の窓は数えていません" : ""),
+          `${ok ? "✔" : "✖"} ${d.space.path}\t${displayName(d.space)}\t窓 ${d.window.toFixed(2)}㎡ / 床 ${d.floor.toFixed(2)}㎡ = ${ratio} (必要 1/7 ≈ ${(d.floor / 7).toFixed(2)}㎡)` +
+            (d.missingH ? " ⚠ h未指定の窓は数えていません" : ""),
         );
       }
       console.log(
-        fail === 0
-          ? `✔ 全${results.length}室が 1/7 を満たします (補正係数なしの粗い判定)`
-          : `✖ ${results.length}室中 ${fail}室が不足しています`,
+        failing.size === 0
+          ? `✔ 全${inputs.length}室が 1/7 を満たします (補正係数なしの粗い判定 — これは検証であって check の保証ではありません)`
+          : `✖ ${inputs.length}室中 ${failing.size}室が不足しています (検証の判定です)`,
       );
-      return fail === 0 ? 0 : 1;
+      return failing.size === 0 ? 0 : 1;
     }
     case "site": {
       // 敷地の問い: 敷地面積・接道・建蔽率・容積率 (基本計画のボリューム検討の数字)
@@ -331,9 +363,8 @@ function main(argv: string[]): number {
         console.log(`  敷地形状: 多角形 ${r.polygon.points.length}頂点 (polygon宣言 — 所与のジオメトリ)`);
       }
       if (r.declaredArea !== undefined) {
-        const ok = Math.abs(r.declaredArea - r.derivedArea) < 0.05;
         console.log(
-          `  敷地面積: 宣言 ${r.declaredArea.toFixed(2)}㎡ / 導出 ${r.derivedArea.toFixed(2)}㎡ ${ok ? "✔ 一致" : `⚠ 不一致 (${r.polygon ? "測量値と多角形の食い違い" : "タイルの隙間か重なり"})`}`,
+          `  敷地面積: 宣言 ${r.declaredArea.toFixed(2)}㎡ / 導出 ${r.derivedArea.toFixed(2)}㎡`,
         );
       } else {
         console.log(`  敷地面積 (導出): ${r.derivedArea.toFixed(2)}㎡`);
@@ -341,7 +372,7 @@ function main(argv: string[]): number {
       for (const road of r.roads) {
         const nm = road.road.attrs["name"];
         console.log(
-          `  接道: ${road.road.path}${typeof nm === "string" ? ` (${nm})` : ""} 幅員${road.width}mm ・ 接道長 ${road.frontage}mm ${road.frontage >= 2000 ? "✔ 2m以上" : "✖ 2m未満"}`,
+          `  接道: ${road.road.path}${typeof nm === "string" ? ` (${nm})` : ""} 幅員${road.width}mm ・ 接道長 ${road.frontage}mm`,
         );
       }
       console.log(`  建築面積 (水平投影・粗): ${r.footprint.toFixed(2)}㎡ → 建蔽率 ${((r.footprint / site) * 100).toFixed(1)}%`);

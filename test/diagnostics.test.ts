@@ -10,6 +10,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check, checkDiagnostics, DIAGNOSTIC_CODES, type Diagnostic } from "../src/core/diagnose.js";
+import { validate } from "../src/validate/index.js";
 import { areaM2, isIndoor, srcRef } from "../src/core/model.js";
 import { siteReport } from "../src/core/site.js";
 import { parseFile } from "../src/parse-file.js";
@@ -89,7 +90,7 @@ space /L1/a room X1..X2 Y1..Y2 ceiling:none`);
   assert.match(e[0]!.message, /ceiling は 0 \/ 1/);
 });
 
-test("値: site の綴り誤りは敷地の検査 (SIT03 error) を無効にしていた", () => {
+test("値: site の綴り誤りは敷地の判定 (site.escape) を無効にしていた", () => {
   const src = (v: string) => `koyu 0.5
 grid X 0 20000
 grid Y 0 20000
@@ -97,12 +98,12 @@ level L1 0 h:2400
 zone /site name:敷地 site:${v}
 polygon /site 0,0 5000,0 5000,5000 0,5000
 space /L1/big room X1..X2 Y1..Y2`;
-  // 正しく書けば、建物が敷地からはみ出していることが error として出る
-  assert.ok(checkDiagnostics(parse(src("1"))).some((d) => d.code === "SIT03"));
-  // 綴りを誤ると SIT03 は走らない — だからその綴り自体をエラーにする
-  const typo = checkDiagnostics(parse(src("yes")));
-  assert.equal(typo.filter((d) => d.code === "SIT03").length, 0);
-  assert.ok(typo.some((d) => d.code === "ATT02"), "黙って緑にはならない");
+  // 正しく書けば、建物が敷地からはみ出していることが検証の違反として出る
+  assert.ok(validate(parse(src("1"))).some((f) => f.rule === "site.escape"));
+  // 綴りを誤ると判定が走らない — だからその綴り自体を core のエラーにする
+  const typo = parse(src("yes"));
+  assert.equal(validate(typo).filter((f) => f.rule === "site.escape").length, 0);
+  assert.ok(checkDiagnostics(typo).some((d) => d.code === "ATT02"), "黙って緑にはならない");
 });
 
 test("母集団: 一本も立たない柱の宣言は、同じ階の別の宣言の成功に隠れない (COL01)", () => {
@@ -210,8 +211,6 @@ boundary /L1/b /out kind:open
     checkDiagnostics(m).map((d) => [d.code, d.line]),
     [
       ["BND05", 11], // 境界の同一性 (edge限定の混在)
-      ["ENV01", 6], // 外皮の穴
-      ["ENV01", 8],
       ["OPN02", 13], // ここから境界の妥当性 — 境界の宣言順に、境界ごとに固まって出る
       ["BND04", 15],
       ["OPN04", 16],
@@ -244,20 +243,23 @@ boundary /L1/a /L1/b t:150`,
   assert.match(d.message, /^境界が重複しています/); // 本文に位置接頭辞は無い
 });
 
-test("診断: SIT03 敷地はみ出し", () => {
-  const diags = checkDiagnostics(
-    parse(
-      `${BASE}
+test("判定: site.escape 敷地はみ出し — core の診断ではなく検証の Finding として出る", () => {
+  const m = parse(
+    `${BASE}
 zone /site site:1
 polygon /site -1000,-1000 9000,-1000 9000,9000 -1000,9000
 space /a room X1..X3+2000 Y1..Y2 level:L1`,
-    ),
   );
-  const d = diags.find((x) => x.code === "SIT03")!;
-  assert.equal(d.severity, "error");
-  assert.equal(d.line, 8);
-  assert.deepEqual(d.path, ["/a"]);
-  assert.match(d.message, /敷地形状からはみ出しています/);
+  // core は黙る — はみ出しは構成の矛盾ではない (形は一意に出る)
+  assert.equal(checkDiagnostics(m).filter((d) => (d.code as string).startsWith("SIT")).length, 0);
+  const f = validate(m).find((x) => x.rule === "site.escape")!;
+  assert.equal(f.level, "violation");
+  assert.equal(f.line, 8);
+  assert.deepEqual(f.path, ["/a"]);
+  assert.match(f.message, /敷地形状からはみ出しています/);
+  // **型が違うので混ぜられない** — Finding は code も severity も持たない
+  assert.equal("code" in f, false);
+  assert.equal("severity" in f, false);
 });
 
 test("診断: UID03 uid重複 — 位置なし (line省略)、全所有者がpath/relatedに載る", () => {

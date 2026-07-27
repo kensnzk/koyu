@@ -11,7 +11,8 @@ import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import {
   areaM2,
   isIndoor,
-  daylight,
+  daylightInputs,
+  validate,
   displayName,
   doorsBetween,
   effectiveUse,
@@ -240,18 +241,33 @@ const TOOLS: Record<string, Tool> = {
     },
   },
   light: {
-    description: "採光の検査: daylight:1 を書いた室で窓面積/床面積 ≥ 1/7 (バルコニー・庇下は0.7掛け)",
+    description:
+      "採光の入力: daylight:1 を書いた室の床面積と有効窓面積 (バルコニー・庇下は0.7掛け)。**合否は言わない** — 1/7 の判定は validate ツールが返す",
     schema: { type: "object", properties: FILE_PROP, required: ["file"] },
     run: (a) => {
       const m = load(str(a.file, "file"));
-      return daylight(m).map((r) => ({
-        path: r.space.path,
-        name: displayName(r.space),
-        ok: r.ok,
-        windowM2: r.window,
-        floorM2: r.floor,
-        needM2: r.need,
+      return daylightInputs(m).map((d) => ({
+        path: d.space.path,
+        name: displayName(d.space),
+        windowM2: d.window,
+        floorM2: d.floor,
+        missingH: d.missingH,
       }));
+    },
+  },
+  validate: {
+    description:
+      "建築的な判定 (採光・外皮の連続・階段の寸法・勾配・敷地) を返す。**check の保証とは別の面である** — rule/level を持ち、code/severity は持たない。増える面であって凍らない",
+    schema: { type: "object", properties: FILE_PROP, required: ["file"] },
+    run: (a) => {
+      const m = load(str(a.file, "file"));
+      const findings = validate(m);
+      return {
+        findings,
+        violations: findings.filter((f) => f.level === "violation").length,
+        cautions: findings.filter((f) => f.level === "caution").length,
+        note: "これは判定であって、koyu check の構造整合の保証ではありません",
+      };
     },
   },
   site: {

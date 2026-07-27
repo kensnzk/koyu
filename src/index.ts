@@ -15,7 +15,7 @@ export {
   type BoundaryItem,
   type BoundaryChange,
 } from "./core/diff.js";
-export { daylight, type DaylightResult } from "./core/light.js";
+export { daylightInputs, COVERED_SEMI_FACTOR, type DaylightInput } from "./core/light.js";
 export { slabs, type Slab, type SlabKind } from "./core/fabric.js";
 export {
   verticalRuns,
@@ -42,3 +42,16 @@ export {
 export { siteReport, type SiteReport, type RoadFrontage } from "./core/site.js";
 export { svgPlan, type PlanOptions } from "./draw/plan.js";
 export { svgAxo, type AxoOptions } from "./draw/axo.js";
+
+// 検証の面 — **core ではない。**凍らない・増える・合否を言う (spec/scope.md §3)。
+// Finding は Diagnostic と別の型で、フィールド名から違う (rule/level と code/severity)
+export {
+  validate,
+  VALIDATION_RULES,
+  daylightFindings,
+  envelopeFindings,
+  runFindings,
+  siteFindings,
+  type Finding,
+  type ValidationRule,
+} from "./validate/index.js";

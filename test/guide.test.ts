@@ -7,8 +7,11 @@
 //   (3) ```muro-warn は本当に警告だけを出す (エラー0件・警告1件以上)
 //       ```muro-part は断片なので検証しない。印の綴り間違いで検証がすり抜けないよう、
 //       使われている情報文字列の集合そのものを台帳と突き合わせる。
+//   (3b) ```muro-fail / ```muro-caution は検証の面 (validate) の判定を出す。**core の診断ではない** —
+//       core のエラーは0件で、指定の level の Finding が1件以上出ることを見る
 //   (4) guide/diagnostics.md のコード集合と severity が DIAGNOSTIC_CODES と一致し、
-//       各節の例がそのコードちょうど1件を出す (頁が自分で宣言している約束)
+//       guide/validation.md の規則集合と level が VALIDATION_RULES と一致し、
+//       各節の例がその規則ちょうど1件を出す (頁が自分で宣言している約束)
 //   (5) guide/ からの相対リンクの先が実在する
 //   (6) guide/ が見せる CLI の呼び出しが実在するサブコマンドである (一覧は src/cli.ts から採る)
 //
@@ -23,6 +26,7 @@ import { fileURLToPath } from "node:url";
 import { checkDiagnostics, DIAGNOSTIC_CODES, type Diagnostic } from "../src/core/diagnose.js";
 import { SourceError } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
+import { validate, VALIDATION_RULES, type Finding } from "../src/validate/index.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const GUIDE = join(root, "guide");
@@ -38,6 +42,8 @@ const FENCE_TAGS = new Set([
   "muro-part",
   "muro-bad",
   "muro-warn",
+  "muro-fail",
+  "muro-caution",
   "sh",
   "text",
   "ts",
@@ -231,6 +237,44 @@ test("guide: ```muro-warn はエラー0件・警告1件以上 (checkは通り--s
     );
   }
 });
+
+// ---- (3b) ```muro-fail / ```muro-caution は検証の判定を出す ----
+
+const renderF = (f: Finding) => `${f.rule}(${f.level}) ${f.message}`;
+
+function runValidate(source: string): { thrown?: Error; errors: Diagnostic[]; findings: Finding[] } {
+  try {
+    const m = parse(source);
+    return {
+      errors: checkDiagnostics(m).filter((d) => d.severity === "error"),
+      findings: validate(m),
+    };
+  } catch (e) {
+    return { thrown: e as Error, errors: [], findings: [] };
+  }
+}
+
+for (const [tag, level] of [
+  ["muro-fail", "violation"],
+  ["muro-caution", "caution"],
+] as const) {
+  test(`guide: \`\`\`${tag} は検証の ${level} を出す (core の check は通る)`, () => {
+    for (const b of BLOCKS.filter((x) => x.tag === tag)) {
+      const r = runValidate(b.body);
+      assert.equal(r.thrown, undefined, `${where(b)}: 解析に失敗した — ${r.thrown?.message}\n${b.body}`);
+      // **判定の例は、構成としては正しい。**core が落とす例をここに置かない
+      assert.deepEqual(
+        r.errors.map(render),
+        [],
+        `${where(b)}: 判定の例のはずが core のエラーが出た — \`\`\`muro-bad にする\n${b.body}`,
+      );
+      assert.ok(
+        r.findings.some((f) => f.level === level),
+        `${where(b)}: ${level} の判定が1件も出ない (出たのは ${r.findings.map(renderF).join(" / ") || "なし"})\n${b.body}`,
+      );
+    }
+  });
+}
 
 // ---- (4) 診断コード事典と台帳の一致 ----
 

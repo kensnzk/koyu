@@ -6,7 +6,8 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check, checkDiagnostics } from "../src/core/diagnose.js";
 import { doorsBetween, segmentsFor } from "../src/core/graph.js";
-import { daylight } from "../src/core/light.js";
+import { daylightInputs } from "../src/core/light.js";
+import { validate } from "../src/validate/index.js";
 import { areaM2, effectiveUse } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
 
@@ -74,9 +75,10 @@ test("吹抜けは通行できず、床面積にも入らない", () => {
 
 test("採光: 51室すべてが1/7を満たす。バルコニー越しは0.7掛け", () => {
   const m = parse(mansion);
-  const results = daylight(m);
+  const results = daylightInputs(m);
   assert.equal(results.length, 51); // (LDK+洋室)×8 + B〜E×8 + PH×3
-  assert.ok(results.every((r) => r.ok));
+  // 合否は core ではなく検証の面が言う (spec/scope.md §4)
+  assert.deepEqual(validate(m).filter((f) => f.rule === "daylight.ratio"), []);
   const ldk = results.find((r) => r.space.path === "/L5/A/ldk")!;
   assert.equal(Math.round(ldk.window * 1000) / 1000, 4.004); // 5.72 × 0.7
 });
@@ -91,9 +93,13 @@ space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
   window w:600 h:600 edge:S
 `);
-  const r = daylight(m);
+  const r = daylightInputs(m);
   assert.equal(r.length, 1);
-  assert.equal(r[0]!.ok, false); // 0.36㎡ < 16.2/7
+  assert.equal(Math.round(r[0]!.window * 100) / 100, 0.36);
+  // core は数を返すだけ。1/7 に足りないという判定は検証の面が言う
+  const short = validate(m).filter((f) => f.rule === "daylight.ratio");
+  assert.equal(short.length, 1); // 0.36㎡ < 16.2/7
+  assert.equal(short[0]!.level, "violation");
 });
 
 // ---- 居室は宣言である (ADR-0020) ----
@@ -114,14 +120,14 @@ test("採光: 対象は daylight:1 だけ — 型は一切見ない", () => {
   for (const type of ["unit", "room", "ldk", "bedroom", "living"]) {
     const m = parse(daylightSrc(`space /L1/a ${type} X1..X2 Y1..Y2`));
     assert.deepEqual(check(m).errors, [], type);
-    assert.equal(daylight(m).length, 0, `${type} は宣言なしでは対象外`);
+    assert.equal(daylightInputs(m).length, 0, `${type} は宣言なしでは対象外`);
   }
   // 型が自由語でも、daylight:1 を書けば対象になる
   const wet = parse(daylightSrc("space /L1/a wet X1..X2 Y1..Y2 daylight:1"));
-  assert.equal(daylight(wet).length, 1);
-  assert.equal(daylight(wet)[0]!.ok, true);
+  assert.equal(daylightInputs(wet).length, 1);
+  assert.deepEqual(validate(wet).filter((f) => f.rule === "daylight.ratio"), []);
   // daylight:0 は既定と同じ (明記しても対象外)
-  assert.equal(daylight(parse(daylightSrc("space /L1/a room X1..X2 Y1..Y2 daylight:0"))).length, 0);
+  assert.equal(daylightInputs(parse(daylightSrc("space /L1/a room X1..X2 Y1..Y2 daylight:0"))).length, 0);
 });
 
 test("採光: 判定の分母は daylight:1 を書いた位置で決まる (住戸まるごと / 室ごと)", () => {
@@ -141,9 +147,9 @@ boundary /L1/a/ldk /out t:150
   window w:2600 h:2200 edge:S
 boundary /L1/a/bed /out t:150
   window w:2600 h:2200 edge:S`);
-  assert.equal(daylight(whole).length, 1); // 住戸まるごとが一室
-  assert.equal(daylight(split).length, 2); // 割れば室ごと
-  assert.equal(Math.round(daylight(whole)[0]!.floor * 100) / 100, 32.4);
+  assert.equal(daylightInputs(whole).length, 1); // 住戸まるごとが一室
+  assert.equal(daylightInputs(split).length, 2); // 割れば室ごと
+  assert.equal(Math.round(daylightInputs(whole)[0]!.floor * 100) / 100, 32.4);
 });
 
 test("診断: DAY01 — daylight の値は 0/1 に限る (綴りの揺れで黙って落ちない)", () => {

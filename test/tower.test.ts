@@ -6,7 +6,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check } from "../src/core/diagnose.js";
-import { daylight } from "../src/core/light.js";
+import { daylightInputs } from "../src/core/light.js";
+import { validate } from "../src/validate/index.js";
 import { doorsBetween } from "../src/core/graph.js";
 import { isSemiOutdoor, zoneAreaM2 } from "../src/core/model.js";
 import { parseFile } from "../src/parse-file.js";
@@ -59,9 +60,10 @@ test("tower: バルコニーとテラスは半屋外の導出 (宣言なし)", (
 
 test("tower: 全居室が採光1/7を満たす (バルコニー越し0.7掛け含む)", () => {
   const m = parseFile(mainPath);
-  const rep = daylight(m);
+  const rep = daylightInputs(m);
   assert.equal(rep.length > 60, true);
-  assert.deepEqual(rep.filter((r) => !r.ok).map((r) => r.space.path), []);
+  // 合否は検証の面が言う — core が返すのは床面積と有効窓面積だけ
+  assert.deepEqual(validate(m).filter((f) => f.rule === "daylight.ratio"), []);
 });
 
 test("tower: 避難の問い — 9階LDKから道路まで扉4枚、PHは3枚", () => {

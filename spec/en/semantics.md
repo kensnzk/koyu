@@ -70,7 +70,6 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | HGT02 | error | Insufficient coverage for a partial void (below 99% coverage a ceiling height spanning levels may not be declared) |
 | SIT01 | error | Duplicate vertex in the site shape |
 | SIT02 | error | The site shape is self-intersecting |
-| SIT03 | error | The building escapes the site shape (against the polygon of the site:1 zone, for any space with a region that is neither beneath the site zone nor exterior — beyond the containment of the four corners it also looks at vertex intrusion and edge crossing, so it is correct for a concave site. On the boundary counts as inside, with a 1 mm tolerance. Exterior space tiles are not checked ⟨an approximation⟩) |
 | UID01 | error | A uid made only of digits (the parser's numeric coercion would lose the distinction between tokens — ADR-0015) |
 | UID02 | error | A uid containing whitespace |
 | ATT01 | error | An interpreted attribute's value is not a positive number (`h` `riser` `tread` `entry` `landing` `lane` `slope` `road` `area` — a value that does not match the ledger's type never quietly falls back to the default. ADR-0028) |
@@ -104,12 +103,7 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | LIN03 | warning | A drawn line cuts nothing (one side comes out empty) |
 | COL01 | warning | Not one column stands for a column declaration (the grid intersections have no floor — ADR-0023) |
 | COL02 | warning | A column declaration stands nowhere because an earlier declaration took the same intersections (the earlier one wins) |
-| ENV01 | warning | A perimeter faces no envelope (on a level that already declares one — the missing boundary to the outside would otherwise be a silent absence of wall. ADR-0025) |
 | RUN04 | warning | No level above, so no form can be generated for the vertical circulation (a stair on the top floor and the like) |
-| RUN06 | warning | The derived step dimensions are cramped (going < 240mm, or 2×riser+going outside 550–700mm; in a return stair the tightest flight speaks — written nowhere, checked all the same. ADR-0021) |
-| RUN07 | warning | The derived slope is steeper than the declared `slope:`, or outside an escalator's usual range (about 1/1.7) |
-| RUN08 | warning | The form of a vertical circulation exists but no vertical boundary joins the levels (form without passage in the graph) |
-| SIT05 | warning | The declared and derived site areas disagree (by more than ±0.05 m² — when a polygon is present) |
 | BND07 | — | Retired — the "these touch but no boundary is declared" warning was abolished by ADR-0014 (an undeclared contact means the default wall) |
 
 ## 6. Queries — the same description, read differently
