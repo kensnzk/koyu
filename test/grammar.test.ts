@@ -3,8 +3,8 @@
 // editors/vscode/syntaxes/koyu.tmLanguage.json は VS Code と Shiki (Docusaurus) が
 // 共有する唯一の文法である。色は実装でも規範でもないが、**語の一覧を二重に持つ**ので、
 // 放っておけば必ず腐る。ここが守るのは五つ。
-//   (1) 行頭に書ける語が src/parse.ts の switch (head) と一致する
-//   (2) 字下げして書ける語が src/parse.ts の indented 分岐と一致する
+//   (1) 行頭に書ける語が src/core/parse.ts の switch (head) と一致する
+//   (2) 字下げして書ける語が src/core/parse.ts の indented 分岐と一致する
 //   (3) 色の分かれる属性キーが spec/vocabulary.md の★と一致する (掟7 — 台帳が契約)
 //   (4) patterns の include が repository の項に解決する (綴り間違いは静かに無色になる)
 //   (5) 同梱の例に、文法が知らない行頭の語が無い
@@ -40,9 +40,9 @@ function alternatives(key: string): string[] {
   return m[1]!.split("|");
 }
 
-const parseSrc = read("src/parse.ts");
+const parseSrc = read("src/core/parse.ts");
 
-test("行頭に書ける語: 文法 = src/parse.ts の switch (head)", () => {
+test("行頭に書ける語: 文法 = src/core/parse.ts の switch (head)", () => {
   // switch (head) { ... default: 未知のキーワード — 分岐の case がそのまま語彙である
   const body = parseSrc.slice(parseSrc.indexOf("switch (head) {"));
   const cases = [...body.matchAll(/^ {6}case "([a-z]+)":/gm)].map((m) => m[1]!);
@@ -54,7 +54,7 @@ test("行頭に書ける語: 文法 = src/parse.ts の switch (head)", () => {
   );
 });
 
-test("字下げして書ける語: 文法 = src/parse.ts の indented 分岐", () => {
+test("字下げして書ける語: 文法 = src/core/parse.ts の indented 分岐", () => {
   const block = parseSrc.slice(
     parseSrc.indexOf("if (indented) {"),
     parseSrc.indexOf("switch (head) {"),

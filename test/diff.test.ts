@@ -10,9 +10,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { renderDiff, semanticDiff, type ModelDiff } from "../src/diff.js";
-import { toCanonical } from "../src/model.js";
-import { parse } from "../src/parse.js";
+import { renderDiff, semanticDiff, type ModelDiff } from "../src/core/diff.js";
+import { toCanonical } from "../src/core/model.js";
+import { parse } from "../src/core/parse.js";
 import { parseFile } from "../src/parse-file.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));

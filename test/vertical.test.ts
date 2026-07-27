@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { check } from "../src/check.js";
-import { doorsBetween } from "../src/graph.js";
-import { parse } from "../src/parse.js";
+import { check } from "../src/core/diagnose.js";
+import { doorsBetween } from "../src/core/graph.js";
+import { parse } from "../src/core/parse.js";
 
 const BASE = `
 grid X 0 3600 7200

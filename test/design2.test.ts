@@ -4,11 +4,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check, checkDiagnostics } from "../src/check.js";
-import { doorsBetween, segmentsFor } from "../src/graph.js";
-import { daylight } from "../src/light.js";
-import { areaM2, effectiveUse } from "../src/model.js";
-import { parse } from "../src/parse.js";
+import { check, checkDiagnostics } from "../src/core/diagnose.js";
+import { doorsBetween, segmentsFor } from "../src/core/graph.js";
+import { daylight } from "../src/core/light.js";
+import { areaM2, effectiveUse } from "../src/core/model.js";
+import { parse } from "../src/core/parse.js";
 
 const mansion = readFileSync(
   fileURLToPath(new URL("../examples/mansion.muro", import.meta.url)),

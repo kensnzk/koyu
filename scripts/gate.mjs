@@ -25,12 +25,12 @@
 import { readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { checkDiagnostics } from "../src/check.ts";
-import { doorsBetween, passable, placeOpening } from "../src/graph.ts";
-import { daylight } from "../src/light.ts";
-import { columnsFor, effectiveUse, levelsSorted } from "../src/model.ts";
+import { checkDiagnostics } from "../src/core/diagnose.ts";
+import { doorsBetween, passable, placeOpening } from "../src/core/graph.ts";
+import { daylight } from "../src/core/light.ts";
+import { columnsFor, effectiveUse, levelsSorted } from "../src/core/model.ts";
 import { parseFile } from "../src/parse-file.ts";
-import { siteReport } from "../src/site.ts";
+import { siteReport } from "../src/core/site.ts";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const EX = join(root, "examples");

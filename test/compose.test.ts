@@ -7,9 +7,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check } from "../src/check.js";
-import { toCanonical, zoneAreaM2 } from "../src/model.js";
-import { parse, parseFiles } from "../src/parse.js";
+import { check } from "../src/core/diagnose.js";
+import { toCanonical, zoneAreaM2 } from "../src/core/model.js";
+import { parse, parseFiles } from "../src/core/parse.js";
 import { parseFile } from "../src/parse-file.js";
 
 const mainPath = fileURLToPath(

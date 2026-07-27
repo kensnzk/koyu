@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS, toCanonical } from "../src/model.js";
+import { DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS, toCanonical } from "../src/core/model.js";
 import { parseFile } from "../src/parse-file.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));

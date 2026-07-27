@@ -3,8 +3,8 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { toCanonical } from "../src/model.js";
-import { parse } from "../src/parse.js";
+import { toCanonical } from "../src/core/model.js";
+import { parse } from "../src/core/parse.js";
 
 function lcg(seed: number): () => number {
   let s = seed >>> 0;

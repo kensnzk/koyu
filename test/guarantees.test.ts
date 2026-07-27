@@ -4,9 +4,9 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { check } from "../src/check.js";
-import { toCanonical } from "../src/model.js";
-import { parse, parseFiles } from "../src/parse.js";
+import { check } from "../src/core/diagnose.js";
+import { toCanonical } from "../src/core/model.js";
+import { parse, parseFiles } from "../src/core/parse.js";
 
 const BASE = [
   "koyu 0.4",

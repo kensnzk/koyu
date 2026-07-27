@@ -15,7 +15,7 @@ import {
   signedArea,
   splitByRect,
   subtract,
-} from "../src/poly.js";
+} from "../src/core/poly.js";
 
 const R = (x1: number, y1: number, x2: number, y2: number) => rectToPoly({ x1, y1, x2, y2 });
 

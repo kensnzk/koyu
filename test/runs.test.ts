@@ -3,13 +3,13 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { check } from "../src/check.js";
-import { doorsBetween, segmentsFor } from "../src/graph.js";
-import { areaM2, columnsFor, polyBounds, polygonAreaM2 } from "../src/model.js";
-import { slabs } from "../src/fabric.js";
-import { svgAxo } from "../src/axo.js";
-import { parse } from "../src/parse.js";
-import { runDrawsForLevel, runSolids, verticalRuns } from "../src/vertical.js";
+import { check } from "../src/core/diagnose.js";
+import { doorsBetween, segmentsFor } from "../src/core/graph.js";
+import { areaM2, columnsFor, polyBounds, polygonAreaM2 } from "../src/core/model.js";
+import { slabs } from "../src/core/fabric.js";
+import { svgAxo } from "../src/draw/axo.js";
+import { parse } from "../src/core/parse.js";
+import { runDrawsForLevel, runSolids, verticalRuns } from "../src/core/vertical.js";
 
 const BASE = `koyu 0.5
 grid X 0 3000 6000 9000

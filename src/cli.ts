@@ -11,11 +11,11 @@
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { check, checkDiagnostics, type Diagnostic } from "./check.js";
-import { renderDiff, semanticDiff } from "./diff.js";
-import { doorsBetween, neighbors } from "./graph.js";
-import { daylight } from "./light.js";
-import { siteReport } from "./site.js";
+import { check, checkDiagnostics, type Diagnostic } from "./core/diagnose.js";
+import { renderDiff, semanticDiff } from "./core/diff.js";
+import { doorsBetween, neighbors } from "./core/graph.js";
+import { daylight } from "./core/light.js";
+import { siteReport } from "./core/site.js";
 import {
   areaM2,
   displayName,
@@ -27,11 +27,11 @@ import {
   toCanonical,
   zoneAreaM2,
   type Model,
-} from "./model.js";
+} from "./core/model.js";
 import { parseFile } from "./parse-file.js";
-import { svgPlan } from "./plan.js";
-import { svgAxo } from "./axo.js";
-import { slopeText, verticalRuns } from "./vertical.js";
+import { svgPlan } from "./draw/plan.js";
+import { svgAxo } from "./draw/axo.js";
+import { slopeText, verticalRuns } from "./core/vertical.js";
 
 function load(file: string): Model {
   return parseFile(file); // import による合成もここで働く

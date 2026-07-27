@@ -9,11 +9,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check, checkDiagnostics, DIAGNOSTIC_CODES, type Diagnostic } from "../src/check.js";
-import { areaM2, isIndoor, srcRef } from "../src/model.js";
-import { siteReport } from "../src/site.js";
+import { check, checkDiagnostics, DIAGNOSTIC_CODES, type Diagnostic } from "../src/core/diagnose.js";
+import { areaM2, isIndoor, srcRef } from "../src/core/model.js";
+import { siteReport } from "../src/core/site.js";
 import { parseFile } from "../src/parse-file.js";
-import { parse, parseFiles } from "../src/parse.js";
+import { parse, parseFiles } from "../src/core/parse.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 

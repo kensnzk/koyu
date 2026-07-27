@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check } from "../src/check.js";
-import { doorsBetween } from "../src/graph.js";
-import { areaM2 } from "../src/model.js";
-import { parse } from "../src/parse.js";
-import { svgPlan } from "../src/plan.js";
+import { check } from "../src/core/diagnose.js";
+import { doorsBetween } from "../src/core/graph.js";
+import { areaM2 } from "../src/core/model.js";
+import { parse } from "../src/core/parse.js";
+import { svgPlan } from "../src/draw/plan.js";
 
 const src = readFileSync(
   fileURLToPath(new URL("../examples/office.muro", import.meta.url)),

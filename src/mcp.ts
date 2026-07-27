@@ -23,9 +23,9 @@ import {
   type Model,
   type Space,
 } from "./index.js";
-import { check, checkDiagnostics } from "./check.js";
-import { svgPlan } from "./plan.js";
-import { siteReport } from "./site.js";
+import { check, checkDiagnostics } from "./core/diagnose.js";
+import { svgPlan } from "./draw/plan.js";
+import { siteReport } from "./core/site.js";
 import { parseFile, parseFileWith } from "./parse-file.js";
 
 // ---- モデルの読み込みと要約 ----

@@ -6,16 +6,16 @@
 // 描くのは**生成物だけ**である。床・屋根 (fabric.ts)、壁 (境界から)、柱 (通りの交点から)、
 // 縦動線 (vertical.ts)。どれもソースには無く、規則から現れる。
 
-import { slabs } from "./fabric.js";
-import { segmentsFor, type Segment } from "./graph.js";
+import { slabs } from "../core/fabric.js";
+import { segmentsFor, type Segment } from "../core/graph.js";
 import {
   columnsFor,
   levelsSorted,
   rectToPoly,
   type Model,
   type Pt,
-} from "./model.js";
-import { runSolids, verticalRuns } from "./vertical.js";
+} from "../core/model.js";
+import { runSolids, verticalRuns } from "../core/vertical.js";
 
 export interface AxoOptions {
   /** 見る向き — 建物のどの隅から見下ろすか (既定 SE) */

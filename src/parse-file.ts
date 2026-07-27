@@ -4,8 +4,8 @@
 
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import type { Model } from "./model.js";
-import { parseWith } from "./parse.js";
+import type { Model } from "./core/model.js";
+import { parseWith } from "./core/parse.js";
 
 /** ファイルから読む。import は書かれたファイルからの相対で解決される */
 export function parseFile(filePath: string): Model {

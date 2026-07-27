@@ -2,7 +2,7 @@
 // ソースに形は無い。形は必要になった時にルールから生成する。まず平面図、その後に三次元。
 // 壁は「二つの空間の境界」から導かれて現れる — 壁を描く操作はどこにも無い。
 
-import { placeBand, placeOpening, segmentsFor, type Segment } from "./graph.js";
+import { placeBand, placeOpening, segmentsFor, type Segment } from "../core/graph.js";
 import {
   areaM2,
   columnsFor,
@@ -16,8 +16,8 @@ import {
   type Model,
   type Opening,
   type Pt,
-} from "./model.js";
-import { runDrawsForLevel, CUT_HEIGHT } from "./vertical.js";
+} from "../core/model.js";
+import { runDrawsForLevel, CUT_HEIGHT } from "../core/vertical.js";
 
 export interface PlanOptions {
   level?: string;

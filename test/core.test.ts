@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check } from "../src/check.js";
-import { doorsBetween, neighbors, placeOpening } from "../src/graph.js";
-import { areaM2, SourceError, toCanonical } from "../src/model.js";
-import { parse, tokenize } from "../src/parse.js";
-import { svgPlan } from "../src/plan.js";
+import { check } from "../src/core/diagnose.js";
+import { doorsBetween, neighbors, placeOpening } from "../src/core/graph.js";
+import { areaM2, SourceError, toCanonical } from "../src/core/model.js";
+import { parse, tokenize } from "../src/core/parse.js";
+import { svgPlan } from "../src/draw/plan.js";
 
 const examplePath = fileURLToPath(new URL("../examples/two-rooms.muro", import.meta.url));
 const exampleSrc = readFileSync(examplePath, "utf8");

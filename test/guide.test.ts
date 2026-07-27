@@ -20,9 +20,9 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { checkDiagnostics, DIAGNOSTIC_CODES, type Diagnostic } from "../src/check.js";
-import { SourceError } from "../src/model.js";
-import { parse } from "../src/parse.js";
+import { checkDiagnostics, DIAGNOSTIC_CODES, type Diagnostic } from "../src/core/diagnose.js";
+import { SourceError } from "../src/core/model.js";
+import { parse } from "../src/core/parse.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const GUIDE = join(root, "guide");

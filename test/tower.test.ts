@@ -5,12 +5,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check } from "../src/check.js";
-import { daylight } from "../src/light.js";
-import { doorsBetween } from "../src/graph.js";
-import { isSemiOutdoor, zoneAreaM2 } from "../src/model.js";
+import { check } from "../src/core/diagnose.js";
+import { daylight } from "../src/core/light.js";
+import { doorsBetween } from "../src/core/graph.js";
+import { isSemiOutdoor, zoneAreaM2 } from "../src/core/model.js";
 import { parseFile } from "../src/parse-file.js";
-import { siteReport } from "../src/site.js";
+import { siteReport } from "../src/core/site.js";
 
 const mainPath = fileURLToPath(new URL("../examples/tower/main.muro", import.meta.url));
 

@@ -4,11 +4,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check } from "../src/check.js";
-import { doorsBetween } from "../src/graph.js";
-import { isSemiOutdoor, zoneAreaM2 } from "../src/model.js";
-import { parse } from "../src/parse.js";
-import { siteReport } from "../src/site.js";
+import { check } from "../src/core/diagnose.js";
+import { doorsBetween } from "../src/core/graph.js";
+import { isSemiOutdoor, zoneAreaM2 } from "../src/core/model.js";
+import { parse } from "../src/core/parse.js";
+import { siteReport } from "../src/core/site.js";
 
 const src = readFileSync(
   fileURLToPath(new URL("../examples/house.muro", import.meta.url)),
