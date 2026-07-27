@@ -18,14 +18,53 @@
 
 ### 1. サーバーを登録する
 
+起動コマンドはどのクライアントでも同じ二択である。npm から使うなら `npx -p @kensnzk/koyu koyu-mcp`、リポジトリをクローンして開発版を使うなら `node /path/to/koyu/dist/mcp.js` (先に `npm install && npm run build`。`dist/mcp.js` は実行時依存を持たない)。transport は stdio で、環境変数も認証も要らない。
+
+**Claude Code (CLI)。** 一行で登録する。
+
 ```sh
 claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp
 ```
 
-リポジトリをクローンして開発版を使うときは、ビルド後の `dist/mcp.js` を指す。
-
 ```sh
-claude mcp add koyu -- node /path/to/koyu/dist/mcp.js
+claude mcp add koyu -- node /path/to/koyu/dist/mcp.js   # 開発版
+```
+
+繋がったかは `claude mcp list` が答える。
+
+```text
+koyu: node /home/user/koyu/dist/mcp.js - ✓ Connected
+```
+
+セッション中は `/mcp` でツールの一覧まで見える。
+
+**リポジトリで共有する (プロジェクトスコープ)。** リポジトリ直下に `.mcp.json` を置いてコミットすると、クローンした全員が同じ登録を持つ。
+
+```json
+{
+  "mcpServers": {
+    "koyu": {
+      "command": "npx",
+      "args": ["-p", "@kensnzk/koyu", "koyu-mcp"]
+    }
+  }
+}
+```
+
+`.mcp.json` 由来のサーバーは初回に承認を挟むので、承認するまでは接続されない。
+
+```text
+koyu: npx -p @kensnzk/koyu koyu-mcp - ⏸ Pending approval (run `claude` to approve)
+```
+
+**Claude Desktop。** 「設定 → 開発者 → 構成を編集」で `claude_desktop_config.json` を開き、上と同じ `mcpServers` の形を書いてアプリを再起動する。ファイルの場所は macOS が `~/Library/Application Support/Claude/claude_desktop_config.json`、Windows が `%APPDATA%\Claude\claude_desktop_config.json`。デスクトップアプリはシェルの PATH を継がないことがあるので、`npx` や `node` は絶対パス (`which node` / `where node` の結果) で書くほうが確実。
+
+**その他のクライアント。** 多くは同じ `mcpServers` 形の JSON を読む。キー名と置き場所はそのクライアントの文書に従う。koyu 側が要求するのは stdio・上記の起動コマンド・環境変数なし・認証なし の4点だけである。
+
+**entry は絶対パスで渡す。** `file` 引数が相対のときは**サーバープロセスの cwd** を基準に解決される。クライアントがどのディレクトリでサーバーを起動するかはクライアント次第なので、絶対パスで渡すのが確実。外すとこう返る。
+
+```text
+0行目: ファイルが読めません: /tmp/examples/two-rooms.muro
 ```
 
 ### 2. ツールを確かめる
@@ -187,7 +226,7 @@ printf '%s\n' \
 ```
 
 ```text
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.11.0"},"instructions":"空間一次の建築記述koyuのサーバー。model_summaryで建物を掴み、layersで原本 (.muroレイヤー群) を読み、write_layerで編集する。checkが一棟のビルドの門番 — エラーは出所レイヤー:行つきで返る。doors/light/site/spacesは同じ記述への異なる問い。形 (plan_svg) は生成物。"}}
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.14.0"},"instructions":"空間一次の建築記述koyuのサーバー。model_summaryで建物を掴み、layersで原本 (.muroレイヤー群) を読み、write_layerで編集する。checkが一棟のビルドの門番 — エラーは出所レイヤー:行つきで返る。doors/light/site/spacesは同じ記述への異なる問い。形 (plan_svg) は生成物。"}}
 {"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"{\n \"doors\": 2,\n \"path\": [\n  \"/L1/a\",\n  \"/L1/b\",\n  \"/out\"\n ]\n}"}]}}
 ```
 
