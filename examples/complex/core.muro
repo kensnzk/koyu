@@ -25,13 +25,13 @@ space /B2..L19/st2 stair X4+21300..X7 Y4..Y5 name:階段2 use:common stair:N for
 space /B2..L19/hall corridor X4..X7 Y4-3200..Y4 name:EVホール use:common
 
 boundary /B2..L19/hall /B2..L19/ps t:250 spec:RC
-  door w:700 name:PS点検口
+  door w:700 at:0.72 name:PS点検口
 boundary /B2..L19/hall /B2..L19/st1 t:250 spec:RC
   door FD1 name:階段1防火戸
 boundary /B2..L19/hall /B2..L19/ev1 t:250 spec:RC
 boundary /B2..L19/hall /B2..L19/ev2 t:250 spec:RC
 boundary /B2..L19/hall /B2..L19/wcm t:180 spec:LGS
-  door w:900 name:男子便所入口
+  door w:900 at:0.3 name:男子便所入口
 boundary /B2..L19/hall /B2..L19/wcw t:180 spec:LGS
   door w:900 name:女子便所入口
 boundary /B2..L19/hall /B2..L19/tea t:180 spec:LGS

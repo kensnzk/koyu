@@ -9,7 +9,7 @@
 // 直したことと再発しないことは別である — 同じ誤りを二度やらないために、
 // その四つがそのまま検査 5〜8 になった。
 //
-// ここが問うのは八つ。
+// ここが問うのは九つ。
 //   1. check --strict が緑か (警告も含めて)
 //   2. 領域を持つ室から外部へ**辿り着けるか** (扉の有無ではなく到達性)
 //   3. 採光の対象と宣言した室が 1/7 を満たすか
@@ -18,6 +18,7 @@
 //   6. 階段室が賃貸区画を通らずに外部へ出られるか (避難は他人の店を通らない)
 //   7. 駐車場から車が出られるか (幅2400mm以上の開口・open境界・斜路だけを通って)
 //   8. 客が共用廊下からバックヤードを通らずに縦動線へ届くか
+//   9. 柱が扉を塞いでいないか (位置を書かない要素どうしの衝突)
 //
 //   npm run gate:examples
 
@@ -25,9 +26,9 @@ import { readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkDiagnostics } from "../src/check.ts";
-import { doorsBetween, passable } from "../src/graph.ts";
+import { doorsBetween, passable, placeOpening } from "../src/graph.ts";
 import { daylight } from "../src/light.ts";
-import { effectiveUse } from "../src/model.ts";
+import { columnsFor, effectiveUse, levelsSorted } from "../src/model.ts";
 import { parseFile } from "../src/parse-file.ts";
 import { siteReport } from "../src/site.ts";
 
@@ -219,6 +220,43 @@ function verticalCutOff(model) {
   return bad;
 }
 
+/**
+ * 9. 柱が扉を塞ぐ。**位置を書かない要素が二つあると、衝突は導出でしか分からない。**
+ * 柱は通り芯の交点から (ADR-0023)、扉は境界線分の上から (at: の比率か通り参照から)
+ * 導かれるので、どちらも原本には座標が無い。だから目で見るまで気づかない。
+ * 通り芯の交点は境界線分の端でもあるので、扉を隅に寄せると必ずぶつかる。
+ */
+function doorsBlockedByColumns(model) {
+  const byLevel = new Map();
+  for (const l of levelsSorted(model)) byLevel.set(l.name, columnsFor(model, l.name));
+  const bad = [];
+  for (const b of model.boundaries) {
+    const lv = model.spaces.get(b.a)?.level ?? model.spaces.get(b.b)?.level;
+    if (!lv) continue;
+    for (const o of b.openings) {
+      if (o.kind !== "door") continue;
+      const p = placeOpening(model, b, o);
+      if ("error" in p) continue;
+      const seg = p.segment;
+      const half = o.w / 2;
+      for (const c of byLevel.get(lv) ?? []) {
+        const cx1 = c.x - c.w / 2, cx2 = c.x + c.w / 2;
+        const cy1 = c.y - c.d / 2, cy2 = c.y + c.d / 2;
+        // 扉は線分に沿って幅を持ち、線分に直交する向きには厚みを持たない
+        const along = seg.horizontal
+          ? Math.max(p.cx - half, cx1) < Math.min(p.cx + half, cx2)
+          : Math.max(p.cy - half, cy1) < Math.min(p.cy + half, cy2);
+        const across = seg.horizontal ? cy1 < seg.y1 && seg.y1 < cy2 : cx1 < seg.x1 && seg.x1 < cx2;
+        if (along && across) {
+          bad.push(`${b.a}|${b.b} (${c.grid})`);
+          break;
+        }
+      }
+    }
+  }
+  return bad;
+}
+
 let failed = 0;
 for (const file of entries()) {
   const name = relative(root, file);
@@ -276,6 +314,11 @@ for (const file of entries()) {
   const cut = verticalCutOff(model);
   if (cut.length) {
     problems.push(`共用廊下からバックヤードを通らずに届かない縦動線 ${cut.length}件 — ${listUp(cut)}`);
+  }
+
+  const blocked = doorsBlockedByColumns(model);
+  if (blocked.length) {
+    problems.push(`柱が塞いでいる扉 ${blocked.length}件 — ${listUp(blocked)}`);
   }
 
   if (problems.length === 0) {

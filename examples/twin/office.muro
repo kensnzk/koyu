@@ -1,0 +1,104 @@
+# A棟 オフィス L6〜L28 — 基準階を二度だけ書く
+#
+# 板 3,951㎡ / コア 882㎡ (22.3%) / 貸室 3,069㎡。23層で貸室 70,595㎡。
+#
+# **基準階は L6..L20 と L21..L28 の二回しか書かない。**間の M3 は機械階だが、
+# ここで塔が細るわけではない — A棟は最上階まで同じ板である。細るのは B棟のほうで、
+# L20 で終わる。M3 が二つの帯の境になっているのは、設備の系統を切る階が
+# 「低層帯と高層帯の境」でもあるからで、低層EV (B1..L14) の終わりとも近い。
+#
+# 貸室は基準階で四つに割る。**割り方は階ごとに変えられる** — ここでは全階同じにして、
+# 「同じ形を23回書かない」ことのほうを見せる。
+
+space /L6..L20/aoff1 room X3..X11 Y6..Y8+4200 name:A棟貸室南 use:rentable
+space /L6..L20/aoff2 room X3..X5 Y8+4200..Y11 name:A棟貸室西 use:rentable
+space /L6..L20/aoff3 room X10..X11 Y8+4200..Y11 name:A棟貸室東 use:rentable
+space /L6..L20/aoff4 room X3..X11 Y11..Y13 name:A棟貸室北 use:rentable
+
+space /L21..L28/aoff1 room X3..X11 Y6..Y8+4200 name:A棟貸室南 use:rentable
+space /L21..L28/aoff2 room X3..X5 Y8+4200..Y11 name:A棟貸室西 use:rentable
+space /L21..L28/aoff3 room X10..X11 Y8+4200..Y11 name:A棟貸室東 use:rentable
+space /L21..L28/aoff4 room X3..X11 Y11..Y13 name:A棟貸室北 use:rentable
+
+boundary /L6..L20/aoff1 /L6..L20/ahall t:120 spec:スチールパーティション
+  door FD2 name:貸室入口
+boundary /L6..L20/aoff2 /L6..L20/ahall t:120 spec:スチールパーティション
+  door FD2 name:貸室入口
+boundary /L6..L20/aoff3 /L6..L20/ahall t:120 spec:スチールパーティション
+  door FD2 name:貸室入口
+boundary /L6..L20/aoff1 /L6..L20/aoff2 t:120 spec:スチールパーティション
+  door D1 name:貸室間
+boundary /L6..L20/aoff1 /L6..L20/aoff3 t:120 spec:スチールパーティション
+  door D1 name:貸室間
+boundary /L6..L20/aoff4 /L6..L20/aoff2 t:120 spec:スチールパーティション
+  door D1 at:0.3 name:貸室間
+boundary /L6..L20/aoff4 /L6..L20/aoff3 t:120 spec:スチールパーティション
+  door D1 name:貸室間
+
+boundary /L21..L28/aoff1 /L21..L28/ahall t:120 spec:スチールパーティション
+  door FD2 name:貸室入口
+boundary /L21..L28/aoff2 /L21..L28/ahall t:120 spec:スチールパーティション
+  door FD2 name:貸室入口
+boundary /L21..L28/aoff3 /L21..L28/ahall t:120 spec:スチールパーティション
+  door FD2 name:貸室入口
+boundary /L21..L28/aoff1 /L21..L28/aoff2 t:120 spec:スチールパーティション
+  door D1 name:貸室間
+boundary /L21..L28/aoff1 /L21..L28/aoff3 t:120 spec:スチールパーティション
+  door D1 name:貸室間
+boundary /L21..L28/aoff4 /L21..L28/aoff2 t:120 spec:スチールパーティション
+  door D1 at:0.3 name:貸室間
+boundary /L21..L28/aoff4 /L21..L28/aoff3 t:120 spec:スチールパーティション
+  door D1 name:貸室間
+
+# 外皮 — 事務所は四周がカーテンウォール
+boundary /L6..L20/aoff1 /out edge:S t:250 spec:カーテンウォール
+  window CW2
+boundary /L6..L20/aoff1 /out edge:W t:250 spec:カーテンウォール
+  window CW2
+boundary /L6..L20/aoff1 /out edge:E t:250 spec:カーテンウォール
+  window CW2
+boundary /L6..L20/aoff2 /out edge:W t:250 spec:カーテンウォール
+  window CW2
+boundary /L6..L20/aoff3 /out edge:E t:250 spec:カーテンウォール
+  window CW2
+boundary /L6..L20/aoff4 /out edge:N t:250 spec:カーテンウォール
+  window CW2
+boundary /L6..L20/aoff4 /out edge:W t:250 spec:カーテンウォール
+  window CW2
+boundary /L6..L20/aoff4 /out edge:E t:250 spec:カーテンウォール
+  window CW2
+
+boundary /L21..L28/aoff1 /out edge:S t:250 spec:カーテンウォール
+  window CW2
+boundary /L21..L28/aoff1 /out edge:W t:250 spec:カーテンウォール
+  window CW2
+boundary /L21..L28/aoff1 /out edge:E t:250 spec:カーテンウォール
+  window CW2
+boundary /L21..L28/aoff2 /out edge:W t:250 spec:カーテンウォール
+  window CW2
+boundary /L21..L28/aoff3 /out edge:E t:250 spec:カーテンウォール
+  window CW2
+boundary /L21..L28/aoff4 /out edge:N t:250 spec:カーテンウォール
+  window CW2
+boundary /L21..L28/aoff4 /out edge:W t:250 spec:カーテンウォール
+  window CW2
+boundary /L21..L28/aoff4 /out edge:E t:250 spec:カーテンウォール
+  window CW2
+
+# ---- M3 機械階 (中間) — 三つ目の、客の階数に現れない層 ----
+# 低層帯と高層帯の空調の系統を切る。塔の中ほどに置くのは、
+# 一つの機械室から縦に送れる距離に限りがあるからである
+space /M3/ahu service X3..X5 Y6..Y13 + X10..X11 Y6..Y13 + X5..X10 Y6..Y8+4200 + X5..X10 Y11..Y13 name:A棟機械室 use:common
+boundary /M3/ahu /M3/ahall type:open
+boundary /M3/ahu /out edge:S t:250 spec:ルーバー
+boundary /M3/ahu /out edge:N t:250 spec:ルーバー
+boundary /M3/ahu /out edge:W t:250 spec:ルーバー
+boundary /M3/ahu /out edge:E t:250 spec:ルーバー
+
+# ---- R1 屋上 — 冷却塔とEV機械室 ----
+space /R1/ptop service X3..X5 Y6..Y13 + X10..X11 Y6..Y13 + X5..X10 Y6..Y8+4200 + X5..X10 Y11..Y13 name:塔屋 use:common
+boundary /R1/ptop /R1/ahall type:open
+boundary /R1/ptop /out edge:S t:250 spec:ルーバー
+boundary /R1/ptop /out edge:N t:250 spec:ルーバー
+boundary /R1/ptop /out edge:W t:250 spec:ルーバー
+boundary /R1/ptop /out edge:E t:250 spec:ルーバー

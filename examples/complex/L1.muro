@@ -78,7 +78,7 @@ boundary /L1/atrium /L1/mall type:open
 boundary /L1/atrium /L1/s01 t:200 spec:店舗サッシ
   door AD1
 boundary /L1/atrium /L1/n01 t:200 spec:店舗サッシ
-  door AD1
+  door AD1 at:0.28
 boundary /L1/atrium /L1/bohW t:250 spec:RC
 boundary /L1/ramp /L1/atrium t:250 spec:RC
 

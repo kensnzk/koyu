@@ -1,0 +1,120 @@
+# 基壇 L2〜L4 — 物販・飲食。同じ骨格が3層に展開されて42区画になる
+#
+# 割りは L1 と同じ (東西のモール二本がコアを挟む) だが、棟間は吹抜けになり、
+# その両側に回廊が回る。**吹抜けの縁は手すりである** — 区画の扉を吹抜けに開くと、
+# そこは床の無い所なので出られない (旗艦例で踏んだ誤り)。
+#
+# スパン `/L2..L4/` が三層に配るので、同じ形を三度書かない。
+
+space /L2..L4/atrium void X11+3200..X14 Y3..Y17 + X11..X11+3200 Y3..Y7 + X11..X11+3200 Y7+13200..Y17 name:吹抜け
+space /L2..L4/es escalator X11..X11+3200 Y7..Y7+13200 name:エスカレーター use:common escalator:N
+space /L2..L4/galW corridor X10+4200..X11 Y3..Y17 name:西回廊 use:common floor:石張り
+space /L2..L4/galE corridor X14..X14+4200 Y3..Y17 name:東回廊 use:common floor:石張り
+space /L2..L4/mallW corridor X3..X10+4200 Y8..Y8+4200 name:西モール use:common floor:石張り
+space /L2..L4/mallE corridor X14+4200..X19 Y8..Y8+4200 name:東モール use:common floor:石張り
+space /L2..L4/mallW2 corridor X3..X10+4200 Y11..Y11+4200 name:西モール北 use:common floor:石張り
+space /L2..L4/mallE2 corridor X14+4200..X19 Y11..Y11+4200 name:東モール北 use:common floor:石張り
+
+band X X3..X10+4200 Y3..Y8
+  space /L2..L4/w01 shop w:16800 name:西区画01 use:rentable
+  space /L2..L4/w02 shop w:16800 name:西区画02 use:rentable
+  space /L2..L4/w03 shop w:rest name:西区画03 use:rentable
+space /L2..L4/w04 shop X3..X5 Y8+4200..Y11 name:西区画04 use:rentable
+space /L2..L4/w05 shop X10..X10+4200 Y8+4200..Y11 name:西区画05 use:rentable
+band X X3..X10+4200 Y11+4200..Y17
+  space /L2..L4/w06 shop w:16800 name:西区画06 use:rentable
+  space /L2..L4/w07 shop w:16800 name:西区画07 use:rentable
+  space /L2..L4/w08 shop w:rest name:西区画08 use:rentable
+
+band X X14+4200..X19 Y3..Y8
+  space /L2..L4/e01 shop w:16800 name:東区画01 use:rentable
+  space /L2..L4/e02 shop w:rest name:東区画02 use:rentable
+space /L2..L4/e03 shop X14+4200..X16 Y8+4200..Y11 name:東区画03 use:rentable
+space /L2..L4/e04 shop X18..X19 Y8+4200..Y11 name:東区画04 use:rentable
+band X X14+4200..X19 Y11+4200..Y17
+  space /L2..L4/e05 shop w:16800 name:東区画05 use:rentable
+  space /L2..L4/e06 shop w:rest name:東区画06 use:rentable
+
+# ---- 動線 ----
+boundary /L2..L4/galW /L2..L4/mallW type:open
+boundary /L2..L4/galW /L2..L4/mallW2 type:open
+boundary /L2..L4/galE /L2..L4/mallE type:open
+boundary /L2..L4/galE /L2..L4/mallE2 type:open
+boundary /L2..L4/mallW /L2..L4/ahall type:open
+boundary /L2..L4/mallE /L2..L4/bhall type:open
+boundary /L2..L4/galW /L2..L4/es type:open
+boundary /L2..L4/galW /L2..L4/atrium t:60 spec:手すり air:1 h:1100
+boundary /L2..L4/galE /L2..L4/atrium t:60 spec:手すり air:1 h:1100
+
+boundary /L2..L4/w01 /L2..L4/mallW t:120 spec:店舗サッシ
+  door SD1 at:0.28
+boundary /L2..L4/w02 /L2..L4/mallW t:120 spec:店舗サッシ
+  door SD1 at:0.28
+boundary /L2..L4/w03 /L2..L4/mallW t:120 spec:店舗サッシ
+  door SD1
+boundary /L2..L4/w04 /L2..L4/mallW t:120 spec:店舗サッシ
+  door SD1
+boundary /L2..L4/w05 /L2..L4/mallW t:120 spec:店舗サッシ
+  door SD1
+boundary /L2..L4/w06 /L2..L4/mallW2 t:120 spec:店舗サッシ
+  door SD1
+boundary /L2..L4/w07 /L2..L4/mallW2 t:120 spec:店舗サッシ
+  door SD1
+boundary /L2..L4/w08 /L2..L4/mallW2 t:120 spec:店舗サッシ
+  door SD1
+boundary /L2..L4/e01 /L2..L4/mallE t:120 spec:店舗サッシ
+  door SD1
+boundary /L2..L4/e02 /L2..L4/mallE t:120 spec:店舗サッシ
+  door SD1
+boundary /L2..L4/e03 /L2..L4/mallE t:120 spec:店舗サッシ
+  door SD1
+boundary /L2..L4/e04 /L2..L4/mallE t:120 spec:店舗サッシ
+  door SD1
+boundary /L2..L4/e05 /L2..L4/mallE2 t:120 spec:店舗サッシ
+  door SD1
+boundary /L2..L4/e06 /L2..L4/mallE2 t:120 spec:店舗サッシ
+  door SD1
+
+# ---- 外皮 ----
+boundary /L2..L4/w01 /out edge:S t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/w02 /out edge:S t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/w03 /out edge:S t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/w01 /out edge:W t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/w04 /out edge:W t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/w06 /out edge:W t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/w06 /out edge:N t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/w07 /out edge:N t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/w08 /out edge:N t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/mallW /out edge:W t:300 spec:カーテンウォール
+boundary /L2..L4/mallW2 /out edge:W t:300 spec:カーテンウォール
+boundary /L2..L4/e01 /out edge:S t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/e02 /out edge:S t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/e02 /out edge:E t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/e04 /out edge:E t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/e06 /out edge:E t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/e05 /out edge:N t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/e06 /out edge:N t:300 spec:カーテンウォール
+  window CW1
+boundary /L2..L4/mallE /out edge:E t:300 spec:カーテンウォール
+boundary /L2..L4/mallE2 /out edge:E t:300 spec:カーテンウォール
+boundary /L2..L4/atrium /out edge:S t:300 spec:カーテンウォール
+boundary /L2..L4/atrium /out edge:N t:300 spec:カーテンウォール
+boundary /L2..L4/galW /out edge:S t:300 spec:カーテンウォール
+boundary /L2..L4/galW /out edge:N t:300 spec:カーテンウォール
+boundary /L2..L4/galE /out edge:S t:300 spec:カーテンウォール
+boundary /L2..L4/galE /out edge:N t:300 spec:カーテンウォール

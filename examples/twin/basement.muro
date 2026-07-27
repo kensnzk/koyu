@@ -1,0 +1,48 @@
+# 地下 B2〜B1 — 駐車場・熱源・受変電・荷捌き
+#
+# **重い機械は下に置く。**熱源と受変電は搬送動力と搬入経路の両方から低層が素直で、
+# 更新のときも荷捌きから直接届く。M1〜M3 の機械階は空調の系統を切る役で、
+# 熱源そのものはここにある。
+#
+# 車は折返し斜路一本で地上へ出る。人は900mmの扉で出られるが車は出られないので、
+# 車路の出口には幅6mのシャッターが要る (門番の検査7が問う)。
+#
+# 板はコアの footprint を避けて割る — 二つのコアは地下2階から立ち上がっている。
+
+space /B2..B1/park parking X3..X5 Y3..Y17 + X10..X12 Y3..Y17 + X5..X10 Y3..Y8+4200 + X5..X10 Y11..Y17 name:駐車場 use:parking
+space /B2..B1/park2 parking X12..X16 Y3..Y8 name:駐車場南 use:parking
+space /B2..B1/ramp parking X16..X17 Y3..Y8 name:車路 use:parking ramp:N
+space /B2..B1/mech service X17..X19 Y3..Y8 name:熱源・受変電 use:common
+space /B2..B1/load backyard X12..X16 Y8..Y11 + X18..X19 Y8..Y11 + X16..X18 Y8..Y8+4200 name:荷捌き use:common
+space /B2..B1/store backyard X12..X16 Y11..Y17 name:倉庫 use:common
+space /B2..B1/plant service X16..X19 Y11..Y17 name:設備諸室 use:common
+
+boundary /B2..B1/park /B2..B1/park2 type:open
+boundary /B2..B1/park2 /B2..B1/ramp type:open
+boundary /B2..B1/park /B2..B1/load t:250 spec:RC
+  door FD2 name:荷捌きへ
+boundary /B2..B1/ramp /B2..B1/mech t:250 spec:RC
+  door FD1 name:機械室戸
+boundary /B2..B1/load /B2..B1/mech t:250 spec:RC
+  door FD1 at:0.28 name:機械室戸2
+boundary /B2..B1/load /B2..B1/store t:180 spec:LGS
+  door FD2 at:0.85 name:倉庫へ
+boundary /B2..B1/store /B2..B1/plant t:180 spec:LGS
+  door FD1 at:0.28 name:設備諸室へ
+
+# コアへ
+boundary /B2..B1/ahall /B2..B1/park type:open
+boundary /B2..B1/bhall /B2..B1/load type:open
+
+# 外皮 — 地下は土に接する。underground:1 が宣言されているので集計が地下床として数える
+boundary /B2..B1/park /out edge:W t:700 spec:RC土圧壁
+boundary /B2..B1/park /out edge:S t:700 spec:RC土圧壁
+boundary /B2..B1/park /out edge:N t:700 spec:RC土圧壁
+boundary /B2..B1/ramp /out edge:S t:700 spec:RC土圧壁
+boundary /B2..B1/park2 /out edge:S t:700 spec:RC土圧壁
+boundary /B2..B1/mech /out edge:S t:700 spec:RC土圧壁
+boundary /B2..B1/mech /out edge:E t:700 spec:RC土圧壁
+boundary /B2..B1/load /out edge:E t:700 spec:RC土圧壁
+boundary /B2..B1/store /out edge:N t:700 spec:RC土圧壁
+boundary /B2..B1/plant /out edge:N t:700 spec:RC土圧壁
+boundary /B2..B1/plant /out edge:E t:700 spec:RC土圧壁
