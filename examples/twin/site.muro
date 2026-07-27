@@ -1,29 +1,29 @@
 # 敷地と外構 — 隔離レイヤー (ADR-0011)
 #
-# 敷地の形はこの記法で**唯一「書かれる形」**である。他はすべて生成物だが、
-# 敷地は測量に由来する所与で、設計の結果ではない。だから別ファイルに隔離する。
-#
-# 14頂点の不整形。三方が道路で、北西が隣地。建蔽率62%の残り38%が公開空地になる —
-# この規模の容積を積むには総合設計の上乗せが要るので、広場は制度の裏づけでもある。
+# 14頂点の不整形、23,167㎡。基壇は敷地の南半分に寄せ、**北半分は広場と緑地**にする —
+# この規模の容積を積む再開発は、公開空地が制度の裏づけになる (総合設計・都市再生特区)。
+# 基壇の四隅の斜めは、この敷地の辺の振れをそのまま建物に写した隅切りである。
 
-# 外部そのもの — 領域を持たない。地下の土圧壁や機械階のルーバーが面する先である
 space /out exterior name:外部
 
 zone /site name:敷地 site:1 area:23167.40
 
 polygon /site 0,24000 14000,6000 46000,0 92000,3000 126000,0 158000,9000 168000,38000 164000,80000 168000,118000 152000,144000 104000,151200 58000,149000 16000,142000 0,100000
 
-# 道路 (接道は導出される — 幅員は road: が言う)
 space /road-s exterior X1..X21 Y1-22000..Y1 level:L1 name:南側道路 road:25000
 space /road-e exterior X21..X21+18000 Y1..Y19 level:L1 name:東側道路 road:18000
 space /road-n exterior X1..X21 Y19..Y19+16000 level:L1 name:北側道路 road:16000
 
-# 外構 — 敷地に載る屋外の床。建物の周りの公開空地である
-space /site/plazaS exterior X3..X19 Y1..Y3 level:L1 name:南側広場
-space /site/plazaE exterior X19..X21 Y3..Y17 level:L1 name:東側広場
-space /site/plazaN exterior X3..X19 Y17..Y19 level:L1 name:北側広場
-space /site/plazaW exterior X1..X3 Y3..Y17 level:L1 name:西側広場
+# 外構。北の大きな広場が公開空地の主体
+space /site/plazaS exterior X2..X19 Y1..Y4 level:L1 name:南側広場
+space /site/plazaE exterior X19..X21 Y1..Y12 level:L1 name:東側広場
+space /site/plazaW exterior X1..X2 Y1..Y12 level:L1 name:西側広場
+space /site/green exterior X1..X21 Y12..Y19 level:L1 name:北側広場・緑地
 
 boundary /site/plazaS /road-s type:open
 boundary /site/plazaE /road-e type:open
-boundary /site/plazaN /road-n type:open
+boundary /site/green /road-n type:open
+boundary /site/plazaS /site/plazaE type:open
+boundary /site/plazaS /site/plazaW type:open
+boundary /site/green /site/plazaE type:open
+boundary /site/green /site/plazaW type:open

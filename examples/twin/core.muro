@@ -1,75 +1,128 @@
-# コア — 二棟ぶん。**この一枚が地下2階から28階までを持つ**
+# コア — 実在の寸法で組む
 #
-# A棟のコアは X5..X10 Y9..Y11 (42.0m × 16.8m = 706㎡)。ホールはその南 (Y8+4200..Y9)。
-# B棟のコアは X16..X18 Y9..Y11 (16.8m × 16.8m = 282㎡)、板の11%。ホールはその南。
+# **エレベーターは 1600kg級 (かご2150×1600 / 昇降路2800×2400)。3台並び=1スパン。**
+# バンクは対面 (南列3台+北列3台) で、乗場ホール幅 4,200。シャフトの奥行は実寸の
+# 2,400 で、背後の1,800はEPS・PS・DSの帯 — 竪穴は乗場の裏に束ねるのが実務の形。
 #
-# **エレベーターのゾーニングはシャフトの存在する範囲が決める。**
-# aev1 は B1..L14 にしか無いので、L15より上には止まりようがない。
-# aev2 は L1..L28 にあるが、低層帯では扉を書かないので通過するだけである —
-# 「止まる」は扉の有無であって、シャフトの有無ではない (ADR-0021 のトポロジー)。
+# A棟コア帯: X4..X10 × Y7..Y8+4200 (50.4m × 12.6m = 635㎡ / 板の28%)。
+# スリムな塔はコア率が上がる — 貸室率 (レンタブル比) が下がるのはその代償で、
+# 「板を細くして上に積む」ことの実際の勘定である。
 #
-# 階段の段割りは階ごとに違う。同じ大きさの階段室に、基壇では39段、
-# 基準階では24段が入る — 階高が違うからである。段数も踏面も書かれていない。
+# 階段は 2,800 × 6,000 の塊 (幅1,200の折返し)。走りはX方向。
 
-# ---- A棟のコア (B2〜R) ----
-space /B2..R1/aps shaft X5..X5+2400 Y9..Y11 name:A棟PS・EPS use:common
-space /B2..L28/ast1 stair X5+2400..X5+5800 Y9..Y11 name:A棟階段1 use:common stair:N form:return
-space /R1/ast1 service X5+2400..X5+5800 Y9..Y11 name:A棟階段1塔屋 use:common
-space /B2..R1/aev1 shaft X5+5800..X5+14200 Y9..Y11 name:A棟低層EV use:common lift:1
-space /B2..R1/aev2 shaft X5+14200..X5+22600 Y9..Y11 name:A棟高層EV use:common lift:1
-space /B2..L5/pev shaft X5+22600..X5+27600 Y9..Y11 name:基壇EV use:common lift:1
-# 基壇EVは5階で終わる。**その枠は上階では第二PSになる** — 空いた竪穴は設備が使う
-space /M2..R1/aps2 shaft X5+22600..X5+27600 Y9..Y11 name:A棟PS2 use:common
-space /B2..R1/afr shaft X5+27600..X5+30000 Y9..Y11 name:A棟荷物用EV use:common lift:1
-space /B2..R1/awcm service X5+30000..X5+33400 Y9..Y11 name:A棟男子便所 use:common
-space /B2..R1/awcw service X5+33400..X5+36800 Y9..Y11 name:A棟女子便所 use:common
-space /B2..L28/ast2 stair X5+36800..X10 Y9..Y11 name:A棟階段2 use:common stair:N form:return
-space /R1/ast2 service X5+36800..X10 Y9..Y11 name:A棟階段2塔屋 use:common
+# ---- A棟コア (B2〜R1) ----
+# 南列: 設備帯 (奥) + シャフト (手前=ホール側)
+space /B2..R1/aeps1 shaft X5..X7 Y7..Y7+1800 h:2800 name:A棟EPS・PS南 use:common
+space /B2..R1/aevLs shaft X5..X6 Y7+1800..Y7+4200 name:A棟低層EV南列3台 use:common lift:1
+space /B2..R1/aevHs shaft X6..X7 Y7+1800..Y7+4200 name:A棟高層EV南列3台 use:common lift:1
+space /B2..L34/ast1 stair X4..X4+7000 Y7+1400..Y7+4200 name:A棟階段1 use:common stair:E form:return
+space /R1/ast1t service X4..X4+7000 Y7+1400..Y7+4200 name:階段1塔屋 use:common
+space /B2..R1/aps1 shaft X4..X4+7000 Y7..Y7+1400 h:2800 name:A棟PS1 use:common
+space /B2..R1/agomi service X4+7000..X5 Y7..Y7+4200 h:2800 name:A棟ごみ置場 use:common
+space /B2..R1/afr shaft X7..X7+5600 Y7+1800..Y7+4200 name:A棟荷物用EV2台 use:common lift:1
+space /B2..R1/ads1 shaft X7..X7+5600 Y7..Y7+1800 h:2800 name:A棟DS南 use:common
+space /B2..R1/awcm service X7+5600..X8+4200 Y7..Y7+4200 h:2800 name:A棟男子便所 use:common
+space /B2..R1/awcw service X8+4200..X10 Y7..Y7+4200 h:2800 name:A棟女子便所 use:common
 
-# **屋上へは階段で上がる。**階段室そのものは L28 で終わり、その上は塔屋である —
-# 「上にレベルが無い階段」は形を生成できないので (RUN04)、最上段の連結だけを書く
-boundary /L28/ast1 /R1/ast1 type:stair
-boundary /L28/ast2 /R1/ast2 type:stair
-space /B2..R1/ahall corridor X5..X10 Y8+4200..Y9 name:A棟EVホール use:common
+# 北列
+space /B2..R1/asto service X4..X5 Y8..Y8+4200 h:2800 name:A棟倉庫・メール use:common
+space /B2..R1/aeps2 shaft X5..X7 Y8+2400..Y8+4200 h:2800 name:A棟EPS・PS北 use:common
+space /B2..R1/aevLn shaft X5..X6 Y8..Y8+2400 name:A棟低層EV北列3台 use:common lift:1
+space /B2..R1/aevHn shaft X6..X7 Y8..Y8+2400 name:A棟高層EV北列3台 use:common lift:1
+space /B2..L34/ast2 stair X7..X7+7000 Y8..Y8+2800 name:A棟階段2 use:common stair:E form:return
+space /R1/ast2t service X7..X7+7000 Y8..Y8+2800 name:階段2塔屋 use:common
+space /B2..R1/aps2 shaft X7..X7+7000 Y8+2800..Y8+4200 h:2800 name:A棟PS2 use:common
+space /B2..R1/autl service X7+7000..X8+4200 Y8..Y8+4200 h:2800 name:A棟湯沸・掃除 use:common
+space /B2..R1/asec service X8+4200..X10 Y8..Y8+4200 h:2800 name:A棟リフレッシュ use:common
 
-# **すべての室はホールから入る。**便所を給湯室から、階段をPSから入る割付は
-# 平面としては閉じていても建物としては成立しない (complex で踏んだ誤り)
-boundary /B2..R1/ahall /B2..R1/aps t:250 spec:RC
-  door D1 name:PS点検口
-boundary /B2..L28/ahall /B2..L28/ast1 t:250 spec:RC
-  door FD1 name:A棟階段1防火戸
-boundary /R1/ahall /R1/ast1 t:250 spec:RC
-  door FD1 name:塔屋へ
-boundary /B2..R1/ahall /B2..R1/aev1 t:250 spec:RC
-boundary /B2..R1/ahall /B2..R1/aev2 t:250 spec:RC
-boundary /B2..L5/ahall /B2..L5/pev t:250 spec:RC
-boundary /M2..R1/ahall /M2..R1/aps2 t:250 spec:RC
-  door D1 at:0.3 name:PS2点検口
+# 乗場ホール — 対面バンクの間、幅4,200
+space /B2..R1/ahall corridor X4..X10 Y7+4200..Y8 h:2800 name:A棟EVホール use:common
+
+boundary /B2..L34/ahall /B2..L34/ast1 t:250 spec:RC
+  door FD1 at:0.3 name:階段1防火戸
+boundary /R1/ahall /R1/ast1t t:250 spec:RC
+  door FD1 at:0.3 name:塔屋1
+boundary /L34/ast1 /R1/ast1t type:stair
+boundary /B2..L34/ahall /B2..L34/ast2 t:250 spec:RC
+  door FD1 at:0.7 name:階段2防火戸
+boundary /R1/ahall /R1/ast2t t:250 spec:RC
+  door FD1 at:0.7 name:塔屋2
+boundary /L34/ast2 /R1/ast2t type:stair
+boundary /B2..R1/ahall /B2..R1/aevLs t:250 spec:RC
+boundary /B2..R1/ahall /B2..R1/aevHs t:250 spec:RC
+boundary /B2..R1/ahall /B2..R1/aevLn t:250 spec:RC
+boundary /B2..R1/ahall /B2..R1/aevHn t:250 spec:RC
 boundary /B2..R1/ahall /B2..R1/afr t:250 spec:RC
-  door FD1 name:荷物用EV戸
+  door FD1 at:0.3 name:荷物用EV戸
 boundary /B2..R1/ahall /B2..R1/awcm t:180 spec:LGS
-  door D1 name:男子便所
+  door D1 at:0.35 name:男子便所
 boundary /B2..R1/ahall /B2..R1/awcw t:180 spec:LGS
-  door D1 name:女子便所
-boundary /B2..L28/ahall /B2..L28/ast2 t:250 spec:RC
-  door FD1 name:A棟階段2防火戸
-boundary /R1/ahall /R1/ast2 t:250 spec:RC
-  door FD1 name:塔屋へ2
+  door D1 at:0.35 name:女子便所
+boundary /B2..R1/ahall /B2..R1/autl t:180 spec:LGS
+  door D1 at:0.42 name:湯沸・掃除
+boundary /B2..R1/ahall /B2..R1/asec t:180 spec:LGS
+  door D1 at:0.42 name:リフレッシュ
+boundary /B2..R1/ahall /B2..R1/asto t:180 spec:LGS
+  door D1 at:0.3 name:倉庫
+boundary /B2..R1/ahall /B2..R1/agomi t:180 spec:LGS
+  door D1 name:ごみ置場
 
-# ---- B棟のコア (B2〜L20) ----
-space /B2..L20/bps shaft X16..X16+2000 Y9..Y11 name:B棟PS・EPS use:common
-space /B2..L20/bst1 stair X16+2000..X16+5400 Y9..Y11 name:B棟階段1 use:common stair:N form:return
-space /B2..L20/bev shaft X16+5400..X16+11400 Y9..Y11 name:B棟客用EV use:common lift:1
-space /B2..L20/bsv shaft X16+11400..X16+14400 Y9..Y11 name:B棟サービスEV use:common lift:1
-space /B2..L20/bst2 stair X16+14400..X18 Y9..Y11 name:B棟階段2 use:common stair:N form:return
-space /B2..L20/bhall corridor X16..X18 Y8+4200..Y9 name:B棟EVホール use:common
+# ---- B棟コア (中央列 X16..X17 が廊下からシャフト帯まで貫く) ----
+space /B1..L1/bhall1 corridor X16..X17 Y7+2400..Y8+4200 h:2800 name:B棟EVホール低層 use:common
+space /L5/bhall2 corridor X16..X17 Y7+2400..Y8+4200 h:2800 name:B棟EVホール use:common
+space /L6..L18/bhall2 corridor X16..X17 Y7+2400..Y8+4200 h:2800 name:B棟EVホール use:common
+space /L5/bsrv service X15+5600..X16 Y7+2400..Y7+5600 h:2800 name:B棟サービス・リネン use:common
+space /L6..L18/bsrv service X15+5600..X16 Y7+2400..Y7+5600 h:2800 name:B棟サービス・リネン use:common
+space /B2..L18/bev shaft X16..X17 Y8+4200..Y8+6600 name:B棟客用EV3台 use:common lift:1
+space /B2..L18/bds2 shaft X17..X17+2800 Y8+4200..Y9 h:2800 name:B棟DS use:common
+space /B2..L18/beps shaft X16..X17 Y8+6600..Y9 h:2800 name:B棟EPS use:common
+space /B2..L18/bst1 stair X15+5600..X16 Y7+5600..Y8+4200 name:B棟階段1 use:common stair:N form:return
+space /B2..L18/bst2 stair X17..X17+2800 Y7+5600..Y8+4200 name:B棟階段2 use:common stair:N form:return
+space /B2..L18/bsv shaft X17+2800..X18 Y8+4200..Y8+6600 name:B棟サービスEV2台 use:common lift:1
+# サービスEVの乗場前室 — 客用ホールを通らずにリネン・配膳が回る
+space /L5/bslob corridor X17+2800..X18 Y7+2400..Y8+4200 + X17..X17+2800 Y7+2400..Y7+5600 h:2800 name:B棟サービス前室 use:common
+space /L6..L18/bslob corridor X17+2800..X18 Y7+2400..Y8+4200 + X17..X17+2800 Y7+2400..Y7+5600 h:2800 name:B棟サービス前室 use:common
+space /B2..L18/bps shaft X17+2800..X18 Y8+6600..Y9 h:2800 name:B棟PS・DS use:common
+space /B2..L18/blin shaft X14..X16 Y8+4200..Y9 h:2800 name:B棟DS・EPS帯西 use:common
+space /B2..L18/blin2 shaft X18..X19 Y8+4200..Y9 h:2800 name:B棟DS・EPS帯東 use:common
 
-boundary /B2..L20/bhall /B2..L20/bps t:250 spec:RC
-  door D1 name:PS点検口
-boundary /B2..L20/bhall /B2..L20/bst1 t:250 spec:RC
-  door FD1 name:B棟階段1防火戸
-boundary /B2..L20/bhall /B2..L20/bev t:250 spec:RC
-boundary /B2..L20/bhall /B2..L20/bsv t:250 spec:RC
-  door FD1 name:サービスEV戸
-boundary /B2..L20/bhall /B2..L20/bst2 t:250 spec:RC
-  door FD1 name:B棟階段2防火戸
+boundary /B1..L1/bhall1 /B1..L1/bev t:250 spec:RC
+boundary /L5/bhall2 /L5/bev t:250 spec:RC
+boundary /L6..L18/bhall2 /L6..L18/bev t:250 spec:RC
+boundary /B1..L1/bhall1 /B1..L1/bst1 edge:W t:250 spec:RC
+  door FD1 at:0.8 name:階段1防火戸
+boundary /L5/bhall2 /L5/bst1 t:250 spec:RC
+  door FD1 at:0.8 name:階段1防火戸
+boundary /L6..L18/bhall2 /L6..L18/bst1 t:250 spec:RC
+  door FD1 at:0.8 name:階段1防火戸
+boundary /B1..L1/bhall1 /B1..L1/bst2 t:250 spec:RC
+  door FD1 at:0.7 name:階段2防火戸
+boundary /L5/bhall2 /L5/bst2 t:250 spec:RC
+  door FD1 at:0.7 name:階段2防火戸
+boundary /L6..L18/bhall2 /L6..L18/bst2 t:250 spec:RC
+  door FD1 at:0.7 name:階段2防火戸
+boundary /L5/bsrv /L5/bst1 t:180 spec:LGS
+  door D1 at:0.3 name:サービスから階段
+boundary /L6..L18/bsrv /L6..L18/bst1 t:180 spec:LGS
+  door D1 at:0.3 name:サービスから階段
+boundary /L5/bhall2 /L5/bsrv t:180 spec:LGS
+  door D1 at:0.7 name:サービス室
+boundary /L6..L18/bhall2 /L6..L18/bsrv t:180 spec:LGS
+  door D1 at:0.7 name:サービス室
+boundary /L5/bslob /L5/bst2 edge:N t:250 spec:RC
+  door FD1 at:0.5 name:階段2からサービス
+boundary /L6..L18/bslob /L6..L18/bst2 edge:N t:250 spec:RC
+  door FD1 at:0.5 name:階段2からサービス
+boundary /L5/bslob /L5/bsv t:250 spec:RC
+boundary /L6..L18/bslob /L6..L18/bsv t:250 spec:RC
+
+# B帯の外皮 — 塔の階では帯の北面が外周になる (基壇では内側なので基壇には書かない)
+boundary /M1..L18/blin /out edge:N t:250 spec:PC板
+boundary /M1..L18/blin /out edge:W t:250 spec:PC板
+boundary /M1..L18/beps /out edge:N t:250 spec:PC板
+boundary /M1..L18/bds2 /out edge:N t:250 spec:PC板
+boundary /M1..L18/bps /out edge:N t:250 spec:PC板
+boundary /M1..L18/blin2 /out edge:N t:250 spec:PC板
+boundary /L5..L18/blin2 /out edge:E t:250 spec:PC板
+boundary /B2..B1/blin2 /out edge:E t:700 spec:RC土圧壁
+boundary /L2..L4/blin2 /out edge:E t:300 spec:PC板

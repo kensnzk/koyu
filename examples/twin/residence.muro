@@ -1,131 +1,67 @@
-# B棟 レジデンス L14〜L20 — 同じ板の上で用途が変わる
+# B棟 レジデンス L13〜L18 — 同じ板の上で用途が変わる
 #
-# ホテル (L6〜L13) と**同じ 2,470㎡ の板・同じコア・同じ4.2mの階高**に、
-# 住戸が載る。変わるのは割りと、**採光の宣言**である。
+# ホテルと同じ板・同じコア・同じ階高に、住戸が載る。変わるのは割りと**採光の宣言**。
+# 共同住宅の居室は令19条の列挙にあるので daylight:1 — 同じ窓でも判断が変わる (ADR-0020)。
+# 南列5戸 (8.4m) + 北東1戸 + 西はビューラウンジ = 6戸/階 × 6層 = **36戸**。
 #
-# **住戸には daylight:1 を書く。**共同住宅の居室は法28条の対象で、令19条の列挙に
-# 入っている。ホテルの客室は入っていない。同じ窓・同じ床でも、判断が変わる —
-# だから採光の対象は型からの推定ではなく宣言である (ADR-0020)。
-#
-# 住戸は南北と西の帯で割る。7層 × 17戸 = 119戸。
+# 屋上 (L19の高さ) は住民の庭園 — B棟の頭が緑になる。
 
-space /L14..L20/rcorrS corridor X14..X19 Y8..Y8+4200 name:住戸廊下南 use:common
-space /L14..L20/rcorrN corridor X14..X19 Y11..Y11+4200 name:住戸廊下北 use:common
-space /L14..L20/rcorrW corridor X16-4200..X16 Y8+4200..Y11 name:住戸廊下西 use:common
-space /L14..L20/rcorrE corridor X18..X19 Y8+4200..Y11 name:住戸廊下東 use:common
+space /L13..L18/rcorr corridor X14..X19 Y7..Y7+2400 name:住戸廊下 use:common
+band X X14..X19 Y6..Y7
+  space /L13..L18/rs01 unit w:8400 name:住戸S01 use:exclusive daylight:1
+  space /L13..L18/rs02 unit w:8400 name:住戸S02 use:exclusive daylight:1
+  space /L13..L18/rs03 unit w:8400 name:住戸S03 use:exclusive daylight:1
+  space /L13..L18/rs04 unit w:8400 name:住戸S04 use:exclusive daylight:1
+  space /L13..L18/rs05 unit w:rest name:住戸S05 use:exclusive daylight:1
+# 西向きの奥行10.2mは1住戸の窓では 1/7 に届かない — 住戸にせず共用のビューラウンジにする
+space /L13..L18/rlounge room X14..X15+5600 Y7+2400..Y8+4200 name:ビューラウンジ use:common
+space /L13..L18/rn02 unit X18..X19 Y7+2400..Y8+4200 name:住戸N02 use:exclusive daylight:1
 
-# **採光は窓の高さで決まる。**奥行16.8mの住戸に高さ2.2mの窓では、幅をどう変えても
-# 比は 1/7.6 にしかならない (窓/床 = 高さ/奥行)。天井まで届くサッシ (2.6m) にして
-# 初めて 1/7 を超える。light がそれを言う
-band X X14..X19 Y6..Y8
-  space /L14..L20/rs01 unit w:6000 name:住戸S01 use:exclusive daylight:1
-  space /L14..L20/rs02 unit w:6000 name:住戸S02 use:exclusive daylight:1
-  space /L14..L20/rs03 unit w:6000 name:住戸S03 use:exclusive daylight:1
-  space /L14..L20/rs04 unit w:6000 name:住戸S04 use:exclusive daylight:1
-  space /L14..L20/rs05 unit w:6000 name:住戸S05 use:exclusive daylight:1
-  space /L14..L20/rs06 unit w:6000 name:住戸S06 use:exclusive daylight:1
-  space /L14..L20/rs07 unit w:rest name:住戸S07 use:exclusive daylight:1
+boundary /L13..L18/rcorr /L13..L18/bhall2 type:open
+boundary /L13..L18/rcorr /L13..L18/bslob t:180 spec:LGS
+  door D1 at:0.85 name:サービス前室
+boundary /L13..L18/rs01 /L13..L18/rcorr t:180 spec:戸境RC
+  door D2 name:玄関
+boundary /L13..L18/rs02 /L13..L18/rcorr t:180 spec:戸境RC
+  door D2 at:0.3 name:玄関
+boundary /L13..L18/rs03 /L13..L18/rcorr t:180 spec:戸境RC
+  door D2 name:玄関
+boundary /L13..L18/rs04 /L13..L18/rcorr t:180 spec:戸境RC
+  door D2 at:0.3 name:玄関
+boundary /L13..L18/rs05 /L13..L18/rcorr t:180 spec:戸境RC
+  door D2 name:玄関
+boundary /L13..L18/rlounge /L13..L18/rcorr t:180 spec:LGS
+  door AD2 at:0.3 name:ラウンジ
+boundary /L13..L18/rn02 /L13..L18/rcorr t:180 spec:戸境RC
+  door D2 at:0.3 name:玄関
 
-band X X14..X19 Y11+4200..Y13
-  space /L14..L20/rn01 unit w:6000 name:住戸N01 use:exclusive daylight:1
-  space /L14..L20/rn02 unit w:6000 name:住戸N02 use:exclusive daylight:1
-  space /L14..L20/rn03 unit w:6000 name:住戸N03 use:exclusive daylight:1
-  space /L14..L20/rn04 unit w:6000 name:住戸N04 use:exclusive daylight:1
-  space /L14..L20/rn05 unit w:6000 name:住戸N05 use:exclusive daylight:1
-  space /L14..L20/rn06 unit w:6000 name:住戸N06 use:exclusive daylight:1
-  space /L14..L20/rn07 unit w:rest name:住戸N07 use:exclusive daylight:1
+# 外皮 — 掃き出しは引違い部 (door) と FIX部 (window) に分けて書く。
+# 窓しか無い住戸には出入りできない、が導出の答えになる
+boundary /L13..L18/rs01 /out edge:S t:250 spec:PC板
+  window RW1
+boundary /L13..L18/rs02 /out edge:S t:250 spec:PC板
+  window RW1
+boundary /L13..L18/rs03 /out edge:S t:250 spec:PC板
+  window RW1
+boundary /L13..L18/rs04 /out edge:S t:250 spec:PC板
+  window RW1
+boundary /L13..L18/rs05 /out edge:S t:250 spec:PC板
+  window RW1
+boundary /L13..L18/rs01 /out edge:W t:250 spec:PC板
+boundary /L13..L18/rs05 /out edge:E t:250 spec:PC板
+boundary /L13..L18/rlounge /out edge:W t:250 spec:PC板
+  window RW1
+boundary /L13..L18/rn02 /out edge:E t:250 spec:PC板
+  window RW1
+boundary /L13..L18/rcorr /out edge:W t:250 spec:PC板
+  window W2
+boundary /L13..L18/rcorr /out edge:E t:250 spec:PC板
+  window W2
 
-band Y X14..X16-4200 Y8+4200..Y11
-  space /L14..L20/rw01 unit w:7000 name:住戸W01 use:exclusive daylight:1
-  space /L14..L20/rw02 unit w:7000 name:住戸W02 use:exclusive daylight:1
-  space /L14..L20/rw03 unit w:rest name:住戸W03 use:exclusive daylight:1
-
-# ---- 廊下とコア ----
-boundary /L14..L20/rcorrS /L14..L20/bhall type:open
-boundary /L14..L20/rcorrS /L14..L20/rcorrW type:open
-boundary /L14..L20/rcorrS /L14..L20/rcorrE type:open
-boundary /L14..L20/rcorrN /L14..L20/rcorrW type:open
-boundary /L14..L20/rcorrN /L14..L20/rcorrE type:open
-boundary /L14..L20/rcorrE /L14..L20/bhall type:open
-
-boundary /L14..L20/rs01 /L14..L20/rcorrS t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rs02 /L14..L20/rcorrS t:180 spec:戸境RC
-  door D2 at:0.7 name:玄関
-boundary /L14..L20/rs03 /L14..L20/rcorrS t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rs04 /L14..L20/rcorrS t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rs05 /L14..L20/rcorrS t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rs06 /L14..L20/rcorrS t:180 spec:戸境RC
-  door D2 at:0.35 name:玄関
-boundary /L14..L20/rs07 /L14..L20/rcorrS t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rn01 /L14..L20/rcorrN t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rn02 /L14..L20/rcorrN t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rn03 /L14..L20/rcorrN t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rn04 /L14..L20/rcorrN t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rn05 /L14..L20/rcorrN t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rn06 /L14..L20/rcorrN t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rn07 /L14..L20/rcorrN t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rw01 /L14..L20/rcorrW t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rw02 /L14..L20/rcorrW t:180 spec:戸境RC
-  door D2 name:玄関
-boundary /L14..L20/rw03 /L14..L20/rcorrW t:180 spec:戸境RC
-  door D2 name:玄関
-
-# ---- 外皮 — 掃き出しサッシは引違い部 (door) と FIX部 (window) に分けて書く ----
-# koyu の開口は通行 (door) か採光 (window) のどちらかで、一つの開口が両方を担うとは
-# 言えない。窓しか無いバルコニーには出られない、が導出の答えになる
-boundary /L14..L20/rs01 /out edge:S t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rs02 /out edge:S t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rs03 /out edge:S t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rs04 /out edge:S t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rs05 /out edge:S t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rs06 /out edge:S t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rs07 /out edge:S t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rn01 /out edge:N t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rn02 /out edge:N t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rn03 /out edge:N t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rn04 /out edge:N t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rn05 /out edge:N t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rn06 /out edge:N t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rn07 /out edge:N t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rw01 /out edge:W t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rw02 /out edge:W t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rw03 /out edge:W t:250 spec:PC板
-  window RW1
-boundary /L14..L20/rcorrE /out edge:E t:250 spec:PC板
-boundary /L14..L20/rs01 /out edge:W t:250 spec:PC板
-boundary /L14..L20/rs07 /out edge:E t:250 spec:PC板
-boundary /L14..L20/rn01 /out edge:W t:250 spec:PC板
-boundary /L14..L20/rn07 /out edge:E t:250 spec:PC板
-boundary /L14..L20/rcorrS /out edge:W t:250 spec:PC板
-boundary /L14..L20/rcorrS /out edge:E t:250 spec:PC板
-boundary /L14..L20/rcorrN /out edge:W t:250 spec:PC板
-boundary /L14..L20/rcorrN /out edge:E t:250 spec:PC板
+# ---- B棟屋上庭園 (L19の高さ) ----
+space /L19/broof terrace X14..X19 Y6..Y9 name:B棟屋上庭園 use:common floor:緑化
+boundary /L18/bst1 /L19/broof type:stair
+boundary /L19/broof /out edge:S t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L19/broof /out edge:N t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L19/broof /out edge:W t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L19/broof /out edge:E t:120 spec:パラペット+手すり air:1 h:1200

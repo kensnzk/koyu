@@ -1,129 +1,88 @@
-# B棟 ホテル L6〜L13 — 客室は帯 (band) で割る
+# B棟 ホテル L6〜L12 — 客室は実寸で割る
 #
-# 板 2,470㎡ / コア 353㎡ / 中廊下 353㎡ / 客室部 1,764㎡。
-# 8層 × 17室 = 136室。**17行の帯の宣言から136室が展開される。**
+# 客室 幅4.2m × 奥行8.4m ≈ 35㎡ (バス込み)。南列10室 + 北西3室 + 北東1室 = 14室/階。
+# 7層 × 14室 = **98室** — 客用EV3台 (98室 ÷ 100室/台 ≈ 1台+予備) に対して現実的。
 #
-# **客室に daylight:1 は書かない。**採光 (法28条) の対象となる居室は令19条が列挙していて、
-# 住宅・学校・病院・診療所・寄宿舎・下宿はそこにあるが、旅館・ホテルの客室は無い。
-# 窓の大きさの話ではなく、この室に 1/7 の規則が掛かるかどうかの判断である。
-# **同じ板の上の階 (L14〜L20) はレジデンスなので、そちらは対象になる** — 判断が
-# 型ではなく用途で決まることが、この一棟の中で二度現れる (ADR-0020)。
+# **客室に daylight:1 は書かない。**採光 (法28条) の対象は令19条の列挙で決まり、
+# 旅館・ホテルは無い。同じ板の上のレジデンス (L13〜) には書く — 判断は用途で変わる。
 
-# 廊下はコアを一周する環である。**環でないと北側の客室が行き止まりになる** —
-# 避難は二方向に取れなければならない
-space /L6..L13/hcorrS corridor X14..X19 Y8..Y8+4200 name:客室廊下南 use:common
-space /L6..L13/hcorrN corridor X14..X19 Y11..Y11+4200 name:客室廊下北 use:common
-space /L6..L13/hcorrW corridor X16-4200..X16 Y8+4200..Y11 name:客室廊下西 use:common
-space /L6..L13/hcorrE corridor X18..X19 Y8+4200..Y11 name:客室廊下東 use:common
+space /L6..L12/corr corridor X14..X19 Y7..Y7+2400 name:客室廊下 use:common
+band X X14..X19 Y6..Y7
+  space /L6..L12/hs01 room w:4200 name:客室S01 use:rentable daylight:0
+  space /L6..L12/hs02 room w:4200 name:客室S02 use:rentable daylight:0
+  space /L6..L12/hs03 room w:4200 name:客室S03 use:rentable daylight:0
+  space /L6..L12/hs04 room w:4200 name:客室S04 use:rentable daylight:0
+  space /L6..L12/hs05 room w:4200 name:客室S05 use:rentable daylight:0
+  space /L6..L12/hs06 room w:4200 name:客室S06 use:rentable daylight:0
+  space /L6..L12/hs07 room w:4200 name:客室S07 use:rentable daylight:0
+  space /L6..L12/hs08 room w:4200 name:客室S08 use:rentable daylight:0
+  space /L6..L12/hs09 room w:4200 name:客室S09 use:rentable daylight:0
+  space /L6..L12/hs10 room w:rest name:客室S10 use:rentable daylight:0
+space /L6..L12/hn01 room X14..X14+4700 Y7+2400..Y8+4200 name:客室N01 use:rentable daylight:0
+space /L6..L12/hn02 room X14+4700..X15+900 Y7+2400..Y8+4200 name:客室N02 use:rentable daylight:0
+space /L6..L12/hn03 room X15+900..X15+5600 Y7+2400..Y8+4200 name:客室N03 use:rentable daylight:0
+space /L6..L12/hn04 room X18..X19 Y7+2400..Y8+4200 name:客室N04スイート use:rentable daylight:0
 
-band X X14..X19 Y6..Y8
-  space /L6..L13/hs01 room w:5600 name:客室S01 use:rentable daylight:0
-  space /L6..L13/hs02 room w:5600 name:客室S02 use:rentable daylight:0
-  space /L6..L13/hs03 room w:5600 name:客室S03 use:rentable daylight:0
-  space /L6..L13/hs04 room w:5600 name:客室S04 use:rentable daylight:0
-  space /L6..L13/hs05 room w:5600 name:客室S05 use:rentable daylight:0
-  space /L6..L13/hs06 room w:5600 name:客室S06 use:rentable daylight:0
-  space /L6..L13/hs07 room w:rest name:客室S07 use:rentable daylight:0
+boundary /L6..L12/corr /L6..L12/bhall2 type:open
+boundary /L6..L12/corr /L6..L12/bslob t:180 spec:LGS
+  door D1 at:0.85 name:サービス前室
+boundary /L6..L12/hs01 /L6..L12/corr t:180 spec:戸境RC
+  door D2 name:客室扉
+boundary /L6..L12/hs02 /L6..L12/corr t:180 spec:戸境RC
+  door D2 at:0.3 name:客室扉
+boundary /L6..L12/hs03 /L6..L12/corr t:180 spec:戸境RC
+  door D2 name:客室扉
+boundary /L6..L12/hs04 /L6..L12/corr t:180 spec:戸境RC
+  door D2 at:0.3 name:客室扉
+boundary /L6..L12/hs05 /L6..L12/corr t:180 spec:戸境RC
+  door D2 name:客室扉
+boundary /L6..L12/hs06 /L6..L12/corr t:180 spec:戸境RC
+  door D2 at:0.3 name:客室扉
+boundary /L6..L12/hs07 /L6..L12/corr t:180 spec:戸境RC
+  door D2 name:客室扉
+boundary /L6..L12/hs08 /L6..L12/corr t:180 spec:戸境RC
+  door D2 at:0.3 name:客室扉
+boundary /L6..L12/hs09 /L6..L12/corr t:180 spec:戸境RC
+  door D2 name:客室扉
+boundary /L6..L12/hs10 /L6..L12/corr t:180 spec:戸境RC
+  door D2 at:0.3 name:客室扉
+boundary /L6..L12/hn01 /L6..L12/corr t:180 spec:戸境RC
+  door D2 at:0.3 name:客室扉
+boundary /L6..L12/hn02 /L6..L12/corr t:180 spec:戸境RC
+  door D2 at:0.3 name:客室扉
+boundary /L6..L12/hn03 /L6..L12/corr t:180 spec:戸境RC
+  door D2 at:0.3 name:客室扉
+boundary /L6..L12/hn04 /L6..L12/corr t:180 spec:戸境RC
+  door D2 at:0.3 name:客室扉
 
-band X X14..X19 Y11+4200..Y13
-  space /L6..L13/hn01 room w:5600 name:客室N01 use:rentable daylight:0
-  space /L6..L13/hn02 room w:5600 name:客室N02 use:rentable daylight:0
-  space /L6..L13/hn03 room w:5600 name:客室N03 use:rentable daylight:0
-  space /L6..L13/hn04 room w:5600 name:客室N04 use:rentable daylight:0
-  space /L6..L13/hn05 room w:5600 name:客室N05 use:rentable daylight:0
-  space /L6..L13/hn06 room w:5600 name:客室N06 use:rentable daylight:0
-  space /L6..L13/hn07 room w:rest name:客室N07 use:rentable daylight:0
-
-band Y X14..X16-4200 Y8+4200..Y11
-  space /L6..L13/hw01 room w:7000 name:客室W01 use:rentable daylight:0
-  space /L6..L13/hw02 room w:7000 name:客室W02 use:rentable daylight:0
-  space /L6..L13/hw03 room w:rest name:客室W03 use:rentable daylight:0
-
-# ---- 廊下とコア ----
-boundary /L6..L13/hcorrS /L6..L13/bhall type:open
-boundary /L6..L13/hcorrS /L6..L13/hcorrW type:open
-boundary /L6..L13/hcorrS /L6..L13/hcorrE type:open
-boundary /L6..L13/hcorrN /L6..L13/hcorrW type:open
-boundary /L6..L13/hcorrN /L6..L13/hcorrE type:open
-boundary /L6..L13/hcorrE /L6..L13/bhall type:open
-
-# 客室は廊下から入る
-boundary /L6..L13/hs01 /L6..L13/hcorrS t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hs02 /L6..L13/hcorrS t:180 spec:戸境RC
-  door D2 at:0.28 name:客室扉
-boundary /L6..L13/hs03 /L6..L13/hcorrS t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hs04 /L6..L13/hcorrS t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hs05 /L6..L13/hcorrS t:180 spec:戸境RC
-  door D2 at:0.28 name:客室扉
-boundary /L6..L13/hs06 /L6..L13/hcorrS t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hs07 /L6..L13/hcorrS t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hn01 /L6..L13/hcorrN t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hn02 /L6..L13/hcorrN t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hn03 /L6..L13/hcorrN t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hn04 /L6..L13/hcorrN t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hn05 /L6..L13/hcorrN t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hn06 /L6..L13/hcorrN t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hn07 /L6..L13/hcorrN t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hw01 /L6..L13/hcorrW t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hw03 /L6..L13/hcorrW t:180 spec:戸境RC
-  door D2 name:客室扉
-boundary /L6..L13/hw02 /L6..L13/hcorrW t:180 spec:戸境RC
-  door D2 name:客室扉
-
-# ---- 外皮 ----
-boundary /L6..L13/hs01 /out edge:S t:250 spec:PC板
+# 外皮
+boundary /L6..L12/hs01 /out edge:S t:250 spec:PC板
   window HW1
-boundary /L6..L13/hs02 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs02 /out edge:S t:250 spec:PC板
   window HW1
-boundary /L6..L13/hs03 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs03 /out edge:S t:250 spec:PC板
   window HW1
-boundary /L6..L13/hs04 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs04 /out edge:S t:250 spec:PC板
   window HW1
-boundary /L6..L13/hs05 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs05 /out edge:S t:250 spec:PC板
   window HW1
-boundary /L6..L13/hs06 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs06 /out edge:S t:250 spec:PC板
   window HW1
-boundary /L6..L13/hs07 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs07 /out edge:S t:250 spec:PC板
   window HW1
-boundary /L6..L13/hn01 /out edge:N t:250 spec:PC板
+boundary /L6..L12/hs08 /out edge:S t:250 spec:PC板
   window HW1
-boundary /L6..L13/hn02 /out edge:N t:250 spec:PC板
+boundary /L6..L12/hs09 /out edge:S t:250 spec:PC板
   window HW1
-boundary /L6..L13/hn03 /out edge:N t:250 spec:PC板
+boundary /L6..L12/hs10 /out edge:S t:250 spec:PC板
   window HW1
-boundary /L6..L13/hn04 /out edge:N t:250 spec:PC板
+boundary /L6..L12/hs01 /out edge:W t:250 spec:PC板
+boundary /L6..L12/hs10 /out edge:E t:250 spec:PC板
+boundary /L6..L12/corr /out edge:W t:250 spec:PC板
+  window W2
+boundary /L6..L12/corr /out edge:E t:250 spec:PC板
+  window W2
+boundary /L6..L12/hn01 /out edge:W t:250 spec:PC板
   window HW1
-boundary /L6..L13/hn05 /out edge:N t:250 spec:PC板
+boundary /L6..L12/hn04 /out edge:E t:250 spec:PC板
   window HW1
-boundary /L6..L13/hn06 /out edge:N t:250 spec:PC板
-  window HW1
-boundary /L6..L13/hn07 /out edge:N t:250 spec:PC板
-  window HW1
-boundary /L6..L13/hw01 /out edge:W t:250 spec:PC板
-  window HW1
-boundary /L6..L13/hw02 /out edge:W t:250 spec:PC板
-  window HW1
-boundary /L6..L13/hw03 /out edge:W t:250 spec:PC板
-  window HW1
-boundary /L6..L13/hcorrE /out edge:E t:250 spec:PC板
-boundary /L6..L13/hs01 /out edge:W t:250 spec:PC板
-boundary /L6..L13/hs07 /out edge:E t:250 spec:PC板
-boundary /L6..L13/hn01 /out edge:W t:250 spec:PC板
-boundary /L6..L13/hn07 /out edge:E t:250 spec:PC板
-boundary /L6..L13/hcorrS /out edge:W t:250 spec:PC板
-boundary /L6..L13/hcorrS /out edge:E t:250 spec:PC板
-boundary /L6..L13/hcorrN /out edge:W t:250 spec:PC板
-boundary /L6..L13/hcorrN /out edge:E t:250 spec:PC板
