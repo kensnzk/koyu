@@ -12,16 +12,16 @@ import { parseFile } from "../src/parse-file.js";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p: string) => readFileSync(root + p, "utf8");
 
-test("版の同期: package / lockfile / CITATION / spec / MCP", () => {
+test("version sync: package / lockfile / CITATION / spec / MCP", () => {
   const pkg = JSON.parse(read("package.json")) as { name: string; version: string };
   const lock = JSON.parse(read("package-lock.json")) as {
     name: string;
     version: string;
     packages: Record<string, { name?: string; version?: string }>;
   };
-  assert.equal(lock.name, pkg.name, "lockfileの名前");
-  assert.equal(lock.version, pkg.version, "lockfileの版");
-  assert.equal(lock.packages[""]!.version, pkg.version, "lockfileルートパッケージの版");
+  assert.equal(lock.name, pkg.name, "lockfile name");
+  assert.equal(lock.version, pkg.version, "lockfile version");
+  assert.equal(lock.packages[""]!.version, pkg.version, "lockfile root package version");
   assert.match(read("CITATION.cff"), new RegExp(`version: "${pkg.version.replace(/\./g, "\\.")}"`), "CITATION.cff");
   const vTag = new RegExp(`koyu v${pkg.version.replace(/\./g, "\\.")}`);
   for (const f of [
@@ -40,14 +40,14 @@ test("版の同期: package / lockfile / CITATION / spec / MCP", () => {
   );
 });
 
-test("言語版の同期: spec規範・examples・正準JSONフィクスチャ (ADR-0017)", () => {
+test("language version sync: the spec norm, the examples and the canonical JSON fixture (ADR-0017)", () => {
   // spec/language.md の版規範が実装の台帳と一致する
   const lang = read("spec/language.md");
   assert.ok(
     lang.includes(`対応する言語版は \`${SUPPORTED_LANGUAGE_VERSIONS.join(", ")}\``),
-    "language.mdの対応版",
+    "supported versions in language.md",
   );
-  assert.ok(lang.includes(`最新版 \`${DEFAULT_LANGUAGE_VERSION}\``), "language.mdの省略時既定");
+  assert.ok(lang.includes(`最新版 \`${DEFAULT_LANGUAGE_VERSION}\``), "the default when omitted, in language.md");
   // examplesは常に最新版で書く
   for (const f of [
     "examples/two-rooms.muro",

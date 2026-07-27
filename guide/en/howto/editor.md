@@ -44,7 +44,7 @@ If none is found, you get one warning and colour only.
 
 ### 3. Save, and look at the red
 
-Saving a `.muro` file runs check. Errors and warnings appear in the Problems panel, carrying the diagnostic code (`SYN01` and the [67 others](../diagnostics.md)). To run it by hand, use **koyu: 整合を確かめる (check)** from the command palette.
+Saving a `.muro` file runs check. Errors and warnings appear in the Problems panel, carrying the diagnostic code (`SYN01` and the [62 others](../diagnostics.md)). To run it by hand, use **koyu: 整合を確かめる (check)** from the command palette.
 
 The same answer from the CLI:
 
@@ -53,7 +53,7 @@ koyu check examples/two-rooms.muro
 ```
 
 ```text
-✔ 整合 — 空間 3 / 境界 3
+✔ Consistent — 3 spaces / 3 boundaries
 ```
 
 ### 4. Buildings split across files
@@ -123,6 +123,6 @@ Pass it to `@shikijs/rehype` as `langs` and insert the plugin into `beforeDefaul
 ## Read next
 
 - [troubleshooting.md](troubleshooting.md) — get from an error down to its cause
-- [diagnostics.md](../diagnostics.md) — look up a diagnostic code and its fix (all 68)
+- [diagnostics.md](../diagnostics.md) — look up a diagnostic code and its fix (all 63)
 - [cli.md](../cli.md) — the CLI the extension is calling
 - [ADR-0031](../../../docs/decisions/0031-editor-support.md) — why one grammar, and why the red belongs to the CLI

@@ -99,7 +99,7 @@ export function parseWith(loader: LayerLoader, entry: string): Model {
   try {
     layer = loader(undefined, entry);
   } catch {
-    throw new SourceError(0, `ファイルが読めません: ${entry}`);
+    throw new SourceError(0, `Cannot read file: ${entry}`);
   }
   ingestLayer(model, layer.key, layer.src, new Set(), loader);
   // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / ADR-0027)。
@@ -184,47 +184,47 @@ function ingest(
       } else if (over) {
         throw new SourceError(
           ln,
-          `over の直下に置けるのは + (追加) / - (削除) / = (置換) のみです: ${head}`,
+          `Only + (add) / - (remove) / = (replace) may sit directly under over: ${head}`,
         );
       } else if (head === "door" || head === "window") {
         if (current.length === 0) {
-          throw new SourceError(ln, `${head} は boundary の直下に字下げして書きます`);
+          throw new SourceError(ln, `${head} is written indented directly under boundary`);
         }
         for (const b of current) b.openings.push(parseOpening(head, rest, ln, model));
       } else if (head === "seg") {
         if (current.length === 0) {
-          throw new SourceError(ln, "seg は boundary の直下に字下げして書きます");
+          throw new SourceError(ln, "seg is written indented directly under boundary");
         }
         for (const b of current) b.segs.push(parseSeg(rest, ln, model));
       } else if (head === "line") {
         // 描かれた線 (ADR-0022) — 境界の実現を、隣接からの導出ではなく設計の行為で与える
         if (current.length === 0) {
-          throw new SourceError(ln, "line は boundary の直下に字下げして書きます");
+          throw new SourceError(ln, "line is written indented directly under boundary");
         }
         const drawn = parseDrawnLine(rest, ln, model);
         for (const b of current) {
-          if (b.drawn) throw new SourceError(ln, `一つの境界に線は一本です: ${b.a} | ${b.b}`);
+          if (b.drawn) throw new SourceError(ln, `One boundary carries one line: ${b.a} | ${b.b}`);
           b.drawn = { ...drawn };
         }
       } else if (head === "area") {
         if (band) {
           throw new SourceError(
             ln,
-            "band の要素に area は書けません (領域が導出のため — area が要る室は位置で書きます)",
+            "area may not be written on a band member (its region is derived — write a room that needs area by position)",
           );
         }
         if (currentSpaces.length === 0) {
-          throw new SourceError(ln, "area は space の直下に字下げして書きます");
+          throw new SourceError(ln, "area is written indented directly under space");
         }
         for (const s of currentSpaces) s.areas.push(parseArea(rest, ln, model));
       } else if (head === "space") {
         // 帯の要素 — 領域の代わりに幅 w: を持つ space 行 (ADR-0019)
-        if (!band) throw new SourceError(ln, "字下げした space は band の直下に書きます");
+        if (!band) throw new SourceError(ln, "an indented space is written directly under band");
         band.members.push(parseBandMember(rest, ln));
       } else {
         throw new SourceError(
           ln,
-          `字下げ行に置けるのは door / window / seg / line / area / space (band の要素) のみです: ${head}`,
+          `Only door / window / seg / line / area / space (a band member) may sit on an indented line: ${head}`,
         );
       }
       continue;
@@ -241,23 +241,23 @@ function ingest(
     switch (head) {
       case "koyu": {
         const v = rest[0];
-        if (!v) throw new SourceError(ln, `koyu には版を書きます: koyu ${DEFAULT_LANGUAGE_VERSION}`);
+        if (!v) throw new SourceError(ln, `koyu takes a version: koyu ${DEFAULT_LANGUAGE_VERSION}`);
         if (rest.length > 1) {
-          throw new SourceError(ln, `koyu の版宣言に余分なトークンがあります: ${rest.slice(1).join(" ")}`);
+          throw new SourceError(ln, `Extra tokens on the koyu version declaration: ${rest.slice(1).join(" ")}`);
         }
         if (!SUPPORTED_LANGUAGE_VERSIONS.includes(v)) {
           throw new SourceError(
             ln,
-            `対応していないkoyuの版です: ${v} (このツールの対応: ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")})`,
+            `Unsupported koyu version: ${v} (this tool supports ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")})`,
           );
         }
         // 版はbase層 (entry) でのみ・一度だけ宣言する — 合成順による黙った上書きを禁じる (ADR-0017)。
         // gridの規律に合わせ、再宣言は同値でもエラー
         if (file !== undefined && model.layers[0] !== file) {
-          throw new SourceError(ln, "koyu の版宣言はbase層 (entry) でのみ書きます");
+          throw new SourceError(ln, "The koyu version is declared only in the base layer (the entry)");
         }
         if (model.versionDeclared) {
-          throw new SourceError(ln, `koyu の版は一度だけ宣言します (既に ${model.version})`);
+          throw new SourceError(ln, `The koyu version is declared once (already ${model.version})`);
         }
         model.version = v;
         model.versionDeclared = true;
@@ -265,18 +265,18 @@ function ingest(
       }
       case "import": {
         const rel = rest[0];
-        if (!rel) throw new SourceError(ln, "import には相対パスを書きます: import ./assets.muro");
+        if (!rel) throw new SourceError(ln, "import takes a relative path: import ./assets.muro");
         if (!loader) {
           throw new SourceError(
             ln,
-            "import はファイル合成 (parseFile / parseFiles / CLI) でのみ使えます",
+            "import is available only in file composition (parseFile / parseFiles / CLI)",
           );
         }
         let layer: { key: string; src: string };
         try {
           layer = loader(file, rel);
         } catch {
-          throw new SourceError(ln, `ファイルが読めません: ${rel}`);
+          throw new SourceError(ln, `Cannot read file: ${rel}`);
         }
         ingestLayer(model, layer.key, layer.src, seen, loader);
         break;
@@ -319,16 +319,16 @@ function ingest(
         const aname = rest[0];
         const akind = rest[1];
         if (!aname || aname.includes(":") || aname.startsWith("/")) {
-          throw new SourceError(ln, "asset は asset <名> door|window [属性...] の形で書きます");
+          throw new SourceError(ln, "asset takes the form asset <name> door|window [attributes...]");
         }
         if (akind !== "door" && akind !== "window") {
-          throw new SourceError(ln, `asset の種別は door / window です: ${akind}`);
+          throw new SourceError(ln, `An asset kind is door / window: ${akind}`);
         }
         const prevA = model.assets.get(aname);
         if (prevA) {
           throw new SourceError(
             ln,
-            `アセット名が重複しています: ${aname} (既出: ${prevA.file ?? "同ファイル"}:${prevA.line}行目)`,
+            `Duplicate asset name: ${aname} (first seen in ${prevA.file ?? "the same file"} at line ${prevA.line})`,
           );
         }
         model.assets.set(aname, {
@@ -345,19 +345,19 @@ function ingest(
         // polygon /site -2600,-7000 38000,-7000 38000,15600 2000,16800 -2600,12000
         const ppath = rest[0];
         if (!ppath || !ppath.startsWith("/")) {
-          throw new SourceError(ln, "polygon は polygon /ゾーンパス x,y x,y x,y ... の形で書きます");
+          throw new SourceError(ln, "polygon takes the form polygon /zone-path x,y x,y x,y ...");
         }
         const pts = rest.slice(1).map((tok) => {
           const m = /^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(tok);
-          if (!m) throw new SourceError(ln, `頂点が読めません (x,y のmm座標): ${tok}`);
+          if (!m) throw new SourceError(ln, `Cannot read the vertex (x,y in mm): ${tok}`);
           return { x: Number(m[1]), y: Number(m[2]) };
         });
-        if (pts.length < 3) throw new SourceError(ln, "polygon には頂点を3つ以上書きます");
+        if (pts.length < 3) throw new SourceError(ln, "polygon takes three or more vertices");
         const prevP = model.polygons.get(ppath);
         if (prevP) {
           throw new SourceError(
             ln,
-            `敷地形状が重複しています: ${ppath} (既出: ${prevP.file ?? "同ファイル"}:${prevP.line}行目)`,
+            `Duplicate site shape: ${ppath} (first seen in ${prevP.file ?? "the same file"} at line ${prevP.line})`,
           );
         }
         model.polygons.set(ppath, {
@@ -370,30 +370,30 @@ function ingest(
       }
       case "name": {
         const nm = rest.join(" ");
-        if (!nm) throw new SourceError(ln, "name には値を書きます");
+        if (!nm) throw new SourceError(ln, "name takes a value");
         if (model.name !== undefined && model.name !== nm) {
-          throw new SourceError(ln, `name は一度だけ宣言します (既に「${model.name}」— 合成時はbase層で)`);
+          throw new SourceError(ln, `name is declared once (already "${model.name}" — in the base layer when composing)`);
         }
         model.name = nm;
         break;
       }
       case "unit": {
-        if (rest[0] !== "mm") throw new SourceError(ln, `v0の単位はmmのみです: ${rest[0]}`);
+        if (rest[0] !== "mm") throw new SourceError(ln, `The only unit in v0 is mm: ${rest[0]}`);
         break;
       }
       case "grid": {
         const axis = rest[0];
         if (axis !== "X" && axis !== "Y") {
-          throw new SourceError(ln, `grid の軸は X か Y です: ${axis}`);
+          throw new SourceError(ln, `A grid axis is X or Y: ${axis}`);
         }
         if (model.grid[axis].coords.length > 0) {
-          throw new SourceError(ln, `grid ${axis} は一度だけ宣言します (合成時はbase層で)`);
+          throw new SourceError(ln, `grid ${axis} is declared once (in the base layer when composing)`);
         }
-        const coords = rest.slice(1).map((t) => toNumber(t, ln, "gridの座標"));
-        if (coords.length < 2) throw new SourceError(ln, "grid には座標を2つ以上書きます");
+        const coords = rest.slice(1).map((t) => toNumber(t, ln, "The grid coordinate"));
+        if (coords.length < 2) throw new SourceError(ln, "grid takes two or more coordinates");
         for (let k = 1; k < coords.length; k++) {
           if (coords[k]! <= coords[k - 1]!) {
-            throw new SourceError(ln, "grid の座標は昇順で書きます");
+            throw new SourceError(ln, "grid coordinates are written in ascending order");
           }
         }
         model.grid[axis] = {
@@ -404,8 +404,8 @@ function ingest(
       }
       case "level": {
         const name = rest[0];
-        if (!name) throw new SourceError(ln, "level には名前が要ります");
-        const z = toNumber(rest[1] ?? "", ln, "levelの高さ(z)");
+        if (!name) throw new SourceError(ln, "level requires a name");
+        const z = toNumber(rest[1] ?? "", ln, "The level height (z)");
         const attrs = parseAttrs(rest.slice(2), ln);
         const h = takeNumber(attrs, "h", ln);
         const slab = takeNumber(attrs, "slab", ln);
@@ -416,11 +416,11 @@ function ingest(
         for (const key of Object.keys(attrs)) {
           throw new SourceError(
             ln,
-            `level に台帳に無い属性 ${key}: があります (level が読むのは h / slab / pitch / underground です)`,
+            `level carries ${key}:, which is not in the ledger (level reads h / slab / pitch / underground)`,
           );
         }
         if (under !== undefined && under !== 0 && under !== 1) {
-          throw new SourceError(ln, "underground は 0 / 1 で指定します (1=地下)");
+          throw new SourceError(ln, "underground is given as 0 / 1 (1 = below ground)");
         }
         const ug = under === 1 ? { underground: true } : {};
 
@@ -429,14 +429,14 @@ function ingest(
         if (range) {
           const [, p1, n1, p2, n2] = range;
           if (p1 !== p2 || Number(n1) >= Number(n2)) {
-            throw new SourceError(ln, `レベル範囲が読めません: ${name}`);
+            throw new SourceError(ln, `Cannot read the level range: ${name}`);
           }
           if (pitch === undefined || pitch <= 0) {
-            throw new SourceError(ln, `レベル範囲には pitch:(階高mm) が要ります: ${name}`);
+            throw new SourceError(ln, `A level range requires pitch: (the storey height in mm): ${name}`);
           }
           for (let k = Number(n1); k <= Number(n2); k++) {
             const nm = `${p1}${k}`;
-            if (model.levels[nm]) throw new SourceError(ln, `レベルが重複しています: ${nm}`);
+            if (model.levels[nm]) throw new SourceError(ln, `Duplicate level: ${nm}`);
             model.levels[nm] = {
               name: nm,
               z: z + pitch * (k - Number(n1)),
@@ -450,9 +450,9 @@ function ingest(
           break;
         }
         if (pitch !== undefined) {
-          throw new SourceError(ln, "pitch はレベル範囲 (L?..L?) の宣言でのみ使えます");
+          throw new SourceError(ln, "pitch is available only on a level range declaration (L?..L?)");
         }
-        if (model.levels[name]) throw new SourceError(ln, `レベルが重複しています: ${name}`);
+        if (model.levels[name]) throw new SourceError(ln, `Duplicate level: ${name}`);
         model.levels[name] = {
           name,
           z,
@@ -466,16 +466,16 @@ function ingest(
       }
       case "column": {
         // 柱 (ADR-0023) — 寸法と階と通りだけを書く。位置は通り芯の交点から導出される
-        const size = toNumber(rest[0] ?? "", ln, "columnの寸法");
-        if (size <= 0) throw new SourceError(ln, "column の寸法は正のmmで書きます");
+        const size = toNumber(rest[0] ?? "", ln, "The column dimension");
+        if (size <= 0) throw new SourceError(ln, "A column dimension is written as a positive value in mm");
         const span = rest[1];
         if (!span) {
-          throw new SourceError(ln, "column は column <寸法mm> <L?..L?|レベル名> [x:通り,..] [y:通り,..] の形で書きます");
+          throw new SourceError(ln, "column takes the form column <size mm> <L?..L?|level name> [x:grid,..] [y:grid,..]");
         }
         const levels = /\.\./.test(span)
           ? resolveSpanLevels(model, span, ln)
           : (() => {
-              if (!model.levels[span]) throw new SourceError(ln, `未宣言のレベルです: ${span}`);
+              if (!model.levels[span]) throw new SourceError(ln, `Undeclared level: ${span}`);
               return [span];
             })();
         const attrs = parseAttrs(rest.slice(2), ln);
@@ -486,10 +486,10 @@ function ingest(
           const list = v.split(",").filter(Boolean);
           for (const n of list) {
             if (!model.grid[key === "x" ? "X" : "Y"].names.includes(n)) {
-              throw new SourceError(ln, `未定義の通り名です: ${n}`);
+              throw new SourceError(ln, `Undefined grid line name: ${n}`);
             }
           }
-          if (list.length === 0) throw new SourceError(ln, `${key}: に通り名を書きます`);
+          if (list.length === 0) throw new SourceError(ln, `${key}: takes grid line names`);
           return list;
         };
         const xNames = names("x");
@@ -513,12 +513,12 @@ function ingest(
       }
       case "space": {
         const path = rest[0];
-        if (!path) throw new SourceError(ln, "space にはパスが要ります");
+        if (!path) throw new SourceError(ln, "space requires a path");
         // w: は帯の要素の語 — 字下げを落とした要素が「領域なしの空間」として黙って通るのを防ぐ
         if (rest.some((t) => t === "w:" || t.startsWith("w:"))) {
           throw new SourceError(
             ln,
-            "space に w: は書けません (幅で書く空間は band の直下に字下げします)",
+            "w: may not be written on space (a space written by width sits indented under band)",
           );
         }
         for (const [p] of expandSpan(model, [path], ln)) {
@@ -527,7 +527,7 @@ function ingest(
           if (prevS) {
             throw new SourceError(
               ln,
-              `空間パスが重複しています: ${space.path} (既出: ${prevS.file ?? "同ファイル"}:${prevS.line}行目)`,
+              `Duplicate space path: ${space.path} (first seen in ${prevS.file ?? "the same file"} at line ${prevS.line})`,
             );
           }
           if (file) space.file = file;
@@ -540,7 +540,7 @@ function ingest(
         const pa = rest[0];
         const pb = rest[1];
         if (!pa || !pb) {
-          throw new SourceError(ln, "boundary は boundary /パスA /パスB [属性...] の形で書きます");
+          throw new SourceError(ln, "boundary takes the form boundary /pathA /pathB [attributes...]");
         }
         for (const [ea, eb] of expandSpan(model, [pa, pb], ln)) {
           const b = parseBoundary([ea!, eb!, ...rest.slice(2)], ln);
@@ -554,14 +554,14 @@ function ingest(
         // 数える集約 — 住戸・部門など。幾何は持たず、パス接頭辞で空間を束ねる
         const zpath = rest[0];
         if (!zpath || !zpath.startsWith("/")) {
-          throw new SourceError(ln, "zone は zone /パス [属性...] の形で書きます");
+          throw new SourceError(ln, "zone takes the form zone /path [attributes...]");
         }
         for (const [p] of expandSpan(model, [zpath], ln)) {
           const prevZ = model.zones.get(p!);
           if (prevZ) {
             throw new SourceError(
               ln,
-              `ゾーンパスが重複しています: ${p} (既出: ${prevZ.file ?? "同ファイル"}:${prevZ.line}行目)`,
+              `Duplicate zone path: ${p} (first seen in ${prevZ.file ?? "the same file"} at line ${prevZ.line})`,
             );
           }
           model.zones.set(p!, {
@@ -578,13 +578,13 @@ function ingest(
         const leaf = rest[0];
         const span = rest[1];
         if (!leaf || leaf.startsWith("/") || !span) {
-          throw new SourceError(ln, "stack は stack <名前> <L?..L?> type:stair|shaft の形で書きます");
+          throw new SourceError(ln, "stack takes the form stack <name> <L?..L?> type:stair|shaft");
         }
         const levels = resolveSpanLevels(model, span, ln);
         const attrs = parseAttrs(rest.slice(2), ln);
         const kind = takeString(attrs, "type");
         if (kind !== "stair" && kind !== "shaft" && kind !== "void") {
-          throw new SourceError(ln, `stack の type は stair / shaft / void です: ${kind}`);
+          throw new SourceError(ln, `A stack type is stair / shaft / void: ${kind}`);
         }
         for (let i = 0; i + 1 < levels.length; i++) {
           const b: Boundary = {
@@ -603,7 +603,7 @@ function ingest(
         break;
       }
       default:
-        throw new SourceError(ln, `未知のキーワードです: ${head}`);
+        throw new SourceError(ln, `Unknown keyword: ${head}`);
     }
     } catch (e) {
       // 合成時はどのファイルのエラーかを言葉にする
@@ -631,10 +631,10 @@ function ingest(
 function parseSpace(rest: string[], ln: number, model: Model): Space {
   const path = rest[0];
   if (!path || !path.startsWith("/")) {
-    throw new SourceError(ln, "space は space /パス 型 [X?..X? Y?..Y? [+ ...]] の形で書きます");
+    throw new SourceError(ln, "space takes the form space /path type [X?..X? Y?..Y? [+ ...]]");
   }
   const type = rest[1];
-  if (!type) throw new SourceError(ln, `space ${path} に型(語彙)が要ります`);
+  if (!type) throw new SourceError(ln, `space ${path} requires a type (a word from the vocabulary)`);
   guardStructuralType(type, ln);
 
   // 領域は「+」区切りで複数書ける (L字などの合併)
@@ -654,7 +654,7 @@ function parseSpace(rest: string[], ln: number, model: Model): Space {
   // レベルは既定でパス先頭から読む。階を跨ぐくくり (メゾネット等) は level: で明示する
   const explicit = takeString(attrs, "level");
   if (explicit !== undefined && !model.levels[explicit]) {
-    throw new SourceError(ln, `未宣言のレベルです: level:${explicit}`);
+    throw new SourceError(ln, `Undeclared level: level:${explicit}`);
   }
   const seg = path.split("/")[1];
   const level = explicit ?? (seg && model.levels[seg] ? seg : undefined);
@@ -687,7 +687,7 @@ function parseBandHead(rest: string[], ln: number, model: Model): BandDecl {
   if (axis !== "X" && axis !== "Y") {
     throw new SourceError(
       ln,
-      `band の割る向きは X か Y です: ${axis ?? "(無し)"} (band X X1..X2 Y1..Y2 の形で書きます)`,
+      `A band divides along X or Y: ${axis ?? "(none)"} (it takes the form band X X1..X2 Y1..Y2)`,
     );
   }
   const tail = rest.slice(1);
@@ -695,19 +695,19 @@ function parseBandHead(rest: string[], ln: number, model: Model): BandDecl {
   if (extra.length > 0) {
     throw new SourceError(
       ln,
-      `band の行に書けるのは 軸と領域だけです (属性は要素の space 行に書きます): ${extra.join(" ")}`,
+      `Only the axis and the extent may be written on a band line (attributes go on the member space lines): ${extra.join(" ")}`,
     );
   }
   // 逆順表記は space では同じ矩形の別綴りだが、帯では並びの向きが意味を持つので許さない
   for (const t of tail) {
     const [p, q] = t.split("..");
-    if (!p || !q) throw new SourceError(ln, `領域指定が読めません: ${t}`);
+    if (!p || !q) throw new SourceError(ln, `Cannot read the region: ${t}`);
     const rp = resolveRef(model, p, ln);
     const rq = resolveRef(model, q, ln);
     if (rp.axis === rq.axis && rp.coord > rq.coord) {
       throw new SourceError(
         ln,
-        `band の範囲は昇順で書きます (要素は 西→東 / 南→北 に並びます): ${t}`,
+        `A band range is written in ascending order (members run west to east / south to north): ${t}`,
       );
     }
   }
@@ -729,38 +729,38 @@ function parseBandHead(rest: string[], ln: number, model: Model): BandDecl {
 function parseBandMember(rest: string[], ln: number): BandMember {
   const path = rest[0];
   if (!path?.startsWith("/")) {
-    throw new SourceError(ln, "band の要素は space /パス 型 w:(mm) の形で書きます");
+    throw new SourceError(ln, "A band member takes the form space /path type w:(mm)");
   }
   const type = rest[1];
   // 型の位置に k:v が来たら「型の書き忘れ」— 幅の欠落として誤報しない
   if (!type || type.includes(":")) {
-    throw new SourceError(ln, `band の要素 ${path} に型(語彙)が要ります`);
+    throw new SourceError(ln, `The band member ${path} requires a type (a word from the vocabulary)`);
   }
   guardStructuralType(type, ln);
   let w: number | "rest" | undefined;
   const attrTokens: string[] = [];
   for (const t of rest.slice(2)) {
     if (t === "+" || t.includes("..")) {
-      throw new SourceError(ln, `band の要素に領域は書けません (帯と w: が与えます): ${t}`);
+      throw new SourceError(ln, `A region may not be written on a band member (the band and w: give it): ${t}`);
     }
     if (t.startsWith("level:")) {
       throw new SourceError(
         ln,
-        `band の要素に level: は書けません (帯は一つのレベルの並びです): ${t}`,
+        `level: may not be written on a band member (a band is a run on one level): ${t}`,
       );
     }
     if (t.startsWith("w:")) {
-      if (w !== undefined) throw new SourceError(ln, "属性キーが重複しています: w");
+      if (w !== undefined) throw new SourceError(ln, "Duplicate attribute key: w");
       const v = t.slice(2);
       if (v === "rest") w = "rest";
       else if (/^\d+$/.test(v) && Number(v) > 0) w = Number(v);
-      else throw new SourceError(ln, `band の要素の幅は正の整数mm か rest で書きます: ${t}`);
+      else throw new SourceError(ln, `A band member width is written as a positive integer in mm, or as rest: ${t}`);
       continue;
     }
     attrTokens.push(t);
   }
   if (w === undefined) {
-    throw new SourceError(ln, `band の要素には幅 w:(mm) か w:rest が要ります: ${path}`);
+    throw new SourceError(ln, `A band member requires a width, w:(mm) or w:rest: ${path}`);
   }
   return { path, type, w, attrTokens, line: ln };
 }
@@ -773,7 +773,7 @@ function parseBandMember(rest: string[], ln: number): BandMember {
 function spellRef(model: Model, axis: "X" | "Y", c: number, ln: number): string {
   const g = model.grid[axis];
   if (!Number.isInteger(c)) {
-    throw new SourceError(ln, `導かれた切り位置が整数mmになりません: ${c}`);
+    throw new SourceError(ln, `The derived cut position is not an integer in mm: ${c}`);
   }
   let i = 0;
   for (let k = 0; k < g.coords.length; k++) if (g.coords[k]! <= c) i = k;
@@ -786,7 +786,7 @@ function spellRef(model: Model, axis: "X" | "Y", c: number, ln: number): string 
 function expandBand(model: Model, band: BandDecl, file: string | undefined): void {
   const { axis, lo, hi, members } = band;
   if (members.length === 0) {
-    throw new SourceError(band.line, "band の下に space を字下げして1つ以上書きます");
+    throw new SourceError(band.line, "band takes one or more indented space lines below it");
   }
   const extent = hi - lo;
   let sum = 0;
@@ -797,7 +797,7 @@ function expandBand(model: Model, band: BandDecl, file: string | undefined): voi
       if (restAt >= 0) {
         throw new SourceError(
           m.line,
-          `残りを吸収する要素 (w:rest) は帯に一つだけです: ${members[restAt]!.path}, ${m.path}`,
+          `Only one member per band absorbs the remainder (w:rest): ${members[restAt]!.path}, ${m.path}`,
         );
       }
       restAt = k;
@@ -807,7 +807,7 @@ function expandBand(model: Model, band: BandDecl, file: string | undefined): voi
   if (sum > extent) {
     throw new SourceError(
       band.line,
-      `帯の幅 ${extent}mm に対し寸法の合計が ${sum}mm で、${sum - extent}mm 超えています\n${list}`,
+      `The dimensions sum to ${sum}mm against a band width of ${extent}mm, ${sum - extent}mm over\n${list}`,
     );
   }
   const widths = members.map((m) => (m.w === "rest" ? 0 : m.w));
@@ -815,15 +815,15 @@ function expandBand(model: Model, band: BandDecl, file: string | undefined): voi
     if (sum === extent) {
       throw new SourceError(
         members[restAt]!.line,
-        `帯の幅 ${extent}mm を他の寸法が使い切っていて、${members[restAt]!.path} (w:rest) の残りがゼロです`,
+        `The other dimensions use up the band width of ${extent}mm, leaving zero for ${members[restAt]!.path} (w:rest)`,
       );
     }
     widths[restAt] = extent - sum;
   } else if (sum < extent) {
     throw new SourceError(
       band.line,
-      `帯の幅 ${extent}mm に対し寸法の合計が ${sum}mm で、${extent - sum}mm 足りません ` +
-        `(寸法を直すか、どれかを w:rest にします)\n${list}`,
+      `The dimensions sum to ${sum}mm against a band width of ${extent}mm, ${extent - sum}mm short ` +
+        `(fix a dimension, or make one of them w:rest)\n${list}`,
     );
   }
 
@@ -834,7 +834,7 @@ function expandBand(model: Model, band: BandDecl, file: string | undefined): voi
     if (lv.size > 1) {
       throw new SourceError(
         band.line,
-        `帯の要素は同じレベルに展開します: ${it.map((p) => `${p} → ${p.split("/")[1]}`).join(", ")}`,
+        `Band members expand onto the same level: ${it.map((p) => `${p} → ${p.split("/")[1]}`).join(", ")}`,
       );
     }
   }
@@ -858,7 +858,7 @@ function expandBand(model: Model, band: BandDecl, file: string | undefined): voi
       if (prev) {
         throw new SourceError(
           m.line,
-          `空間パスが重複しています: ${space.path} (既出: ${prev.file ?? "同ファイル"}:${prev.line}行目)`,
+          `Duplicate space path: ${space.path} (first seen in ${prev.file ?? "the same file"} at line ${prev.line})`,
         );
       }
       if (file) space.file = file;
@@ -874,7 +874,7 @@ function parseRegion(
   model: Model,
 ): { grid: { xa: string; xb: string; ya: string; yb: string }; rect: Rect } {
   if (regionTokens.length !== 2) {
-    throw new SourceError(ln, "領域は X?..X? と Y?..Y? の2つで指定します");
+    throw new SourceError(ln, "A region is given as two ranges, X?..X? and Y?..Y?");
   }
   let xr: [number, number] | undefined;
   let yr: [number, number] | undefined;
@@ -882,11 +882,11 @@ function parseRegion(
   let yg: [string, string] | undefined;
   for (const t of regionTokens) {
     const [p, q] = t.split("..");
-    if (!p || !q) throw new SourceError(ln, `領域指定が読めません: ${t}`);
+    if (!p || !q) throw new SourceError(ln, `Cannot read the region: ${t}`);
     const rp = resolveRef(model, p, ln);
     const rq = resolveRef(model, q, ln);
     if (rp.axis !== rq.axis) {
-      throw new SourceError(ln, `領域の両端は同じ軸の通りで指定します: ${t}`);
+      throw new SourceError(ln, `Both ends of a range are grid lines on the same axis: ${t}`);
     }
     // 逆順表記 (X2..X1) は同じ矩形の別綴り — 座標昇順に正規化して保存する (正準JSON・diffが揃う)
     const [lo, hi] = rp.coord <= rq.coord ? [[rp.coord, p] as const, [rq.coord, q] as const]
@@ -900,9 +900,9 @@ function parseRegion(
     }
   }
   if (!xr || !yr || !xg || !yg) {
-    throw new SourceError(ln, "領域には X系とY系の通りを1組ずつ使います");
+    throw new SourceError(ln, "A region uses one X range and one Y range");
   }
-  if (xr[0] === xr[1] || yr[0] === yr[1]) throw new SourceError(ln, "領域の幅がゼロです");
+  if (xr[0] === xr[1] || yr[0] === yr[1]) throw new SourceError(ln, "The region has zero width");
   return {
     grid: { xa: xg[0], xb: xg[1], ya: yg[0], yb: yg[1] },
     rect: {
@@ -925,13 +925,13 @@ function parseDrawnLine(
   model: Model,
 ): { aRef: string; bRef: string; a: Pt; b: Pt; line: number } {
   if (rest.length !== 2) {
-    throw new SourceError(ln, "line は line <始点> <終点> の形で書きます (例: line X3,Y1 X4,Y3)");
+    throw new SourceError(ln, "line takes the form line <start> <end> (for example line X3,Y1 X4,Y3)");
   }
   const [aRef, bRef] = rest as [string, string];
   const a = resolvePoint(model, aRef, ln);
   const b = resolvePoint(model, bRef, ln);
   if (Math.abs(a.x - b.x) < 0.5 && Math.abs(a.y - b.y) < 0.5) {
-    throw new SourceError(ln, `line の両端が同じ点です: ${aRef}`);
+    throw new SourceError(ln, `Both ends of the line are the same point: ${aRef}`);
   }
   return { aRef, bRef, a, b, line: ln };
 }
@@ -940,12 +940,12 @@ function parseDrawnLine(
 function resolvePoint(model: Model, token: string, ln: number): Pt {
   const parts = token.split(",");
   if (parts.length !== 2) {
-    throw new SourceError(ln, `点は <X通り>,<Y通り> の形で書きます: ${token}`);
+    throw new SourceError(ln, `A point takes the form <X grid line>,<Y grid line>: ${token}`);
   }
   const p = resolveRef(model, parts[0]!, ln);
   const q = resolveRef(model, parts[1]!, ln);
   if (p.axis !== "X" || q.axis !== "Y") {
-    throw new SourceError(ln, `点はX通り,Y通りの順で書きます: ${token}`);
+    throw new SourceError(ln, `A point is written X grid line first, then Y: ${token}`);
   }
   return { x: p.coord, y: q.coord };
 }
@@ -963,7 +963,7 @@ function parseSeg(rest: string[], ln: number, model: Model): Seg {
   const attrs = parseAttrs(rest, ln);
   const w = takeNumber(attrs, "w", ln);
   if (w === undefined || w <= 0) {
-    throw new SourceError(ln, "seg には幅 w:(mm) が要ります");
+    throw new SourceError(ln, "seg requires a width w:(mm)");
   }
   const at = parseAt(attrs, ln, model);
   const edge = takeEdge(attrs, ln);
@@ -984,7 +984,7 @@ function parseAt(
   delete attrs["at"];
   if (typeof v === "number") {
     if (v < 0 || v > 1) {
-      throw new SourceError(ln, "at は 0..1 の比率か、通り参照 (at:X2+450) で指定します");
+      throw new SourceError(ln, "at is given as a ratio in 0..1, or as a grid reference (at:X2+450)");
     }
     return { at: v };
   }
@@ -995,13 +995,13 @@ function parseAt(
 /** レベルのスパン (L2..L9) を、宣言済みレベルのz順の並びに解決する */
 function resolveSpanLevels(model: Model, token: string, ln: number): string[] {
   const m = /^([A-Za-z]+\d+)\.\.([A-Za-z]+\d+)$/.exec(token);
-  if (!m) throw new SourceError(ln, `レベル範囲が読めません: ${token}`);
+  if (!m) throw new SourceError(ln, `Cannot read the level range: ${token}`);
   const from = model.levels[m[1]!];
   const to = model.levels[m[2]!];
   if (!from || !to) {
-    throw new SourceError(ln, `未宣言のレベルを含む範囲です (levelを先に書きます): ${token}`);
+    throw new SourceError(ln, `The range includes an undeclared level (declare level first): ${token}`);
   }
-  if (from.z >= to.z) throw new SourceError(ln, `範囲の向きが逆です: ${token}`);
+  if (from.z >= to.z) throw new SourceError(ln, `The range runs backwards: ${token}`);
   return Object.values(model.levels)
     .filter((l) => l.z >= from.z && l.z <= to.z)
     .sort((a, b) => a.z - b.z)
@@ -1020,7 +1020,7 @@ function expandSpan(model: Model, paths: string[], ln: number): string[][] {
   }
   if (spans.size === 0) return [paths];
   if (spans.size > 1) {
-    throw new SourceError(ln, `一行の中のレベル範囲は揃えます: ${[...spans].join(", ")}`);
+    throw new SourceError(ln, `Level ranges on one line must agree: ${[...spans].join(", ")}`);
   }
   const span = [...spans][0]!;
   const levels = resolveSpanLevels(model, span, ln);
@@ -1036,7 +1036,7 @@ function expandSpan(model: Model, paths: string[], ln: number): string[][] {
 /** 通り参照 (X2, X2+600, Y3-150 など) を軸と座標mmに解決する */
 function resolveRef(model: Model, token: string, ln: number): { axis: "X" | "Y"; coord: number } {
   const m = /^([XY]\d+)([+-]\d+)?$/.exec(token);
-  if (!m) throw new SourceError(ln, `未定義の通り名です: ${token}`);
+  if (!m) throw new SourceError(ln, `Undefined grid line name: ${token}`);
   const name = m[1]!;
   const offset = m[2] ? Number(m[2]) : 0;
   for (const axis of ["X", "Y"] as const) {
@@ -1044,14 +1044,14 @@ function resolveRef(model: Model, token: string, ln: number): { axis: "X" | "Y";
     const i = g.names.indexOf(name);
     if (i >= 0) return { axis, coord: g.coords[i]! + offset };
   }
-  throw new SourceError(ln, `未定義の通り名です: ${token}`);
+  throw new SourceError(ln, `Undefined grid line name: ${token}`);
 }
 
 function parseBoundary(rest: string[], ln: number): Boundary {
   const a = rest[0];
   const b = rest[1];
   if (!a?.startsWith("/") || !b?.startsWith("/")) {
-    throw new SourceError(ln, "boundary は boundary /パスA /パスB [属性...] の形で書きます");
+    throw new SourceError(ln, "boundary takes the form boundary /pathA /pathB [attributes...]");
   }
   const attrs = parseAttrs(rest.slice(2), ln);
   const t = takeNumber(attrs, "t", ln);
@@ -1059,12 +1059,12 @@ function parseBoundary(rest: string[], ln: number): Boundary {
   if (!BOUNDARY_KINDS.has(kindRaw)) {
     throw new SourceError(
       ln,
-      `boundary の type は ${[...BOUNDARY_KINDS].join(" / ")} です: ${kindRaw}`,
+      `A boundary type is ${[...BOUNDARY_KINDS].join(" / ")}: ${kindRaw}`,
     );
   }
   const air = takeNumber(attrs, "air", ln);
   if (air !== undefined && air !== 0 && air !== 1) {
-    throw new SourceError(ln, "air は 0 / 1 で指定します (1=遮蔽しない: 手すり・柵など)");
+    throw new SourceError(ln, "air is given as 0 / 1 (1 = it does not block air or light: a railing, a fence)");
   }
   const edge = takeEdge(attrs, ln);
   return {
@@ -1098,9 +1098,9 @@ function parseOpening(
   const attrs: Attrs = {};
   if (ref) {
     const asset = model.assets.get(ref);
-    if (!asset) throw new SourceError(ln, `未定義の建具アセットです: ${ref}`);
+    if (!asset) throw new SourceError(ln, `Undefined opening asset: ${ref}`);
     if (asset.kind !== kind) {
-      throw new SourceError(ln, `アセット ${ref} は ${asset.kind} です (${kind} として使えません)`);
+      throw new SourceError(ln, `The asset ${ref} is a ${asset.kind} (it cannot be used as a ${kind})`);
     }
     Object.assign(attrs, asset.attrs);
   }
@@ -1108,18 +1108,18 @@ function parseOpening(
 
   const w = takeNumber(attrs, "w", ln);
   if (w === undefined || w <= 0) {
-    throw new SourceError(ln, `${kind} には幅 w:(mm) が要ります (アセット側でも可)`);
+    throw new SourceError(ln, `${kind} requires a width w:(mm) (the asset may supply it)`);
   }
   const h = takeNumber(attrs, "h", ln);
   const at = parseAt(attrs, ln, model);
   const edge = takeEdge(attrs, ln);
   const hingeRaw = takeString(attrs, "hinge");
   if (hingeRaw !== undefined && !EDGES.has(hingeRaw)) {
-    throw new SourceError(ln, `hinge は N/E/S/W で指定します: ${hingeRaw}`);
+    throw new SourceError(ln, `hinge is given as N/E/S/W: ${hingeRaw}`);
   }
   const swingRaw = takeString(attrs, "swing");
   if (swingRaw !== undefined && swingRaw !== "a" && swingRaw !== "b") {
-    throw new SourceError(ln, `swing は a / b (境界のどちら側へ開くか) です: ${swingRaw}`);
+    throw new SourceError(ln, `swing is a / b, the side of the boundary it opens toward: ${swingRaw}`);
   }
   return {
     kind,
@@ -1155,7 +1155,7 @@ export function tokenize(line: string, ln: number): string[] {
     }
     cur += ch;
   }
-  if (inQuote) throw new SourceError(ln, "引用符が閉じていません");
+  if (inQuote) throw new SourceError(ln, "Unclosed quote");
   if (cur) tokens.push(cur);
   return tokens;
 }
@@ -1203,7 +1203,7 @@ function guardStructuralType(type: string, ln: number): void {
     if (nearBy1(type.toLowerCase(), w)) {
       throw new SourceError(
         ln,
-        `型 ${type} は ${w} の綴り違いに見えます (${w} は構造として解釈される語です — 別の語彙のつもりなら綴りを離します)`,
+        `The type ${type} looks like a misspelling of ${w} (${w} is read structurally — if a different word was meant, spell it further away)`,
       );
     }
   }
@@ -1279,7 +1279,7 @@ function applyAttr(
     if (prev === layer) {
       throw new SourceError(
         ln,
-        `同じ層が ${subject} の ${key} に二度意見を持っています (どちらが勝つかは決まりません)`,
+        `One layer holds two opinions about ${key} on ${subject} (which one wins is undetermined)`,
       );
     }
   }
@@ -1314,20 +1314,20 @@ function resolveOverTarget(model: Model, rest: string[], ln: number): OverTarget
   if (head === "level") {
     const name = rest[1];
     const lv = name ? model.levels[name] : undefined;
-    if (!lv) throw new SourceError(ln, `over の対象のレベルがありません: ${name ?? "(名前なし)"}`);
+    if (!lv) throw new SourceError(ln, `No such level for over: ${name ?? "(no name)"}`);
     return { kind: "level", level: lv };
   }
   if (head === "asset") {
     const name = rest[1];
     const a = name ? model.assets.get(name) : undefined;
-    if (!a) throw new SourceError(ln, `over の対象のアセットがありません: ${name ?? "(名前なし)"}`);
+    if (!a) throw new SourceError(ln, `No such asset for over: ${name ?? "(no name)"}`);
     return { kind: "asset", asset: a };
   }
   const paths = rest.filter((t) => t.startsWith("/"));
   if (paths.length === 0) {
     throw new SourceError(
       ln,
-      "over は over /パス … / over /パスA /パスB … / over level <名> … / over asset <名> … の形で書きます",
+      "over takes the form over /path … / over /pathA /pathB … / over level <name> … / over asset <name> …",
     );
   }
   if (paths.length === 1) {
@@ -1336,17 +1336,17 @@ function resolveOverTarget(model: Model, rest: string[], ln: number): OverTarget
     if (sp) return { kind: "space", space: sp };
     const zn = model.zones.get(path);
     if (zn) return { kind: "zone", zone: zn };
-    throw new SourceError(ln, `over の対象がありません: ${path} (先に定義した層より後ろに置きます)`);
+    throw new SourceError(ln, `No such target for over: ${path} (place it after the layer that defines it)`);
   }
   if (paths.length > 2) {
-    throw new SourceError(ln, `over の対象のパスが多すぎます: ${paths.join(" ")}`);
+    throw new SourceError(ln, `Too many paths on the over target: ${paths.join(" ")}`);
   }
   const [a, b] = paths as [string, string];
   const hit = model.boundaries.filter(
     (x) => (x.a === a && x.b === b) || (x.a === b && x.b === a),
   );
   if (hit.length === 0) {
-    throw new SourceError(ln, `over の対象の境界がありません: ${a} | ${b}`);
+    throw new SourceError(ln, `No such boundary for over: ${a} | ${b}`);
   }
   return { kind: "boundary", boundaries: hit };
 }
@@ -1364,18 +1364,18 @@ function applyLevelAttr(
   const prev = model.attrSrc.get(k) ?? layerOf(model, lv.file);
   if (prev > layer) return;
   if (prev === layer) {
-    throw new SourceError(ln, `同じ層が レベル ${lv.name} の ${key} に二度意見を持っています`);
+    throw new SourceError(ln, `One layer holds two opinions about ${key} on level ${lv.name}`);
   }
   if (key === "h" || key === "slab") {
     if (typeof v !== "number" || !(v > 0)) {
-      throw new SourceError(ln, `レベルの ${key} は正の数値で書きます: ${key}:${v}`);
+      throw new SourceError(ln, `A level ${key} is written as a positive number: ${key}:${v}`);
     }
     lv[key] = v;
   } else if (key === "underground") {
-    if (v !== 0 && v !== 1) throw new SourceError(ln, "underground は 0 / 1 で指定します");
+    if (v !== 0 && v !== 1) throw new SourceError(ln, "underground is given as 0 / 1");
     lv.underground = v === 1;
   } else {
-    throw new SourceError(ln, `レベルに上書きできるのは h / slab / underground です: ${key}`);
+    throw new SourceError(ln, `Only h / slab / underground may be overridden on a level: ${key}`);
   }
   model.attrSrc.set(k, layer);
 }
@@ -1394,21 +1394,21 @@ function applyBoundaryAttr(
   const prev = model.attrSrc.get(k) ?? layerOf(model, b.file);
   if (prev > layer) return;
   if (prev === layer) {
-    throw new SourceError(ln, `同じ層が 境界 ${subject} の ${key} に二度意見を持っています`);
+    throw new SourceError(ln, `One layer holds two opinions about ${key} on boundary ${subject}`);
   }
   if (key === "type") {
     const kind = String(v);
     if (!BOUNDARY_KINDS.has(kind)) {
-      throw new SourceError(ln, `boundary の type は ${[...BOUNDARY_KINDS].join(" / ")} です: ${kind}`);
+      throw new SourceError(ln, `A boundary type is ${[...BOUNDARY_KINDS].join(" / ")}: ${kind}`);
     }
     b.kind = kind as Boundary["kind"];
   } else if (key === "t") {
-    if (typeof v !== "number" || !(v > 0)) throw new SourceError(ln, `t は正の数値で書きます: t:${v}`);
+    if (typeof v !== "number" || !(v > 0)) throw new SourceError(ln, `t is written as a positive number: t:${v}`);
     b.t = v;
   } else if (key === "air") {
     b.air = v === 1 ? true : undefined;
   } else if (key === "edge") {
-    if (!EDGES.has(String(v))) throw new SourceError(ln, `edge は N/E/S/W で指定します: ${v}`);
+    if (!EDGES.has(String(v))) throw new SourceError(ln, `edge is given as N/E/S/W: ${v}`);
     b.edge = String(v) as Edge;
   } else {
     b.attrs[key] = v;
@@ -1435,18 +1435,18 @@ function applySetEdit(
   layer: number,
 ): void {
   const what = rest[0];
-  if (!what) throw new SourceError(ln, `${op} の後に door / window / seg / area を書きます`);
+  if (!what) throw new SourceError(ln, `${op} takes door / window / seg / area after it`);
   const args = rest.slice(1);
 
   if (target.kind === "space") {
     if (what !== "area") {
-      throw new SourceError(ln, `空間の over で編集できるのは area です: ${what}`);
+      throw new SourceError(ln, `over on a space edits area: ${what}`);
     }
     editList(model, target.space.areas, op, args, ln, () => parseArea(args, ln, model), "area");
     return;
   }
   if (target.kind !== "boundary") {
-    throw new SourceError(ln, `${target.kind} の over は集合の編集を持ちません`);
+    throw new SourceError(ln, `over on ${target.kind} has no set edits`);
   }
   for (const b of target.boundaries) {
     if (what === "door" || what === "window") {
@@ -1454,7 +1454,7 @@ function applySetEdit(
     } else if (what === "seg") {
       editList(model, b.segs, op, args, ln, () => parseSeg(args, ln, model), "seg");
     } else {
-      throw new SourceError(ln, `境界の over で編集できるのは door / window / seg です: ${what}`);
+      throw new SourceError(ln, `over on a boundary edits door / window / seg: ${what}`);
     }
   }
 }
@@ -1472,21 +1472,21 @@ function editList<T extends { attrs: Attrs }>(
   if (op === "+") {
     const made = make();
     if (String(made.attrs["name"] ?? "") === "") {
-      throw new SourceError(ln, `+ で足す ${what} には name: が要ります (後から指すための名です)`);
+      throw new SourceError(ln, `A ${what} added with + requires name: (it is the name later statements point to)`);
     }
     if (findNamed(list, String(made.attrs["name"])).length > 0) {
-      throw new SourceError(ln, `${what} の名が重複しています: ${made.attrs["name"]}`);
+      throw new SourceError(ln, `Duplicate ${what} name: ${made.attrs["name"]}`);
     }
     list.push(made);
     return;
   }
   const name = args[0];
   if (!name || name.includes(":")) {
-    throw new SourceError(ln, `${op} ${what} の後に、指す名を書きます (${op} ${what} D1)`);
+    throw new SourceError(ln, `${op} ${what} takes the name it points to (${op} ${what} D1)`);
   }
   const hit = findNamed(list, name);
-  if (hit.length === 0) throw new SourceError(ln, `${what} ${name} がありません`);
-  if (hit.length > 1) throw new SourceError(ln, `${what} の名 ${name} が一意ではありません`);
+  if (hit.length === 0) throw new SourceError(ln, `No such ${what}: ${name}`);
+  if (hit.length > 1) throw new SourceError(ln, `The ${what} name ${name} is not unique`);
   const idx = list.indexOf(hit[0]!);
   if (op === "-") {
     list.splice(idx, 1);
@@ -1504,7 +1504,7 @@ function applyTypedPatch(item: { attrs: Attrs } & Record<string, unknown>, patch
     const v = patch[key];
     if (v === undefined) continue;
     if (typeof v !== "number" || !(v > 0)) {
-      throw new SourceError(ln, `${key} は正の数値で書きます: ${key}:${v}`);
+      throw new SourceError(ln, `${key} is written as a positive number: ${key}:${v}`);
     }
     item[key] = v;
     delete item.attrs[key];
@@ -1521,10 +1521,10 @@ function applyTypedPatch(item: { attrs: Attrs } & Record<string, unknown>, patch
 function applyDrop(model: Model, rest: string[], ln: number): void {
   if (rest[0] === "column") {
     const name = rest[1];
-    if (!name) throw new SourceError(ln, "drop column には柱の名を書きます");
+    if (!name) throw new SourceError(ln, "drop column takes the name of a column");
     const before = model.columns.length;
     model.columns = model.columns.filter((c) => String(c.attrs["name"] ?? "") !== name);
-    if (model.columns.length === before) throw new SourceError(ln, `柱 ${name} がありません`);
+    if (model.columns.length === before) throw new SourceError(ln, `No such column: ${name}`);
     return;
   }
   const paths = rest.filter((t) => t.startsWith("/"));
@@ -1536,7 +1536,7 @@ function applyDrop(model: Model, rest: string[], ln: number): void {
       return;
     }
     if (model.zones.delete(path)) return;
-    throw new SourceError(ln, `drop の対象がありません: ${path}`);
+    throw new SourceError(ln, `No such target for drop: ${path}`);
   }
   if (paths.length === 2) {
     const [a, b] = paths as [string, string];
@@ -1545,24 +1545,24 @@ function applyDrop(model: Model, rest: string[], ln: number): void {
       (x) => !((x.a === a && x.b === b) || (x.a === b && x.b === a)),
     );
     if (model.boundaries.length === before) {
-      throw new SourceError(ln, `drop の対象の境界がありません: ${a} | ${b}`);
+      throw new SourceError(ln, `No such boundary for drop: ${a} | ${b}`);
     }
     return;
   }
-  throw new SourceError(ln, "drop は drop /パス / drop /パスA /パスB / drop column <名> の形で書きます");
+  throw new SourceError(ln, "drop takes the form drop /path / drop /pathA /pathB / drop column <name>");
 }
 
 function parseAttrs(tokens: string[], ln: number): Attrs {
   const attrs: Attrs = {};
   for (const t of tokens) {
     const idx = t.indexOf(":");
-    if (idx <= 0) throw new SourceError(ln, `属性は key:value で書きます: ${t}`);
+    if (idx <= 0) throw new SourceError(ln, `An attribute is written key:value: ${t}`);
     const key = t.slice(0, idx);
     const rawVal = t.slice(idx + 1);
-    if (rawVal === "") throw new SourceError(ln, `属性 ${key} に値がありません`);
+    if (rawVal === "") throw new SourceError(ln, `The attribute ${key} has no value`);
     if (attrs[key] !== undefined) {
       // 後勝ちの黙認はtypoとマージ事故を隠す — 同一行内の重複はエラー (ADR-0013)
-      throw new SourceError(ln, `属性キーが重複しています: ${key}`);
+      throw new SourceError(ln, `Duplicate attribute key: ${key}`);
     }
     attrs[key] = maybeNumber(rawVal);
   }
@@ -1574,7 +1574,7 @@ function maybeNumber(v: string): AttrValue {
 }
 
 function toNumber(v: string, ln: number, what: string): number {
-  if (!/^-?\d+(\.\d+)?$/.test(v)) throw new SourceError(ln, `${what}が数値ではありません: ${v}`);
+  if (!/^-?\d+(\.\d+)?$/.test(v)) throw new SourceError(ln, `${what} is not a number: ${v}`);
   return Number(v);
 }
 
@@ -1584,7 +1584,7 @@ function takeNumber(attrs: Attrs, key: string, ln: number): number | undefined {
   delete attrs[key];
   if (typeof v !== "number") {
     // NaNの黙認はcheck緑のまま導出を壊す (typo h:24O0 など) — その場のエラーにする
-    throw new SourceError(ln, `属性 ${key} は数値で書きます: ${v}`);
+    throw new SourceError(ln, `The attribute ${key} is written as a number: ${v}`);
   }
   return v;
 }
@@ -1599,6 +1599,6 @@ function takeString(attrs: Attrs, key: string): string | undefined {
 function takeEdge(attrs: Attrs, ln: number): Edge | undefined {
   const v = takeString(attrs, "edge");
   if (v === undefined) return undefined;
-  if (!EDGES.has(v)) throw new SourceError(ln, `edge は N/E/S/W で指定します: ${v}`);
+  if (!EDGES.has(v)) throw new SourceError(ln, `edge is given as N/E/S/W: ${v}`);
   return v as Edge;
 }

@@ -8,6 +8,9 @@
 //   npm run koyu -- stats  examples/office.muro
 //   npm run koyu -- levels examples/office.muro   # テキストの矩計 (高さの積み上がり)
 //   npm run koyu -- json   examples/office.muro
+//
+// **人向けの出力は英語である。**機械が読む面 (診断・Finding・MCP) と同じ言葉に揃えてあり、
+// locale 引数は持たない — 同じ文言の台帳を二つ持たないためである。
 
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
@@ -39,6 +42,11 @@ function load(file: string): Model {
   return parseFile(file); // import による合成もここで働く
 }
 
+/** 数と名詞 — 英語は数が先に立ち、1のときだけ単数形になる */
+function qty(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
 /** `-l L1..L5` / `-l L1,L3` をレベル名の列へ */
 /**
  * `-l` の解決。**解決できない指定は空配列に落とさない** — 空配列は「一枚も描かない」を
@@ -52,19 +60,19 @@ function expandLevelArg(model: Model, arg: string): string[] {
   if (!m) {
     const names = arg.split(",");
     const unknown = names.filter((n) => !all.includes(n));
-    if (unknown.length > 0) die(`レベルが宣言されていません: ${unknown.join(",")} (宣言済み: ${all.join(" ")})`);
+    if (unknown.length > 0) die(`Undeclared level: ${unknown.join(",")} (declared: ${all.join(" ")})`);
     return names;
   }
   const za = model.levels[m[1]!]?.z;
   const zb = model.levels[m[2]!]?.z;
   if (za === undefined || zb === undefined) {
     const bad = [m[1]!, m[2]!].filter((n) => model.levels[n] === undefined);
-    die(`レベルが宣言されていません: ${bad.join(",")} (宣言済み: ${all.join(" ")})`);
+    die(`Undeclared level: ${bad.join(",")} (declared: ${all.join(" ")})`);
   }
   const out = levelsSorted(model)
     .filter((l) => l.z >= Math.min(za!, zb!) && l.z <= Math.max(za!, zb!))
     .map((l) => l.name);
-  if (out.length === 0) die(`レベル範囲 ${arg} に当たるレベルがありません`);
+  if (out.length === 0) die(`No level falls in the range ${arg}`);
   return out;
 }
 
@@ -86,11 +94,11 @@ function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
-      "使い方: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]\n" +
-        "  check:    --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1) — 構造整合だけを見る\n" +
-        "  validate: --json (Finding[]をJSONで出力) — 建築的な判定 (checkの保証ではない)\n" +
-        "  layers:   合成に参加した層を強度順に。--attrs で属性ごとの出所\n" +
-        "  diff:  koyu diff <a.muro> <b.muro> [--json] — 構成の言葉の差分 (0=差分なし / 1=差分あり / 2=入力が壊れている)",
+      "Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [args...]\n" +
+        "  check:    --json (emit Diagnostic[] as JSON) / --strict (exit 1 if there are warnings) — structural consistency only\n" +
+        "  validate: --json (emit Finding[] as JSON) — architectural judgement (not what check guarantees)\n" +
+        "  layers:   the layers that took part in composition, weakest first. --attrs for the provenance of each attribute\n" +
+        "  diff:  koyu diff <a.muro> <b.muro> [--json] — the difference in the language of composition (0=no difference / 1=differences / 2=the input is broken)",
     );
     return 2;
   }
@@ -100,7 +108,7 @@ function main(argv: string[]): number {
     // 終了コードは 0=差分なし / 1=差分あり / 2=入力が壊れている — checkの0/1と紛れない
     const fileB = rest[0];
     if (!fileB) {
-      console.log("使い方: koyu diff <a.muro> <b.muro> [--json]");
+      console.log("Usage: koyu diff <a.muro> <b.muro> [--json]");
       return 2;
     }
     let ma: Model;
@@ -120,7 +128,7 @@ function main(argv: string[]): number {
     if (rest.includes("--json")) {
       console.log(JSON.stringify(d, null, 1));
     } else if (lines.length === 0) {
-      console.log("差分なし");
+      console.log("No differences");
     } else {
       for (const l of lines) console.log(l);
     }
@@ -162,12 +170,12 @@ function main(argv: string[]): number {
       for (const e of errors) console.log(`✖ ${e}`);
       if (errors.length === 0) {
         console.log(
-          `✔ 整合 — 空間 ${model.spaces.size} / 境界 ${model.boundaries.length}` +
-            (warnings.length ? ` (警告 ${warnings.length})` : ""),
+          `✔ Consistent — ${qty(model.spaces.size, "space", "spaces")} / ${qty(model.boundaries.length, "boundary", "boundaries")}` +
+            (warnings.length ? ` (${qty(warnings.length, "warning", "warnings")})` : ""),
         );
         // **緑の意味を、緑を出す場所で言う。**構造整合が成り立っただけであって、
         // 建築として妥当かはここでは何も言っていない (spec/scope.md §3)
-        console.log("  構造整合のみ — 建築的な妥当性は koyu validate が別に言います");
+        console.log("  Structural consistency only — architectural validity is what koyu validate says, separately");
         return strict && warnings.length > 0 ? 1 : 0;
       }
       return 1;
@@ -189,8 +197,8 @@ function main(argv: string[]): number {
       const cautions = findings.length - violations;
       console.log(
         findings.length === 0
-          ? "✔ 判定に引っかかるものはありません (判定であって、構成の保証ではありません)"
-          : `判定 — 違反 ${violations} / 注意 ${cautions}`,
+          ? "✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)"
+          : `Validation — ${qty(violations, "violation", "violations")} / ${qty(cautions, "caution", "cautions")}`,
       );
       return violations > 0 ? 1 : 0;
     }
@@ -198,13 +206,13 @@ function main(argv: string[]): number {
       // 合成の規則1と6 (spec/composition.md) — 強度順序を見せ、最終値の出所を言う。
       // **暗黙の解決はどこにも無い**ことを、目で確かめられるようにするための面である
       if (model.layers.length === 0) {
-        console.log("層がありません (単一ファイルの解析には合成が無い)");
+        console.log("No layers (parsing a single file involves no composition)");
         return 0;
       }
-      console.log("層 (弱い順 — 後の層ほど強い):");
+      console.log("Layers (weakest first — later layers are stronger):");
       model.layers.forEach((l, i) => console.log(`  ${i}\t${l}`));
       if (rest.includes("--attrs")) {
-        console.log("\n属性の出所:");
+        console.log("\nAttribute provenance:");
         const rows = [...model.attrSrc].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
         for (const [key, layerIdx] of rows) {
           console.log(`  ${key}\t← ${layerIdx} ${model.layers[layerIdx] ?? "?"}`);
@@ -221,7 +229,7 @@ function main(argv: string[]): number {
       // 未宣言のレベルは呼び方の問題 — 生のスタックトレースで落ちない (ADR-0028)
       if (level !== undefined && model.levels[level] === undefined) {
         die(
-          `レベルが宣言されていません: ${level} (宣言済み: ${levelsSorted(model).map((l) => l.name).join(" ")})`,
+          `Undeclared level: ${level} (declared: ${levelsSorted(model).map((l) => l.name).join(" ")})`,
         );
       }
       const explicit = opt(rest, "-o");
@@ -230,21 +238,21 @@ function main(argv: string[]): number {
       const svg = svgPlan(model, { level });
       mkdirSync(dirname(outFile), { recursive: true });
       writeFileSync(outFile, svg);
-      console.log(`平面図を生成しました: ${outFile}`);
+      console.log(`Generated the plan: ${outFile}`);
       return 0;
     }
     case "doors": {
       const [from, to] = rest;
       if (!from || !to) {
-        console.log("使い方: koyu doors <file> /パスA /パスB");
+        console.log("Usage: koyu doors <file> /pathA /pathB");
         return 2;
       }
       const route = doorsBetween(model, from, to);
       if (!route) {
-        console.log(`${from} から ${to} へは到達できません`);
+        console.log(`Cannot reach ${to} from ${from}`);
         return 1;
       }
-      console.log(`${route.doors}枚 — ${route.path.join(" → ")}`);
+      console.log(`${qty(route.doors, "door", "doors")} — ${route.path.join(" → ")}`);
       return 0;
     }
     case "graph": {
@@ -254,18 +262,18 @@ function main(argv: string[]): number {
         for (const n of ns) {
           const mark =
             n.boundary.kind === "open"
-              ? "〰 開放"
+              ? "〰 open"
               : n.boundary.kind === "wall" && n.boundary.air && !n.passable
-                ? "| 手すり等(外気開放・通行不可)"
+                ? "| railing etc. (open to the air, not passable)"
                 : n.boundary.kind === "stair"
-                ? "↕ 階段"
+                ? "↕ stair"
                 : n.boundary.kind === "shaft"
-                  ? "↕ シャフト(通行不可)"
+                  ? "↕ shaft (not passable)"
                   : n.boundary.kind === "void"
-                    ? "↕ 吹抜け"
+                    ? "↕ void"
                     : n.passable
-                      ? `— 扉${n.doors}`
-                      : "| 壁";
+                      ? `— ${qty(n.doors, "door", "doors")}`
+                      : "| wall";
           const attrs = Object.entries(n.boundary.attrs)
             .map(([k, v]) => `${k}:${v}`)
             .join(" ");
@@ -289,19 +297,19 @@ function main(argv: string[]): number {
         let sub = 0;
         for (const s of onLevel) {
           if (s.type === "void") {
-            console.log(`  ${s.path}\t${displayName(s)}\t吹抜け (床面積不算入)`);
+            console.log(`  ${s.path}\t${displayName(s)}\tvoid (not counted as floor area)`);
             continue;
           }
           const a = areaM2(s)!;
           if (s.type === "exterior") {
             outdoorTotal += a;
-            console.log(`  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)}㎡ (屋外・不算入)`);
+            console.log(`  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)} m2 (outdoor, not counted)`);
             continue;
           }
           if (isSemiOutdoor(model, s)) {
             semiTotal += a;
             console.log(
-              `  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)}㎡ (半屋外・別掲)`,
+              `  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)} m2 (semi-outdoor, reported separately)`,
             );
             continue;
           }
@@ -310,33 +318,33 @@ function main(argv: string[]): number {
           byType.set(s.type, (byType.get(s.type) ?? 0) + a);
           const use = effectiveUse(model, s);
           if (use) byUse.set(use, (byUse.get(use) ?? 0) + a);
-          console.log(`  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)}㎡`);
+          console.log(`  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)} m2`);
         }
-        console.log(`  小計 ${sub.toFixed(2)}㎡`);
+        console.log(`  Subtotal ${sub.toFixed(2)} m2`);
       }
-      console.log(`合計 ${total.toFixed(2)}㎡ (屋内床面積)`);
+      console.log(`Total ${total.toFixed(2)} m2 (indoor floor area)`);
       if (outdoorTotal > 0) {
-        console.log(`屋外 ${outdoorTotal.toFixed(2)}㎡ (広場・空地等 — 床面積に算入しない)`);
+        console.log(`Outdoor ${outdoorTotal.toFixed(2)} m2 (plazas, open ground and the like — not counted as floor area)`);
       }
       if (semiTotal > 0) {
-        console.log(`半屋外 ${semiTotal.toFixed(2)}㎡ (バルコニー・屋外階段等 — 算入条件は法規細部のため別掲)`);
+        console.log(`Semi-outdoor ${semiTotal.toFixed(2)} m2 (balconies, external stairs and the like — whether they count is a matter of regulatory detail, so it is reported separately)`);
       }
       const zonesToShow = [...model.zones.values()].filter((z) => z.attrs["site"] !== 1);
       if (zonesToShow.length > 0) {
-        console.log("ゾーン別 (数える集約):");
+        console.log("By zone (counted aggregation):");
         for (const z of zonesToShow.sort((a, b) => (a.path < b.path ? -1 : 1))) {
           const nm = z.attrs["name"];
           console.log(
-            `  ${z.path}\t${typeof nm === "string" ? nm : ""}\t${zoneAreaM2(model, z.path).toFixed(2)}㎡`,
+            `  ${z.path}\t${typeof nm === "string" ? nm : ""}\t${zoneAreaM2(model, z.path).toFixed(2)} m2`,
           );
         }
       }
-      for (const [t, a] of byType) console.log(`  ${t}: ${a.toFixed(2)}㎡`);
+      for (const [t, a] of byType) console.log(`  ${t}: ${a.toFixed(2)} m2`);
       if (byUse.size > 0) {
         const parts = [...byUse.entries()].map(
-          ([u, a]) => `${u} ${a.toFixed(2)}㎡ (${((a / total) * 100).toFixed(1)}%)`,
+          ([u, a]) => `${u} ${a.toFixed(2)} m2 (${((a / total) * 100).toFixed(1)}%)`,
         );
-        console.log(`use別: ${parts.join(" / ")}`);
+        console.log(`By use: ${parts.join(" / ")}`);
       }
       return 0;
     }
@@ -345,7 +353,7 @@ function main(argv: string[]): number {
       // 1/7 の合否は検証の面 (validate) が言う (spec/scope.md §4)
       const inputs = daylightInputs(model);
       if (inputs.length === 0) {
-        console.log("採光の対象がありません (判定する室に daylight:1 を書きます)");
+        console.log("Nothing is in daylight scope (write daylight:1 on the rooms to be judged)");
         return 0;
       }
       const failing = new Set(
@@ -353,16 +361,16 @@ function main(argv: string[]): number {
       );
       for (const d of inputs) {
         const ok = !failing.has(d.space.path);
-        const ratio = d.window > 0 ? `1/${(d.floor / d.window).toFixed(1)}` : "窓なし";
+        const ratio = d.window > 0 ? `1/${(d.floor / d.window).toFixed(1)}` : "no window";
         console.log(
-          `${ok ? "✔" : "✖"} ${d.space.path}\t${displayName(d.space)}\t窓 ${d.window.toFixed(2)}㎡ / 床 ${d.floor.toFixed(2)}㎡ = ${ratio} (必要 1/7 ≈ ${(d.floor / 7).toFixed(2)}㎡)` +
-            (d.missingH ? " ⚠ h未指定の窓は数えていません" : ""),
+          `${ok ? "✔" : "✖"} ${d.space.path}\t${displayName(d.space)}\twindow ${d.window.toFixed(2)} m2 / floor ${d.floor.toFixed(2)} m2 = ${ratio} (needs 1/7 ≈ ${(d.floor / 7).toFixed(2)} m2)` +
+            (d.missingH ? " ⚠ windows without h: are not counted" : ""),
         );
       }
       console.log(
         failing.size === 0
-          ? `✔ 全${inputs.length}室が 1/7 を満たします (補正係数なしの粗い判定 — これは検証であって check の保証ではありません)`
-          : `✖ ${inputs.length}室中 ${failing.size}室が不足しています (検証の判定です)`,
+          ? `✔ Every room meets 1/7 — ${qty(inputs.length, "room", "rooms")} in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)`
+          : `✖ Short of 1/7: ${failing.size} of ${qty(inputs.length, "room", "rooms")} (this is a validation judgement)`,
       );
       return failing.size === 0 ? 0 : 1;
     }
@@ -370,32 +378,32 @@ function main(argv: string[]): number {
       // 敷地の問い: 敷地面積・接道・建蔽率・容積率 (基本計画のボリューム検討の数字)
       const r = siteReport(model);
       if (!r.siteZone && r.roads.length === 0) {
-        console.log("敷地がありません (zone に site:1 を、道路に road:幅員 を宣言します)");
+        console.log("There is no site (write site:1 on a zone and road:<width> on the road)");
         return 1;
       }
       const site = r.declaredArea ?? r.derivedArea;
       if (r.siteZone) {
         const nm = r.siteZone.attrs["name"];
-        console.log(`敷地 ${r.siteZone.path}${typeof nm === "string" ? ` (${nm})` : ""}`);
+        console.log(`Site ${r.siteZone.path}${typeof nm === "string" ? ` (${nm})` : ""}`);
       }
       if (r.polygon) {
-        console.log(`  敷地形状: 多角形 ${r.polygon.points.length}頂点 (polygon宣言 — 所与のジオメトリ)`);
+        console.log(`  Site shape: polygon with ${r.polygon.points.length} vertices (a polygon declaration — given geometry)`);
       }
       if (r.declaredArea !== undefined) {
         console.log(
-          `  敷地面積: 宣言 ${r.declaredArea.toFixed(2)}㎡ / 導出 ${r.derivedArea.toFixed(2)}㎡`,
+          `  Site area: declared ${r.declaredArea.toFixed(2)} m2 / derived ${r.derivedArea.toFixed(2)} m2`,
         );
       } else {
-        console.log(`  敷地面積 (導出): ${r.derivedArea.toFixed(2)}㎡`);
+        console.log(`  Site area (derived): ${r.derivedArea.toFixed(2)} m2`);
       }
       for (const road of r.roads) {
         const nm = road.road.attrs["name"];
         console.log(
-          `  接道: ${road.road.path}${typeof nm === "string" ? ` (${nm})` : ""} 幅員${road.width}mm ・ 接道長 ${road.frontage}mm`,
+          `  Road: ${road.road.path}${typeof nm === "string" ? ` (${nm})` : ""} width ${road.width}mm / frontage ${road.frontage}mm`,
         );
       }
-      console.log(`  建築面積 (水平投影・粗): ${r.footprint.toFixed(2)}㎡ → 建蔽率 ${((r.footprint / site) * 100).toFixed(1)}%`);
-      console.log(`  延べ面積: ${r.totalFloor.toFixed(2)}㎡ → 容積率 ${((r.totalFloor / site) * 100).toFixed(1)}%`);
+      console.log(`  Building footprint (horizontal projection, rough): ${r.footprint.toFixed(2)} m2 → building coverage ratio ${((r.footprint / site) * 100).toFixed(1)}%`);
+      console.log(`  Total floor area: ${r.totalFloor.toFixed(2)} m2 → floor area ratio ${((r.totalFloor / site) * 100).toFixed(1)}%`);
       return 0;
     }
     case "axo": {
@@ -414,7 +422,7 @@ function main(argv: string[]): number {
       });
       mkdirSync(dirname(outPath), { recursive: true });
       writeFileSync(outPath, svg);
-      console.log(`軸測図を生成しました: ${outPath}`);
+      console.log(`Generated the axonometric: ${outPath}`);
       return 0;
     }
 
@@ -422,7 +430,7 @@ function main(argv: string[]): number {
       // 縦動線 (ADR-0021): 段数も踏面も勾配も原本には書かれていない。全て導出値である
       const runs = verticalRuns(model);
       if (runs.length === 0) {
-        console.log("縦動線がありません (stair:N / ramp:N / escalator:N / lift:1 を空間に書きます)");
+        console.log("There is no vertical circulation (write stair:N / ramp:N / escalator:N / lift:1 on a space)");
         return 0;
       }
       for (const r of runs) {
@@ -435,10 +443,10 @@ function main(argv: string[]): number {
         }
         const shape =
           r.device === "stair"
-            ? `${r.risers}段 蹴上${Math.round(r.riser)} 踏面${Math.round(r.tread)}`
-            : `勾配 ${slopeText(r.slope)}`;
+            ? `${qty(r.risers, "riser", "risers")} of ${Math.round(r.riser)}mm, tread ${Math.round(r.tread)}mm`
+            : `slope ${slopeText(r.slope)}`;
         console.log(
-          `${head}\t上り${r.rise}mm\t${r.form === "return" ? "折返し" : "直"}\t${shape}\t走り${Math.round(r.going)}mm\t${r.path}`,
+          `${head}\trise ${r.rise}mm\t${r.form === "return" ? "return" : "straight"}\t${shape}\tgoing ${Math.round(r.going)}mm\t${r.path}`,
         );
       }
       return 0;
@@ -448,7 +456,7 @@ function main(argv: string[]): number {
       // テキストの矩計: レベルの積み上がりと高さの検算
       const levels = levelsSorted(model);
       if (levels.length === 0) {
-        console.log("レベルが定義されていません");
+        console.log("No level is defined");
         return 1;
       }
       for (let i = levels.length - 1; i >= 0; i--) {
@@ -463,21 +471,21 @@ function main(argv: string[]): number {
           const pitch = upper.z - l.z;
           const detail =
             l.h !== undefined && upper.slab !== undefined
-              ? ` = 天井${l.h} + slab${upper.slab}` +
-                (pitch - l.h - upper.slab > 0 ? ` + 余り${pitch - l.h - upper.slab}` : "")
+              ? ` = ceiling ${l.h} + slab ${upper.slab}` +
+                (pitch - l.h - upper.slab > 0 ? ` + ${pitch - l.h - upper.slab} left over` : "")
               : "";
-          console.log(`  ↑ 階高 ${pitch}${detail}`);
+          console.log(`  ↑ storey height ${pitch}${detail}`);
         }
       }
       const spaces = [...model.spaces.values()].filter((s) => s.rects.length > 0 && s.level);
       const overrides = spaces.filter((s) => typeof s.attrs["h"] === "number");
       for (const s of overrides) {
-        console.log(`個別天井高: ${s.path} h:${heff(model, s)}`);
+        console.log(`Per-space ceiling height: ${s.path} h:${heff(model, s)}`);
       }
       return 0;
     }
     default:
-      console.log(`未知のコマンドです: ${cmd}`);
+      console.log(`Unknown command: ${cmd}`);
       return 2;
   }
 }

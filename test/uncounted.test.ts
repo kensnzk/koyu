@@ -22,7 +22,7 @@ grid Y 0 4500
 level L1 0 h:2700
 `;
 
-test("area/segが読める", () => {
+test("area and seg parse", () => {
   const m = parse(src);
   const hall = m.spaces.get("/L1/hall")!;
   assert.equal(hall.areas.length, 1);
@@ -33,58 +33,58 @@ test("area/segが読める", () => {
   assert.equal(oc.segs[0]!.attrs["spec"], "ガラスパーティション");
 });
 
-test("隔離則: 面積は変わらない — 室は割れていない", () => {
+test("isolation rule: the area does not change — the room is not split", () => {
   const m = parse(src);
   assert.equal(areaM2(m.spaces.get("/L1/hall")!), 40.96); // 土間があってもホールは40.96のまま
   assert.equal(areaM2(m.spaces.get("/L2/office")!), 102.4);
   assert.equal(m.spaces.size, 17); // 室数も変わらない
 });
 
-test("隔離則: グラフも変わらない", () => {
+test("isolation rule: the graph does not change either", () => {
   const m = parse(src);
   assert.equal(doorsBetween(m, "/L2/office", "/out")!.doors, 4);
   assert.equal(doorsBetween(m, "/L1/office", "/out")!.doors, 2);
 });
 
-test("checkは警告ゼロのまま", () => {
+test("check stays at zero warnings", () => {
   const m = parse(src);
   const r = check(m);
   assert.deepEqual(r.errors, []);
   assert.deepEqual(r.warnings, []);
 });
 
-test("平面図に土間とガラス区間が現れる", () => {
+test("the earthen floor and the glass run appear in the plan", () => {
   const m = parse(src);
   const l1 = svgPlan(m, { level: "L1" });
   assert.ok(l1.includes("土間"));
   assert.ok(l1.includes("ガラスパーティション"));
 });
 
-test("正準JSONにareasとsegsが乗る", () => {
+test("areas and segs ride on the canonical JSON", () => {
   const j = toCanonical(parse(src));
   assert.ok(j.includes('"areas"'));
   assert.ok(j.includes('"segs"'));
 });
 
-test("親からはみ出したareaは警告", () => {
+test("an area spilling outside its parent is a warning", () => {
   const m = parse(`${BASE}
 space /L1/a room X1..X2 Y1..Y2
   area X1..X3 Y1..Y2 floor:畳
 `);
   const r = check(m);
-  assert.ok(r.warnings.some((w) => w.includes("はみ出し")));
+  assert.ok(r.warnings.some((w) => w.includes("spills outside")));
 });
 
-test("領域を持たない空間のareaはエラー", () => {
+test("an area on a space with no region is an error", () => {
   const m = parse(`${BASE}
 space /out exterior
   area X1..X2 Y1..Y2 floor:砂利
 `);
   const r = check(m);
-  assert.ok(r.errors.some((e) => e.includes("area は書けません")));
+  assert.ok(r.errors.some((e) => e.includes("An area cannot be written")));
 });
 
-test("線分より広いsegはエラー", () => {
+test("a seg wider than the segment is an error", () => {
   const m = parse(`${BASE}
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
@@ -92,10 +92,10 @@ boundary /L1/a /L1/b t:120
   seg w:99999 spec:RC
 `);
   const r = check(m);
-  assert.ok(r.errors.some((e) => e.includes("超えて")));
+  assert.ok(r.errors.some((e) => e.includes("exceeds the boundary segment length")));
 });
 
-test("open境界のsegは警告", () => {
+test("a seg on an open boundary is a warning", () => {
   const m = parse(`${BASE}
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
@@ -103,10 +103,10 @@ boundary /L1/a /L1/b type:open
   seg w:1000 spec:RC
 `);
   const r = check(m);
-  assert.ok(r.warnings.some((w) => w.includes("open境界")));
+  assert.ok(r.warnings.some((w) => w.includes("on an open boundary")));
 });
 
-test("spaceの直下でないareaはエラー", () => {
+test("an area not directly under a space is an error", () => {
   assert.throws(
     () =>
       parse(`${BASE}
@@ -115,6 +115,6 @@ space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
   area X1..X2 Y1..Y2 floor:畳
 `),
-    /space の直下/,
+    /indented directly under space/,
   );
 });

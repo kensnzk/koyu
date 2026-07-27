@@ -43,7 +43,7 @@ boundary /L1/a /out t:150 spec:EW
 幅 `w:` は文法上の必須で、無ければ読み込みの時点で止まる。
 
 ```text
-✖ daylight.muro:16行目: window には幅 w:(mm) が要ります (アセット側でも可)
+✖ daylight.muro:line 16: window requires a width w:(mm) (the asset may supply it)
 ```
 
 高さ `h:` は文法上は任意だが、`light` は `h:` を持つ窓しか数えない。`h:` を落とした窓は、エラーにならないまま面積 0 として扱われる。
@@ -51,7 +51,7 @@ boundary /L1/a /out t:150 spec:EW
 `h:` の無い窓があると `light` が行末に注記を出す。
 
 ```text
-✖ /L1/a	居室A	窓 0.00㎡ / 床 16.20㎡ = 窓なし (必要 1/7 ≈ 2.31㎡) ⚠ h未指定の窓は数えていません
+✖ /L1/a	居室A	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2) ⚠ windows without h: are not counted
 ```
 
 建具アセットを参照するなら `h:` はアセット側にあってよい ([spec/language.md §6](../../spec/language.md))。
@@ -63,7 +63,7 @@ boundary /L1/a /out t:150 spec:EW
 `edge:` を書かずに複数線分の境界へ開口を置くと、`check` はこう言う。
 
 ```text
-✖ daylight.muro:16行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/a | /out)
+✖ daylight.muro:line 16: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)
 ```
 
 ## 確かめる
@@ -96,9 +96,9 @@ boundary /L1/b /out t:150 spec:EW
 
 ```text
 $ npx tsx src/cli.ts light daylight.muro
-✔ /L1/a	居室A	窓 5.72㎡ / 床 16.20㎡ = 1/2.8 (必要 1/7 ≈ 2.31㎡)
-✔ /L1/b	居室B	窓 2.86㎡ / 床 16.20㎡ = 1/5.7 (必要 1/7 ≈ 2.31㎡)
-✔ 全2室が 1/7 を満たします (補正係数なしの粗い判定)
+✔ /L1/a	居室A	window 5.72 m2 / floor 16.20 m2 = 1/2.8 (needs 1/7 ≈ 2.31 m2)
+✔ /L1/b	居室B	window 2.86 m2 / floor 16.20 m2 = 1/5.7 (needs 1/7 ≈ 2.31 m2)
+✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 行の読み方は左から、判定 (✔/✖)・空間パス・名前・**係数をかけた後の**有効窓面積・床面積・その比・必要面積である。窓を一枚も持たない室は「窓なし」と出る。
@@ -106,9 +106,9 @@ $ npx tsx src/cli.ts light daylight.muro
 窓を落としたままの同じ二室はこうなる。
 
 ```text
-✖ /L1/a	居室A	窓 0.00㎡ / 床 16.20㎡ = 窓なし (必要 1/7 ≈ 2.31㎡)
-✖ /L1/b	居室B	窓 0.00㎡ / 床 16.20㎡ = 窓なし (必要 1/7 ≈ 2.31㎡)
-✖ 2室中 2室が不足しています
+✖ /L1/a	居室A	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2)
+✖ /L1/b	居室B	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2)
+✖ Short of 1/7: 2 of 2 rooms (this is a validation judgement)
 ```
 
 ## 半屋外越しに採るとき
@@ -136,7 +136,7 @@ boundary /L1/bal /out edge:S t:120 spec:手すり air:1 h:1100
 ```
 
 ```text
-✔ /L1/liv	居間	窓 5.72㎡ / 床 16.00㎡ = 1/2.8 (必要 1/7 ≈ 2.29㎡)
+✔ /L1/liv	居間	window 5.72 m2 / floor 16.00 m2 = 1/2.8 (needs 1/7 ≈ 2.29 m2)
 ```
 
 同じ位置に上階のバルコニーを足すと、テラスは庇下になり 0.7 がかかる。窓も床も一切変えていない。
@@ -164,7 +164,7 @@ boundary /L2/bal /out edge:S t:120 spec:手すり air:1 h:1100
 ```
 
 ```text
-✔ /L1/liv	居間	窓 4.00㎡ / 床 16.00㎡ = 1/4.0 (必要 1/7 ≈ 2.29㎡)
+✔ /L1/liv	居間	window 4.00 m2 / floor 16.00 m2 = 1/4.0 (needs 1/7 ≈ 2.29 m2)
 ```
 
 なお空間が半屋外と判定されるのは、外部に対して `open` または `air:1` の境界を持つ領域つき空間である。手すり (`air:1`) を書き忘れたバルコニーは半屋外にならず、そこを介した窓は 0 になる。

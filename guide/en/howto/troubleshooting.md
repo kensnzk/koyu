@@ -23,22 +23,22 @@ The file paths in the output below are actually absolute; they are shortened to 
 | `空間が接していないため境界を導けません: /L1/a \| /L1/b` (the spaces do not touch, so no boundary can be derived) | They meet only at a corner. Contact requires a shared edge of nonzero length | Extend a rectangle so they share an edge, or delete that `boundary` line | [2](#2-the-spaces-do-not-touch) |
 | `境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/living \| /out)` (several boundary segments) | A boundary with the outside splits across several edges of the room's perimeter | Select the side on the opening with `edge:`. `N`=+Y, `S`=−Y, `E`=+X, `W`=−X | [3](#3-several-boundary-segments) |
 | `領域は X?..X? と Y?..Y? の2つで指定します` (a region takes two tokens) | Almost always a forgotten type (the second positional). The first region token is being read as the type | Write in the order `space <path> <type> X?..X? Y?..Y?` | [4](#4-a-region-takes-two-tokens) |
-| `空間の領域が重なっています: /L1/home と /L1/home/ldk` (the regions overlap) | A space with a region has child spaces that also have regions | Make the parent a `zone`; a `zone` has no geometry | [5](#5-the-regions-overlap) |
-| `未定義の空間を参照しています: /L1/bath` (referencing an undefined space) | A misspelled path, or the layer declaring that space is not `import`ed | Fix the path, or add the `import` | [6](#6-referencing-an-undefined-space) |
+| `Space regions overlap: /L1/home and /L1/home/ldk` (the regions overlap) | A space with a region has child spaces that also have regions | Make the parent a `zone`; a `zone` has no geometry | [5](#5-the-regions-overlap) |
+| `References an undefined space: /L1/bath` (referencing an undefined space) | A misspelled path, or the layer declaring that space is not `import`ed | Fix the path, or add the `import` | [6](#6-referencing-an-undefined-space) |
 | `door には幅 w:(mm) が要ります (アセット側でも可)` (a door needs a width) | The opening has no width | Write `door w:800`, or reference an `asset` that carries a width | [spec/language.md §4](../../../spec/en/language.md) |
+| `/L1/a は領域を持ちますが、レベルが特定できません` (it has a region but its level cannot be determined) | No `level` was declared. **Writing `/L1/` in a path is not a declaration of a level** | Write `level L1 0 h:2400 slab:150` | [7](#7-its-level-cannot-be-determined) |
 
 ### check is green but it is not right
 
 | Symptom | Cause | Fix | More |
 |---|---|---|---|
-| `⚠ /L1/a は領域を持ちますが、レベルが特定できません` (its level cannot be determined) | No `level` was declared. **Writing `/L1/` in a path is not a declaration of a level** | Write `level L1 0` | [7](#7-its-level-cannot-be-determined) |
-| `plan` emits a raw Node stack trace (`Error: レベルが定義されていません`) | The same — there is not one `level` | Write `level L1 0` | [8](#8-plan-emits-a-raw-stack-trace) |
-| `Error: レベル L2 に領域を持つ空間がありません` (no space with a region on level L2) | A wrong level name in `plan -l`. Level names are case-sensitive | Confirm the name with `koyu levels <file>` | [8](#8-plan-emits-a-raw-stack-trace) |
+| `plan` emits a raw Node stack trace (`Error: No level is defined`) | There is not one `level` | Write `level L1 0 h:2400 slab:150` | [8](#8-plan-emits-a-raw-stack-trace) |
+| `Error: There is no space with a region on level L2` | A wrong level name in `plan -l`. Level names are case-sensitive | Confirm the name with `koyu levels <file>` | [8](#8-plan-emits-a-raw-stack-trace) |
 | `check` is green but `doors` says unreachable | Touching spaces get a derived wall with no door. Doors are never automatic | Write a `boundary` for the pair you want passable, and put a `door` under it by indentation | [9](#9-green-check-but-unreachable) |
 | `check` is green but there is no envelope at all | Nothing is derived for contact with the outside (a space with no region) | Write the boundaries to `/out`, one at a time | [10](#10-green-check-but-no-envelope) |
 | The daylight verdict changes, or fails to change, when you change a type | The type is an open vocabulary, and a misspelling passes silently | Confirm which types the tools read structurally | [11](#11-misspelled-types-and-attribute-keys-pass-silently) |
 | An attribute has no effect (`nmae:` and the like) | A misspelled attribute key is also carried silently | Check it against the ledger ([spec/vocabulary.md](../../../spec/en/vocabulary.md)) | [11](#11-misspelled-types-and-attribute-keys-pass-silently) |
-| An empty file returns `✔ 整合 — 空間 0 / 境界 0` | A composition with nothing written does stand up | Do not treat green as evidence that something is written. Look inside with `stats` or `graph` | [12](#12-an-empty-file-is-green-too) |
+| An empty file returns `✔ Consistent — 0 spaces / 0 boundaries` | A composition with nothing written does stand up | Do not treat green as evidence that something is written. Look inside with `stats` or `graph` | [12](#12-an-empty-file-is-green-too) |
 | `敷地面積の宣言と導出が食い違います` (SIT05) | The `area:` on the `zone` (surveyed) and the polygon's area differ by more than ±0.05 m² | Fix one of them. If the surveyed value is right, fix the vertices | [Give the site its shape](site-and-far.md) |
 | The boundary count from `check` does not match `boundaries` in the canonical JSON | `check` counts after derivation; the canonical JSON holds only the authored composition | It is not a discrepancy. To see the derived state, use `graph` | [13](#13-the-boundary-count-does-not-match-the-canonical-json) |
 
@@ -54,7 +54,7 @@ space /L1/a room X1..X2 Y1..Y2
 ```
 
 ```text
-✖ nogrid.muro:2行目: 未定義の通り名です: X1
+✖ nogrid.muro:line 2: Undefined grid line name: X1
 ```
 
 Neither `grid X` nor `grid Y` is present. An error of order alone gives the same wording.
@@ -67,7 +67,7 @@ level L1 0
 ```
 
 ```text
-✖ order.muro:1行目: 未定義の通り名です: X1
+✖ order.muro:line 1: Undefined grid line name: X1
 ```
 
 **The fix.** Gather the foundation declarations at the top of the file. When composing, put them in the base layer (the entry).
@@ -94,7 +94,7 @@ boundary /L1/a /L1/b t:120
 ```
 
 ```text
-✖ corner.muro:6行目: 空間が接していないため境界を導けません: /L1/a | /L1/b
+✖ corner.muro:line 6: The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b
 ```
 
 The two rectangles sit like this.
@@ -127,7 +127,7 @@ boundary /L1/living /out t:150
 ```
 
 ```text
-✖ edge.muro:7行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/living | /out)
+✖ edge.muro:line 7: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/living | /out)
 ```
 
 **The fix.** When putting an opening on an external wall, select the side with `edge:`.
@@ -153,7 +153,7 @@ space /L1/a X1..X2 Y1..Y2
 ```
 
 ```text
-✖ notype.muro:4行目: 領域は X?..X? と Y?..Y? の2つで指定します
+✖ notype.muro:line 4: A region is given as two ranges, X?..X? and Y?..Y?
 ```
 
 **The fix.** Write the type between the path and the region.
@@ -176,8 +176,8 @@ space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
 ```
 
 ```text
-✖ 空間の領域が重なっています: /L1/home と /L1/home/ldk
-✖ 空間の領域が重なっています: /L1/home と /L1/home/bed
+✖ Space regions overlap: /L1/home and /L1/home/ldk
+✖ Space regions overlap: /L1/home and /L1/home/bed
 ```
 
 **The fix.** Write the grouping as a `zone`. A `zone` has no geometry and only bundles what lies beneath it by path prefix, so nothing overlaps. The area is still totalled at `/L1/home` as before.
@@ -192,7 +192,7 @@ space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
 ```
 
 ```text
-✔ 整合 — 空間 2 / 境界 1
+✔ Consistent — 2 spaces / 1 boundary
 ```
 
 `examples/tower/` takes this form. The diagnostic codes are GEO01 / GEO02.
@@ -209,7 +209,7 @@ boundary /L1/a /L1/bath t:120
 ```
 
 ```text
-✖ ref.muro:6行目: 未定義の空間を参照しています: /L1/bath
+✖ ref.muro:line 6: References an undefined space: /L1/bath
 ```
 
 The diagnostic code is REF01. When composing, also confirm that the layer declaring that space is `import`ed. Errors always come back with the name of the layer they came from.
@@ -225,18 +225,17 @@ space /L1/a room X1..X2 Y1..Y2
 ```
 
 ```text
-⚠ nolevel.muro:3行目: /L1/a は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)
-✔ 整合 — 空間 1 / 境界 0 (警告 1)
+✖ nolevel.muro:line 3: /L1/a has a region, but its level cannot be determined (give it at the head of the path or with level:)
 ```
 
-The warning text points at how the path is written, but what you fix is the missing `level` line. The diagnostic code is HGT05. The exit code is 0, so in CI it slips through unless you add `--strict`.
+The text points at how the path is written, but what you fix is the missing `level` line. The diagnostic code is [SUF02](../diagnostics.md#suf02) and its severity is `error` — without a level there is no z, so not one solid is generated from this space. The exit code is 1.
 
-**The fix.** Add the `level` line — and **put it before the `space` line that uses it**. Put it after and the same warning appears and slips through.
+**The fix.** Add the `level` line — and **put it before the `space` line that uses it**. Put it after and the same error still appears.
 
 ```muro-part
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
@@ -251,23 +250,23 @@ npx tsx src/cli.ts plan nolevel.muro -o out.svg
 ```
 
 ```text
-Error: レベルが定義されていません
-    at svgPlan (src/plan.ts:29:21)
-    at main (src/cli.ts:140:19)
+Error: No level is defined
+    at svgPlan (src/draw/plan.ts:38:21)
+    at main (src/cli.ts:238:19)
 ```
 
-("No level is defined." In reality a quotation of the source line appears above this and a few more frames below; only the essentials are excerpted here.)
+(In reality a quotation of the source line appears above this and a few more frames below; only the essentials are excerpted here.)
 
-The cause is that there is not one `level` line. Add `level L1 0`. A green `check` does not mean `plan` will pass — confirm as far as the drawing before moving on.
+The cause is that there is not one `level` line. Add `level L1 0 h:2400 slab:150`. A green `check` does not mean `plan` will pass — confirm as far as the drawing before moving on.
 
 When there are levels and it still dies, suspect the name passed to `-l`. **Level names are case-sensitive.**
 
 ```text
-Error: レベル l1 に領域を持つ空間がありません
+Error: There is no space with a region on level l1
 ```
 
 ```text
-Error: レベル L2 に領域を持つ空間がありません
+Error: There is no space with a region on level L2
 ```
 
 The first is writing `L1` as `l1`; the second is pointing at a level that does not exist. Confirm the declared level names with `koyu levels <file>`. Omit `-l` and the first level is drawn.
@@ -277,19 +276,19 @@ The first is writing `L1` as `l1`; the second is pointing at a level that does n
 Between touching spaces, absent a declaration, a wall with no door is derived ([ADR-0014](../../../docs/decisions/0014-default-boundaries.md)). **Doors are never automatic.** Write a two-storey house declaring only the envelope and the stair, and `check` stays green while every room is sealed.
 
 ```text
-✔ 整合 — 空間 5 / 境界 7
+✔ Consistent — 5 spaces / 7 boundaries
 ```
 
 ```text
-/L2/bed から /out へは到達できません
+Cannot reach /out from /L2/bed
 ```
 
 Look at `graph` and the walls you did not write become visible.
 
 ```text
 /L2/bed (寝室)
-  | 壁 → /out  (spec:EW)
-  | 壁 → /L2/hall
+  | wall → /out  (spec:EW)
+  | wall → /L2/hall
 ```
 
 The `| 壁` line carrying no `spec:` is the derived default wall.
@@ -316,7 +315,7 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
 ```
 
 ```text
-✔ 整合 — 空間 2 / 境界 1
+✔ Consistent — 2 spaces / 1 boundary
 ```
 
 The one boundary is the default wall between the rooms; there is not one wall around the perimeter. It is green regardless.
@@ -347,17 +346,15 @@ space /L1/bath wet X1..X2 Y1..Y2 nmae:浴室 daylight:1
 ```
 
 ```text
-✖ /L1/bath	bath	窓 0.00㎡ / 床 14.40㎡ = 窓なし (必要 1/7 ≈ 2.06㎡)
-✖ 1室中 1室が不足しています
+✖ /L1/bath	bath	window 0.00 m2 / floor 14.40 m2 = no window (needs 1/7 ≈ 2.06 m2)
+✖ Short of 1/7: 1 of 1 room (this is a validation judgement)
 ```
 
 Drop the `daylight:1` and it falls out of the verdict, without a character of the type changing.
 
 ```text
-採光の対象がありません (判定する室に daylight:1 を書きます)
+Nothing is in daylight scope (write daylight:1 on the rooms to be judged)
 ```
-
-("Nothing is in scope for the daylight check — write daylight:1 on the rooms to test.")
 
 A misspelled attribute key passes just as silently. The `nmae:浴室` above is not an error and rides straight into the canonical JSON. No display name is attached, and the tail of the path (`bath`) is used instead.
 
@@ -372,7 +369,7 @@ A misspelled attribute key passes just as silently. The `nmae:浴室` above is n
 ### 12. An empty file is green too
 
 ```text
-✔ 整合 — 空間 0 / 境界 0
+✔ Consistent — 0 spaces / 0 boundaries
 ```
 
 `check` looks only at whether the authored composition stands up. **Green is not evidence that something is written.** To look inside, use `stats` (area), `graph` (adjacency), `doors` (circulation), `light` (daylight), and `site` (the site).
@@ -380,7 +377,7 @@ A misspelled attribute key passes just as silently. The `nmae:浴室` above is n
 ### 13. The boundary count does not match the canonical JSON
 
 ```text
-✔ 整合 — 空間 2 / 境界 1
+✔ Consistent — 2 spaces / 1 boundary
 ```
 
 ```text
@@ -402,7 +399,7 @@ npx tsx src/cli.ts check corner.muro --json
  {
   "code": "BND04",
   "severity": "error",
-  "message": "空間が接していないため境界を導けません: /L1/a | /L1/b",
+  "message": "The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b",
   "line": 6,
   "file": "corner.muro",
   "path": [

@@ -38,7 +38,7 @@ function importsOf(path: string): string[] {
 
 const FILES = tsFiles(SRC).map((p) => ({ rel: relative(root, p), imports: importsOf(p) }));
 
-test("領域: core は検証にも描画にも依存しない (一方向 — spec/scope.md §1)", () => {
+test("domains: core depends on neither validation nor drawing (one-way — spec/scope.md §1)", () => {
   const offenders: string[] = [];
   for (const f of FILES) {
     if (!f.rel.startsWith("src/core/")) continue;
@@ -49,11 +49,11 @@ test("領域: core は検証にも描画にも依存しない (一方向 — spe
   assert.deepEqual(
     offenders,
     [],
-    "core が凍らない領域を引いている — 凍る側へ汚れが染み出す:\n" + offenders.join("\n"),
+    "core pulls in a domain that does not freeze — the dirt seeps into the side that does:\n" + offenders.join("\n"),
   );
 });
 
-test("領域: 検証は core だけを引く (描画を引かない)", () => {
+test("domains: validation pulls in core only (it does not pull in drawing)", () => {
   const offenders: string[] = [];
   for (const f of FILES) {
     if (!f.rel.startsWith("src/validate/")) continue;
@@ -64,7 +64,7 @@ test("領域: 検証は core だけを引く (描画を引かない)", () => {
   assert.deepEqual(offenders, [], offenders.join("\n"));
 });
 
-test("領域: 描画は core だけを引く (検証を引かない — 描くことと判定は別)", () => {
+test("domains: drawing pulls in core only (it does not pull in validation — drawing and judging are separate)", () => {
   const offenders: string[] = [];
   for (const f of FILES) {
     if (!f.rel.startsWith("src/draw/")) continue;
@@ -75,7 +75,7 @@ test("領域: 描画は core だけを引く (検証を引かない — 描く�
   assert.deepEqual(offenders, [], offenders.join("\n"));
 });
 
-test("領域: 診断と判定は取り違えられない (フィールド名からして別)", () => {
+test("domains: a diagnostic and a finding cannot be mistaken for each other (the field names differ to begin with)", () => {
   const m = parse(`koyu 0.5
 grid X 0 1500 10000
 grid Y 0 10000 11000
@@ -88,7 +88,7 @@ boundary /site/yard /out/road-n`);
 
   const diags = checkDiagnostics(m);
   const findings = validate(m);
-  assert.ok(findings.length > 0, "この模型は判定に引っかかる (接道1500mm)");
+  assert.ok(findings.length > 0, "this model trips the validation (1500mm of road frontage)");
 
   for (const d of diags) {
     assert.ok("code" in d && "severity" in d);
@@ -97,22 +97,22 @@ boundary /site/yard /out/road-n`);
   }
   for (const f of findings) {
     assert.ok("rule" in f && "level" in f);
-    assert.equal("code" in f, false, "Finding が code を持つと core の診断と混ざる");
+    assert.equal("code" in f, false, "a Finding carrying code would mix with a core diagnostic");
     assert.equal("severity" in f, false);
   }
 });
 
-test("領域: 台帳が交わらない (同じ綴りが二つの面に無い)", () => {
+test("domains: the ledgers do not intersect (no spelling appears on both faces)", () => {
   const codes = new Set<string>(Object.keys(DIAGNOSTIC_CODES));
   for (const rule of Object.keys(VALIDATION_RULES)) {
-    assert.equal(codes.has(rule), false, `${rule} が両方の台帳にある`);
+    assert.equal(codes.has(rule), false, `${rule} is in both ledgers`);
     // 判定の規則名は必ずドットを持つ — core のコード (3字+2桁) と字面で見分けがつく
-    assert.match(rule, /^[a-z]+\.[a-z]+$/, `判定の規則名は chapter.rule の形にする: ${rule}`);
+    assert.match(rule, /^[a-z]+\.[a-z]+$/, `a validation rule name has the form chapter.rule: ${rule}`);
   }
-  for (const code of codes) assert.match(code, /^[A-Z]{3}\d{2}$/, `診断コードは3字+2桁: ${code}`);
+  for (const code of codes) assert.match(code, /^[A-Z]{3}\d{2}$/, `a diagnostic code is 3 letters and 2 digits: ${code}`);
 });
 
-test("台帳: VALIDATION_RULES と spec/validation.md の表が集合一致する", () => {
+test("ledger: VALIDATION_RULES and the table in spec/validation.md agree as sets", () => {
   const md = readFileSync(join(root, "spec/validation.md"), "utf8");
   const inSpec = new Map<string, string>();
   for (const m of md.matchAll(/^\| `([a-z.]+)` \| (violation|caution) \|/gm)) {
@@ -121,14 +121,14 @@ test("台帳: VALIDATION_RULES と spec/validation.md の表が集合一致す�
   assert.deepEqual(
     [...inSpec.keys()].sort(),
     Object.keys(VALIDATION_RULES).sort(),
-    "spec/validation.md の表と実装の台帳が食い違う",
+    "the table in spec/validation.md and the implementation ledger disagree",
   );
   for (const [rule, level] of inSpec) {
-    assert.equal(level, VALIDATION_RULES[rule as keyof typeof VALIDATION_RULES], `${rule} の level`);
+    assert.equal(level, VALIDATION_RULES[rule as keyof typeof VALIDATION_RULES], `the level of ${rule}`);
   }
 });
 
-test("台帳: guide/validation.md の節が VALIDATION_RULES と集合一致し、level も一致する", () => {
+test("ledger: the sections of guide/validation.md agree with VALIDATION_RULES as sets, and the levels match too", () => {
   const md = readFileSync(join(root, "guide/validation.md"), "utf8");
   const lines = md.split("\n");
   const found = new Map<string, string>();
@@ -147,6 +147,6 @@ test("台帳: guide/validation.md の節が VALIDATION_RULES と集合一致し�
   }
   assert.deepEqual([...found.keys()].sort(), Object.keys(VALIDATION_RULES).sort());
   for (const [rule, level] of found) {
-    assert.equal(level, VALIDATION_RULES[rule as keyof typeof VALIDATION_RULES], `${rule} の level`);
+    assert.equal(level, VALIDATION_RULES[rule as keyof typeof VALIDATION_RULES], `the level of ${rule}`);
   }
 });

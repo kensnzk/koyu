@@ -19,7 +19,7 @@ const BASE = [
 
 // ---- 正準JSON: 無損失 ----
 
-test("正準JSON: 境界の向き (a) が保存され、swingの意味がJSONだけで復元できる", () => {
+test("canonical JSON: the boundary orientation (a) is preserved, so the meaning of swing is recoverable from the JSON alone", () => {
   const rooms = "space /L1/z room X1..X2 Y1..Y2\nspace /L1/a room X2..X3 Y1..Y2";
   const A = parse(`${BASE}\n${rooms}\nboundary /L1/z /L1/a\n  door w:800 swing:a`);
   const B = parse(`${BASE}\n${rooms}\nboundary /L1/a /L1/z\n  door w:800 swing:a`);
@@ -31,7 +31,7 @@ test("正準JSON: 境界の向き (a) が保存され、swingの意味がJSONだ
   assert.match(jb, /"a": "\/L1\/a"/);
 });
 
-test("正準JSON: segの明示位置も書かれた表記のまま保存される", () => {
+test("canonical JSON: an explicit seg position is preserved in the notation as written", () => {
   const m = parse(
     `${BASE}\nspace /L1/z room X1..X2 Y1..Y2\nspace /L1/n room X1..X2 Y2..Y3\nboundary /L1/z /L1/n t:100\n  seg w:1000 at:X1+2000`,
   );
@@ -40,7 +40,7 @@ test("正準JSON: segの明示位置も書かれた表記のまま保存され�
 
 // ---- 正準JSON: 宣言順に依らない ----
 
-test("正準JSON: 開口の宣言順はバイト列を変えない", () => {
+test("canonical JSON: the declaration order of openings does not change the bytes", () => {
   const src = (doors: string) =>
     `${BASE}\nspace /L1/z room X1..X2 Y1..Y2\nspace /L1/a room X2..X3 Y1..Y2\nboundary /L1/z /L1/a\n${doors}`;
   const j1 = toCanonical(parse(src("  door w:700 at:0.25\n  door w:700 at:0.75")));
@@ -48,7 +48,7 @@ test("正準JSON: 開口の宣言順はバイト列を変えない", () => {
   assert.equal(j1, j2);
 });
 
-test("正準JSON: 同じ空間対の境界 (edge違い) の宣言順もバイト列を変えない", () => {
+test("canonical JSON: the declaration order of boundaries on the same pair of spaces (differing edge) does not change the bytes either", () => {
   const src = (bounds: string) =>
     `${BASE}\nspace /L1/a room X2..X3 Y1..Y2\nspace /out exterior\n${bounds}`;
   const j1 = toCanonical(parse(src("boundary /L1/a /out edge:N t:100\nboundary /L1/a /out edge:S t:150")));
@@ -58,18 +58,18 @@ test("正準JSON: 同じ空間対の境界 (edge違い) の宣言順もバイト
 
 // ---- 境界の同一性 ----
 
-test("check: 同じ空間対の境界の重複はエラー (wall/open矛盾を含む)", () => {
+test("check: a duplicate boundary on the same pair of spaces is an error (a wall/open contradiction included)", () => {
   const r = check(
     parse(
       `${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /L1/b room X2..X3 Y1..Y2\nboundary /L1/a /L1/b\nboundary /L1/a /L1/b type:open`,
     ),
   );
   assert.equal(r.errors.length, 1);
-  assert.match(r.errors[0]!, /境界が重複しています: \/L1\/a \| \/L1\/b/);
-  assert.match(r.errors[0]!, /既出/);
+  assert.match(r.errors[0]!, /Duplicate boundary: \/L1\/a \| \/L1\/b/);
+  assert.match(r.errors[0]!, /first seen at line/);
 });
 
-test("check: 同じ空間対でもedgeが違えば別の境界 (エラーにしない)", () => {
+test("check: on the same pair of spaces a different edge is a different boundary (not an error)", () => {
   const r = check(
     parse(
       `${BASE}\nspace /L1/a room X2..X3 Y1..Y2\nspace /out exterior\nboundary /L1/a /out edge:N\nboundary /L1/a /out edge:S`,
@@ -78,19 +78,19 @@ test("check: 同じ空間対でもedgeが違えば別の境界 (エラーにし�
   assert.deepEqual(r.errors, []);
 });
 
-test("check: edge限定の有無が混在する対は警告 (線分が重なる)", () => {
+test("check: a pair mixing edge-restricted and unrestricted boundaries is a warning (the segments overlap)", () => {
   const r = check(
     parse(
       `${BASE}\nspace /L1/z room X1..X2 Y1..Y2\nspace /L1/n room X1..X2 Y2..Y3\nboundary /L1/z /L1/n\nboundary /L1/z /L1/n edge:N t:200`,
     ),
   );
   assert.deepEqual(r.errors, []);
-  assert.match(r.warnings.join("\n"), /edge 限定つきと無しの境界が併存/);
+  assert.match(r.warnings.join("\n"), /carries both an edge-restricted and an unrestricted boundary/);
 });
 
 // ---- 敷地: 凹多角形の包含と形の妥当性 ----
 
-test("check: 凹敷地 (U字) を跨ぐ建物は四隅が内側でもエラー", () => {
+test("check: a building straddling a concave site (U-shaped) is an error even when all four corners are inside", () => {
   const src = `koyu 0.4
 unit mm
 grid X 0 2000 28000 30000
@@ -104,7 +104,7 @@ space /L1/hall room X2..X3 Y2..Y4`;
   assert.match(f[0]!.message, /\/L1\/hall escapes the site shape/);
 });
 
-test("check: 建物の角が敷地境界線上に載るのは内側扱い (エラーにしない)", () => {
+test("check: a building corner sitting on the site boundary line counts as inside (not an error)", () => {
   const src = `${BASE}
 zone /site site:1
 polygon /site 0,0 8000,0 8000,8000 0,8000
@@ -112,14 +112,14 @@ space /L1/a room X1..X3 Y1..Y3`;
   assert.deepEqual(validate(parse(src)).filter((f) => f.rule === "site.escape"), []);
 });
 
-test("check: 敷地形状の自己交差と重複頂点はエラー", () => {
+test("check: a self-intersecting site shape and a duplicate vertex are errors", () => {
   const bow = check(parse(`${BASE}\nzone /site site:1\npolygon /site 0,0 8000,8000 8000,0 0,8000`));
-  assert.match(bow.errors.join("\n"), /敷地形状が自己交差しています/);
+  assert.match(bow.errors.join("\n"), /The site shape is self-intersecting/);
   const dup = check(parse(`${BASE}\nzone /site site:1\npolygon /site 0,0 0,0 8000,0 0,8000`));
-  assert.match(dup.errors.join("\n"), /敷地形状に重複する頂点があります/);
+  assert.match(dup.errors.join("\n"), /The site shape has a duplicate vertex/);
 });
 
-test("判定: 敷地面積の宣言と導出の食い違いは注意 (core ではなく検証の面)", () => {
+test("validation: a disagreement between the declared and derived site area is a caution (the validation face, not core)", () => {
   const src = (area: number) =>
     `${BASE}\nzone /site site:1 area:${area}\npolygon /site 0,0 10000,0 10000,10000 0,10000`;
   const bad = validate(parse(src(50))).filter((f) => f.rule === "site.area");
@@ -129,27 +129,27 @@ test("判定: 敷地面積の宣言と導出の食い違いは注意 (core で�
   assert.deepEqual(validate(parse(src(100))).filter((f) => f.rule === "site.area"), []);
   // core は面積の食い違いを言わない — 測量値との照合は建築の側の判断である
   assert.equal(
-    check(parse(src(50))).warnings.some((w) => w.includes("敷地面積")),
+    check(parse(src(50))).warnings.some((w) => w.includes("site area")),
     false,
   );
 });
 
 // ---- 字句・版 ----
 
-test("parse: 同一行の属性キーの重複はエラー (後勝ちで隠さない)", () => {
+test("parse: a duplicate attribute key on one line is an error (last-wins does not hide it)", () => {
   assert.throws(
     () => parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2 use:first use:second`),
-    /属性キーが重複しています: use/,
+    /Duplicate attribute key: use/,
   );
 });
 
-test("parse: 対応しないkoyu版はエラー", () => {
-  assert.throws(() => parse("koyu 0.9\nunit mm"), /対応していないkoyuの版です: 0\.9/);
+test("parse: an unsupported koyu version is an error", () => {
+  assert.throws(() => parse("koyu 0.9\nunit mm"), /Unsupported koyu version: 0\.9/);
 });
 
 // ---- 合成: レイヤー記録の完全性 ----
 
-test("合成: grid/levelだけのレイヤーもlayersに記録される", () => {
+test("composition: a layer holding only grid/level is recorded in layers too", () => {
   const m = parseFiles(
     {
       "main.muro": "koyu 0.4\nunit mm\nimport ./base.muro\nimport ./rooms.muro\n",
@@ -164,7 +164,7 @@ test("合成: grid/levelだけのレイヤーもlayersに記録される", () =>
 
 // ---- 検証ファンアウトの回収 (v0.10) ----
 
-test("正準JSON: 明示のlevel:は保存される (無いとJSONから所属が復元できない)", () => {
+test("canonical JSON: an explicit level: is preserved (without it the membership is not recoverable from the JSON)", () => {
   const mez = parse(
     "koyu 0.4\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0\nlevel L2 3000\nspace /Z/a room X1..X2 Y1..Y2 level:L1",
   );
@@ -174,24 +174,24 @@ test("正準JSON: 明示のlevel:は保存される (無いとJSONから所属�
   assert.doesNotMatch(toCanonical(plain), /"level"/);
 });
 
-test("正準JSON: 領域の逆順表記 (X2..X1) は昇順に正規化され、同じ矩形は同じバイト列", () => {
+test("canonical JSON: a reversed region notation (X2..X1) is normalized to ascending, so the same rectangle gives the same bytes", () => {
   const src = (r: string) => `koyu 0.4\nunit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0\nspace /L1/a room ${r}`;
   assert.equal(toCanonical(parse(src("X2..X1 Y2..Y1"))), toCanonical(parse(src("X1..X2 Y1..Y2"))));
 });
 
-test("parse: 数値必須の属性に非数値を書くとエラー (NaNの黙認はしない)", () => {
+test("parse: a non-numeric value on an attribute that requires a number is an error (NaN is not tolerated silently)", () => {
   assert.throws(
     () => parse("koyu 0.4\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0 h:24O0"),
-    /属性 h は数値で書きます: 24O0/,
+    /The attribute h is written as a number: 24O0/,
   );
 });
 
-test("parse: 裸のnameはエラー", () => {
-  assert.throws(() => parse("koyu 0.4\nname\nunit mm"), /name には値を書きます/);
+test("parse: a bare name is an error", () => {
+  assert.throws(() => parse("koyu 0.4\nname\nunit mm"), /name takes a value/);
 });
 
-test("parse: koyu行は2トークン・一度だけ (版なし・余剰・再宣言はエラー)", () => {
-  assert.throws(() => parse("koyu\nunit mm"), /koyu には版を書きます/);
-  assert.throws(() => parse("koyu 0.2 extra\nunit mm"), /余分なトークン/);
-  assert.throws(() => parse("koyu 0.4\nkoyu 0.4\nunit mm"), /一度だけ宣言します/);
+test("parse: the koyu line is two tokens and written once (no version, extra tokens and redeclaration are errors)", () => {
+  assert.throws(() => parse("koyu\nunit mm"), /koyu takes a version/);
+  assert.throws(() => parse("koyu 0.2 extra\nunit mm"), /Extra tokens on the koyu version declaration/);
+  assert.throws(() => parse("koyu 0.4\nkoyu 0.4\nunit mm"), /The koyu version is declared once/);
 });

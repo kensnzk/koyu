@@ -59,7 +59,7 @@ A building can also be written as a set of files and composed — additive layer
 
 1. **Install.** Clone this repository and run `npm install`.
 2. **Write the four lines above** into `first.muro`, then run `npx tsx src/cli.ts check first.muro` and `npx tsx src/cli.ts plan first.muro -o out/first.svg`.
-3. **Read a bundled example.** `npx tsx src/cli.ts check examples/two-rooms.muro` prints `✔ 整合 — 空間 3 / 境界 3`; `stats`, `graph`, and `doors` answer about the same file.
+3. **Read a bundled example.** `npx tsx src/cli.ts check examples/two-rooms.muro` prints `✔ Consistent — 3 spaces / 3 boundaries`; `stats`, `graph`, and `doors` answer about the same file.
 
 `grid` and `level` must be declared before anything that refers to them, and the type (`room`, the second positional word) is required; everything else — the `koyu` version line, `unit`, `name`, heights — is optional. From here, [guide/start.md](guide/start.md) (Japanese) is a managed path from this one room to a two-storey house with per-floor plans, a circulation check, and a daylight check.
 

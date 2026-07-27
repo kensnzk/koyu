@@ -31,15 +31,15 @@ The smallest four lines on which `check` is green and `plan` draws a drawing.
 | Line | Required? | Why |
 |---|---|---|
 | `grid X` / `grid Y` | **Required** | Coordinates are never written directly, so without grid lines a region cannot be written. Put them **before** any line that uses them |
-| `level L1 0` | Effectively required for a space with a region | Without it `check` stops at a warning, but `plan` dies with `レベルが定義されていません` ("no level is defined") |
+| `level L1 0` | Effectively required for a space with a region | Without it `check` stops at a warning, but `plan` dies with `No level is defined` |
 | The type of `space` (2nd positional) | **Required** | Omit it and the first region token is read as the type, giving `領域は X?..X? と Y?..Y? の2つで指定します` |
 | `koyu 0.5` | Optional | Omitted, the file is read with the newest semantics, 0.4. Write it in files whose meaning you want pinned ([language.md §2](../../spec/en/language.md)) |
 | `name …` / `unit mm` | Optional | |
-| `h:` / `slab:` | Optional | Omit them with a storey above and you get `レベル L2 に slab が未宣言のため、L1 との高さ検査ができません` |
+| `h:` / `slab:` | Optional | Omit them and neither floor nor ceiling is generated (`Level L2 has no slab:, so not one floor is generated on this storey` — SUF03) |
 | `space /out exterior` | Optional | But without it the building has no envelope (see "Defaults" below) |
 | `boundary` | Optional | The default between touching spaces is a wall ([language.md §4](../../spec/en/language.md)) |
 
-An empty file also gives `✔ 整合 — 空間 0 / 境界 0`. **Green means "what you wrote is free of contradiction", not "this stands up as a building".**
+An empty file also gives `✔ Consistent — 0 spaces / 0 boundaries`. **Green means "what you wrote is free of contradiction", not "this stands up as a building".**
 
 ## Foundation declarations — held once by the base layer ([language.md §2](../../spec/en/language.md))
 
@@ -136,12 +136,10 @@ The notation that writes **dimension and order** rather than position, letting p
 - Every fault is a parse error and surfaces in `check --json` as SYN01 (there is no dedicated code).
 
 ```text
-✖ 4行目: 帯の幅 5400mm に対し寸法の合計が 4600mm で、800mm 足りません (寸法を直すか、どれかを w:rest にします)
+✖ band.muro:line 4: The dimensions sum to 4600mm against a band width of 5400mm, 800mm short (fix a dimension, or make one of them w:rest)
   /L1/ldk w:3600
   /L1/hall w:1000
 ```
-
-("Against a band width of 5400 mm the dimensions total 4600 mm, 800 mm short — fix the dimensions, or make one of them w:rest.")
 
 A worked example is [examples/tower/typical.muro](../../examples/tower/typical.muro); why it was introduced is [ADR-0019](../../docs/decisions/0019-position-and-lines.md).
 

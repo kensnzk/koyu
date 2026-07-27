@@ -34,41 +34,41 @@ const grammar = JSON.parse(
 /** 文法の match から、英字だけの選択肢 `(a|b|c)` を採る */
 function alternatives(key: string): string[] {
   const match = grammar.repository[key]?.match;
-  assert.ok(match, `文法に ${key} が無い`);
+  assert.ok(match, `the grammar has no ${key}`);
   const m = /\(([A-Za-z][A-Za-z0-9|]*)\)/.exec(match);
-  assert.ok(m, `${key} に語の選択肢が無い: ${match}`);
+  assert.ok(m, `${key} carries no word alternatives: ${match}`);
   return m[1]!.split("|");
 }
 
 const parseSrc = read("src/core/parse.ts");
 
-test("行頭に書ける語: 文法 = src/core/parse.ts の switch (head)", () => {
+test("words that can start a line: grammar = the switch (head) in src/core/parse.ts", () => {
   // switch (head) { ... default: 未知のキーワード — 分岐の case がそのまま語彙である
   const body = parseSrc.slice(parseSrc.indexOf("switch (head) {"));
   const cases = [...body.matchAll(/^ {6}case "([a-z]+)":/gm)].map((m) => m[1]!);
-  assert.ok(cases.length > 5, "switch (head) の case が採れていない");
+  assert.ok(cases.length > 5, "no case was collected from switch (head)");
   assert.deepEqual(
     [...alternatives("keyword-directive")].sort(),
     [...new Set(cases)].sort(),
-    "editors/vscode/syntaxes/koyu.tmLanguage.json の keyword-directive を直す",
+    "fix keyword-directive in editors/vscode/syntaxes/koyu.tmLanguage.json",
   );
 });
 
-test("字下げして書ける語: 文法 = src/core/parse.ts の indented 分岐", () => {
+test("words that can be written indented: grammar = the indented branch in src/core/parse.ts", () => {
   const block = parseSrc.slice(
     parseSrc.indexOf("if (indented) {"),
     parseSrc.indexOf("switch (head) {"),
   );
   const heads = [...block.matchAll(/head === "([a-z]+)"/g)].map((m) => m[1]!);
-  assert.ok(heads.length > 3, "indented 分岐の語が採れていない");
+  assert.ok(heads.length > 3, "no word was collected from the indented branch");
   assert.deepEqual(
     [...alternatives("keyword-child")].sort(),
     [...new Set(heads)].sort(),
-    "editors/vscode/syntaxes/koyu.tmLanguage.json の keyword-child を直す",
+    "fix keyword-child in editors/vscode/syntaxes/koyu.tmLanguage.json",
   );
 });
 
-test("色の分かれる属性キー: 文法 = spec/vocabulary.md の★", () => {
+test("attribute keys that take their own color: grammar = the ★ rows of spec/vocabulary.md", () => {
   // 表の★行の第1列。`stair / ramp / escalator` は分け、`level:` は綴りを落とし、
   // 日本語の見出し (領域・軸・先頭トークン) は属性キーではないので採らない
   const starred = new Set<string>();
@@ -85,21 +85,21 @@ test("色の分かれる属性キー: 文法 = spec/vocabulary.md の★", () =>
   assert.deepEqual(
     [...alternatives("attr-ledger")].sort(),
     [...starred].sort(),
-    "spec/vocabulary.md の★を足したら attr-ledger も直す (掟7)",
+    "when a ★ is added to spec/vocabulary.md, fix attr-ledger too (law 7)",
   );
 });
 
-test("文法の include が repository に解決する", () => {
+test("every include in the grammar resolves to a repository entry", () => {
   for (const p of grammar.patterns) {
-    assert.ok(p.include.startsWith("#"), `include の書き方: ${p.include}`);
+    assert.ok(p.include.startsWith("#"), `how the include is spelled: ${p.include}`);
     const key = p.include.slice(1);
-    assert.ok(grammar.repository[key], `repository に ${key} が無い`);
+    assert.ok(grammar.repository[key], `the repository has no ${key}`);
   }
   assert.equal(grammar.scopeName, "source.koyu");
   assert.deepEqual(grammar.fileTypes, ["muro"]);
 });
 
-test("同梱の例に、文法が知らない行頭の語が無い", () => {
+test("no bundled example carries a line-head word the grammar does not know", () => {
   const directives = new Set(alternatives("keyword-directive"));
   const children = new Set(alternatives("keyword-child"));
   const files: string[] = [];
@@ -111,7 +111,7 @@ test("同梱の例に、文法が知らない行頭の語が無い", () => {
     }
   };
   walk(join(root, "examples"));
-  assert.ok(files.length > 10, "例が見つからない");
+  assert.ok(files.length > 10, "no example was found");
 
   for (const file of files) {
     const lines = readFileSync(file, "utf8").split("\n");
@@ -120,7 +120,7 @@ test("同梱の例に、文法が知らない行頭の語が無い", () => {
       if (!line.trim()) continue;
       const head = line.trim().split(/\s+/)[0]!;
       const known = /^\s/.test(line) ? children.has(head) : directives.has(head);
-      assert.ok(known, `${file}:${i + 1} の ${head} を文法が知らない`);
+      assert.ok(known, `the grammar does not know ${head} at ${file}:${i + 1}`);
     }
   }
 });

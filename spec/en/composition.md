@@ -85,12 +85,12 @@ koyu layers <entry.muro> --attrs
 ```
 
 ```text
-層 (弱い順 — 後の層ほど強い):
+Layers (weakest first — later layers are stronger):
   0	main.muro
   1	plan.muro
   2	as-built.muro
 
-属性の出所:
+Attribute provenance:
   boundary:/L1/a|/L1/b:t	← 2 as-built.muro
   space:/L1/a:h	← 2 as-built.muro
   space:/L1/a:spec	← 2 as-built.muro

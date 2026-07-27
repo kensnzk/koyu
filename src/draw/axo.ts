@@ -157,7 +157,7 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
     }
   }
 
-  if (prisms.length === 0) throw new Error("描くものがありません");
+  if (prisms.length === 0) throw new Error("There is nothing to draw");
 
   // ---- 投影して奥から描く (画家のアルゴリズム) ----
   prisms.sort((a, b) => a.depth - b.depth);
@@ -211,8 +211,8 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
     out.push(face(top, pr.fill, 1));
   }
   out.push(
-    `<text x="${M - 24}" y="${H - 12}" font-size="11" fill="${INK}">${esc(model.name ?? "無題")} — 軸測 (${dir}から)</text>`,
-    `<text x="${W - M + 24}" y="${H - 12}" text-anchor="end" font-size="8.5" fill="#a49b8a">koyu — 空間から生成 (床・屋根・壁・柱・縦動線)</text>`,
+    `<text x="${M - 24}" y="${H - 12}" font-size="11" fill="${INK}">${esc(model.name ?? "Untitled")} — axonometric (from ${dir})</text>`,
+    `<text x="${W - M + 24}" y="${H - 12}" text-anchor="end" font-size="8.5" fill="#a49b8a">koyu — generated from spaces (floors, roofs, walls, columns, vertical circulation)</text>`,
     "</svg>",
   );
   return out.join("\n") + "\n";

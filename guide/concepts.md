@@ -22,7 +22,7 @@ space /L1/a room X1..X2 Y1..Y2
 `koyu check` の返りはこうなる。
 
 ```text
-✔ 整合 — 空間 1 / 境界 0
+✔ Consistent — 1 space / 0 boundaries
 ```
 
 `koyu 0.5` も `unit mm` も `name` も要らない。**必要なのは、grid が二軸あること、それを使う行より前にあること、level が宣言されていること、`space` に型 (第2位置引数) が付いていることだけ**である。座標は直接書かない — 位置は常に通り芯の言葉で書く ([spec/language.md §2 通り参照とオフセット](../spec/language.md))。
@@ -38,16 +38,16 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
 ```
 
 ```text
-✔ 整合 — 空間 2 / 境界 1
+✔ Consistent — 2 spaces / 1 boundary
 ```
 
 境界を書いていないのに「境界 1」と出る。二室が接しているので、その間の壁が導かれている (§3)。`koyu graph` はその壁を見せる。
 
 ```text
 /L1/a (居室A)
-  | 壁 → /L1/b
+  | wall → /L1/b
 /L1/b (居室B)
-  | 壁 → /L1/a
+  | wall → /L1/a
 ```
 
 `space` 行だけのファイルが、欠けた図面ではなく完全な建築の記述である、というのがこの記法の出発点である。
@@ -69,7 +69,7 @@ space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b
 ```
 
-エラーは `空間が接していないため境界を導けません: /L1/a | /L1/b` (BND04)。この二室は角で触れているが、koyu の「接する」は**長さのある辺を共有すること**を意味する。角の一点は接触ではない。
+エラーは `The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b` (BND04)。この二室は角で触れているが、koyu の「接する」は**長さのある辺を共有すること**を意味する。角の一点は接触ではない。
 
 **二つ目 — 一つの関係が複数の線分に割れることがある。** 領域を持たない空間 (外部など) との境界は、部屋の外周から他の空間と接する区間を除いた残りであり、たいてい複数の辺に分かれる。関係は一つ、線分は複数。だから**外壁に開口を置くときは `edge:` でどの辺かを選ぶ**。
 
@@ -83,7 +83,7 @@ boundary /L1/living /out
   door w:900
 ```
 
-エラーは `境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/living | /out)` (OPN05)。
+エラーは `There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/living | /out)` (OPN05)。
 
 方位は座標系から決まる。**X は東が正、Y は北が正。したがって N=+Y、S=-Y、E=+X、W=-X** (`src/model.ts` の `Edge`)。そして `edge` は **a側 — 先に書いた空間 — の矩形から見た辺**である。`boundary /L1/living /out` の `edge:S` は living の矩形の南辺を指す。書く順を入れ替えれば意味が変わる。
 
@@ -109,7 +109,7 @@ boundary /L1/a /L1/b t:120
 boundary /L1/a /L1/b type:open
 ```
 
-エラーは `境界が重複しています: /L1/a | /L1/b (既出: …6行目)` (BND02)。後勝ちで黙って上書きすれば、この壁が壁なのか開口なのかは行の並び順で決まってしまう ([ADR-0013](../docs/decisions/0013-semantic-guarantees.md))。
+エラーは `Duplicate boundary: /L1/a | /L1/b (first seen at …:line 6)` (BND02)。後勝ちで黙って上書きすれば、この壁が壁なのか開口なのかは行の並び順で決まってしまう ([ADR-0013](../docs/decisions/0013-semantic-guarantees.md))。
 
 なお `boundary` は空間より先に書いてもよい — 関係の宣言は前方参照できる。前後関係が要るのは `grid` と `level` だけで、これらは使う行より前になければならない。
 
@@ -157,14 +157,14 @@ boundary /L1/b /out t:150 spec:EW
 **先頭セグメントは、同名の `level` が宣言されているときにだけレベルになる。** `/L1/` と書いただけではレベルは生まれない。`level L1 0` の行が別に要る。これが無いと `check` は警告を出すが**エラーにはならない**。
 
 ```text
-⚠ nolevel.muro:3行目: /L1/x は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)
-✔ 整合 — 空間 1 / 境界 0 (警告 1)
+⚠ nolevel.muro:line 3: /L1/x has a region, but its level cannot be determined (give it at the head of the path or with level:)
+✔ Consistent — 1 space / 0 boundaries (1 warning)
 ```
 
 警告文はパスを指しているが、原因はパスではなく `level` 行の不在である。そして `check` が終了コード 0 で通したこのファイルを `plan` は描けない。
 
 ```text
-Error: レベルが定義されていません
+Error: No level is defined
     at svgPlan (/…/src/plan.ts:29:21)
 ```
 
@@ -181,7 +181,7 @@ space /L1/home/a room X1..X2 Y1..Y2
 space /L1/home/b room X2..X3 Y1..Y2
 ```
 
-エラーは `空間の領域が重なっています: /L1/home と /L1/home/a` (GEO01)。**住戸を室に割るときは、親を `space` ではなく `zone` にする。** ゾーンは幾何を持たず、パス接頭辞で配下を束ねるだけの、数える集約である。
+エラーは `Space regions overlap: /L1/home and /L1/home/a` (GEO01)。**住戸を室に割るときは、親を `space` ではなく `zone` にする。** ゾーンは幾何を持たず、パス接頭辞で配下を束ねるだけの、数える集約である。
 
 ```muro
 grid X 0 3600 7200
@@ -195,8 +195,8 @@ space /L1/home/b room X2..X3 Y1..Y2
 `koyu stats` は個々の室を出しつつ、パス接頭辞での合計を保つ。
 
 ```text
-ゾーン別 (数える集約):
-  /L1/home	住戸	28.80㎡
+By zone (counted aggregation):
+  /L1/home	住戸	28.80 m2
 ```
 
 「間取りに割っても住戸の言葉を失わない」というのがこの二役の効き目である ([spec/semantics.md §6 stats](../spec/semantics.md))。だから**集計したい単位が、パスの先頭側に来る**。同梱例には二つの流儀がある — `/L1/room` (レベルを先頭に置く: two-rooms・office・mansion・tower) と、`/home/room` + `level:L1` (住戸を先頭に置く: house)。優劣ではなく、何で束ねたいかの違いである。
@@ -241,10 +241,10 @@ boundary /L1/balcony /out type:open
 
 ```text
   /L1/room	room	ldk	14.40㎡
-  /L1/balcony	balcony	balcony	7.20㎡ (半屋外・別掲)
-  小計 14.40㎡
-合計 14.40㎡ (屋内床面積)
-半屋外 7.20㎡ (バルコニー・屋外階段等 — 算入条件は法規細部のため別掲)
+  /L1/balcony	balcony	balcony	7.20 m2 (semi-outdoor, reported separately)
+  Subtotal 14.40 m2
+Total 14.40 m2 (indoor floor area)
+Semi-outdoor 7.20 m2 (balconies, external stairs and the like — whether they count is a matter of regulatory detail, so it is reported separately)
 ```
 
 導出のもう一段外側に**生成**がある。平面図は導出ではなく生成であり、同じ構成から複数の形が出る。それは欠陥ではなく、構成が同じなら形の違いは建築の同一性を損なわない、という立場の表れである ([spec/semantics.md §7](../spec/semantics.md))。
@@ -274,7 +274,7 @@ space /L1/a room X1..X2 Y1..Y2 nmae:居間
 ```
 
 ```text
-✖ 4行目: /L1/a に台帳に無い属性 nmae: があります (綴りを確かめるか、運ぶだけの値なら名前空間を付けます — 例 acme.nmae:居間)
+✖ line 4: /L1/a carries nmae:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.nmae:居間)
 ```
 
 **かつてこれは黙って通っていた。**`nmae:` は `name:` の誤字だが、台帳に無い語は「間違い」ではなく「解釈されない語」だ、という理屈で正準JSONにそのまま出ていた。理屈は一貫していたが、代償が高すぎた — 同じ理屈で `heigh:2400` は高さ不変量の検査 (HGT01) を、`sit:1` は敷地の判定を、`stiar:N` は縦動線を丸ごと無音にし、**どれも緑のまま**だった。
@@ -311,8 +311,8 @@ boundary /L1/bath /out edge:S t:150
 ```
 
 ```text
-✖ /L1/bath	浴室	窓 0.00㎡ / 床 4.00㎡ = 窓なし (必要 1/7 ≈ 0.57㎡)
-✖ 1室中 1室が不足しています
+✖ /L1/bath	浴室	window 0.00 m2 / floor 4.00 m2 = no window (needs 1/7 ≈ 0.57 m2)
+✖ Short of 1/7: 1 of 1 room (this is a validation judgement)
 ```
 
 `daylight:1` を落とす。型は一字も動かさない。
@@ -322,7 +322,7 @@ space /L1/bath wet X1..X2 Y1..Y2 name:浴室
 ```
 
 ```text
-採光の対象がありません (判定する室に daylight:1 を書きます)
+Nothing is in daylight scope (write daylight:1 on the rooms to be judged)
 ```
 
 どちらのファイルも `check` は緑である。**型は室の説明であって、判定の入口ではない。** 逆に、型を `wet` から `bedroom` に替えても判定は一切動かない — 判定を掛けるかどうかは書き手が `daylight` で宣言することであり、室の名前から推し量るものではないからである (建築基準法2条4号の居室も「継続的に使用する室」という実態の判断であって、室名では決まらない)。なお属性が名指しているのはツールの判定であって法概念ではない — 法28条1項の採光義務は住宅・学校・病院等に限られるので、両者は同じ集合ではない。
@@ -355,19 +355,19 @@ boundary /L1/hall /L2/bed type:stair
 ```
 
 ```text
-✔ 整合 — 空間 3 / 境界 3
+✔ Consistent — 3 spaces / 3 boundaries
 ```
 
 外壁があり、階段があり、整合している。しかし外へ出られない。
 
 ```text
 $ koyu doors two.muro /L2/bed /out
-/L2/bed から /out へは到達できません
+Cannot reach /out from /L2/bed
 ```
 
 「接しているのに境界が宣言されていない」という警告はかつて存在したが、既定が壁になったことで役目を終え、廃止された (BND07 は欠番 — [ADR-0014](../docs/decisions/0014-default-boundaries.md))。**動線を見る道具は `doors` であって `check` ではない。**
 
-この非対称の極端な場合として、**空のファイルも `check` は緑にする** — `✔ 整合 — 空間 0 / 境界 0`。成立していない構成が無いのだから、それは正しい。`check` は「書かれたものに矛盾が無い」ことの検査であって、「必要なものが書かれている」ことの検査ではない。
+この非対称の極端な場合として、**空のファイルも `check` は緑にする** — `✔ Consistent — 0 spaces / 0 boundaries`。成立していない構成が無いのだから、それは正しい。`check` は「書かれたものに矛盾が無い」ことの検査であって、「必要なものが書かれている」ことの検査ではない。
 
 ## この先
 

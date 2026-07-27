@@ -31,15 +31,15 @@ space /L1/a room X1..X2 Y1..Y2
 | 行 | 要否 | 理由 |
 |---|---|---|
 | `grid X` / `grid Y` | **必須** | 座標の直書きが無いため、通り芯が無いと領域を書けない。使う行より**前**に置く |
-| `level L1 0` | 領域を持つ空間には実質必須 | 無いと `check` は警告どまりだが、`plan` は `レベルが定義されていません` で落ちる |
+| `level L1 0` | 領域を持つ空間には実質必須 | 無いと `check` は警告どまりだが、`plan` は `No level is defined` で落ちる |
 | `space` の型 (第2位置引数) | **必須** | 省略すると領域の1つ目が型と読まれ、`領域は X?..X? と Y?..Y? の2つで指定します` になる |
 | `koyu 0.5` | 任意 | 省略時は最新版 0.5 の意味論。意味を固定したいファイルは書く ([language.md §2](../spec/language.md)) |
 | `name …` / `unit mm` | 任意 | |
-| `h:` / `slab:` | 任意 | 上階があるのに書かないと `レベル L2 に slab が未宣言のため、L1 との高さ検査ができません` の警告が出る |
+| `h:` / `slab:` | 任意 | 書かないと床も天井も生成されない (`Level L2 has no slab:, so not one floor is generated on this storey` — SUF03) |
 | `space /out exterior` | 任意 | ただし書かないと建物に外皮が無い (下の「既定値」参照) |
 | `boundary` | 任意 | 接する空間の既定は壁 ([language.md §4](../spec/language.md)) |
 
-空のファイルも `✔ 整合 — 空間 0 / 境界 0` になる。**緑は「書いたものに矛盾が無い」であって「建物として成立している」ではない。**
+空のファイルも `✔ Consistent — 0 spaces / 0 boundaries` になる。**緑は「書いたものに矛盾が無い」であって「建物として成立している」ではない。**
 
 ## 基盤の宣言 — base層が一度だけ持つ ([language.md §2](../spec/language.md))
 
@@ -136,7 +136,7 @@ band X X1..X3 Y1..Y2
 - 破れはすべて parse のエラーで、`check --json` では SYN01 として出る (専用コードは無い)。
 
 ```text
-✖ 4行目: 帯の幅 5400mm に対し寸法の合計が 4600mm で、800mm 足りません (寸法を直すか、どれかを w:rest にします)
+✖ band.muro:line 4: The dimensions sum to 4600mm against a band width of 5400mm, 800mm short (fix a dimension, or make one of them w:rest)
   /L1/ldk w:3600
   /L1/hall w:1000
 ```

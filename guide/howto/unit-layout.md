@@ -31,8 +31,8 @@ space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1
 ```
 
 ```text
-✖ 空間の領域が重なっています: /L3/A と /L3/A/ldk
-✖ 空間の領域が重なっています: /L3/A と /L3/A/bed1
+✖ Space regions overlap: /L3/A and /L3/A/ldk
+✖ Space regions overlap: /L3/A and /L3/A/bed1
 ```
 
 パスの親子関係は面積の二重算入を免除しない。`/L3/A` と `/L3/A/ldk` は、パスの上で親子であっても、平面の上では重なった二つの空間である。
@@ -50,7 +50,7 @@ zone /L3/A name:Aタイプ use:exclusive
 `space` の行を消し忘れると、ゾーンと同じパスの空間が残って警告になる。
 
 ```text
-⚠ unit.muro:9行目: ゾーンと同じパスの空間があります (どちらかに寄せます): /L3/A
+⚠ unit.muro:line 9: A space shares its path with a zone (settle on one of them): /L3/A
 ```
 
 ### 2. 子の空間で住戸の領域を敷き詰める
@@ -123,7 +123,7 @@ boundary /L3/A/hall /L3/corridor t:180 spec:RC
 
 ```text
 $ npx tsx src/cli.ts check unit.muro
-✔ 整合 — 空間 6 / 境界 10
+✔ Consistent — 6 spaces / 10 boundaries
 ```
 
 宣言した境界は 5 本だが、`境界 10` と出る。接して宣言の無い組 (洋室1と洋室2、水回りと内廊下 …) に既定の壁が導出されているからである ([ADR-0014](../../docs/decisions/0014-default-boundaries.md))。
@@ -134,21 +134,21 @@ $ npx tsx src/cli.ts check unit.muro
 $ npx tsx src/cli.ts stats unit.muro
 L3
   /L3/A/ldk	LDK	ldk	33.28㎡
-  /L3/A/bed1	洋室1	bedroom	10.24㎡
-  /L3/A/bed2	洋室2	bedroom	7.68㎡
-  /L3/A/wet	水回り	wet	7.68㎡
-  /L3/A/hall	玄関	hall	2.56㎡
-  /L3/corridor	内廊下	corridor	25.60㎡
-  小計 87.04㎡
-合計 87.04㎡ (屋内床面積)
-ゾーン別 (数える集約):
-  /L3/A	Aタイプ	61.44㎡
+  /L3/A/bed1	洋室1	bedroom	10.24 m2
+  /L3/A/bed2	洋室2	bedroom	7.68 m2
+  /L3/A/wet	水回り	wet	7.68 m2
+  /L3/A/hall	玄関	hall	2.56 m2
+  /L3/corridor	内廊下	corridor	25.60 m2
+  Subtotal 87.04 m2
+Total 87.04 m2 (indoor floor area)
+By zone (counted aggregation):
+  /L3/A	Aタイプ	61.44 m2
   ldk: 33.28㎡
   bedroom: 17.92㎡
   wet: 7.68㎡
   hall: 2.56㎡
   corridor: 25.60㎡
-use別: exclusive 61.44㎡ (70.6%) / common 25.60㎡ (29.4%)
+By use: exclusive 61.44 m2 (70.6%) / common 25.60 m2 (29.4%)
 ```
 
 `ゾーン別` の行が住戸の面積であり、`use別` の専有・共用比も一行も書き足さずに出る。`use:exclusive` はゾーンから配下の室へ継承される。
@@ -157,7 +157,7 @@ use別: exclusive 61.44㎡ (70.6%) / common 25.60㎡ (29.4%)
 
 ```text
 $ npx tsx src/cli.ts doors unit.muro /L3/A/bed1 /L3/corridor
-3枚 — /L3/A/bed1 → /L3/A/ldk → /L3/A/hall → /L3/corridor
+3 doors — /L3/A/bed1 → /L3/A/ldk → /L3/A/hall → /L3/corridor
 ```
 
 ## 割ると変わること

@@ -6,7 +6,7 @@ A table for looking up the words of koyu. Each row is a one-sentence definition,
 
 **The norm for a definition is in spec/.** The sentence here is a summary for looking things up, not a contract. Where they disagree, [spec/](../../spec/en/README.md) is right. Why a word has the shape it has is held by the [ADRs](../../docs/decisions/) (in Japanese), and the relations between words are held by [concepts.md](concepts.md).
 
-The terms are in five groups — the skeleton, the elements, derived properties, files and versions, and checking and queries. The Japanese term is given alongside each English one, because the tool's output and the bundled examples use it. The full translation contract is [docs/terminology.md](../../docs/terminology.md).
+The terms are in five groups — the skeleton, the elements, derived properties, files and versions, and checking and queries. The Japanese term is given alongside each English one, because the bundled examples and the ADRs use it. The full translation contract is [docs/terminology.md](../../docs/terminology.md).
 
 ## The skeleton — what fixes position
 

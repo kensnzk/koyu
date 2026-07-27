@@ -37,6 +37,8 @@ boundary /L1/a /out t:150
   window w:600 h:600 edge:S
 ```
 
+`Insufficient daylight: /L1/a — effective window 0.36 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)`
+
 **Cause** — the effective window area is below one seventh of the floor area.
 
 **Fix** — enlarge or add windows, or check that `h:` is written (windows without `h` cannot be counted).
@@ -55,6 +57,8 @@ space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
   window w:3000 edge:S
 ```
+
+`Window area is not fully counted: /L1/a has a window without h: (write h: on it)`
 
 **Cause** — a `window` without `h` has no area and was dropped from the sum.
 
@@ -81,7 +85,7 @@ boundary /L1/a /out edge:W t:200
 boundary /L1/b /out t:150
 ```
 
-`外皮に面していない外周があります: /L1/a — S 4000mm / N 4000mm (合計 8000mm・2区間)。外部への境界を書きます`
+`Perimeter not faced by any envelope: /L1/a — S 4000mm / N 4000mm (8000mm over 2 run(s)). Write a boundary to the exterior`
 
 **Why** — of `/L1/a`'s outline, everything except the east side it shares with `/L1/b` — the north, the south and the rest of the west — faces neither another space nor a declared boundary. Because a boundary was written on the west, this level counts as **having started to describe its envelope**, so the remaining holes are counted.
 
@@ -107,7 +111,7 @@ space /L2/s stair X1..X2 Y1..Y1+4600
 stack s L1..L2 type:stair
 ```
 
-`導出された段の寸法が窮屈です: 17段 蹴上176mm / 踏面150mm (2×蹴上+踏面 = 502mm、目安 550〜700mm)`
+`Derived step dimensions are cramped: 17 risers of 176mm, tread 150mm (2*riser+tread = 502mm; expected 550-700mm)`
 
 **Why** — **neither the number of risers nor the going is written anywhere.** Both fall out of the storey height and the region, which is precisely why checking the derived result is worth doing ([ADR-0021](../../docs/decisions/0021-vertical-circulation.md) — write nothing, check everything). Here the shaft is too shallow and the going comes out at 150mm.
 
@@ -130,7 +134,7 @@ space /L2/r ramp X1..X2 Y1..Y2
 stack r L1..L2 type:stair
 ```
 
-`導出された勾配 1/1.3 が宣言 1/12 より急です (走り長を伸ばすか階高を下げます)`
+`Derived slope 1/1.3 is steeper than the declared 1/12 (lengthen the run or lower the storey height)`
 
 **Why** — the slope is not written either; it is the level difference over the derived run length. `slope:` is **not the slope but the limit you will accept**, and exists only so that this check can be made. Escalators get the same code without any `slope:` when the derived pitch leaves the usual band (about 1/1.7, i.e. 30°).
 
@@ -150,7 +154,7 @@ space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
 ```
 
-`/L1/s は縦動線の形を持ちますが、上下を繋ぐ垂直境界がありません (stack か boundary type:stair を書きます — 形はあってもグラフでは通れません)`
+`/L1/s has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)`
 
 **Why** — **shape and topology are written separately.** `stair:N` builds treads; it does not claim the two levels are connected. Without a vertical boundary (`stack` / `boundary type:stair`), `doors` will not find a route upstairs. A stair that is drawn but not walkable is the hardest mismatch to notice, so it warns.
 
@@ -175,7 +179,7 @@ space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /out t:150
 ```
 
-`外部へ到達できません: /L1/a (通れる境界を辿って外部空間へ出られません — 扉を書きます)`
+`Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)`
 
 **Cause** — a space with a region cannot reach an exterior space along passable boundaries. **What is asked is reachability, not the presence of a door** — a door that leads into a dead end still leads nowhere. Here the wall to the outside was written, but no opening in it. Shafts (people cannot pass), voids (no floor) and exteriors themselves are out of scope, and a model with no exterior space at all is not asked.
 
@@ -195,7 +199,7 @@ space /L1/a room X2..X3 Y1..Y2
 boundary /L1/a /L1/v type:open
 ```
 
-`扉が吹抜けにしか開いていません: /L1/a (床の無い所へ開いているので出入りできません)`
+`Doors open only onto a void: /L1/a (they open where there is no floor, so nobody can pass)`
 
 **Cause** — the space has passable boundaries, but every one of them leads to a `type:void`. A void is continuous as space yet has no floor, so the door opens onto a hole: you go through it and arrive nowhere. It happens when units are lined up facing an atrium and the boundary to the corridor is forgotten.
 
@@ -220,7 +224,7 @@ boundary /L1/t /out
 boundary /L1/s /out t:150
 ```
 
-`/L1/s からの避難が賃貸区画を通ります (テナントが施錠すると外部へ出られません)`
+`Escape from /L1/s passes through rentable space (if the tenant locks up, there is no way out)`
 
 **Cause** — every route from the stair to the outside passes through a `use:rentable` space. The moment the tenant locks up, that stair is no longer an escape.
 
@@ -243,7 +247,7 @@ boundary /L1/p /out
   door w:900 edge:S
 ```
 
-`車が外部へ出られません: /L1/p (幅2400mm以上の開口・type:open の境界・斜路のいずれかが要ります)`
+`No vehicle route to the exterior: /L1/p (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)`
 
 **Cause** — a car cannot leave a `use:parking` space. **People get out through a 900mm door and a stair, so `access.unreachable` never sees this.** A car passes only a `type:open` boundary, a door at least 2400mm wide, or a ramp (the vertical link of a space carrying `ramp:`) — the vertical link of a stair is, to a car, merely a step.
 
@@ -270,7 +274,7 @@ boundary /L1/b /L1/e
   door w:900
 ```
 
-`/L1/e へ共用廊下からバックヤードを通らずに届きません (客が乗れない縦動線です)`
+`/L1/e cannot be reached from a common corridor without passing through back-of-house (visitors cannot use this vertical circulation)`
 
 **Cause** — a common space that declares a vertical run (`stair:` / `escalator:` — [ADR-0021](../../docs/decisions/0021-vertical-circulation.md)) belongs to the customer's route, yet it cannot be reached from a common corridor without crossing a `type:backyard`. Entry to the space itself must be **horizontal**: allow its own vertical link and the circle "come down that escalator from the floor above and you arrive at its foot" closes, letting the stranded run pass unnoticed. A building with no common corridor (`type:corridor` and `use:common`) draws no customer/staff distinction, so it is not asked.
 
@@ -294,7 +298,7 @@ boundary /L1/a /L1/b
   door w:900 at:X2
 ```
 
-`柱が扉を塞いでいます: /L1/a | /L1/b の扉 (幅900mm) が X2・Y2 の柱と重なります`
+`A column blocks a door: the door (900mm wide) on /L1/a | /L1/b overlaps the column at X2/Y2`
 
 **Cause** — **when two elements both refuse to write their position, the collision shows up only in the derivation.** Columns come from the intersections of the grid lines ([ADR-0023](../../docs/decisions/0023-columns.md)), doors from a point on the boundary segment (a ratio in `at:`, or a grid reference), so neither carries a coordinate in the source. A grid intersection also sits on the boundary segment, so a door pushed towards a grid line always collides.
 
@@ -318,7 +322,7 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 space /L1/a room X2..X3 Y1..Y2
 ```
 
-`/L1/a が敷地形状からはみ出しています (14000,0 付近)`
+`/L1/a escapes the site shape (near 14000,0)`
 
 **Cause** — a space with a region has gone outside the site. Beyond the containment of the four corners it also looks at vertex intrusion and edge crossing, so it catches this correctly on a concave site too. On the boundary counts as inside (1 mm tolerance). Spaces beneath the site zone (`/site/…`) and `exterior`s are out of scope.
 
@@ -338,7 +342,7 @@ polygon /site 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```
 
-`敷地面積の宣言と導出が食い違います: 宣言 120㎡ / 導出 100.00㎡` — "declared 120 m² / derived 100.00 m²".
+`Declared and derived site areas disagree: declared 120 m2 / derived 100.00 m2`
 
 **Cause** — the zone's `area:` (the surveyed value) and the area computed from the `polygon` differ by more than 0.05 m². Either a mistyped vertex, a transcription error in `area:`, or a survey update reflected on only one side.
 
@@ -360,6 +364,8 @@ space /site/yard yard X1..X3 Y1..Y2 level:L1
 space /out/road-n exterior X1..X2 Y2..Y3 name:北側道路 road:4000 level:L1
 boundary /site/yard /out/road-n
 ```
+
+`Road frontage is too short: /out/road-n — 1500mm (needs at least 2000mm)`
 
 **Cause** — the boundary segments between the site zone and a road-bearing exterior space total less than 2 m. Core derives the frontage length; the 2 m threshold is an architectural rule and lives here.
 

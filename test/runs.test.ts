@@ -21,7 +21,7 @@ level L2 3000 h:2700 slab:300
 
 // ---- 縦動線: 形は書かれず、導出される ----
 
-test("階段: 段数・蹴上げ・踏面は書かれていないのに導出される", () => {
+test("stair: the number of risers, the riser and the tread are derived though none of them is written", () => {
   const m = parse(`${BASE}
 space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
@@ -42,7 +42,7 @@ stack s L1..L2 type:stair
   assert.deepEqual(r.warnings, []);
 });
 
-test("同じ階段室でも階高が変われば段割りが変わる (書き分けはどこにも無い)", () => {
+test("the same stairwell splits into different steps once the storey height changes (nowhere is it written twice)", () => {
   const src = (pitch: number) => `koyu 0.5
 grid X 0 3000
 grid Y 0 8000
@@ -62,7 +62,7 @@ stack s L1..L2 type:stair
   assert.ok(a.parts.some((p) => p.kind === "landing"));
 });
 
-test("走りは領域の縁から始まらない — 乗り込みの床が扉の開く場所になる", () => {
+test("a run does not start at the edge of the region — the entry floor is where the door opens", () => {
   const m = parse(`${BASE}
 space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
@@ -77,7 +77,7 @@ stack s L1..L2 type:stair
   assert.equal(run.parts.filter((p) => p.kind === "landing").length, 0);
 });
 
-test("エスカレーター: 呼び幅で台数が決まり、上りの隣は下りになる", () => {
+test("escalator: the nominal width decides how many units, and the one beside an up unit goes down", () => {
   const m = parse(`${BASE}
 space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:N
 space /L2/e escalator X1..X2 Y1..Y1+7000
@@ -92,7 +92,7 @@ stack e L1..L2 type:stair
   assert.equal(flights[0]!.s1 - flights[0]!.s0, 1200);
 });
 
-test("エスカレーター: 下りの台も上りと同じ向きに傾く (進む向きは幾何ではない)", () => {
+test("escalator: the down unit tilts the same way as the up unit (the direction of travel is not geometry)", () => {
   // reversed は「人が t の減る向きに進む」だけを言う。機械としては二台とも同じ向きに
   // 架かっている — ここを混ぜたために、下りの台が鏡像に傾いていた
   const m = parse(`${BASE}
@@ -108,11 +108,11 @@ stack e L1..L2 type:stair
   assert.deepEqual(
     inc.map((s) => (s.kind === "incline" ? s.up : "")),
     ["N", "N", "N", "N", "N", "N"],
-    "下りの台も欄干も N 側へ上がる",
+    "the down unit and its balustrades rise toward N as well",
   );
 });
 
-test("平面: 並列の台はどちらも切られて現れ、切断線はその台の位置に引かれる", () => {
+test("plan: both parallel units appear cut, and the break line is drawn at that unit's own position", () => {
   // 可視を部品の番号で決めていたため、二台目が自分の階の平面から丸ごと消えていた
   const m = parse(`${BASE}
 space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:N
@@ -120,21 +120,21 @@ space /L2/e escalator X1..X2 Y1..Y1+7000
 stack e L1..L2 type:stair
 `);
   const [d] = runDrawsForLevel(m, "L1");
-  assert.equal(d!.arrows.length, 2, "上りと下りの二本");
+  assert.equal(d!.arrows.length, 2, "one up and one down");
   assert.deepEqual(d!.arrows.map((a) => a.label).sort(), ["DN", "UP"]);
   // 矢印は台ごとに違う s (幅方向) に乗る — 同じ台に二本ではない
   assert.notEqual(d!.arrows[0]!.x1, d!.arrows[1]!.x1);
   // 下りの矢印は下流へ向かう。up は N (+Y) なので DN は y が減る向き
   const dn = d!.arrows.find((a) => a.label === "DN")!;
-  assert.ok(dn.y2 < dn.y1, "DN は上り勾配の逆を指す");
+  assert.ok(dn.y2 < dn.y1, "DN points against the ascending slope");
   const up = d!.arrows.find((a) => a.label === "UP")!;
   assert.ok(up.y2 > up.y1);
-  assert.equal(d!.breaks.length, 4, "台ごとに平行二本");
+  assert.equal(d!.breaks.length, 4, "two parallel lines per unit");
   // 切断線は台の幅の中に収まる (一台の位置を全台へ配っていない)
   for (const b of d!.breaks) assert.ok(b.x2 - b.x1 <= 1200 + 1);
 });
 
-test("平面: 下りる走りは上る走りの残りに現れる — 並列でも台ごとに", () => {
+test("plan: the descending run appears in what the ascending run left — per unit even when parallel", () => {
   const m = parse(`${BASE}
 level L3 6000 h:2700 slab:300
 space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:N
@@ -145,11 +145,11 @@ stack e L1..L3 type:stair
   const l2 = runDrawsForLevel(m, "L2");
   assert.equal(l2.length, 2); // 上る走りと下りる走り
   const down = l2.find((d) => d.arrows.length > 0 && d.breaks.length === 0)!;
-  assert.equal(down.arrows.length, 2, "下階の走りも二台とも見える");
-  assert.equal(down.outline.length, 4, "台ごとに側線二本");
+  assert.equal(down.arrows.length, 2, "both units of the run from the storey below show");
+  assert.equal(down.outline.length, 4, "two side lines per unit");
 });
 
-test("平面: 双子は位置だけでなく向きも揃って初めて双子になる", () => {
+test("plan: twins are twins only once the direction matches too, not the position alone", () => {
   // 上る走りの切断位置を、向きの違う下りの走りへ当てると鏡像の平面が出る。
   // 揃っていないなら双子ではない — 下りる走りは丸ごと見える
   const src = (upper: string) => `${BASE}
@@ -168,11 +168,11 @@ stack s L1..L3 type:stair
   const same = span("N");
   // 向きが違えば双子ではない — 切断位置を借りず、丸ごと見える
   const flipped = span("S");
-  assert.ok(same < flipped - 1000, `揃う ${Math.round(same)} < 違う ${Math.round(flipped)}`);
+  assert.ok(same < flipped - 1000, `aligned ${Math.round(same)} < flipped ${Math.round(flipped)}`);
   assert.equal(Math.round(flipped), 4800); // 乗り込みを除いた走りの全長
 });
 
-test("階段: 折返しの踏面は走りごとに違う — 検査は最も窮屈な走りが代表する", () => {
+test("stair: a return stair has a different tread per flight — the tightest flight represents it for checking", () => {
   const m = parse(`${BASE}
 space /L1/s stair X1..X2 Y1..Y1+7000 stair:N form:return
 space /L2/s stair X1..X2 Y1..Y1+7000
@@ -185,7 +185,7 @@ stack s L1..L2 type:stair
   assert.ok(run.tread <= Math.max(...per) + 1);
 });
 
-test("斜路: 勾配は書かれず導出され、宣言 slope: より急なら警告", () => {
+test("ramp: the slope is derived rather than written, and a slope steeper than the declared slope: draws a finding", () => {
   const m = parse(`${BASE}
 space /L1/r ramp X1..X2 Y1..Y1+7000 ramp:N slope:12
 space /L2/r ramp X1..X2 Y1..Y1+7000
@@ -198,7 +198,7 @@ stack r L1..L2 type:stair
   assert.ok(validate(m).some((f) => f.rule === "run.slope" && f.message.includes("slope")));
 });
 
-test("形はあってもグラフでは通れない — 垂直境界が無ければ判定 (run.disconnected)", () => {
+test("the shape is there but the graph cannot pass — with no vertical boundary a finding comes out (run.disconnected)", () => {
   const m = parse(`${BASE}
 space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
@@ -209,7 +209,7 @@ space /L2/s stair X1..X2 Y1..Y1+7000
   assert.equal(doorsBetween(m, "/L1/s", "/L2/s"), undefined);
 });
 
-test("縦動線は高さ不変量から免除される (天井が面でないため)", () => {
+test("vertical circulation is exempt from the height invariant (its ceiling is not a surface)", () => {
   // 天井高2700 + 上階slab300 = 3000 で階高ちょうど。階段室だけ h を超えても通る
   const m = parse(`${BASE}
 space /L1/s stair X1..X2 Y1..Y1+7000 h:2900 stair:N
@@ -219,7 +219,7 @@ stack s L1..L2 type:stair
   assert.equal(check(m).errors.length, 0);
 });
 
-test("平面: 上る走りは切断線で切れ、その先に下りる走りが見える", () => {
+test("plan: the ascending run is cut at the break line, and beyond it the descending run shows", () => {
   const m = parse(`${BASE}
 space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
@@ -227,7 +227,7 @@ stack s L1..L2 type:stair
 `);
   const l1 = runDrawsForLevel(m, "L1");
   assert.equal(l1.length, 1); // L1には上る走りだけ (下はレベルが無い)
-  assert.ok(l1[0]!.breaks.length > 0, "切断線が引かれる");
+  assert.ok(l1[0]!.breaks.length > 0, "a break line is drawn");
   assert.deepEqual(l1[0]!.arrows.map((a) => a.label), ["UP"]);
 
   const l2 = runDrawsForLevel(m, "L2");
@@ -236,7 +236,7 @@ stack s L1..L2 type:stair
   assert.equal(l2[0]!.breaks.length, 0);
 });
 
-test("立体: 階段は段の集まり、斜路は傾いた版になる", () => {
+test("solid: a stair becomes a set of treads, a ramp becomes an inclined slab", () => {
   const m = parse(`${BASE}
 space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
@@ -258,7 +258,7 @@ stack r L1..L2 type:stair
 
 // ---- 描かれた線 (ADR-0022) ----
 
-test("線: 一方が失う面積をもう一方が得る (合計は保存される)", () => {
+test("line: the area one side loses the other gains (the total is preserved)", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000 24000
 grid Y 0 16000
@@ -281,7 +281,7 @@ boundary /L1/p /L1/e t:120
   assert.ok(w > 128 && e < 128);
 });
 
-test("線: 境界の実現は導出ではなく書かれた線そのものになる", () => {
+test("line: the boundary is realized as the written line itself, not as something derived", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000
 grid Y 0 16000
@@ -298,7 +298,7 @@ boundary /L1/a /L1/b t:120
   assert.deepEqual([segs[0]!.x1, segs[0]!.y1, segs[0]!.x2, segs[0]!.y2], [8000, 0, 12000, 16000]);
 });
 
-test("線: 片側が外部なら外皮を切り、切られた側に壁は立たない", () => {
+test("line: with exterior on one side it cuts the envelope, and no wall stands on the cut-off side", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000
 grid Y 0 16000
@@ -317,7 +317,7 @@ boundary /L1/a /out edge:N t:200
   assert.equal(len, 8000);
 });
 
-test("線: 分離しない線はエラー (LIN01)", () => {
+test("line: a line that does not separate is an error (LIN01)", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000
 grid Y 0 16000
@@ -327,12 +327,12 @@ space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
   line X1,Y1 X1,Y2
 `);
-  assert.ok(check(m).errors.some((e) => e.includes("分離していません")));
+  assert.ok(check(m).errors.some((e) => e.includes("does not separate")));
 });
 
 // ---- 柱 (ADR-0023) ----
 
-test("柱: 位置は書かれず、通りの交点と床の交わりから現れる", () => {
+test("column: the position is not written; it emerges where grid intersections meet a floor", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000
 grid Y 0 8000 16000
@@ -348,7 +348,7 @@ column 800 L1
   assert.equal(check(m).errors.length, 0);
 });
 
-test("柱: 空しか支えない床には立たない — 露天テラスは除き、上階の張り出し下には立つ (ADR-0030)", () => {
+test("column: none stands on a floor that carries only sky — an open terrace is excluded, but under an overhang above they stand (ADR-0030)", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000
 grid Y 0 8000 16000
@@ -365,7 +365,7 @@ column 800 L1..L2
   // L1: 全6交点 (屋内)。L2: /L2/b の内側4点は立つが、露天テラス /L2/t だけの X3列は立たない
   assert.equal(columnsFor(m, "L1").length, 6);
   const l2 = columnsFor(m, "L2").map((c) => c.grid);
-  assert.deepEqual(l2, ["X1・Y1", "X1・Y2", "X2・Y1", "X2・Y2"]);
+  assert.deepEqual(l2, ["X1/Y1", "X1/Y2", "X2/Y1", "X2/Y2"]);
   // 同じテラスでも上に床が重なれば (張り出しの下) 柱は戻る
   const m2 = parse(`koyu 0.5
 grid X 0 8000 16000
@@ -382,7 +382,7 @@ column 800 L2
   assert.equal(columnsFor(m2, "L2").length, 4); // X2,X3 × Y1,Y2 — 全交点が戻る
 });
 
-test("柱: 通りの限定と、床の無い階での警告", () => {
+test("column: restricting the grid lines, and the warning on a storey with no floor", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000
 grid Y 0 8000
@@ -393,12 +393,12 @@ column 800 L1 x:X2
 column 600 L2
 `);
   assert.equal(columnsFor(m, "L1").length, 2); // X2 × Y1,Y2
-  assert.ok(check(m).warnings.some((w) => w.includes("立つ柱がありません")));
+  assert.ok(check(m).warnings.some((w) => w.includes("Not one column stands")));
 });
 
 // ---- 面の要素 (ADR-0024) ----
 
-test("面: 床・天井・屋根は語彙を持たず slab と h から現れる", () => {
+test("surface: floor, ceiling and roof carry no vocabulary of their own; they emerge from slab and h", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000
 grid Y 0 8000
@@ -423,7 +423,7 @@ space /L2/b room X1..X2 Y1..Y2
   assert.deepEqual(of("roof", "/L2/b").map((s) => [s.z0, s.z1]), [[5600, 6000]]);
 });
 
-test("面: 吹抜けに床は無く、縦動線に天井は無く、ceiling:0 は現し天井", () => {
+test("surface: a void has no floor, vertical circulation has no ceiling, and ceiling:0 is an exposed ceiling", () => {
   const m = parse(`koyu 0.5
 grid X 0 3000 6000 9000
 grid Y 0 8000
@@ -438,15 +438,15 @@ stack s L1..L2 type:stair
 `);
   const all = slabs(m);
   const kinds = (path: string) => all.filter((s) => s.space === path).map((s) => s.kind).sort();
-  assert.ok(!kinds("/L2/v").includes("floor"), "吹抜けに床は無い");
-  assert.ok(!kinds("/L1/s").includes("ceiling"), "縦動線に天井は無い (面でない)");
-  assert.ok(!kinds("/L1/a").includes("ceiling"), "ceiling:0 は現し天井");
-  assert.ok(kinds("/L1/a").includes("floor"), "床はある");
+  assert.ok(!kinds("/L2/v").includes("floor"), "a void has no floor");
+  assert.ok(!kinds("/L1/s").includes("ceiling"), "vertical circulation has no ceiling (it is not a surface)");
+  assert.ok(!kinds("/L1/a").includes("ceiling"), "ceiling:0 is an exposed ceiling");
+  assert.ok(kinds("/L1/a").includes("floor"), "the floor is there");
 });
 
 // ---- 軸測図 (ADR-0026) ----
 
-test("軸測: 立体がSVGとして出る — 床・壁・柱・縦動線がすべて投影される", () => {
+test("axo: the solid comes out as SVG — floors, walls, columns and vertical circulation are all projected", () => {
   const m = parse(`koyu 0.5
 grid X 0 3000 6000
 grid Y 0 8000
@@ -467,14 +467,14 @@ stack s L1..L2 type:stair
 `);
   const svg = svgAxo(m);
   assert.match(svg, /^<svg xmlns/);
-  assert.match(svg, /軸測/);
+  assert.match(svg, /axonometric/);
   // 段板・柱・床がそれぞれ面として出る (面の数が桁で足りていることを見る)
-  assert.ok(svg.split("<path").length > 100, "面が生成されている");
+  assert.ok(svg.split("<path").length > 100, "faces are generated");
   // 向きを変えると別の投影になる
   assert.notEqual(svgAxo(m, { dir: "NW" }), svg);
 });
 
-test("軸測: 立体には底面がある — 下から覗ける所で中が見えない", () => {
+test("axo: a solid carries a bottom face — where it can be looked at from below, the inside does not show", () => {
   // 箱を「上面+側面」だけで作ると**底の無い箱**になる。普通は見えないが、
   // -l で階を絞った最下段や、外へ張り出した柱では下から覗けて中身が見える。
   // 実際に見えた (外周柱の足元が抜けていた)
@@ -499,10 +499,10 @@ boundary /L1/a /out t:200 spec:CW`);
     (shapes.get(key) ?? shapes.set(key, []).get(key)!).push(y0!);
   }
   const paired = [...shapes.values()].filter((ys) => ys.length >= 2 && Math.max(...ys) - Math.min(...ys) > 1);
-  assert.ok(paired.length > 0, "同じ形が上下に二つ現れない — 底面が描かれていない");
+  assert.ok(paired.length > 0, "the same shape does not appear twice, one above the other — no bottom face is drawn");
 });
 
-test("軸測: 床の不在は屋根の不在ではない — 吹抜けの上は塞がる", () => {
+test("axo: the absence of a floor is not the absence of a roof — a void is closed over", () => {
   const m = parse(`koyu 0.5
 grid X 0 4000 8000
 grid Y 0 6000
@@ -521,7 +521,7 @@ boundary /L1/a /L2/v type:void
   assert.deepEqual(roofs.filter((r) => r.space === "/L1/a").length, 0);
 });
 
-test("線: 切り落とされた側では隣室との共有辺も短くなる (壁が外へ飛び出さない)", () => {
+test("line: on the cut-off side the edge shared with the neighbour shortens too (no wall juts outside)", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000
 grid Y 0 8000 16000
@@ -545,7 +545,7 @@ boundary /L1/a /out t:200
 
 // ---- 母集団のずれ (ADR-0027) — どれも check が緑のまま黙って壊れていた ----
 
-test("線: 離れた翼が隅切りの向きを裏返さない (L字の室が消えない)", () => {
+test("line: a distant wing does not flip the direction of the corner cut (the L-shaped room does not vanish)", () => {
   const m = parse(`koyu 0.5
 grid X 0 7000 8000 10000
 grid Y 0 8000 10000 40000
@@ -560,7 +560,7 @@ boundary /L1/a /out t:150
   assert.equal(areaM2(m.spaces.get("/L1/a")!), 296);
 });
 
-test("屋根: 上階だけ斜めに切ると、その真下に屋根が架かる", () => {
+test("roof: cut only the upper storey on a diagonal and a roof spans right below the cut", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000
 grid Y 0 16000
@@ -576,14 +576,14 @@ boundary /L2/b /out t:200
 `);
   assert.equal(check(m).errors.length, 0);
   const cut = 256 - areaM2(m.spaces.get("/L2/b")!)!; // 切り落とした面積
-  assert.ok(cut > 0, "上階が切れている");
+  assert.ok(cut > 0, "the upper storey is cut");
   const roof = slabs(m).filter((s) => s.kind === "roof" && s.space === "/L1/a");
-  assert.ok(roof.length > 0, "切り落とした範囲に屋根が架かる");
+  assert.ok(roof.length > 0, "a roof spans the range that was cut off");
   const a = roof.reduce((t, s) => t + polygonAreaM2(s.outline), 0);
-  assert.ok(Math.abs(a - cut) < 0.5, `屋根の面積が切り落とし分と一致する: ${a} vs ${cut}`);
+  assert.ok(Math.abs(a - cut) < 0.5, `the roof area matches what was cut off: ${a} vs ${cut}`);
 });
 
-test("線: 軸平行でも「何も切っていません」と誤報しない", () => {
+test("line: an axis-parallel line is not falsely reported as cutting nothing", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000 24000
 grid Y 0 16000
@@ -595,12 +595,12 @@ boundary /L1/a /L1/b t:120
 `);
   const r = check(m);
   assert.deepEqual(r.errors, []);
-  assert.deepEqual(r.warnings.filter((w) => w.includes("切っていません")), []);
+  assert.deepEqual(r.warnings.filter((w) => w.includes("cuts nothing")), []);
   // 割付は X2 で分かれていたが、線が X3 へ動かした
   assert.equal(areaM2(m.spaces.get("/L1/a")!), 256);
 });
 
-test("既定境界: 線で接触が消えた組に、出所の無い境界を作らない", () => {
+test("default boundary: no boundary without a source is made for a pair whose contact a line removed", () => {
   const m = parse(`koyu 0.5
 grid X 0 3000 4000 9000
 grid Y 0 4500
@@ -615,5 +615,5 @@ boundary /L1/b /out t:150
   // 以前は rects の接触で既定壁が生まれ、線分ゼロの境界に位置なしの BND04 が出た
   assert.deepEqual(check(m).errors, []);
   const derived = m.boundaries.filter((b) => b.derived);
-  for (const b of derived) assert.ok(segmentsFor(m, b).length > 0, `${b.a}|${b.b} に線分がある`);
+  for (const b of derived) assert.ok(segmentsFor(m, b).length > 0, `${b.a}|${b.b} has segments`);
 });

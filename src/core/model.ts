@@ -216,7 +216,7 @@ export interface Boundary {
 
 /** エラー・警告の位置表記 — 合成時はどのレイヤーのことかを言葉にする (ADR-0010) */
 export function srcRef(line: number, file?: string): string {
-  return `${file ? `${file}:` : ""}${line}行目`;
+  return `${file ? `${file}:` : ""}line ${line}`;
 }
 
 export interface Model {
@@ -377,7 +377,7 @@ export class SourceError extends Error {
     /** 出所ファイル (合成時) */
     public file?: string,
   ) {
-    super(`${file ? `${file}:` : ""}${line}行目: ${raw}`);
+    super(`${file ? `${file}:` : ""}line ${line}: ${raw}`);
     this.name = "SourceError";
   }
 }
@@ -463,7 +463,7 @@ export function columnSites(
           pointInPolygon({ x: gx.v, y: gy.v }, p, 1),
         ),
       );
-      if (inside) out.push({ x: gx.v, y: gy.v, grid: `${gx.n}・${gy.n}` });
+      if (inside) out.push({ x: gx.v, y: gy.v, grid: `${gx.n}/${gy.n}` });
     }
   }
   return out;

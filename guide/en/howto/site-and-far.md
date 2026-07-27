@@ -139,16 +139,16 @@ polygon /site -2000,-3000 9000,-3000 9000,11000 -2000,11000
 ```
 
 ```text
-✔ 整合 — 空間 9 / 境界 16
+✔ Consistent — 9 spaces / 16 boundaries
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地形状: 多角形 4頂点 (polygon宣言 — 所与のジオメトリ)
-  敷地面積: 宣言 154.00㎡ / 導出 154.00㎡ ✔ 一致
-  接道: /out/road (南側道路) 幅員6000mm ・ 接道長 11000mm ✔ 2m以上
-  建築面積 (水平投影・粗): 56.00㎡ → 建蔽率 36.4%
-  延べ面積: 56.00㎡ → 容積率 36.4%
+Site /site (敷地)
+  Site shape: polygon with 4 vertices (a polygon declaration — given geometry)
+  Site area: declared 154.00 m2 / derived 154.00 m2
+  Road: /out/road (南側道路) width 6000mm / frontage 11000mm
+  Building footprint (horizontal projection, rough): 56.00 m2 → building coverage ratio 36.4%
+  Total floor area: 56.00 m2 → floor area ratio 36.4%
 ```
 
 Reading it: `敷地形状` is the site shape, `敷地面積` the site area with `宣言` (declared) and `導出` (derived) and `✔ 一致` ("they agree"), `接道` the road frontage with its width and length and a check that it is at least 2 m, `建築面積` the building footprint giving `建蔽率` (the coverage ratio), and `延べ面積` the gross floor area giving `容積率` (the floor area ratio).
@@ -167,40 +167,38 @@ Reading it: `敷地形状` is the site shape, `敷地面積` the site area with 
 Drop the wall boundaries to the neighbors (the seven to `/out/n`, `/out/e`, and `/out/w`) and `check` stays green while the building footprint more than doubles.
 
 ```text
-✔ 整合 — 空間 9 / 境界 9
-敷地 /site (敷地)
-  敷地形状: 多角形 4頂点 (polygon宣言 — 所与のジオメトリ)
-  敷地面積: 宣言 154.00㎡ / 導出 154.00㎡ ✔ 一致
-  接道: /out/road (南側道路) 幅員6000mm ・ 接道長 11000mm ✔ 2m以上
-  建築面積 (水平投影・粗): 121.00㎡ → 建蔽率 78.6%
-  延べ面積: 121.00㎡ → 容積率 78.6%
+✔ Consistent — 9 spaces / 9 boundaries
+Site /site (敷地)
+  Site shape: polygon with 4 vertices (a polygon declaration — given geometry)
+  Site area: declared 154.00 m2 / derived 154.00 m2
+  Road: /out/road (南側道路) width 6000mm / frontage 11000mm
+  Building footprint (horizontal projection, rough): 121.00 m2 → building coverage ratio 78.6%
+  Total floor area: 121.00 m2 → floor area ratio 78.6%
 ```
 
 A garden with no boundary to the outside is not derived as semi-outdoor and is counted as interior.
 
 ### When the declared and derived values disagree
 
-Change `area:` to 160.40 and `check` warns (the reconciliation runs only when a polygon is present).
+Change `area:` to 160.40 and `check` stays green. **Nothing about the composition is broken** — a disagreement between the surveyed value and the polygon is an architectural judgement, and `validate` is what says it (the reconciliation runs only when a polygon is present).
 
 ```text
-⚠ site.muro:16行目: 敷地面積の宣言と導出が食い違います: 宣言 160.4㎡ / 導出 154.00㎡
-✔ 整合 — 空間 9 / 境界 16 (警告 1)
+⚠ [site.area] site.muro:line 16: Declared and derived site areas disagree: declared 160.4 m2 / derived 154.00 m2
+Validation — 0 violations / 1 caution
 ```
 
 ```text
-  敷地面積: 宣言 160.40㎡ / 導出 154.00㎡ ⚠ 不一致 (測量値と多角形の食い違い)
+  Site area: declared 160.40 m2 / derived 154.00 m2
 ```
 
-("The declared and derived site areas disagree" / "mismatch between the surveyed value and the polygon.")
-
-The diagnostic code is SIT05 (a warning). The tolerance is ±0.05 m². `check --json` emits the structured diagnostic with its code.
+The rule is `site.area` (a caution). The tolerance is ±0.05 m². `validate --json` emits the structured finding.
 
 ```text
 [
  {
-  "code": "SIT05",
-  "severity": "warning",
-  "message": "敷地面積の宣言と導出が食い違います: 宣言 160.4㎡ / 導出 154.00㎡",
+  "rule": "site.area",
+  "level": "caution",
+  "message": "Declared and derived site areas disagree: declared 160.4 m2 / derived 154.00 m2",
   "line": 16,
   "file": "site.muro",
   "path": [
@@ -210,7 +208,7 @@ The diagnostic code is SIT05 (a warning). The tolerance is ±0.05 m². `check --
 ]
 ```
 
-To stop on warnings in CI, use `koyu check <file> --strict` (exit code 1).
+What should stop CI is a violation — `validate` exits 1 only when there is one.
 
 ### On the bundled examples
 
@@ -219,11 +217,11 @@ npx tsx src/cli.ts site examples/house.muro
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地面積: 宣言 126.24㎡ / 導出 126.24㎡ ✔ 一致
-  接道: /out/road (南側道路) 幅員6000mm ・ 接道長 10280mm ✔ 2m以上
-  建築面積 (水平投影・粗): 53.00㎡ → 建蔽率 42.0%
-  延べ面積: 92.75㎡ → 容積率 73.5%
+Site /site (敷地)
+  Site area: declared 126.24 m2 / derived 126.24 m2
+  Road: /out/road (南側道路) width 6000mm / frontage 10280mm
+  Building footprint (horizontal projection, rough): 53.00 m2 → building coverage ratio 42.0%
+  Total floor area: 92.75 m2 → floor area ratio 73.5%
 ```
 
 `examples/house.muro` has no polygon, so the derived site area comes from the union of the garden, the paths, and the building.
@@ -233,13 +231,13 @@ npx tsx src/cli.ts site examples/tower/main.muro
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地形状: 多角形 5頂点 (polygon宣言 — 所与のジオメトリ)
-  敷地面積: 宣言 1097.80㎡ / 導出 1097.80㎡ ✔ 一致
-  接道: /out/road-s (南側道路) 幅員12000mm ・ 接道長 40600mm ✔ 2m以上
-  接道: /out/road-e (東側道路) 幅員6000mm ・ 接道長 20200mm ✔ 2m以上
-  建築面積 (水平投影・粗): 569.60㎡ → 建蔽率 51.9%
-  延べ面積: 4785.92㎡ → 容積率 436.0%
+Site /site (敷地)
+  Site shape: polygon with 5 vertices (a polygon declaration — given geometry)
+  Site area: declared 1097.80 m2 / derived 1097.80 m2
+  Road: /out/road-s (南側道路) width 12000mm / frontage 40600mm
+  Road: /out/road-e (東側道路) width 6000mm / frontage 20200mm
+  Building footprint (horizontal projection, rough): 569.60 m2 → building coverage ratio 51.9%
+  Total floor area: 4785.92 m2 → floor area ratio 436.0%
 ```
 
 The exit code of `site` is 0 when there is a site zone and 1 when there is not.

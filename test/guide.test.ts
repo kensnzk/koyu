@@ -84,7 +84,7 @@ function scan(path: string): { file: string; blocks: Block[]; prose: Array<{ lin
   const lines = readFileSync(path, "utf8").split("\n");
   const blocks: Block[] = [];
   const prose: Array<{ line: number; text: string }> = [];
-  let heading = "(見出しの前)";
+  let heading = "(before the first heading)";
   let index = 0;
   let i = 0;
   while (i < lines.length) {
@@ -118,7 +118,7 @@ const SCANNED = FILES.map(scan);
 const BLOCKS = SCANNED.flatMap((s) => s.blocks);
 
 /** 失敗メッセージの見出し — どのファイルのどのブロックかを必ず名指す */
-const where = (b: Block) => `${b.file}:${b.line} 「${b.heading}」 (${b.index}番目のブロック, \`\`\`${b.tag})`;
+const where = (b: Block) => `${b.file}:${b.line} "${b.heading}" (block ${b.index}, \`\`\`${b.tag})`;
 
 const render = (d: Diagnostic) => `${d.code}(${d.severity}) ${d.message}`;
 
@@ -140,81 +140,81 @@ function run(source: string): Outcome {
   }
 }
 
-test("guide: 走査が空でない (このテスト自体が無言で通らないための足場)", () => {
-  assert.ok(FILES.length >= 10, `guide/ の.mdが少なすぎる: ${FILES.length}`);
+test("guide: the scan is not empty (scaffolding so this test cannot pass in silence)", () => {
+  assert.ok(FILES.length >= 10, `too few .md files under guide/: ${FILES.length}`);
   assert.ok(
     BLOCKS.filter((b) => b.tag === "muro").length >= 10,
-    "```muro ブロックが見つからない — 走査器が壊れている",
+    "no ```muro block was found — the scanner is broken",
   );
   assert.ok(
     BLOCKS.filter((b) => b.tag === "muro-bad").length >= 10,
-    "```muro-bad ブロックが見つからない — 走査器が壊れている",
+    "no ```muro-bad block was found — the scanner is broken",
   );
 });
 
 // ---- (3) 印の台帳 ----
 
-test("guide: コードフェンスの印は台帳のものだけ (綴り間違いで検証がすり抜けない)", () => {
+test("guide: fence tags come only from the ledger (a misspelling cannot slip past validation)", () => {
   const used = new Map<string, Block>();
   for (const b of BLOCKS) if (!used.has(b.tag)) used.set(b.tag, b);
   for (const [tag, b] of used) {
     assert.ok(
       FENCE_TAGS.has(tag),
       tag === ""
-        ? `${where(b)}: 情報文字列の無い裸のフェンス。何のブロックかを必ず書く (検証されない\`\`\`textでもよい)`
-        : `${where(b)}: 未知のフェンス印 \`\`\`${tag}。台帳 FENCE_TAGS は {${[...FENCE_TAGS].join(", ")}}`,
+        ? `${where(b)}: a bare fence with no info string. Always say what the block is (an unvalidated \`\`\`text is fine)`
+        : `${where(b)}: unknown fence tag \`\`\`${tag}. The FENCE_TAGS ledger is {${[...FENCE_TAGS].join(", ")}}`,
     );
   }
 });
 
 // ---- (1) ```muro は通る ----
 
-test("guide: ```muro はすべて解析でき、checkのエラーが0件", () => {
+test("guide: every ```muro parses and check reports zero errors", () => {
   for (const b of BLOCKS.filter((x) => x.tag === "muro")) {
     const r = run(b.body);
     assert.equal(
       r.thrown,
       undefined,
-      `${where(b)}: 解析に失敗した — ${r.thrown?.message}\n${b.body}`,
+      `${where(b)}: failed to parse — ${r.thrown?.message}\n${b.body}`,
     );
     assert.deepEqual(
       r.errors.map(render),
       [],
-      `${where(b)}: 完全なファイルのはずがエラーが出た (断片なら\`\`\`muro-partにする)\n${b.body}`,
+      `${where(b)}: this should be a complete file, yet errors came out (make it \`\`\`muro-part if it is a fragment)\n${b.body}`,
     );
   }
 });
 
 // ---- (1b) ```json は JSON として読める ----
 
-test("guide: ```json はすべて JSON.parse を通る (設定例を貼り間違えない)", () => {
+test("guide: every ```json passes JSON.parse (no mis-pasted configuration example)", () => {
   for (const b of BLOCKS.filter((x) => x.tag === "json")) {
     try {
       JSON.parse(b.body);
     } catch (e) {
-      assert.fail(`${where(b)}: JSONとして読めない — ${(e as Error).message}\n${b.body}`);
+      assert.fail(`${where(b)}: not readable as JSON — ${(e as Error).message}\n${b.body}`);
     }
   }
 });
 
 // ---- (2) ```muro-bad は落ちる ----
 
-test("guide: ```muro-bad はすべて落ちる (SourceError か errorの診断)", () => {
+test("guide: every ```muro-bad fails (a SourceError or an error diagnostic)", () => {
   for (const b of BLOCKS.filter((x) => x.tag === "muro-bad")) {
     const r = run(b.body);
     if (r.thrown) {
       assert.ok(
         r.thrown instanceof SourceError,
-        `${where(b)}: SourceError以外の例外で落ちた — ${r.thrown.stack}`,
+        `${where(b)}: it failed with an exception other than SourceError — ${r.thrown.stack}`,
       );
       continue;
     }
     assert.ok(
       r.errors.length > 0,
-      `${where(b)}: 誤りの例のはずが通ってしまう。` +
+      `${where(b)}: this should be a bad example, yet it passes. ` +
         (r.warnings.length > 0
-          ? `出たのは警告だけ (${r.warnings.map(render).join(" / ")}) — \`\`\`muro-warn にする\n`
-          : "診断が1件も出ない — 例を直すか印を改める\n") +
+          ? `only warnings came out (${r.warnings.map(render).join(" / ")}) — make it \`\`\`muro-warn\n`
+          : "not one diagnostic comes out — fix the example or change the tag\n") +
         b.body,
     );
   }
@@ -222,18 +222,18 @@ test("guide: ```muro-bad はすべて落ちる (SourceError か errorの診断)"
 
 // ---- (3) ```muro-warn は警告だけを出す ----
 
-test("guide: ```muro-warn はエラー0件・警告1件以上 (checkは通り--strictで落ちる)", () => {
+test("guide: every ```muro-warn has zero errors and at least one warning (check passes, --strict fails)", () => {
   for (const b of BLOCKS.filter((x) => x.tag === "muro-warn")) {
     const r = run(b.body);
-    assert.equal(r.thrown, undefined, `${where(b)}: 解析に失敗した — ${r.thrown?.message}\n${b.body}`);
+    assert.equal(r.thrown, undefined, `${where(b)}: failed to parse — ${r.thrown?.message}\n${b.body}`);
     assert.deepEqual(
       r.errors.map(render),
       [],
-      `${where(b)}: 警告の例のはずがエラーが出た — \`\`\`muro-bad にする\n${b.body}`,
+      `${where(b)}: this should be a warning example, yet errors came out — make it \`\`\`muro-bad\n${b.body}`,
     );
     assert.ok(
       r.warnings.length > 0,
-      `${where(b)}: 警告の例のはずが警告が1件も出ない\n${b.body}`,
+      `${where(b)}: this should be a warning example, yet not one warning comes out\n${b.body}`,
     );
   }
 });
@@ -258,19 +258,19 @@ for (const [tag, level] of [
   ["muro-fail", "violation"],
   ["muro-caution", "caution"],
 ] as const) {
-  test(`guide: \`\`\`${tag} は検証の ${level} を出す (core の check は通る)`, () => {
+  test(`guide: \`\`\`${tag} produces a ${level} finding from validate (core check passes)`, () => {
     for (const b of BLOCKS.filter((x) => x.tag === tag)) {
       const r = runValidate(b.body);
-      assert.equal(r.thrown, undefined, `${where(b)}: 解析に失敗した — ${r.thrown?.message}\n${b.body}`);
+      assert.equal(r.thrown, undefined, `${where(b)}: failed to parse — ${r.thrown?.message}\n${b.body}`);
       // **判定の例は、構成としては正しい。**core が落とす例をここに置かない
       assert.deepEqual(
         r.errors.map(render),
         [],
-        `${where(b)}: 判定の例のはずが core のエラーが出た — \`\`\`muro-bad にする\n${b.body}`,
+        `${where(b)}: this should be a validation example, yet a core error came out — make it \`\`\`muro-bad\n${b.body}`,
       );
       assert.ok(
         r.findings.some((f) => f.level === level),
-        `${where(b)}: ${level} の判定が1件も出ない (出たのは ${r.findings.map(renderF).join(" / ") || "なし"})\n${b.body}`,
+        `${where(b)}: not one ${level} finding comes out (what came out: ${r.findings.map(renderF).join(" / ") || "nothing"})\n${b.body}`,
       );
     }
   });
@@ -307,33 +307,33 @@ function guideDiagnosticSections(): Array<{ code: string; severity: string; line
   return out;
 }
 
-test("台帳: guide/diagnostics.md のコード集合とseverityが DIAGNOSTIC_CODES と一致", () => {
+test("ledger: the code set and the severity in guide/diagnostics.md match DIAGNOSTIC_CODES", () => {
   const sections = guideDiagnosticSections();
   const table: Record<string, string> = {};
   for (const s of sections) {
-    assert.equal(s.code in table, false, `guide/diagnostics.md:${s.line}: ${s.code} の節が二つある`);
+    assert.equal(s.code in table, false, `guide/diagnostics.md:${s.line}: there are two sections for ${s.code}`);
     assert.notEqual(
       s.severity,
       "",
-      `guide/diagnostics.md:${s.line}: ${s.code} の節に severity (\`error\` / \`warning\`) の行が無い`,
+      `guide/diagnostics.md:${s.line}: the ${s.code} section has no severity line (\`error\` / \`warning\`)`,
     );
     table[s.code] = s.severity;
   }
   assert.deepEqual(table, DIAGNOSTIC_CODES);
 });
 
-test("台帳: guide/diagnostics.md の各節の例は、その節のコードちょうど1件を出す", () => {
+test("ledger: each section of guide/diagnostics.md carries an example that produces exactly one diagnostic — its own code", () => {
   for (const s of guideDiagnosticSections()) {
     const b = s.block;
-    assert.ok(b, `guide/diagnostics.md:${s.line}: ${s.code} の節に誤り例のブロックが無い`);
+    assert.ok(b, `guide/diagnostics.md:${s.line}: the ${s.code} section has no bad-example block`);
     const r = run(b.body);
     if (r.thrown) {
       // SourceError は診断に写すと SYN01 ちょうど1件になる (ADR-0016 / CLIの check --json)
-      assert.ok(r.thrown instanceof SourceError, `${where(b)}: SourceError以外の例外 — ${r.thrown.stack}`);
+      assert.ok(r.thrown instanceof SourceError, `${where(b)}: an exception other than SourceError — ${r.thrown.stack}`);
       assert.equal(
         s.code,
         "SYN01",
-        `${where(b)}: 解析で落ちるので写されるコードは SYN01 だが、節は ${s.code} である`,
+        `${where(b)}: it fails at parse, so the code mapped is SYN01, but the section is ${s.code}`,
       );
       continue;
     }
@@ -341,9 +341,9 @@ test("台帳: guide/diagnostics.md の各節の例は、その節のコードち
     assert.deepEqual(
       diags.map((d) => d.code),
       [s.code],
-      `${where(b)}: ${s.code} の節の例が出す診断が一致しない — 実際は [${diags.map(render).join(" / ")}]\n${b.body}`,
+      `${where(b)}: the diagnostics from the ${s.code} section's example do not agree — actually [${diags.map(render).join(" / ")}]\n${b.body}`,
     );
-    assert.equal(diags[0]!.severity, DIAGNOSTIC_CODES[s.code as keyof typeof DIAGNOSTIC_CODES], `${where(b)}: ${s.code} のseverity`);
+    assert.equal(diags[0]!.severity, DIAGNOSTIC_CODES[s.code as keyof typeof DIAGNOSTIC_CODES], `${where(b)}: severity of ${s.code}`);
   }
 });
 
@@ -366,34 +366,34 @@ function guideValidationSections(): Array<{ rule: string; line: number; block?: 
   return out;
 }
 
-test("台帳: guide/validation.md の各節の例は、その節の規則ちょうど1件を出す", () => {
+test("ledger: each section of guide/validation.md carries an example that produces exactly one finding — its own rule", () => {
   const sections = guideValidationSections();
   assert.equal(
     sections.length,
     Object.keys(VALIDATION_RULES).length,
-    "節の数が台帳と合わない (集合一致は test/domains.test.ts が言う)",
+    "the number of sections does not match the ledger (set equality is what test/domains.test.ts states)",
   );
   for (const s of sections) {
     const b = s.block;
-    assert.ok(b, `guide/validation.md:${s.line}: ${s.rule} の節に判定例のブロックが無い`);
+    assert.ok(b, `guide/validation.md:${s.line}: the ${s.rule} section has no validation-example block`);
     const r = runValidate(b.body);
-    assert.equal(r.thrown, undefined, `${where(b)}: 解析に失敗した — ${r.thrown?.message}\n${b.body}`);
+    assert.equal(r.thrown, undefined, `${where(b)}: failed to parse — ${r.thrown?.message}\n${b.body}`);
     // 判定の例は構成としては正しい — core が落とす例をここに置かない
-    assert.deepEqual(r.errors.map(render), [], `${where(b)}: core のエラーが出た\n${b.body}`);
+    assert.deepEqual(r.errors.map(render), [], `${where(b)}: a core error came out\n${b.body}`);
     // **その規則が出ることを見る。**level だけを見ると、別の規則の同じ level で通ってしまい、
     // 節が自分の規則を説明しなくなったことに気づけない。他の規則が併発するのは構わない
     // (窓の h を落とせば採光も足りなくなる、扉が無ければ外へも出られない — 例は建物なので併発する)
     assert.equal(
       r.findings.filter((f) => f.rule === s.rule).length,
       1,
-      `${where(b)}: ${s.rule} の節の例が ${s.rule} をちょうど1件出さない — 実際は [${r.findings.map(renderF).join(" / ")}]\n${b.body}`,
+      `${where(b)}: the ${s.rule} section's example does not produce exactly one ${s.rule} — actually [${r.findings.map(renderF).join(" / ")}]\n${b.body}`,
     );
   }
 });
 
 // ---- (5) 相対リンク ----
 
-test("guide: 相対リンクの先がすべて実在する", () => {
+test("guide: every relative link points at something that exists", () => {
   // インライン [x](path) / 画像 ![x](path) / 参照定義 [x]: path
   const INLINE = /!?\[[^\]\n]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
   const REFDEF = /^\[[^\]\n]+\]:\s*(\S+)/;
@@ -414,12 +414,12 @@ test("guide: 相対リンクの先がすべて実在する", () => {
         checked++;
         assert.ok(
           existsSync(resolve(dirname(path), decodeURI(p))),
-          `${file}:${i + 1}: リンク先が無い — ${t}`,
+          `${file}:${i + 1}: the link target does not exist — ${t}`,
         );
       }
     }
   }
-  assert.ok(checked > 100, `相対リンクが少なすぎる: ${checked} — 走査器が壊れている`);
+  assert.ok(checked > 100, `too few relative links: ${checked} — the scanner is broken`);
 });
 
 // ---- (6) CLIサブコマンド ----
@@ -433,9 +433,9 @@ function cliSubcommands(): Set<string> {
   return subs;
 }
 
-test("guide: 見せているCLIの呼び出しは実在するサブコマンド", () => {
+test("guide: every CLI invocation it shows names a subcommand that exists", () => {
   const subs = cliSubcommands();
-  assert.ok(subs.size >= 8, `src/cli.ts からサブコマンドを採れていない: ${[...subs].join(",")}`);
+  assert.ok(subs.size >= 8, `no subcommand was collected from src/cli.ts: ${[...subs].join(",")}`);
   // 「$ 」つきも、リポジトリ内実行も、インストール後の呼び方も同じ形に均す
   const INVOKE = /^(?:\$\s*)?(?:npx\s+tsx\s+src\/cli\.ts|npm\s+run\s+koyu\s+--|npx\s+@kensnzk\/koyu|koyu)\s+(\S+)/;
   let checked = 0;
@@ -459,9 +459,9 @@ test("guide: 見せているCLIの呼び出しは実在するサブコマンド"
       checked++;
       assert.ok(
         subs.has(token),
-        `${c.file}:${c.line}: 存在しないサブコマンド \`${token}\` — 実在するのは {${[...subs].sort().join(", ")}}\n  ${c.text}`,
+        `${c.file}:${c.line}: no such subcommand \`${token}\` — the ones that exist are {${[...subs].sort().join(", ")}}\n  ${c.text}`,
       );
     }
   }
-  assert.ok(checked > 50, `CLIの呼び出しが少なすぎる: ${checked} — 走査器が壊れている`);
+  assert.ok(checked > 50, `too few CLI invocations: ${checked} — the scanner is broken`);
 });

@@ -185,7 +185,7 @@ function fmtGrids(s: Space): string {
   return s.grids.map((g) => `${g.xa}..${g.xb} ${g.ya}..${g.yb}`).join(" + ");
 }
 
-const fmtArea = (v: number | undefined): string | undefined => (v === undefined ? undefined : `${v.toFixed(2)}㎡`);
+const fmtArea = (v: number | undefined): string | undefined => (v === undefined ? undefined : `${v.toFixed(2)} m2`);
 
 function spaceFields(sa: Space, sb: Space): FieldChange[] {
   const fields: FieldChange[] = [];
@@ -194,12 +194,12 @@ function spaceFields(sa: Space, sb: Space): FieldChange[] {
   const ea = canonicalSpaceEntry(sa);
   const eb = canonicalSpaceEntry(sb);
   if (JSON.stringify(ea["at"] ?? null) !== JSON.stringify(eb["at"] ?? null)) {
-    fields.push(fieldChange("領域", fmtGrids(sa), fmtGrids(sb)));
+    fields.push(fieldChange("region", fmtGrids(sa), fmtGrids(sb)));
   }
   // 面積は導出値の差分として別掲する — 領域が同じでもグリッド座標の移動で変わる (原因はgrid差分が先頭で言う)
   const arA = areaM2(sa);
   const arB = areaM2(sb);
-  if (arA !== arB) fields.push(fieldChange("面積", fmtArea(arA), fmtArea(arB)));
+  if (arA !== arB) fields.push(fieldChange("area", fmtArea(arA), fmtArea(arB)));
   fields.push(...attrFields(sa.attrs, sb.attrs));
   // 数えない分節 (area) — 正準順の直列で多重集合として比べる
   fields.push(
@@ -362,7 +362,7 @@ function boundaryFields(ba: Boundary, bb: Boundary, tokA: (p: string) => string,
   if (ba.t !== bb.t) out.push(fieldChange("t", str(ba.t), str(bb.t)));
   if ((ba.air ?? false) !== (bb.air ?? false)) out.push(fieldChange("air", ba.air ? "1" : undefined, bb.air ? "1" : undefined));
   if ((orientationMatters(ba) || orientationMatters(bb)) && tokA(ba.a) !== tokB(bb.a)) {
-    out.push(fieldChange("向き(a側)", ba.a, bb.a));
+    out.push(fieldChange("orientation (a side)", ba.a, bb.a));
   }
   // 描かれた線 (ADR-0022) — 境界の実現そのものなので、動かせば建物の形が変わる。
   // 面積の変化として空間側に間接的に出ることはあるが、それは導出値であって原因ではない。
@@ -487,12 +487,12 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
       // 何も伝えない。形が変わって頂点数も面積も同じなら、そう言う
       const fields: FieldChange[] = [];
       if (pa.points.length !== pb.points.length) {
-        fields.push(fieldChange("頂点", String(pa.points.length), String(pb.points.length)));
+        fields.push(fieldChange("vertices", String(pa.points.length), String(pb.points.length)));
       }
       const ar = round2(polygonAreaM2(pa.points));
       const br = round2(polygonAreaM2(pb.points));
-      if (ar !== br) fields.push(fieldChange("面積", fmtArea(ar), fmtArea(br)));
-      if (fields.length === 0) fields.push(fieldChange("形", "頂点数も面積も同じ", "頂点の位置が違う"));
+      if (ar !== br) fields.push(fieldChange("area", fmtArea(ar), fmtArea(br)));
+      if (fields.length === 0) fields.push(fieldChange("shape", "same vertex count and same area", "the vertices sit elsewhere"));
       d.polygons.changed.push({ path, fields });
     }
   }
@@ -502,7 +502,7 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
   {
     const label = (c: ColumnDecl): string =>
       [
-        `${c.size}角`,
+        `${c.size} square`,
         ...(c.depth !== undefined ? [`d:${c.depth}`] : []),
         c.levels.length > 2 ? `${c.levels[0]}..${c.levels[c.levels.length - 1]}` : c.levels.join(","),
         ...(c.xNames ? [`x:${c.xNames.join(",")}`] : []),
@@ -521,7 +521,7 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
     for (const [lab, at] of ra) {
       const to = rb.get(lab);
       if (to !== undefined && to !== at) {
-        d.columns.changed.push({ path: lab, fields: [fieldChange("順位", String(at), String(to))] });
+        d.columns.changed.push({ path: lab, fields: [fieldChange("rank", String(at), String(to))] });
       }
     }
   }
@@ -652,25 +652,25 @@ export function renderDiff(d: ModelDiff): string[] {
   for (const p of d.polygons.added) out.push(`+ polygon ${p}`);
   for (const p of d.polygons.removed) out.push(`− polygon ${p}`);
   for (const c of d.polygons.changed) out.push(`± polygon ${c.path}: ${fmtFields(c.fields)}`);
-  for (const r of d.zones.renamed) out.push(`改名 ゾーン ${r.from} → ${r.to} (uid:${r.uid})`);
-  for (const p of d.zones.added) out.push(`+ ゾーン ${p}`);
-  for (const p of d.zones.removed) out.push(`− ゾーン ${p}`);
-  for (const c of d.zones.changed) out.push(`± ゾーン ${c.path}: ${fmtFields(c.fields)}`);
-  for (const r of d.spaces.renamed) out.push(`改名 ${r.from} → ${r.to} (uid:${r.uid})`);
+  for (const r of d.zones.renamed) out.push(`renamed zone ${r.from} → ${r.to} (uid:${r.uid})`);
+  for (const p of d.zones.added) out.push(`+ zone ${p}`);
+  for (const p of d.zones.removed) out.push(`− zone ${p}`);
+  for (const c of d.zones.changed) out.push(`± zone ${c.path}: ${fmtFields(c.fields)}`);
+  for (const r of d.spaces.renamed) out.push(`renamed ${r.from} → ${r.to} (uid:${r.uid})`);
   for (const s of d.spaces.added) {
-    out.push(`+ 空間 ${s.path} (${s.type}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)}㎡` : ""})`);
+    out.push(`+ space ${s.path} (${s.type}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)} m2` : ""})`);
   }
   for (const s of d.spaces.removed) {
-    out.push(`− 空間 ${s.path} (${s.type}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)}㎡` : ""})`);
+    out.push(`− space ${s.path} (${s.type}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)} m2` : ""})`);
   }
   for (const c of d.spaces.changed) out.push(`± ${c.path}: ${fmtFields(c.fields)}`);
   for (const x of d.boundaries.added) {
-    out.push(`+ 境界 ${betweenLabel(x)} (${x.kind}${x.t !== undefined ? ` t:${x.t}` : ""})`);
+    out.push(`+ boundary ${betweenLabel(x)} (${x.kind}${x.t !== undefined ? ` t:${x.t}` : ""})`);
   }
-  for (const x of d.boundaries.removed) out.push(`− 境界 ${betweenLabel(x)}`);
-  for (const c of d.boundaries.changed) out.push(`± 境界 ${betweenLabel(c)}: ${fmtFields(c.fields)}`);
-  for (const c of d.columns.added) out.push(`+ 柱 ${c.label}`);
-  for (const c of d.columns.removed) out.push(`− 柱 ${c.label}`);
-  for (const c of d.columns.changed) out.push(`± 柱 ${c.path}: ${fmtFields(c.fields)}`);
+  for (const x of d.boundaries.removed) out.push(`− boundary ${betweenLabel(x)}`);
+  for (const c of d.boundaries.changed) out.push(`± boundary ${betweenLabel(c)}: ${fmtFields(c.fields)}`);
+  for (const c of d.columns.added) out.push(`+ column ${c.label}`);
+  for (const c of d.columns.removed) out.push(`− column ${c.label}`);
+  for (const c of d.columns.changed) out.push(`± column ${c.path}: ${fmtFields(c.fields)}`);
   return out;
 }

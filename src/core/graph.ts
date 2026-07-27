@@ -559,15 +559,15 @@ export function placeBand(
   let segs = segmentsFor(model, b);
   if (band.edge) segs = segs.filter((s) => s.edgeOfA === band.edge);
   if (segs.length === 0) {
-    return fail("04", `${label} を置ける境界線分がありません (${b.a} | ${b.b})`);
+    return fail("04", `No boundary segment can hold the ${label} (${b.a} | ${b.b})`);
   }
   if (segs.length > 1) {
-    return fail("05", `境界線分が複数あります。edge:N/E/S/W で辺を指定してください (${b.a} | ${b.b})`);
+    return fail("05", `There is more than one boundary segment; pick an edge with edge:N/E/S/W (${b.a} | ${b.b})`);
   }
   const seg = segs[0]!;
   const len = segmentLength(seg);
   if (band.w > len) {
-    return fail("06", `${label}の幅 ${band.w} が境界線分の長さ ${len} を超えています`);
+    return fail("06", `The ${label} width ${band.w} exceeds the boundary segment length ${len}`);
   }
   const half = band.w / 2;
   let pos: number;
@@ -576,7 +576,7 @@ export function placeBand(
     if (seg.diagonal) {
       return fail(
         "07",
-        `${label} の位置 ${band.atRef} は斜めの線分では使えません (at:0..1 の比率で書きます)`,
+        `The ${label} position ${band.atRef} cannot be used on a diagonal segment (write it as a ratio, at:0..1)`,
       );
     }
     // 明示位置: 通り参照で置かれたものはクランプしない — はみ出しは言葉のエラーになる
@@ -584,9 +584,11 @@ export function placeBand(
     if (!axisOk) {
       return fail(
         "07",
-        `${label} の位置 ${band.atRef} は${
-          seg.horizontal ? "水平線分なのでX系" : "垂直線分なのでY系"
-        }の通りで指定します`,
+        // **期待する軸を言う。**書かれた軸を言うと「X1+200 は Y系で書かれています」のような
+        // 偽の文になる (この枝は軸が食い違ったときにだけ通るので、書かれた軸は期待と逆である)
+        `The ${label} position ${band.atRef} is on the wrong axis: ${
+          seg.horizontal ? "a horizontal segment takes an X" : "a vertical segment takes a Y"
+        } grid line`,
       );
     }
     const start = seg.horizontal ? seg.x1 : seg.y1;
@@ -594,9 +596,9 @@ export function placeBand(
     if (pos < half - EPS || pos > len - half + EPS) {
       return fail(
         "08",
-        `位置 ${band.atRef} では ${label} (幅${band.w}) が境界線分からはみ出します (線分 ${Math.round(
+        `At ${band.atRef} the ${label} (width ${band.w}) runs off the boundary segment (segment ${Math.round(
           start,
-        )}〜${Math.round(start + len)}mm、中心の許容 ${Math.round(start + half)}〜${Math.round(
+        )}-${Math.round(start + len)}mm, center allowed ${Math.round(start + half)}-${Math.round(
           start + len - half,
         )}mm)`,
       );

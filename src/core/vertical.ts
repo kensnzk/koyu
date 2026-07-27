@@ -767,7 +767,7 @@ export function runIssues(model: Model): RunIssue[] {
     if (decls.length > 1) {
       out.push({
         code: "RUN01",
-        message: `縦動線の宣言が複数あります: ${decls.map((d) => `${d.device}:${d.value}`).join(" ")} (一つの空間に一つです)`,
+        message: `More than one vertical circulation declaration: ${decls.map((d) => `${d.device}:${d.value}`).join(" ")} (one space carries one)`,
         ...at,
       });
       continue;
@@ -778,8 +778,8 @@ export function runIssues(model: Model): RunIssue[] {
         code: "RUN02",
         message:
           device === "lift"
-            ? `lift の値は 1 です: lift:${value}`
-            : `${device} の値は上る向き N/E/S/W です: ${device}:${value}`,
+            ? `The value of lift is 1: lift:${value}`
+            : `The value of ${device} is the direction it rises, N/E/S/W: ${device}:${value}`,
         ...at,
       });
       continue;
@@ -789,21 +789,21 @@ export function runIssues(model: Model): RunIssue[] {
         code: "RUN03",
         message:
           s.rects.length === 0
-            ? `縦動線には領域が要ります: ${s.path}`
-            : `縦動線の領域は矩形一つです (合併は段割りが決まりません): ${s.path}`,
+            ? `Vertical circulation requires a region: ${s.path}`
+            : `The region of vertical circulation is a single rectangle (a union leaves the step division undetermined): ${s.path}`,
         ...at,
       });
       continue;
     }
     if (!s.level) {
-      out.push({ code: "RUN03", message: `縦動線のレベルが特定できません: ${s.path}`, ...at });
+      out.push({ code: "RUN03", message: `The level of the vertical circulation cannot be determined: ${s.path}`, ...at });
       continue;
     }
     const formRaw = String(s.attrs["form"] ?? "straight");
     if (!RUN_FORMS.includes(formRaw as RunForm)) {
       out.push({
         code: "RUN05",
-        message: `form は ${RUN_FORMS.join(" / ")} です: form:${formRaw} (螺旋は折返しの連続として書きます)`,
+        message: `form is ${RUN_FORMS.join(" / ")}: form:${formRaw} (write a spiral as a succession of turns)`,
         ...at,
       });
       continue;
@@ -811,7 +811,7 @@ export function runIssues(model: Model): RunIssue[] {
     if (device !== "stair" && device !== "ramp" && formRaw !== "straight") {
       out.push({
         code: "RUN05",
-        message: `${device} に form:${formRaw} は書けません (折返せるのは階段と斜路です)`,
+        message: `form:${formRaw} may not be written on ${device} (only a stair and a ramp turn back)`,
         ...at,
       });
       continue;
@@ -821,7 +821,7 @@ export function runIssues(model: Model): RunIssue[] {
     if (device !== "lift" && (li < 0 || !levels[li + 1])) {
       out.push({
         code: "SUF04",
-        message: `${s.level} の上にレベルが無いため、${s.path} の形は生成されません`,
+        message: `No level sits above ${s.level}, so no form is generated for ${s.path}`,
         ...at,
       });
       continue;
@@ -831,7 +831,7 @@ export function runIssues(model: Model): RunIssue[] {
     if (!run) {
       out.push({
         code: "RUN05",
-        message: `縦動線の形が決まりません: ${s.path} (踊り場が全長を超えていないか確かめます)`,
+        message: `The form of the vertical circulation is undetermined: ${s.path} (check that the landing does not exceed the full length)`,
         ...at,
       });
       continue;

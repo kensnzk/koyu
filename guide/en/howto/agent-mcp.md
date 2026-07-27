@@ -64,10 +64,8 @@ koyu: npx -p @kensnzk/koyu koyu-mcp - ⏸ Pending approval (run `claude` to appr
 **Pass the entry as an absolute path.** A relative `file` argument is resolved against **the server process's cwd**, and which directory a client launches the server in is up to the client. Getting it wrong comes back like this.
 
 ```text
-0行目: ファイルが読めません: /tmp/examples/two-rooms.muro
+line 0: Cannot read file: /tmp/examples/two-rooms.muro
 ```
-
-("Cannot read the file: …")
 
 ### 2. Confirm the tools
 
@@ -113,7 +111,8 @@ model_summary  →  layers  →  write_layer  →  (check がエラーなら直�
   {
    "name": "L1",
    "z": 0,
-   "h": 2400
+   "h": 2400,
+   "slab": 400
   },
   {
    "name": "L2",
@@ -133,6 +132,7 @@ model_summary  →  layers  →  write_layer  →  (check がエラーなら直�
   {
    "path": "/site",
    "name": "敷地",
+   "site": true,
    "areaM2": 0
   },
   {
@@ -161,7 +161,7 @@ model_summary  →  layers  →  write_layer  →  (check がエラーなら直�
   "errors": 0,
   "warnings": 0
  },
- "hint": "レイヤーの中身は layers で、検査は check で、変更は write_layer で (checkが門番)。"
+ "hint": "Read layer contents with layers, check with check, and edit with write_layer (check is the gatekeeper). Architectural verdicts come from validate."
 }
 ```
 
@@ -184,7 +184,7 @@ model_summary  →  layers  →  write_layer  →  (check がエラーなら直�
  "written": false,
  "target": "rooms.muro",
  "ok": false,
- "parseError": "rooms.muro:1行目: 未定義の通り名です: X9"
+ "parseError": "rooms.muro:line 1: Undefined grid line name: X9"
 }
 ```
 
@@ -196,7 +196,7 @@ model_summary  →  layers  →  write_layer  →  (check がエラーなら直�
  "ok": false,
  "spaces": 3,
  "errors": [
-  "rooms.muro:5行目: 未定義の空間を参照しています: /L1/bath"
+  "rooms.muro:line 5: References an undefined space: /L1/bath"
  ],
  "warnings": []
 }
@@ -207,14 +207,12 @@ model_summary  →  layers  →  write_layer  →  (check がエラーなら直�
 **Where it may write is restricted.** Only files with the `.muro` extension, and only beneath the entry's directory. Escaping by a relative path, or via a symlink, is blocked.
 
 ```text
-entryのディレクトリの外へは書き込めません
+Cannot write outside the entry's directory
 ```
 
 ```text
-書き込みは .muro ファイルに限ります
+Only .muro files can be written
 ```
-
-("Cannot write outside the entry's directory." / "Writes are limited to .muro files.")
 
 **The content of a file that does not take part in composition is not validated.** When you write a new layer that nothing yet `import`s, its content is not checked until you add `import ./the-new-layer.muro` to the entry. Include adding that import line in the same unit of work as creating a new layer.
 
@@ -232,7 +230,7 @@ printf '%s\n' \
 ```
 
 ```text
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.15.0"},"instructions":"空間一次の建築記述koyuのサーバー。model_summaryで建物を掴み、layersで原本 (.muroレイヤー群) を読み、write_layerで編集する。checkが一棟のビルドの門番 — エラーは出所レイヤー:行つきで返る。doors/light/site/spacesは同じ記述への異なる問い。形 (plan_svg) は生成物。"}}
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.15.0"},"instructions":"Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written."}}
 {"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"{\n \"doors\": 2,\n \"path\": [\n  \"/L1/a\",\n  \"/L1/b\",\n  \"/out\"\n ]\n}"}]}}
 ```
 

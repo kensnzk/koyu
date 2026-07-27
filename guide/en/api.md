@@ -201,7 +201,7 @@ function checkDiagnostics(model: Model): Diagnostic[]
 interface Diagnostic {
   code: string;                 // a code from the DIAGNOSTIC_CODES ledger
   severity: "error" | "warning";
-  message: string;              // the Japanese body (no position prefix)
+  message: string;              // the message body (no position prefix)
   line?: number;
   file?: string;                // the provenance layer, when composing
   path?: string[];              // the subject space/zone paths (both, for a boundary)
@@ -228,7 +228,7 @@ console.log(JSON.stringify(checkDiagnostics(model), null, 1));
  {
   "code": "BND04",
   "severity": "error",
-  "message": "空間が接していないため境界を導けません: /L1/a | /L1/b",
+  "message": "The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b",
   "line": 6,
   "path": [
    "/L1/a",
@@ -260,7 +260,7 @@ console.log(errors, warnings);
 ```
 
 ```text
-[ '6行目: 空間が接していないため境界を導けません: /L1/a | /L1/b' ] []
+[ 'line 6: The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b' ] []
 ```
 
 (This example was read with `parse`, so there is no provenance file and the prefix is just the line number. Read with `parseFile` it would carry `<absolute path>:6行目: `.)
@@ -612,10 +612,10 @@ console.log(placeBand(g, bIn, { w: 1000, at: 0.25, line: 0 }, "seg"));
   cy: 2000
 }
 {
-  error: '8行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/a | /out)',
+  error: 'line 8: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)',
   code: 'OPN05',
   line: 8,
-  message: '境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/a | /out)'
+  message: 'There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)'
 }
 {
   segment: {
@@ -732,7 +732,7 @@ try { svgPlan(a, { level: "L9" }); } catch (e) { console.log("throws:", (e as Er
 ```text
 3369文字
 <svg xmlns="http://www.w3.org/2000/svg" width="528" height="393" viewBox="0 0 528 393" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
-throws: レベル L9 に領域を持つ空間がありません
+throws: There is no space with a region on level L9
 ```
 
 The drawing conventions are in [spec/semantics.md §7](../../spec/en/semantics.md).
@@ -860,9 +860,9 @@ try {
 {
   name: 'SourceError',
   line: 4,
-  raw: '未定義の通り名です: X9',
+  raw: 'Undefined grid line name: X9',
   file: undefined,
-  message: '4行目: 未定義の通り名です: X9'
+  message: 'line 4: Undefined grid line name: X9'
 }
 ```
 
@@ -876,7 +876,7 @@ try { parseFile("examples/house/L1.muro"); } catch (e) {
 ```
 
 ```text
-examples/house/L1.muro:3行目: 未宣言のレベルです: level:L1
+examples/house/L1.muro:line 3: Undeclared level: level:L1
 ```
 
 (Only one of the split layers was read, so the `level` declaration in the base layer is absent.)
@@ -895,7 +895,7 @@ console.log(srcRef(12), srcRef(12, "L1.muro"));
 ```
 
 ```text
-12行目 L1.muro:12行目
+line 12 L1.muro:line 12
 ```
 
 ## Versions

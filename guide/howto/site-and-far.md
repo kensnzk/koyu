@@ -139,16 +139,16 @@ polygon /site -2000,-3000 9000,-3000 9000,11000 -2000,11000
 ```
 
 ```text
-✔ 整合 — 空間 9 / 境界 16
+✔ Consistent — 9 spaces / 16 boundaries
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地形状: 多角形 4頂点 (polygon宣言 — 所与のジオメトリ)
-  敷地面積: 宣言 154.00㎡ / 導出 154.00㎡ ✔ 一致
-  接道: /out/road (南側道路) 幅員6000mm ・ 接道長 11000mm ✔ 2m以上
-  建築面積 (水平投影・粗): 56.00㎡ → 建蔽率 36.4%
-  延べ面積: 56.00㎡ → 容積率 36.4%
+Site /site (敷地)
+  Site shape: polygon with 4 vertices (a polygon declaration — given geometry)
+  Site area: declared 154.00 m2 / derived 154.00 m2
+  Road: /out/road (南側道路) width 6000mm / frontage 11000mm
+  Building footprint (horizontal projection, rough): 56.00 m2 → building coverage ratio 36.4%
+  Total floor area: 56.00 m2 → floor area ratio 36.4%
 ```
 
 読み方は次のとおり。
@@ -167,38 +167,38 @@ polygon /site -2000,-3000 9000,-3000 9000,11000 -2000,11000
 隣地への塀の境界 (`/out/n` `/out/e` `/out/w` への7本) を落とすと、`check` は緑のまま建築面積が倍以上になる。
 
 ```text
-✔ 整合 — 空間 9 / 境界 9
-敷地 /site (敷地)
-  敷地形状: 多角形 4頂点 (polygon宣言 — 所与のジオメトリ)
-  敷地面積: 宣言 154.00㎡ / 導出 154.00㎡ ✔ 一致
-  接道: /out/road (南側道路) 幅員6000mm ・ 接道長 11000mm ✔ 2m以上
-  建築面積 (水平投影・粗): 121.00㎡ → 建蔽率 78.6%
-  延べ面積: 121.00㎡ → 容積率 78.6%
+✔ Consistent — 9 spaces / 9 boundaries
+Site /site (敷地)
+  Site shape: polygon with 4 vertices (a polygon declaration — given geometry)
+  Site area: declared 154.00 m2 / derived 154.00 m2
+  Road: /out/road (南側道路) width 6000mm / frontage 11000mm
+  Building footprint (horizontal projection, rough): 121.00 m2 → building coverage ratio 78.6%
+  Total floor area: 121.00 m2 → floor area ratio 78.6%
 ```
 
 外部への境界を持たない庭は半屋外と導出されず、屋内として数えられている。
 
 ### 宣言と導出が食い違うとき
 
-`area:` を 160.40 に変えると `check` が警告する (polygon がある場合のみ照合される)。
+`area:` を 160.40 に変えても `check` は緑のままである。**構成としては何も壊れていない** — 測量値と多角形の食い違いは建築的な判定であり、`validate` が言う (polygon がある場合のみ照合される)。
 
 ```text
-⚠ site.muro:16行目: 敷地面積の宣言と導出が食い違います: 宣言 160.4㎡ / 導出 154.00㎡
-✔ 整合 — 空間 9 / 境界 16 (警告 1)
+⚠ [site.area] site.muro:line 16: Declared and derived site areas disagree: declared 160.4 m2 / derived 154.00 m2
+Validation — 0 violations / 1 caution
 ```
 
 ```text
-  敷地面積: 宣言 160.40㎡ / 導出 154.00㎡ ⚠ 不一致 (測量値と多角形の食い違い)
+  Site area: declared 160.40 m2 / derived 154.00 m2
 ```
 
-診断コードは SIT05 (警告)。許容は ±0.05㎡。`check --json` でコードつきの構造化診断が出る。
+規則は `site.area` (caution)。許容は ±0.05㎡。`validate --json` で構造化された Finding が出る。
 
 ```text
 [
  {
-  "code": "SIT05",
-  "severity": "warning",
-  "message": "敷地面積の宣言と導出が食い違います: 宣言 160.4㎡ / 導出 154.00㎡",
+  "rule": "site.area",
+  "level": "caution",
+  "message": "Declared and derived site areas disagree: declared 160.4 m2 / derived 154.00 m2",
   "line": 16,
   "file": "site.muro",
   "path": [
@@ -208,7 +208,7 @@ polygon /site -2000,-3000 9000,-3000 9000,11000 -2000,11000
 ]
 ```
 
-警告を CI で止めるには `koyu check <file> --strict` を使う (終了コード1)。
+CI で止めたいのは違反 (violation) である — `validate` の終了コードは violation があるときだけ 1 になる。
 
 ### 同梱の例で
 
@@ -217,11 +217,11 @@ npx tsx src/cli.ts site examples/house.muro
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地面積: 宣言 126.24㎡ / 導出 126.24㎡ ✔ 一致
-  接道: /out/road (南側道路) 幅員6000mm ・ 接道長 10280mm ✔ 2m以上
-  建築面積 (水平投影・粗): 53.00㎡ → 建蔽率 42.0%
-  延べ面積: 92.75㎡ → 容積率 73.5%
+Site /site (敷地)
+  Site area: declared 126.24 m2 / derived 126.24 m2
+  Road: /out/road (南側道路) width 6000mm / frontage 10280mm
+  Building footprint (horizontal projection, rough): 53.00 m2 → building coverage ratio 42.0%
+  Total floor area: 92.75 m2 → floor area ratio 73.5%
 ```
 
 `examples/house.muro` は polygon を持たないので、敷地面積の導出は庭・通路・建物の合併から出ている。
@@ -231,13 +231,13 @@ npx tsx src/cli.ts site examples/tower/main.muro
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地形状: 多角形 5頂点 (polygon宣言 — 所与のジオメトリ)
-  敷地面積: 宣言 1097.80㎡ / 導出 1097.80㎡ ✔ 一致
-  接道: /out/road-s (南側道路) 幅員12000mm ・ 接道長 40600mm ✔ 2m以上
-  接道: /out/road-e (東側道路) 幅員6000mm ・ 接道長 20200mm ✔ 2m以上
-  建築面積 (水平投影・粗): 569.60㎡ → 建蔽率 51.9%
-  延べ面積: 4785.92㎡ → 容積率 436.0%
+Site /site (敷地)
+  Site shape: polygon with 5 vertices (a polygon declaration — given geometry)
+  Site area: declared 1097.80 m2 / derived 1097.80 m2
+  Road: /out/road-s (南側道路) width 12000mm / frontage 40600mm
+  Road: /out/road-e (東側道路) width 6000mm / frontage 20200mm
+  Building footprint (horizontal projection, rough): 569.60 m2 → building coverage ratio 51.9%
+  Total floor area: 4785.92 m2 → floor area ratio 436.0%
 ```
 
 `site` の終了コードは、敷地ゾーンがあるとき0、無いとき1。

@@ -35,13 +35,13 @@ const GRID = "#b5aa94";
 
 export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   const level = opts.level ?? Object.keys(model.levels)[0];
-  if (!level) throw new Error("レベルが定義されていません");
+  if (!level) throw new Error("No level is defined");
   const scale = opts.scale ?? 0.05;
 
   const rooms = [...model.spaces.values()].filter(
     (s) => s.rects.length > 0 && s.level === level,
   );
-  if (rooms.length === 0) throw new Error(`レベル ${level} に領域を持つ空間がありません`);
+  if (rooms.length === 0) throw new Error(`There is no space with a region on level ${level}`);
 
   // 敷地形状 (ADR-0011) は最下階の平面 (配置図兼用) に敷地境界線として描く
   const lowest = Object.values(model.levels).sort((a, b) => a.z - b.z)[0]?.name;
@@ -109,7 +109,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
       );
       const label = [a.attrs["name"], a.attrs["floor"]]
         .filter((v): v is string => typeof v === "string")
-        .join(" ・ ");
+        .join(" · ");
       if (label) {
         parts.push(
           `<text x="${sx(r.x1) + 6}" y="${sy(r.y2) + 12}" font-size="8.5" fill="#8a8171">${esc(label)}</text>`,
@@ -274,8 +274,8 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     const cy = sy((r.y1 + r.y2) / 2);
     const sub =
       s.type === "void"
-        ? "吹抜け"
-        : `${esc(s.type)} ・ ${areaM2(s)}㎡${isSemiOutdoor(model, s) ? " ・ 半屋外" : ""}`;
+        ? "void"
+        : `${esc(s.type)} · ${areaM2(s)} m2${isSemiOutdoor(model, s) ? " · semi-outdoor" : ""}`;
     parts.push(
       `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="14" fill="${INK}">${esc(displayName(s))}</text>`,
       `<text x="${cx}" y="${cy + 13}" text-anchor="middle" font-size="10" fill="#8a8171">${sub}</text>`,
@@ -300,16 +300,16 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
       const r = polyBounds(poly);
       parts.push(
         `<path d="${path2d(poly)}" fill="none" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>`,
-        `<text x="${sx((r.x1 + r.x2) / 2)}" y="${sy((r.y1 + r.y2) / 2) + 40}" text-anchor="middle" font-size="9" fill="#b3ab9c">上部吹抜け</text>`,
+        `<text x="${sx((r.x1 + r.x2) / 2)}" y="${sy((r.y1 + r.y2) / 2) + 40}" text-anchor="middle" font-size="9" fill="#b3ab9c">void above</text>`,
       );
     }
   }
 
   // 表題
-  const title = `${model.name ?? "無題"} — ${level} 平面`;
+  const title = `${model.name ?? "Untitled"} — ${level} plan`;
   parts.push(
     `<text x="${M - 62}" y="${H - 18}" font-size="12" fill="${INK}">${esc(title)}</text>`,
-    `<text x="${W - M + 62}" y="${H - 18}" text-anchor="end" font-size="9" fill="#a49b8a">koyu v0 — 空間から生成 (壁芯・mm)</text>`,
+    `<text x="${W - M + 62}" y="${H - 18}" text-anchor="end" font-size="9" fill="#a49b8a">koyu — generated from spaces (wall centrelines, mm)</text>`,
   );
 
   parts.push("</svg>");

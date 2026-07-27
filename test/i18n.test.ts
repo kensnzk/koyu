@@ -9,7 +9,7 @@
 //      ただしコード中のコメントは訳してよい (英語の読者に日本語のコメントを読ませない)。
 //      よって「コメントを剥いだあと」で比較する。
 //   3. 貼られた出力 (```text) はバイト同一であること — 実際にツールが出すものであり、
-//      訳せば嘘になる。日本語のまま貼り、英文側は直後に括弧で訳を添える規約 (docs/terminology.md)
+//      訳せば嘘になる。機械向けの出力は英語なので、日本語の頁もそのまま貼り、解説だけを日本語で書く (docs/terminology.md)
 //   4. 見出しの構造が一致すること (節を片方だけに足すのを禁じる)
 //
 // 対訳語の契約は docs/terminology.md。
@@ -123,52 +123,52 @@ const VERBATIM_TAGS = new Set(["text"]);
 
 // ---- 検査 ----
 
-test("i18n: 訳し終えた木は全ページに対応する英語ページがある", () => {
+test("i18n: a fully translated tree has an English page for every page", () => {
   const missing: string[] = [];
   for (const t of TREES.filter((t) => t.complete)) {
     for (const p of jaPages(t)) {
       const rel = relative(t.ja, p);
       if (EXEMPT.has(join(t.label, rel))) continue;
       const en = join(t.en, rel);
-      if (!existsSync(en)) missing.push(`${relative(root, p)} → ${relative(root, en)} が無い`);
+      if (!existsSync(en)) missing.push(`${relative(root, p)} → ${relative(root, en)} is missing`);
     }
   }
-  assert.deepEqual(missing, [], `英語版の欠落:\n  ${missing.join("\n  ")}`);
+  assert.deepEqual(missing, [], `missing English pages:\n  ${missing.join("\n  ")}`);
 });
 
-test("i18n: 英語ページには対応する既定ロケールのページがある (孤児を作らない)", () => {
+test("i18n: every English page has a matching default-locale page (no orphans)", () => {
   const orphans: string[] = [];
   for (const t of TREES) {
     for (const p of markdownFiles(t.en)) {
       const rel = relative(t.en, p);
       const ja = join(t.ja, rel);
-      if (!existsSync(ja)) orphans.push(`${relative(root, p)} に対応する ${relative(root, ja)} が無い`);
+      if (!existsSync(ja)) orphans.push(`${relative(root, p)} has no matching ${relative(root, ja)}`);
     }
   }
-  assert.deepEqual(orphans, [], `孤児の英語ページ:\n  ${orphans.join("\n  ")}`);
+  assert.deepEqual(orphans, [], `orphan English pages:\n  ${orphans.join("\n  ")}`);
 });
 
-test("i18n: 訳のあるページの冒頭にはロケール切替がある", () => {
+test("i18n: a translated page carries the locale switch on its first line", () => {
   const bad: string[] = [];
   for (const t of TREES) {
     // 訳の無いページにはまだ切替リンクを張れないので、訳のあるものだけを見る
     for (const p of jaPages(t).filter((p) => existsSync(join(t.en, relative(t.ja, p))))) {
       const first = readFileSync(p, "utf8").split("\n")[0] ?? "";
       if (!/^\[English\]\(.*\) · \*\*日本語\*\*$/.test(first)) {
-        bad.push(`${relative(root, p)}: 1行目が「[English](…) · **日本語**」でない`);
+        bad.push(`${relative(root, p)}: line 1 is not "[English](…) · **日本語**"`);
       }
     }
     for (const p of markdownFiles(t.en)) {
       const first = readFileSync(p, "utf8").split("\n")[0] ?? "";
       if (!/^\*\*English\*\* · \[日本語\]\(.*\)$/.test(first)) {
-        bad.push(`${relative(root, p)}: 1行目が「**English** · [日本語](…)」でない`);
+        bad.push(`${relative(root, p)}: line 1 is not "**English** · [日本語](…)"`);
       }
     }
   }
-  assert.deepEqual(bad, [], `ロケール切替の欠落:\n  ${bad.join("\n  ")}`);
+  assert.deepEqual(bad, [], `missing locale switches:\n  ${bad.join("\n  ")}`);
 });
 
-test("i18n: コードブロックの並びと中身が一致する (コメントは訳してよい)", () => {
+test("i18n: code blocks agree in order and in body (comments may be translated)", () => {
   const bad: string[] = [];
   for (const t of TREES) {
     for (const p of jaPages(t)) {
@@ -178,14 +178,14 @@ test("i18n: コードブロックの並びと中身が一致する (コメント
       const a = blocks(p);
       const b = blocks(en);
       if (a.length !== b.length) {
-        bad.push(`${relative(root, p)}: コードブロックの数が違う (ja ${a.length} / en ${b.length})`);
+        bad.push(`${relative(root, p)}: the number of code blocks differs (ja ${a.length} / en ${b.length})`);
         continue;
       }
       for (let i = 0; i < a.length; i++) {
         const x = a[i]!;
         const y = b[i]!;
         if (x.tag !== y.tag) {
-          bad.push(`${relative(root, p)}:${x.line}: ${i + 1}番目の印が違う (ja \`${x.tag}\` / en \`${y.tag}\`)`);
+          bad.push(`${relative(root, p)}:${x.line}: block ${i + 1} carries a different tag (ja \`${x.tag}\` / en \`${y.tag}\`)`);
           continue;
         }
         const verbatim = VERBATIM_TAGS.has(x.tag);
@@ -193,18 +193,20 @@ test("i18n: コードブロックの並びと中身が一致する (コメント
         const ys = verbatim ? y.body : stripComments(y.tag, y.body);
         if (xs !== ys) {
           bad.push(
-            `${relative(root, p)}:${x.line}: ${i + 1}番目 (\`${x.tag}\`) の中身が食い違う` +
-              (verbatim ? " — ```text は実際の出力なのでバイト同一でなければならない" : " (コメントを除いて比較)") +
+            `${relative(root, p)}:${x.line}: the body of block ${i + 1} (\`${x.tag}\`) disagrees` +
+              (verbatim
+                ? " — ```text is what the tool actually prints, so it must be byte-identical"
+                : " (compared with comments stripped)") +
               `\n      ja: ${JSON.stringify(xs.slice(0, 120))}\n      en: ${JSON.stringify(ys.slice(0, 120))}`,
           );
         }
       }
     }
   }
-  assert.deepEqual(bad, [], `コードの乖離:\n  ${bad.join("\n  ")}`);
+  assert.deepEqual(bad, [], `code drift:\n  ${bad.join("\n  ")}`);
 });
 
-test("i18n: 見出しの構造が一致する (節を片方だけに足さない)", () => {
+test("i18n: the heading structure agrees (no section added on one side only)", () => {
   const bad: string[] = [];
   for (const t of TREES) {
     for (const p of jaPages(t)) {
@@ -216,20 +218,20 @@ test("i18n: 見出しの構造が一致する (節を片方だけに足さない
       const b = headings(en);
       if (a.join(",") !== b.join(",")) {
         bad.push(
-          `${relative(root, p)}: 見出しの構造が違う (ja ${a.length}個 [${a.join(" ")}] / en ${b.length}個 [${b.join(" ")}])`,
+          `${relative(root, p)}: the heading structure differs (ja ${a.length} [${a.join(" ")}] / en ${b.length} [${b.join(" ")}])`,
         );
       }
     }
   }
-  assert.deepEqual(bad, [], `見出し構造の乖離:\n  ${bad.join("\n  ")}`);
+  assert.deepEqual(bad, [], `heading structure drift:\n  ${bad.join("\n  ")}`);
 });
 
-test("i18n: 用語対訳表がある (訳語の契約)", () => {
+test("i18n: a terminology table exists (the contract for translated terms)", () => {
   const p = join(root, "docs", "terminology.md");
-  assert.ok(existsSync(p), "docs/terminology.md が無い");
+  assert.ok(existsSync(p), "docs/terminology.md is missing");
   const s = readFileSync(p, "utf8");
   // 核の概念が表に載っていること — 抜けると訳語が揺れる
   for (const term of ["空間", "境界", "帯", "通り芯", "既定境界", "正準JSON", "半屋外", "矩計"]) {
-    assert.ok(s.includes(`| ${term} |`), `用語対訳表に「${term}」の行が無い`);
+    assert.ok(s.includes(`| ${term} |`), `the terminology table has no row for ${term}`);
   }
 });

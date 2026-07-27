@@ -21,7 +21,7 @@ const ROOMS = "space /L1/a hall X1..X2 Y1..Y2\nspace /L1/b hall X2..X3 Y1..Y2";
 
 // ---- 既定境界 (ADR-0014) ----
 
-test("既定境界: 明示の素wall宣言と省略は同じ意味 (SVG・doors・隣接が一致)", () => {
+test("default boundary: an explicit bare wall declaration and its omission mean the same thing (SVG, doors and neighbors agree)", () => {
   const verbose = parse(`${BASE}\n${ROOMS}\nboundary /L1/a /L1/b`);
   const slim = parse(`${BASE}\n${ROOMS}`);
   assert.equal(svgPlan(slim, { level: "L1" }), svgPlan(verbose, { level: "L1" }));
@@ -32,52 +32,52 @@ test("既定境界: 明示の素wall宣言と省略は同じ意味 (SVG・doors�
   assert.doesNotMatch(toCanonical(slim), /"between"/);
 });
 
-test("既定境界: 宣言がある組には導出しない (edge限定でも抑制)", () => {
+test("default boundary: nothing is derived for a pair that carries a declaration (an edge-restricted one suppresses it too)", () => {
   const m = parse(`${BASE}\n${ROOMS}\nboundary /L1/a /L1/b edge:E t:200`);
   assert.equal(m.boundaries.filter((b) => b.derived).length, 0);
 });
 
-test("既定境界: 導出は冪等", () => {
+test("default boundary: derivation is idempotent", () => {
   const m = parse(`${BASE}\n${ROOMS}`);
   const n = m.boundaries.length;
   deriveDefaultBoundaries(m);
   assert.equal(m.boundaries.length, n);
 });
 
-test("既定境界: レベル未特定の空間同士にも働く (旧警告と同じ述語)", () => {
+test("default boundary: it works between spaces with no level determined too (the same predicate as the old warning)", () => {
   const m = parse(`${BASE}\nspace /misc/a room X1..X2 Y1..Y2\nspace /misc/b room X2..X3 Y1..Y2`);
   assert.equal(m.boundaries.filter((b) => b.derived).length, 1);
 });
 
-test("既定境界: 領域を持たない空間 (exterior) との境界は導かない — 宣言必須のまま", () => {
+test("default boundary: no boundary is derived against a space with no region (exterior) — it stays declaration-only", () => {
   const m = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /out exterior`);
   assert.equal(m.boundaries.length, 0);
 });
 
 // ---- 言語版 (ADR-0017) ----
 
-test("版: 0.1は意味保存の場合のみ受理 — 導出が起きるファイルはエラー", () => {
+test("version: 0.1 is accepted only where the meaning is preserved — a file in which derivation happens is an error", () => {
   const src = (v: string) => `koyu ${v}\nunit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0 h:2400 slab:150\n${ROOMS}`;
   const old = check(parse(src("0.1")));
   assert.equal(old.errors.length, 1);
-  assert.match(old.errors[0]!, /0\.2 へ上げます/);
+  assert.match(old.errors[0]!, /raise the version to koyu 0\.2/);
   assert.deepEqual(check(parse(src("0.2"))).errors, []);
 });
 
-test("版: 導出の起きない0.1ファイルはそのまま受理される", () => {
+test("version: a 0.1 file in which no derivation happens is accepted as it stands", () => {
   const m = parse(`koyu 0.1\nunit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0 h:2400 slab:150\n${ROOMS}\nboundary /L1/a /L1/b`);
   assert.deepEqual(check(m).errors, []);
   assert.equal(m.version, "0.1");
 });
 
-test("版: 宣言の省略は最新版の意味論 (既定境界が導出され、エラーにならない)", () => {
+test("version: omitting the declaration means the latest semantics (a default boundary is derived and it is not an error)", () => {
   const m = parse(`unit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0 h:2400 slab:150\n${ROOMS}`);
   assert.equal(m.version, "0.5");
   assert.equal(m.boundaries.filter((b) => b.derived).length, 1);
   assert.deepEqual(check(m).errors, []);
 });
 
-test("版: import層での宣言はエラー (base層のみ)", () => {
+test("version: declaring it in an import layer is an error (the base layer only)", () => {
   assert.throws(
     () =>
       parseFiles(
@@ -87,30 +87,30 @@ test("版: import層での宣言はエラー (base層のみ)", () => {
         },
         "main.muro",
       ),
-    /base層 \(entry\) でのみ書きます/,
+    /declared only in the base layer \(the entry\)/,
   );
 });
 
 // ---- uid (ADR-0015) ----
 
-test("uid: 正常な不透明トークンはエラーなし・正準JSONに保存される", () => {
+test("uid: a well-formed opaque token raises no error and is preserved in canonical JSON", () => {
   const m = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2 uid:sp-x7k2\nzone /L1 uid:un-01`);
   assert.deepEqual(check(m).errors, []);
   assert.match(toCanonical(m), /"uid": "sp-x7k2"/);
 });
 
-test("uid: 数字だけの形はエラー (0123が123になり区別が失われる)", () => {
+test("uid: a digits-only form is an error (0123 becomes 123 and the distinction is lost)", () => {
   const r = check(parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2 uid:123`));
   assert.equal(r.errors.length, 1);
-  assert.match(r.errors[0]!, /uid は数字だけのトークンにできません/);
+  assert.match(r.errors[0]!, /A uid cannot be a token of digits alone/);
 });
 
-test("uid: 空白を含む形はエラー", () => {
+test("uid: a form containing whitespace is an error", () => {
   const r = check(parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2 uid:"a b"`));
-  assert.match(r.errors.join("\n"), /uid に空白は使えません/);
+  assert.match(r.errors.join("\n"), /A uid cannot contain whitespace/);
 });
 
-test("uid: 重複は1つのuidにつき1本のエラーで全所有者を列挙 (スパン展開の複製も見える)", () => {
+test("uid: a duplicate is one error per uid listing every owner (copies from span expansion are visible too)", () => {
   const src = `koyu 0.2
 unit mm
 grid X 0 4000 8000
@@ -119,13 +119,13 @@ level L1 0
 level L2 3000
 space /L1..L2/a room X1..X2 Y1..Y2 uid:sp-dup`;
   const r = check(parse(src));
-  const dup = r.errors.filter((e) => e.includes("uid が重複しています"));
+  const dup = r.errors.filter((e) => e.includes("Duplicate uid"));
   assert.equal(dup.length, 1);
   assert.match(dup[0]!, /space \/L1\/a/);
   assert.match(dup[0]!, /space \/L2\/a/);
 });
 
-test("uid: spaceとzoneの横断でも重複はエラー", () => {
+test("uid: a duplicate across space and zone is an error too", () => {
   const r = check(parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2 uid:x1\nzone /L1 uid:x1`));
-  assert.match(r.errors.join("\n"), /uid が重複しています: x1/);
+  assert.match(r.errors.join("\n"), /Duplicate uid: x1/);
 });

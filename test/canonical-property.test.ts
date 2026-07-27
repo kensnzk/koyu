@@ -58,7 +58,7 @@ function generateBlocks(rnd: () => number): string[][] {
   return [...header, ...spaces, ...bounds, ...zones];
 }
 
-test("property: 宣言順・開口順の並べ替えはバイト列を変えない (種30個)", () => {
+test("property: reordering declarations and openings does not change the bytes (30 seeds)", () => {
   for (let seed = 1; seed <= 30; seed++) {
     const rnd = lcg(seed);
     const blocks = generateBlocks(rnd);

@@ -12,7 +12,7 @@ Work through [start.md](start.md) from the top, writing exactly what it says. It
 
 Each stage's endpoint is kept as a working file under [examples/steps/](../../examples/steps/), so if things stop matching you can compare against them.
 
-**A note for English readers.** The tool's own output — `✔ 整合 — 空間 3 / 境界 3`, the diagnostic messages — is in Japanese, and this guide pastes it exactly as it appears rather than translating it, with a gloss alongside. Reading the output is part of using the tool, so it would not help you to be shown something the terminal never prints.
+**A note for English readers.** The tool's own output — `✔ Consistent — 3 spaces / 3 boundaries`, the diagnostic messages — is in English, and this guide pastes it exactly as the terminal prints it. What stays in Japanese is the content of the examples: `name:` values and the like are the author's words, not the tool's.
 
 ## The map of the documents
 

@@ -22,10 +22,8 @@ space /L1/a room X1..X2 Y1..Y2
 `koyu check` returns this.
 
 ```text
-✔ 整合 — 空間 1 / 境界 0
+✔ Consistent — 1 space / 0 boundaries
 ```
-
-("Consistent — 1 space / 0 boundaries.")
 
 Neither `koyu 0.5`, nor `unit mm`, nor `name` is needed. **All that is required is that there be a grid on both axes, that it precede any line using it, that a level be declared, and that `space` carry a type (its second positional).** Coordinates are never written directly — position is always written in the language of grid lines ([spec/language.md §2, grid references and offsets](../../spec/en/language.md)).
 
@@ -40,16 +38,16 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
 ```
 
 ```text
-✔ 整合 — 空間 2 / 境界 1
+✔ Consistent — 2 spaces / 1 boundary
 ```
 
 It says "1 boundary" although no boundary was written. Because the two rooms touch, the wall between them has been derived (§3). `koyu graph` shows that wall.
 
 ```text
 /L1/a (居室A)
-  | 壁 → /L1/b
+  | wall → /L1/b
 /L1/b (居室B)
-  | 壁 → /L1/a
+  | wall → /L1/a
 ```
 
 (`壁` is "wall". The names 居室A and 居室B are "Room A" and "Room B".)
@@ -73,7 +71,7 @@ space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b
 ```
 
-The error is `空間が接していないため境界を導けません: /L1/a | /L1/b` — "the spaces do not touch, so no boundary can be derived" (BND04). These two rooms meet at a corner, but "touching" in koyu means **sharing an edge of nonzero length**. A single corner point is not contact.
+The error is `The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b` (BND04). These two rooms meet at a corner, but "touching" in koyu means **sharing an edge of nonzero length**. A single corner point is not contact.
 
 **Two — one relation can split into several segments.** A boundary with a space that has no region (the outside, say) is what remains of the room's perimeter once the intervals shared with other spaces are removed, and it usually splits across several edges. One relation, several segments. So **when placing an opening on an external wall you select which edge with `edge:`**.
 
@@ -87,7 +85,7 @@ boundary /L1/living /out
   door w:900
 ```
 
-The error is `境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/living | /out)` — "there are several boundary segments; specify the side with edge:N/E/S/W" (OPN05).
+The error is `There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/living | /out)` (OPN05).
 
 The compass follows from the coordinate system. **X is east-positive and Y is north-positive, so N=+Y, S=-Y, E=+X, W=-X** (`Edge` in `src/model.ts`). And `edge` is **the side as seen from the rectangle of the a side — the space written first**. In `boundary /L1/living /out`, `edge:S` means the south edge of living's rectangle. Swap the order in which they are written and the meaning changes.
 
@@ -113,7 +111,7 @@ boundary /L1/a /L1/b t:120
 boundary /L1/a /L1/b type:open
 ```
 
-The error is `境界が重複しています: /L1/a | /L1/b (既出: …6行目)` — "duplicate boundary, first seen at line 6" (BND02). If the later one silently won, whether this wall is a wall or an opening would be settled by the order of the lines ([ADR-0013](../../docs/decisions/0013-semantic-guarantees.md)).
+The error is `Duplicate boundary: /L1/a | /L1/b (first seen at …:line 6)` (BND02). If the later one silently won, whether this wall is a wall or an opening would be settled by the order of the lines ([ADR-0013](../../docs/decisions/0013-semantic-guarantees.md)).
 
 Note that a `boundary` may be written before the spaces — a declared relation may refer forward. The only things that need to come first are `grid` and `level`, which must precede any line that uses them.
 
@@ -161,20 +159,18 @@ A derived boundary is not part of the authored composition, so it does not appea
 **The first segment becomes a level only when a `level` of the same name has been declared.** Writing `/L1/` does not bring a level into being; a separate `level L1 0` line is needed. Without it `check` emits a warning but **does not error**.
 
 ```text
-⚠ nolevel.muro:3行目: /L1/x は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)
-✔ 整合 — 空間 1 / 境界 0 (警告 1)
+⚠ nolevel.muro:line 3: /L1/x has a region, but its level cannot be determined (give it at the head of the path or with level:)
+✔ Consistent — 1 space / 0 boundaries (1 warning)
 ```
-
-("/L1/x has a region but its level cannot be determined — specify it at the head of the path or with level:." Then: consistent, 1 space / 0 boundaries, 1 warning.)
 
 The warning text points at the path, but the cause is not the path — it is the absent `level` line. And this file, which `check` passed with exit code 0, cannot be drawn by `plan`.
 
 ```text
-Error: レベルが定義されていません
+Error: No level is defined
     at svgPlan (/…/src/plan.ts:29:21)
 ```
 
-("No level is defined.") This is a hole in the current implementation, and a worked instance of a green `check` not meaning "drawable" (see the table at the end). Note also that only one level can be expressed at the head of a path, so a grouping that spans levels (a maisonette) states it with the `level:` attribute.
+This is a hole in the current implementation, and a worked instance of a green `check` not meaning "drawable" (see the table at the end). Note also that only one level can be expressed at the head of a path, so a grouping that spans levels (a maisonette) states it with the `level:` attribute.
 
 **A space with a region cannot have child spaces with regions.** Parent and child would overlap.
 
@@ -187,7 +183,7 @@ space /L1/home/a room X1..X2 Y1..Y2
 space /L1/home/b room X2..X3 Y1..Y2
 ```
 
-The error is `空間の領域が重なっています: /L1/home と /L1/home/a` — "the regions of these spaces overlap" (GEO01). **When you subdivide a dwelling into rooms, make the parent a `zone` rather than a `space`.** A zone has no geometry; it is a counted aggregation that only bundles what lies beneath it by path prefix.
+The error is `Space regions overlap: /L1/home and /L1/home/a` (GEO01). **When you subdivide a dwelling into rooms, make the parent a `zone` rather than a `space`.** A zone has no geometry; it is a counted aggregation that only bundles what lies beneath it by path prefix.
 
 ```muro
 grid X 0 3600 7200
@@ -201,11 +197,9 @@ space /L1/home/b room X2..X3 Y1..Y2
 `koyu stats` reports the individual rooms while keeping the total over the path prefix.
 
 ```text
-ゾーン別 (数える集約):
-  /L1/home	住戸	28.80㎡
+By zone (counted aggregation):
+  /L1/home	住戸	28.80 m2
 ```
-
-("By zone (counted aggregation): /L1/home, dwelling, 28.80 m².")
 
 That "subdividing into rooms never loses the language of the dwelling" is what this double role buys ([spec/semantics.md §6, stats](../../spec/en/semantics.md)). So **the unit you want to aggregate by belongs toward the head of the path.** The bundled examples show two idioms — `/L1/room`, putting the level first (two-rooms, office, mansion, tower), and `/home/room` with `level:L1`, putting the dwelling first (house). Neither is better; they differ in what you want to bundle by.
 
@@ -249,10 +243,10 @@ That last line is what makes the balcony semi-outdoor. The area table in `stats`
 
 ```text
   /L1/room	room	ldk	14.40㎡
-  /L1/balcony	balcony	balcony	7.20㎡ (半屋外・別掲)
-  小計 14.40㎡
-合計 14.40㎡ (屋内床面積)
-半屋外 7.20㎡ (バルコニー・屋外階段等 — 算入条件は法規細部のため別掲)
+  /L1/balcony	balcony	balcony	7.20 m2 (semi-outdoor, reported separately)
+  Subtotal 14.40 m2
+Total 14.40 m2 (indoor floor area)
+Semi-outdoor 7.20 m2 (balconies, external stairs and the like — whether they count is a matter of regulatory detail, so it is reported separately)
 ```
 
 (`半屋外・別掲` = "semi-outdoor, reported separately"; `合計 … (屋内床面積)` = "total … interior floor area"; the last line notes that whether semi-outdoor area counts depends on regulatory detail, so it is kept separate.)
@@ -284,7 +278,7 @@ space /L1/a room X1..X2 Y1..Y2 nmae:居間
 ```
 
 ```text
-✖ 4行目: /L1/a に台帳に無い属性 nmae: があります (綴りを確かめるか、運ぶだけの値なら名前空間を付けます — 例 acme.nmae:居間)
+✖ line 4: /L1/a carries nmae:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.nmae:居間)
 ```
 
 **This once passed silently.** `nmae:` is a typo for `name:`, but the reasoning was that a word absent from the ledger is not "wrong" — merely "not interpreted" — and it came out in the canonical JSON unchanged. The reasoning was consistent; the price was too high. By the same reasoning `heigh:2400` silenced the height invariant (HGT01) entirely, `sit:1` silenced the site verdicts, and `stiar:N` erased the vertical circulation — **all of them green**.
@@ -321,11 +315,9 @@ boundary /L1/bath /out edge:S t:150
 ```
 
 ```text
-✖ /L1/bath	浴室	窓 0.00㎡ / 床 4.00㎡ = 窓なし (必要 1/7 ≈ 0.57㎡)
-✖ 1室中 1室が不足しています
+✖ /L1/bath	浴室	window 0.00 m2 / floor 4.00 m2 = no window (needs 1/7 ≈ 0.57 m2)
+✖ Short of 1/7: 1 of 1 room (this is a validation judgement)
 ```
-
-("Window 0.00 m² / floor 4.00 m² = no windows, requires 1/7 ≈ 0.57 m². 1 of 1 room falls short.")
 
 Drop the `daylight:1`, without touching a character of the type.
 
@@ -334,10 +326,10 @@ space /L1/bath wet X1..X2 Y1..Y2 name:浴室
 ```
 
 ```text
-採光の対象がありません (判定する室に daylight:1 を書きます)
+Nothing is in daylight scope (write daylight:1 on the rooms to be judged)
 ```
 
-("Nothing is in scope for the daylight check — write daylight:1 on the rooms to test.") `check` is green on both files. **A type is a description of a room; it is not the entrance to a verdict.** Change the type from `wet` to `bedroom` and the verdict does not move at all — whether the daylight test applies is something the author declares with `daylight`, not something to be guessed from a room's name. (The habitable room of Article 2(iv) of the Building Standards Act is likewise a judgement about continuous use in fact, not about what the room is called. Note also that the attribute names the tool's test, not that legal category: the two are not the same set, since Article 28(1)'s daylight duty is scoped to dwellings, schools, hospitals and the like.)
+`check` is green on both files. **A type is a description of a room; it is not the entrance to a verdict.** Change the type from `wet` to `bedroom` and the verdict does not move at all — whether the daylight test applies is something the author declares with `daylight`, not something to be guessed from a room's name. (The habitable room of Article 2(iv) of the Building Standards Act is likewise a judgement about continuous use in fact, not about what the room is called. Note also that the attribute names the tool's test, not that legal category: the two are not the same set, since Article 28(1)'s daylight duty is scoped to dwellings, schools, hospitals and the like.)
 
 ## What a green check does not guarantee
 
@@ -367,21 +359,19 @@ boundary /L1/hall /L2/bed type:stair
 ```
 
 ```text
-✔ 整合 — 空間 3 / 境界 3
+✔ Consistent — 3 spaces / 3 boundaries
 ```
 
 There are external walls, there is a stair, and it is consistent. But there is no way out.
 
 ```text
 $ koyu doors two.muro /L2/bed /out
-/L2/bed から /out へは到達できません
+Cannot reach /out from /L2/bed
 ```
-
-("/L2/bed cannot reach /out.")
 
 A warning saying "these touch but no boundary is declared" once existed, but making the default a wall ended its job and it was retired (BND07 is a retired number — [ADR-0014](../../docs/decisions/0014-default-boundaries.md)). **The instrument for looking at circulation is `doors`, not `check`.**
 
-As the extreme case of this asymmetry, **`check` is green on an empty file too** — `✔ 整合 — 空間 0 / 境界 0`. Since there is no composition that fails to stand up, that is correct. `check` tests that what is written is free of contradiction, not that what is needed has been written.
+As the extreme case of this asymmetry, **`check` is green on an empty file too** — `✔ Consistent — 0 spaces / 0 boundaries`. Since there is no composition that fails to stand up, that is correct. `check` tests that what is written is free of contradiction, not that what is needed has been written.
 
 ## Onward
 

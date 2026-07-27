@@ -41,7 +41,7 @@ boundary /L1/a /out t:150
   window w:600 h:600 edge:S
 ```
 
-`採光が足りません: /L1/a — 有効窓 0.36㎡ < 必要 2.31㎡ (床 16.20㎡ の 1/7)`
+`Insufficient daylight: /L1/a — effective window 0.36 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)`
 
 **原因** — 有効窓面積が床面積の 1/7 に足りない。有効窓面積は窓の `w × h` に係数を掛けた合計で、係数は窓の先が何かで決まる — 外部に直接面すれば 1.0、庇下 (上に空間がある半屋外) 越しなら 0.7、上が開いた半屋外 (庭・最上階バルコニー) 越しなら 1.0。
 
@@ -62,7 +62,7 @@ boundary /L1/a /out t:150
   window w:3000 edge:S
 ```
 
-`h を持たない窓があるため窓面積を数え切れていません: /L1/a (window に h: を書きます)`
+`Window area is not fully counted: /L1/a has a window without h: (write h: on it)`
 
 **原因** — `h` を持たない `window` は面積が決まらないので数から落ちている。落ちたことを黙っていると、足りているのか数えていないのかが区別できない。
 
@@ -89,7 +89,7 @@ boundary /L1/a /out edge:W t:200
 boundary /L1/b /out t:150
 ```
 
-`外皮に面していない外周があります: /L1/a — S 4000mm / N 4000mm (合計 8000mm・2区間)。外部への境界を書きます`
+`Perimeter not faced by any envelope: /L1/a — S 4000mm / N 4000mm (8000mm over 2 run(s)). Write a boundary to the exterior`
 
 **原因** — `/L1/a` の外周のうち、隣の `/L1/b` と接する東面以外 (北・南・西の残り) が、他の空間とも宣言された境界とも向かい合っていない。西面には境界を書いたので**このレベルの外皮を書き始めている**と判断され、残りの穴が数えられる。
 
@@ -115,7 +115,7 @@ space /L2/s stair X1..X2 Y1..Y1+4600
 stack s L1..L2 type:stair
 ```
 
-`導出された段の寸法が窮屈です: 17段 蹴上176mm / 踏面150mm (2×蹴上+踏面 = 502mm、目安 550〜700mm)`
+`Derived step dimensions are cramped: 17 risers of 176mm, tread 150mm (2*riser+tread = 502mm; expected 550-700mm)`
 
 **原因** — **段数も踏面も原本には書かれていない。**階高と領域から導かれる。だからこそ「導いた結果が使える寸法か」を検査する価値がある ([ADR-0021](../docs/decisions/0021-vertical-circulation.md) — 書かないが検査する)。ここでは階段室が浅すぎて踏面が150mmになった (4600mmの奥行から乗り込みの床1100mm×2を引いた2400mmを、16の踏面で割る)。
 
@@ -138,7 +138,7 @@ space /L2/r ramp X1..X2 Y1..Y2
 stack r L1..L2 type:stair
 ```
 
-`導出された勾配 1/1.3 が宣言 1/12 より急です (走り長を伸ばすか階高を下げます)`
+`Derived slope 1/1.3 is steeper than the declared 1/12 (lengthen the run or lower the storey height)`
 
 **原因** — 勾配も書かれない。レベル差 ÷ 導出された走り長で決まる。`slope:` は**書く勾配ではなく許容する勾配の上限**で、検査のためだけにある。エスカレーターには `slope:` を書かなくても常用域 (約1/1.7 = 30度) から外れたときに同じコードが出る。
 
@@ -158,7 +158,7 @@ space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
 ```
 
-`/L1/s は縦動線の形を持ちますが、上下を繋ぐ垂直境界がありません (stack か boundary type:stair を書きます — 形はあってもグラフでは通れません)`
+`/L1/s has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)`
 
 **原因** — **形とトポロジーは別々に書かれる。**`stair:N` は段の形を作るが、階と階が繋がっているとは言っていない。垂直境界 (`stack` / `boundary type:stair`) が無ければ `doors` は上階へ抜ける経路を見つけない。図には階段が描かれるのに動線が通らない、という最も気付きにくい食い違いなので警告にしてある。
 
@@ -183,7 +183,7 @@ space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /out t:150
 ```
 
-`外部へ到達できません: /L1/a (通れる境界を辿って外部空間へ出られません — 扉を書きます)`
+`Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)`
 
 **原因** — 領域を持つ室から、通れる境界を辿って外部空間へ出られない。**問うのは扉の有無ではなく到達性である** — 扉を持っていても、その先が行き止まりなら出られない。ここでは外部への壁は書いたが、そこに開口が無い。シャフト (人が通れない)・吹抜け (床が無い)・外部そのものは対象外で、外部空間が一つも書かれていない模型では問わない。
 
@@ -203,7 +203,7 @@ space /L1/a room X2..X3 Y1..Y2
 boundary /L1/a /L1/v type:open
 ```
 
-`扉が吹抜けにしか開いていません: /L1/a (床の無い所へ開いているので出入りできません)`
+`Doors open only onto a void: /L1/a (they open where there is no floor, so nobody can pass)`
 
 **原因** — 通れる境界を持つのに、その行き先が全部 `type:void` である。吹抜けは空間としては連続するが床が無いので、扉は穴に向かって開いている — 出入りしたつもりでどこへも行けない。区画を吹抜けに面して並べ、廊下との境界を書き忘れると起きる。
 
@@ -228,7 +228,7 @@ boundary /L1/t /out
 boundary /L1/s /out t:150
 ```
 
-`/L1/s からの避難が賃貸区画を通ります (テナントが施錠すると外部へ出られません)`
+`Escape from /L1/s passes through rentable space (if the tenant locks up, there is no way out)`
 
 **原因** — 階段室から外部へ出るどの経路も `use:rentable` の空間を通る。テナントが施錠した瞬間、その階段は避難に使えなくなる。
 
@@ -251,7 +251,7 @@ boundary /L1/p /out
   door w:900 edge:S
 ```
 
-`車が外部へ出られません: /L1/p (幅2400mm以上の開口・type:open の境界・斜路のいずれかが要ります)`
+`No vehicle route to the exterior: /L1/p (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)`
 
 **原因** — `use:parking` の空間から車が出られない。**人は900mmの扉と階段で出られてしまうので `access.unreachable` では見えない。**車が通れるのは `type:open` の境界・幅2400mm以上の扉・斜路 (`ramp:` を持つ空間の縦連結) だけで、階段の縦連結は車にとってただの段差である。
 
@@ -278,7 +278,7 @@ boundary /L1/b /L1/e
   door w:900
 ```
 
-`/L1/e へ共用廊下からバックヤードを通らずに届きません (客が乗れない縦動線です)`
+`/L1/e cannot be reached from a common corridor without passing through back-of-house (visitors cannot use this vertical circulation)`
 
 **原因** — 縦動線の宣言 (`stair:` / `escalator:` — [ADR-0021](../docs/decisions/0021-vertical-circulation.md)) を持つ共用の空間は客動線の一部なのに、共用廊下から `type:backyard` を通らずに届かない。当の空間へは**水平に**入れなければならない — 自分の縦連結を経由してよいことにすると「上の階からそのエスカレーターで降りてくれば乗り場に着く」という循環が成り立ち、孤立をそのまま素通しする。共用廊下 (`type:corridor` かつ `use:common`) が一つも無い建物には客動線の区別が無いので問わない。
 
@@ -302,7 +302,7 @@ boundary /L1/a /L1/b
   door w:900 at:X2
 ```
 
-`柱が扉を塞いでいます: /L1/a | /L1/b の扉 (幅900mm) が X2・Y2 の柱と重なります`
+`A column blocks a door: the door (900mm wide) on /L1/a | /L1/b overlaps the column at X2/Y2`
 
 **原因** — **位置を書かない要素が二つあると、衝突は導出でしか分からない。**柱は通り芯の交点から ([ADR-0023](../docs/decisions/0023-columns.md))、扉は境界線分の上から (`at:` の比率か通り参照から) 導かれるので、どちらも原本には座標が無い。通り芯の交点は境界線分の上でもあるので、扉を通りに寄せると必ずぶつかる。
 
@@ -326,7 +326,7 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 space /L1/a room X2..X3 Y1..Y2
 ```
 
-`/L1/a が敷地形状からはみ出しています (14000,0 付近)`
+`/L1/a escapes the site shape (near 14000,0)`
 
 **原因** — 領域を持つ空間が敷地の外に出ている。四隅の内包だけでなく多角形の頂点の入り込みと辺の交差も見るので、凹んだ敷地でも正しく捕まる。境界上は内側扱い (許容1mm)。敷地ゾーン配下の空間 (`/site/…`) と `exterior` は検査の対象外である。
 
@@ -346,7 +346,7 @@ polygon /site 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```
 
-`敷地面積の宣言と導出が食い違います: 宣言 120㎡ / 導出 100.00㎡`
+`Declared and derived site areas disagree: declared 120 m2 / derived 100.00 m2`
 
 **原因** — ゾーンの `area:` (測量値) と `polygon` から計算した面積が 0.05㎡ を超えてずれている。頂点の打ち間違いか、`area:` の転記ミスか、測量図の更新が片方にしか反映されていない。
 
@@ -369,7 +369,7 @@ space /out/road-n exterior X1..X2 Y2..Y3 name:北側道路 road:4000 level:L1
 boundary /site/yard /out/road-n
 ```
 
-`接道長が足りません: /out/road-n — 1500mm (2000mm 以上)`
+`Road frontage is too short: /out/road-n — 1500mm (needs at least 2000mm)`
 
 **原因** — 敷地ゾーン配下の空間と、`road:` を持つ外部空間との境界線分の長さが 2m に足りない。接道長を導出しているのは core だが、**2m という下限は建築の側の規則**なので、判定はこの面が言う。
 

@@ -45,10 +45,8 @@ space /home/bed1 bedroom X1..X2 Y1..Y3 level:L2 name:主寝室
 With neither `level:` written nor a level name at the head of the path, you get a warning.
 
 ```text
-⚠ nolevel.muro:6行目: /home/a は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)
+⚠ nolevel.muro:line 6: /home/a has a region, but its level cannot be determined (give it at the head of the path or with level:)
 ```
-
-("/home/a has a region but its level cannot be determined — specify it at the head of the path or with level:.")
 
 `check` still passes green (exit code 0) with this warning left in place, but `plan` cannot draw that storey and dies with a Node stack trace. Fix it while it is still a warning. Writing a path like `/L1/…` is not itself a declaration of a level — a separate `level L1 0` line is required.
 
@@ -129,9 +127,9 @@ boundary /L1/ldk /L2/void type:void
 $ npx tsx src/cli.ts levels two.muro
 R	z:5800	slab:500
 L2	z:2900	h:2400	slab:500
-  ↑ 階高 2900 = 天井2400 + slab500
+  ↑ storey height 2900 = ceiling 2400 + slab 500
 L1	z:0	h:2400
-  ↑ 階高 2900 = 天井2400 + slab500
+  ↑ storey height 2900 = ceiling 2400 + slab 500
 ```
 
 (`階高 … = 天井… + slab…` is "floor-to-floor = ceiling + slab".)
@@ -140,10 +138,8 @@ Whether the upper storey can be reached is answered by `doors`, which gives the 
 
 ```text
 $ npx tsx src/cli.ts doors two.muro /L2/bed /out
-2枚 — /L2/bed → /L2/hall → /L1/hall → /out
+2 doors — /L2/bed → /L2/hall → /L1/hall → /out
 ```
-
-("2 doors.")
 
 ## check can be green while the upper storey is unreachable
 
@@ -151,13 +147,11 @@ Forget to declare the vertical boundary and the upper storey passes `check` whil
 
 ```text
 $ npx tsx src/cli.ts check two-sealed.muro
-✔ 整合 — 空間 6 / 境界 6
+✔ Consistent — 6 spaces / 6 boundaries
 
 $ npx tsx src/cli.ts doors two-sealed.muro /L2/bed /out
-/L2/bed から /out へは到達できません
+Cannot reach /out from /L2/bed
 ```
-
-("/L2/bed cannot reach /out.")
 
 `check` looks at whether the composition stands up, not at whether the building can be used. Whenever you add a level, put it through `doors`.
 
@@ -174,21 +168,17 @@ space /L1/hall hall X2..X3 Y2..Y3 name:玄関・階段 h:2600
 and `check` says this.
 
 ```text
-✖ /L1/hall が上階に食い込みます: 天井高2600 + L2のslab500 = 3100 > 階高2900
+✖ /L1/hall collides into the floor above: ceiling height 2600 + L2's slab 500 = 3100 > storey height 2900
 ```
-
-("/L1/hall collides with the storey above: ceiling 2600 + L2's slab 500 = 3100 > floor-to-floor 2900.")
 
 Lower the ceiling height, raise the `z` of `level L2` to make room, or thin the `slab:`. Only a lower storey under a full-height void (a coverage ratio of 99% or more) may declare a ceiling height that spans levels.
 
-Forget the `slab:` on the upper level and the check does not run at all — you get warnings.
+Forget the `slab:` on the upper level and not one floor is generated on that storey (the SUF03 warning). Drop its `h:` as well and the ceiling height cannot be determined, so neither ceiling nor roof is made (the SUF01 error). **The rules are deterministic and invent no default where a value is missing** — the sufficiency checks exist so that a shape coming out thin is never silent.
 
 ```text
-⚠ レベル L2 に slab が未宣言のため、L1 との高さ検査ができません
-⚠ /L2/bed の天井高が不明で、R との高さ検査ができません
+⚠ house/main.muro:line 15: Level L2 has no slab:, so not one floor is generated on this storey
+✖ house/L2.muro:line 3: The ceiling height of /home/bed1 cannot be determined (neither the space's h: nor level L2's h: is there)
 ```
-
-("L2 has no slab declared, so the height check against L1 cannot run." / "/L2/bed's ceiling height is unknown, so the height check against R cannot run.")
 
 ## Related
 

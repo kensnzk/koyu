@@ -45,7 +45,7 @@ space /home/bed1 bedroom X1..X2 Y1..Y3 level:L2 name:主寝室
 `level:` も書かず、パスの先頭もレベル名でないときは警告になる。
 
 ```text
-⚠ nolevel.muro:6行目: /home/a は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)
+⚠ nolevel.muro:line 6: /home/a has a region, but its level cannot be determined (give it at the head of the path or with level:)
 ```
 
 この警告を残したままでも `check` は緑 (終了コード 0) で通るが、`plan` はその階を描けず Node のスタックトレースで落ちる。警告のうちに直すこと。`/L1/…` のようなパスを書くこと自体はレベルの宣言ではない — `level L1 0` の行が別に要る。
@@ -127,16 +127,16 @@ boundary /L1/ldk /L2/void type:void
 $ npx tsx src/cli.ts levels two.muro
 R	z:5800	slab:500
 L2	z:2900	h:2400	slab:500
-  ↑ 階高 2900 = 天井2400 + slab500
+  ↑ storey height 2900 = ceiling 2400 + slab 500
 L1	z:0	h:2400
-  ↑ 階高 2900 = 天井2400 + slab500
+  ↑ storey height 2900 = ceiling 2400 + slab 500
 ```
 
 上階まで通れることは `doors` が答える。上階の部屋から外部までの最少扉数と経路が出る。
 
 ```text
 $ npx tsx src/cli.ts doors two.muro /L2/bed /out
-2枚 — /L2/bed → /L2/hall → /L1/hall → /out
+2 doors — /L2/bed → /L2/hall → /L1/hall → /out
 ```
 
 ## check が緑でも上階に行けないことがある
@@ -145,10 +145,10 @@ $ npx tsx src/cli.ts doors two.muro /L2/bed /out
 
 ```text
 $ npx tsx src/cli.ts check two-sealed.muro
-✔ 整合 — 空間 6 / 境界 6
+✔ Consistent — 6 spaces / 6 boundaries
 
 $ npx tsx src/cli.ts doors two-sealed.muro /L2/bed /out
-/L2/bed から /out へは到達できません
+Cannot reach /out from /L2/bed
 ```
 
 `check` は構成が成立しているかを見るのであって、建物が使えるかは見ない。階を足したら必ず `doors` を通すこと。
@@ -166,16 +166,16 @@ space /L1/hall hall X2..X3 Y2..Y3 name:玄関・階段 h:2600
 `check` はこう言う。
 
 ```text
-✖ /L1/hall が上階に食い込みます: 天井高2600 + L2のslab500 = 3100 > 階高2900
+✖ /L1/hall collides into the floor above: ceiling height 2600 + L2's slab 500 = 3100 > storey height 2900
 ```
 
 天井高を下げるか、`level L2` の `z` を上げて階高を確保するか、`slab:` を薄くする。全面吹抜け (被覆率99%以上) の下階だけが階をまたぐ天井高を宣言できる。
 
-上階レベルの `slab:` を書き忘れると検査そのものが働かず、警告になる。
+上階レベルの `slab:` を書き忘れると、その階に床が一枚も生成されない (SUF03 の警告)。`h:` も落とすと天井高が決まらず、天井も屋根も生成されない (SUF01 のエラー)。**規則は決定的で、値が無いところに既定値を捏造しない** — 痩せた形が黙って出ないよう、充足性の検査が言う。
 
 ```text
-⚠ レベル L2 に slab が未宣言のため、L1 との高さ検査ができません
-⚠ /L2/bed の天井高が不明で、R との高さ検査ができません
+⚠ house/main.muro:line 15: Level L2 has no slab:, so not one floor is generated on this storey
+✖ house/L2.muro:line 3: The ceiling height of /home/bed1 cannot be determined (neither the space's h: nor level L2's h: is there)
 ```
 
 ## 関連
