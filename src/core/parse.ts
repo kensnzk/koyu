@@ -167,7 +167,11 @@ function ingest(
   let currentSpaces: Space[] = [];
   let over: OverTarget | undefined;
   let band: BandDecl | undefined; // 帯は次の非字下げ行か層の終わりで展開される (ADR-0019)
-  const lines = source.split(/\r?\n/);
+  // **原本は NFC として読む** (ADR-0036)。`が` は一つの符号位置とも「か + 濁点」とも綴れ、
+  // 正規化しなければ同じに見える二つのパスが別の空間になり (パス重複のエラーも出ない)、
+  // 正準JSONには見分けのつかないキーが二つ並ぶ。同一性はここで一つに決める。
+  // NFKC は採らない — ㎡ や ① を書き換えてしまい、それは書かれた表記の保存に反する
+  const lines = source.normalize("NFC").split(/\r?\n/);
 
   for (let i = 0; i < lines.length; i++) {
     try {

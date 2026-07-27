@@ -90,6 +90,33 @@ function opt(rest: string[], ...names: string[]): string | undefined {
   return undefined;
 }
 
+/**
+ * 数を取る引数。**読めない値を黙って NaN のまま通さない。**
+ * `-s abc` は `width="NaN"` のSVGを終了コード0で書き出していた — 生成に成功したと言いながら
+ * 開けない図を残すのは、呼び方の問題を作品の問題に化けさせる。呼び方の問題として返す (ADR-0028)
+ */
+function numOpt(rest: string[], ...names: string[]): number | undefined {
+  const raw = opt(rest, ...names);
+  if (raw === undefined) return undefined;
+  const v = Number(raw);
+  if (!Number.isFinite(v) || v <= 0) die(`${names[0]} takes a positive number: ${raw}`);
+  return v;
+}
+
+/** 語彙の決まった引数。台帳に無い値は呼び方の問題である */
+function enumOpt<T extends string>(
+  rest: string[],
+  allowed: readonly T[],
+  ...names: string[]
+): T | undefined {
+  const raw = opt(rest, ...names);
+  if (raw === undefined) return undefined;
+  if (!(allowed as readonly string[]).includes(raw)) {
+    die(`${names[0]} is one of ${allowed.join(" / ")}: ${raw}`);
+  }
+  return raw as T;
+}
+
 function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
@@ -410,13 +437,13 @@ function main(argv: string[]): number {
       // 軸測図 — 立体をそのまま投影する。平面と同じく生成物のSVGなので、
       // 実行環境もWebGLも要らず、生成して見るという同じ手で立体を確かめられる
       const outPath = opt(rest, "-o", "--out") ?? "out/axo.svg";
-      const dirOpt = opt(rest, "-d", "--dir") as "NE" | "NW" | "SE" | "SW" | undefined;
+      const dirOpt = enumOpt(rest, ["NE", "NW", "SE", "SW"] as const, "-d", "--dir");
       const lv = opt(rest, "-l", "--levels");
-      const sc = opt(rest, "-s", "--scale");
+      const sc = numOpt(rest, "-s", "--scale");
       const svg = svgAxo(model, {
         ...(dirOpt ? { dir: dirOpt } : {}),
         ...(lv ? { levels: expandLevelArg(model, lv) } : {}),
-        ...(sc ? { scale: Number(sc) } : {}),
+        ...(sc !== undefined ? { scale: sc } : {}),
         ...(rest.includes("--ceilings") ? { ceilings: true } : {}),
         ...(rest.includes("--no-walls") ? { walls: false } : {}),
       });

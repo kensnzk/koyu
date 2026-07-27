@@ -105,9 +105,3 @@ export function validate(model: Model): Finding[] {
     ...siteFindings(model),
   ];
 }
-
-export { accessFindings } from "./access.js";
-export { daylightFindings } from "./light.js";
-export { envelopeFindings } from "./envelope.js";
-export { runFindings } from "./runs.js";
-export { siteFindings } from "./site.js";

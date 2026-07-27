@@ -151,7 +151,7 @@ For the details see [vocabulary.md](vocabulary.md).
 | **the rules of composition** | the six in [composition.md](composition.md). The same input always yields the same result |
 | **identity** | the rules of §5. Same uid, same thing |
 | **the three layers of attributes and the namespace** | §7, including the promise that the carrier layer is not read |
-| **the machine format** | it carries a version field. The same input yields the same bytes. It holds the result of composition and holds no form |
+| **the machine format** | **it names its format version** ([canonical-json.md](canonical-json.md)). The same input yields the same bytes — the collation and the normalization are settled as norms. It holds the result of composition and holds no form |
 | **the rules of derivation** | §6. Written out as specification, with a reference implementation offered as API |
 | **the diagnostics of structural consistency** | codes and severity. The meaning of green agrees with the definition in §3 |
 | **the public API and the CLI** | parsing, composition, canonicalization, the queries, derivation. Commands, arguments, exit codes |
@@ -173,8 +173,10 @@ For the details see [vocabulary.md](vocabulary.md).
 
 There are two lines of version.
 
-- **the version of muro** — the language, its semantics, and the rules of composition. The machine format is another spelling of the same semantics, so it shares this version
+- **the version of muro** — the language, its semantics, and the rules of composition. The **meaning** the machine format carries follows this version (it is another spelling of the same semantics)
 - **the version of koyu** — the implementation. It declares which muro it implements
+
+**The machine format carries a version of its spelling, which is neither of these two** — the `format` key ([canonical-json.md](canonical-json.md)). muro holds the semantics, but the same semantics may be re-spelled with different keys, so the spelling is counted separately.
 
 ugatsu versions independently and declares the version of muro it follows. The validation surface carries no version and grows by addition.
 

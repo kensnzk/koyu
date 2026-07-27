@@ -23,33 +23,6 @@ export interface Segment {
 
 const EPS = 0.5;
 
-/** 二つの矩形が共有する辺の線分 (触れていなければ undefined) */
-export function sharedSegment(a: Rect, b: Rect): Segment | undefined {
-  for (const [x, ea] of [
-    [a.x2, "E"],
-    [a.x1, "W"],
-  ] as const) {
-    const bx = ea === "E" ? b.x1 : b.x2;
-    if (Math.abs(x - bx) < EPS) {
-      const y1 = Math.max(a.y1, b.y1);
-      const y2 = Math.min(a.y2, b.y2);
-      if (y2 - y1 > EPS) return { x1: x, y1, x2: x, y2, horizontal: false, edgeOfA: ea };
-    }
-  }
-  for (const [y, ea] of [
-    [a.y2, "N"],
-    [a.y1, "S"],
-  ] as const) {
-    const by = ea === "N" ? b.y1 : b.y2;
-    if (Math.abs(y - by) < EPS) {
-      const x1 = Math.max(a.x1, b.x1);
-      const x2 = Math.min(a.x2, b.x2);
-      if (x2 - x1 > EPS) return { x1, y1: y, x2, y2: y, horizontal: true, edgeOfA: ea };
-    }
-  }
-  return undefined;
-}
-
 /**
  * 凸片の軸平行な辺 (向きから N/E/S/W を読む)。頂点列は反時計回りなので、
  * +x へ進む辺が南、+y が東、-x が北、-y が西の面になる。
@@ -118,8 +91,8 @@ function pieceOutline(pieces: Pt[][], others: Pt[][]): Segment[] {
 }
 
 /**
- * 二つの領域 (凸片の集合) が共有する軸平行な辺。
- * `sharedSegment` の矩形版を凸片へ広げたもので、切られた形にも正しい。
+ * 二つの領域 (凸片の集合) が共有する軸平行な辺。矩形どうしの共有辺ではなく凸片で見るので、
+ * 描かれた線で切られた形にも正しい。
  * 斜めの辺は返さない — それは描かれた線であり、自分の境界が実現を持っている
  */
 function sharedFromPieces(A: Pt[][], B: Pt[][]): Segment[] {

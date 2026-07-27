@@ -1,12 +1,13 @@
-// 意味の保証 (ADR-0013) — 外部レビュー (docs/reviews/2026-07-25) のP0回収。
-// 正準JSONの無損失と正準順、境界の同一性、凹敷地の包含、敷地形状の妥当性、
-// 宣言面積の照合、同一行の属性重複、言語版の検証、レイヤー記録の完全性。
+// 意味の保証 (ADR-0013 / ADR-0036) — 外部レビュー (docs/reviews/2026-07-25) のP0回収と、
+// 機械形式の版・決定性の規範。正準JSONの無損失と正準順、形式版の名乗り、キーの照合順と
+// Unicode正規化、境界の同一性、凹敷地の包含、敷地形状の妥当性、宣言面積の照合、
+// 同一行の属性重複、言語版の検証、レイヤー記録の完全性。
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { check } from "../src/core/diagnose.js";
 import { validate } from "../src/validate/index.js";
-import { toCanonical } from "../src/core/model.js";
+import { CANONICAL_FORMAT, compareCanonical, toCanonical } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
 
 const BASE = [
@@ -194,4 +195,149 @@ test("parse: the koyu line is two tokens and written once (no version, extra tok
   assert.throws(() => parse("koyu\nunit mm"), /koyu takes a version/);
   assert.throws(() => parse("koyu 0.2 extra\nunit mm"), /Extra tokens on the koyu version declaration/);
   assert.throws(() => parse("koyu 0.4\nkoyu 0.4\nunit mm"), /The koyu version is declared once/);
+});
+
+// ---- 機械形式の版と決定性 (ADR-0036) ----
+
+test("canonical JSON: the document names its own format version first, and the language version only when it was declared", () => {
+  const src = "unit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0\nspace /L1/a room X1..X2 Y1..Y2";
+  const declared = JSON.parse(toCanonical(parse(`koyu 0.5\n${src}`))) as Record<string, unknown>;
+  assert.equal(Object.keys(declared)[0], "format", "the first key names the format");
+  assert.equal(declared["format"], CANONICAL_FORMAT);
+  assert.equal(declared["koyu"], "0.5");
+  // 版宣言を省いたファイルに最新版を刻まない — 著者が書いていない版を名乗らせないためであり、
+  // ツールの既定が動いた日に同じ入力のバイトが変わらないためである
+  const omitted = JSON.parse(toCanonical(parse(src))) as Record<string, unknown>;
+  assert.equal(omitted["format"], CANONICAL_FORMAT);
+  assert.ok(!("koyu" in omitted), "an undeclared language version is not stamped into the machine format");
+});
+
+test("canonical JSON: the top-level keys are in the fixed schema order, and the source-derived keys are collated", () => {
+  const m = parse(
+    [
+      "koyu 0.5",
+      "name 版と並び",
+      "unit mm",
+      "grid X 0 4000 8000",
+      "grid Y 0 4000",
+      "level L1 0 h:2400",
+      "asset SD1 door w:800",
+      "space /L1/b room X2..X3 Y1..Y2 name:B spec:RC acme.x:1",
+      "space /L1/a room X1..X2 Y1..Y2",
+      "zone /L1 name:一階",
+      "polygon /site -1000,-1000 9000,-1000 9000,5000",
+      "column 600 L1",
+      "boundary /L1/a /L1/b",
+    ].join("\n"),
+  );
+  const doc = JSON.parse(toCanonical(m)) as Record<string, Record<string, unknown>>;
+  // 最上位はスキーマが決める固定順である (照合順ではない — grid は unit の後に来る)
+  assert.deepEqual(Object.keys(doc), [
+    "format",
+    "koyu",
+    "name",
+    "unit",
+    "grid",
+    "levels",
+    "assets",
+    "polygons",
+    "columns",
+    "zones",
+    "spaces",
+    "boundaries",
+  ]);
+  // 原本に由来するキー (パス・属性キー) は照合順である
+  assert.deepEqual(Object.keys(doc["spaces"]!), ["/L1/a", "/L1/b"]);
+  assert.deepEqual(Object.keys(doc["spaces"]!["/L1/b"] as Record<string, unknown>), ["type", "at", "attrs"]);
+  assert.deepEqual(Object.keys((doc["spaces"]!["/L1/b"] as { attrs: object }).attrs), [
+    "acme.x",
+    "name",
+    "spec",
+  ]);
+});
+
+test("canonical JSON: the collation is the UTF-8 byte order of the emitted document, not the UTF-16 order of JavaScript", () => {
+  // 𠮟 (U+20B9F) は代用対なので JavaScript の既定の sort では 﨑 (U+FA11) より前に来るが、
+  // UTF-8 では EF… (﨑) が F0… (𠮟) より前である。どちらも日本語の実在の字である
+  const astral = "\u{20B9F}";
+  const compat = "﨑";
+  assert.ok(astral < compat, "the premise: JavaScript's default order puts the astral character first");
+  assert.deepEqual([astral, compat].sort(), [astral, compat], "the premise: so does Array#sort");
+  assert.ok(compareCanonical(compat, astral) < 0, "the canonical order follows the UTF-8 bytes");
+
+  const m = parse(
+    [
+      "koyu 0.5",
+      "unit mm",
+      "grid X 0 4000 8000",
+      "grid Y 0 4000",
+      "level L1 0",
+      `space /L1/${astral} room X1..X2 Y1..Y2`,
+      `space /L1/${compat} room X2..X3 Y1..Y2`,
+    ].join("\n"),
+  );
+  const paths = Object.keys((JSON.parse(toCanonical(m)) as { spaces: object }).spaces);
+  assert.deepEqual(paths, [`/L1/${compat}`, `/L1/${astral}`]);
+  // 出た文書は、自分自身のバイトの昇順に並んでいる
+  const json = toCanonical(m);
+  assert.ok(json.indexOf(compat) < json.indexOf(astral));
+});
+
+test("canonical JSON: compareCanonical agrees with comparing the UTF-8 bytes (the reference for another implementation)", () => {
+  const corpus = [
+    "",
+    "a",
+    "ab",
+    "A",
+    "/L1/a",
+    "/L1/ab",
+    "居室",
+    "居間",
+    "が",
+    "か",
+    "﨑",
+    "\u{20B9F}",
+    "\u{1F3E0}",
+    "�",
+    "㎡",
+    "①",
+    "z﨑",
+    "z\u{20B9F}",
+  ];
+  for (const a of corpus) {
+    for (const b of corpus) {
+      const bytes = Buffer.compare(Buffer.from(a, "utf8"), Buffer.from(b, "utf8"));
+      assert.equal(
+        Math.sign(compareCanonical(a, b)),
+        Math.sign(bytes),
+        `compareCanonical(${JSON.stringify(a)}, ${JSON.stringify(b)}) disagrees with the UTF-8 bytes`,
+      );
+    }
+  }
+});
+
+test("parse: text is read as NFC, so a composed character and its decomposition are the same name", () => {
+  const nfc = "が"; // が
+  const nfd = "が"; // か + 濁点
+  assert.notEqual(nfc, nfd, "the premise: the two spellings are different strings");
+  const src = (s: string) =>
+    `koyu 0.5\nunit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0\nspace /L1/a room X1..X2 Y1..Y2 name:${s}室`;
+  assert.equal(toCanonical(parse(src(nfd))), toCanonical(parse(src(nfc))), "the same name gives the same bytes");
+  // 同一性も NFC で決まる — 見分けのつかない二つのパスは、二つの空間ではなく重複である
+  assert.throws(
+    () =>
+      parse(
+        `koyu 0.5\nunit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0\nspace /L1/${nfc} room X1..X2 Y1..Y2\nspace /L1/${nfd} room X2..X3 Y1..Y2`,
+      ),
+    /Duplicate space path/,
+  );
+});
+
+test("parse: the normalization is NFC and not NFKC (㎡ and ① are not rewritten)", () => {
+  const m = parse(
+    `koyu 0.5\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0\nspace /L1/a room X1..X2 Y1..Y2 name:①号室 acme.note:㎡`,
+  );
+  const json = toCanonical(m);
+  assert.match(json, /"name": "①号室"/);
+  assert.match(json, /"acme\.note": "㎡"/);
 });

@@ -10,7 +10,16 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./validate": {
+      "types": "./dist/validate/index.d.ts",
+      "default": "./dist/validate/index.js"
+    },
+    "./draw": {
+      "types": "./dist/draw/index.d.ts",
+      "default": "./dist/draw/index.js"
+    },
     "./examples/*": "./examples/*",
+    "./spec/*": "./spec/*",
     "./syntax": "./editors/vscode/syntaxes/koyu.tmLanguage.json",
     "./package.json": "./package.json",
     "./node": {
@@ -25,10 +34,14 @@
   "files": [
     "dist",
     "src",
+    "spec",
     "examples",
     "editors",
     "NOTICE"
   ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "koyu": "tsx src/cli.ts",
     "build": "tsc -p tsconfig.build.json",

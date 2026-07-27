@@ -9,15 +9,17 @@ As of koyu v0.15.0. Every tool is a different entrance to the same derivations (
 ## CLI (`koyu` / `npm run koyu --`)
 
 ```
-koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]
+koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]
 ```
 
 | Command | Arguments | Output | Exit code |
 |---|---|---|---|
-| `check` | `--json` (emit Diagnostic[] as JSON — a syntax or composition error is copied into a single SYN01 so the JSON stays valid), `--strict` (exit 1 if there are warnings) | Whether the composition is consistent; errors and warnings with provenance. The ledger of diagnostic codes is semantics.md §5 | 0 = green / 1 = errors (with --strict, warnings too) |
+| `check` | `--json` (emit Diagnostic[] as JSON — a syntax or composition error is copied into a single SYN01 so the JSON stays valid), `--strict` (exit 1 if there are warnings) | Whether the composition is structurally consistent; errors and warnings with provenance. The ledger of diagnostic codes is semantics.md §5. **It says nothing about architectural validity** (scope.md §3) | 0 = green / 1 = errors (with --strict, warnings too) |
+| `validate` | `--json` (emit Finding[] as JSON) | The architectural judgement (the ledger in validation.md). **This is not what check guarantees** — the type and the spelling of the codes both differ; only the exit-code convention is shared | 0 = no violation / 1 = violations |
+| `layers` | `--attrs` (the provenance of each attribute's final value) | The layers that took part in composition, weakest first. The face on which you can see with your own eyes that **there is no implicit resolution anywhere** (composition.md, rules 1 and 6) | 0 |
 | `diff` | `<b.muro>` (the target — the entry is the source), `--json` (emit ModelDiff as JSON) | The difference in the language of composition (ADR-0018): grid moves, renames (uid matches, path differs), field changes on spaces, boundaries, and openings. Line order, formatting, and the difference between a bare wall declaration and its omission (the default wall) are not differences | 0 = no difference / 1 = differences / 2 = the input is broken |
 | `plan` | `-l <level>` (default: the first level), `-o <out.svg>` (default: `<entry>-<level>.svg`) | Generates a plan as SVG | 0 / 2 (an undeclared level name — a question of how it was called. ADR-0028) |
-| `axo` | `-o <out.svg>` (default `out/axo.svg`), `-d NE\|NW\|SE\|SW` (default SE), `-l L1..L5` or `-l L1,L3`, `-s <scale>`, `--no-walls`, `--ceilings` | Generates an axonometric as SVG — floors, roofs, walls, columns and vertical circulation, projected (ADR-0026). It needs no runtime and no WebGL, so a solid can be checked with the same generate-and-look loop as a plan | 0 / 2 (an undeclared level name — it never silently writes an empty SVG. ADR-0028) |
+| `axo` | `-o <out.svg>` (default `out/axo.svg`), `-d NE\|NW\|SE\|SW` (default SE), `-l L1..L5` or `-l L1,L3`, `-s <scale>`, `--no-walls`, `--ceilings` | Generates an axonometric as SVG — floors, roofs, walls, columns and vertical circulation, projected (ADR-0026). It needs no runtime and no WebGL, so a solid can be checked with the same generate-and-look loop as a plan | 0 / 2 (an undeclared level name, an unreadable scale, an unknown direction — it never silently writes an empty SVG, nor one full of `NaN`. ADR-0028) |
 | `doors` | `/pathA /pathB` | The door count and the intermediate list; 1 if unreachable | 0/1/2 |
 | `graph` | — | The neighbors of each space (boundary kind, door count) | 0 |
 | `stats` | — | Area by level, semi-outdoor reported separately, by zone, by type, by use | 0 |
@@ -50,20 +52,51 @@ The standard agent loop: `model_summary` → `layers` → `write_layer` → (fix
 
 ## The public API (`@kensnzk/koyu`)
 
-**The root entry is browser-safe** (it does not pull in node:fs). Only the entry points that use fs are split out into `@kensnzk/koyu/node`.
+**The root entry is browser-safe** (it does not pull in node:fs). Only the entry points that use fs are split out into `@kensnzk/koyu/node`. The runtime it is declared to run on is Node 22 or newer (`engines`).
+
+| Entry | What is in it | Frozen |
+|---|---|---|
+| `@kensnzk/koyu` | everything listed below | the core part freezes (scope.md §8) |
+| `@kensnzk/koyu/node` | `parseFile(path)` / `parseFileWith(path, overlay)` — only the two that compose from fs | frozen |
+| `@kensnzk/koyu/validate` | the architectural judgement (validation.md) | **not frozen** — a face that grows |
+| `@kensnzk/koyu/draw` | SVG generation | **not frozen** — how it is called freezes, what is in the SVG does not |
+| `@kensnzk/koyu/examples/*` | the bundled buildings | — |
+| `@kensnzk/koyu/spec/*` | this specification itself (shipped in the package) | — |
 
 ```ts
-import { parse, parseFiles, parseWith, check, doorsBetween, daylight, siteReport,
-         svgPlan, toCanonical, areaM2, zoneAreaM2, isSemiOutdoor, /* … */ } from "@kensnzk/koyu";
+import { parse, check, doorsBetween, siteReport, svgPlan, toCanonical } from "@kensnzk/koyu";
 import { parseFile } from "@kensnzk/koyu/node";
 ```
 
+### The face, written down
+
+**This table and the implementation's exports agree as sets** — if they disagree, a test fails (ADR-0037). `export *` is not used: the moment an export is added to a module, a promise nobody declared has been added to a face that freezes. **A face that freezes has to be written down.**
+
+<!-- api-surface -->
+
+| Face | Values | Types |
+|---|---|---|
+| Parsing and composition | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
+| The vocabulary of the model | — | `Model` `Space` `Zone` `Boundary` `Opening` `Seg` `Area` `Asset` `Level` `Rect` `Pt` `GridAxis` `GridRef` `SitePolygon` `Column` `ColumnDecl` `DrawnLine` `Edge` `BoundaryKind` `Attrs` `AttrValue` |
+| Queries, derivation, machine form | `areaM2` `zoneAreaM2` `unionAreaM2` `polygonAreaM2` `pointInPolygon` `polyBounds` `rectToPoly` `columnsFor` `displayName` `effectiveUse` `heff` `isIndoor` `isSemiOutdoor` `isCoveredAbove` `levelsSorted` `toCanonical` `srcRef` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `DEFAULT_LANGUAGE_VERSION` | — |
+| Structural diagnostics | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `Diagnostic` `DiagnosticCode` `CheckResult` |
+| The spatial graph | `doorsBetween` `neighbors` `passable` `segmentsFor` `envelopeGaps` `deriveDefaultBoundaries` `placeOpening` `placeBand` | `Segment` `Route` `NeighborInfo` `Band` `PlacedBand` `BandError` `BandCode` |
+| Floors, ceilings, roofs | `slabs` | `Slab` `SlabKind` |
+| Daylight | `daylightInputs` | `DaylightInput` |
+| Vertical circulation | `verticalRuns` `runSolids` `runDrawsForLevel` `slopeText` | `VerticalRun` `RunPart` `RunSolid` `RunDraw` `RunArrow` `RunDevice` `RunForm` `Seg2` |
+| The site | `siteReport` | `SiteReport` `RoadFrontage` |
+| Diffs | `semanticDiff` `renderDiff` | `ModelDiff` `FieldChange` `ChangedItem` `RenamedItem` `GridChange` `SpaceItem` `BoundaryItem` `BoundaryChange` `ColumnItem` |
+| Generation (not frozen) | `svgPlan` `svgAxo` | `PlanOptions` `AxoOptions` |
+| Validation (not frozen) | `validate` `VALIDATION_RULES` | `Finding` `ValidationRule` |
+
+### What the face promises
+
 - **Composition entry points**: `parse(source)` (a single source — import is an error) / `parseFiles(files, entry)` (a set of virtual files — imports are resolved within that key space; for the browser) / `parseFile(path)` (fs) / `parseFileWith(path, overlay)` (fs plus a substitution — for the gate before writing) / `parseWith(loader, entry)` (your own loader). Every layer that took part is in `model.layers`, in composition order.
-- **Checking and queries**: `checkDiagnostics(model)` → `Diagnostic[]` (the primary form — code/severity/message/provenance/path/related. The ledger is `DIAGNOSTIC_CODES` and the code table is semantics.md §5. ADR-0016) / `check(model)` → {errors, warnings} (the compatible string form — the same items in the same order). `doorsBetween` / `daylight` / `siteReport` / `zoneAreaM2` / `neighbors` / `passable`.
-- **The parts of derivation**: `segmentsFor` / `sharedSegment` / `deriveDefaultBoundaries` (default boundaries — already applied by the parse family; use it when giving meaning to a model that came from canonical JSON) / `placeOpening` / `placeBand` (this "band" is an interval along a boundary segment — an opening or a seg — and is a different layer from the notation keyword `band` ⟨language.md §3⟩) / `mergeCollinear` / `heff` / `isSemiOutdoor` / `isCoveredAbove` / `levelsSorted` / `polygonAreaM2` / `pointInPolygon` / `rectEscapesPolygon` / `polygonSelfIntersection`.
-- **Generation**: `svgPlan(model, {level, scale?})` / `toCanonical(model)`.
+- **Checking and queries**: `checkDiagnostics(model)` → `Diagnostic[]` (the primary form — code/severity/message/provenance/path/related. The ledger is `DIAGNOSTIC_CODES` and the code table is semantics.md §5. ADR-0016) / `check(model)` → {errors, warnings} (the compatible string form — the same items in the same order). The queries are `doorsBetween` / `daylightInputs` / `siteReport` / `zoneAreaM2` / `neighbors` / `passable` / `envelopeGaps` — **not one of them returns a verdict** (scope.md §4).
+- **The parts of derivation**: `segmentsFor` / `deriveDefaultBoundaries` (default boundaries — already applied by the parse family; use it when giving meaning to a model that came from canonical JSON) / `placeOpening` / `placeBand` (this "band" is an interval along a boundary segment — an opening or a seg — and is a different layer from the notation keyword `band` ⟨language.md §3⟩) / `columnsFor` / `heff` / `isSemiOutdoor` / `isCoveredAbove` / `levelsSorted`.
+- **What is generated**: `slabs(model)` (floors, ceilings and roofs — ADR-0024) / `verticalRuns(model)` (the shape of the vertical circulation — ADR-0021) / `runSolids(run)` (its solids) / `runDrawsForLevel(model, level)` (the drawing cut at that level). **None of them carries an appearance** — no colours, no line weights. A viewer only maps them into geometry (scope.md §6).
+- **Drawing**: `svgPlan(model, {level, scale?})` / `svgAxo(model, {dir?, levels?, scale?, ceilings?, walls?})` / `toCanonical(model)`.
 - **Diffs**: `semanticDiff(a, b)` → `ModelDiff` (the difference in the language of composition — renames are detected by uid, and boundaries are compared as effective sets. Empty whenever `toCanonical` is identical. ADR-0018) / `renderDiff(d)` → lines of Japanese (an empty array means no difference).
 - **Errors**: a syntax or composition error is a `SourceError` (line / raw / file — the message is `layer:line: body`). check never throws; it returns arrays.
-- Subpaths: `@kensnzk/koyu/examples/*` lets the bundled examples be referenced from the distributed package.
 
 A worked consumer is the viewer ugatsu (github.com/kensnzk/ugatsu) — every derivation is a call into this API, and it holds no answers of its own.

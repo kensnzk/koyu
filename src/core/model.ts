@@ -12,6 +12,14 @@ export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2", "0.
 /** 版宣言を省略したときの解釈 — 常に最新版の意味論 (省略はツール版を跨いで意味安定ではない) */
 export const DEFAULT_LANGUAGE_VERSION = "0.5";
 
+/**
+ * 機械形式 (正準JSON) が自分を名乗る版 (ADR-0036)。**言語版でもツール版でもない** —
+ * 数えるのは綴りだけである。minorはキーが増えたとき (増えたキーを持たない文書のバイトは変わらない)、
+ * majorは既存のキーの名前・並び・照合順・正規化・数の綴りが変わったとき (既存の文書のバイトが変わる)。
+ * 意味論の版は muro が持つので、`koyu` キー (書かれた版宣言の素通し) とは別の面である
+ */
+export const CANONICAL_FORMAT = "koyu-canonical/1.0";
+
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";
 
@@ -337,14 +345,6 @@ export function polygonSelfIntersection(poly: Pt[], eps = 1): Pt | undefined {
   return undefined;
 }
 
-/**
- * 矩形が多角形からはみ出す点 (完全に内側ならundefined)。凹多角形にも正しい:
- * 四隅の内包に加え、多角形の頂点の矩形内への入り込みと、辺同士の内部交差を検査する
- */
-export function rectEscapesPolygon(r: Rect, poly: Pt[], eps = 1): Pt | undefined {
-  return shapeEscapesPolygon(rectToPoly(r), poly, eps);
-}
-
 /** 凸片が多角形からはみ出す点 (導出された領域を敷地形状と照合する — ADR-0022) */
 export function shapeEscapesPolygon(shape: Pt[], poly: Pt[], eps = 1): Pt | undefined {
   for (const c of shape) if (!pointInPolygon(c, poly, eps)) return c;
@@ -399,29 +399,6 @@ export function areaM2(s: Space): number | undefined {
 
 /** 矩形を頂点列へ (反時計回り) */
 export const rectToPoly = poly.rectToPoly;
-
-/** 凸多角形を半平面で切る (Sutherland–Hodgman)。
- *  半平面は有向線分 a→b の左側 (外積>0)。切り落とされて空なら [] */
-export function clipHalfPlane(poly: Pt[], a: Pt, b: Pt, keepLeft: boolean, eps = 1e-6): Pt[] {
-  const side = (p: Pt): number => {
-    const v = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
-    return keepLeft ? v : -v;
-  };
-  const out: Pt[] = [];
-  for (let i = 0; i < poly.length; i++) {
-    const p = poly[i]!;
-    const q = poly[(i + 1) % poly.length]!;
-    const sp = side(p);
-    const sq = side(q);
-    if (sp >= -eps) out.push(p);
-    if ((sp > eps && sq < -eps) || (sp < -eps && sq > eps)) {
-      const t = sp / (sp - sq);
-      out.push({ x: p.x + t * (q.x - p.x), y: p.y + t * (q.y - p.y) });
-    }
-  }
-  // 退化 (面積ゼロ) は捨てる
-  return out.length >= 3 && polygonAreaM2(out) > 1e-9 ? out : [];
-}
 
 /** 頂点列の外接矩形 */
 export const polyBounds = poly.bounds;
@@ -659,7 +636,7 @@ export function canonicalSegEntry(g: Seg): Record<string, unknown> {
 /** 正準JSONの境界エントリ。a/bの向きは書かれた表記 (aキー) として保存する — edge/swingはa側から読む */
 export function canonicalBoundaryEntry(b: Boundary): Record<string, unknown> {
   return {
-    between: [b.a, b.b].sort(),
+    between: [b.a, b.b].sort(compareCanonical),
     a: b.a,
     kind: b.kind,
     ...(b.t !== undefined ? { t: b.t } : {}),
@@ -678,7 +655,7 @@ export function canonicalBoundaryEntry(b: Boundary): Record<string, unknown> {
 /** 正準JSON — 機械形式。差分とレイヤー合成の土台 (キーは安定順) */
 export function toCanonical(model: Model): string {
   const spaces: Record<string, unknown> = {};
-  for (const p of [...model.spaces.keys()].sort()) {
+  for (const p of [...model.spaces.keys()].sort(compareCanonical)) {
     spaces[p] = canonicalSpaceEntry(model.spaces.get(p)!);
   }
   // 境界: 宣言順は意味を持たないため、並びは内容の正準順 (betweenの辞書順、同一betweenは直列化順)。
@@ -688,22 +665,27 @@ export function toCanonical(model: Model): string {
   );
 
   const zones: Record<string, unknown> = {};
-  for (const p of [...model.zones.keys()].sort()) {
+  for (const p of [...model.zones.keys()].sort(compareCanonical)) {
     const z = model.zones.get(p)!;
     zones[p] = Object.keys(z.attrs).length ? { attrs: sortObj(z.attrs) } : {};
   }
   const assets: Record<string, unknown> = {};
-  for (const n of [...model.assets.keys()].sort()) {
+  for (const n of [...model.assets.keys()].sort(compareCanonical)) {
     const a = model.assets.get(n)!;
     assets[n] = { kind: a.kind, ...(Object.keys(a.attrs).length ? { attrs: sortObj(a.attrs) } : {}) };
   }
   const polygons: Record<string, number[][]> = {};
-  for (const p of [...model.polygons.keys()].sort()) {
+  for (const p of [...model.polygons.keys()].sort(compareCanonical)) {
     polygons[p] = model.polygons.get(p)!.points.map((pt) => [pt.x, pt.y]);
   }
 
   const doc = {
-    koyu: model.version,
+    // **文書が最初に名乗るのは自分の綴りの版である** (ADR-0036)。`koyu` は言語版であって
+    // 形式版ではなく、しかも「書かれた版宣言の素通し」なので、宣言の無いファイルには出ない —
+    // 出せば、その版を著者は書いていないのに書いたことになり、しかもツールの既定が動いた日に
+    // 同じ入力のバイトが変わる。決定性は形式の側の約束なので、ツールの既定に預けない
+    format: CANONICAL_FORMAT,
+    ...(model.versionDeclared ? { koyu: model.version } : {}),
     ...(model.name ? { name: model.name } : {}),
     unit: model.unit,
     grid: { X: model.grid.X.coords, Y: model.grid.Y.coords },
@@ -759,13 +741,42 @@ function sortGridNames(axis: string[], names: string[]): string[] {
   return [...names].sort((p, q) => {
     const ip = axis.indexOf(p);
     const iq = axis.indexOf(q);
-    if (ip < 0 || iq < 0) return p < q ? -1 : p > q ? 1 : 0; // 未宣言の通りは辞書順で安定させる
+    if (ip < 0 || iq < 0) return compareCanonical(p, q); // 未宣言の通りは照合順で安定させる
     return ip - iq;
   });
 }
 
+/**
+ * 正準形の照合順 — **Unicode符号位置の昇順**であり、これは出力される UTF-8 バイトの昇順に等しい
+ * (ADR-0036)。**JavaScript の `<` と既定の `sort` は使えない** — あれは UTF-16 コード単位順で、
+ * 符号位置順と一致しない。実測: 𠮟 (U+20B9F) は代用対 D842,DF9F なので `<` では 﨑 (U+FA11) より
+ * 小さいが、UTF-8 では F0 A0 AE 9F と EF A8 91 で 﨑 が先である。どちらも日本語の実在の字なので、
+ * 差は理論上のものではない。**規範は「JSの既定」ではなく「この形式自身のバイト」に置く** —
+ * 別の言語で書かれた実装が素直に書けば同じ並びになる側を選ぶ。
+ *
+ * 実装は代用対の持ち上げによる: 符号位置順では U+E000..U+FFFF が代用対 (U+10000以上) より
+ * 手前に来るので、コード単位を写して比べる。
+ */
+export function compareCanonical(a: string, b: string): number {
+  if (a === b) return 0;
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) {
+    const x = a.charCodeAt(i);
+    const y = b.charCodeAt(i);
+    if (x !== y) return utf8Order(x) < utf8Order(y) ? -1 : 1;
+  }
+  return a.length === b.length ? 0 : a.length < b.length ? -1 : 1;
+}
+
+/** UTF-16コード単位を、符号位置 (= UTF-8バイト) の順に並ぶ数へ写す */
+function utf8Order(u: number): number {
+  if (u >= 0xd800 && u <= 0xdfff) return u + 0x2000; // 代用対 = U+10000以上 — 最上位へ
+  if (u >= 0xe000) return u - 0x800; // 代用領域の穴を詰める
+  return u;
+}
+
 function sortObj<T>(o: Record<string, T>): Record<string, T> {
-  return Object.fromEntries(Object.entries(o).sort(([a], [b]) => (a < b ? -1 : 1)));
+  return Object.fromEntries(Object.entries(o).sort(([a], [b]) => compareCanonical(a, b)));
 }
 
 /**
@@ -778,6 +789,6 @@ function sortObj<T>(o: Record<string, T>): Record<string, T> {
 export function sortBySerial<T>(items: T[]): T[] {
   return items
     .map((it) => [JSON.stringify(it), it] as const)
-    .sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0))
+    .sort(([x], [y]) => compareCanonical(x, y))
     .map(([, it]) => it);
 }

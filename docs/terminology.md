@@ -63,6 +63,10 @@ This is the translation contract for `spec/en/` and `guide/en/`. Japanese is the
 | 矩計 | section stack-up | `levels` が出すテキストの断面 |
 | 高さの不変量 | height invariant | 天井高 + 上階slab ≤ 階高 |
 | 正準JSON | canonical JSON | バイト安定な機械形式 |
+| 形式版 | format version | 正準JSONの綴りの版 (`format`)。言語版とは別 |
+| 言語版 | language version | 原本の `koyu <版>`。muro の版 |
+| 照合順 | collation order | キーの並び — 符号位置の昇順 (= UTF-8バイト順) |
+| 正規化 | normalization | 文字の NFC 正規化 (同一性はここで決まる) |
 | 意味保存 | meaning-preserving | 導出物が不変であること |
 | 床規則 | floor rule | 帯の内側の切り位置の綴り方 |
 | 閉じた帯 | closed band | `w:rest` を使わず合計を照合する帯 |

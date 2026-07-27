@@ -237,6 +237,18 @@ npx tsx src/cli.ts axo examples/complex/main.muro -l ZZ9
 Undeclared level: ZZ9 (declared: B2 B1 L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 R)
 ```
 
+**読めない値も同じ扱いである。**縮尺に数でない値を渡すと、以前は `width="NaN"` のSVGを書いて
+終了コード0で「生成しました」と言っていた。**呼び方の問題は、呼び方の問題として返す**
+([ADR-0037](../docs/decisions/0037-public-surface.md))。向き (`-d`) も同じで、四つ以外は落ちる。
+
+```sh
+npx tsx src/cli.ts axo examples/complex/main.muro -s abc
+```
+
+```text
+-s takes a positive number: abc
+```
+
 ## runs — 縦動線はどう導かれたか
 
 段数も踏面も踊り場も勾配も**書かれていない** ([ADR-0021](../docs/decisions/0021-vertical-circulation.md))。
@@ -513,7 +525,7 @@ Site /site (敷地)
 
 ## json — 機械が読む形
 
-正準JSONを標準出力に書く。差分・外部接続・レイヤー合成の土台であり、キーの並びは安定している。
+正準JSONを標準出力に書く。差分・外部接続の土台であり、キーの並びは安定している。最初のキー `format` はこの形式自身の綴りの版で、次の `koyu` は原本に書かれた言語版である (書いていなければ出ない)。
 
 ```sh
 npx tsx src/cli.ts json examples/two-rooms.muro
@@ -521,6 +533,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```text
 {
+  "format": "koyu-canonical/1.0",
   "koyu": "0.5",
   "name": "二室",
   "unit": "mm",

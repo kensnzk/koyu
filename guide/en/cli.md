@@ -239,6 +239,20 @@ npx tsx src/cli.ts axo examples/complex/main.muro -l ZZ9
 Undeclared level: ZZ9 (declared: B2 B1 L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 R)
 ```
 
+**A value it cannot read is treated the same way.** Hand the scale something that is not a
+number and it used to write an SVG full of `width="NaN"`, then say "generated" and exit 0.
+**A question of how it was called is returned as a question of how it was called**
+([ADR-0037](../../docs/decisions/0037-public-surface.md)). The direction (`-d`) is the same —
+anything but the four is rejected.
+
+```sh
+npx tsx src/cli.ts axo examples/complex/main.muro -s abc
+```
+
+```text
+-s takes a positive number: abc
+```
+
 ## runs — how the vertical circulation was derived
 
 Riser counts, goings, landings and slopes are **written nowhere**
@@ -516,7 +530,7 @@ Frontage length is the total of the boundary segment lengths between spaces bene
 
 ## json — the form machines read
 
-Writes the canonical JSON to standard output. It is the footing for diffs, external connections, and layer composition, and the ordering of its keys is stable.
+Writes the canonical JSON to standard output. It is the footing for diffs and external connections, and the ordering of its keys is stable. The first key, `format`, is the version of this format's own spelling; the next, `koyu`, is the language version written in the source (absent when nothing was written).
 
 ```sh
 npx tsx src/cli.ts json examples/two-rooms.muro
@@ -524,6 +538,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```text
 {
+  "format": "koyu-canonical/1.0",
   "koyu": "0.5",
   "name": "二室",
   "unit": "mm",

@@ -43,7 +43,7 @@ import { parseFile, parseFileWith } from "@kensnzk/koyu/node";  // node:fs を�
 
 **ルートのエントリは `node:fs` を引かない。** ブラウザやワーカーでそのまま動く。ファイルシステムを触る入口だけが `@kensnzk/koyu/node` に分離してある。分けてあるのは、パーサ本体を純粋に保つためである — 合成 (`import` の解決) は「レイヤーをどう読むか」という関数を外から受け取る形になっていて、fs はその実装の一つでしかない。ブラウザは仮想ファイル群 (`parseFiles`) や独自ローダー (`parseWith`) を渡す ([ADR-0010](../docs/decisions/0010-assets-and-composition.md))。
 
-ルートから出ている実行時の値は 47、`/node` から 2 である。以下はその全部を扱う。
+ルートから出ている実行時の値は 48、`/node` から 2 である。**全部の一覧は [spec/tools.md](../spec/tools.md) が持つ** — 面を一枚の表として見たいときはそちらを見る ([ADR-0037](../docs/decisions/0037-public-surface.md))。この頁は、やりたいことの側からよく使うものを引く。
 
 ## 読み込む・合成する
 
@@ -361,33 +361,31 @@ console.log(passable(m.boundaries.find((b) => b.kind === "stair")!));
 true
 ```
 
-### daylight — 採光の粗い判定
+### daylightInputs — 採光の入力 (合否は言わない)
 
 ```ts
-function daylight(model: Model): DaylightResult[]
-interface DaylightResult {
+function daylightInputs(model: Model): DaylightInput[]
+interface DaylightInput {
   space: Space;
   floor: number;      // 床面積 m²
   window: number;     // 有効窓面積 m² (係数適用後)
-  need: number;       // 必要面積 m² (床/7)
-  ok: boolean;
   missingH: boolean;  // h 未指定で数えられなかった窓があるか
 }
 ```
 
-対象は `daylight:1` を書いた空間だけで、型は見ない ([ADR-0020](../docs/decisions/0020-daylight-scope-is-declared.md))。**対象が一つも無ければ空配列が返る** — 「全部合格」と区別が付かないので、`length` を見ること。
+対象は `daylight:1` を書いた空間だけで、型は見ない ([ADR-0020](../docs/decisions/0020-daylight-scope-is-declared.md))。**返るのは数だけで、`ok` も `need` も無い。**1/7 という線を引くのは建築の側の判断であり、検証の面 (`validate` の `daylight.ratio` — [validation.md](validation.md)) が言う ([spec/scope.md §4](../spec/scope.md))。対象が一つも無ければ空配列が返る — 「全部合格」と区別が付かないので `length` を見ること。
 
 ```ts
-import { daylight } from "@kensnzk/koyu";
+import { daylightInputs } from "@kensnzk/koyu";
 
-for (const r of daylight(m)) {
-  console.log(`${r.space.path} floor=${r.floor} window=${r.window.toFixed(2)} need=${r.need.toFixed(2)} ok=${r.ok} missingH=${r.missingH}`);
+for (const d of daylightInputs(m)) {
+  console.log(`${d.space.path} floor=${d.floor} window=${d.window.toFixed(2)} missingH=${d.missingH}`);
 }
 ```
 
 ```text
-/home/ldk floor=39.75 window=7.54 need=5.68 ok=true missingH=false
-/home/bed1 floor=26.5 window=5.72 need=3.79 ok=true missingH=false
+/home/ldk floor=39.75 window=7.54 missingH=false
+/home/bed1 floor=26.5 window=5.72 missingH=false
 ```
 
 ### siteReport — 敷地の数字
@@ -471,27 +469,25 @@ exclusive LDK
 
 平面図を自前で描く、独自の検査を書く、といったときに借りる関数群である。**壁を置く操作はここにも無い** — 壁は空間の割付から導出される。
 
-### 壁芯線分 — segmentsFor / sharedSegment / segmentLength / mergeCollinear
+### 壁芯線分 — segmentsFor
 
 ```ts
 interface Segment {
   x1: number; y1: number; x2: number; y2: number;
   horizontal: boolean;      // 水平なら y1===y2、垂直なら x1===x2
+  diagonal?: boolean;       // 軸に平行でない (描かれた線)
   edgeOfA?: Edge;           // boundary.a 側の矩形から見た辺 (N/E/S/W)
 }
 
 function segmentsFor(model: Model, b: Boundary): Segment[]
-function sharedSegment(a: Rect, b: Rect): Segment | undefined
-function segmentLength(s: Segment): number
-function mergeCollinear(segs: Segment[]): Segment[]
 ```
 
-`segmentsFor` が中心である。**両側が領域を持つなら共有辺、片側が領域を持たない (`exterior` など) なら外周の残り**を返す。垂直境界 (`stair` / `shaft` / `void`) は線分を持たないので空配列になる。
+**壁がどこに現れるかの答えはこの一本だけである。**両側が領域を持つなら共有辺、片側が領域を持たない (`exterior` など) なら外周の残りを返す。垂直境界 (`stair` / `shaft` / `void`) は線分を持たないので空配列になる。
 
 `edgeOfA` の方角は **N=+Y・S=−Y・E=+X・W=−X** — X は東が正、Y は北が正である。
 
 ```ts
-import { parse, segmentLength, segmentsFor, sharedSegment } from "@kensnzk/koyu";
+import { parse, segmentsFor } from "@kensnzk/koyu";
 
 const g = parse(`grid X 0 3600 7200
 grid Y 0 4000
@@ -504,10 +500,10 @@ boundary /L1/a /L1/b t:120
 boundary /L1/a /out t:150`);
 
 const bIn = g.boundaries.find((b) => b.b === "/L1/b")!;
-console.log(segmentsFor(g, bIn), segmentLength(segmentsFor(g, bIn)[0]!));
+console.log(segmentsFor(g, bIn));
 
 const bOut = g.boundaries.find((b) => b.b === "/out")!;
-for (const s of segmentsFor(g, bOut)) console.log(`edge:${s.edgeOfA} len=${segmentLength(s)}`);
+for (const s of segmentsFor(g, bOut)) console.log(`edge:${s.edgeOfA} ${s.x1},${s.y1} → ${s.x2},${s.y2}`);
 ```
 
 ```text
@@ -520,37 +516,15 @@ for (const s of segmentsFor(g, bOut)) console.log(`edge:${s.edgeOfA} len=${segme
     horizontal: false,
     edgeOfA: 'E'
   }
-] 4000
-edge:N len=3600
-edge:S len=3600
-edge:W len=4000
+]
+edge:S 0,0 → 3600,0
+edge:N 0,4000 → 3600,4000
+edge:W 0,0 → 0,4000
 ```
 
 外壁が三本しか出ていないのは、`/L1/a` の E 辺を `/L1/b` が占めているからである。**外部との境界が複数の線分に割れるのはこれが理由で、開口を置くには `edge:` で辺を選ぶ必要がある。**
 
-`sharedSegment` は矩形二枚の共有辺を直接求める。`mergeCollinear` は共線で連続する線分を一本にまとめる (L字の外周を一本の壁にするのに使う)。
-
-```ts
-import { mergeCollinear, sharedSegment } from "@kensnzk/koyu";
-
-console.log(sharedSegment(g.spaces.get("/L1/a")!.rects[0]!, g.spaces.get("/L1/b")!.rects[0]!));
-console.log(mergeCollinear([
-  { x1: 0, y1: 0, x2: 1000, y2: 0, horizontal: true, edgeOfA: "S" },
-  { x1: 1000, y1: 0, x2: 2500, y2: 0, horizontal: true, edgeOfA: "S" },
-]));
-```
-
-```text
-{
-  x1: 3600,
-  y1: 0,
-  x2: 3600,
-  y2: 4000,
-  horizontal: false,
-  edgeOfA: 'E'
-}
-[ { x1: 0, y1: 0, x2: 2500, y2: 0, horizontal: true, edgeOfA: 'S' } ]
-```
+長さが要るなら線分の端点から自分で測ればよい。**koyu が持つのは「どこに線分があるか」までで、そこから先は借り手の仕事である。**
 
 ### 既定境界 — deriveDefaultBoundaries
 
@@ -633,25 +607,51 @@ console.log(placeBand(g, bIn, { w: 1000, at: 0.25, line: 0 }, "seg"));
 
 比率の `at` は線分に収まるようクランプされるが、通り参照 (`atAbs`) はクランプされない — はみ出せば `OPN08` / `SEG08` になる。
 
-### 重なり — planOverlap / spacesOverlap
+### 生成物 — slabs / verticalRuns / runSolids / runDrawsForLevel
 
 ```ts
-function planOverlap(a: Rect, b: Rect): Rect | undefined   // 重なりの矩形。触れているだけなら undefined
-function spacesOverlap(a: Space, b: Space): boolean        // 矩形合併同士
+function slabs(model: Model): Slab[]                    // 床・天井・屋根 (ADR-0024)
+function verticalRuns(model: Model): VerticalRun[]      // 縦動線の形 (ADR-0021)
+function runSolids(run: VerticalRun): RunSolid[]        // その立体 (box / incline)
+function runDrawsForLevel(model: Model, level: string, cut?: number): RunDraw[]  // そのレベルで切った作図
+
+interface Slab {
+  kind: "floor" | "ceiling" | "roof";
+  space: string; level: string;
+  outline: Pt[];            // 導出された凸片の輪郭
+  z0: number; z1: number;
+}
 ```
 
-垂直隣接の導出 (上下階が平面で重なるか) と、領域の重なりの検査に使う。**接している (辺を共有する) だけでは重なりではない。**
+**ここに出るものは原本のどこにも書かれていない。**床の厚みも段数も踏面も勾配も、規則から現れる生成物である。そして**どれも見た目を持たない** — 色も線幅も注記の書式も返さないので、ビュアーはこれを幾何へ写すだけでよい ([spec/scope.md §6](../spec/scope.md))。ugatsu の三次元ビューと平面の縦動線は、この四つの呼び出しだけでできている。
 
 ```ts
-import { planOverlap, spacesOverlap } from "@kensnzk/koyu";
-console.log(planOverlap({ x1: 0, y1: 0, x2: 100, y2: 100 }, { x1: 50, y1: 50, x2: 200, y2: 200 }));
-console.log(spacesOverlap(g.spaces.get("/L1/a")!, g.spaces.get("/L1/b")!));
+import { runDrawsForLevel, runSolids, slabs, slopeText, verticalRuns } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+
+const b = parseFile("examples/basement/main.muro");
+for (const s of slabs(b).slice(0, 3)) console.log(s.kind, s.space, s.level, `z ${s.z0}→${s.z1}`);
+
+const stair = verticalRuns(b).find((r) => r.device === "stair")!;
+console.log(`${stair.path} ${stair.device} rise=${stair.rise} risers=${stair.risers} riser=${Math.round(stair.riser)} tread=${Math.round(stair.tread)} slope=${slopeText(stair.slope)}`);
+console.log(runSolids(stair).length, runSolids(stair)[0]!.kind);
+for (const d of runDrawsForLevel(b, "B1")) console.log(`${d.path} treads=${d.treads.length} arrows=${d.arrows.map((a) => a.label).join(" ")}`);
 ```
 
 ```text
-{ x1: 50, y1: 50, x2: 100, y2: 100 }
-false
+floor /B2/park B2 z -8200→-7400
+ceiling /B2/park B2 z -4830→-4800
+floor /B2/ramp B2 z -8200→-7400
+/B2/st stair rise=3700 risers=21 riser=176 tread=300 slope=1/1.5
+20 box
+/B1/ev treads=2 arrows=
+/B1/ramp treads=0 arrows=UP
+/B1/st treads=6 arrows=UP
+/B2/ramp treads=0 arrows=DN
+/B2/st treads=11 arrows=DN
 ```
+
+一枚の平面に**上る走りと下りる走りの両方**が出ていることに注意する。平面図が「そのレベルで切った断面」である以上、B1 では B1 から上る階段 (UP) と B2 から上がってきた階段 (DN) が同時に見える。
 
 ### 高さと導出される性質 — heff / levelsSorted / isSemiOutdoor / isCoveredAbove
 
@@ -678,30 +678,29 @@ true false
 true false
 ```
 
-### 敷地の幾何 — polygonAreaM2 / pointInPolygon / rectEscapesPolygon / polygonSelfIntersection
+### 敷地の幾何 — polygonAreaM2 / pointInPolygon / polyBounds / rectToPoly
 
 ```ts
 interface Pt { x: number; y: number }
 
-function polygonAreaM2(points: Pt[]): number                              // シューレース公式。頂点は順不同
-function pointInPolygon(p: Pt, poly: Pt[], eps?: number): boolean         // 境界上は内側扱い (既定 eps=1mm)
-function rectEscapesPolygon(r: Rect, poly: Pt[], eps?: number): Pt | undefined  // はみ出す点
-function polygonSelfIntersection(poly: Pt[], eps?: number): Pt | undefined      // 自己交差点
+function polygonAreaM2(points: Pt[]): number                      // シューレース公式。頂点は順不同
+function pointInPolygon(p: Pt, poly: Pt[], eps?: number): boolean // 境界上は内側扱い (既定 eps=1mm)
+function polyBounds(poly: Pt[]): Rect                             // 外接矩形
+function rectToPoly(r: Rect): Pt[]                                // 矩形を頂点列へ (反時計回り)
 ```
 
-`rectEscapesPolygon` は四隅の内包だけでなく、多角形の頂点の矩形内への入り込みと辺同士の交差も見る — **凹んだ敷地でも正しい。** 座標は mm、面積は ㎡ で返る。
+座標は mm、面積は ㎡ で返る。**「建物が敷地からはみ出しているか」はここには無い** — それは判定なので、検証の面 (`validate` の `site.escape`) が言う ([spec/scope.md §4](../spec/scope.md))。ここにあるのは、その判定が読む数と形だけである。
 
 ```ts
-import { pointInPolygon, polygonAreaM2, polygonSelfIntersection, rectEscapesPolygon } from "@kensnzk/koyu";
+import { pointInPolygon, polyBounds, polygonAreaM2 } from "@kensnzk/koyu";
 
 const poly = [{ x: 0, y: 0 }, { x: 10000, y: 0 }, { x: 10000, y: 10000 }, { x: 0, y: 10000 }];
 console.log(polygonAreaM2(poly), pointInPolygon({ x: 5000, y: 5000 }, poly),
-  polygonSelfIntersection(poly),
-  rectEscapesPolygon({ x1: 9000, y1: 0, x2: 12000, y2: 3000 }, poly));
+  pointInPolygon({ x: 12000, y: 0 }, poly), polyBounds(poly));
 ```
 
 ```text
-100 true undefined { x: 12000, y: 0 }
+100 true false { x1: 0, x2: 10000, y1: 0, y2: 10000 }
 ```
 
 ## 生成する
@@ -743,7 +742,7 @@ throws: There is no space with a region on level L9
 function toCanonical(model: Model): string
 ```
 
-安定順のJSON文字列 (末尾に改行つき)。`import` は残らない。**既定境界 (`derived`) は出ない** — 正準JSONは書かれた構成だけを持つ。
+安定順のJSON文字列 (末尾に改行つき)。`import` は残らない。**既定境界 (`derived`) は出ない** — 正準JSONは書かれた構成だけを持つ。先頭の `format` はこの形式の綴りの版である。
 
 ```ts
 import { toCanonical } from "@kensnzk/koyu";
@@ -752,40 +751,14 @@ console.log(toCanonical(a).split("\n").slice(0, 6).join("\n"));
 
 ```text
 {
+  "format": "koyu-canonical/1.0",
   "koyu": "0.5",
   "name": "二室",
   "unit": "mm",
   "grid": {
-    "X": [
 ```
 
 スキーマと安定性の規則は [spec/canonical-json.md](../spec/canonical-json.md)。
-
-### 正準エントリの部品 — canonicalSpaceEntry ほか
-
-```ts
-function canonicalSpaceEntry(s: Space): Record<string, unknown>
-function canonicalBoundaryEntry(b: Boundary): Record<string, unknown>
-function canonicalOpeningEntry(o: Opening): Record<string, unknown>
-function canonicalSegEntry(g: Seg): Record<string, unknown>
-function sortBySerial<T>(items: T[]): T[]
-```
-
-`toCanonical` が組み立てに使う部品で、semantic diff が比較の基底として同じものを共有している。要素一つの正準形が欲しいときに使う。`sortBySerial` は「宣言順に意味の無い集合」を直列化したJSONの辞書順に並べる — 正準順の土台である。
-
-```ts
-import { canonicalBoundaryEntry, canonicalSpaceEntry, sortBySerial } from "@kensnzk/koyu";
-
-console.log(JSON.stringify(canonicalSpaceEntry(a.spaces.get("/L1/a")!)));
-console.log(JSON.stringify(canonicalBoundaryEntry(a.boundaries[0]!)));
-console.log(sortBySerial([{ k: "b" }, { k: "a" }]));
-```
-
-```text
-{"type":"room","at":["X1","Y1","X2","Y2"],"attrs":{"name":"居室A"}}
-{"between":["/L1/a","/L1/b"],"a":"/L1/a","kind":"wall","t":120,"attrs":{"spec":"PW1"},"openings":[{"kind":"door","w":780,"h":2000,"at":0.5}]}
-[ { k: 'a' }, { k: 'b' } ]
-```
 
 ## 差分
 
@@ -918,17 +891,19 @@ console.log(SUPPORTED_LANGUAGE_VERSIONS, DEFAULT_LANGUAGE_VERSION);
 
 ## 型
 
-値と一緒に型も出ている。主なものだけ挙げる。
+値と一緒に型も出ている。主なものだけ挙げる (全部は [spec/tools.md](../spec/tools.md) の表)。
 
 | 出所 | 型 |
 |---|---|
-| モデル | `Model` `Space` `Zone` `Boundary` `Opening` `Seg` `Area` `Asset` `Level` `Rect` `Pt` `GridAxis` `GridRef` `SitePolygon` `Edge` `BoundaryKind` `Attrs` `AttrValue` |
+| モデル | `Model` `Space` `Zone` `Boundary` `Opening` `Seg` `Area` `Asset` `Level` `Rect` `Pt` `GridAxis` `GridRef` `SitePolygon` `Column` `ColumnDecl` `DrawnLine` `Edge` `BoundaryKind` `Attrs` `AttrValue` |
 | 合成 | `LayerLoader` |
-| 検査 | `Diagnostic` `CheckResult` |
-| グラフ・導出 | `Segment` `Band` `PlacedBand` `BandError` `Route` `NeighborInfo` |
-| 問い | `DaylightResult` `SiteReport` `RoadFrontage` |
-| 生成 | `PlanOptions` |
-| 差分 | `ModelDiff` `FieldChange` `ChangedItem` `RenamedItem` `GridChange` `SpaceItem` `BoundaryItem` `BoundaryChange` |
+| 検査 | `Diagnostic` `DiagnosticCode` `CheckResult` |
+| グラフ・導出 | `Segment` `Band` `PlacedBand` `BandError` `BandCode` `Route` `NeighborInfo` |
+| 生成物 | `Slab` `SlabKind` `VerticalRun` `RunPart` `RunSolid` `RunDraw` `RunArrow` `RunDevice` `RunForm` `Seg2` |
+| 問い | `DaylightInput` `SiteReport` `RoadFrontage` |
+| 生成 | `PlanOptions` `AxoOptions` |
+| 差分 | `ModelDiff` `FieldChange` `ChangedItem` `RenamedItem` `GridChange` `SpaceItem` `BoundaryItem` `BoundaryChange` `ColumnItem` |
+| 検証 | `Finding` `ValidationRule` |
 
 ## 参考にする実装
 
