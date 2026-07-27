@@ -1,0 +1,57 @@
+:root {
+  --docusaurus-announcement-bar-height: auto;
+}
+
+.announcementBar {
+  align-items: center;
+  border-bottom: 1px solid #39413c;
+  display: flex;
+  min-height: 52px;
+  padding: 7px 0;
+}
+
+html[data-announcement-bar-initially-dismissed='true'] .announcementBar {
+  display: none;
+}
+
+.placeholder {
+  flex: 0 0 48px;
+}
+
+.content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.close {
+  align-self: stretch;
+  color: #b8c0ba;
+  flex: 0 0 48px;
+}
+
+.close:hover {
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .announcementBar {
+    align-items: flex-start;
+    min-height: 0;
+    padding: 10px 0;
+  }
+
+  .placeholder {
+    display: none;
+  }
+
+  .close {
+    flex-basis: 42px;
+    min-height: 34px;
+  }
+}
+
+@media print {
+  .announcementBar {
+    display: none;
+  }
+}

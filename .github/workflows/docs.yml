@@ -1,0 +1,70 @@
+# guide / spec を原本として日英ドキュメントを生成し、Vercelへ渡す前に検証する。
+# 本番・Previewのデプロイは、Root DirectoryをwebsiteにしたVercel Git連携が担当する。
+name: docs checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/docs.yml"
+      - "website/**"
+      - "guide/**"
+      - "spec/**"
+      - "docs/**"
+      - "editors/vscode/syntaxes/koyu.tmLanguage.json"
+      - "examples/**"
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.build.json"
+  pull_request:
+    paths:
+      - ".github/workflows/docs.yml"
+      - "website/**"
+      - "guide/**"
+      - "spec/**"
+      - "docs/**"
+      - "editors/vscode/syntaxes/koyu.tmLanguage.json"
+      - "examples/**"
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.build.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            website/package-lock.json
+
+      # prepare が koyu 本体をビルドする。ドキュメント内の平面図は
+      # その dist/cli.js を使い、常に実装から生成する。
+      - name: Install koyu
+        run: npm ci
+
+      - name: Install documentation site
+        run: npm ci --prefix website
+
+      - name: Type-check documentation site
+        run: npm run typecheck --prefix website
+
+      - name: Build Japanese and English documentation
+        run: npm run build --prefix website
