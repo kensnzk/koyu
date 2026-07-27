@@ -1,7 +1,8 @@
-# 建具アセット — RevitのFamily / USDのReference (ADR-0010)
-# 型を一箇所で宣言し、各フロアの開口が参照する。建具表はこの台帳の一覧である。
+# 建具アセット (ADR-0010)。寸法は実在の製品と慣行から。
 
-asset AD1 door w:2400 h:2700 style:auto name:自動ドア大
+# **エントランスは大開口。**4枚引き自動ドア2連 = 7,200。小さな扉を穿つのではなく、
+# 開口そのものがファサードの一部になる
+asset ADW door w:7200 h:5000 style:auto name:大開口自動ドア
 asset AD2 door w:1800 h:2400 style:auto name:自動ドア
 asset SD1 door w:1200 h:2400 style:sliding name:店舗引戸
 asset D1  door w:900  h:2100 style:hinged name:片開き戸
@@ -11,9 +12,10 @@ asset FD2 door w:1800 h:2400 style:hinged fire:特定防火設備 name:防火戸
 asset VG1 door w:6000 h:3000 style:sliding name:車路シャッター
 asset LG1 door w:3600 h:3600 style:sliding name:荷捌きシャッター
 
-asset CW1 window w:8400 h:5100 sill:900 name:基壇カーテンウォール
-asset CW2 window w:8400 h:2600 sill:900 name:事務所カーテンウォール
-asset HW1 window w:5600 h:2200 sill:500 name:客室窓
-asset RW1 window w:5600 h:2600 sill:200 name:住戸掃き出し窓   # 天井 (2,800) まで届く
-asset RD1 door w:1200 h:2200 style:sliding name:バルコニー引違い戸
+# **カーテンウォールは「方立てだけの全面ガラス」を一枚の窓で言う。**
+# 1スパン (8,400) 幅・天井いっぱいの窓 = その面はガラスである、という宣言
+asset CW1 window w:8400 h:5800 sill:200 name:基壇カーテンウォール
+asset CW2 window w:8400 h:2700 sill:100 name:事務所カーテンウォール
+asset HW1 window w:4000 h:2400 sill:400 name:客室窓
+asset RW1 window w:5600 h:2600 sill:200 name:住戸掃き出し窓
 asset W2  window w:1650 h:1100 sill:900 name:腰窓

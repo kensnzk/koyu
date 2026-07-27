@@ -2,7 +2,7 @@
 
 # 機械形式リファレンス — 正準JSON
 
-koyu v0.14.0 現在。`koyu json <entry>` / `toCanonical(model)` が出力する。
+koyu v0.15.0 現在。`koyu json <entry>` / `toCanonical(model)` が出力する。
 
 **これは何のためにあるか。****「同じ建物とは何か」の定義を書き下したもの**である。
 原本 (.muro) は行順も綴りも自由なので、二つのファイルが同じ建物かどうかはテキストでは決まらない。

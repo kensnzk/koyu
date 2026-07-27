@@ -1,58 +1,54 @@
-# 双塔複合建築 — 延床259,519㎡ / 地下2階＋地上28階 (物理31層) (koyu 0.5)
+# 双塔複合建築 — 地下2階＋地上34階 (koyu 0.5)
 #
-# complex (31,606㎡) の8.2倍。1,027空間・3,324境界を1,024行 (20,916トークン) で書く。**一棟の建物が、基壇の上で二つの塔に分かれる。**
+# **実在しうる再開発として詰めた版。**板をスリムにして上へ積む。
+# 延床 141,449㎡ (+半屋外 6,534㎡) / ホテル98室 / レジデンス36戸 — 数字は全て stats の実測。
+# use別: rentable 44.9% + exclusive 1.9% = 収益床 46.7%。駐車場 10.5% を除く地上部だけなら 52.2%。
+# 巨大複合はコア・機械階・ホール・テラス緑化が床を食う — 緑が出す正直な数字である。
 #
-#   基壇 (L1〜L5)  物販・飲食・ホール。134.4m × 117.6m の大きな板
-#   A棟 (L6〜L28)  オフィス。67.2m × 58.8m
-#   B棟 (L6〜L20)  下がホテル (L6〜L13)、上がレジデンス (L14〜L20)。42.0m × 58.8m
-#   棟間           25.2m。二つの塔が互いを見合う距離
-#   地下 (B1〜B2)  駐車場・熱源・荷捌き
+#   基壇 (L1〜L4)  物販・飲食。段々にセットバックし、屋上はテラス緑化
+#   L5             ホテルエントランス・宴会・屋上庭園 (基壇の屋上)
+#   A棟 (L6〜L34)  オフィス 67.2m × 33.6m = 2,258㎡/階。中央コア帯 12.6m
+#   B棟 (L6〜L18)  下がホテル (L6〜L12)、上がレジデンス (L13〜L18)。42.0m × 25.2m
+#   地下 (B1〜B2)  駐車場・熱源・受変電・中央監視・MDF・ごみ処理
 #
-# **双塔だが一棟である。**A棟とB棟は同じ level の上に載るので階高を共有する。
-# ホテルは本来3.4mで足りるが、ここでは4.2mになる — 二つの塔が同じ床スラブの上に
-# 立っている以上、階高は共有される。別々にしたければそれは二棟の建物であり、
-# 一団地の話になる。koyu の level は建物全体で一本の積み上げである。
+# **寸法は実在の機器と慣行から取る (モジュールの台帳 → docs/modules.md)。**
+#   エレベーター 1600kg級: かご 2150W×1600D / 昇降路 2800W×2400D — **1機=1室で書く**
+#   → **3室並び = 8,400 = ちょうど1スパン。**乗場ホールは対面バンクの標準 4,200
+#   階段: 幅1,200×2列+踊り場 = 2,800 × 7,000 の塊 (踏面240を39段で確保する長さ)
+#   オフィスの貸室デプス: コアから窓まで 8.4〜12.6m (標準 9〜13m)
+#   ホテル客室: 幅4.2m × 奥行8.4m ≈ 35㎡ (バス込み)
 #
-# **機械階は客の階数に現れない。**M1 (低層系統・外気)・M2 (宴会場直上)・M3 (中間) の
-# 三層は、エレベーターのボタンにも案内表示にも無い。物理的には31層、客が数えるのは28階。
-# level の名は設計者の言葉なので、L1..L28 の連番である必要が無い (M1 が2層目に入る)。
+# **機械階は客の階数に現れない。**M1 (宴会場直上)・M2 (中間) はボタンにも案内にも無い。
+# **EVのゾーニングはホールの有無で書く。**シャフト (bev) は B1..L18 を貫くが、
+# 乗場ホール (bhall1/bhall2) は B1..L1 と L5..L18 にしか無い — 基壇の3層を
+# 通過することが、ホールという空間の不在として表現される。
 #
-# **エレベーターのゾーニングが記法の構造として現れる。**29基を29回書くのではなく、
-# バンクごとに一宣言 + レベルスパンで書く。どのバンクがどの階に止まるかは、
-# シャフトの stack の範囲そのものが言う。
-#
-#   koyu check  examples/twin/main.muro          整合
-#   koyu stats  examples/twin/main.muro          面積
-#   koyu site   examples/twin/main.muro          容積率・建蔽率・接道
-#   koyu runs   examples/twin/main.muro          縦動線
+#   koyu check  examples/twin/main.muro
+#   koyu stats  examples/twin/main.muro          レンタブル比は use別 の行が言う
+#   koyu site   examples/twin/main.muro
 #   koyu plan   examples/twin/main.muro -l L8    A棟基準階とB棟ホテル階
-#   koyu axo    examples/twin/main.muro -l L1,M1,L2
+#   koyu axo    examples/twin/main.muro -l L1,L2,L3,L4,L5
 
 koyu 0.5
 name 双塔複合建築 — 商業・事務所・ホテル・レジデンス
 unit mm
 
-# 通り芯 8400 — オフィスの標準スパン (駐車2台 / ホテル客室1.4室)。
-# 柱はこの交点から導出されるので、構造グリッドと作図グリッドが同じものになる
 grid X 0 8400 16800 25200 33600 42000 50400 58800 67200 75600 84000 92400 100800 109200 117600 126000 134400 142800 151200 159600 168000
 grid Y 0 8400 16800 25200 33600 42000 50400 58800 67200 75600 84000 92400 100800 109200 117600 126000 134400 142800 151200
 
-# 階高は用途で決まる。天井高 + 上階のslab ≤ 階高 という不変量を check が全階で検査する
-#   駐車 4,200 / エントランス 5,500 / 機械 5,500 / 物販 4,800
-#   宴会 6,900 / 基準階 4,200 (天井2,800 + 懐500)
+# 階高: エントランス6,900 (天井6,000) / 物販4,800 / 機械4,600 / 基準階4,200 (天井2,800+懐)
 level B2 -8400 h:3300 slab:900 underground:1
 level B1 -4200 h:3300 slab:900 underground:1
-level L1 0 h:4600 slab:900
-level M1 5500 h:4600 slab:900
-level L2 11000 h:3900 slab:900
-level L3 15800 h:3900 slab:900
-level L4 20600 h:3900 slab:900
-level L5 25400 h:6000 slab:900
-level M2 32300 h:3200 slab:900
-level L6..L20 36900 h:2800 slab:1400 pitch:4200
-level M3 99900 h:3200 slab:900
-level L21..L28 104500 h:2800 slab:1400 pitch:4200
-level R1 138100 slab:900
+level L1 0 h:6000 slab:900
+level L2 6900 h:3900 slab:900
+level L3 11700 h:3900 slab:900
+level L4 16500 h:3900 slab:900
+level L5 21300 h:5500 slab:900
+level M1 28200 h:3200 slab:900
+level L6..L20 32800 h:2800 slab:1400 pitch:4200
+level M2 95800 h:2800 slab:1400
+level L21..L34 100000 h:2800 slab:1400 pitch:4200
+level R1 158800 slab:900
 
 import ./assets.muro
 import ./site.muro
@@ -65,32 +61,42 @@ import ./office.muro
 import ./hotel.muro
 import ./residence.muro
 
-# ---- 縦動線のトポロジー (ADR-0021) ----
-#
-# **エレベーターのゾーニングは stack の範囲が言う。**29基の内訳:
-#   A棟 低層 (B1..L14) 7基 / A棟 高層 (L1..L28) 7基 / A棟 荷物用 (B1..L28) 2基
-#   B棟 客用 (L5..L20) 4基 / B棟 サービス (B1..L20) 2基 / 基壇 (B2..L5) 3基
-#   階段は A棟2本 (B2..R1) と B棟2本 (B2..L20) で、うち各1本が非常用を兼ねる
-# **一つの shaft は一つのバンクである** — 何台の籠が入るかは書かない (籠は空間ではない)。
-# どのバンクがどの階に止まるかを、シャフトが存在するレベルの範囲が決めている。
-stack aev1 B1..L14 type:shaft
-stack aev2 L1..L28 type:shaft
-stack ast1 B2..L28 type:stair
-stack ast2 B2..L28 type:stair
-stack afr B1..L28 type:shaft
-stack bev L5..L20 type:shaft
-stack bsv B1..L20 type:shaft
-stack bst1 B2..L20 type:stair
-stack bst2 B2..L20 type:stair
-stack pev B2..L5 type:shaft
+# ---- 縦動線のトポロジー ----
+# A棟: 低層バンク6台 (B1..L20)・高層バンク6台 (L1..L34、基壇と低層帯は通過)・荷物用2台
+# B棟: 客用3台 (B1..L18 — 基壇3層はホール無しで通過)・サービス2台
+# 基壇: エスカレーター (アトリウム L1..L4、西エントランス上下 L1..L2)・車路 (B2..L1)
+stack aevLs1 B1..L20 type:shaft
+stack aevLs2 B1..L20 type:shaft
+stack aevLs3 B1..L20 type:shaft
+stack aevLn1 B1..L20 type:shaft
+stack aevLn2 B1..L20 type:shaft
+stack aevLn3 B1..L20 type:shaft
+stack aevHs1 L1..L34 type:shaft
+stack aevHs2 L1..L34 type:shaft
+stack aevHs3 L1..L34 type:shaft
+stack aevHn1 L1..L34 type:shaft
+stack aevHn2 L1..L34 type:shaft
+stack aevHn3 L1..L34 type:shaft
+stack afr1 B1..L34 type:shaft
+stack afr2 B1..L34 type:shaft
+stack ast1 B2..L34 type:stair
+stack ast2 B2..L34 type:stair
+stack bev1 B1..L18 type:shaft
+stack bev2 B1..L18 type:shaft
+stack bev3 B1..L18 type:shaft
+stack bsv1 B1..L18 type:shaft
+stack bsv2 B1..L18 type:shaft
+stack bst1 B2..L18 type:stair
+stack bst2 B2..L18 type:stair
+stack es1 L1..L2 type:stair
+stack es2 L2..L4 type:stair
+stack es3 L1..L2 type:stair
+stack es4 L1..L2 type:stair
 stack ramp B2..L1 type:stair
-stack es L1..L5 type:stair
-stack atrium L1..L5 type:void
 
-# ---- 柱 (ADR-0023) ----
-# 位置は書かない。通り芯の交点のうち、そのレベルに床のある所に立つ。
-# 断面は上へ行くほど細る — 支える階数が減るからである
-column 1000 B2..L5 spec:SRC
-column 900 L6..L14 spec:SRC
-column 800 L15..L20 spec:S
-column 700 L21..R1 spec:S
+# ---- 柱 ----
+# 断面は上へ行くほど細る。基壇は重厚 (物販の積載+塔の脚)、塔は S造で軽く
+column 1000 B2..L5 spec:CFT
+column 900 L6..L20 spec:CFT
+column 800 M2..L34 spec:S
+column 700 R1 spec:S

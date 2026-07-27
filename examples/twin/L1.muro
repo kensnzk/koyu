@@ -1,139 +1,156 @@
-# L1 エントランス・物販 (階高6,900 / 天井6,000) と、その上の M1 機械階
+# L1 — エントランス・物販・防災センター・車路・荷捌き
 #
-# **M1 は客の階数に現れない。**エレベーターのボタンにも案内表示にも無く、
-# 客が「2階」と呼ぶのは物理的には3層目 (L2) である。低層に機械階を置く理由は四つ。
+# 基壇は X2..X19 × Y4..Y12 (142.8m × 67.2m)。**四隅の斜めは敷地の辺の振れを写した隅切り**で、
+# 各隅の店舗の外皮に line で書く。切り落とされた側は広場になる。
 #
-#   1. 1階の天井が6mなので、その上に商業を直に載せると外皮が間延びする
-#   2. 空調の外気取入れと排気は大量のルーバーが要り、**基壇の外壁でしか取れない**
-#      (基準階の外壁は貸室の窓なので開けられない)
-#   3. 更新できる — 空調機は建物より寿命が短い。低層なら荷捌きから搬出入が届く
-#   4. 低層系統と高層系統を切り分ける最初の節になる
-#
-# 板の割り: 西 (A棟の真下 X3..X11) / アトリウム (棟間 X11..X14) / 東 (B棟の真下 X14..X19)。
-# アトリウムは二つの塔の隙間をそのまま地上まで下ろしたもので、L5まで吹き抜ける。
-# エスカレーターはその中に立つ — バックヤードの奥に置くと客は辿り着けない。
-#
-# モールは東西の背骨 (Y8..Y8+4200) で、コアのホールに直に着く。避難は他人の区画を通らない。
+# **エントランスは大開口。**アトリウムの南北に 7,200 の自動ドア (ADW) を置き、
+# 両脇はスパン一杯のカーテンウォール (CW1) — 扉を穿つのではなく、面が開く。
 
-space /L1/atrium corridor X11+3200..X14 Y3..Y17 + X11..X11+3200 Y3..Y7 + X11..X11+3200 Y7+13200..Y17 name:アトリウム use:common floor:石張り
-space /L1/es escalator X11..X11+3200 Y7..Y7+13200 name:エスカレーター use:common escalator:N
-space /L1/mallW corridor X3..X11 Y8..Y8+4200 name:西モール use:common floor:石張り
-space /L1/mallE corridor X14..X19 Y8..Y8+4200 name:東モール use:common floor:石張り
+# 貫通アトリウム — 南広場から北の緑地まで抜ける。二つの塔の間そのもの
+space /L1/atrium corridor X11..X12 Y4..Y12 + X12+3200..X14 Y4..Y12 + X12..X12+3200 Y4..Y6+2100 + X12..X12+3200 Y6+19100..Y12 name:貫通アトリウム use:common floor:石張り
+space /L1/es1 escalator X12..X12+3200 Y6+2100..Y6+19100 name:エスカレーター use:common escalator:N
 
-# 西の区画 — 南・北の帯と、コアの両脇
-band X X3..X11 Y3..Y8
-  space /L1/w01 shop w:25200 name:西区画01 use:rentable
-  space /L1/w02 shop w:rest name:西区画02 use:rentable
-space /L1/w03 shop X3..X5 Y8+4200..Y11 name:西区画03 use:rentable
-space /L1/w04 shop X10..X11 Y8+4200..Y11 name:西区画04 use:rentable
-space /L1/mallW2 corridor X3..X11 Y11..Y11+4200 name:西モール北 use:common floor:石張り
-band X X3..X11 Y11+4200..Y17
-  space /L1/w05 shop w:25200 name:西区画05 use:rentable
-  space /L1/w06 shop w:rest name:西区画06 use:rentable
+# 南の店舗列 (隅切りが両端に載る)
+band X X2..X11 Y4..Y5
+  space /L1/s01 shop w:25200 name:南区画01 use:rentable
+  space /L1/s02 shop w:25200 name:南区画02 use:rentable
+  space /L1/s03 shop w:rest name:南区画03 use:rentable
+space /L1/s04 shop X14..X19 Y4..Y5 name:南区画04 use:rentable
+space /L1/mallSw corridor X2..X11 Y5..Y6 name:南モール西 use:common floor:石張り
+space /L1/mallSe corridor X14..X19 Y5..Y6 name:南モール東 use:common floor:石張り
 
-# 東の区画 — 北東の隅が荷捌き
-band X X14..X19 Y3..Y8
-  space /L1/e01 shop w:16800 name:東区画01 use:rentable
-  space /L1/ramp parking w:8400 name:車路出口 use:parking
-  space /L1/e02 shop w:rest name:東区画02 use:rentable
-space /L1/e03 shop X14..X16 Y8+4200..Y11 name:東区画03 use:rentable
-space /L1/e04 shop X18..X19 Y8+4200..Y11 name:東区画04 use:rentable
-space /L1/mallE2 corridor X14..X19 Y11..Y11+4200 name:東モール北 use:common floor:石張り
-space /L1/e05 shop X14..X17 Y11+4200..Y17 name:東区画05 use:rentable
-space /L1/load backyard X17..X19 Y11+4200..Y17 name:荷捌き受け use:common
+# 中央帯 — A棟コアの周りに物販
+space /L1/w02 shop X4..X8 Y6..Y7 name:西区画02 use:rentable
+space /L1/w03 shop X8..X11 Y6..Y7 name:西区画03 use:rentable
+# A棟エントランスホール — 西面の4スパン (Y6..Y10) を占め、L2まで吹き抜ける。
+# 南北モールと直結し、EVホールへも直結。エスカレーター2本 (es3 上り / es4 下り) を刳り抜く
+space /L1/alobby corridor X2..X4 Y6..Y6+6400 + X2..X2+2600 Y6+6400..Y7+4200 + X2+4200..X4 Y6+6400..Y7+4200 + X2..X2+600 Y7+4200..Y8+4200 + X2+2200..X2+2600 Y7+4200..Y8+4200 + X2+4200..X4 Y7+4200..Y8+4200 + X2..X2+600 Y8+4200..Y9+2000 + X2+2200..X4 Y8+4200..Y9+2000 + X2..X4 Y9+2000..Y10 name:A棟エントランスホール use:common floor:石張り
+space /L1/es3 escalator X2+600..X2+2200 Y7+4200..Y9+2000 name:上りエスカレーター use:common escalator:N
+space /L1/es4 escalator X2+2600..X2+4200 Y6+6400..Y8+4200 name:下りエスカレーター use:common escalator:S
+space /L1/eside shop X10..X11 Y7..Y8+4200 name:東脇区画 use:rentable
+space /L1/w05 shop X4..X8 Y8+4200..Y10 name:西区画06 use:rentable
+space /L1/w06 shop X8..X11 Y8+4200..Y10 name:西区画07 use:rentable
+
+# B棟側 — ホテルの1階専用ロビー (客用EVで5階のフロントへ)
+space /L1/hlobby corridor X14..X17 Y6..Y7+2400 + X14..X15+5600 Y7+2400..Y8+4200 + X15+5600..X16 Y7+2400..Y7+5600 name:ホテル1階ロビー use:common floor:石張り
+space /L1/hsrv service X17..X17+2800 Y7+2400..Y7+5600 name:ベルデスク・バック use:common
+space /L1/e01 shop X17..X19 Y6..Y7+2400 name:東区画01 use:rentable
+space /L1/e02 shop X17+2800..X19 Y7+2400..Y8+4200 name:東区画02 use:rentable
+
+# 北帯 — モールと店舗列、北東は荷捌きと防災センター
+space /L1/mallNw corridor X2..X11 Y10..Y11 name:北モール西 use:common floor:石張り
+space /L1/mallNe corridor X14..X19 Y10..Y11 name:北モール東 use:common floor:石張り
+band X X2..X11 Y11..Y12
+  space /L1/n01 shop w:25200 name:北区画01 use:rentable
+  space /L1/n02 shop w:25200 name:北区画02 use:rentable
+  space /L1/n03 shop w:rest name:北区画03 use:rentable
+space /L1/bousai service X14..X16 Y11..Y12 name:防災センター use:common
+space /L1/load backyard X16..X19 Y11..Y12 name:荷捌き use:common
+space /L1/n04 shop X14..X16 Y9..Y10 name:北区画04 use:rentable
+# 車路 — B1 から 1/6 で上がる直進斜路 (25.2m)。出口は東広場
+space /L1/ramp parking X16..X19 Y9..Y10 name:車路 use:parking ramp:E
 
 # ---- 動線 ----
-boundary /L1/es /L1/mallW type:open
-boundary /L1/atrium /L1/mallE type:open
-boundary /L1/atrium /L1/es type:open
-boundary /L1/mallW /L1/ahall type:open
-boundary /L1/mallE /L1/bhall type:open
-boundary /L1/w01 /L1/mallW t:120 spec:店舗サッシ
-  door SD1 at:0.28
-boundary /L1/w02 /L1/mallW t:120 spec:店舗サッシ
-  door SD1 at:0.35
-boundary /L1/w03 /L1/mallW t:120 spec:店舗サッシ
+boundary /L1/atrium /L1/es1 type:open
+boundary /L1/atrium /L1/mallSw type:open
+boundary /L1/atrium /L1/mallSe type:open
+boundary /L1/atrium /L1/mallNw type:open
+boundary /L1/atrium /L1/mallNe type:open
+boundary /L1/atrium /L1/hlobby type:open
+boundary /L1/alobby /L1/ahall type:open
+boundary /L1/alobby /L1/es3 type:open
+boundary /L1/alobby /L1/es4 type:open
+boundary /L1/alobby /L1/mallSw type:open
+boundary /L1/alobby /L1/mallNw type:open
+boundary /L1/mallSe /L1/hlobby type:open
+boundary /L1/hlobby /L1/bhall1 type:open
+boundary /L1/hsrv /L1/bhall1 t:180 spec:LGS
+  door D1 at:0.3 name:バックから
+boundary /L1/s01 /L1/mallSw t:120 spec:店舗サッシ
   door SD1
-boundary /L1/w04 /L1/mallW t:120 spec:店舗サッシ
+boundary /L1/s02 /L1/mallSw t:120 spec:店舗サッシ
+  door SD1 at:0.42
+boundary /L1/s03 /L1/mallSw t:120 spec:店舗サッシ
   door SD1
-boundary /L1/atrium /L1/mallW2 type:open
-boundary /L1/atrium /L1/mallE2 type:open
-boundary /L1/w05 /L1/mallW2 t:120 spec:店舗サッシ
+boundary /L1/s04 /L1/mallSe t:120 spec:店舗サッシ
+  door SD1 at:0.3
+boundary /L1/w02 /L1/mallSw t:120 spec:店舗サッシ
+  door SD1 at:0.3
+boundary /L1/w03 /L1/mallSw t:120 spec:店舗サッシ
   door SD1
-boundary /L1/w06 /L1/mallW2 t:120 spec:店舗サッシ
+boundary /L1/eside /L1/atrium t:120 spec:店舗サッシ
   door SD1
-boundary /L1/e01 /L1/mallE t:120 spec:店舗サッシ
-  door SD1 at:0.28
-boundary /L1/e02 /L1/mallE t:120 spec:店舗サッシ
-  door SD1 at:0.28
-boundary /L1/ramp /L1/e01 t:300 spec:RC
-boundary /L1/ramp /L1/e02 t:300 spec:RC
-boundary /L1/ramp /L1/mallE t:300 spec:RC
-boundary /L1/e03 /L1/mallE t:120 spec:店舗サッシ
+boundary /L1/w05 /L1/mallNw t:120 spec:店舗サッシ
+  door SD1 at:0.3
+boundary /L1/w06 /L1/mallNw t:120 spec:店舗サッシ
   door SD1
-boundary /L1/e04 /L1/mallE t:120 spec:店舗サッシ
+boundary /L1/n01 /L1/mallNw t:120 spec:店舗サッシ
   door SD1
-boundary /L1/e05 /L1/mallE2 t:120 spec:店舗サッシ
+boundary /L1/n02 /L1/mallNw t:120 spec:店舗サッシ
+  door SD1 at:0.42
+boundary /L1/n03 /L1/mallNw t:120 spec:店舗サッシ
   door SD1
-boundary /L1/load /L1/mallE2 t:200 spec:RC
-  door FD2 name:バックヤード扉
+boundary /L1/bousai /L1/mallNe t:250 spec:RC
+  door FD1 at:0.3 name:防災センター
+boundary /L1/load /L1/mallNe t:250 spec:RC
+  door FD2 at:0.42 name:バックヤード扉
+boundary /L1/n04 /L1/mallNe t:120 spec:店舗サッシ
+  door SD1 at:0.42
+boundary /L1/e01 /L1/mallSe t:120 spec:店舗サッシ
+  door SD1 at:0.7
+boundary /L1/e02 /L1/e01 t:120 spec:LGS
+  door D1 at:0.3
 
-# ---- 外皮 ----
+# ---- 外皮 — 面が開く ----
 boundary /L1/atrium /site/plazaS edge:S t:300 spec:カーテンウォール
-  door AD1 name:南側正面入口
-boundary /L1/atrium /site/plazaN edge:N t:300 spec:カーテンウォール
-  door AD1 name:北側入口
-boundary /L1/w01 /site/plazaS edge:S t:300 spec:カーテンウォール
-  window CW1
-boundary /L1/w02 /site/plazaS edge:S t:300 spec:カーテンウォール
-  window CW1
-boundary /L1/w01 /site/plazaW edge:W t:300 spec:カーテンウォール
-  window CW1
-boundary /L1/w03 /site/plazaW edge:W t:300 spec:カーテンウォール
-  window CW1
-boundary /L1/w05 /site/plazaW edge:W t:300 spec:カーテンウォール
-  window CW1
-boundary /L1/w05 /site/plazaN edge:N t:300 spec:カーテンウォール
-  window CW1
-boundary /L1/w06 /site/plazaN edge:N t:300 spec:カーテンウォール
-  window CW1
-boundary /L1/mallW /site/plazaW edge:W t:300 spec:カーテンウォール
+  door ADW name:南正面大開口
+boundary /L1/atrium /site/green edge:N t:300 spec:カーテンウォール
+  door ADW name:北正面大開口
+# 隅切り — 敷地の辺の振れを写す。切る相手は /out (広場は領域を持つので線の片側に限定できない)
+boundary /L1/s01 /out t:300 spec:カーテンウォール
+  line X2,Y5-2100 X4,Y4
+boundary /L1/s01 /site/plazaS edge:S t:300 spec:カーテンウォール
+  window CW1 at:0.75
+boundary /L1/s02 /site/plazaS edge:S t:300 spec:カーテンウォール
+  window CW1 at:0.3
+  window CW1 at:0.7
+boundary /L1/s03 /site/plazaS edge:S t:300 spec:カーテンウォール
+  window CW1 at:0.4
+boundary /L1/s04 /out t:300 spec:カーテンウォール
+  line X19-8400,Y4 X19,Y5
+boundary /L1/s04 /site/plazaS edge:S t:300 spec:カーテンウォール
+  window CW1 at:0.3
+boundary /L1/s01 /site/plazaW edge:W t:300 spec:カーテンウォール
+boundary /L1/mallSw /site/plazaW edge:W t:300 spec:カーテンウォール
   door AD2 name:西側入口
-boundary /L1/e01 /site/plazaS edge:S t:300 spec:カーテンウォール
+boundary /L1/mallSe /site/plazaE edge:E t:300 spec:カーテンウォール
+  door AD2 name:東側入口
+boundary /L1/alobby /site/plazaW edge:W t:300 spec:カーテンウォール
+  door ADW at:0.125 name:オフィス大開口1
+  door ADW at:0.375 name:オフィス大開口2
+  door ADW at:0.625 name:オフィス大開口3
+boundary /L1/mallNw /site/plazaW edge:W t:300 spec:カーテンウォール
+boundary /L1/n01 /out t:300 spec:カーテンウォール
+  line X2,Y12-4200 X4,Y12
+boundary /L1/n01 /site/green edge:N t:300 spec:カーテンウォール
+  window CW1 at:0.7
+boundary /L1/n02 /site/green edge:N t:300 spec:カーテンウォール
+  window CW1 at:0.3
+  window CW1 at:0.7
+boundary /L1/n03 /site/green edge:N t:300 spec:カーテンウォール
+  window CW1 at:0.4
+boundary /L1/bousai /site/green edge:N t:300 spec:RC
+boundary /L1/load /out t:300 spec:RC
+  line X19-4200,Y12 X19,Y12-2100
+boundary /L1/load /site/green edge:N t:300 spec:RC
+boundary /L1/load /site/plazaE edge:E t:300 spec:RC
+  door LG1 at:0.7 name:荷捌き入口
+boundary /L1/n01 /site/plazaW edge:W t:300 spec:カーテンウォール
+boundary /L1/e01 /site/plazaE edge:E t:300 spec:カーテンウォール
   window CW1
-boundary /L1/e02 /site/plazaS edge:S t:300 spec:カーテンウォール
-  window CW1
-boundary /L1/ramp /site/plazaS edge:S t:300 spec:RC
-  door VG1 name:車路出入口
 boundary /L1/e02 /site/plazaE edge:E t:300 spec:カーテンウォール
   window CW1
-boundary /L1/e04 /site/plazaE edge:E t:300 spec:カーテンウォール
-  window CW1
-boundary /L1/e05 /site/plazaN edge:N t:300 spec:カーテンウォール
-  window CW1
-boundary /L1/load /site/plazaE edge:E t:300 spec:RC
-  door LG1 at:0.72 name:荷捌き入口
-boundary /L1/load /site/plazaN edge:N t:300 spec:RC
-boundary /L1/mallE /site/plazaE edge:E t:300 spec:カーテンウォール
-  door AD2 name:東側入口
-
-# ---- M1 機械階 — 客の階数に現れない層 ----
-# 外気のルーバーは基壇の外壁でしか取れない。**air:1 は書かない** —
-# ルーバーは外気を通すが、室は外皮の内側にある。air:1 は手すり・柵の語であって、
-# 書くと機械室が半屋外に導出されてしまう (床面積が別掲に落ちる)
-space /M1/ahuW service X3..X11 Y3..Y8+4200 + X3..X5 Y8+4200..Y11 + X10..X11 Y8+4200..Y11 + X3..X11 Y11..Y17 name:空調機械室西 use:common
-space /M1/ahuE service X14..X19 Y3..Y8+4200 + X14..X16 Y8+4200..Y11 + X18..X19 Y8+4200..Y11 + X14..X19 Y11..Y17 name:空調機械室東 use:common
-space /M1/es escalator X11..X11+3200 Y7..Y7+13200 name:エスカレーター use:common escalator:N
-space /M1/atrium void X11+3200..X14 Y3..Y17 + X11..X11+3200 Y3..Y7 + X11..X11+3200 Y7+13200..Y17 name:アトリウム上部
-
-boundary /M1/ahuW /M1/ahall type:open
-boundary /M1/ahuE /M1/bhall type:open
-boundary /M1/ahuW /out edge:W t:300 spec:ルーバー
-boundary /M1/ahuW /out edge:S t:300 spec:ルーバー
-boundary /M1/ahuW /out edge:N t:300 spec:ルーバー
-boundary /M1/ahuE /out edge:E t:300 spec:ルーバー
-boundary /M1/ahuE /out edge:S t:300 spec:ルーバー
-boundary /M1/ahuE /out edge:N t:300 spec:ルーバー
-boundary /M1/atrium /out edge:S t:300 spec:カーテンウォール
-boundary /M1/atrium /out edge:N t:300 spec:カーテンウォール
-boundary /M1/ahuW /M1/es type:open
+boundary /L1/ramp /site/plazaE edge:E t:300 spec:RC
+  door VG1 name:車路出入口
+boundary /L1/mallNe /site/plazaE edge:E t:300 spec:カーテンウォール
+  door AD2 name:北東入口

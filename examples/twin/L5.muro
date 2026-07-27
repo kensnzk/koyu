@@ -1,133 +1,95 @@
-# L5 ホテルエントランス・宴会 (階高6,900 / 天井6,000) と、その上の M2 機械階
+# L5 — ホテルエントランス・宴会・屋上庭園
 #
-# **ホテルの入口は5階にある。**基壇の商業を抜けた上に、独立したアプローチを作る。
-# 客は1階の専用ロビーから基壇EV (pev) で5階へ上がり、ここでチェックインして、
-# B棟の客用EV (bev) で客室階へ移る。**基壇EVは5階までしか無く、客用EVは5階からしか
-# 無い** — 乗り換えが起きる階が、二つのシャフトの範囲の切れ目として現れる。
+# 基壇の屋上がこの建物の「地面」になる階。**セットバックで退いた分の屋根が
+# すべて庭園になり**、二つの塔がそこから立ち上がる。ホテルの客は1階の専用ロビーから
+# 客用EVで直接ここへ着く — 基壇の3層は通過する (ホールが無い)。
 #
-# 宴会場は1,000㎡級の一室で、天井裏に途方もない量のダクトが走る。
-# **宴会場の上が機械階になるのは半ば必然である** — それが M2 の理由。
-#
-# ここから上は基壇が終わり、二つの塔だけになる。L5 は塔の footprint より広い最後の階。
+# 宴会場はA棟の足元。**宴会場の直上が機械階 (M1) になるのは半ば必然** — 天井裏に
+# 途方もない量のダクトが要るからである。
 
-space /L5/atrium void X11+3200..X14 Y3..Y17 + X11..X11+3200 Y3..Y7 + X11..X11+3200 Y7+13200..Y17 name:吹抜け
-space /L5/es escalator X11..X11+3200 Y7..Y7+13200 name:エスカレーター use:common escalator:N
-space /L5/galW corridor X10+4200..X11 Y3..Y17 name:西回廊 use:common floor:石張り
-space /L5/galE corridor X14..X14+4200 Y3..Y17 name:東回廊 use:common floor:石張り
+# A棟の足元 — 宴会場
+space /L5/ball room X4..X11 Y8+4200..Y10 name:大宴会場 use:common
+space /L5/bq room X4..X11 Y6..Y7 name:中宴会場 use:common
+space /L5/acorr5 corridor X3..X4 Y6..Y10 name:西サービス通路 use:common
+space /L5/foyer corridor X11..X13 Y6..Y10 name:ホワイエ use:common floor:石張り
+space /L5/pantry service X10..X11 Y7..Y8+4200 name:パントリー use:common
 
-# 西 — レストラン街 (A棟の下)
-space /L5/mallW corridor X3..X10+4200 Y8..Y8+4200 name:西通路 use:common floor:石張り
-space /L5/mallW2 corridor X3..X10+4200 Y11..Y11+4200 name:西通路北 use:common floor:石張り
-band X X3..X10+4200 Y3..Y8
-  space /L5/r01 shop w:25200 name:レストラン01 use:rentable
-  space /L5/r02 shop w:rest name:レストラン02 use:rentable
-space /L5/r03 shop X3..X5 Y8+4200..Y11 name:レストラン03 use:rentable
-space /L5/r04 shop X10..X10+4200 Y8+4200..Y11 name:レストラン04 use:rentable
-band X X3..X10+4200 Y11+4200..Y17
-  space /L5/r05 shop w:25200 name:レストラン05 use:rentable
-  space /L5/r06 shop w:rest name:レストラン06 use:rentable
+# B棟の足元 — フロント・ラウンジ
+space /L5/hfoy corridor X13..X19 Y7..Y7+2400 name:フロント前 use:common floor:石張り
+space /L5/lounge room X14..X17 Y6..Y7 name:ラウンジ use:common
+space /L5/recep service X17..X19 Y6..Y7 name:フロント・事務 use:common
+space /L5/cloak service X14..X15+5600 Y7+2400..Y8+4200 name:クローク・控室 use:common
+space /L5/prep service X18..X19 Y7+2400..Y8+4200 name:配膳準備 use:common
 
-# 東 — ホテルのロビーと宴会場 (B棟の下)
-# ロビーはコアを三方から包む — フロントもEVホールもここから見える
-space /L5/lobby corridor X14+4200..X16 Y8..Y11 name:ホテルロビー use:common floor:石張り
-space /L5/hcorr corridor X16..X18 Y8..Y8+4200 + X18..X19 Y8..Y11 name:ホテル通路 use:common floor:石張り
-space /L5/foyer corridor X14+4200..X19 Y11..Y11+4200 name:宴会前室 use:common floor:石張り
-space /L5/ball room X14+4200..X18 Y11+4200..Y17 name:大宴会場 use:common
-space /L5/hback backyard X18..X19 Y11+4200..Y17 name:配膳室 use:common
-space /L5/bank room X14+4200..X19 Y3..Y8 name:小宴会場・会議室 use:common
+# 屋上庭園 (緑化) — セットバックの屋根
+space /L5/gdnS terrace X3..X19 Y5..Y6 name:南屋上庭園 use:common floor:緑化
+space /L5/gdnN terrace X13..X19 Y9..Y10 + X13..X14 Y7+2400..Y9 + X13..X14 Y6..Y7 name:北東屋上庭園 use:common floor:緑化
 
-boundary /L5/galW /L5/mallW type:open
-boundary /L5/galW /L5/mallW2 type:open
-boundary /L5/galE /L5/lobby type:open
-boundary /L5/mallW /L5/ahall type:open
-boundary /L5/galW /L5/es type:open
-boundary /L5/galW /L5/atrium t:60 spec:手すり air:1 h:1100
-boundary /L5/galE /L5/atrium t:60 spec:手すり air:1 h:1100
-
-boundary /L5/r01 /L5/mallW t:120 spec:店舗サッシ
-  door SD1
-boundary /L5/r02 /L5/mallW t:120 spec:店舗サッシ
-  door SD1
-boundary /L5/r03 /L5/mallW t:120 spec:店舗サッシ
-  door SD1
-boundary /L5/r04 /L5/mallW t:120 spec:店舗サッシ
-  door SD1
-boundary /L5/r05 /L5/mallW2 t:120 spec:店舗サッシ
-  door SD1
-boundary /L5/r06 /L5/mallW2 t:120 spec:店舗サッシ
-  door SD1
-boundary /L5/lobby /L5/bank t:180 spec:LGS
-  door FD2 name:小宴会場へ
-boundary /L5/lobby /L5/hcorr type:open
-boundary /L5/hcorr /L5/bhall type:open
-boundary /L5/lobby /L5/foyer t:180 spec:LGS
-  door FD2 name:宴会前室へ
 boundary /L5/foyer /L5/ball t:180 spec:LGS
-  door FD2 name:大宴会場へ
-boundary /L5/foyer /L5/hback t:180 spec:LGS
-  door D1 name:配膳室へ
-boundary /L5/hback /L5/ball t:180 spec:LGS
-  door D1 name:配膳口
+  door FD2 at:0.667 name:大宴会場
+boundary /L5/foyer /L5/bq t:180 spec:LGS
+  door FD2 name:中宴会場
+boundary /L5/acorr5 /L5/ball t:180 spec:LGS
+  door D1 at:0.667
+boundary /L5/acorr5 /L5/bq t:180 spec:LGS
+  door D1 at:0.3
+boundary /L5/acorr5 /L5/ahall type:open
+boundary /L5/pantry /L5/ball t:180 spec:LGS
+  door D1 at:0.3 name:配膳口
+boundary /L5/pantry /L5/foyer t:180 spec:LGS
+  door D1 at:0.3
+boundary /L5/foyer /L5/hfoy type:open
+boundary /L5/hfoy /L5/lounge type:open
+boundary /L5/hfoy /L5/recep t:120 spec:LGS
+  door D1 at:0.3 name:フロント事務
+boundary /L5/hfoy /L5/bhall2 type:open
+boundary /L5/cloak /L5/hfoy t:120 spec:LGS
+  door D1 at:0.3 name:クローク
+boundary /L5/prep /L5/hfoy t:120 spec:LGS
+  door D1 at:0.7 name:配膳
+boundary /L5/foyer /L5/gdnS t:300 spec:カーテンウォール
+  door AD2 at:0.25 name:南庭園へ
+boundary /L5/foyer /L5/gdnN t:300 spec:カーテンウォール
+boundary /L5/hfoy /L5/gdnN edge:N t:300 spec:カーテンウォール
+  door AD2 at:0.3 name:北庭園へ
+boundary /L5/lounge /L5/gdnS t:300 spec:カーテンウォール
+  window CW2
+boundary /L5/bq /L5/gdnS t:300 spec:カーテンウォール
+  window CW2 at:0.3
+  window CW2 at:0.7
+boundary /L5/acorr5 /L5/gdnS t:300 spec:カーテンウォール
+
+# 庭園の縁 — パラペット+手すり。air:1 なので半屋外に導出される
+boundary /L5/gdnS /out edge:S t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L5/gdnS /out edge:W t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L5/gdnS /out edge:E t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L5/gdnN /out edge:N t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L5/gdnN /out edge:E t:120 spec:パラペット+手すり air:1 h:1200
 
 # 外皮
-boundary /L5/r01 /out edge:S t:300 spec:カーテンウォール
-  window CW1
-boundary /L5/r02 /out edge:S t:300 spec:カーテンウォール
-  window CW1
-boundary /L5/r01 /out edge:W t:300 spec:カーテンウォール
-  window CW1
-boundary /L5/r03 /out edge:W t:300 spec:カーテンウォール
-  window CW1
-boundary /L5/r05 /out edge:W t:300 spec:カーテンウォール
-  window CW1
-boundary /L5/r05 /out edge:N t:300 spec:カーテンウォール
-  window CW1
-boundary /L5/r06 /out edge:N t:300 spec:カーテンウォール
-  window CW1
-boundary /L5/mallW /out edge:W t:300 spec:カーテンウォール
-boundary /L5/mallW2 /out edge:W t:300 spec:カーテンウォール
-boundary /L5/bank /out edge:S t:300 spec:カーテンウォール
-  window CW1
-boundary /L5/bank /out edge:E t:300 spec:カーテンウォール
-  window CW1
-boundary /L5/hcorr /out edge:E t:300 spec:カーテンウォール
-  window CW1
-boundary /L5/hback /out edge:E t:300 spec:RC
-boundary /L5/hback /out edge:N t:300 spec:RC
-boundary /L5/foyer /out edge:E t:300 spec:カーテンウォール
-boundary /L5/ball /out edge:N t:300 spec:カーテンウォール
-  window CW1
-boundary /L5/atrium /out edge:S t:300 spec:カーテンウォール
-boundary /L5/atrium /out edge:N t:300 spec:カーテンウォール
-boundary /L5/galW /out edge:S t:300 spec:カーテンウォール
-boundary /L5/galW /out edge:N t:300 spec:カーテンウォール
-boundary /L5/galE /out edge:S t:300 spec:カーテンウォール
-boundary /L5/galE /out edge:N t:300 spec:カーテンウォール
+boundary /L5/acorr5 /out edge:W t:250 spec:カーテンウォール
+boundary /L5/acorr5 /out edge:N t:250 spec:カーテンウォール
+boundary /L5/ball /out edge:N t:250 spec:カーテンウォール
+  window CW2 at:0.25
+  window CW2 at:0.75
+boundary /L5/foyer /out edge:N t:250 spec:カーテンウォール
+boundary /L5/recep /out edge:E t:250 spec:PC板
+  window W2
+boundary /L5/prep /out edge:E t:250 spec:PC板
+boundary /L5/hfoy /out edge:E t:250 spec:PC板
 
-# ---- M2 機械階 — 宴会場の直上。ここも客の階数に現れない ----
-space /M2/ahuW service X3..X10+4200 Y3..Y8+4200 + X3..X5 Y8+4200..Y11 + X10..X10+4200 Y8+4200..Y11 + X3..X10+4200 Y11..Y17 name:空調機械室西 use:common
-space /M2/ahuE service X14+4200..X19 Y3..Y8+4200 + X14+4200..X16 Y8+4200..Y11 + X18..X19 Y8+4200..Y11 + X14+4200..X19 Y11..Y17 name:空調機械室東 use:common
-space /M2/roofW terrace X10+4200..X11 Y3..Y17 name:西側屋上 use:common
-space /M2/roofE terrace X14..X14+4200 Y3..Y17 name:東側屋上 use:common
-space /M2/atrium void X11..X14 Y3..Y17 name:吹抜け上部
-
-boundary /M2/ahuW /M2/ahall type:open
-boundary /M2/ahuE /M2/bhall type:open
-boundary /M2/ahuW /M2/roofW t:300 spec:RC
-  door FD1 name:屋上点検口
-boundary /M2/ahuE /M2/roofE t:300 spec:RC
-  door FD1 name:屋上点検口
-boundary /M2/roofW /M2/atrium t:60 spec:手すり air:1 h:1100
-boundary /M2/roofE /M2/atrium t:60 spec:手すり air:1 h:1100
-boundary /M2/ahuW /out edge:W t:300 spec:ルーバー
-boundary /M2/ahuW /out edge:S t:300 spec:ルーバー
-boundary /M2/ahuW /out edge:N t:300 spec:ルーバー
-boundary /M2/ahuE /out edge:E t:300 spec:ルーバー
-boundary /M2/ahuE /out edge:S t:300 spec:ルーバー
-boundary /M2/ahuE /out edge:N t:300 spec:ルーバー
-boundary /M2/roofW /out edge:S t:120 spec:パラペット air:1 h:1200
-boundary /M2/roofW /out edge:N t:120 spec:パラペット air:1 h:1200
-boundary /M2/roofE /out edge:S t:120 spec:パラペット air:1 h:1200
-boundary /M2/roofE /out edge:N t:120 spec:パラペット air:1 h:1200
-boundary /M2/atrium /out edge:S t:300 spec:トップライト air:1 h:1200
-boundary /M2/atrium /out edge:N t:300 spec:トップライト air:1 h:1200
+# ---- M1 機械階 — 宴会場の直上。客の階数に現れない ----
+space /M1/machA service X3..X11 Y6..Y7 + X3..X4 Y7..Y8+4200 + X10..X11 Y7..Y8+4200 + X3..X11 Y8+4200..Y10 name:A棟低層機械室 use:common
+space /M1/machB service X14..X19 Y6..Y7+2400 + X14..X15+5600 Y7+2400..Y8+4200 + X15+5600..X16 Y7+2400..Y7+5600 + X16..X17 Y7+2400..Y8+4200 + X17..X17+2800 Y7+2400..Y7+5600 + X17+2800..X19 Y7+2400..Y8+4200 name:B棟低層機械室 use:common
+boundary /M1/machA /M1/ahall type:open
+boundary /M1/machB /M1/bst1 edge:W t:250 spec:RC
+  door FD1 name:階段1から機械室
+boundary /M1/machB /M1/bst2 edge:E t:250 spec:RC
+  door FD1 name:階段2から機械室
+boundary /M1/machA /out edge:S t:250 spec:ルーバー
+boundary /M1/machA /out edge:N t:250 spec:ルーバー
+boundary /M1/machA /out edge:W t:250 spec:ルーバー
+boundary /M1/machA /out edge:E t:250 spec:ルーバー
+boundary /M1/machB /out edge:S t:250 spec:ルーバー
+boundary /M1/machB /out edge:W t:250 spec:ルーバー
+boundary /M1/machB /out edge:E t:250 spec:ルーバー

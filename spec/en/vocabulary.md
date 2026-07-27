@@ -73,7 +73,7 @@ No `key:value` may be written — a band does not survive into the model, so the
 `line <start> <end>`, indented under a boundary. Endpoints are pairs of grid words — `X3,Y1` / `X3+600,Y2-900` — and **neither raw coordinates nor angles can be written**. A drawn line gives the boundary its realisation as an act of design rather than as something derived from adjacency (★). It redistributes the union of the two spaces' declared cells across its two sides, so the area one loses the other gains. When one side has no region (the outside), it cuts the envelope instead: the side with a region is trimmed and nothing is gained. One line per boundary. On a diagonal segment an opening's `at:` can only be a 0..1 ratio, since a grid reference does not fix a unique position there.
 
 ### column (ADR-0023)
-`column <size mm> <level range|level name> [attrs...]` — **no position is written**. Columns stand where grid lines cross and that level has floor (inside a space with a region that is neither `exterior` nor `void`) (★).
+`column <size mm> <level range|level name> [attrs...]` — **no position is written**. Columns stand where grid lines cross and that level has floor (inside a space with a region that is neither `exterior` nor `void`) (★). A semi-outdoor space with no floor above it (an open terrace or roof garden) is not a column site (ADR-0030).
 
 | Attribute | Read | Meaning |
 |---|---|---|

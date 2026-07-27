@@ -232,7 +232,7 @@ printf '%s\n' \
 ```
 
 ```text
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.14.0"},"instructions":"空間一次の建築記述koyuのサーバー。model_summaryで建物を掴み、layersで原本 (.muroレイヤー群) を読み、write_layerで編集する。checkが一棟のビルドの門番 — エラーは出所レイヤー:行つきで返る。doors/light/site/spacesは同じ記述への異なる問い。形 (plan_svg) は生成物。"}}
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.15.0"},"instructions":"空間一次の建築記述koyuのサーバー。model_summaryで建物を掴み、layersで原本 (.muroレイヤー群) を読み、write_layerで編集する。checkが一棟のビルドの門番 — エラーは出所レイヤー:行つきで返る。doors/light/site/spacesは同じ記述への異なる問い。形 (plan_svg) は生成物。"}}
 {"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"{\n \"doors\": 2,\n \"path\": [\n  \"/L1/a\",\n  \"/L1/b\",\n  \"/out\"\n ]\n}"}]}}
 ```
 
