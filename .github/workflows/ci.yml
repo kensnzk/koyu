@@ -14,3 +14,6 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run check:examples
+      # 重い門番 (twin の到達可能性BFS等で数分) はここで回す — push/PR の裏で走り、
+      # 人が待つ publish には載せない。緑でない main からリリースを切らないこと
+      - run: npm run gate:examples
