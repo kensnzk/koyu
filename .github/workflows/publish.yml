@@ -1,0 +1,53 @@
+# GitHub のリリースを公開したら npm へ出す。
+#
+# **手元のコマンドラインを要らなくする**のが目的である。スマホからでもリリースを
+# 作れば公開まで届く。二要素認証のワンタイムコードも要らない —
+# npm の Trusted Publishing (OIDC) は、このワークフローそのものを身元として信じるので、
+# トークンを保管しない。漏れるトークンが存在しないのが、この方式のいちばんの利点である。
+#
+# **一度だけの設定** (npmjs.com で、ブラウザから):
+#   Package → Settings → Trusted Publisher → GitHub Actions
+#     Organization or user : kensnzk
+#     Repository           : koyu
+#     Workflow filename    : publish.yml
+#     Environment          : (空のまま)
+#
+# 公開の順序は変わらない。**タグを打ってリリースを作る前に、main が緑であること。**
+# ここでも publish の前に全部を回す — CIが緑でないものはレジストリへ出さない。
+name: publish
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Trusted Publishing (OIDC) に要る
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+
+      # 門番を先に通す。**check が緑でも建物が使えるとは限らない** (AGENTS.md 掟2) ので、
+      # 同梱例が実際に使える建物であることまで確かめてから出す
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run check:examples
+      - run: npm run gate:examples
+
+      # リリースのタグと package.json の版が食い違ったまま出さない。
+      # 版は git が持つ (ADR-0017) 以上、二つが同じであることは前提である
+      - name: タグと版の一致を確かめる
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          echo "tag=$TAG package.json=$PKG"
+          [ "$TAG" = "$PKG" ] || { echo "::error::リリースのタグ v$TAG と package.json の $PKG が食い違っています"; exit 1; }
+
+      - run: npm run build
+      - run: npm publish --access public
