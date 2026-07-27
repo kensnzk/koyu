@@ -29,16 +29,20 @@ band X X2..X11 Y4..Y5
 space /L2/s04 shop X14..X19 Y4..Y5 name:南区画03 use:rentable
 space /L2/mallSw corridor X2..X11 Y5..Y6 name:南モール西 use:common floor:石張り
 space /L2/mallSe corridor X14..X19 Y5..Y6 name:南モール東 use:common floor:石張り
-space /L2/w01 corridor X2..X4 Y6..Y7 name:西通路南 use:common
+# 西の1スパン (X2..X3) はエントランス吹抜け — 1階の大開口の上をガラスが2層で立つ
+space /L2/alvoid void X2..X3 Y7..Y9 name:エントランス吹抜け
+space /L2/es4 corridor X2..X3 Y6..Y7 name:下りエスカレーター乗り場 use:common
+space /L2/es3 corridor X2..X3 Y9..Y10 name:上りエスカレーター降り場 use:common
+space /L2/w01 corridor X3..X4 Y6..Y7 name:西通路南 use:common
 space /L2/w02 shop X4..X8 Y6..Y7 name:西区画02 use:rentable
 space /L2/w03 shop X8..X11 Y6..Y7 name:西区画03 use:rentable
 space /L2/e01 shop X14..X17 Y6..Y7+5600 name:東区画01 use:rentable
 space /L2/e02 shop X17..X19 Y6..Y7+5600 + X17+2800..X19 Y7+5600..Y8+4200 name:東区画02 use:rentable
-space /L2/acorr corridor X2..X4 Y7..Y8+4200 name:A棟西通路 use:common
+space /L2/acorr corridor X3..X4 Y7..Y8+4200 name:A棟西通路 use:common
 space /L2/eside shop X10..X11 Y7..Y8+4200 name:東脇区画 use:rentable
 space /L2/e03 shop X14..X15+5600 Y7+5600..Y8+4200 name:東区画03 use:rentable
 space /L2/bcorr corridor X16..X17 Y7+5600..Y8+4200 name:B棟階段付室 use:common
-space /L2/w04 corridor X2..X4 Y8+4200..Y10 name:西通路北 use:common
+space /L2/w04 corridor X3..X4 Y8+4200..Y10 name:西通路北 use:common
 space /L2/w05 shop X4..X8 Y8+4200..Y10 name:西区画05 use:rentable
 space /L2/w06 shop X8..X11 Y8+4200..Y10 name:西区画06 use:rentable
 space /L2/n04 shop X14..X16 Y9..Y10 name:北区画04 use:rentable
@@ -55,6 +59,15 @@ boundary /L2/gal /L2/mallNw type:open
 boundary /L2/gal /L2/mallNe type:open
 boundary /L2/acorr /L2/ahall type:open
 boundary /L2/acorr /L2/w01 type:open
+boundary /L1/alobby /L2/alvoid type:void
+boundary /L2/es4 /L2/mallSw type:open
+boundary /L2/es4 /L2/w01 type:open
+boundary /L2/es3 /L2/mallNw type:open
+boundary /L2/es3 /L2/w04 type:open
+boundary /L2/es3 /L2/alvoid t:60 spec:手すり air:1 h:1100
+boundary /L2/es4 /L2/alvoid t:60 spec:手すり air:1 h:1100
+boundary /L2/acorr /L2/alvoid t:60 spec:手すり air:1 h:1100
+boundary /L2/w04 /L2/alvoid t:60 spec:手すり air:1 h:1100
 boundary /L2/e03 /L2/e01 t:120 spec:LGS
   door D1 at:0.3 name:バック
 boundary /L2/bcorr /L2/e01 edge:S t:180 spec:LGS
@@ -268,11 +281,9 @@ boundary /L2/gal /out edge:N t:300 spec:カーテンウォール
 boundary /L2/s01 /out edge:W t:300 spec:カーテンウォール
   window W2
 boundary /L2/mallSw /out edge:W t:300 spec:カーテンウォール
-boundary /L2/w01 /out edge:W t:300 spec:カーテンウォール
-  window CW1
-boundary /L2/acorr /out edge:W t:300 spec:カーテンウォール
-boundary /L2/w04 /out edge:W t:300 spec:カーテンウォール
-  window CW1
+boundary /L2/es4 /out edge:W t:300 spec:カーテンウォール
+boundary /L2/es3 /out edge:W t:300 spec:カーテンウォール
+boundary /L2/alvoid /out edge:W t:300 spec:カーテンウォール
 boundary /L2/mallNw /out edge:W t:300 spec:カーテンウォール
 boundary /L2/n01 /out edge:W t:300 spec:カーテンウォール
   window W2

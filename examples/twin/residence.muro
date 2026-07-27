@@ -58,9 +58,18 @@ boundary /L13..L18/rcorr /out edge:W t:250 spec:PC板
 boundary /L13..L18/rcorr /out edge:E t:250 spec:PC板
   window W2
 
-# ---- B棟屋上庭園 (L19の高さ) ----
-space /L19/broof terrace X14..X19 Y6..Y9 name:B棟屋上庭園 use:common floor:緑化
-boundary /L18/bst1 /L19/broof type:stair
+# ---- B棟屋上 (L19の高さ) — 塔屋と庭園 ----
+# A棟と同じく、階段2本とEVオーバーラン・機械を塔屋 (btop) が覆い、残りが庭園になる。
+# 塔屋は屋内なので柱が立ち、露天の庭園には立たない (ADR-0030)
+space /L19/btop service X15+5600..X18 Y7+5600..Y9 name:B棟塔屋・EV機械室 use:common
+space /L19/broof terrace X14..X19 Y6..Y7+5600 + X14..X15+5600 Y7+5600..Y9 + X18..X19 Y7+5600..Y9 name:B棟屋上庭園 use:common floor:緑化
+boundary /L18/bst1 /L19/btop type:stair
+boundary /L18/bst2 /L19/btop type:stair
+boundary /L19/btop /L19/broof edge:W t:250 spec:PC板
+boundary /L19/btop /L19/broof edge:E t:250 spec:PC板
+boundary /L19/btop /L19/broof edge:S t:250 spec:PC板
+  door FD1 at:0.3 name:庭園へ
+boundary /L19/btop /out edge:N t:250 spec:ルーバー
 boundary /L19/broof /out edge:S t:120 spec:パラペット+手すり air:1 h:1200
 boundary /L19/broof /out edge:N t:120 spec:パラペット+手すり air:1 h:1200
 boundary /L19/broof /out edge:W t:120 spec:パラペット+手すり air:1 h:1200

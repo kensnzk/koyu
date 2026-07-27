@@ -1,8 +1,8 @@
 # 双塔複合建築 — 地下2階＋地上34階 (koyu 0.5)
 #
 # **実在しうる再開発として詰めた版。**板をスリムにして上へ積む。
-# 延床 141,388㎡ (+半屋外 6,754㎡) / ホテル98室 / レジデンス36戸 — 数字は全て stats の実測。
-# use別: rentable 45.1% + exclusive 1.9% = 収益床 47.0%。駐車場 10.5% を除く地上部だけなら 52.5%。
+# 延床 141,449㎡ (+半屋外 6,534㎡) / ホテル98室 / レジデンス36戸 — 数字は全て stats の実測。
+# use別: rentable 44.9% + exclusive 1.9% = 収益床 46.7%。駐車場 10.5% を除く地上部だけなら 52.2%。
 # 巨大複合はコア・機械階・ホール・テラス緑化が床を食う — 緑が出す正直な数字である。
 #
 #   基壇 (L1〜L4)  物販・飲食。段々にセットバックし、屋上はテラス緑化
@@ -12,8 +12,8 @@
 #   地下 (B1〜B2)  駐車場・熱源・受変電・中央監視・MDF・ごみ処理
 #
 # **寸法は実在の機器と慣行から取る (モジュールの台帳 → docs/modules.md)。**
-#   エレベーター 1600kg級: かご 2150W×1600D / 昇降路 2800W×2400D
-#   → **3台並び = 8,400 = ちょうど1スパン。**乗場ホールは対面バンクの標準 4,200
+#   エレベーター 1600kg級: かご 2150W×1600D / 昇降路 2800W×2400D — **1機=1室で書く**
+#   → **3室並び = 8,400 = ちょうど1スパン。**乗場ホールは対面バンクの標準 4,200
 #   階段: 幅1,200×2列+踊り場 = 2,800 × 7,000 の塊 (踏面240を39段で確保する長さ)
 #   オフィスの貸室デプス: コアから窓まで 8.4〜12.6m (標準 9〜13m)
 #   ホテル客室: 幅4.2m × 奥行8.4m ≈ 35㎡ (バス込み)
@@ -64,20 +64,34 @@ import ./residence.muro
 # ---- 縦動線のトポロジー ----
 # A棟: 低層バンク6台 (B1..L20)・高層バンク6台 (L1..L34、基壇と低層帯は通過)・荷物用2台
 # B棟: 客用3台 (B1..L18 — 基壇3層はホール無しで通過)・サービス2台
-# 基壇: エスカレーター (L1..L4)・車路 (B2..L1)
-stack aevLs B1..L20 type:shaft
-stack aevLn B1..L20 type:shaft
-stack aevHs L1..L34 type:shaft
-stack aevHn L1..L34 type:shaft
-stack afr B1..L34 type:shaft
+# 基壇: エスカレーター (アトリウム L1..L4、西エントランス上下 L1..L2)・車路 (B2..L1)
+stack aevLs1 B1..L20 type:shaft
+stack aevLs2 B1..L20 type:shaft
+stack aevLs3 B1..L20 type:shaft
+stack aevLn1 B1..L20 type:shaft
+stack aevLn2 B1..L20 type:shaft
+stack aevLn3 B1..L20 type:shaft
+stack aevHs1 L1..L34 type:shaft
+stack aevHs2 L1..L34 type:shaft
+stack aevHs3 L1..L34 type:shaft
+stack aevHn1 L1..L34 type:shaft
+stack aevHn2 L1..L34 type:shaft
+stack aevHn3 L1..L34 type:shaft
+stack afr1 B1..L34 type:shaft
+stack afr2 B1..L34 type:shaft
 stack ast1 B2..L34 type:stair
 stack ast2 B2..L34 type:stair
-stack bev B1..L18 type:shaft
-stack bsv B1..L18 type:shaft
+stack bev1 B1..L18 type:shaft
+stack bev2 B1..L18 type:shaft
+stack bev3 B1..L18 type:shaft
+stack bsv1 B1..L18 type:shaft
+stack bsv2 B1..L18 type:shaft
 stack bst1 B2..L18 type:stair
 stack bst2 B2..L18 type:stair
 stack es1 L1..L2 type:stair
 stack es2 L2..L4 type:stair
+stack es3 L1..L2 type:stair
+stack es4 L1..L2 type:stair
 stack ramp B2..L1 type:stair
 
 # ---- 柱 ----

@@ -344,6 +344,40 @@ column 800 L1
   assert.equal(check(m).errors.length, 0);
 });
 
+test("柱: 空しか支えない床には立たない — 露天テラスは除き、上階の張り出し下には立つ (ADR-0030)", () => {
+  const m = parse(`koyu 0.5
+grid X 0 8000 16000
+grid Y 0 8000 16000
+level L1 0 h:2700
+level L2 3000 h:2700 slab:300
+space /out exterior
+space /L1/a room X1..X3 Y1..Y2
+space /L2/b room X1..X2 Y1..Y2
+space /L2/t terrace X2..X3 Y1..Y2
+boundary /L2/t /out edge:E air:1 t:120
+boundary /L2/t /out edge:S air:1 t:120
+column 800 L1..L2
+`);
+  // L1: 全6交点 (屋内)。L2: /L2/b の内側4点は立つが、露天テラス /L2/t だけの X3列は立たない
+  assert.equal(columnsFor(m, "L1").length, 6);
+  const l2 = columnsFor(m, "L2").map((c) => c.grid);
+  assert.deepEqual(l2, ["X1・Y1", "X1・Y2", "X2・Y1", "X2・Y2"]);
+  // 同じテラスでも上に床が重なれば (張り出しの下) 柱は戻る
+  const m2 = parse(`koyu 0.5
+grid X 0 8000 16000
+grid Y 0 8000 16000
+level L1 0 h:2700
+level L2 3000 h:2700 slab:300
+level L3 6000 h:2700 slab:300
+space /out exterior
+space /L2/t terrace X2..X3 Y1..Y2
+boundary /L2/t /out edge:E air:1 t:120
+space /L3/c room X2..X3 Y1..Y2
+column 800 L2
+`);
+  assert.equal(columnsFor(m2, "L2").length, 4); // X2,X3 × Y1,Y2 — 全交点が戻る
+});
+
 test("柱: 通りの限定と、床の無い階での警告", () => {
   const m = parse(`koyu 0.5
 grid X 0 8000 16000

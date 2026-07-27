@@ -23,6 +23,9 @@ space /site/green exterior X1..X21 Y12..Y19 level:L1 name:北側広場・緑地
 boundary /site/plazaS /road-s type:open
 boundary /site/plazaE /road-e type:open
 boundary /site/green /road-n type:open
+boundary /site/green /road-e type:open
+boundary /site/plazaE /road-s type:open
+boundary /site/plazaW /road-s type:open
 boundary /site/plazaS /site/plazaE type:open
 boundary /site/plazaS /site/plazaW type:open
 boundary /site/green /site/plazaE type:open

@@ -425,7 +425,14 @@ export function columnSites(
 ): Array<{ x: number; y: number; grid: string }> {
   if (!c.levels.includes(level)) return [];
   const floors = [...model.spaces.values()].filter(
-    (s) => s.level === level && s.type !== "exterior" && s.type !== "void" && s.rects.length > 0,
+    (s) =>
+      s.level === level &&
+      s.type !== "exterior" &&
+      s.type !== "void" &&
+      s.rects.length > 0 &&
+      // 空しか支えない床には柱を立てない (ADR-0030): 半屋外で上に床も無い
+      // 屋上庭園・テラスは、柱が持ち上げるものを持たない
+      !(isSemiOutdoor(model, s) && !isCoveredAbove(model, s)),
   );
   if (floors.length === 0) return [];
   const xs = model.grid.X.names
