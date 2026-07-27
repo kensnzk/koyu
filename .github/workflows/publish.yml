@@ -18,6 +18,13 @@ name: publish
 on:
   release:
     types: [published]
+  # 既に作ったリリースを出し直すとき / 設定を入れた直後に一度回すとき。
+  # GitHub の Actions 画面から押せるので、スマホからでも届く
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 出すタグ (例 v0.14.0)
+        required: true
 
 jobs:
   publish:
@@ -27,6 +34,8 @@ jobs:
       id-token: write # Trusted Publishing (OIDC) に要る
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -44,7 +53,8 @@ jobs:
       # 版は git が持つ (ADR-0017) 以上、二つが同じであることは前提である
       - name: タグと版の一致を確かめる
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
+          RAW="${{ github.event.inputs.tag || github.ref_name }}"
+          TAG="${RAW#v}"
           PKG="$(node -p "require('./package.json').version")"
           echo "tag=$TAG package.json=$PKG"
           [ "$TAG" = "$PKG" ] || { echo "::error::リリースのタグ v$TAG と package.json の $PKG が食い違っています"; exit 1; }
