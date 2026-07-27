@@ -2,7 +2,7 @@
 
 # Tool reference — CLI, MCP, public API
 
-As of koyu v0.13.0. Every tool is a different entrance to the same derivations (semantics.md) — the CLI for hands, MCP for agents, the API for programs.
+As of koyu v0.14.0. Every tool is a different entrance to the same derivations (semantics.md) — the CLI for hands, MCP for agents, the API for programs.
 
 > This is a reference. If you are learning koyu, start at [guide/en/start.md](../../guide/en/start.md); for the CLI worked through with real output, see [guide/en/cli.md](../../guide/en/cli.md).
 

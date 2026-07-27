@@ -15,6 +15,7 @@ The five bundled examples are in order of difficulty, and each broadly builds on
 | [tower](#examplestower) | 453 in 9 files / 178 / 543 / 4785.92 m² | The site shape as a polygon, an exception floor as a diff layer, several roads |
 | basement | 84 in 3 files / 15 / 49 / 1242.08 m² | The smallest vertical-circulation example — a folded ramp, a stair, a lift, the underground declaration |
 | complex | 647 in 10 files / 425 / 1364 / 31606.24 m² | An extra-large mixed-use building (B2–19F). Bands, columns, drawn lines, escalators, a ten-sided site |
+| twin | 1024 in 10 files / 1027 / 3324 / 259519.20 m² | Twin towers (B2–28F, 31 physical levels). One building that shares its levels and splits into two towers above the podium. Three plant floors absent from the public numbering, lift zoning, a fourteen-sided site |
 
 `npm run check:examples` confirms the consistency of every example at once.
 
