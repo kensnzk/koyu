@@ -123,6 +123,6 @@ Pass it to `@shikijs/rehype` as `langs` and insert the plugin into `beforeDefaul
 ## Read next
 
 - [troubleshooting.md](troubleshooting.md) — get from an error down to its cause
-- [diagnostics.md](../diagnostics.md) — look up a diagnostic code and its fix (all 64)
+- [diagnostics.md](../diagnostics.md) — look up a diagnostic code and its fix (all 65)
 - [cli.md](../cli.md) — the CLI the extension is calling
 - [ADR-0031](../../../docs/decisions/0031-editor-support.md) — why one grammar, and why the red belongs to the CLI

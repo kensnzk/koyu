@@ -1077,7 +1077,31 @@ space /L1/b room X2..X3 Y1..Y2 uid:sp-1
 
 **Cause** — the same `uid` appears in two places. It must be unique across `space` and `zone`. It appears when a line was copied and the `uid` was not corrected. The message and `related` list every origin.
 
-**Fix** — change one to a different token. When it collides with another layer under composition (`import`), deciding a prefix per layer reduces the accidents.
+**Fix** — change one to a different token. When it collides with another layer under composition (`import`), deciding a prefix per layer reduces the accidents. To have a machine make one, use the MCP tool `new_uids` or the API's `newUids` ([Giving something an identity](howto/identity.md)).
+
+<a id="uid04"></a>
+### UID04 — a duplicate name within one container
+
+`error`
+
+```muro-bad
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /out exterior
+boundary /L1/a /out t:150
+  window w:1200 h:1100 edge:S at:0.25 name:W1
+  window w:1200 h:1100 edge:S at:0.75 name:W1
+```
+
+`Duplicate opening name within boundary /L1/a | /out: W1 (<absolute path>/bad.muro:line 7, <absolute path>/bad.muro:line 8) — the name is what identifies it inside its container`
+
+**Cause** — the identity of an opening or of something contained is derived from the containing subject plus a name unique within it ([spec/en/scope.md §5](../../spec/en/scope.md)). If the name points at two elements, then `= window W1` cannot say which one it replaces and `- window W1` cannot say which one it removes. koyu **does not guess**, so it is an error on the spot ([ADR-0039](../../docs/decisions/0039-identity-generation.md)). Four things are checked — openings within a boundary, `seg`s within a boundary, `area`s within a space, and `column`s within the model.
+
+A name inherited from an asset does not count. The `name` in `asset W1 window … name:掃き出し窓` is **the type's name**, not that opening's claim — putting the same product twice on one wall is not a collision.
+
+**Fix** — change one of the names (`name:W1-e` / `name:W1-w`). If nothing needs to point at them, do not write `name:` at all — an element without a name claims no identity, so it is not in the population.
 
 ## Interpreted attribute values — ATT
 

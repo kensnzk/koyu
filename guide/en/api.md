@@ -465,6 +465,33 @@ console.log(effectiveUse(m, m.spaces.get("/home/ldk")!), displayName(m.spaces.ge
 exclusive LDK
 ```
 
+## Identity
+
+### newUids — mint a fresh uid
+
+```ts
+function newUids(model: Model, count?: number): string[]
+```
+
+**Derived neither from the path nor from the contents.** It is random — the prefix `u-` plus 16 characters of Crockford base32, 80 bits in all ([ADR-0039](../../docs/decisions/0039-identity-generation.md)).
+
+```ts
+import { newUids } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+
+const m = parseFile("examples/two-rooms.muro");
+const [uid] = newUids(m);
+console.log(uid, uid.length);
+```
+
+```text
+u-qkk0xrtqn2gqjypk 18
+```
+
+**The tokens that come back collide with nothing in that model.** Non-collision with layers not composed here is a probabilistic guarantee; UID03 under `check` is the only thing that actually proves uniqueness ([spec/en/scope.md §5.2](../../spec/en/scope.md)). Compose and check after writing them in.
+
+**Until it is called, no tool writes a uid.** Assignment is an explicit act. The list of what can carry one is closed at `space` and `zone` — for how to use them see [howto/identity.md](howto/identity.md).
+
 ## The parts of derivation
 
 The functions you borrow when drawing a plan yourself, or writing your own check. **There is no operation for placing a wall here either** — walls are derived from the layout of spaces.

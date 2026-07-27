@@ -69,7 +69,7 @@ line 0: Cannot read file: /tmp/examples/two-rooms.muro
 
 ### 2. Confirm the tools
 
-Ten tools come back. Every one takes `file` as a required argument.
+Twelve tools come back. Every one takes `file` as a required argument.
 
 | Tool | Arguments | Returns |
 |---|---|---|
@@ -77,9 +77,11 @@ Ten tools come back. Every one takes `file` as a required argument.
 | `check` | `file` | `ok`; `errors`/`warnings` (strings carrying layer:line provenance); `diagnostics` (the structured form — the same items in the same order as the strings). **The gate; call it after every edit** |
 | `layers` | `file` | The `{file, source}` of every layer that took part in composition — to read the authored source |
 | `write_layer` | `file`, `layer`, `content` | Replaces a layer wholesale. Returns `written`, `ok`, and `errors`/`warnings` |
+| `new_uids` | `file`, `count` (optional) | Fresh persistent identity tokens. **Until it is called, nobody writes a uid** ([identity.md](identity.md)) |
 | `doors` | `file`, `from`, `to` | The route of fewest doors as `{doors, path}`, or `{unreachable: true}` |
 | `spaces` | `file`, `level` (optional) | The list of spaces (path, type, name, level, area, semi-outdoor, provenance layer) |
 | `light` | `file` | The 1/7 daylight verdict per habitable room |
+| `validate` | `file` | The architectural verdicts (`findings`). **A surface separate from the check guarantee** |
 | `site` | `file` | The site report (area reconciliation `areaMatch`, frontage, `coverageRatio`, `floorAreaRatio`) |
 | `plan_svg` | `file`, `level` | The plan of the given level as an SVG string |
 | `canonical_json` | `file` | The canonical JSON (the single composed model) |
@@ -236,7 +238,7 @@ printf '%s\n' \
 
 (The server's `instructions` string, which the agent reads, says: grasp the building with model_summary, read the source layers with layers, edit with write_layer; check is the build gate for the whole building and returns errors with layer:line provenance; doors/light/site/spaces are different questions asked of the same description; form (plan_svg) is a generated artifact.)
 
-Sending `{"jsonrpc":"2.0","id":2,"method":"tools/list"}` in the same shape returns the ten tools above with `name`, `description`, and `inputSchema`. The `inputSchema.required` is `["file","layer","content"]` for `write_layer`, `["file","from","to"]` for `doors`, `["file","level"]` for `plan_svg`, and `["file"]` for the rest.
+Sending `{"jsonrpc":"2.0","id":2,"method":"tools/list"}` in the same shape returns the twelve tools above with `name`, `description`, and `inputSchema`. The `inputSchema.required` is `["file","layer","content"]` for `write_layer`, `["file","from","to"]` for `doors`, `["file","level"]` for `plan_svg`, and `["file"]` for the rest.
 
 An error during tool execution comes back not as a JSON-RPC error but as a result carrying `isError: true`, so the agent can read it and fix it.
 

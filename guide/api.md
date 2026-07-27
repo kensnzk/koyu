@@ -465,6 +465,33 @@ console.log(effectiveUse(m, m.spaces.get("/home/ldk")!), displayName(m.spaces.ge
 exclusive LDK
 ```
 
+## 同一性
+
+### newUids — 新しい uid を作る
+
+```ts
+function newUids(model: Model, count?: number): string[]
+```
+
+**パスからも中身からも導出しない。**接頭辞 `u-` + Crockford base32 の16字 (80ビット) の乱数である ([ADR-0039](../docs/decisions/0039-identity-generation.md))。
+
+```ts
+import { newUids } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+
+const m = parseFile("examples/two-rooms.muro");
+const [uid] = newUids(m);
+console.log(uid, uid.length);
+```
+
+```text
+u-qkk0xrtqn2gqjypk 18
+```
+
+**返ってきたトークンは、そのモデルの中では衝突しない。**まだ合成されていない層との非衝突は確率的な保証であり、一意性を実際に証明するのは `check` の UID03 だけである ([spec/scope.md §5.2](../spec/scope.md))。書き足したら合成して検査する。
+
+**呼ばないかぎり、どのツールも uid を書かない。**付与は明示の行為である。書ける対象は `space` と `zone` の二つに閉じている — 使い方は [howto/identity.md](howto/identity.md)。
+
 ## 導出の部品
 
 平面図を自前で描く、独自の検査を書く、といったときに借りる関数群である。**壁を置く操作はここにも無い** — 壁は空間の割付から導出される。

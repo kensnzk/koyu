@@ -94,7 +94,7 @@ space /out/road-s exterior name:南側道路 road:12000
 | `use:exclusive` | Attribute | An aggregation axis. Inherited from `zone` |
 | `daylight:1` / `daylight:0` | Attribute | Adds to or removes from the daylight scope |
 | `road:12000` | Attribute | The width of an exterior space — the mark of a road |
-| `uid:…` | Attribute | A persistent identity token across renames. Digits alone, or whitespace, is an error |
+| `uid:…` | Attribute | A persistent identity token across renames. Digits alone, or whitespace, is an error. Only space and zone can carry one |
 
 **Types the tools interpret structurally** ([vocabulary.md](../../spec/en/vocabulary.md)):
 

@@ -42,9 +42,11 @@ MCP over stdio (JSON-RPC 2.0, newline-delimited JSON). Zero dependencies and sta
 | `layers` | file | The {file, source} of every layer that took part in composition — to read the authored source |
 | `write_layer` | file, layer, content | Checks, then replaces wholesale (content that would not compose is never written — the source is left untouched; check errors are returned but saving an intermediate state is allowed). Writes are atomic. `.muro` only, and only beneath the entry's directory (verified on the relative path and on the symlink's real path; the content of files that do not take part in composition is not validated) |
 | `doors` | file, from, to | The path of fewest doors, or {unreachable} |
+| `validate` | file | The architectural verdicts (`findings` carry `rule`/`level`). **Not the check guarantee** — a surface that grows |
 | `spaces` | file, [level] | The list of spaces (path, type, area, semi-outdoor, provenance) |
 | `light` | file | The daylight verdict for each habitable room |
 | `site` | file | The site report (area reconciliation `areaMatch`, road frontage, coverage ratio, floor area ratio) |
+| `new_uids` | file, [count] | Mints persistent identity tokens (uid) that collide with nothing already composed into the model. **Nothing assigns one on its own**, so call it only when something has to be pointed at across renames |
 | `plan_svg` | file, level | The plan as an SVG string |
 | `canonical_json` | file | The canonical JSON |
 
@@ -78,7 +80,7 @@ import { parseFile } from "@kensnzk/koyu/node";
 |---|---|---|
 | Parsing and composition | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
 | The vocabulary of the model | — | `Model` `Space` `Zone` `Boundary` `Opening` `Seg` `Area` `Asset` `Level` `Rect` `Pt` `GridAxis` `GridRef` `SitePolygon` `Column` `ColumnDecl` `DrawnLine` `Edge` `BoundaryKind` `Attrs` `AttrValue` |
-| Queries, derivation, machine form | `areaM2` `zoneAreaM2` `unionAreaM2` `polygonAreaM2` `pointInPolygon` `polyBounds` `rectToPoly` `columnsFor` `displayName` `effectiveUse` `heff` `isIndoor` `isSemiOutdoor` `isCoveredAbove` `levelsSorted` `toCanonical` `srcRef` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `DEFAULT_LANGUAGE_VERSION` | — |
+| Queries, derivation, machine form | `areaM2` `zoneAreaM2` `unionAreaM2` `polygonAreaM2` `pointInPolygon` `polyBounds` `rectToPoly` `columnsFor` `displayName` `effectiveUse` `heff` `isIndoor` `isSemiOutdoor` `isCoveredAbove` `levelsSorted` `newUids` `toCanonical` `srcRef` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `DEFAULT_LANGUAGE_VERSION` | — |
 | Structural diagnostics | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `Diagnostic` `DiagnosticCode` `CheckResult` |
 | The spatial graph | `doorsBetween` `neighbors` `passable` `segmentsFor` `envelopeGaps` `deriveDefaultBoundaries` `placeOpening` `placeBand` | `Segment` `Route` `NeighborInfo` `Band` `PlacedBand` `BandError` `BandCode` |
 | Floors, ceilings, roofs | `slabs` | `Slab` `SlabKind` |
@@ -97,6 +99,7 @@ import { parseFile } from "@kensnzk/koyu/node";
 - **What is generated**: `slabs(model)` (floors, ceilings and roofs — ADR-0024) / `verticalRuns(model)` (the shape of the vertical circulation — ADR-0021) / `runSolids(run)` (its solids) / `runDrawsForLevel(model, level)` (the drawing cut at that level). **None of them carries an appearance** — no colours, no line weights. A viewer only maps them into geometry (scope.md §6).
 - **Drawing**: `svgPlan(model, {level, scale?})` / `svgAxo(model, {dir?, levels?, scale?, ceilings?, walls?})` / `toCanonical(model)`.
 - **Diffs**: `semanticDiff(a, b)` → `ModelDiff` (the difference in the language of composition — renames are detected by uid, and boundaries are compared as effective sets. Empty whenever `toCanonical` is identical. ADR-0018) / `renderDiff(d)` → lines of Japanese (an empty array means no difference).
+- **Identity**: `newUids(model, count?)` → a list of fresh uids (ADR-0039). **They collide with nothing already composed into that model**, while non-collision with layers not composed here is a probabilistic guarantee resting on 80 bits of randomness — only UID03 under `check` proves it ([scope.md §5](scope.md)). **Until it is called, no tool writes a uid.**
 - **Errors**: a syntax or composition error is a `SourceError` (line / raw / file — the message is `layer:line: body`). check never throws; it returns arrays.
 
 A worked consumer is the viewer ugatsu (github.com/kensnzk/ugatsu) — every derivation is a call into this API, and it holds no answers of its own.

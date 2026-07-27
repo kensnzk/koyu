@@ -94,7 +94,7 @@ space /out/road-s exterior name:南側道路 road:12000
 | `use:exclusive` | 属性 | 集計軸。`zone` から継承される |
 | `daylight:1` / `daylight:0` | 属性 | 採光判定を掛ける / 掛けない (既定)。`light` の唯一の入口 |
 | `road:12000` | 属性 | exterior空間の幅員 — 道路の印 |
-| `uid:…` | 属性 | 改名を跨ぐ永続同一性トークン。数字だけ・空白はエラー |
+| `uid:…` | 属性 | 改名を跨ぐ永続同一性トークン。数字だけ・空白はエラー。書けるのは space と zone だけ |
 
 **ツールが構造として解釈する型** ([vocabulary.md](../spec/vocabulary.md)):
 

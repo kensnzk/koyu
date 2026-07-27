@@ -1531,9 +1531,13 @@ function applyDrop(model: Model, rest: string[], ln: number): void {
   if (rest[0] === "column") {
     const name = rest[1];
     if (!name) throw new SourceError(ln, "drop column takes the name of a column");
-    const before = model.columns.length;
-    model.columns = model.columns.filter((c) => String(c.attrs["name"] ?? "") !== name);
-    if (model.columns.length === before) throw new SourceError(ln, `No such column: ${name}`);
+    const hit = findNamed(model.columns, name);
+    if (hit.length === 0) throw new SourceError(ln, `No such column: ${name}`);
+    // **消えるのは、消すと書いたものだけである。**名が二本の柱を指しているなら
+    // どちらを消すのかは書かれていない — 黙って両方消さずに拒む (ADR-0039)。
+    // 開口・seg の集合編集 (editList) と同じ規律である
+    if (hit.length > 1) throw new SourceError(ln, `The column name ${name} is not unique`);
+    model.columns = model.columns.filter((c) => c !== hit[0]);
     return;
   }
   const paths = rest.filter((t) => t.startsWith("/"));

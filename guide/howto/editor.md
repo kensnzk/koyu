@@ -123,6 +123,6 @@ const koyu = { ...JSON.parse(readFileSync(require.resolve("@kensnzk/koyu/syntax"
 ## 次に読む
 
 - [troubleshooting.md](troubleshooting.md) — エラーが出たときに原因まで降りる
-- [diagnostics.md](../diagnostics.md) — 診断コードから直し方を引く (全64コード)
+- [diagnostics.md](../diagnostics.md) — 診断コードから直し方を引く (全65コード)
 - [cli.md](../cli.md) — 拡張が呼んでいる CLI そのもの
 - [ADR-0031](../../docs/decisions/0031-editor-support.md) — なぜ文法を一枚にし、赤を CLI に預けたか

@@ -56,6 +56,7 @@ export {
   isIndoor,
   isSemiOutdoor,
   levelsSorted,
+  newUids,
   pointInPolygon,
   polyBounds,
   polygonAreaM2,

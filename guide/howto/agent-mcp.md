@@ -69,7 +69,7 @@ line 0: Cannot read file: /tmp/examples/two-rooms.muro
 
 ### 2. ツールを確かめる
 
-10個のツールが返る。すべて `file` を必須引数に持つ。
+12個のツールが返る。すべて `file` を必須引数に持つ。
 
 | ツール | 引数 | 返り |
 |---|---|---|
@@ -77,9 +77,11 @@ line 0: Cannot read file: /tmp/examples/two-rooms.muro
 | `check` | `file` | `ok`・`errors`/`warnings` (出所レイヤー:行つきの文字列)・`diagnostics` (構造化診断 — 文字列と同件・同順)。**編集のたびに呼ぶ門番** |
 | `layers` | `file` | 合成に参加した全レイヤーの `{file, source}` — 原本を読む |
 | `write_layer` | `file`, `layer`, `content` | レイヤーを全置換して書く。返りは `written`・`ok`・`errors`/`warnings` |
+| `new_uids` | `file`, `count` (省略可) | 新しい永続同一性トークン。**呼ぶまで誰も uid を書かない** ([identity.md](identity.md)) |
 | `doors` | `file`, `from`, `to` | 最少扉数の経路 `{doors, path}`、到達不能なら `{unreachable: true}` |
 | `spaces` | `file`, `level` (省略可) | 空間一覧 (パス・型・名前・レベル・面積・半屋外・出所レイヤー) |
 | `light` | `file` | 居室ごとの 1/7 採光判定 |
+| `validate` | `file` | 建築的な判定 (`findings`)。**check の保証とは別の面である** |
 | `site` | `file` | 敷地レポート (面積照合 `areaMatch`・接道・`coverageRatio`・`floorAreaRatio`) |
 | `plan_svg` | `file`, `level` | 指定レベルの平面図 SVG 文字列 |
 | `canonical_json` | `file` | 正準 JSON (合成後の単一モデル) |
@@ -232,7 +234,7 @@ printf '%s\n' \
 {"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"{\n \"doors\": 2,\n \"path\": [\n  \"/L1/a\",\n  \"/L1/b\",\n  \"/out\"\n ]\n}"}]}}
 ```
 
-同じ形で `{"jsonrpc":"2.0","id":2,"method":"tools/list"}` を投げると、上表の10件が `name` / `description` / `inputSchema` つきで返る。`inputSchema.required` は `write_layer` が `["file","layer","content"]`、`doors` が `["file","from","to"]`、`plan_svg` が `["file","level"]`、残りは `["file"]` である。
+同じ形で `{"jsonrpc":"2.0","id":2,"method":"tools/list"}` を投げると、上表の12件が `name` / `description` / `inputSchema` つきで返る。`inputSchema.required` は `write_layer` が `["file","layer","content"]`、`doors` が `["file","from","to"]`、`plan_svg` が `["file","level"]`、残りは `["file"]` である。
 
 ツール実行時のエラーは JSON-RPC のエラーではなく、`isError: true` を付けた結果として返る。エージェントはそれを読んで直せる。
 

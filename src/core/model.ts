@@ -602,6 +602,81 @@ export function displayName(s: Space): string {
   return typeof n === "string" ? n : (s.path.split("/").pop() ?? s.path);
 }
 
+/**
+ * 開口が主張する同一性の名 (ADR-0039)。
+ *
+ * 開口の同一性は「含む対象 + その中で一意な名」から導かれる (spec/scope.md §5)。だが
+ * `name:` はアセットからも流れ込む — そしてアセットの `name` は**型の名**である
+ * (`asset W1 window … name:掃き出し窓`)。同じ建具を一枚の壁に二枚並べるのは
+ * ごく普通の設計であり、型の名を同一性の主張として読めば、それが衝突になってしまう。
+ *
+ * **主張は、その開口の行に書かれた名だけである。**参照したアセットの名と同じ値なら、
+ * それは継いだ型の名であって主張ではない (undefined)。
+ */
+export function openingIdentity(model: Model, o: Opening): string | undefined {
+  const n = o.attrs["name"];
+  if (n === undefined || n === "") return undefined;
+  const name = String(n);
+  const inherited = o.ref === undefined ? undefined : model.assets.get(o.ref)?.attrs["name"];
+  if (inherited !== undefined && String(inherited) === name) return undefined;
+  return name;
+}
+
+// ---- 同一性の生成 (ADR-0039) ----
+
+/**
+ * 生成される uid の綴り — 接頭辞 `u-` + 16字、合わせて18字。
+ *
+ * 字母は Crockford base32 の小文字 (`i` `l` `o` `u` を持たない)。**接頭辞の `u` は
+ * 字母に無い**ので、生成された uid は必ず一つだけ `u` を持ち、それが先頭である。
+ * 16字 × 5ビット = **80ビット**。
+ *
+ * 接頭辞があるのは、数字だけの綴りを構造的に不可能にするためである (UID01 —
+ * 数値化でトークンの区別が失われる)。種別 (space / zone) は綴りに入れない —
+ * uid は不透明であり、綴りから何かが読めてはならない。
+ */
+const UID_ALPHABET = "0123456789abcdefghjkmnpqrstvwxyz";
+const UID_LENGTH = 16;
+const UID_PREFIX = "u-";
+
+/**
+ * 新しい uid を作る (ADR-0039)。**パスからもモデルの中身からも導出しない** —
+ * 導出すれば改名でトークンが変わり、uid の意味 (改名を跨ぐ) が消える。
+ *
+ * 保証は二段である。
+ *
+ *   1. **合成済みのこのモデルとは衝突しない。**検査して作るので確実である
+ *   2. **まだ合成されていない層・他のリポジトリとは、確率でしか衝突しない。**
+ *      80ビットの乱数なので、100万個を集めても衝突確率は 10⁻¹² を下回る。
+ *      **確実さが要るなら、合成して `check` を通すこと** — UID03 だけが実際に一意性を証明する
+ *
+ * 付与は明示の行為である。この関数を呼ばないかぎり、どのツールも uid を書かない (opt-in)。
+ */
+export function newUids(model: Model, count = 1): string[] {
+  if (!Number.isInteger(count) || count < 1) throw new RangeError(`count is a positive integer: ${count}`);
+  const taken = new Set<string>();
+  for (const s of model.spaces.values()) {
+    const v = s.attrs["uid"];
+    if (v !== undefined) taken.add(String(v));
+  }
+  for (const z of model.zones.values()) {
+    const v = z.attrs["uid"];
+    if (v !== undefined) taken.add(String(v));
+  }
+  const out: string[] = [];
+  const buf = new Uint8Array(UID_LENGTH);
+  while (out.length < count) {
+    globalThis.crypto.getRandomValues(buf);
+    // 1バイト (0..255) の下位5ビットは 0..31 に一様である (256 = 32 × 8) — 剰余の偏りは無い
+    let token = UID_PREFIX;
+    for (const b of buf) token += UID_ALPHABET[b & 31];
+    if (taken.has(token)) continue;
+    taken.add(token);
+    out.push(token);
+  }
+  return out;
+}
+
 /** 正準JSONの空間エントリ (書かれた表記・正準順)。semantic diff (ADR-0018) が比較基底として共有する */
 export function canonicalSpaceEntry(s: Space): Record<string, unknown> {
   return {

@@ -29,7 +29,7 @@ Each stage's endpoint is kept as a working file under [examples/steps/](../../ex
 | Document | Contents | Reader |
 |---|---|---|
 | [cheatsheet.md](cheatsheet.md) | Every construct on one page. Each heading jumps to the owning section of spec/ | Anyone who needs reminding how something is written |
-| [howto/](howto/README.md) | Eight recipes, indexed by goal — add a level, subdivide a dwelling, daylight, doors and egress, site and floor area ratio, splitting into files, connecting an agent, and getting unstuck | Anyone whose hands have stopped |
+| [howto/](howto/README.md) | Ten recipes, indexed by goal — add a level, subdivide a dwelling, daylight, doors and egress, site and floor area ratio, splitting into files, identity, connecting an agent, the editor, and getting unstuck | Anyone whose hands have stopped |
 | [diagnostics.md](diagnostics.md) | All 51 diagnostic codes with the **cause**, the **fix**, and a minimal reproduction. Looked up from the error text | Anyone `check` has told off |
 | [glossary.md](glossary.md) | A one-sentence definition per term, plus where it is normatively defined and where it is actually used | Anyone who has lost the thread of a word |
 | [cli.md](cli.md) | Every `koyu` subcommand, from "what does it answer?". With real output | Anyone at the command line |

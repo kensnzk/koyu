@@ -80,6 +80,7 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | ATT02 | error | An interpreted attribute's value is not in the ledger's vocabulary (`ceiling` 0/1, `turn` R/L, `site` 0/1, `style` hinged/sliding/auto — ADR-0028) |
 | ATT03 | error | An attribute key that is not in the ledger and carries no namespace (dot-separated, e.g. `acme.sensor`) — ADR-0033 |
 | UID03 | error | A duplicate uid (unique across the whole model, spanning space and zone) |
+| UID04 | error | A duplicate `name` within the containing subject (openings and segs within a boundary, areas within a space, columns within the model). A name an opening inherits from an asset is the type's name and does not count — ADR-0039 |
 | DAY01 | error | The value of daylight is neither 0 nor 1 (being in scope is a binary declaration — ADR-0020) |
 | VER01 | error | A default boundary would be derived in a koyu 0.1 file (an older version is accepted only when meaning is preserved — ADR-0017) |
 | VER02 | error | In a koyu 0.3-or-earlier file, a space of a type that used to be inferred in scope (unit/room/ldk/bedroom/living) carries no daylight (in 0.4 it falls out of scope, so the meaning changes — ADR-0020) |

@@ -75,6 +75,7 @@ koyu v1.0.0-rc.1 現在。文法は [language.md](language.md)。ここに書く
 | UID01 | error | 数字だけのuid (parseの数値化でトークンの区別が失われる — ADR-0015) |
 | UID02 | error | 空白を含むuid |
 | UID03 | error | uidの重複 (space/zone横断でモデル全体一意) |
+| UID04 | error | 含む対象の中で `name` が重複 (開口・segは境界の中、areaは空間の中、柱はモデルの中。開口がアセットから継いだ名は型の名なので数えない — ADR-0039) |
 | ATT01 | error | 解釈される属性の値が正の数値でない (`h` `riser` `tread` `entry` `landing` `lane` `slope` `road` `area` — 台帳の型に合わない値は黙って既定へ落とさない。ADR-0028) |
 | ATT02 | error | 解釈される属性の値が台帳の語彙にない (`ceiling` 0/1・`turn` R/L・`site` 0/1・`style` hinged/sliding/auto — ADR-0028) |
 | ATT03 | error | 台帳に無い属性キー — 名前空間 (`acme.sensor` のようなドット区切り) を持たないものは書けない (ADR-0033) |

@@ -53,7 +53,7 @@ This is not a verdict but **part of reading**, and it sits at the same layer as 
 
 | Guarantee | Diagnostic |
 |---|---|
-| the uniqueness of paths and identities | UID01-03 / ZON02 / the duplicate-path error raised during composition |
+| the uniqueness of paths and identities | UID01-04 / ZON02 / the duplicate-path error raised during composition |
 | the existence of what is referenced | REF01 / an undefined asset / the zone a polygon corresponds to (SIT04) |
 | the definition of levels | LVL01 / VRT02 |
 | overlapping regions (in plan) | GEO01 / GEO02 |
@@ -108,6 +108,35 @@ core holds the queries of aggregation and of the graph. **But they deliver no ve
 It is not required so that **the author can choose the strength of the guarantee**. Write one only on the spaces that must be pointed at across time.
 
 > **Be responsible for identity, not for content.**
+
+### 5.1 The list of things that can carry a uid is closed
+
+`uid` may be written on `space` and `zone`, and **that list is closed**. Those are the only two elements whose ledger entry ([vocabulary.md](vocabulary.md)) holds `uid`; writing it on any other element is ATT03 (a key not in the ledger), and writing it on `level` is a syntax error. **There is no path where it is silently ignored.**
+
+It can be written with a namespace — `acme.uid:` — but that is the carried tier ([§7](#7-the-three-layers-of-attributes)), which core never looks at. **It does not amount to having given the thing an identity.**
+
+### 5.2 The rule of generation, and the extent of non-collision
+
+**A uid is never derived from the path, nor from anything else in the model.** Derive it and the token would change on a rename, which erases what a uid means (surviving a rename). When a machine makes one it is **random** — the prefix `u-` plus 16 characters of Crockford base32, 80 bits in all ([ADR-0039](../../docs/decisions/0039-identity-generation.md)).
+
+```
+u-7f3k9m2qx4b8dhtv
+```
+
+**The guarantee has two levels.**
+
+| Against | Guarantee |
+|---|---|
+| the model already composed | **No collision.** The generator checks it, and UID03 under `check` proves it |
+| layers not composed here, and other repositories | **Probabilistic only.** At 80 bits, a million tokens still collide with probability below 10⁻¹². When certainty is needed, compose them and run `check` |
+
+**Assignment is an explicit act.** No tool writes a uid until the author writes one or calls `newUids` / the MCP tool `new_uids`. Not even `write_layer`.
+
+### 5.3 A name has to point at exactly one thing
+
+Since identity is "the containing subject plus a name unique within it", **one name pointing at two things is a break in identity** — the set edits of composition (`= window W1` / `- column C1`) cannot say which one they mean. This is checked (UID04), and refused on the composition side as well.
+
+**A name inherited from an asset is not a claim of identity.** The `name` in `asset W1 window … name:掃き出し窓` is the type's name, and putting the same product twice on one wall is ordinary design. The claim is only the name written on that opening's own line.
 
 ---
 

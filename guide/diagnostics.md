@@ -1075,7 +1075,31 @@ space /L1/b room X2..X3 Y1..Y2 uid:sp-1
 
 **原因** — 同じ `uid` が二箇所にある。`space` と `zone` を跨いで一意でなければならない。行をコピーして `uid` を直し忘れた場合に出る。メッセージと `related` が全ての出所を並べる。
 
-**直し方** — 片方を別のトークンに変える。合成 (`import`) で別レイヤーと衝突している場合は、レイヤーごとに接頭辞を決めておくと事故が減る。
+**直し方** — 片方を別のトークンに変える。合成 (`import`) で別レイヤーと衝突している場合は、レイヤーごとに接頭辞を決めておくと事故が減る。機械に作らせるなら MCP の `new_uids` か API の `newUids` を使う ([同一性を持たせる](howto/identity.md))。
+
+<a id="uid04"></a>
+### UID04 — 同じ対象の中で name が重複しています
+
+`error`
+
+```muro-bad
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /out exterior
+boundary /L1/a /out t:150
+  window w:1200 h:1100 edge:S at:0.25 name:W1
+  window w:1200 h:1100 edge:S at:0.75 name:W1
+```
+
+`Duplicate opening name within boundary /L1/a | /out: W1 (<absolute path>/bad.muro:line 7, <absolute path>/bad.muro:line 8) — the name is what identifies it inside its container`
+
+**原因** — 開口と内包物の同一性は「含む対象 + その中で一意な名」から導かれる ([spec/scope.md §5](../spec/scope.md))。名が二つの要素を指していれば、`= window W1` はどちらを差し替えるのか、`- window W1` はどちらを消すのかが決まらない。**推測しない**ので、その場でエラーにする ([ADR-0039](../docs/decisions/0039-identity-generation.md))。検査するのは四つ — 境界の中の開口、境界の中の `seg`、空間の中の `area`、モデルの中の `column`。
+
+アセットから継いだ名は数えない。`asset W1 window … name:掃き出し窓` の `name` は**型の名**であって、その開口の主張ではない — 同じ建具を一枚の壁に二枚並べても衝突にはならない。
+
+**直し方** — 片方の名を変える (`name:W1-e` / `name:W1-w`)。そもそも指す必要がなければ `name:` を書かない — 名の無い要素は同一性を主張していないので、母集団に入らない。
 
 ## 解釈される属性の値 — ATT
 

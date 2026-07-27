@@ -50,7 +50,7 @@ npx tsx src/cli.ts json  examples/two-rooms.muro            # 正準JSON
 
 `koyu-mcp` は依存ゼロの stdio MCP サーバー ([ADR-0012](docs/decisions/0012-mcp-server.md))。ステートレスで、全ツールが entry の `.muro` パスを `file` で受け、毎回ゼロから合成する。原本はファイルシステムにあり、履歴は git が持つ。
 
-ツールは10個 — `model_summary` `check` `layers` `write_layer` `doors` `spaces` `light` `site` `plan_svg` `canonical_json`。
+ツールは12個 — `model_summary` `check` `layers` `write_layer` `new_uids` `doors` `spaces` `light` `validate` `site` `plan_svg` `canonical_json`。
 
 標準ループはこれである。
 
@@ -78,7 +78,7 @@ model_summary → layers → write_layer → check ──エラー──→ 直�
 
 ## エラーに当たったら
 
-`check` の人間向け出力に診断コードは出ない。`--json` を付けるとコードが出る。コードから原因と直し方を引く表は [guide/diagnostics.md](guide/diagnostics.md) (全64コード)。規範の台帳 (コード・severity・概要) は [spec/semantics.md](spec/semantics.md)。
+`check` の人間向け出力に診断コードは出ない。`--json` を付けるとコードが出る。コードから原因と直し方を引く表は [guide/diagnostics.md](guide/diagnostics.md) (全65コード)。規範の台帳 (コード・severity・概要) は [spec/semantics.md](spec/semantics.md)。
 
 よく踏む罠は3つある。`grid` と `level` は使用より**前**に宣言しないと効かない (`boundary` は前方参照してよい)。空間を間取りに割るなら親は `space` ではなく `zone` にする。外部への開口は境界線分が複数になるので `edge:N/E/S/W` で辺を選ぶ (N=+Y, S=-Y, E=+X, W=-X)。詳細は [guide/howto/troubleshooting.md](guide/howto/troubleshooting.md)。
 

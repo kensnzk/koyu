@@ -40,9 +40,11 @@ stdio上のMCP (JSON-RPC 2.0、行区切りJSON)。依存ゼロ・ステート�
 | `layers` | file | 合成に参加した全レイヤーの {file, source} — 原本を読む |
 | `write_layer` | file, layer, content | 検査してから全置換 (parse不能な合成になる内容は書き込まれない — 原本不変。checkエラーは返すが途中状態の保存は許す)。書き込みはatomic。`.muro` のみ・entryのディレクトリ配下のみ (相対パスとsymlink実体で検査。合成に参加しないファイルの内容は検証されない) |
 | `doors` | file, from, to | 最少扉数の経路、到達不能なら {unreachable} |
+| `validate` | file | 建築的な判定 (`findings` は `rule`/`level`)。**checkの保証ではない** — 増える面である |
 | `spaces` | file, [level] | 空間一覧 (パス・型・面積・半屋外・出所) |
 | `light` | file | 居室ごとの採光判定 |
 | `site` | file | 敷地レポート (面積照合 `areaMatch`・接道・建蔽率・容積率) |
+| `new_uids` | file, [count] | 永続同一性トークン (uid) を作る — 合成済みのモデルとは衝突しない。**自分から付与するものは無い**ので、改名を跨いで指す必要が出たときにだけ呼ぶ |
 | `plan_svg` | file, level | 平面SVG文字列 |
 | `canonical_json` | file | 正準JSON |
 
@@ -76,7 +78,7 @@ import { parseFile } from "@kensnzk/koyu/node";
 |---|---|---|
 | 解析と合成 | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
 | モデルの語彙 | — | `Model` `Space` `Zone` `Boundary` `Opening` `Seg` `Area` `Asset` `Level` `Rect` `Pt` `GridAxis` `GridRef` `SitePolygon` `Column` `ColumnDecl` `DrawnLine` `Edge` `BoundaryKind` `Attrs` `AttrValue` |
-| 問い・導出・機械形式 | `areaM2` `zoneAreaM2` `unionAreaM2` `polygonAreaM2` `pointInPolygon` `polyBounds` `rectToPoly` `columnsFor` `displayName` `effectiveUse` `heff` `isIndoor` `isSemiOutdoor` `isCoveredAbove` `levelsSorted` `toCanonical` `srcRef` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `DEFAULT_LANGUAGE_VERSION` | — |
+| 問い・導出・機械形式 | `areaM2` `zoneAreaM2` `unionAreaM2` `polygonAreaM2` `pointInPolygon` `polyBounds` `rectToPoly` `columnsFor` `displayName` `effectiveUse` `heff` `isIndoor` `isSemiOutdoor` `isCoveredAbove` `levelsSorted` `newUids` `toCanonical` `srcRef` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `DEFAULT_LANGUAGE_VERSION` | — |
 | 構造整合の診断 | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `Diagnostic` `DiagnosticCode` `CheckResult` |
 | 空間グラフ | `doorsBetween` `neighbors` `passable` `segmentsFor` `envelopeGaps` `deriveDefaultBoundaries` `placeOpening` `placeBand` | `Segment` `Route` `NeighborInfo` `Band` `PlacedBand` `BandError` `BandCode` |
 | 床・天井・屋根 | `slabs` | `Slab` `SlabKind` |
@@ -95,6 +97,7 @@ import { parseFile } from "@kensnzk/koyu/node";
 - **生成物**: `slabs(model)` (床・天井・屋根 — ADR-0024) / `verticalRuns(model)` (縦動線の形 — ADR-0021) / `runSolids(run)` (その立体) / `runDrawsForLevel(model, level)` (そのレベルで切った作図)。**どれも見た目を持たない** — 色も線幅も返さない。ビュアーはこれを幾何へ写すだけである (scope.md §6)。
 - **描画**: `svgPlan(model, {level, scale?})` / `svgAxo(model, {dir?, levels?, scale?, ceilings?, walls?})` / `toCanonical(model)`。
 - **差分**: `semanticDiff(a, b)` → `ModelDiff` (構成の言葉の差分 — 改名はuidで検出、境界は実効集合で比較。`toCanonical` 同一なら空。ADR-0018) / `renderDiff(d)` → 日本語の行 (空配列=差分なし)。
+- **同一性**: `newUids(model, count?)` → 新しい uid の列 (ADR-0039)。**合成済みのそのモデルとは衝突しない**が、まだ合成されていない層との非衝突は 80 ビットの乱数による確率的な保証であり、証明するのは `check` の UID03 だけである ([scope.md §5](scope.md))。**呼ばないかぎり、どのツールも uid を書かない。**
 - **エラー**: 構文・合成エラーは `SourceError` (line / raw / file — messageは `レイヤー:行目: 本文`)。checkは投げず配列で返す。
 
 利用例はビューワー ugatsu (github.com/kensnzk/ugatsu) — 導出をすべてこのAPIの呼び出しで行い、自前の「答え」を持たない。

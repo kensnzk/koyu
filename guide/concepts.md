@@ -201,7 +201,7 @@ By zone (counted aggregation):
 
 「間取りに割っても住戸の言葉を失わない」というのがこの二役の効き目である ([spec/semantics.md §6 stats](../spec/semantics.md))。だから**集計したい単位が、パスの先頭側に来る**。同梱例には二つの流儀がある — `/L1/room` (レベルを先頭に置く: two-rooms・office・mansion・tower) と、`/home/room` + `level:L1` (住戸を先頭に置く: house)。優劣ではなく、何で束ねたいかの違いである。
 
-パスは変わる。改名・階層再編でパスが変われば、それを外部キーにしていたセンサーや台帳との対応は切れる。寿命がパスより長い参照が要るときは `uid:` を使う — 不透明なトークンで、モデル全体で一意で、パスから導出しない ([ADR-0015](../docs/decisions/0015-identity-uid.md))。リポジトリの中の参照 (`boundary`・`doors`・ゾーン集計) は従来どおりパスでよい。
+パスは変わる。改名・階層再編でパスが変われば、それを外部キーにしていたセンサーや台帳との対応は切れる。寿命がパスより長い参照が要るときは `uid:` を使う — 不透明なトークンで、モデル全体で一意で、パスから導出しない ([ADR-0015](../docs/decisions/0015-identity-uid.md))。リポジトリの中の参照 (`boundary`・`doors`・ゾーン集計) は従来どおりパスでよい。**書けるのは `space` と `zone` の二つに閉じていて、機械に作らせるなら乱数である** ([ADR-0039](../docs/decisions/0039-identity-generation.md))。手順は [howto/identity.md](howto/identity.md)。
 
 ## 5. 原本と導出
 

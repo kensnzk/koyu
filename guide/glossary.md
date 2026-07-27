@@ -42,7 +42,7 @@ koyu の語を引き当てるための表である。各行は「一文の定義
 | ゾーン (zone) | 幾何を持たず、パス接頭辞で配下の空間を束ねる**数える**集約。領域つきの空間を子に持ちたいときは親をこれにする | [language.md §5](../spec/language.md)・[ADR-0005](../docs/decisions/0005-zones-and-unions.md) | [tower/typical](../examples/tower/typical.muro) |
 | 数えない分節 (area / seg) | 面積・室数・グラフ・通行に影響しない区分。`area` は空間の中の領域、`seg` は境界の上の区間で、どちらも属性の上書きだけを運ぶ | [language.md §3・§4](../spec/language.md)・[ADR-0003](../docs/decisions/0003-uncounted-divisions.md) | [tower/L1](../examples/tower/L1.muro) |
 | 敷地形状 (polygon) | `polygon /site x,y x,y …` — この記法で唯一、格子に載らない自由頂点で書かれる形。測量由来の所与として例外的に認められる | [language.md §7](../spec/language.md)・[ADR-0011](../docs/decisions/0011-site-polygon.md) | [tower/site-geometry](../examples/tower/site-geometry.muro) |
-| `uid` | 空間・ゾーンに付ける不透明な永続同一性トークン。モデル全体で一意、パスから導出しない。改名を跨ぐ外部 join のためにあり、リポジトリ内の参照はパスのままでよい | [vocabulary.md](../spec/vocabulary.md)・[ADR-0015](../docs/decisions/0015-identity-uid.md) | [concepts.md §4](concepts.md) |
+| `uid` | 空間・ゾーンに付ける不透明な永続同一性トークン。モデル全体で一意、パスから導出しない。改名を跨ぐ外部 join のためにあり、リポジトリ内の参照はパスのままでよい。書ける対象はこの二つに閉じていて、生成は乱数 (`newUids`) | [vocabulary.md](../spec/vocabulary.md)・[ADR-0015](../docs/decisions/0015-identity-uid.md)・[ADR-0039](../docs/decisions/0039-identity-generation.md) | [howto/identity.md](howto/identity.md) |
 
 ## 導出される性質 — 書かれないもの
 

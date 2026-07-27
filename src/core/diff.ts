@@ -11,6 +11,7 @@ import {
   canonicalOpeningEntry,
   canonicalSegEntry,
   canonicalSpaceEntry,
+  openingIdentity,
   polygonAreaM2,
   type Attrs,
   type AttrValue,
@@ -263,10 +264,25 @@ function comparable(b: Boundary, tok: (p: string) => string): string {
   return JSON.stringify(e);
 }
 
-/** 開口の対のキー: (kind, edge??"", atRef??at)。対はw/h/hinge/swing/ref/attrsのフィールド差分 */
-const openingKey = (o: Opening): string => `${o.kind}#${o.edge ?? ""}#${String(o.atRef ?? o.at)}`;
-const openingLabel = (o: Opening): string =>
-  `${o.kind}${o.edge ? ` edge:${o.edge}` : ""} at:${String(o.atRef ?? o.at)}`;
+/**
+ * 開口の対のキー。**名があれば名が優先である** (ADR-0039) —
+ * 開口の同一性は「含む対象 + その中で一意な名」から導かれるので (spec/scope.md §5)、
+ * 名の付いた扉を動かせば「同じ扉の at が変わった」であって「消えて生えた」ではない。
+ * 名が無ければ位置で対応づける他にない: (kind, edge??"", atRef??at)。
+ * 名のある開口と無い開口は別のキー空間に落ちるので、名を後から書き足した編集は追加/削除に見える —
+ * 名を書く行為そのものが同一性の宣言なので、それでよい
+ */
+const openingKey = (model: Model) => (o: Opening): string => {
+  const name = openingIdentity(model, o);
+  // 名は、位置のキー (door… / window…) と混ざらないトークン空間に置く
+  if (name !== undefined) return `\u0000name:${name}`;
+  return `${o.kind}#${o.edge ?? ""}#${String(o.atRef ?? o.at)}`;
+};
+const openingLabel = (model: Model) => (o: Opening): string => {
+  const name = openingIdentity(model, o);
+  if (name !== undefined) return `${o.kind} ${name}`;
+  return `${o.kind}${o.edge ? ` edge:${o.edge}` : ""} at:${String(o.atRef ?? o.at)}`;
+};
 
 function describeOpening(o: Opening): string {
   const parts = [
@@ -280,9 +296,17 @@ function describeOpening(o: Opening): string {
   return parts.join(" ");
 }
 
-/** segの対のキー: (edge??"", atRef??at, w)。対はattrsのフィールド差分 */
-const segKey = (g: Seg): string => `${g.edge ?? ""}#${String(g.atRef ?? g.at)}#${g.w}`;
-const segLabel = (g: Seg): string => `seg${g.edge ? ` edge:${g.edge}` : ""} at:${String(g.atRef ?? g.at)} w:${g.w}`;
+/** segの対のキー — 開口と同じ規律。名があれば名、無ければ (edge??"", atRef??at, w) */
+const segKey = (g: Seg): string => {
+  const name = g.attrs["name"];
+  if (name !== undefined && name !== "") return `\u0000name:${String(name)}`;
+  return `${g.edge ?? ""}#${String(g.atRef ?? g.at)}#${g.w}`;
+};
+const segLabel = (g: Seg): string => {
+  const name = g.attrs["name"];
+  if (name !== undefined && name !== "") return `seg ${String(name)}`;
+  return `seg${g.edge ? ` edge:${g.edge}` : ""} at:${String(g.atRef ?? g.at)} w:${g.w}`;
+};
 
 interface Keyed<T> {
   x: T;
@@ -334,12 +358,17 @@ function pairUp<T>(as: Keyed<T>[], bs: Keyed<T>[]) {
 const keyed = <T>(xs: T[], key: (x: T) => string, serial: (x: T) => string): Keyed<T>[] =>
   xs.map((x) => ({ x, key: key(x), serial: serial(x) }));
 
-function openingFields(oa: Opening, ob: Opening): FieldChange[] {
-  const label = openingLabel(ob);
+function openingFields(mb: Model, oa: Opening, ob: Opening): FieldChange[] {
+  const label = openingLabel(mb)(ob);
   const out: FieldChange[] = [];
   const sub = (f: string, va: AttrValue | undefined, vb: AttrValue | undefined) => {
     if (va !== vb) out.push(fieldChange(`${label} ${f}`, str(va), str(vb)));
   };
+  // 名で対応づいた対は、種別も辺も位置もキーに入っていない — フィールドの変化として言う。
+  // 位置で対応づいた対ではこの三つは定義上一致するので、何も出ない (ADR-0039)
+  sub("kind", oa.kind, ob.kind);
+  sub("edge", oa.edge, ob.edge);
+  sub("at", String(oa.atRef ?? oa.at), String(ob.atRef ?? ob.at));
   sub("ref", oa.ref, ob.ref);
   sub("w", oa.w, ob.w);
   sub("h", oa.h, ob.h);
@@ -356,7 +385,14 @@ function lineLabel(d: DrawnLine | undefined): string | undefined {
   return forward ? `${d.aRef}..${d.bRef}` : `${d.bRef}..${d.aRef}`;
 }
 
-function boundaryFields(ba: Boundary, bb: Boundary, tokA: (p: string) => string, tokB: (p: string) => string): FieldChange[] {
+function boundaryFields(
+  ma: Model,
+  mb: Model,
+  ba: Boundary,
+  bb: Boundary,
+  tokA: (p: string) => string,
+  tokB: (p: string) => string,
+): FieldChange[] {
   const out: FieldChange[] = [];
   if (ba.kind !== bb.kind) out.push(fieldChange("kind", ba.kind, bb.kind));
   if (ba.t !== bb.t) out.push(fieldChange("t", str(ba.t), str(bb.t)));
@@ -371,16 +407,24 @@ function boundaryFields(ba: Boundary, bb: Boundary, tokA: (p: string) => string,
     out.push(fieldChange("line", lineLabel(ba.drawn), lineLabel(bb.drawn)));
   }
   out.push(...attrFields(ba.attrs, bb.attrs));
-  // 開口 — (kind, edge, at) で対にし、対はフィールド差分、残りは追加/削除
+  // 開口 — 名 (あれば)、無ければ (kind, edge, at) で対にし、対はフィールド差分、残りは追加/削除
   const oSerial = (o: Opening): string => JSON.stringify(canonicalOpeningEntry(o));
-  const ops = pairUp(keyed(ba.openings, openingKey, oSerial), keyed(bb.openings, openingKey, oSerial));
-  for (const [oa, ob] of ops.pairs) out.push(...openingFields(oa, ob));
-  for (const o of ops.added) out.push(fieldChange(openingLabel(o), undefined, describeOpening(o)));
-  for (const o of ops.removed) out.push(fieldChange(openingLabel(o), describeOpening(o), undefined));
-  // seg — (edge, at, w) で対にし、対はattrsの差分
+  const ops = pairUp(keyed(ba.openings, openingKey(ma), oSerial), keyed(bb.openings, openingKey(mb), oSerial));
+  for (const [oa, ob] of ops.pairs) out.push(...openingFields(mb, oa, ob));
+  for (const o of ops.added) out.push(fieldChange(openingLabel(mb)(o), undefined, describeOpening(o)));
+  for (const o of ops.removed) out.push(fieldChange(openingLabel(ma)(o), describeOpening(o), undefined));
+  // seg — 名 (あれば)、無ければ (edge, at, w) で対にする
   const gSerial = (g: Seg): string => JSON.stringify(canonicalSegEntry(g));
   const sgs = pairUp(keyed(ba.segs, segKey, gSerial), keyed(bb.segs, segKey, gSerial));
-  for (const [ga, gb] of sgs.pairs) out.push(...attrFields(ga.attrs, gb.attrs, `${segLabel(gb)} `));
+  for (const [ga, gb] of sgs.pairs) {
+    const lab = segLabel(gb);
+    // 名で対応づいた対は、辺も位置も幅もキーに入っていない (ADR-0039)
+    if ((ga.edge ?? "") !== (gb.edge ?? "")) out.push(fieldChange(`${lab} edge`, ga.edge, gb.edge));
+    const [pa, pb] = [String(ga.atRef ?? ga.at), String(gb.atRef ?? gb.at)];
+    if (pa !== pb) out.push(fieldChange(`${lab} at`, pa, pb));
+    if (ga.w !== gb.w) out.push(fieldChange(`${lab} w`, String(ga.w), String(gb.w)));
+    out.push(...attrFields(ga.attrs, gb.attrs, `${lab} `));
+  }
   for (const g of sgs.added) {
     out.push(fieldChange(segLabel(g), undefined, Object.entries(g.attrs).map(([k, v]) => `${k}:${v}`).join(" ")));
   }
@@ -582,7 +626,7 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
     return kx < ky ? -1 : 1;
   };
   for (const [ba, bb] of bm.pairs) {
-    const fields = boundaryFields(ba, bb, tokA, tokB);
+    const fields = boundaryFields(a, b, ba, bb, tokA, tokB);
     if (fields.length) {
       d.boundaries.changed.push({
         between: [bb.a, bb.b].sort() as [string, string],

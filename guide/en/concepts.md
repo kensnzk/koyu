@@ -203,7 +203,7 @@ By zone (counted aggregation):
 
 That "subdividing into rooms never loses the language of the dwelling" is what this double role buys ([spec/semantics.md §6, stats](../../spec/en/semantics.md)). So **the unit you want to aggregate by belongs toward the head of the path.** The bundled examples show two idioms — `/L1/room`, putting the level first (two-rooms, office, mansion, tower), and `/home/room` with `level:L1`, putting the dwelling first (house). Neither is better; they differ in what you want to bundle by.
 
-Paths change. When a rename or a reorganization changes a path, the correspondence with any sensor or register that used it as a foreign key is severed. When you need a reference that outlives the path, use `uid:` — an opaque token, unique across the whole model, never derived from the path ([ADR-0015](../../docs/decisions/0015-identity-uid.md)). References inside the repository (`boundary`, `doors`, zone aggregation) stay on paths as before.
+Paths change. When a rename or a reorganization changes a path, the correspondence with any sensor or register that used it as a foreign key is severed. When you need a reference that outlives the path, use `uid:` — an opaque token, unique across the whole model, never derived from the path ([ADR-0015](../../docs/decisions/0015-identity-uid.md)). References inside the repository (`boundary`, `doors`, zone aggregation) stay on paths as before. **The list of what can carry one is closed at `space` and `zone`, and a machine makes them at random** ([ADR-0039](../../docs/decisions/0039-identity-generation.md)). The steps are in [howto/identity.md](howto/identity.md).
 
 ## 5. The authored source and what is derived
 

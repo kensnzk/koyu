@@ -18,6 +18,7 @@ import {
   effectiveUse,
   isSemiOutdoor,
   levelsSorted,
+  newUids,
   polygonAreaM2,
   toCanonical,
   zoneAreaM2,
@@ -207,6 +208,28 @@ const TOOLS: Record<string, Tool> = {
       writeFileSync(tmp, content);
       renameSync(tmp, target); // 同一ディレクトリ内のrename — 中途半端なファイルを残さない
       return { written: target, ok: r.errors.length === 0, spaces: m.spaces.size, ...r };
+    },
+  },
+  new_uids: {
+    description:
+      "Mints fresh identity tokens (uid) to write onto spaces or zones with write_layer. They collide with nothing already composed into this model, and 80 bits of randomness keeps them apart from layers that are not composed here. **Nothing assigns a uid on its own** — call this only when a space has to be pointed at across renames (sensors, registers, long-running operations), and run check afterwards, because UID03 is the only thing that proves uniqueness",
+    schema: {
+      type: "object",
+      properties: {
+        ...FILE_PROP,
+        count: { type: "integer", description: "How many tokens to mint (default 1)" },
+      },
+      required: ["file"],
+    },
+    run: (a) => {
+      const count = a.count === undefined ? 1 : Number(a.count);
+      if (!Number.isInteger(count) || count < 1 || count > 1000) {
+        throw new Error("count is an integer between 1 and 1000");
+      }
+      return {
+        uids: newUids(load(str(a.file, "file")), count),
+        note: "Write these as uid: on a space or zone. No other element accepts uid (the ledger rejects it). A uid is carried across renames by hand — that act is the record of the design decision that it is still the same space",
+      };
     },
   },
   doors: {

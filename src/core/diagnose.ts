@@ -18,6 +18,7 @@ import {
 } from "./graph.js";
 import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type Attrs, type Boundary, type Edge, type Level, type Model, type Pt, type Rect, type Space,
   columnSites,
+  openingIdentity,
   regionOf,
   columnsFor,
   pointInPolygon,
@@ -105,6 +106,7 @@ export const DIAGNOSTIC_CODES = {
   UID01: "error", // 数字だけのuid (ADR-0015)
   UID02: "error", // 空白を含むuid
   UID03: "error", // uidの重複
+  UID04: "error", // 含む対象の中で name が重複 (開口・seg・area・柱の同一性 — ADR-0039)
   ATT01: "error", // 解釈される属性の値が数値でない (ADR-0028)
   ATT02: "error", // 解釈される属性の値が台帳の語彙にない (ADR-0028)
   ATT03: "error", // 台帳に無い属性キー — 名前空間が無い (ADR-0033)
@@ -675,7 +677,7 @@ function checkLanguageVersion(ctx: Ctx): void {
   }
 }
 
-/** uid — UID01〜UID03 */
+/** 同一性 — UID01〜UID04 */
 function checkUids(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // uid (ADR-0015): 不透明トークン、space/zone横断でモデル全体一意。
@@ -711,6 +713,54 @@ function checkUids(ctx: Ctx): void {
       );
     }
   }
+
+  // 開口・内包物の同一性は「含む対象 + その中で一意な名」から導かれる (spec/scope.md §5)。
+  // 名が重複していれば、その同一性は成り立たない — `over ... = door D1` はどちらを指すのか
+  // 決められず、`drop column C1` は二本まとめて消してしまう。**推測せずに拒む** (ADR-0039)。
+  // 名を書かない要素は同一性を主張していないので、母集団に入らない
+  const dupNames = (
+    what: string,
+    where: string,
+    items: Array<{ name?: string; line: number; file?: string }>,
+    path?: string[],
+  ) => {
+    const byName = new Map<string, Array<{ line: number; file?: string }>>();
+    for (const it of items) {
+      if (it.name === undefined || it.name === "") continue;
+      const arr = byName.get(it.name) ?? [];
+      arr.push(loc(it.line, it.file));
+      byName.set(it.name, arr);
+    }
+    for (const [name, at] of byName) {
+      if (at.length < 2) continue;
+      const last = at[at.length - 1]!;
+      emit(
+        "UID04",
+        `Duplicate ${what} name within ${where}: ${name} (${at.map((o) => srcRef(o.line, o.file)).join(", ")}) — the name is what identifies it inside its container`,
+        { line: last.line, file: last.file, ...(path ? { path } : {}), related: at.slice(0, -1) },
+      );
+    }
+  };
+  const written = (attrs: Attrs): string | undefined => {
+    const n = attrs["name"];
+    return n === undefined || n === "" ? undefined : String(n);
+  };
+  for (const b of model.boundaries) {
+    const where = `boundary ${b.a} | ${b.b}`;
+    const at = b.file !== undefined ? { file: b.file } : {};
+    // 開口だけは、アセットから継いだ型の名を主張として数えない (ADR-0039)
+    dupNames("opening", where, b.openings.map((o) => ({ name: openingIdentity(model, o), line: o.line, ...at })), [b.a, b.b]);
+    dupNames("seg", where, b.segs.map((g) => ({ name: written(g.attrs), line: g.line, ...at })), [b.a, b.b]);
+  }
+  for (const s of model.spaces.values()) {
+    const at = s.file !== undefined ? { file: s.file } : {};
+    dupNames("area", `space ${s.path}`, s.areas.map((a) => ({ name: written(a.attrs), line: a.line, ...at })), [s.path]);
+  }
+  dupNames(
+    "column",
+    "the model",
+    model.columns.map((c) => ({ name: written(c.attrs), line: c.line, ...(c.file !== undefined ? { file: c.file } : {}) })),
+  );
 }
 
 /** 境界の妥当性 — VRT / BND03〜06 / OPN / SEG */
