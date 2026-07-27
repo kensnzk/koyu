@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "prepare:content": "node scripts/prepare-content.mjs",
-    "vercel:install": "npm ci --prefix .. && npm ci",
     "prestart": "npm run prepare:content",
     "start": "docusaurus start",
     "prebuild": "npm run prepare:content",

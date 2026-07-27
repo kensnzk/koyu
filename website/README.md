@@ -40,10 +40,16 @@ The documentation is a separate Vercel project from the landing page:
 - use the settings from `website/vercel.json`;
 - assign `docs.koyucore.dev` under **Settings → Domains**.
 
-The custom install command installs the parent Koyu package first. Its
-`prepare` script builds `dist/cli.js`, which the documentation build uses to
-generate plans from the checked-in examples. Vercel serves only
+The custom install and build commands run only inside `website`. The site reads
+the canonical `guide/`, `spec/`, and referenced `docs/img/` files, but it does
+not install or build the parent Koyu package. Vercel serves only
 `website/build`.
+
+`website/vercel.json` also provides the Ignored Build Step. A deployment
+continues only when the commit changes `website/`, `guide/`, `spec/`, or
+`docs/img/`, or the shared `.muro` syntax grammar; unrelated Koyu commits are
+skipped. If Vercel cannot compare the commits in its shallow clone, the script
+deliberately builds rather than risk leaving the public documentation stale.
 
 The default production origin is already `https://docs.koyucore.dev` with a
 root base path (`/`). No deployment environment variables are required.

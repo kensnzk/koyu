@@ -10,12 +10,6 @@ const koyuGrammar = {
   name: 'muro',
   aliases: ['koyu', 'muro-part', 'muro-bad', 'muro-warn'],
 };
-const {version: koyuVersion} = JSON.parse(
-  readFileSync(
-    fileURLToPath(new URL('../package.json', import.meta.url)),
-    'utf8',
-  ),
-);
 
 const repositoryUrl = 'https://github.com/kensnzk/koyu';
 const siteUrl = process.env.DOCS_URL ?? 'https://docs.koyucore.dev';
@@ -160,7 +154,7 @@ const config = {
         },
         {
           href: 'https://www.npmjs.com/package/@kensnzk/koyu',
-          label: `v${koyuVersion}`,
+          label: 'npm',
           position: 'right',
           className: 'navbar__version',
         },

@@ -3,9 +3,8 @@ node_modules/
 build/
 .vercel/
 
-# Generated from the canonical guide/, spec/, and examples/.
+# Generated from the canonical guide/ and spec/.
 .generated/
 i18n/en/docusaurus-plugin-content-docs/current/
-static/generated/
 
 .DS_Store

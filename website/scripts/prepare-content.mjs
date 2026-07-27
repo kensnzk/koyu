@@ -10,7 +10,6 @@ import {
 } from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {spawn} from 'node:child_process';
 
 const websiteDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -261,46 +260,6 @@ async function copyContentAssets(outputRoot) {
   }
 }
 
-function runKoyu(args) {
-  return new Promise((resolve, reject) => {
-    const cli = path.join(repositoryDir, 'dist', 'cli.js');
-    const child = spawn(process.execPath, [cli, ...args], {
-      cwd: repositoryDir,
-      stdio: 'inherit',
-    });
-    child.once('error', reject);
-    child.once('exit', (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`koyu ${args[0]} exited with ${code}`));
-    });
-  });
-}
-
-async function buildPlans() {
-  const cli = path.join(repositoryDir, 'dist', 'cli.js');
-  if (!existsSync(cli)) {
-    throw new Error(
-      'dist/cli.js is missing. Run npm install (or npm run build) in koyu_core first.',
-    );
-  }
-
-  await mkdir(generatedStaticDir, {recursive: true});
-  await runKoyu([
-    'plan',
-    'examples/two-rooms.muro',
-    '-o',
-    path.join(generatedStaticDir, 'two-rooms.svg'),
-  ]);
-  await runKoyu([
-    'plan',
-    'examples/mansion.muro',
-    '-l',
-    'L1',
-    '-o',
-    path.join(generatedStaticDir, 'mansion-L1.svg'),
-  ]);
-}
-
 await rm(jaContentDir, {recursive: true, force: true});
 await rm(enContentDir, {recursive: true, force: true});
 await rm(generatedStaticDir, {recursive: true, force: true});
@@ -317,6 +276,5 @@ await writeLocale(
 );
 await copyContentAssets(jaContentDir);
 await copyContentAssets(enContentDir);
-await buildPlans();
 
 console.log('Prepared Japanese and English documentation content.');

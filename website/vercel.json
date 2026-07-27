@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "docusaurus-2",
-  "installCommand": "npm run vercel:install",
+  "ignoreCommand": "node scripts/vercel-ignore-build.mjs",
+  "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "build",
   "trailingSlash": true
