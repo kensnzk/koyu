@@ -2,7 +2,7 @@
 
 # ツールリファレンス — CLI・MCP・公開API
 
-koyu v0.14.0 現在。すべてのツールは同じ導出 (semantics.md) の別の入口である — CLIは人の手、MCPはエージェント、APIはプログラム。
+koyu v0.15.0 現在。すべてのツールは同じ導出 (semantics.md) の別の入口である — CLIは人の手、MCPはエージェント、APIはプログラム。
 
 ## CLI (`koyu` / `npm run koyu --`)
 
