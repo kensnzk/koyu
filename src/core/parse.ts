@@ -71,6 +71,7 @@ function emptyModel(): Model {
     columns: [],
     layers: [],
     attrSrc: new Map(),
+    compositionEdits: [],
   };
 }
 
@@ -184,6 +185,8 @@ function ingest(
 
     if (indented) {
       if (over && (head === "+" || head === "-" || head === "=")) {
+        // 1.0 の語である — 出所を残す (VER04。上書きの跡は合成後に残らない — ADR-0038)
+        model.compositionEdits.push({ word: head, subject: rest.join(" "), line: ln, file });
         applySetEdit(model, over, head, rest, ln, layer);
       } else if (over) {
         throw new SourceError(
@@ -287,6 +290,7 @@ function ingest(
       }
       case "over": {
         // 上書き (合成の規則2・4)。**定義ではない** — 対象が既に無ければエラーである
+        model.compositionEdits.push({ word: "over", subject: rest.join(" "), line: ln, file });
         over = resolveOverTarget(model, rest, ln);
         const attrs = parseAttrs(rest.filter((t) => t.includes(":") && !t.startsWith("/")), ln);
         const subject = overSubject(over);
@@ -315,6 +319,7 @@ function ingest(
       }
       case "drop": {
         // 集合からの削除 (合成の規則3)。暗黙の消滅は無い — 消すと書いたものだけが消える
+        model.compositionEdits.push({ word: "drop", subject: rest.join(" "), line: ln, file });
         applyDrop(model, rest, ln);
         break;
       }

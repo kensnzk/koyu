@@ -2,7 +2,7 @@
 
 # Machine-format reference — the canonical JSON
 
-As of koyu v0.15.0. Emitted by `koyu json <entry>` / `toCanonical(model)`.
+As of koyu v1.0.0-rc.1. Emitted by `koyu json <entry>` / `toCanonical(model)`.
 
 **What is this for?** It is **the definition of what makes two buildings the same, written down.**
 The authored form (.muro) is free in line order and spelling, so whether two files are the same
@@ -30,7 +30,7 @@ What the document names first is **the version of this format itself**. `koyu` c
 
 They are two because **the same semantics may be re-spelled with different keys**. Adding the boundary's direction (the `a` key) changed the spelling without changing a single word of the language. Conversely the language version may rise while the spelling stays put.
 
-**A source with no version declaration is not stamped with one.** The default language version is "the newest this tool knows" (language.md §2), so stamping it would make the document claim a version its author never wrote — and **the bytes of the same input would change** on the day the tool's default moves. Determinism is a promise this format makes; it is not left to a tool's default. A source that wants its meaning pinned writes `koyu 0.5`.
+**A source with no version declaration is not stamped with one.** The default language version is "the newest this tool knows" (language.md §2), so stamping it would make the document claim a version its author never wrote — and **the bytes of the same input would change** on the day the tool's default moves. Determinism is a promise this format makes; it is not left to a tool's default. A source that wants its meaning pinned writes `koyu 1.0`.
 
 ## The stability rules (why this format exists)
 
@@ -54,7 +54,7 @@ They are two because **the same semantics may be re-spelled with different keys*
 ```jsonc
 {
   "format": "koyu-canonical/1.0",        // the format version (the version of this document's own spelling)
-  "koyu": "0.5",                         // the language version (the declaration passed through; absent when the source omitted it)
+  "koyu": "1.0",                         // the language version (the declaration passed through; absent when the source omitted it)
   "name": "…",                          // optional
   "unit": "mm",
   "grid": { "X": [0, 6400, …], "Y": [0, 5600, …] },   // coordinate arrays (grid names X1.. are implicit)

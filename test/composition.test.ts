@@ -14,10 +14,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { checkDiagnostics } from "../src/core/diagnose.js";
 import { SourceError } from "../src/core/model.js";
-import { parseFiles } from "../src/core/parse.js";
+import { parse, parseFiles } from "../src/core/parse.js";
 import { toCanonical } from "../src/core/model.js";
 
-const BASE = `koyu 0.5
+const BASE = `koyu 1.0
 unit mm
 grid X 0 4000 8000
 grid Y 0 5000
@@ -193,4 +193,36 @@ test("check runs on the composed result, so anything an override broke is caught
   assert.ok(codes.length >= 0); // 単層なので HGT は走らないが、走査は合成後のモデルに対して行われる
   assert.equal(m.spaces.get("/L1/a")!.attrs["h"], 2500);
   assert.equal(m.levels["L1"]!.h, 2000);
+});
+
+// ---- 合成の語は muro 1.0 の語である (VER04 / ADR-0038) ----
+
+/** 0.5 以前を宣言したファイルに、合成の編集を一つだけ書いたもの */
+const olderWith = (edit: string, version = "0.5") =>
+  `koyu ${version}
+unit mm
+grid X 0 4000 8000
+grid Y 0 5000
+level L1 0 h:2700 slab:300
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+boundary /L1/a /L1/b t:120
+  door w:900 name:D1
+${edit}
+`;
+
+test("version: over / drop / a set edit are 1.0 words, so a 0.5-or-earlier file that writes one is stopped (VER04)", () => {
+  for (const edit of ["over /L1/a h:2500", "drop /L1/b", "over /L1/a /L1/b\n  - door D1"]) {
+    const d = checkDiagnostics(parse(olderWith(edit)));
+    assert.deepEqual(new Set(d.map((x) => x.code)), new Set(["VER04"]), edit);
+    for (const x of d) {
+      assert.equal(x.severity, "error");
+      assert.match(x.message, /raise the version to koyu 1\.0/);
+      // 母集団は書かれた宣言であり、出所を必ず持つ (ADR-0028) —
+      // 上書きの跡は合成後のモデルに残らないので、宣言の行だけが指せる場所である
+      assert.equal(typeof x.line, "number", `${edit}: VER04 carries the line of the declaration`);
+    }
+  }
+  // 最新版で書けば出ない。版宣言を省いたファイルも最新版で読まれるので出ない
+  assert.deepEqual(checkDiagnostics(parse(olderWith("over /L1/a h:2500", "1.0"))), []);
 });

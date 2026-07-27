@@ -16,7 +16,7 @@ import {
   drawnCut,
   spacesOverlap,
 } from "./graph.js";
-import { heff, isSemiOutdoor, levelsSorted, type Attrs, type Boundary, type Edge, type Level, type Model, type Pt, type Rect, type Space,
+import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type Attrs, type Boundary, type Edge, type Level, type Model, type Pt, type Rect, type Space,
   columnSites,
   regionOf,
   columnsFor,
@@ -121,6 +121,7 @@ export const DIAGNOSTIC_CODES = {
   VER01: "error", // koyu 0.1 での既定境界の導出 (ADR-0017)
   VER02: "error", // koyu 0.3以前で採光の推定対象だった型に daylight が無い (ADR-0020)
   VER03: "error", // koyu 0.4以前のファイルに0.5の語 (縦動線・線・柱・地下)
+  VER04: "error", // koyu 0.5以前のファイルに1.0の語 (over・drop・集合編集 — ADR-0035/0038)
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
 } as const satisfies Record<string, "error" | "warning">;
 
@@ -138,6 +139,13 @@ const EPS_SITE = 1;
 const VERTICAL = new Set(["stair", "shaft", "void"]);
 /** 0.3以前が採光の対象と推定していた型 (ADR-0020で廃止)。旧版の受理条件の判定にだけ使う — 意味論には効かない */
 const LEGACY_DAYLIT = new Set(["unit", "room", "ldk", "bedroom", "living"]);
+
+/**
+ * 版の新旧は `SUPPORTED_LANGUAGE_VERSIONS` の並びで決まる。**辞書順で比べてはならない** —
+ * 文字列としては "0.5" > "1.0" であり、比較を綴りに任せると新しい版が古い版と判定される
+ */
+const olderThan = (version: string, ref: string): boolean =>
+  SUPPORTED_LANGUAGE_VERSIONS.indexOf(version) < SUPPORTED_LANGUAGE_VERSIONS.indexOf(ref);
 
 /** 互換層 — 従来の文字列形式。位置を持つ診断は「file:N行目: 本文」に組み立てる */
 interface AttrSubject {
@@ -581,7 +589,7 @@ function checkColumns(ctx: Ctx): void {
   }
 }
 
-/** 言語版の受理条件 — VER01〜VER03 */
+/** 言語版の受理条件 — VER01〜VER04 */
 function checkLanguageVersion(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 言語版の受理条件 (ADR-0017): 旧版は意味保存の場合のみ受理する。
@@ -613,7 +621,7 @@ function checkLanguageVersion(ctx: Ctx): void {
 
   // 0.5 で入った語 (縦動線の宣言・描かれた線・柱・地下) は 0.4 以前の処理系が知らない。
   // 知らない処理系では黙って形が生成されないので、版を上げずに使うのはエラー (ADR-0017 決定3)
-  if (model.version !== "0.5") {
+  if (olderThan(model.version, "0.5")) {
     const older = `A koyu ${model.version} file uses a 0.5 word`;
     for (const s of model.spaces.values()) {
       const d = runDecls(s);
@@ -644,6 +652,25 @@ function checkLanguageVersion(ctx: Ctx): void {
         file: l.file,
       });
       }
+    }
+  }
+
+  // 1.0 で入った語 (上書き `over`・削除 `drop`・`over` 直下の集合編集 `+` `-` `=`) は
+  // 0.5 以前の処理系が知らない。知らない処理系ではその行が語として読めず、上書きも削除も
+  // 起きない — **黙って別の建物になる**。VER03 と同型の理屈である (ADR-0017 決定3 / ADR-0035)
+  if (olderThan(model.version, "1.0")) {
+    const older = `A koyu ${model.version} file uses a 1.0 word`;
+    for (const e of model.compositionEdits) {
+      const what =
+        e.word === "over" ? "a composition override"
+        : e.word === "drop" ? "a composition removal"
+        : "a set edit under over";
+      const paths = e.subject.split(" ").filter((t) => t.startsWith("/"));
+      emit("VER04", `${older}: ${[e.word, e.subject].filter(Boolean).join(" ")} (${what}) — raise the version to koyu 1.0`, {
+        line: e.line,
+        file: e.file,
+        ...(paths.length > 0 ? { path: paths } : {}),
+      });
     }
   }
 }

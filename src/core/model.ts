@@ -7,10 +7,13 @@ import * as poly from "./poly.js";
 export type AttrValue = string | number;
 export type Attrs = Record<string, AttrValue>;
 
-/** このツールが受理する言語版 (ADR-0017)。旧版は意味保存の場合のみ受理される (checkが検査する) */
-export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2", "0.3", "0.4", "0.5"];
+/**
+ * このツールが受理する言語版 (ADR-0017)。旧版は意味保存の場合のみ受理される (checkが検査する)。
+ * **この並びが版の新旧の順である** — 版の比較はここの添字で行う (辞書順では 0.5 が 1.0 より後になる)
+ */
+export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2", "0.3", "0.4", "0.5", "1.0"];
 /** 版宣言を省略したときの解釈 — 常に最新版の意味論 (省略はツール版を跨いで意味安定ではない) */
-export const DEFAULT_LANGUAGE_VERSION = "0.5";
+export const DEFAULT_LANGUAGE_VERSION = "1.0";
 
 /**
  * 機械形式 (正準JSON) が自分を名乗る版 (ADR-0036)。**言語版でもツール版でもない** —
@@ -260,6 +263,23 @@ export interface Model {
   attrSrc: Map<string, number>;
   /** koyu版が明示宣言されたか (base層でのみ・一度だけ — ADR-0017の合成規則の管理用) */
   versionDeclared?: boolean;
+  /**
+   * muro 1.0 で入った合成の語 (`over` / `drop` / `over` 直下の `+` `-` `=`) が書かれた箇所 (ADR-0038)。
+   * **上書きの跡は機械形式に残らない** (合成の規則5) ので、正準JSONにも合成後のモデルにも
+   * 「上書きが書かれたかどうか」は残らない。VER04 が旧版の宣言を捕まえるには宣言の出所が要るので、
+   * ここだけが走査の順に持つ。診断のためだけの列であり、導出も正準形もこれを読まない
+   */
+  compositionEdits: CompositionEdit[];
+}
+
+/** `over` / `drop` / 集合編集の宣言 (VER04 のための出所 — ADR-0038) */
+export interface CompositionEdit {
+  /** 書かれた語そのもの — `over` / `drop` / `+` / `-` / `=` */
+  word: string;
+  /** 何に向けられた宣言か (メッセージに出す。`over /L1/a` の `/L1/a` など) */
+  subject: string;
+  line: number;
+  file?: string;
 }
 
 /** 平面上の点 (mm) */

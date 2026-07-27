@@ -534,7 +534,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 ```text
 {
   "format": "koyu-canonical/1.0",
-  "koyu": "0.5",
+  "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
   "grid": {
@@ -551,7 +551,8 @@ npx tsx src/cli.ts json examples/two-rooms.muro
   "levels": {
     "L1": {
       "z": 0,
-      "h": 2400
+      "h": 2400,
+      "slab": 150
     }
   },
   "spaces": {

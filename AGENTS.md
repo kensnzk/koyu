@@ -70,7 +70,7 @@ model_summary → layers → write_layer → check ──エラー──→ 直�
 4. **spec は現在形で、その場で書き換える。**日付や「追補」や「v0.9では〜」を積まない。版は git が持つ。
 5. **診断は必ずコードを持ち、severity はコードの属性である** ([ADR-0016](docs/decisions/0016-diagnostic-contract.md))。同じコードが場合によって error になったり warning になったりはしない。コードを足したら [spec/semantics.md](spec/semantics.md) の台帳と [guide/diagnostics.md](guide/diagnostics.md) の両方に載せる。
    **母集団は書かれた宣言、出所は必ず持つ、並びは走査の順** ([ADR-0028](docs/decisions/0028-diagnostics-per-declaration.md))。解釈される属性 (台帳の★) の値は検査する — 書いたのに解釈されなかった値を黙って既定へ落とさない。`checkDiagnostics` を触るときは節の粒度を走査単位に保つ (コードの族で割ると並びが崩れる)。
-6. **言語の意味論を変える変更は言語版を上げる** ([ADR-0017](docs/decisions/0017-language-versioning.md))。現行は `koyu 0.5`。移行はADRに書き、examples は最新版へ揃える。
+6. **言語の意味論を変える変更は言語版を上げる** ([ADR-0017](docs/decisions/0017-language-versioning.md))。現行は `koyu 1.0` ([ADR-0038](docs/decisions/0038-version-1-0-rc.md))。移行はADRに書き、examples は最新版へ揃える。
 7. **語彙は台帳が契約である** ([ADR-0008](docs/decisions/0008-vocabulary-and-level-attr.md) / [ADR-0033](docs/decisions/0033-attribute-tiers.md))。実装の唯一の出所は `src/core/vocabulary.ts` の `ATTR_LEDGER` で、[spec/vocabulary.md](spec/vocabulary.md) はその写しである。**台帳に無いキーは名前空間 (`acme.sensor`) を持たなければ書けない** — 「見ていない」と「見て問題がない」を区別するための境界である。
 8. **実行時依存はゼロ。**devDependencies 以外を足さない。
 9. **例は最新の言語版で書く。**新しい記法を入れたら examples を追随させる — release test がこれを検査する。
@@ -78,7 +78,7 @@ model_summary → layers → write_layer → check ──エラー──→ 直�
 
 ## エラーに当たったら
 
-`check` の人間向け出力に診断コードは出ない。`--json` を付けるとコードが出る。コードから原因と直し方を引く表は [guide/diagnostics.md](guide/diagnostics.md) (全63コード)。規範の台帳 (コード・severity・概要) は [spec/semantics.md](spec/semantics.md)。
+`check` の人間向け出力に診断コードは出ない。`--json` を付けるとコードが出る。コードから原因と直し方を引く表は [guide/diagnostics.md](guide/diagnostics.md) (全64コード)。規範の台帳 (コード・severity・概要) は [spec/semantics.md](spec/semantics.md)。
 
 よく踏む罠は3つある。`grid` と `level` は使用より**前**に宣言しないと効かない (`boundary` は前方参照してよい)。空間を間取りに割るなら親は `space` ではなく `zone` にする。外部への開口は境界線分が複数になるので `edge:N/E/S/W` で辺を選ぶ (N=+Y, S=-Y, E=+X, W=-X)。詳細は [guide/howto/troubleshooting.md](guide/howto/troubleshooting.md)。
 

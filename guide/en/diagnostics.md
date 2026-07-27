@@ -1401,7 +1401,7 @@ space /L1/b hall X2..X3 Y1..Y2
 - Have it read with the new meaning → make the first line `koyu 0.2`
 - Keep 0.1's meaning → write the `boundary` explicitly for the pair named
 
-**Note** — a file that omits the version declaration is always read with the newest version's semantics (`0.4`), so this code does not appear. Write the version in files whose meaning you want pinned. (The message body cites `0.2` because this code is the rule at the boundary between `0.1` and `0.2`.)
+**Note** — a file that omits the version declaration is always read with the newest version's semantics (`1.0`), so this code does not appear. Write the version in files whose meaning you want pinned. (The message body cites `0.2` because this code is the rule at the boundary between `0.1` and `0.2`.)
 
 <a id="ver02"></a>
 ### VER02 — a koyu 0.3 file has a room with no daylight
@@ -1424,7 +1424,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 - It is to be tested → add `daylight:1`
 - It is not (you had been writing storage or a closet) → add `daylight:0`
-- Either way, once that is written, make the first line `koyu 0.5`
+- Either way, once that is written, make the first line `koyu 0.4`
 
 **Note** — a room that already carries `daylight` means the same thing under both versions, so this code does not appear for it. Nor does it appear in a file that omits the version declaration, which is read as the newest version.
 
@@ -1449,6 +1449,27 @@ stack s L1..L2 type:stair
 **Why** — the words introduced in 0.5 — vertical-circulation declarations (`stair:` `ramp:` `escalator:` `lift:`), drawn lines (`line`), columns (`column`) and basements (`underground:`) — mean nothing to a 0.4 toolchain. There they are read as free attributes and **the shape is silently not generated**. Old versions are accepted only when meaning is preserved ([ADR-0017](../../docs/decisions/0017-language-versioning.md)), so this stops here.
 
 **Fix** — make the first line `koyu 0.5`. If you are not using the new words, 0.4 remains fine.
+
+<a id="ver04"></a>
+### VER04 — a koyu 0.5-or-earlier file uses 1.0 vocabulary
+
+`error`
+
+```muro-bad
+koyu 0.5
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+over /L1/a h:2600
+```
+
+`A koyu 0.5 file uses a 1.0 word: over /L1/a h:2600 (a composition override) — raise the version to koyu 1.0`
+
+**Why** — the words introduced in 1.0 — the override (`over`), the removal (`drop`) and the set edits directly under `over` (`+` `-` `=`) — mean nothing to a 0.5 toolchain. There the line does not read as a word at all, so **neither the override nor the removal happens and it becomes a different building**. Old versions are accepted only when meaning is preserved ([ADR-0017](../../docs/decisions/0017-language-versioning.md) / [ADR-0035](../../docs/decisions/0035-composition-rules.md)), so this stops here.
+
+**Fix** — make the first line `koyu 1.0`. If you are not using the composition edits, 0.5 remains fine.
 
 ## Syntax — SYN
 

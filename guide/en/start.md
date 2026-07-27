@@ -423,7 +423,7 @@ What `check` answers is whether the authored composition is consistent, not whet
 Finally, add what has been left out until now.
 
 ```muro
-koyu 0.5
+koyu 1.0
 name 小さな家
 
 grid X 0 3600 5400
@@ -457,7 +457,7 @@ boundary /L2/hall /out t:150 spec:EW1
 
 Three kinds of thing were added. (The Japanese values are names: 小さな家 "a small house", 寝室 "bedroom", オーク "oak", 掃き出し窓 "full-height window".)
 
-- **`koyu 0.5`** — the language version declaration. A file that omits it is always read with the newest version's semantics, so its meaning can move when the tool's version rises. **Write it in files you create.**
+- **`koyu 1.0`** — the language version declaration. A file that omits it is always read with the newest version's semantics, so its meaning can move when the tool's version rises. **Write it in files you create.**
 - **`name`** — the building's name (it becomes the drawing's title), plus a name for each space, boundary, and opening.
 - **`floor:` and `spec:`** — free attributes that koyu does not interpret. They are carried through as they are. That the name of a thing (RC, LGS, EW1…) is written as the value of `spec` is the stance of this notation.
 

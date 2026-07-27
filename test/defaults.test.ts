@@ -72,7 +72,7 @@ test("version: a 0.1 file in which no derivation happens is accepted as it stand
 
 test("version: omitting the declaration means the latest semantics (a default boundary is derived and it is not an error)", () => {
   const m = parse(`unit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0 h:2400 slab:150\n${ROOMS}`);
-  assert.equal(m.version, "0.5");
+  assert.equal(m.version, "1.0");
   assert.equal(m.boundaries.filter((b) => b.derived).length, 1);
   assert.deepEqual(check(m).errors, []);
 });

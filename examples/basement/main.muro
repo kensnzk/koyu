@@ -11,7 +11,7 @@
 #   * 地下は level の underground:1 という宣言。zの負値からは推定しない (ADR-0022)。
 #   * 土に接する壁は spec 語彙 (spec:RC土圧壁)。境界の型は増やさない — 物の名は spec である。
 
-koyu 0.5
+koyu 1.0
 name 地下駐車場 — 縦動線の最小例
 unit mm
 

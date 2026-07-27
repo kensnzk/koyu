@@ -4,6 +4,8 @@
 
 **1.0.0 は機能の完成ではない。壊さないと約束する面の確定である。**したがって行程は「何を作るか」ではなく「何を凍らせられる状態にするか」で切ってある。
 
+現在は **koyu 1.0.0-rc.1 / muro 1.0** である。**rc は「凍らせる用意ができた面を先に固定し、残りを名指しで残す」ための版である** ([ADR-0038](decisions/0038-version-1-0-rc.md))。
+
 探求の経緯 (M0〜M1.6 の各段で何を確かめ、何を見送ったか) は [log/](log/) と [decisions/](decisions/) にある。行程表としては畳んだ — 済んだ道のりを行程表に置いておくと、残りが見えなくなる。
 
 ---
@@ -12,14 +14,16 @@
 
 | 面 | 状態 |
 |---|---|
-| muro 1.0 の文法と意味論 | 🔨 rc.1 で確定 — 名前空間 ([ADR-0033](decisions/0033-attribute-tiers.md)) と合成 ([ADR-0035](decisions/0035-composition-rules.md)) が最後の破壊的変更 |
+| muro 1.0 の文法と意味論 | ✅ 言語版 `koyu 1.0` を切った ([ADR-0038](decisions/0038-version-1-0-rc.md))。名前空間 ([ADR-0033](decisions/0033-attribute-tiers.md)) と合成 ([ADR-0035](decisions/0035-composition-rules.md)) が最後の破壊的変更で、旧版の受理条件は VER04 が守る |
 | 合成の規則 | ✅ 六つすべて実装・[spec/composition.md](../spec/composition.md) |
-| 同一性 | 🔨 uid は space/zone。開口は `name:` で指せるようになった。生成規則は未着手 |
+| 同一性 | 🔨 uid は space/zone。開口は `name:` で指せるようになった。**生成規則は未着手** |
 | 属性の三層と名前空間 | ✅ 台帳が実装の唯一の出所 |
 | 機械形式 | ✅ 形式版 `format` と、照合順 (UTF-8バイト順)・正規化 (NFC) の規範 ([ADR-0036](decisions/0036-machine-format-version.md)) |
-| 導出規則 | 🔨 参照実装 `derive()` と、規則の明文化が要る。充足性の検査は立った ([ADR-0034](decisions/0034-sufficiency.md)) |
+| 導出規則 | 🔨 **参照実装 `derive()` と、規則の明文化が要る。**充足性の検査は立った ([ADR-0034](decisions/0034-sufficiency.md)) |
 | 構造整合の診断 | ✅ [ADR-0032](decisions/0032-three-domains.md) — 判定を分け、緑の意味が定義と一致した |
 | 公開 API と CLI | ✅ 面を書き下し (137名→106名)、spec の表と実装の集合一致・CLI の契約をテストが縛る ([ADR-0037](decisions/0037-public-surface.md)) |
+
+**残っているのは三つである** — 導出規則の二つ (参照実装 `derive()` と規則の明文化) と、同一性の生成規則。**rc がこの三つを名指しで残すための版である** ([ADR-0038](decisions/0038-version-1-0-rc.md))。1.0.0 を名乗れるのは、この表から 🔨 が消えたときである。
 
 ## 残っている作業
 

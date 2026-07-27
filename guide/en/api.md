@@ -752,7 +752,7 @@ console.log(toCanonical(a).split("\n").slice(0, 6).join("\n"));
 ```text
 {
   "format": "koyu-canonical/1.0",
-  "koyu": "0.5",
+  "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
   "grid": {

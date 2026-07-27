@@ -2,7 +2,7 @@
 
 # Semantics reference — derivation, checking, queries
 
-As of koyu v0.15.0. For the grammar see [language.md](language.md). What is written here is what is derived from what was authored, what is checked, and what the queries answer — form, quantity, and the inside/outside distinction are all absent from the authored source, and all defined here as derivations.
+As of koyu v1.0.0-rc.1. For the grammar see [language.md](language.md). What is written here is what is derived from what was authored, what is checked, and what the queries answer — form, quantity, and the inside/outside distinction are all absent from the authored source, and all defined here as derivations.
 
 > This is a reference. If you are learning koyu, start at [guide/en/start.md](../../guide/en/start.md).
 
@@ -84,6 +84,7 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | VER01 | error | A default boundary would be derived in a koyu 0.1 file (an older version is accepted only when meaning is preserved — ADR-0017) |
 | VER02 | error | In a koyu 0.3-or-earlier file, a space of a type that used to be inferred in scope (unit/room/ldk/bedroom/living) carries no daylight (in 0.4 it falls out of scope, so the meaning changes — ADR-0020) |
 | VER03 | error | A koyu 0.4-or-earlier file uses a 0.5 word (a vertical-circulation declaration, a drawn line, a column, underground) — the older processor does not know the word, so the form is silently never generated (ADR-0017/0021/0022/0023) |
+| VER04 | error | A koyu 0.5-or-earlier file uses a 1.0 word (the override `over`, the removal `drop`, or a set edit `+` `-` `=` directly under `over`) — the older processor does not know the word, so neither the override nor the removal happens and it silently becomes a different building (ADR-0017/0035/0038) |
 | SYN01 | error | A syntax or composition error (a copy of SourceError — `check --json` only; check does not turn thrown exceptions into diagnostics, the parser throws them) |
 | BND05 | warning | A pair of spaces carrying a mix of edge-restricted and unrestricted boundaries (the segments overlap) |
 | BND06 | warning | The boundary segment is of zero length (no edge remains on the perimeter) |
