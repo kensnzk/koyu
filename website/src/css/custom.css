@@ -412,6 +412,8 @@ pre.theme-code-block.language-muro-warn::before {
 
 @media (max-width: 996px) {
   .navbar {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     height: 64px;
     padding: 0 16px;
   }
