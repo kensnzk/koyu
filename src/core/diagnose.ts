@@ -54,6 +54,8 @@ export interface Diagnostic {
 /**
  * 診断コードの台帳 — 全コードと規範severity。specの表 (semantics.md §5) とテストで一致を守る。
  * BND07 は欠番 — 「接しているのに境界が無い」警告はADR-0014 (既定境界) で廃止された。
+ * HGT03・HGT04・HGT05・RUN04 も欠番 — この四つは「高さがどうか」「縦動線がどうか」ではなく
+ * 「形を作るのに必要な情報が書かれていない」という一つの話であり、SUF01-04 へ合流した (ADR-0034)。
  * SYN01 は構文・合成エラー (SourceError) の写し — checkは例外を診断にしない。CLIの check --json だけが写す。
  */
 export const DIAGNOSTIC_CODES = {
@@ -93,9 +95,10 @@ export const DIAGNOSTIC_CODES = {
   ZON02: "warning", // ゾーンと同パスの空間
   HGT01: "error", // 上階への食い込み (高さ不変量違反)
   HGT02: "error", // 部分吹抜けの被覆不足
-  HGT03: "warning", // 上階slab未宣言で高さ検査ができない
-  HGT04: "warning", // 天井高不明で高さ検査ができない
-  HGT05: "warning", // レベルが特定できない領域つき空間
+  SUF01: "error", // 天井高が決まらず、天井も屋根も生成できない (ADR-0034)
+  SUF02: "error", // レベルが特定できず、立体が一つも生成できない
+  SUF03: "warning", // レベルに slab が無く、床が一枚も生成されない
+  SUF04: "warning", // 縦動線の宣言に対して形が一つも生成されない
   SIT01: "error", // 敷地形状の重複頂点
   SIT02: "error", // 敷地形状の自己交差
   SIT04: "warning", // 対応するゾーンの無いpolygon
@@ -109,7 +112,6 @@ export const DIAGNOSTIC_CODES = {
   RUN01: "error", // 一つの空間に縦動線の宣言が複数 (ADR-0021)
   RUN02: "error", // 縦動線の値が上る向き (N/E/S/W) でない
   RUN03: "error", // 縦動線の領域が矩形一つでない / レベルが不明
-  RUN04: "warning", // 上にレベルが無く縦動線の形が生成できない
   RUN05: "error", // form の値が不正、または形が決まらない
   LIN01: "error", // 描かれた線が二つの空間を分離しない (ADR-0022)
   LIN02: "error", // 垂直境界に描かれた線
@@ -289,7 +291,8 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   checkAreas(ctx);
   checkZones(ctx);
   checkHeights(ctx);
-  checkOrphanSpaces(ctx);
+  checkSpaceSufficiency(ctx);
+  checkLevelSufficiency(ctx);
   checkSite(ctx);
   return diags;
 }
@@ -479,7 +482,7 @@ function checkAttrValues(ctx: Ctx): void {
   }
 }
 
-/** 縦動線 — RUN01〜RUN05 (形が一意に決まるか。登りやすさは検証の面) */
+/** 縦動線 — RUN01〜RUN03 / RUN05 / SUF04 (形が一意に決まるか。登りやすさは検証の面) */
 function checkRuns(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 縦動線 (ADR-0021): 宣言の妥当性と、**書かれていない導出値**の妥当性。
@@ -909,7 +912,12 @@ function checkZones(ctx: Ctx): void {
   }
 }
 
-/** 高さ方向の一貫性 — HGT01〜HGT04 */
+/**
+ * 高さ方向の一貫性 — HGT01 / HGT02。
+ * **ここは「書かれた値が矛盾しているか」だけを見る。**値が書かれていないこと (上階の slab が無い、
+ * 天井高が決まらない) は不変量の破れではなく情報の欠落なので、充足性の節が SUF01 / SUF03 で言う
+ * (ADR-0034)。以前はここが HGT03 / HGT04 として二重に言っていた
+ */
 function checkHeights(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 高さ方向の一貫性: 下階の空間の天井高 + 上階のslab ≤ 階高
@@ -944,7 +952,6 @@ function checkHeights(ctx: Ctx): void {
     const below = byLevel.get(lb.name) ?? [];
     const above = byLevel.get(lu.name) ?? [];
     const pitch = lu.z - lb.z;
-    let slabMissing = false;
     for (const s of below) {
       if (isSemiOutdoor(model, s)) continue; // 屋外・半屋外 (庭・バルコニー等) に天井は無い
       // 縦動線の宣言的免除 (ADR-0021)。void の免除が「床の不在」だったのに対し、
@@ -953,19 +960,9 @@ function checkHeights(ctx: Ctx): void {
       if (runDecls(s).length > 0) continue;
       const covered = above.some((u) => spacesOverlap(s, u)) || above.length === 0;
       if (!covered) continue;
-      if (lu.slab === undefined) {
-        slabMissing = true;
-        continue;
-      }
+      if (lu.slab === undefined) continue; // 立式に要る値が無い — SUF03 が言う
       const h = heff(model, s);
-      if (h === undefined) {
-        emit("HGT04", `${s.path} の天井高が不明で、${lu.name} との高さ検査ができません`, {
-          line: s.line,
-          file: s.file,
-          path: [s.path],
-        });
-        continue;
-      }
+      if (h === undefined) continue; // 同上 — SUF01 が言う
       if (h + lu.slab > pitch + EPS) {
         const partners = voidPartners.get(`${s.path}|${lu.name}`) ?? [];
         const cover = partners.length ? voidCoverage(s, partners) : 0;
@@ -990,27 +987,60 @@ function checkHeights(ctx: Ctx): void {
         }
       }
     }
-    if (slabMissing) {
-      emit("HGT03", `レベル ${lu.name} に slab が未宣言のため、${lb.name} との高さ検査ができません`, {
-        line: lu.line,
-        file: lu.file,
-      });
+  }
+}
+
+/**
+ * 充足性 — 領域を持つ空間の走査 (SUF02 / SUF01)。
+ *
+ * **妥当性の判定ではなく、完全性の検査である** (spec/scope.md §6-2)。形を作らないことと
+ * 形を作れないことは違う — 天井高が決まらなければ押し出す高さが無く、レベルが決まらなければ
+ * z が無い。どちらも「書いてある構成から一意な形が出る」という契約 (ADR-0034) の破れである。
+ *
+ * 除くのは、その空間の形が天井高に依らないものだけ — 吹抜け (床も天井も無い)、外部 (地面)、
+ * 半屋外 (`fabric.ts` が天井も屋根も架けない)。**節の粒度は走査単位である** (ADR-0028) ので、
+ * 一つの空間が出す二つのコードはこの一本のループの中で決まる
+ */
+function checkSpaceSufficiency(ctx: Ctx): void {
+  const { model, emit, withRect } = ctx;
+  for (const s of withRect) {
+    const at = { line: s.line, file: s.file, path: [s.path] };
+    if (!s.level) {
+      emit("SUF02", `${s.path} は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)`, at);
+      continue; // z が決まらない空間には、天井高を問う意味が無い
+    }
+    if (s.type === "void" || s.type === "exterior" || isSemiOutdoor(model, s)) continue;
+    if (heff(model, s) === undefined) {
+      emit(
+        "SUF01",
+        `${s.path} の天井高が決まりません (空間の h: も レベル ${s.level} の h: もありません)`,
+        at,
+      );
     }
   }
 }
 
-/** レベルに載らない空間 — HGT05 */
-function checkOrphanSpaces(ctx: Ctx): void {
-  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
-  // レベルに載らない領域つき空間
-  for (const s of withRect) {
-    if (!s.level) {
-      emit("HGT05", `${s.path} は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)`, {
-        line: s.line,
-        file: s.file,
-        path: [s.path],
-      });
-    }
+/**
+ * 充足性 — レベルの走査 (SUF03)。
+ *
+ * 床は level の `slab` (床組み厚) だけが与える (ADR-0024) ので、書かなければその階に床は
+ * 一枚も生成されない。**形そのものは定まる**ので警告である — 「slab が無ければ床要素を作らない」は
+ * 決定的な規則であり、複数の形が出るわけではない。ただし床の無い建物になることは知らされるべきである
+ */
+function checkLevelSufficiency(ctx: Ctx): void {
+  const { emit, withRect, levels } = ctx;
+  for (const l of levels) {
+    if (l.slab !== undefined) continue;
+    // 床を持ちうる空間が一つも載っていない階 (最上階の上限を与えるだけの屋上レベルなど) には
+    // 言うことが無い — 生成されなかった床が無いのだから
+    const n = withRect.filter(
+      (s) => s.level === l.name && s.type !== "void" && s.type !== "exterior",
+    ).length;
+    if (n === 0) continue;
+    emit("SUF03", `レベル ${l.name} に slab: が無く、この階の床が一枚も生成されません`, {
+      line: l.line,
+      file: l.file,
+    });
   }
 }
 

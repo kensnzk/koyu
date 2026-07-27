@@ -108,7 +108,7 @@ boundary /L1/a /out t:150
 const daylightSrc = (space: string) => `
 grid X 0 3600 7200
 grid Y 0 4500
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 space /out exterior
 ${space}
 boundary /L1/a /out t:150
@@ -164,7 +164,7 @@ test("診断: DAY01 — daylight の値は 0/1 に限る (綴りの揺れで黙�
 
 test("版: 0.3以前は意味保存の場合のみ受理 — 推定対象だった型に daylight が要る (VER02)", () => {
   const src = (v: string, dl: string) =>
-    `koyu ${v}\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0\nspace /L1/a room X1..X2 Y1..Y2${dl}`;
+    `koyu ${v}\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0 h:2400 slab:150\nspace /L1/a room X1..X2 Y1..Y2${dl}`;
   for (const v of ["0.1", "0.2", "0.3"]) {
     const d = checkDiagnostics(parse(src(v, "")));
     assert.deepEqual(d.map((x) => x.code), ["VER02"], v);
@@ -177,7 +177,7 @@ test("版: 0.3以前は意味保存の場合のみ受理 — 推定対象だっ�
   assert.deepEqual(checkDiagnostics(parse(src("0.4", ""))), []);
   // 推定対象でなかった型は旧版でも意味が変わらない
   assert.deepEqual(
-    checkDiagnostics(parse("koyu 0.3\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0\nspace /L1/a hall X1..X2 Y1..Y2")),
+    checkDiagnostics(parse("koyu 0.3\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0 h:2400 slab:150\nspace /L1/a hall X1..X2 Y1..Y2")),
     [],
   );
 });

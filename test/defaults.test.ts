@@ -14,7 +14,7 @@ const BASE = [
   "unit mm",
   "grid X 0 4000 8000",
   "grid Y 0 4000 8000",
-  "level L1 0 h:2400",
+  "level L1 0 h:2400 slab:150",
 ].join("\n");
 
 const ROOMS = "space /L1/a hall X1..X2 Y1..Y2\nspace /L1/b hall X2..X3 Y1..Y2";
@@ -57,7 +57,7 @@ test("既定境界: 領域を持たない空間 (exterior) との境界は導か
 // ---- 言語版 (ADR-0017) ----
 
 test("版: 0.1は意味保存の場合のみ受理 — 導出が起きるファイルはエラー", () => {
-  const src = (v: string) => `koyu ${v}\nunit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0\n${ROOMS}`;
+  const src = (v: string) => `koyu ${v}\nunit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0 h:2400 slab:150\n${ROOMS}`;
   const old = check(parse(src("0.1")));
   assert.equal(old.errors.length, 1);
   assert.match(old.errors[0]!, /0\.2 へ上げます/);
@@ -65,13 +65,13 @@ test("版: 0.1は意味保存の場合のみ受理 — 導出が起きるファ�
 });
 
 test("版: 導出の起きない0.1ファイルはそのまま受理される", () => {
-  const m = parse(`koyu 0.1\nunit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0\n${ROOMS}\nboundary /L1/a /L1/b`);
+  const m = parse(`koyu 0.1\nunit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0 h:2400 slab:150\n${ROOMS}\nboundary /L1/a /L1/b`);
   assert.deepEqual(check(m).errors, []);
   assert.equal(m.version, "0.1");
 });
 
 test("版: 宣言の省略は最新版の意味論 (既定境界が導出され、エラーにならない)", () => {
-  const m = parse(`unit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0\n${ROOMS}`);
+  const m = parse(`unit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0 h:2400 slab:150\n${ROOMS}`);
   assert.equal(m.version, "0.5");
   assert.equal(m.boundaries.filter((b) => b.derived).length, 1);
   assert.deepEqual(check(m).errors, []);
@@ -82,7 +82,7 @@ test("版: import層での宣言はエラー (base層のみ)", () => {
     () =>
       parseFiles(
         {
-          "main.muro": "koyu 0.2\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0\nimport ./sub.muro\n",
+          "main.muro": "koyu 0.2\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0 h:2400 slab:150\nimport ./sub.muro\n",
           "sub.muro": "koyu 0.2\nspace /L1/a hall X1..X2 Y1..Y2\n",
         },
         "main.muro",

@@ -115,18 +115,31 @@ polygon /site -2600,-7000 38000,-7000 38000,19600 2000,21000 -2600,15000
 
 **この記法で唯一、格子に載らない自由頂点で「書かれる形」** (空間の領域もグリッド参照の矩形として書かれるが、任意の頂点列はpolygonだけ)。敷地の形は測量由来の所与であって設計の生成物ではないため、例外として認める。頂点は `x,y` のmm座標 (グリッドと同じ座標系) を3つ以上。site:1のゾーンパスに対応させる (対応が無ければ警告)。導出面積・建物のはみ出し検査・配置図の敷地境界線がここから出る (semantics.md §5)。隔離レイヤー (別ファイル+import) に置く運用を標準とする。重複はエラー。
 
-## 8. import — 合成
+## 8. import / over / drop — 合成
+
+規範は [composition.md](composition.md) が持つ。ここは綴りだけを書く。
 
 ```
-import ./assets.muro
+import ./assets.muro                  # 層を重ねる。**並びが強度の宣言** (後の層ほど強い)
+
+over /L5/A/ldk h:2600 spec:改修後      # 空間の上書き (パス1つ。空間が無ければゾーン)
+over /L5/A/hall /L5/corridor t:200    # 境界の上書き (パス2つ)
+over level L3 h:2600                  # レベルの上書き (h / slab / underground のみ)
+over asset SD1 w:900                  # アセットの上書き
+  - door D2                           # 字下げ: 集合の削除 (名で指す)
+  = door D1 w:1000                    # 集合の置換 (書いた属性だけを差し替える)
+  + window w:600 h:1200 name:W1       # 集合の追加 (name: が要る)
+
+drop /L5/A/store                      # 空間の削除 (その空間に繋がる境界も消える)
+drop /L5/a /L5/b                      # 境界の削除
+drop column C1                        # 柱の宣言の削除
 ```
 
-書かれたファイルからの相対パスでレイヤーを読み込み、**加算合成**する。base層 (entry) が基盤 (koyu/name/unit/grid/level) を一度だけ宣言し、各レイヤーは空間・境界・ゾーン・アセット・polygonを加える。規則:
-
-- 同じレイヤーは一度だけ合成される (二重import・循環は冪等)。
-- **衝突はビルドエラー**: 空間パス・ゾーンパス・アセット名・敷地形状の重複、grid/nameの再宣言。エラーは両者の出所 (`ファイル:行`) を言う。黙った上書きは無い (レイヤー強度は不採用)。
-- 合成の入口の一覧は [tools.md](tools.md) の公開API節 (`parse` / `parseFile` / `parseFiles` / `parseFileWith` / `parseWith`)。checkのエラー・警告も出所レイヤーつきで返る。
-- 正準JSONは合成後の単一モデルであり、importは残らない。
+- **`import`** は書かれたファイルからの相対パス。base層 (entry) が基盤 (`koyu`/`name`/`unit`/`grid`/`level`) を一度だけ宣言する。同じレイヤーは一度だけ合成される (二重import・循環は冪等)。
+- **`space` / `boundary` / `zone` / `asset` / `polygon` は定義**であり、重複はビルドエラーである (両者の出所つき)。**`over` は上書き**であり、対象が無ければエラーである。
+- **`over` の直下に置けるのは `+` / `-` / `=` だけ**である。集合の要素は `name:` で指す — 名を持たない要素は編集の対象にできない。
+- 合成の入口の一覧は [tools.md](tools.md) の公開API節 (`parse` / `parseFile` / `parseFiles` / `parseFileWith` / `parseWith`)。
+- 正準JSONは合成後の単一モデルであり、`import` も `over` も `drop` も残らない。
 
 ## 9. column — 柱 (位置を書かない要素)
 

@@ -41,7 +41,7 @@ export function runFindings(model: Model): Finding[] {
       out.push(
         finding(
           "run.disconnected",
-          `${run.path} は縦動線の形を持ちますが、上下を繋ぐ垂直境界がありません (stack か boundary type:stair を書きます — 形はあってもグラフでは通れません)`,
+          `${run.path} has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)`,
           at,
         ),
       );
@@ -55,7 +55,7 @@ export function runFindings(model: Model): Finding[] {
         out.push(
           finding(
             "stair.proportion",
-            `導出された段の寸法が窮屈です: ${run.risers}段 蹴上${r}mm / 踏面${t}mm (2×蹴上+踏面 = ${Math.round(rule)}mm、目安 ${STEP_RULE.lo}〜${STEP_RULE.hi}mm)`,
+            `Derived step dimensions are cramped: ${run.risers} risers of ${r}mm, tread ${t}mm (2*riser+tread = ${Math.round(rule)}mm; expected ${STEP_RULE.lo}-${STEP_RULE.hi}mm)`,
             at,
           ),
         );
@@ -66,7 +66,7 @@ export function runFindings(model: Model): Finding[] {
         out.push(
           finding(
             "run.slope",
-            `導出された勾配 ${slopeText(run.slope)} が宣言 1/${declared} より急です (走り長を伸ばすか階高を下げます)`,
+            `Derived slope ${slopeText(run.slope)} is steeper than the declared 1/${declared} (lengthen the run or lower the storey height)`,
             at,
           ),
         );
@@ -76,7 +76,7 @@ export function runFindings(model: Model): Finding[] {
         out.push(
           finding(
             "run.slope",
-            `導出された勾配 ${slopeText(run.slope)} はエスカレーターの常用域 (約1/1.7 = 30度) から外れています`,
+            `Derived slope ${slopeText(run.slope)} is outside the usual escalator range (about 1/1.7 = 30 degrees)`,
             at,
           ),
         );

@@ -209,7 +209,7 @@ Error: レベル R に領域を持つ空間がありません
 
 ("There is no space with a region on level R.")
 
-**`plan` can die even when `check` is green.** In particular when a space is not on a level (diagnostic [HGT05](diagnostics.md#hgt05) stops at a warning). When `plan` dies, try putting it through `check --strict` first.
+**`plan` can die even when `check` is green.** Drawing is not what `check` inspects. A space that is not on a level is stopped by [SUF02](diagnostics.md#suf02) as an error, but mistaking the name passed to `-l` lies outside `check`.
 
 The drawing conventions (the black band of a wall, the dashed line of an `open`, the swing of a door, the diagonal of a void, the site boundary line) are in [spec/semantics.md §7](../../spec/en/semantics.md). What the bundled examples come out as is in [gallery.md](gallery.md).
 
@@ -398,7 +398,7 @@ npx tsx src/cli.ts levels examples/house/main.muro
 R	z:5800	slab:500
 L2	z:2900	h:2400	slab:500
   ↑ 階高 2900 = 天井2400 + slab500
-L1	z:0	h:2400
+L1	z:0	h:2400	slab:400
   ↑ 階高 2900 = 天井2400 + slab500
 ```
 
@@ -417,12 +417,12 @@ npx tsx src/cli.ts levels examples/office.muro
 R	z:8000	slab:1300
 L2	z:4000	h:2700	slab:1300
   ↑ 階高 4000 = 天井2700 + slab1300
-L1	z:0	h:2700
+L1	z:0	h:2700	slab:600
   ↑ 階高 4000 = 天井2700 + slab1300
 個別天井高: /L1/hall h:6700
 ```
 
-When the decomposition does not appear, either the storey below has no `h` or the one above has no `slab`. In that case the height check does not run either, and the warnings [HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) appear. **Declaring a roof level that holds no space (`level R 5800 slab:500`) brings the top storey into the check as well.**
+When the decomposition does not appear, either the storey below has no `h` or the one above has no `slab`. `check` says so: the former as the error [SUF01](diagnostics.md#suf01), the latter as the warning [SUF03](diagnostics.md#suf03) (in both cases the height check does not run). **Declaring a roof level that holds no space (`level R 5800 slab:500`) brings the top storey into the check as well.**
 
 ## light — does what is in scope meet 1/7
 
@@ -562,7 +562,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 ```
@@ -593,7 +593,7 @@ npx tsx src/cli.ts json derived.muro
 npx tsx src/cli.ts check examples/house/main.muro --strict
 ```
 
-`--strict` makes warnings fail too. Without it, the "the check could not run" warnings ([HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) / [HGT05](diagnostics.md#hgt05)) slip through green. Give the gate `--strict`.
+`--strict` makes warnings fail too. Without it, "not one floor is generated" ([SUF03](diagnostics.md#suf03)) and "no shape is generated for the vertical circulation" ([SUF04](diagnostics.md#suf04)) slip through green. Give the gate `--strict`.
 
 **Review an edit.** Read it in the language of composition rather than as a text diff. Take out the state before the commit and compare.
 

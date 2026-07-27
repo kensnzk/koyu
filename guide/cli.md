@@ -203,7 +203,7 @@ npx tsx src/cli.ts plan examples/house/main.muro -l R -o out/house-R.svg
 Error: レベル R に領域を持つ空間がありません
 ```
 
-**`check` が緑でも `plan` は落ちうる。** 特に、空間がレベルに載っていないとき (診断 [HGT05](diagnostics.md#hgt05) は警告どまり) がこれである。`plan` が落ちたら、まず `check --strict` を通してみるとよい。
+**`check` が緑でも `plan` は落ちうる。** 描画は `check` の検査対象ではない。空間がレベルに載っていない場合は [SUF02](diagnostics.md#suf02) がエラーで止めるが、`-l` に渡した名前の取り違えは `check` の外にある。
 
 描画の規約 (壁の黒帯・open の破線・扉の軌跡・吹抜けの対角線・敷地境界線) は [spec/semantics.md §7](../spec/semantics.md)。同梱例の出来上がりは [gallery.md](gallery.md)。
 
@@ -391,7 +391,7 @@ npx tsx src/cli.ts levels examples/house/main.muro
 R	z:5800	slab:500
 L2	z:2900	h:2400	slab:500
   ↑ 階高 2900 = 天井2400 + slab500
-L1	z:0	h:2400
+L1	z:0	h:2400	slab:400
   ↑ 階高 2900 = 天井2400 + slab500
 ```
 
@@ -410,12 +410,12 @@ npx tsx src/cli.ts levels examples/office.muro
 R	z:8000	slab:1300
 L2	z:4000	h:2700	slab:1300
   ↑ 階高 4000 = 天井2700 + slab1300
-L1	z:0	h:2700
+L1	z:0	h:2700	slab:600
   ↑ 階高 4000 = 天井2700 + slab1300
 個別天井高: /L1/hall h:6700
 ```
 
-分解が出ないときは、下階に `h` が無いか、上階に `slab` が無い。そのときは高さの検査も行われず、[HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) の警告が出る。**空間を持たない屋上レベル (`level R 5800 slab:500`) を宣言しておくと、最上階も検査の対象になる。**
+分解が出ないときは、下階に `h` が無いか、上階に `slab` が無い。前者は [SUF01](diagnostics.md#suf01) のエラー、後者は [SUF03](diagnostics.md#suf03) の警告として `check` が言う (どちらの場合も高さの検査は行われない)。**空間を持たない屋上レベル (`level R 5800 slab:500`) を宣言しておくと、最上階も検査の対象になる。**
 
 ## light — 採光の対象は 1/7 を満たすか
 
@@ -553,7 +553,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 ```
@@ -584,7 +584,7 @@ npx tsx src/cli.ts json derived.muro
 npx tsx src/cli.ts check examples/house/main.muro --strict
 ```
 
-`--strict` を付けると警告も落とす。付けないと「検査ができていません」系の警告 ([HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) / [HGT05](diagnostics.md#hgt05)) が緑のまま通り抜ける。門番には `--strict` を付ける。
+`--strict` を付けると警告も落とす。付けないと「床が一枚も生成されない」([SUF03](diagnostics.md#suf03)) や「縦動線の形が生成されない」([SUF04](diagnostics.md#suf04)) が緑のまま通り抜ける。門番には `--strict` を付ける。
 
 **編集を見直す。** テキストの diff ではなく、構成の言葉で読む。コミット前の姿を取り出して比べる。
 

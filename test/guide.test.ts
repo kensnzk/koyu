@@ -347,6 +347,50 @@ test("台帳: guide/diagnostics.md の各節の例は、その節のコードち
   }
 });
 
+/** guide/validation.md の `### \`rule\` — 概要` と、その節の最初の判定例ブロックを採る */
+function guideValidationSections(): Array<{ rule: string; line: number; block?: Block }> {
+  const path = join(GUIDE, "validation.md");
+  const { blocks } = scan(path);
+  const lines = readFileSync(path, "utf8").split("\n");
+  const out: Array<{ rule: string; line: number; block?: Block }> = [];
+  for (let i = 0; i < lines.length; i++) {
+    const h = /^###\s+`([a-z.]+)`\s+—\s+\S/.exec(lines[i]!);
+    if (h) out.push({ rule: h[1]!, line: i + 1 });
+  }
+  for (const s of out) {
+    const end = out.find((o) => o.line > s.line)?.line ?? Number.MAX_SAFE_INTEGER;
+    s.block = blocks.find(
+      (b) => b.line > s.line && b.line < end && (b.tag === "muro-fail" || b.tag === "muro-caution"),
+    );
+  }
+  return out;
+}
+
+test("台帳: guide/validation.md の各節の例は、その節の規則ちょうど1件を出す", () => {
+  const sections = guideValidationSections();
+  assert.equal(
+    sections.length,
+    Object.keys(VALIDATION_RULES).length,
+    "節の数が台帳と合わない (集合一致は test/domains.test.ts が言う)",
+  );
+  for (const s of sections) {
+    const b = s.block;
+    assert.ok(b, `guide/validation.md:${s.line}: ${s.rule} の節に判定例のブロックが無い`);
+    const r = runValidate(b.body);
+    assert.equal(r.thrown, undefined, `${where(b)}: 解析に失敗した — ${r.thrown?.message}\n${b.body}`);
+    // 判定の例は構成としては正しい — core が落とす例をここに置かない
+    assert.deepEqual(r.errors.map(render), [], `${where(b)}: core のエラーが出た\n${b.body}`);
+    // **その規則が出ることを見る。**level だけを見ると、別の規則の同じ level で通ってしまい、
+    // 節が自分の規則を説明しなくなったことに気づけない。他の規則が併発するのは構わない
+    // (窓の h を落とせば採光も足りなくなる、扉が無ければ外へも出られない — 例は建物なので併発する)
+    assert.equal(
+      r.findings.filter((f) => f.rule === s.rule).length,
+      1,
+      `${where(b)}: ${s.rule} の節の例が ${s.rule} をちょうど1件出さない — 実際は [${r.findings.map(renderF).join(" / ")}]\n${b.body}`,
+    );
+  }
+});
+
 // ---- (5) 相対リンク ----
 
 test("guide: 相対リンクの先がすべて実在する", () => {

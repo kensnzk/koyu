@@ -201,7 +201,7 @@ export function verticalRun(
 
   const z0 = levels[li]!.z;
   const upper = levels[li + 1];
-  if (!upper && device !== "lift") return undefined; // 上る先が無い — RUN04
+  if (!upper && device !== "lift") return undefined; // 上る先が無い — SUF04
   const z1 = upper?.z ?? z0;
   const rise = z1 - z0;
 
@@ -737,8 +737,12 @@ function drawRun(
 
 // ---- 検査の材料 (check.ts が言葉にする) ----
 
-/** runIssues が出しうる診断コード (ADR-0016 の台帳の部分集合 — check の emit が型で受ける) */
-export type RunCode = "RUN01" | "RUN02" | "RUN03" | "RUN04" | "RUN05";
+/**
+ * runIssues が出しうる診断コード (ADR-0016 の台帳の部分集合 — check の emit が型で受ける)。
+ * SUF04 だけ族が違う — 「形が一つも生成されない」は縦動線の話ではなく充足性の話であり、
+ * コードは SUF に属したまま、この走査の順に出る (節の粒度は走査単位である — ADR-0028 / ADR-0034)
+ */
+export type RunCode = "RUN01" | "RUN02" | "RUN03" | "RUN05" | "SUF04";
 
 export interface RunIssue {
   code: RunCode;
@@ -749,7 +753,7 @@ export interface RunIssue {
 }
 
 /**
- * 縦動線の構造整合 (RUN01..05) — **宣言から形が一意に決まるか**だけを見る。
+ * 縦動線の構造整合 (RUN01..03 / RUN05 と、形が一つも生成されない SUF04) — **宣言から形が一意に決まるか**だけを見る。
  * 決まった形が登りやすいか (段の窮屈さ・勾配・上下の繋がり) は建築の側の判断で、
  * 検証の面 (src/validate/runs.ts) が持つ。ここは合否を言わない (ADR-0021)。
  */
@@ -816,7 +820,7 @@ export function runIssues(model: Model): RunIssue[] {
     const li = levels.findIndex((l) => l.name === s.level);
     if (device !== "lift" && (li < 0 || !levels[li + 1])) {
       out.push({
-        code: "RUN04",
+        code: "SUF04",
         message: `${s.level} の上にレベルが無いため、${s.path} の形は生成されません`,
         ...at,
       });

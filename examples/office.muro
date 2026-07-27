@@ -9,7 +9,7 @@ unit mm
 grid X 0 6400 12800 19200
 grid Y 0 6400 8000 12000
 
-level L1 0 h:2700
+level L1 0 h:2700 slab:600
 level L2 4000 h:2700 slab:1300
 level R 8000 slab:1300          # 屋根面。L2の空間の上限を与える
 

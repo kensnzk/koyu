@@ -37,7 +37,7 @@ export function siteFindings(model: Model): Finding[] {
     out.push(
       finding(
         "site.frontage",
-        `接道長が足りません: ${road.road.path} — ${road.frontage}mm (${FRONTAGE_MIN}mm 以上)`,
+        `Road frontage is too short: ${road.road.path} — ${road.frontage}mm (needs at least ${FRONTAGE_MIN}mm)`,
         { line: road.road.line, file: road.road.file, path: [road.road.path] },
       ),
     );
@@ -55,7 +55,7 @@ export function siteFindings(model: Model): Finding[] {
         out.push(
           finding(
             "site.area",
-            `敷地面積の宣言と導出が食い違います: 宣言 ${declared}㎡ / 導出 ${derived.toFixed(2)}㎡`,
+            `Declared and derived site areas disagree: declared ${declared} m2 / derived ${derived.toFixed(2)} m2`,
             { line: zone.line, file: zone.file, path: [zone.path] },
           ),
         );
@@ -71,7 +71,7 @@ export function siteFindings(model: Model): Finding[] {
           out.push(
             finding(
               "site.escape",
-              `${s.path} が敷地形状からはみ出しています (${Math.round(esc.x)},${Math.round(esc.y)} 付近)`,
+              `${s.path} escapes the site shape (near ${Math.round(esc.x)},${Math.round(esc.y)})`,
               { line: s.line, file: s.file, path: [s.path] },
             ),
           );

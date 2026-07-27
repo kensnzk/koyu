@@ -15,7 +15,7 @@ koyu の記法は短い。覚えることが少ないからではなく、**書�
 ```muro
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
@@ -32,7 +32,7 @@ space /L1/a room X1..X2 Y1..Y2
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
 ```
@@ -63,7 +63,7 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b
@@ -76,7 +76,7 @@ boundary /L1/a /L1/b
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/living room X1..X2 Y1..Y2
 space /out exterior
 boundary /L1/living /out
@@ -90,7 +90,7 @@ boundary /L1/living /out
 ```muro
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/living room X1..X2 Y1..Y2
 space /out exterior
 boundary /L1/living /out t:150
@@ -102,7 +102,7 @@ boundary /L1/living /out t:150
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -134,7 +134,7 @@ boundary /L1/a /L1/b type:open
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
 space /out exterior name:外部
@@ -175,7 +175,7 @@ Error: レベルが定義されていません
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/home unit X1..X3 Y1..Y2
 space /L1/home/a room X1..X2 Y1..Y2
 space /L1/home/b room X2..X3 Y1..Y2
@@ -186,7 +186,7 @@ space /L1/home/b room X2..X3 Y1..Y2
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /L1/home name:住戸
 space /L1/home/a room X1..X2 Y1..Y2
 space /L1/home/b room X2..X3 Y1..Y2
@@ -228,7 +228,7 @@ space /L1/home/b room X2..X3 Y1..Y2
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 space /L1/room ldk X1..X2 Y1..Y2
 space /L1/balcony balcony X2..X3 Y1..Y2
 space /out exterior
@@ -258,7 +258,7 @@ boundary /L1/balcony /out type:open
 ```muro
 grid X 0 2000
 grid Y 0 2000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居間 acme.sensor:23 bems.temp:22.5
 ```
 
@@ -269,7 +269,7 @@ space /L1/a room X1..X2 Y1..Y2 name:居間 acme.sensor:23 bems.temp:22.5
 ```muro-bad
 grid X 0 2000
 grid Y 0 2000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 nmae:居間
 ```
 
@@ -304,7 +304,7 @@ space /L1/a room X1..X2 Y1..Y2 nmae:居間
 ```muro
 grid X 0 2000
 grid Y 0 2000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 space /L1/bath wet X1..X2 Y1..Y2 name:浴室 daylight:1
 space /out exterior
 boundary /L1/bath /out edge:S t:150
@@ -344,7 +344,7 @@ space /L1/bath wet X1..X2 Y1..Y2 name:浴室
 koyu 0.5
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:300
 level L2 3000 h:2400 slab:300
 space /L1/hall hall X1..X2 Y1..Y2
 space /L2/bed bedroom X1..X2 Y1..Y2

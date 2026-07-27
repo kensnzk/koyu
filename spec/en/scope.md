@@ -58,7 +58,7 @@ This is not a verdict but **part of reading**, and it sits at the same layer as 
 | the definition of levels | LVL01 / VRT02 |
 | overlapping regions (in plan) | GEO01 / GEO02 |
 | overlapping regions (in section) | HGT01 / HGT02 |
-| that composition resolves determinately | CMP01-04 ([composition.md](composition.md)) |
+| that composition resolves determinately | A composition error (`SourceError` — [composition.md](composition.md)) |
 | **the sufficiency of the information a form needs** | SUF01-04 |
 | the soundness of relations | BND01-06 / VRT01-06 |
 | the uniqueness of derivation (the form of openings, segs, lines, columns, vertical circulation) | OPN01-08 / SEG01-08 / LIN01-03 / COL01-02 / RUN01-05 |

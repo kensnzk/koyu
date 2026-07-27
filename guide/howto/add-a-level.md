@@ -99,7 +99,7 @@ unit mm
 grid X 0 3640 7280
 grid Y 0 3640 7280
 
-level L1 0 h:2400
+level L1 0 h:2400 slab:500
 level L2 2900 h:2400 slab:500
 level R  5800 slab:500
 
@@ -183,7 +183,7 @@ space /L1/hall hall X2..X3 Y2..Y3 name:玄関・階段 h:2600
 - [how-to 一覧](README.md)
 - [動線と避難を問う](doors-and-escape.md) — 階を足したあとに必ず通す検査
 - [六つの考え](../concepts.md) — 垂直の既定が床であること、既定が壁であること
-- [診断コード一覧](../diagnostics.md) — HGT01–HGT05 の原因と直し方
+- [診断コード一覧](../diagnostics.md) — HGT01・HGT02 (高さの不変量) と SUF01–SUF04 (充足性) の原因と直し方
 - [spec/semantics.md](../../spec/semantics.md) §3 垂直の導出と高さの不変量 — 規範の定義
 - [spec/language.md](../../spec/language.md) §2 基盤の宣言・§4 boundary — `level` / `stack` / 垂直境界の文法
 - 二階建ての実例 — `examples/house/` ([実例集](../gallery.md))

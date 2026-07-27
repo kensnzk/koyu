@@ -22,7 +22,7 @@ The skeleton of the notation ([language.md §1](../../spec/en/language.md)):
 ```muro
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
@@ -113,7 +113,7 @@ space /out/road-s exterior name:南側道路 road:12000
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 band X X1..X3 Y1..Y2
   space /L1/ldk ldk w:3600 name:LDK
   space /L1/hall hall w:1800 name:玄関

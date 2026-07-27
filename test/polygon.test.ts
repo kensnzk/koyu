@@ -68,7 +68,7 @@ space /site/yard yard X1-2000..X1 Y1..Y2 level:L1`; // タイルは西へ1mは�
   const bad = validate(parse(src("space /a room X1..X2+2000 Y1..Y2 level:L1"))) // 東へ1000はみ出す
     .filter((f) => f.rule === "site.escape");
   assert.equal(bad.length, 1);
-  assert.match(bad[0]!.message, /敷地形状からはみ出しています \(10000,0 付近\)/);
+  assert.match(bad[0]!.message, /escapes the site shape \(near 10000,0\)/);
 });
 
 test("check: 対応するゾーンのないpolygonは警告", () => {

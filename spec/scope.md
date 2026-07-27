@@ -58,7 +58,7 @@ koyu は三つの領域からなる。**求められる品質が違うので、�
 | レベルの定義 | LVL01 / VRT02 |
 | 区画の重なり (平面) | GEO01 / GEO02 |
 | 区画の重なり (断面) | HGT01 / HGT02 |
-| 合成の解決が定まること | CMP01-04 ([composition.md](composition.md)) |
+| 合成の解決が定まること | 合成エラー (`SourceError` — [composition.md](composition.md)) |
 | **形を作るのに必要な情報の充足** | SUF01-04 |
 | 関係の健全性 | BND01-06 / VRT01-06 |
 | 導出の一意性 (開口・seg・線・柱・縦動線の形) | OPN01-08 / SEG01-08 / LIN01-03 / COL01-02 / RUN01-05 |

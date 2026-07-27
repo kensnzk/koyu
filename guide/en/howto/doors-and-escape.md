@@ -25,7 +25,7 @@ unit mm
 
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:500
 level L2 2900 h:2400 slab:500
 
 space /out exterior name:外部

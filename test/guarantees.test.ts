@@ -101,7 +101,7 @@ polygon /site 0,0 30000,0 30000,20000 20000,20000 20000,8000 10000,8000 10000,20
 space /L1/hall room X2..X3 Y2..Y4`;
   const f = validate(parse(src)).filter((x) => x.rule === "site.escape");
   assert.equal(f.length, 1);
-  assert.match(f[0]!.message, /\/L1\/hall が敷地形状からはみ出しています/);
+  assert.match(f[0]!.message, /\/L1\/hall escapes the site shape/);
 });
 
 test("check: 建物の角が敷地境界線上に載るのは内側扱い (エラーにしない)", () => {
@@ -125,7 +125,7 @@ test("判定: 敷地面積の宣言と導出の食い違いは注意 (core で�
   const bad = validate(parse(src(50))).filter((f) => f.rule === "site.area");
   assert.equal(bad.length, 1);
   assert.equal(bad[0]!.level, "caution");
-  assert.match(bad[0]!.message, /敷地面積の宣言と導出が食い違います: 宣言 50㎡ \/ 導出 100\.00㎡/);
+  assert.match(bad[0]!.message, /Declared and derived site areas disagree: declared 50 m2 \/ derived 100\.00 m2/);
   assert.deepEqual(validate(parse(src(100))).filter((f) => f.rule === "site.area"), []);
   // core は面積の食い違いを言わない — 測量値との照合は建築の側の判断である
   assert.equal(

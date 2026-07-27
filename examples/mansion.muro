@@ -11,7 +11,7 @@ unit mm
 grid X 0 5800 11600 17400
 grid Y 0 6000 7800 13800
 
-level L1 0 h:2800
+level L1 0 h:2800 slab:600
 level L2 3800 h:2400 slab:1000       # 1Fは階高3800 (共用部の設備懐)
 level L3..L9 6700 pitch:2900 h:2400 slab:500
 level L10 27000 h:2600 slab:500      # ペントハウスは天井高2600

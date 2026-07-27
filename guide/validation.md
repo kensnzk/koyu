@@ -34,7 +34,7 @@ koyu validate examples/tower/main.muro --json   # Finding[] を JSON で
 ```muro-fail
 grid X 0 3600 7200
 grid Y 0 4500
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 space /out exterior
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
@@ -55,7 +55,7 @@ boundary /L1/a /out t:150
 ```muro-caution
 grid X 0 3600 7200
 grid Y 0 4500
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 space /out exterior
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
@@ -81,7 +81,7 @@ boundary /L1/a /out t:150
 ```muro-caution
 grid X 0 4000 8000
 grid Y 0 5000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out exterior
@@ -177,7 +177,7 @@ space /L2/s stair X1..X2 Y1..Y1+7000
 ```muro-fail
 grid X 0 4000
 grid Y 0 5000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /out exterior
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /out t:150
@@ -197,7 +197,7 @@ boundary /L1/a /out t:150
 ```muro-fail
 grid X 0 4000 8000
 grid Y 0 5000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/v void X1..X2 Y1..Y2
 space /L1/a room X2..X3 Y1..Y2
 boundary /L1/a /L1/v type:open
@@ -217,7 +217,7 @@ boundary /L1/a /L1/v type:open
 ```muro-caution
 grid X 0 3000 9000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /out exterior
 space /L1/s stair X1..X2 Y1..Y2
 space /L1/t room X2..X3 Y1..Y2 use:rentable
@@ -244,7 +244,7 @@ boundary /L1/s /out t:150
 ```muro-fail
 grid X 0 6000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /out exterior
 space /L1/p room X1..X2 Y1..Y2 use:parking
 boundary /L1/p /out
@@ -294,7 +294,7 @@ boundary /L1/b /L1/e
 ```muro-fail
 grid X 0 4000 8000
 grid Y 0 5000 10000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/a room X1..X3 Y1..Y2
 space /L1/b room X1..X3 Y2..Y3
 column 600 L1
@@ -319,7 +319,7 @@ boundary /L1/a /L1/b
 ```muro-fail
 grid X 0 10000 14000
 grid Y 0 10000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /site name:敷地 site:1
 polygon /site 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
@@ -340,7 +340,7 @@ space /L1/a room X2..X3 Y1..Y2
 ```muro-caution
 grid X 0 10000
 grid Y 0 10000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /site name:敷地 site:1 area:120.00
 polygon /site 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
@@ -361,7 +361,7 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```muro-fail
 grid X 0 1500 10000
 grid Y 0 10000 11000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 zone /site name:敷地 site:1
 polygon /site 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X3 Y1..Y2 level:L1

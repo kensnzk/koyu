@@ -24,7 +24,7 @@ export function daylightFindings(model: Model): Finding[] {
       out.push(
         finding(
           "daylight.ratio",
-          `採光が足りません: ${d.space.path} — 有効窓 ${d.window.toFixed(2)}㎡ < 必要 ${need.toFixed(2)}㎡ (床 ${d.floor.toFixed(2)}㎡ の 1/${DAYLIGHT_DIVISOR})`,
+          `Insufficient daylight: ${d.space.path} — effective window ${d.window.toFixed(2)} m2 < required ${need.toFixed(2)} m2 (1/${DAYLIGHT_DIVISOR} of the ${d.floor.toFixed(2)} m2 floor)`,
           at,
         ),
       );
@@ -33,7 +33,7 @@ export function daylightFindings(model: Model): Finding[] {
       out.push(
         finding(
           "daylight.unknown",
-          `h を持たない窓があるため窓面積を数え切れていません: ${d.space.path} (window に h: を書きます)`,
+          `Window area is not fully counted: ${d.space.path} has a window without h: (write h: on it)`,
           at,
         ),
       );

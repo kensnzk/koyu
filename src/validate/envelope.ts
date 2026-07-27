@@ -50,7 +50,7 @@ export function envelopeFindings(model: Model): Finding[] {
     out.push(
       finding(
         "envelope.gap",
-        `外皮に面していない外周があります: ${s.path} — ${where} (合計 ${Math.round(total)}mm・${gaps.length}区間)。外部への境界を書きます`,
+        `Perimeter not faced by any envelope: ${s.path} — ${where} (${Math.round(total)}mm over ${gaps.length} run(s)). Write a boundary to the exterior`,
         { line: s.line, file: s.file, path: [s.path] },
       ),
     );

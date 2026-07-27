@@ -87,7 +87,7 @@ Two rooms meeting only at a corner do not touch. A boundary's wall centerline se
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b t:120
@@ -119,7 +119,7 @@ What remains of a room's perimeter after removing the intervals that touch other
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/living living X1..X2 Y1..Y2 name:居間
 space /out exterior name:外部
 boundary /L1/living /out t:150
@@ -169,7 +169,7 @@ This is the standard trap when subdividing a dwelling into rooms. A `space` has 
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/home unit X1..X3 Y1..Y2 name:住戸
 space /L1/home/ldk ldk X1..X2 Y1..Y2 name:LDK
 space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
@@ -185,7 +185,7 @@ space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /L1/home name:住戸
 space /L1/home/ldk ldk X1..X2 Y1..Y2 name:LDK
 space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
@@ -202,7 +202,7 @@ space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/bath t:120

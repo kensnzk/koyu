@@ -68,6 +68,8 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | SEG08 | error | An explicit seg position overruns the segment (the seg counterpart of OPN08) |
 | HGT01 | error | Height invariant violated — collision into the floor above (ceiling height + the slab above > the floor-to-floor height) |
 | HGT02 | error | Insufficient coverage for a partial void (below 99% coverage a ceiling height spanning levels may not be declared) |
+| SUF01 | error | The ceiling height cannot be determined — neither the space's `h` nor the level's. There is no height to extrude, so no ceiling and no roof can be generated (voids, the exterior and semi-outdoor spaces are excluded — ADR-0034) |
+| SUF02 | error | A space with a region whose level cannot be determined — z is undetermined, so not one solid can be generated |
 | SIT01 | error | Duplicate vertex in the site shape |
 | SIT02 | error | The site shape is self-intersecting |
 | UID01 | error | A uid made only of digits (the parser's numeric coercion would lose the distinction between tokens — ADR-0015) |
@@ -91,9 +93,7 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | SEG03 | warning | A seg on an open boundary (no wall — not interpreted) |
 | ZON01 | warning | An empty zone (no spaces beneath it) |
 | ZON02 | warning | A zone sharing a path with a space |
-| HGT03 | warning | The slab of the level above is undeclared, so the height check cannot run |
-| HGT04 | warning | The ceiling height is unknown, so the height check cannot run |
-| HGT05 | warning | A space with a region whose level cannot be determined |
+| SUF03 | warning | The level has no `slab`, so not one floor is generated on that storey (the height invariant cannot be formulated either; the shape is settled, hence a warning — ADR-0034) |
 | SIT04 | warning | A polygon with no corresponding zone |
 | RUN01 | error | More than one vertical-circulation declaration on one space (stair/ramp/escalator/lift — one per space. ADR-0021) |
 | RUN02 | error | The value of a vertical-circulation declaration is not an ascending direction (N/E/S/W; for lift it is 1) |
@@ -104,8 +104,12 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | LIN03 | warning | A drawn line cuts nothing (one side comes out empty) |
 | COL01 | warning | Not one column stands for a column declaration (the grid intersections have no floor — ADR-0023) |
 | COL02 | warning | A column declaration stands nowhere because an earlier declaration took the same intersections (the earlier one wins) |
-| RUN04 | warning | No level above, so no form can be generated for the vertical circulation (a stair on the top floor and the like) |
+| SUF04 | warning | A vertical circulation is declared but not one shape is generated (there is no level above — a stair on the top floor and the like) |
 | BND07 | — | Retired — the "these touch but no boundary is declared" warning was abolished by ADR-0014 (an undeclared contact means the default wall) |
+| HGT03 | — | Retired — "no slab on the level above" merged into SUF03 (ADR-0034) |
+| HGT04 | — | Retired — "the ceiling height is unknown" merged into SUF01 and became an error (ADR-0034) |
+| HGT05 | — | Retired — "its level cannot be determined" merged into SUF02 and became an error (ADR-0034) |
+| RUN04 | — | Retired — "no level above, so no shape is generated" merged into SUF04 (ADR-0034) |
 
 ## 6. Queries — the same description, read differently
 

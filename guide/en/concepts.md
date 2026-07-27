@@ -15,7 +15,7 @@ So what stands at the center of a .muro is `space`. These four lines are the sma
 ```muro
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
@@ -34,7 +34,7 @@ Add one room. Not one boundary line is written.
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
 ```
@@ -67,7 +67,7 @@ From this one fact, three rules that stand as separate table rows in the specifi
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b
@@ -80,7 +80,7 @@ The error is `空間が接していないため境界を導けません: /L1/a |
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/living room X1..X2 Y1..Y2
 space /out exterior
 boundary /L1/living /out
@@ -94,7 +94,7 @@ The compass follows from the coordinate system. **X is east-positive and Y is no
 ```muro
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/living room X1..X2 Y1..Y2
 space /out exterior
 boundary /L1/living /out t:150
@@ -106,7 +106,7 @@ boundary /L1/living /out t:150
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -138,7 +138,7 @@ The only thing drawn in black is the single band in the middle — the derived d
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
 space /out exterior name:外部
@@ -181,7 +181,7 @@ Error: レベルが定義されていません
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/home unit X1..X3 Y1..Y2
 space /L1/home/a room X1..X2 Y1..Y2
 space /L1/home/b room X2..X3 Y1..Y2
@@ -192,7 +192,7 @@ The error is `空間の領域が重なっています: /L1/home と /L1/home/a` 
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /L1/home name:住戸
 space /L1/home/a room X1..X2 Y1..Y2
 space /L1/home/b room X2..X3 Y1..Y2
@@ -236,7 +236,7 @@ This one table answers two beginner questions at once.
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 space /L1/room ldk X1..X2 Y1..Y2
 space /L1/balcony balcony X2..X3 Y1..Y2
 space /out exterior
@@ -268,7 +268,7 @@ Attributes are open too, but **the openness has a shape**. They come in three la
 ```muro
 grid X 0 2000
 grid Y 0 2000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居間 acme.sensor:23 bems.temp:22.5
 ```
 
@@ -279,7 +279,7 @@ A key that is neither in the ledger nor namespaced is an error.
 ```muro-bad
 grid X 0 2000
 grid Y 0 2000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 nmae:居間
 ```
 
@@ -314,7 +314,7 @@ Where this openness bites is in seeing where the entrance to a verdict actually 
 ```muro
 grid X 0 2000
 grid Y 0 2000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 space /L1/bath wet X1..X2 Y1..Y2 name:浴室 daylight:1
 space /out exterior
 boundary /L1/bath /out edge:S t:150
@@ -356,7 +356,7 @@ The first is the dangerous one. As §3 says, the default between touching spaces
 koyu 0.5
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:300
 level L2 3000 h:2400 slab:300
 space /L1/hall hall X1..X2 Y1..Y2
 space /L2/bed bedroom X1..X2 Y1..Y2

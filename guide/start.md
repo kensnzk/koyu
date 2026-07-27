@@ -34,7 +34,7 @@ mkdir -p out
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/ldk ldk X1..X2 Y1..Y2
 ```
 
@@ -84,7 +84,7 @@ npx tsx src/cli.ts plan out/house.muro
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
 ```
@@ -129,7 +129,7 @@ SVGの中身にはこの一行が増えている。
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -181,7 +181,7 @@ npx tsx src/cli.ts doors out/house.muro /L1/ldk /L1/hall
 ```muro-bad
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -227,7 +227,7 @@ X は東が正、Y は北が正である。`edge` の方角は**先に書いた�
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -280,7 +280,7 @@ npx tsx src/cli.ts light out/house.muro
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
@@ -361,7 +361,7 @@ npx tsx src/cli.ts doors out/house.muro /L2/bed /out
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
@@ -426,7 +426,7 @@ name 小さな家
 
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク daylight:1

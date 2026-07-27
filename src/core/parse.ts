@@ -5,11 +5,13 @@
 
 import {
   type Area,
+  type Asset,
   type Attrs,
   type AttrValue,
   type Boundary,
   DEFAULT_LANGUAGE_VERSION,
   type Edge,
+  type Level,
   type Model,
   type Opening,
   type Pt,
@@ -18,8 +20,12 @@ import {
   SourceError,
   type Space,
   SUPPORTED_LANGUAGE_VERSIONS,
+  type Zone,
 } from "./model.js";
 import { deriveDefaultBoundaries, derivePieces } from "./graph.js";
+
+/** 境界のトポロジー語 — 増やすのは最後の手段である (spec/vocabulary.md 規則1) */
+const BOUNDARY_KINDS = new Set(["wall", "open", "stair", "shaft", "void"]);
 
 const EDGES = new Set(["N", "E", "S", "W"]);
 
@@ -64,6 +70,7 @@ function emptyModel(): Model {
     polygons: new Map(),
     columns: [],
     layers: [],
+    attrSrc: new Map(),
   };
 }
 
@@ -141,7 +148,9 @@ function ingestLayer(
 ): void {
   if (seen.has(key)) return; // 同じレイヤーは一度だけ合成される (USDのsublayerと同じ)
   seen.add(key);
-  model.layers.push(key); // 合成への参加を要素の有無によらず記録する (grid/levelだけの層も数える)
+  // **この push の順序が層の強度順序である** (spec/composition.md 規則1)。
+  // entry が添字0で最も弱く、後の層ほど強い。同じ層が二度 import されても最初の位置を保つ
+  model.layers.push(key);
   ingest(model, src, key, seen, loader);
 }
 
@@ -152,8 +161,11 @@ function ingest(
   seen: Set<string>,
   loader: LayerLoader | undefined,
 ): void {
+  /** この層の強度。単一ソースの parse では層が無いので 0 とする */
+  const layer = file === undefined ? 0 : Math.max(0, model.layers.indexOf(file));
   let current: Boundary[] = [];
   let currentSpaces: Space[] = [];
+  let over: OverTarget | undefined;
   let band: BandDecl | undefined; // 帯は次の非字下げ行か層の終わりで展開される (ADR-0019)
   const lines = source.split(/\r?\n/);
 
@@ -167,7 +179,14 @@ function ingest(
       const [head, ...rest] = tokens as [string, ...string[]];
 
     if (indented) {
-      if (head === "door" || head === "window") {
+      if (over && (head === "+" || head === "-" || head === "=")) {
+        applySetEdit(model, over, head, rest, ln, layer);
+      } else if (over) {
+        throw new SourceError(
+          ln,
+          `over の直下に置けるのは + (追加) / - (削除) / = (置換) のみです: ${head}`,
+        );
+      } else if (head === "door" || head === "window") {
         if (current.length === 0) {
           throw new SourceError(ln, `${head} は boundary の直下に字下げして書きます`);
         }
@@ -218,6 +237,7 @@ function ingest(
     }
     current = [];
     currentSpaces = [];
+    over = undefined;
     switch (head) {
       case "koyu": {
         const v = rest[0];
@@ -259,6 +279,39 @@ function ingest(
           throw new SourceError(ln, `ファイルが読めません: ${rel}`);
         }
         ingestLayer(model, layer.key, layer.src, seen, loader);
+        break;
+      }
+      case "over": {
+        // 上書き (合成の規則2・4)。**定義ではない** — 対象が既に無ければエラーである
+        over = resolveOverTarget(model, rest, ln);
+        const attrs = parseAttrs(rest.filter((t) => t.includes(":") && !t.startsWith("/")), ln);
+        const subject = overSubject(over);
+        for (const [key, v] of Object.entries(attrs)) {
+          switch (over.kind) {
+            case "space":
+              applyAttr(model, "space", subject, over.space.attrs, key, v, layer, ln, layerOf(model, over.space.file));
+              break;
+            case "zone":
+              applyAttr(model, "zone", subject, over.zone.attrs, key, v, layer, ln, layerOf(model, over.zone.file));
+              break;
+            case "asset":
+              applyAttr(model, "asset", subject, over.asset.attrs, key, v, layer, ln, layerOf(model, over.asset.file));
+              break;
+            case "level":
+              applyLevelAttr(model, over.level, key, v, layer, ln);
+              break;
+            case "boundary":
+              for (const b of over.boundaries) {
+                applyBoundaryAttr(model, b, key, v, layer, ln);
+              }
+              break;
+          }
+        }
+        break;
+      }
+      case "drop": {
+        // 集合からの削除 (合成の規則3)。暗黙の消滅は無い — 消すと書いたものだけが消える
+        applyDrop(model, rest, ln);
         break;
       }
       case "asset": {
@@ -1003,10 +1056,10 @@ function parseBoundary(rest: string[], ln: number): Boundary {
   const attrs = parseAttrs(rest.slice(2), ln);
   const t = takeNumber(attrs, "t", ln);
   const kindRaw = takeString(attrs, "type") ?? "wall";
-  if (!["wall", "open", "stair", "shaft", "void"].includes(kindRaw)) {
+  if (!BOUNDARY_KINDS.has(kindRaw)) {
     throw new SourceError(
       ln,
-      `boundary の type は wall / open / stair / shaft / void です: ${kindRaw}`,
+      `boundary の type は ${[...BOUNDARY_KINDS].join(" / ")} です: ${kindRaw}`,
     );
   }
   const air = takeNumber(attrs, "air", ln);
@@ -1154,6 +1207,349 @@ function guardStructuralType(type: string, ln: number): void {
       );
     }
   }
+}
+
+/**
+ * 上書きの対象 (合成の規則4 — 定義と上書きの区別)。
+ * `space` / `boundary` は**定義**であり、重複はエラーである。`over` は**上書き**であり、
+ * 対象が既に定義されていなければエラーである。二つは別の文であって、書き方から区別がつく。
+ */
+type OverTarget =
+  | { kind: "space"; space: Space }
+  | { kind: "zone"; zone: Zone }
+  | { kind: "boundary"; boundaries: Boundary[] }
+  | { kind: "level"; level: Level }
+  | { kind: "asset"; asset: Asset };
+
+/** その要素を定義した層の添字 (出所が無ければ 0 = 最も弱い) */
+function layerOf(model: Model, file: string | undefined): number {
+  if (file === undefined) return 0;
+  const i = model.layers.indexOf(file);
+  return i < 0 ? 0 : i;
+}
+
+/** 出所の鍵 — `<種別>:<対象>:<属性キー>` */
+function srcKey(kind: string, subject: string, key: string): string {
+  return `${kind}:${subject}:${key}`;
+}
+
+/** その対象の、出所を記録するときの名前 */
+function overSubject(t: OverTarget): string {
+  switch (t.kind) {
+    case "space":
+      return t.space.path;
+    case "zone":
+      return t.zone.path;
+    case "level":
+      return t.level.name;
+    case "asset":
+      return t.asset.name;
+    case "boundary":
+      return t.boundaries.map((b) => `${b.a}|${b.b}`).join(",");
+  }
+}
+
+/**
+ * 属性を一つ、強度の規則に従って書き込む (合成の規則2 — 単一の値は最も強い層の意見が勝つ)。
+ *
+ * **走査の順ではなく強度で決める。**entry は添字0で最も弱いが、その行が
+ * import より後に書かれていれば走査としては最後に来る。順序で決めると、
+ * import 行を上下に動かしただけで結果が変わってしまう。
+ *
+ * 同じ層が同じ属性に二度意見を持つのは矛盾なのでエラーにする (`>=` ではなく `>`)。
+ */
+function applyAttr(
+  model: Model,
+  kind: string,
+  subject: string,
+  into: Attrs,
+  key: string,
+  value: AttrValue,
+  layer: number,
+  ln: number,
+  defLayer = 0,
+): void {
+  const k = srcKey(kind, subject, key);
+  // 出所が記録されていなければ、値は**定義した層**が与えたものである。
+  // entry (添字0) が import より後ろに over を書いても、定義した層の方が強ければ通らない —
+  // 強度は走査の順ではなく宣言された順序で決まる (規則1)
+  const prev = model.attrSrc.get(k) ?? (into[key] !== undefined ? defLayer : undefined);
+  if (prev !== undefined) {
+    if (prev > layer) return; // 強い層が既に決めている — 弱い層の意見は通らない
+    if (prev === layer) {
+      throw new SourceError(
+        ln,
+        `同じ層が ${subject} の ${key} に二度意見を持っています (どちらが勝つかは決まりません)`,
+      );
+    }
+  }
+  into[key] = value;
+  model.attrSrc.set(k, layer);
+}
+
+/** 定義された属性の出所を、その層のものとして記録する */
+function recordAttrs(model: Model, kind: string, subject: string, attrs: Attrs, layer: number): void {
+  for (const key of Object.keys(attrs)) model.attrSrc.set(srcKey(kind, subject, key), layer);
+}
+
+/** 集合の要素を名で引く (合成の規則3 — 同一性は「含む対象 + その中で一意な名」) */
+function findNamed<T extends { attrs: Attrs }>(list: T[], name: string): T[] {
+  return list.filter((x) => String(x.attrs["name"] ?? "") === name);
+}
+
+/**
+ * `over` の対象を解く。**書き方から種別が決まる** — 先頭のトークンが指す先で分かれる。
+ *
+ *   over /L5/A/ldk h:2600           空間 (パス1つ)
+ *   over /site area:1100.20         ゾーン (パス1つ・空間が無ければゾーン)
+ *   over /L5/A/hall /L5/corridor    境界 (パス2つ)
+ *   over level L3 h:2600            レベル
+ *   over asset SD1 w:900            アセット
+ *
+ * 対象が存在しなければエラーである。**上書きは定義ではない** — 存在しないものに
+ * 意見だけを足すのは、たいてい綴り違いか、層の順序の思い違いである。
+ */
+function resolveOverTarget(model: Model, rest: string[], ln: number): OverTarget {
+  const head = rest[0];
+  if (head === "level") {
+    const name = rest[1];
+    const lv = name ? model.levels[name] : undefined;
+    if (!lv) throw new SourceError(ln, `over の対象のレベルがありません: ${name ?? "(名前なし)"}`);
+    return { kind: "level", level: lv };
+  }
+  if (head === "asset") {
+    const name = rest[1];
+    const a = name ? model.assets.get(name) : undefined;
+    if (!a) throw new SourceError(ln, `over の対象のアセットがありません: ${name ?? "(名前なし)"}`);
+    return { kind: "asset", asset: a };
+  }
+  const paths = rest.filter((t) => t.startsWith("/"));
+  if (paths.length === 0) {
+    throw new SourceError(
+      ln,
+      "over は over /パス … / over /パスA /パスB … / over level <名> … / over asset <名> … の形で書きます",
+    );
+  }
+  if (paths.length === 1) {
+    const path = paths[0]!;
+    const sp = model.spaces.get(path);
+    if (sp) return { kind: "space", space: sp };
+    const zn = model.zones.get(path);
+    if (zn) return { kind: "zone", zone: zn };
+    throw new SourceError(ln, `over の対象がありません: ${path} (先に定義した層より後ろに置きます)`);
+  }
+  if (paths.length > 2) {
+    throw new SourceError(ln, `over の対象のパスが多すぎます: ${paths.join(" ")}`);
+  }
+  const [a, b] = paths as [string, string];
+  const hit = model.boundaries.filter(
+    (x) => (x.a === a && x.b === b) || (x.a === b && x.b === a),
+  );
+  if (hit.length === 0) {
+    throw new SourceError(ln, `over の対象の境界がありません: ${a} | ${b}`);
+  }
+  return { kind: "boundary", boundaries: hit };
+}
+
+/** レベルの上書き — typed field なので属性の器を持たない。台帳の四語だけを受ける */
+function applyLevelAttr(
+  model: Model,
+  lv: Level,
+  key: string,
+  v: AttrValue,
+  layer: number,
+  ln: number,
+): void {
+  const k = srcKey("level", lv.name, key);
+  const prev = model.attrSrc.get(k) ?? layerOf(model, lv.file);
+  if (prev > layer) return;
+  if (prev === layer) {
+    throw new SourceError(ln, `同じ層が レベル ${lv.name} の ${key} に二度意見を持っています`);
+  }
+  if (key === "h" || key === "slab") {
+    if (typeof v !== "number" || !(v > 0)) {
+      throw new SourceError(ln, `レベルの ${key} は正の数値で書きます: ${key}:${v}`);
+    }
+    lv[key] = v;
+  } else if (key === "underground") {
+    if (v !== 0 && v !== 1) throw new SourceError(ln, "underground は 0 / 1 で指定します");
+    lv.underground = v === 1;
+  } else {
+    throw new SourceError(ln, `レベルに上書きできるのは h / slab / underground です: ${key}`);
+  }
+  model.attrSrc.set(k, layer);
+}
+
+/** 境界の上書き — typed field (type/t/air/edge) と自由属性の両方を受ける */
+function applyBoundaryAttr(
+  model: Model,
+  b: Boundary,
+  key: string,
+  v: AttrValue,
+  layer: number,
+  ln: number,
+): void {
+  const subject = `${b.a}|${b.b}`;
+  const k = srcKey("boundary", subject, key);
+  const prev = model.attrSrc.get(k) ?? layerOf(model, b.file);
+  if (prev > layer) return;
+  if (prev === layer) {
+    throw new SourceError(ln, `同じ層が 境界 ${subject} の ${key} に二度意見を持っています`);
+  }
+  if (key === "type") {
+    const kind = String(v);
+    if (!BOUNDARY_KINDS.has(kind)) {
+      throw new SourceError(ln, `boundary の type は ${[...BOUNDARY_KINDS].join(" / ")} です: ${kind}`);
+    }
+    b.kind = kind as Boundary["kind"];
+  } else if (key === "t") {
+    if (typeof v !== "number" || !(v > 0)) throw new SourceError(ln, `t は正の数値で書きます: t:${v}`);
+    b.t = v;
+  } else if (key === "air") {
+    b.air = v === 1 ? true : undefined;
+  } else if (key === "edge") {
+    if (!EDGES.has(String(v))) throw new SourceError(ln, `edge は N/E/S/W で指定します: ${v}`);
+    b.edge = String(v) as Edge;
+  } else {
+    b.attrs[key] = v;
+  }
+  model.attrSrc.set(k, layer);
+}
+
+/**
+ * 集合の編集 (合成の規則3 — 追加 / 削除 / 置換)。**暗黙のマージをしない。**
+ *
+ *   + door SD1 w:900 at:X4 name:D9     追加
+ *   - door D9                          削除 (名で指す)
+ *   = door D9 w:1200                   置換 (名で指し、書いた属性だけを差し替える)
+ *
+ * 同一性は「含む対象 + その中で一意な名」である (spec/scope.md §5)。
+ * 名を持たない要素は編集の対象にできない — 指す言葉が無いからである。
+ */
+function applySetEdit(
+  model: Model,
+  target: OverTarget,
+  op: "+" | "-" | "=",
+  rest: string[],
+  ln: number,
+  layer: number,
+): void {
+  const what = rest[0];
+  if (!what) throw new SourceError(ln, `${op} の後に door / window / seg / area を書きます`);
+  const args = rest.slice(1);
+
+  if (target.kind === "space") {
+    if (what !== "area") {
+      throw new SourceError(ln, `空間の over で編集できるのは area です: ${what}`);
+    }
+    editList(model, target.space.areas, op, args, ln, () => parseArea(args, ln, model), "area");
+    return;
+  }
+  if (target.kind !== "boundary") {
+    throw new SourceError(ln, `${target.kind} の over は集合の編集を持ちません`);
+  }
+  for (const b of target.boundaries) {
+    if (what === "door" || what === "window") {
+      editList(model, b.openings, op, args, ln, () => parseOpening(what, args, ln, model), what);
+    } else if (what === "seg") {
+      editList(model, b.segs, op, args, ln, () => parseSeg(args, ln, model), "seg");
+    } else {
+      throw new SourceError(ln, `境界の over で編集できるのは door / window / seg です: ${what}`);
+    }
+  }
+}
+
+/** 一つの集合に対する追加・削除・置換 */
+function editList<T extends { attrs: Attrs }>(
+  model: Model,
+  list: T[],
+  op: "+" | "-" | "=",
+  args: string[],
+  ln: number,
+  make: () => T,
+  what: string,
+): void {
+  if (op === "+") {
+    const made = make();
+    if (String(made.attrs["name"] ?? "") === "") {
+      throw new SourceError(ln, `+ で足す ${what} には name: が要ります (後から指すための名です)`);
+    }
+    if (findNamed(list, String(made.attrs["name"])).length > 0) {
+      throw new SourceError(ln, `${what} の名が重複しています: ${made.attrs["name"]}`);
+    }
+    list.push(made);
+    return;
+  }
+  const name = args[0];
+  if (!name || name.includes(":")) {
+    throw new SourceError(ln, `${op} ${what} の後に、指す名を書きます (${op} ${what} D1)`);
+  }
+  const hit = findNamed(list, name);
+  if (hit.length === 0) throw new SourceError(ln, `${what} ${name} がありません`);
+  if (hit.length > 1) throw new SourceError(ln, `${what} の名 ${name} が一意ではありません`);
+  const idx = list.indexOf(hit[0]!);
+  if (op === "-") {
+    list.splice(idx, 1);
+    return;
+  }
+  // = は書いた属性だけを差し替える (全置換ではない — 名は残る)
+  const patch = parseAttrs(args.slice(1), ln);
+  Object.assign(list[idx]!.attrs, patch);
+  applyTypedPatch(list[idx]!, patch, ln);
+}
+
+/** 置換で typed field (w/h/at) に触れたぶんを反映する */
+function applyTypedPatch(item: { attrs: Attrs } & Record<string, unknown>, patch: Attrs, ln: number): void {
+  for (const key of ["w", "h"]) {
+    const v = patch[key];
+    if (v === undefined) continue;
+    if (typeof v !== "number" || !(v > 0)) {
+      throw new SourceError(ln, `${key} は正の数値で書きます: ${key}:${v}`);
+    }
+    item[key] = v;
+    delete item.attrs[key];
+  }
+}
+
+/**
+ * 削除 (合成の規則3)。**消えるのは、消すと書いたものだけである。**
+ *
+ *   drop /L5/A/store          空間 (その空間に繋がる境界も一緒に消える)
+ *   drop /L5/a /L5/b          境界
+ *   drop column <名>          柱の宣言
+ */
+function applyDrop(model: Model, rest: string[], ln: number): void {
+  if (rest[0] === "column") {
+    const name = rest[1];
+    if (!name) throw new SourceError(ln, "drop column には柱の名を書きます");
+    const before = model.columns.length;
+    model.columns = model.columns.filter((c) => String(c.attrs["name"] ?? "") !== name);
+    if (model.columns.length === before) throw new SourceError(ln, `柱 ${name} がありません`);
+    return;
+  }
+  const paths = rest.filter((t) => t.startsWith("/"));
+  if (paths.length === 1) {
+    const path = paths[0]!;
+    if (model.spaces.delete(path)) {
+      // 空間が消えれば、その空間を端に持つ関係も消える — 関係は空間の間にしか無い
+      model.boundaries = model.boundaries.filter((b) => b.a !== path && b.b !== path);
+      return;
+    }
+    if (model.zones.delete(path)) return;
+    throw new SourceError(ln, `drop の対象がありません: ${path}`);
+  }
+  if (paths.length === 2) {
+    const [a, b] = paths as [string, string];
+    const before = model.boundaries.length;
+    model.boundaries = model.boundaries.filter(
+      (x) => !((x.a === a && x.b === b) || (x.a === b && x.b === a)),
+    );
+    if (model.boundaries.length === before) {
+      throw new SourceError(ln, `drop の対象の境界がありません: ${a} | ${b}`);
+    }
+    return;
+  }
+  throw new SourceError(ln, "drop は drop /パス / drop /パスA /パスB / drop column <名> の形で書きます");
 }
 
 function parseAttrs(tokens: string[], ln: number): Attrs {

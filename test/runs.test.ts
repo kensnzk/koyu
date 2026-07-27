@@ -195,7 +195,7 @@ stack r L1..L2 type:stair
   assert.ok(run.slope > 1 / 12);
   // 勾配は建築の側の判断 — core は黙り、検証の面が言う
   assert.deepEqual(check(m).warnings, []);
-  assert.ok(validate(m).some((f) => f.rule === "run.slope" && f.message.includes("勾配")));
+  assert.ok(validate(m).some((f) => f.rule === "run.slope" && f.message.includes("slope")));
 });
 
 test("形はあってもグラフでは通れない — 垂直境界が無ければ判定 (run.disconnected)", () => {
@@ -205,7 +205,7 @@ space /L2/s stair X1..X2 Y1..Y1+7000
 `);
   const r = check(m);
   assert.equal(r.errors.length, 0);
-  assert.ok(validate(m).some((f) => f.rule === "run.disconnected" && f.message.includes("垂直境界がありません")));
+  assert.ok(validate(m).some((f) => f.rule === "run.disconnected" && f.message.includes("no vertical boundary")));
   assert.equal(doorsBetween(m, "/L1/s", "/L2/s"), undefined);
 });
 

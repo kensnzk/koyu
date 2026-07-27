@@ -14,7 +14,7 @@ unit mm
 grid X 0 3640 7280
 grid Y 0 3640 7280
 
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2900 h:2400 slab:500
 level R 5800 slab:500
 

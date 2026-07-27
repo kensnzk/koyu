@@ -98,7 +98,7 @@ unit mm
 
 grid X 0 7000
 grid Y 0 8000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 
 # 敷地の外 — 方角・性格ごとに割る。道路は road:幅員 (mm)
 space /out/road exterior name:南側道路 road:6000

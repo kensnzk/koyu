@@ -78,7 +78,9 @@ test("MCP: initialize → tools/list → towerへの問い → write_layerの門
     });
     const initRes = init.result as { serverInfo: { name: string }; instructions: string };
     assert.equal(initRes.serverInfo.name, "koyu");
-    assert.match(initRes.instructions, /門番/);
+    // MCP の応答はすべて英語である — 機械が読む面だから (ADR-0036)
+    assert.match(initRes.instructions, /gatekeeper/);
+    assert.doesNotMatch(initRes.instructions, /[ぁ-んァ-ヶ]/, "MCP の面に日本語を残さない");
 
     const list = await c.request("tools/list");
     const tools = (list.result as { tools: Array<{ name: string }> }).tools.map((t) => t.name);

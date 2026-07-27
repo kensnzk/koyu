@@ -79,7 +79,7 @@ unit mm
 
 grid X 0 3600 7200
 grid Y 0 4500
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 
 space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
 space /L1/b room X2..X3 Y1..Y2 name:居室B daylight:1
@@ -124,7 +124,7 @@ unit mm
 
 grid X 0 4000
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 
 space /L1/liv living  X1..X2 Y1..Y2      name:居間 daylight:1
 space /L1/bal balcony X1..X2 Y1-1500..Y1 name:テラス
@@ -148,7 +148,7 @@ unit mm
 
 grid X 0 4000
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:500
 level L2 2900 h:2400 slab:500
 level R 5800 slab:500
 

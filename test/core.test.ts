@@ -93,7 +93,7 @@ test("接しているのに境界が無ければ既定の壁が導出される (
   const m = parse(`
 grid X 0 3600 7200
 grid Y 0 4500
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 `);

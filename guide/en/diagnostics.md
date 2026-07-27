@@ -19,7 +19,7 @@ Take, for instance, this file (two rooms touching only at a corner).
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b t:120
@@ -74,9 +74,9 @@ Every wrong example on this page exits 1 under `koyu check --strict`, each produ
 | You placed a door or window and were told "there are several segments" | [OPN05](#opn05) |
 | You wrote a stair or a void and were told off | [VRT01](#vrt01) [VRT02](#vrt02) [VRT03](#vrt03) |
 | You laid out spaces and were told "the regions overlap" | [GEO02](#geo02) |
-| You thought you wrote a level and were told "its level cannot be determined" | [HGT05](#hgt05) |
+| You thought you wrote a level and were told "its level cannot be determined" | [SUF02](#suf02) |
 | The floor-height arithmetic does not pass | [HGT01](#hgt01) [HGT02](#hgt02) |
-| The check only says it "cannot be done" | [HGT03](#hgt03) [HGT04](#hgt04) |
+| No ceiling height or floor-construction thickness written, and neither ceilings nor floors are generated | [SUF01](#suf01) [SUF03](#suf03) |
 | The site's figures do not agree | [SIT03](#sit03) [SIT05](#sit05) |
 | The file dies without a single line being read | [SYN01](#syn01) |
 
@@ -90,7 +90,7 @@ Every wrong example on this page exits 1 under `koyu check --strict`, each produ
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out exterior
 boundary /out /out
@@ -110,7 +110,7 @@ boundary /out /out
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -152,7 +152,7 @@ boundary /L1/a /L2/a t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b t:120
@@ -174,7 +174,7 @@ boundary /L1/a /L1/b t:120
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -195,7 +195,7 @@ boundary /L1/a /L1/b edge:E t:150
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out exterior
@@ -222,7 +222,7 @@ boundary /L1/b /out t:150
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /L1/zzz
 ```
@@ -245,7 +245,7 @@ boundary /L1/a /L1/zzz
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X3 Y1..Y2 + X2..X3 Y1..Y2
 ```
 
@@ -263,7 +263,7 @@ space /L1/a room X1..X3 Y1..Y2 + X2..X3 Y1..Y2
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X3 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 ```
@@ -277,7 +277,7 @@ space /L1/b room X2..X3 Y1..Y2
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /L1/home name:住戸
 space /L1/home/ldk ldk X1..X2 Y1..Y2 name:LDK
 space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
@@ -293,7 +293,7 @@ The definition of `zone` is in [spec/language.md §5](../../spec/en/language.md)
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out exterior
   area X1..X2 Y1..Y2 floor:タイル
@@ -313,7 +313,7 @@ space /out exterior
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
   area X1..X3 Y1..Y2 floor:タイル
 ```
@@ -336,7 +336,7 @@ space /L1/a room X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -357,7 +357,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -379,7 +379,7 @@ boundary /L1/a /L1/b t:120
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b type:open
@@ -400,7 +400,7 @@ boundary /L1/a /L1/b type:open
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -421,7 +421,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out exterior
@@ -444,7 +444,7 @@ boundary /L1/b /out t:150
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -465,7 +465,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X1..X2 Y2..Y3
 boundary /L1/a /L1/b t:120
@@ -486,7 +486,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -511,7 +511,7 @@ A `seg` is an uncounted subdivision along a boundary — an interval where the w
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b type:open
@@ -532,7 +532,7 @@ boundary /L1/a /L1/b type:open
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -551,7 +551,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out exterior
@@ -572,7 +572,7 @@ boundary /L1/b /out t:150
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -591,7 +591,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X1..X2 Y2..Y3
 boundary /L1/a /L1/b t:120
@@ -610,7 +610,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -633,7 +633,7 @@ Adjacency between storeys is not declared — it is derived from overlap in plan
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out exterior
 boundary /L1/a /out type:stair
@@ -653,7 +653,7 @@ boundary /L1/a /out type:stair
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 level L3 6000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
@@ -670,7 +670,7 @@ boundary /L1/a /L3/a type:stair
 ```muro
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 level L3 6000 h:2400 slab:200
 space /L1/ev shaft X1..X2 Y1..Y2
@@ -687,7 +687,7 @@ stack ev L1..L3 type:shaft
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/b room X2..X3 Y1..Y2
@@ -708,7 +708,7 @@ boundary /L1/a /L2/b type:stair
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
@@ -729,7 +729,7 @@ boundary /L1/a /L2/a type:void
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
@@ -751,7 +751,7 @@ boundary /L1/a /L2/a type:stair
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
@@ -775,7 +775,7 @@ Height is checked as a declared invariant: **that space's ceiling height + the l
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2800
+level L1 0 h:2800 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
@@ -795,7 +795,7 @@ space /L2/a room X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0 h:5400
+level L1 0 h:5400 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X3 Y1..Y2
 space /L2/v void X1..X2 Y1..Y2
@@ -809,8 +809,55 @@ boundary /L1/a /L2/v type:void
 
 **Fix** — bring the lower storey's ceiling height within the storey (`level L1 0 h:2400`). The height of the void part is derived from the `void` relation and need not be declared. To make the whole thing a void, make the `void` space's region the same as the lower storey's.
 
-<a id="hgt03"></a>
-### HGT03 — no slab declared above, so the height check cannot run
+## Sufficiency — SUF
+
+**Not making a shape and not being able to make one are different things.** A unique shape has to be derivable from this description, so whether the information needed to make that shape is present is part of structural integrity ([spec/scope.md §6](../../spec/scope.md)). **This is a completeness check, not a validity judgement** — it never says "that ceiling height is wrong". It says only "no ceiling height is written".
+
+<a id="suf01"></a>
+### SUF01 — the ceiling height cannot be determined
+
+`error`
+
+```muro-bad
+grid X 0 3600
+grid Y 0 4000
+level L1 0 slab:150
+space /L1/a room X1..X2 Y1..Y2
+```
+
+`/L1/a の天井高が決まりません (空間の h: も レベル L1 の h: もありません)` — "neither the space's `h:` nor level L1's `h:` is there".
+
+**Cause** — the space has no `h:`, and neither does the level it sits on. There is no height to extrude, so **no ceiling and no roof are generated** for this space. The height invariant ([HGT01](#hgt01)) cannot be formulated either, so a ceiling height that pierces a storey passes in silence.
+
+Three kinds are not blamed: voids (`type:void` — having neither floor nor ceiling is what a void is), the exterior (`type:exterior` — it is the ground), and semi-outdoor spaces (spaces meeting the exterior across `type:open` or `air:1` — a balcony has no ceiling height). For these three the shape is settled without a ceiling height.
+
+**Fix** — write a base ceiling height on the level (`level L1 0 h:2400 slab:150`). Write `h:` on the space for individual rooms that differ (`space /L1/a room X1..X2 Y1..Y2 h:2700` — a space's `h` beats the level's).
+
+<a id="suf02"></a>
+### SUF02 — its level cannot be determined
+
+`error`
+
+```muro-bad
+grid X 0 3600
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /house/a room X1..X2 Y1..Y2
+```
+
+`/house/a は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)` — "it has a region but its level cannot be determined".
+
+**Cause** — **this is usually a problem with the `level` declaration rather than with how the path is written.** A space sits on a level when the first segment of its path matches a declared level name, or when it carries a `level:` attribute. The example cuts its path by an aggregation hierarchy (`/house/…`), so the first segment `house` is not a level name. Conversely, if you wrote `/L1/a` and get this, **the `level L1 0` line is missing** — writing `/L1/` in a path does not declare a level.
+
+**Fix** — one of two.
+
+- You want the path cut by an aggregation hierarchy (`/home/ldk` and the like) → write `level:` on the space: `space /house/a room X1..X2 Y1..Y2 level:L1`
+- You want the path's head to state the level (`/L1/a`) → add a `level L1 0 h:2400 slab:150` line to the base layer
+
+**Why it is an error** — z is undetermined, so **not one solid is generated** from this space. No floor, no ceiling, no roof, no walls, and nothing in the plan drawing either. This is the state in which `koyu plan` dies with "there is no space with a region on level …".
+
+<a id="suf03"></a>
+### SUF03 — no slab, so no floor is generated
 
 `warning`
 
@@ -818,59 +865,36 @@ boundary /L1/a /L2/v type:void
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400
-level L2 3000 h:2400
 space /L1/a room X1..X2 Y1..Y2
-space /L2/a room X1..X2 Y1..Y2
 ```
 
-`レベル L2 に slab が未宣言のため、L1 との高さ検査ができません`
+`レベル L1 に slab: が無く、この階の床が一枚も生成されません` — "level L1 has no `slab:`, so not one floor is generated on this storey".
 
-**Cause** — the height invariant cannot be formulated without the level above's `slab` (the floor-construction thickness: slab plus void plus finish). This is not "you are wrong" but "**the check has not run**". Leave it green and nobody looks at height contradictions at all.
+**Cause** — only a `level`'s `slab` (the floor-construction thickness: slab plus void plus finish) gives a floor ([ADR-0024](../../docs/decisions/0024-fabric.md)). There is no operation that places a floor; writing `slab` *is* declaring the floor. Leave it out and not one floor is generated on that storey. On top of that, the height invariant ([HGT01](#hgt01)) cannot be formulated without the level above's `slab`, so the storey below goes unchecked as well.
 
-**Fix** — write `slab:` on the level above (`level L2 3000 h:2400 slab:500`). Adding a roof level holding no space above the top storey (`level R 5800 slab:500`) brings the top storey into the check too.
+**Why it stops at a warning** — because the shape itself is settled. "No `slab`, no floor element" is a deterministic rule; it is not a case of several shapes coming out of one composition. But **that the building ends up with no floors ought to be told.**
 
-<a id="hgt04"></a>
-### HGT04 — the ceiling height is unknown, so the height check cannot run
+**Fix** — write `slab:` on the level (`level L1 0 h:2400 slab:150`). A roof level holding no space (`level R 5800 slab:500`) carries nothing that could have a floor, so this never fires for it — that level exists only to give the top storey its upper bound.
+
+<a id="suf04"></a>
+### SUF04 — no level above, so no shape is generated
 
 `warning`
 
 ```muro-warn
-grid X 0 3600
-grid Y 0 4000
-level L1 0
-level L2 3000 slab:400
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y2
-space /L2/a room X1..X2 Y1..Y2
+space /L2/s stair X1..X2 Y1..Y2 stair:N
 ```
 
-`/L1/a の天井高が不明で、L2 との高さ検査ができません`
+`L2 の上にレベルが無いため、/L2/s の形は生成されません` — "there is no level above L2, so no shape is generated for /L2/s".
 
-**Cause** — the reverse of [HGT03](#hgt03): this time the lower storey has no ceiling height. Neither the space has `h:` nor its level does.
+**Cause** — a vertical circulation's shape is settled by "from this level's FL to the next level's FL". A stair on the top storey has nowhere to climb to, so no steps are generated (on that storey's plan only the flight coming up from below appears). The declaration is there and the shape is not: a matter of sufficiency.
 
-**Fix** — write a base ceiling height on the level (`level L1 0 h:2400`). Write `h:` on the space for individual rooms that differ.
-
-<a id="hgt05"></a>
-### HGT05 — its level cannot be determined
-
-`warning`
-
-```muro-warn
-grid X 0 3600
-grid Y 0 4000
-level L1 0
-space /house/a room X1..X2 Y1..Y2
-```
-
-`/house/a は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)`
-
-**Cause** — **this is usually a problem with the `level` declaration rather than with how the path is written.** A space sits on a level when the first segment of its path matches a declared level name, or when it carries a `level:` attribute. The example cuts its path by an aggregation hierarchy (`/house/…`), so the first segment `house` is not a level name. Conversely, if you wrote `/L1/a` and get this warning, **the `level L1 0` line is missing** — writing `/L1/` in a path does not declare a level.
-
-**Fix** — one of two.
-
-- You want the path cut by an aggregation hierarchy (`/home/ldk` and the like) → write `level:` on the space: `space /house/a room X1..X2 Y1..Y2 level:L1`
-- You want the path's head to state the level (`/L1/a`) → add a `level L1 0` line to the base layer
-
-**Why it stops at a warning** — there is a region, so the composition does stand up. But **a space that does not sit on a level does not appear in the plan drawing.** This is the state in which `check` is green and `koyu plan` dies with "there is no space with a region on level …".
+**Fix** — if the stair goes out to the roof, declare the roof surface as `level R`. If it does not, drop the declaration.
 
 ## Levels — LVL
 
@@ -902,7 +926,7 @@ level L2 0
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 zone /wing name:西棟
 ```
@@ -921,7 +945,7 @@ zone /wing name:西棟
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/a/x room X2..X3 Y1..Y2
 zone /L1/a name:重なった名
@@ -945,7 +969,7 @@ The site checks take as their subject a zone carrying `site:1` and the `polygon`
 ```muro-bad
 grid X 0 10000
 grid Y 0 10000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /site name:敷地 site:1
 polygon /site 0,0 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
@@ -965,7 +989,7 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```muro-bad
 grid X 0 10000
 grid Y 0 10000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /site name:敷地 site:1
 polygon /site 0,0 10000,0 0,10000 10000,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
@@ -985,7 +1009,7 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```muro-warn
 grid X 0 10000
 grid Y 0 10000
-level L1 0
+level L1 0 h:2400 slab:150
 polygon /site 0,0 10000,0 10000,10000 0,10000
 space /L1/a room X1..X2 Y1..Y2
 ```
@@ -1008,7 +1032,7 @@ A `uid` is an opaque token, unique across the whole model spanning `space` and `
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 uid:0123
 ```
 
@@ -1026,7 +1050,7 @@ space /L1/a room X1..X2 Y1..Y2 uid:0123
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 uid:"sp 1"
 ```
 
@@ -1044,7 +1068,7 @@ space /L1/a room X1..X2 Y1..Y2 uid:"sp 1"
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 uid:sp-1
 space /L1/b room X2..X3 Y1..Y2 uid:sp-1
 ```
@@ -1095,7 +1119,7 @@ space /L2/a room X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 5000
 grid Y 0 5000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 zone /site name:敷地 site:yes
 polygon /site 0,0 5000,0 5000,5000 0,5000
 space /site/a room X1..X2 Y1..Y2 level:L1
@@ -1115,7 +1139,7 @@ space /site/a room X1..X2 Y1..Y2 level:L1
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 heigh:2200
 ```
 
@@ -1128,7 +1152,7 @@ Attributes come in three layers ([spec/en/scope.md §7](../../spec/en/scope.md))
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 h:2200 acme.sensor:23 bems.temp:22.5
 ```
 
@@ -1144,7 +1168,7 @@ Core gives no meaning at all to a namespaced attribute — it checks no value do
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 daylight:yes
 ```
 
@@ -1218,26 +1242,6 @@ space /L2/s stair X1..X3 Y1..Y2
 
 **Fix** — give the stair shaft one rectangle. An L-shaped shaft is usually better written as a stair plus a landing hall.
 
-<a id="run04"></a>
-### RUN04 — no level above, so no shape is generated
-
-`warning`
-
-```muro-warn
-grid X 0 3000 6000
-grid Y 0 6000
-level L1 0 h:2700 slab:300
-level L2 3000 h:2700 slab:300
-space /L1/a room X1..X2 Y1..Y2
-space /L2/s stair X1..X2 Y1..Y2 stair:N
-```
-
-`L2 の上にレベルが無いため、/L2/s の形は生成されません`
-
-**Why** — a run's shape spans from its own level's FL to the next level's FL. The top storey's stair has nowhere to climb, so no treads are generated (its plan shows only the flight arriving from below).
-
-**Fix** — if the stair reaches the roof, declare the roof as a `level R`. If it does not, drop the declaration.
-
 <a id="run05"></a>
 ### RUN05 — invalid `form`
 
@@ -1270,7 +1274,7 @@ space /L2/s stair X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 3000 6000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -1291,7 +1295,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3000 6000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:300
 level L2 3000 slab:300
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a void X1..X2 Y1..Y2
@@ -1313,7 +1317,7 @@ boundary /L1/a /L2/a type:void
 ```muro-warn
 grid X 0 3000 6000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -1338,7 +1342,7 @@ A column declaration carries a size, the levels and (optionally) the grid lines 
 ```muro-warn
 grid X 0 3000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:300
 level L2 3000 slab:300
 space /L1/a room X1..X2 Y1..Y2
 column 600 L2
@@ -1358,7 +1362,7 @@ column 600 L2
 ```muro-warn
 grid X 0 3000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 column 600 L1
 column 800 L1
@@ -1381,7 +1385,7 @@ column 800 L1
 koyu 0.1
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a hall X1..X2 Y1..Y2
 space /L1/b hall X2..X3 Y1..Y2
 ```
@@ -1406,7 +1410,7 @@ space /L1/b hall X2..X3 Y1..Y2
 koyu 0.3
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 

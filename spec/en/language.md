@@ -116,18 +116,31 @@ polygon /site -2600,-7000 38000,-7000 38000,19600 2000,21000 -2600,15000
 
 **This is the one place in the notation where a shape is *written* with free vertices that do not sit on the grid** (a space's region is also a written shape, but as a rectangle in grid references; an arbitrary vertex list is only `polygon`). A site's shape is surveyed input from the world rather than designed form, so it is admitted as an exception. Vertices are `x,y` in mm (the same coordinate system as the grid), three or more. Associate it with a `site:1` zone path (a missing association is a warning). The derived area, the containment check for the building, and the site boundary line on the plan all follow from it (semantics.md §5). The standard practice is to keep it in a quarantined layer (its own file, brought in by import). A duplicate is an error.
 
-## 8. import — composition
+## 8. import / over / drop — composition
+
+The normative rules live in [composition.md](composition.md). Only the spelling is given here.
 
 ```
-import ./assets.muro
+import ./assets.muro                  # lay a layer on top. **The order is the declaration of strength** (later is stronger)
+
+over /L5/A/ldk h:2600 spec:改修後      # override a space (one path; a zone if no space has it)
+over /L5/A/hall /L5/corridor t:200    # override a boundary (two paths)
+over level L3 h:2600                  # override a level (h / slab / underground only)
+over asset SD1 w:900                  # override an asset
+  - door D2                           # indented: remove from a set (named)
+  = door D1 w:1000                    # replace in a set (only the attributes written)
+  + window w:600 h:1200 name:W1       # add to a set (name: required)
+
+drop /L5/A/store                      # remove a space (its boundaries go with it)
+drop /L5/a /L5/b                      # remove a boundary
+drop column C1                        # remove a column declaration
 ```
 
-Loads a layer by a path relative to the file it is written in and **composes it additively**. The base layer (the entry) declares the foundation (koyu/name/unit/grid/level) once, and each layer adds spaces, boundaries, zones, assets, and polygons. The rules:
-
-- The same layer is composed only once (a double import, or a cycle, is idempotent).
-- **A collision is a build error**: a duplicate space path, zone path, asset name, or site shape; a re-declared grid or name. The error names the provenance of both (`file:line`). There is no silent override (layer strength is deliberately not adopted).
-- The list of composition entry points is in the public API section of [tools.md](tools.md) (`parse` / `parseFile` / `parseFiles` / `parseFileWith` / `parseWith`). Check's errors and warnings also come back tagged with the layer they came from.
-- The canonical JSON is the single composed model; imports do not survive in it.
+- **`import`** takes a path relative to the file it is written in. The base layer (the entry) declares the foundation (`koyu`/`name`/`unit`/`grid`/`level`) once. The same layer is composed only once (a double import, or a cycle, is idempotent).
+- **`space` / `boundary` / `zone` / `asset` / `polygon` are definitions**, and a duplicate is a build error naming the provenance of both. **`over` is an override**, and a missing target is an error.
+- **Only `+` / `-` / `=` may be written under `over`.** Set members are pointed at by `name:` — an element without a name cannot be edited.
+- The list of composition entry points is in the public API section of [tools.md](tools.md) (`parse` / `parseFile` / `parseFiles` / `parseFileWith` / `parseWith`).
+- The canonical JSON is the single composed model; neither `import` nor `over` nor `drop` survives in it.
 
 ## 9. column — an element with no written position
 

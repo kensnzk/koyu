@@ -23,6 +23,7 @@
     { "include": "#line-boundary" },
     { "include": "#line-zone" },
     { "include": "#line-polygon" },
+    { "include": "#keyword-edit" },
     { "include": "#line-space" },
     { "include": "#line-opening" },
     { "include": "#keyword-child" },
@@ -156,13 +157,18 @@
       }
     },
     "keyword-child": {
-      "comment": "字下げして書く語 — src/parse.ts の indented 分岐",
+      "comment": "字下げして書く語 — src/core/parse.ts の indented 分岐。+ / - / = は over の下の集合編集 (ADR-0035)",
       "match": "^[ \\t]+(door|window|seg|line|area|space)\\b",
       "captures": { "1": { "name": "keyword.other.child.koyu" } }
     },
+    "keyword-edit": {
+      "comment": "over の下の集合編集 — + 追加 / - 削除 / = 置換 (ADR-0035)",
+      "match": "^[ \\t]+([+=-])(?=[ \\t])",
+      "captures": { "1": { "name": "keyword.operator.edit.koyu" } }
+    },
     "keyword-directive": {
-      "comment": "行頭に書く語 — src/parse.ts の switch (head)",
-      "match": "^(koyu|import|asset|polygon|name|unit|grid|level|column|band|space|boundary|zone|stack)\\b",
+      "comment": "行頭に書く語 — src/core/parse.ts の switch (head)",
+      "match": "^(koyu|import|over|drop|asset|polygon|name|unit|grid|level|column|band|space|boundary|zone|stack)\\b",
       "captures": { "1": { "name": "keyword.control.directive.koyu" } }
     },
     "path": {

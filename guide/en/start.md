@@ -36,7 +36,7 @@ Create `out/house.muro` and write these four lines.
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/ldk ldk X1..X2 Y1..Y2
 ```
 
@@ -90,7 +90,7 @@ Add one `space` line. Change nothing else.
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
 ```
@@ -135,7 +135,7 @@ The derived wall stands there as a thing, so without a door you cannot get throu
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -189,7 +189,7 @@ A space whose type is `exterior` need not have a region. Add the following.
 ```muro-bad
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -235,7 +235,7 @@ Put the window and the entrance on the south face. Add `edge:S` on lines 13 and 
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -290,7 +290,7 @@ Put a second storey on. Add one `level` line, add `h:` to `L1` as well, then two
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
@@ -375,7 +375,7 @@ Fix it. Declare the boundary between the bedroom and the stair hall, and cut a d
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
@@ -440,7 +440,7 @@ name 小さな家
 
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク daylight:1

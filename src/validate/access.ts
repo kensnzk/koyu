@@ -131,7 +131,7 @@ export function accessFindings(model: Model): Finding[] {
       out.push(
         finding(
           "access.unreachable",
-          `外部へ到達できません: ${s.path} (通れる境界を辿って外部空間へ出られません — 扉を書きます)`,
+          `Cannot reach the exterior: ${s.path} (no passable boundary leads out — write a door)`,
           at(s),
         ),
       );
@@ -156,7 +156,7 @@ export function accessFindings(model: Model): Finding[] {
       out.push(
         finding(
           "access.voidonly",
-          `扉が吹抜けにしか開いていません: ${s.path} (床の無い所へ開いているので出入りできません)`,
+          `Doors open only onto a void: ${s.path} (they open where there is no floor, so nobody can pass)`,
           at(s),
         ),
       );
@@ -175,7 +175,7 @@ export function accessFindings(model: Model): Finding[] {
       out.push(
         finding(
           "access.throughtenant",
-          `${s.path} からの避難が賃貸区画を通ります (テナントが施錠すると外部へ出られません)`,
+          `Escape from ${s.path} passes through rentable space (if the tenant locks up, there is no way out)`,
           at(s),
         ),
       );
@@ -194,7 +194,7 @@ export function accessFindings(model: Model): Finding[] {
       out.push(
         finding(
           "access.parking",
-          `車が外部へ出られません: ${s.path} (幅${CAR_WIDTH_MIN}mm以上の開口・type:open の境界・斜路のいずれかが要ります)`,
+          `No vehicle route to the exterior: ${s.path} (needs an opening at least ${CAR_WIDTH_MIN}mm wide, a type:open boundary, or a ramp)`,
           at(s),
         ),
       );
@@ -227,7 +227,7 @@ export function accessFindings(model: Model): Finding[] {
       out.push(
         finding(
           "access.backofhouse",
-          `${s.path} へ共用廊下からバックヤードを通らずに届きません (客が乗れない縦動線です)`,
+          `${s.path} cannot be reached from a common corridor without passing through back-of-house (visitors cannot use this vertical circulation)`,
           at(s),
         ),
       );
@@ -265,7 +265,7 @@ export function accessFindings(model: Model): Finding[] {
           out.push(
             finding(
               "column.blocksdoor",
-              `柱が扉を塞いでいます: ${b.a} | ${b.b} の扉 (幅${o.w}mm) が ${c.grid} の柱と重なります`,
+              `A column blocks a door: the door (${o.w}mm wide) on ${b.a} | ${b.b} overlaps the column at ${c.grid}`,
               { line: b.line, file: b.file, path: [b.a, b.b] },
             ),
           );

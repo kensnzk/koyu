@@ -17,7 +17,7 @@ koyu check bad.muro --json
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b t:120
@@ -72,9 +72,9 @@ severity は二つしかない。
 | 扉や窓を置いたら「線分が複数あります」と言われる | [OPN05](#opn05) |
 | 階段や吹抜けを書いたのに叱られる | [VRT01](#vrt01) [VRT02](#vrt02) [VRT03](#vrt03) |
 | 空間を並べたら「領域が重なっています」と言われる | [GEO02](#geo02) |
-| レベルを書いたつもりが「レベルが特定できません」と言われる | [HGT05](#hgt05) |
+| レベルを書いたつもりが「レベルが特定できません」と言われる | [SUF02](#suf02) |
 | 階高の検算が通らない | [HGT01](#hgt01) [HGT02](#hgt02) |
-| 検査が「できません」とだけ言う | [HGT03](#hgt03) [HGT04](#hgt04) |
+| 天井高や床組み厚を書かずに、天井も床も生成されていない | [SUF01](#suf01) [SUF03](#suf03) |
 | 敷地の数字が合わない | [SIT03](#sit03) [SIT05](#sit05) |
 | ファイルが1行も読まれずに落ちる | [SYN01](#syn01) |
 
@@ -88,7 +88,7 @@ severity は二つしかない。
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out exterior
 boundary /out /out
@@ -108,7 +108,7 @@ boundary /out /out
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -150,7 +150,7 @@ boundary /L1/a /L2/a t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b t:120
@@ -172,7 +172,7 @@ boundary /L1/a /L1/b t:120
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -193,7 +193,7 @@ boundary /L1/a /L1/b edge:E t:150
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out exterior
@@ -220,7 +220,7 @@ boundary /L1/b /out t:150
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /L1/zzz
 ```
@@ -243,7 +243,7 @@ boundary /L1/a /L1/zzz
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X3 Y1..Y2 + X2..X3 Y1..Y2
 ```
 
@@ -261,7 +261,7 @@ space /L1/a room X1..X3 Y1..Y2 + X2..X3 Y1..Y2
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X3 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 ```
@@ -275,7 +275,7 @@ space /L1/b room X2..X3 Y1..Y2
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /L1/home name:住戸
 space /L1/home/ldk ldk X1..X2 Y1..Y2 name:LDK
 space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
@@ -291,7 +291,7 @@ space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out exterior
   area X1..X2 Y1..Y2 floor:タイル
@@ -311,7 +311,7 @@ space /out exterior
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
   area X1..X3 Y1..Y2 floor:タイル
 ```
@@ -334,7 +334,7 @@ space /L1/a room X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -355,7 +355,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -377,7 +377,7 @@ boundary /L1/a /L1/b t:120
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b type:open
@@ -398,7 +398,7 @@ boundary /L1/a /L1/b type:open
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -419,7 +419,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out exterior
@@ -442,7 +442,7 @@ boundary /L1/b /out t:150
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -463,7 +463,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X1..X2 Y2..Y3
 boundary /L1/a /L1/b t:120
@@ -484,7 +484,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -509,7 +509,7 @@ boundary /L1/a /L1/b t:120
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b type:open
@@ -530,7 +530,7 @@ boundary /L1/a /L1/b type:open
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -549,7 +549,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out exterior
@@ -570,7 +570,7 @@ boundary /L1/b /out t:150
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -589,7 +589,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X1..X2 Y2..Y3
 boundary /L1/a /L1/b t:120
@@ -608,7 +608,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -631,7 +631,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out exterior
 boundary /L1/a /out type:stair
@@ -651,7 +651,7 @@ boundary /L1/a /out type:stair
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 level L3 6000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
@@ -668,7 +668,7 @@ boundary /L1/a /L3/a type:stair
 ```muro
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 level L3 6000 h:2400 slab:200
 space /L1/ev shaft X1..X2 Y1..Y2
@@ -685,7 +685,7 @@ stack ev L1..L3 type:shaft
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/b room X2..X3 Y1..Y2
@@ -706,7 +706,7 @@ boundary /L1/a /L2/b type:stair
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
@@ -727,7 +727,7 @@ boundary /L1/a /L2/a type:void
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
@@ -749,7 +749,7 @@ boundary /L1/a /L2/a type:stair
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
@@ -773,7 +773,7 @@ boundary /L1/a /L2/a type:stair
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2800
+level L1 0 h:2800 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
@@ -793,7 +793,7 @@ space /L2/a room X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0 h:5400
+level L1 0 h:5400 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X3 Y1..Y2
 space /L2/v void X1..X2 Y1..Y2
@@ -807,8 +807,55 @@ boundary /L1/a /L2/v type:void
 
 **直し方** — 下階の天井高を階高内に収める (`level L1 0 h:2400`)。吹抜け部分の高さは `void` の関係から導出されるので、宣言する必要は無い。全面を吹抜けにしたいなら、`void` 空間の領域を下階の領域と同じにする。
 
-<a id="hgt03"></a>
-### HGT03 — 上階に slab が未宣言で高さ検査ができません
+## 充足性 — SUF
+
+**形を作らないことと、形を作れないことは違う。**この記述からは一意な形が作れなければならないので、形を作るのに必要な情報が揃っているかは構造の整合の一部である ([spec/scope.md §6](../spec/scope.md))。**妥当性の判定ではなく、完全性の検査である** — 「その天井高でよいか」は言わない。「天井高が書かれていない」とだけ言う。
+
+<a id="suf01"></a>
+### SUF01 — 天井高が決まりません
+
+`error`
+
+```muro-bad
+grid X 0 3600
+grid Y 0 4000
+level L1 0 slab:150
+space /L1/a room X1..X2 Y1..Y2
+```
+
+`/L1/a の天井高が決まりません (空間の h: も レベル L1 の h: もありません)`
+
+**原因** — 空間に `h:` が無く、その空間が載るレベルにも `h:` が無い。押し出す高さが無いので、この空間には**天井も屋根も生成されない**。高さの不変量 ([HGT01](#hgt01)) も立式できないので、階を貫く天井高が黙って通る。
+
+咎めないものが三つある。吹抜け (`type:void` — 床も天井も無いことが定義である)、外部 (`type:exterior` — 地面である)、半屋外 (外部に `type:open` か `air:1` で接する空間 — バルコニーに天井高は無い)。この三つは天井高に依らずに形が決まる。
+
+**直し方** — レベルに基準天井高を書く (`level L1 0 h:2400 slab:150`)。個別に違う室だけ空間側に `h:` を書く (`space /L1/a room X1..X2 Y1..Y2 h:2700` — 空間の `h` がレベルの `h` に勝つ)。
+
+<a id="suf02"></a>
+### SUF02 — レベルが特定できません
+
+`error`
+
+```muro-bad
+grid X 0 3600
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /house/a room X1..X2 Y1..Y2
+```
+
+`/house/a は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)`
+
+**原因** — **これはパスの書き方の問題ではなく、`level` 宣言の問題であることが多い。** 空間は、パスの先頭セグメントが宣言済みのレベル名と一致するか、`level:` 属性を持つときにレベルに載る。上の例は `/house/…` という集計の階層でパスを切っているので、先頭セグメント `house` はレベル名ではない。逆に `/L1/a` と書いていてこれが出るなら、**`level L1 0` の行が無い** — パスに `/L1/` と書いただけではレベルは宣言されない。
+
+**直し方** — 二つのどちらかである。
+
+- パスを集計の階層で切りたい (`/home/ldk` など) → 空間に `level:` を書く: `space /house/a room X1..X2 Y1..Y2 level:L1`
+- パスの先頭でレベルを言いたい (`/L1/a`) → `level L1 0 h:2400 slab:150` の行を base層に足す
+
+**なぜエラーか** — z が決まらないので、この空間からは**立体が一つも生成されない**。床も天井も屋根も壁も無く、平面図にも現れない。`koyu plan` が「レベル … に領域を持つ空間がありません」で落ちるのはこの状態である。
+
+<a id="suf03"></a>
+### SUF03 — slab が無く、床が生成されません
 
 `warning`
 
@@ -816,59 +863,36 @@ boundary /L1/a /L2/v type:void
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400
-level L2 3000 h:2400
 space /L1/a room X1..X2 Y1..Y2
-space /L2/a room X1..X2 Y1..Y2
 ```
 
-`レベル L2 に slab が未宣言のため、L1 との高さ検査ができません`
+`レベル L1 に slab: が無く、この階の床が一枚も生成されません`
 
-**原因** — 高さの不変量は上階の `slab` (床組み厚: スラブ+懐+仕上) が無いと立式できない。「間違っている」ではなく「**検査ができていない**」という報せである。緑のまま放置すると、高さの矛盾は誰も見ない。
+**原因** — 床は `level` の `slab` (床組み厚: スラブ+懐+仕上) だけが与える ([ADR-0024](../docs/decisions/0024-fabric.md))。床を置く操作は無く、`slab` を書いたことが床を宣言したことである。書かなければ、その階の床は一枚も生成されない。加えて、高さの不変量 ([HGT01](#hgt01)) は上階の `slab` が無いと立式できないので、下階の高さの検査も行われない。
 
-**直し方** — 上のレベルに `slab:` を書く (`level L2 3000 h:2400 slab:500`)。最上階の上に空間の無い屋上レベル (`level R 5800 slab:500`) を足しておくと、最上階も検査の対象になる。
+**なぜ警告どまりか** — 形そのものは定まっているからである。「`slab` が無ければ床要素を作らない」は決定的な規則であって、同じ構成から複数の形が出るわけではない。ただし**床の無い建物になることは知らされるべきである**。
 
-<a id="hgt04"></a>
-### HGT04 — 天井高が不明で高さ検査ができません
+**直し方** — レベルに `slab:` を書く (`level L1 0 h:2400 slab:150`)。空間を持たない屋上レベル (`level R 5800 slab:500`) には床を持ちうる空間が載っていないので、これは出ない — そのレベルは最上階の上限を与えるためだけにある。
+
+<a id="suf04"></a>
+### SUF04 — 上にレベルが無いため形が生成されません
 
 `warning`
 
 ```muro-warn
-grid X 0 3600
-grid Y 0 4000
-level L1 0
-level L2 3000 slab:400
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y2
-space /L2/a room X1..X2 Y1..Y2
+space /L2/s stair X1..X2 Y1..Y2 stair:N
 ```
 
-`/L1/a の天井高が不明で、L2 との高さ検査ができません`
+`L2 の上にレベルが無いため、/L2/s の形は生成されません`
 
-**原因** — [HGT03](#hgt03) の裏返しで、今度は下階側の天井高が無い。空間に `h:` が無く、そのレベルにも `h:` が無い。
+**原因** — 縦動線の形は「自レベルのFLから次のレベルのFLまで」で決まる。最上階の階段には上る先が無いので、段は生成されない (その階の平面には、下階から上ってくる走りだけが現れる)。宣言はあるのに形が無いという、充足性の話である。
 
-**直し方** — レベルに基準天井高を書く (`level L1 0 h:2400`)。個別に違う室だけ空間側に `h:` を書く。
-
-<a id="hgt05"></a>
-### HGT05 — レベルが特定できません
-
-`warning`
-
-```muro-warn
-grid X 0 3600
-grid Y 0 4000
-level L1 0
-space /house/a room X1..X2 Y1..Y2
-```
-
-`/house/a は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)`
-
-**原因** — **これはパスの書き方の問題ではなく、`level` 宣言の問題であることが多い。** 空間は、パスの先頭セグメントが宣言済みのレベル名と一致するか、`level:` 属性を持つときにレベルに載る。上の例は `/house/…` という集計の階層でパスを切っているので、先頭セグメント `house` はレベル名ではない。逆に `/L1/a` と書いていてこの警告が出るなら、**`level L1 0` の行が無い** — パスに `/L1/` と書いただけではレベルは宣言されない。
-
-**直し方** — 二つのどちらかである。
-
-- パスを集計の階層で切りたい (`/home/ldk` など) → 空間に `level:` を書く: `space /house/a room X1..X2 Y1..Y2 level:L1`
-- パスの先頭でレベルを言いたい (`/L1/a`) → `level L1 0` の行を base層に足す
-
-**なぜ警告どまりか** — 領域はあるので構成としては成立している。ただし**レベルに載らない空間は平面図に現れない。** `check` が緑でも `koyu plan` が「レベル … に領域を持つ空間がありません」で落ちるのはこの状態である。
+**直し方** — 屋上へ抜ける階段なら、屋根面を `level R` として宣言する。抜けないなら宣言を外す。
 
 ## レベル — LVL
 
@@ -900,7 +924,7 @@ level L2 0
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 zone /wing name:西棟
 ```
@@ -919,7 +943,7 @@ zone /wing name:西棟
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/a/x room X2..X3 Y1..Y2
 zone /L1/a name:重なった名
@@ -943,7 +967,7 @@ zone /L1/a name:重なった名
 ```muro-bad
 grid X 0 10000
 grid Y 0 10000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /site name:敷地 site:1
 polygon /site 0,0 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
@@ -963,7 +987,7 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```muro-bad
 grid X 0 10000
 grid Y 0 10000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /site name:敷地 site:1
 polygon /site 0,0 10000,0 0,10000 10000,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
@@ -983,7 +1007,7 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```muro-warn
 grid X 0 10000
 grid Y 0 10000
-level L1 0
+level L1 0 h:2400 slab:150
 polygon /site 0,0 10000,0 10000,10000 0,10000
 space /L1/a room X1..X2 Y1..Y2
 ```
@@ -1006,7 +1030,7 @@ space /L1/a room X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 uid:0123
 ```
 
@@ -1024,7 +1048,7 @@ space /L1/a room X1..X2 Y1..Y2 uid:0123
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 uid:"sp 1"
 ```
 
@@ -1042,7 +1066,7 @@ space /L1/a room X1..X2 Y1..Y2 uid:"sp 1"
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 uid:sp-1
 space /L1/b room X2..X3 Y1..Y2 uid:sp-1
 ```
@@ -1092,7 +1116,7 @@ space /L2/a room X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 5000
 grid Y 0 5000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 zone /site name:敷地 site:yes
 polygon /site 0,0 5000,0 5000,5000 0,5000
 space /site/a room X1..X2 Y1..Y2 level:L1
@@ -1112,7 +1136,7 @@ space /site/a room X1..X2 Y1..Y2 level:L1
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 heigh:2200
 ```
 
@@ -1127,7 +1151,7 @@ space /L1/a room X1..X2 Y1..Y2 heigh:2200
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 h:2200 acme.sensor:23 bems.temp:22.5
 ```
 
@@ -1143,7 +1167,7 @@ space /L1/a room X1..X2 Y1..Y2 h:2200 acme.sensor:23 bems.temp:22.5
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 daylight:yes
 ```
 
@@ -1217,26 +1241,6 @@ space /L2/s stair X1..X3 Y1..Y2
 
 **直し方** — 階段室を矩形一つで割り付ける。L字の階段室が要る場面は、多くは階段と踊り場ホールに分けるべき場面である。
 
-<a id="run04"></a>
-### RUN04 — 上にレベルが無いため形が生成されません
-
-`warning`
-
-```muro-warn
-grid X 0 3000 6000
-grid Y 0 6000
-level L1 0 h:2700 slab:300
-level L2 3000 h:2700 slab:300
-space /L1/a room X1..X2 Y1..Y2
-space /L2/s stair X1..X2 Y1..Y2 stair:N
-```
-
-`L2 の上にレベルが無いため、/L2/s の形は生成されません`
-
-**原因** — 縦動線の形は「自レベルのFLから次のレベルのFLまで」で決まる。最上階の階段には上る先が無いので、段は生成されない (その階の平面には、下階から上ってくる走りだけが現れる)。
-
-**直し方** — 屋上へ抜ける階段なら、屋根面を `level R` として宣言する。抜けないなら宣言を外す。
-
 <a id="run05"></a>
 ### RUN05 — form の値が不正です
 
@@ -1269,7 +1273,7 @@ space /L2/s stair X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 3000 6000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -1290,7 +1294,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3000 6000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:300
 level L2 3000 slab:300
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a void X1..X2 Y1..Y2
@@ -1312,7 +1316,7 @@ boundary /L1/a /L2/a type:void
 ```muro-warn
 grid X 0 3000 6000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -1337,7 +1341,7 @@ boundary /L1/a /L1/b t:120
 ```muro-warn
 grid X 0 3000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:300
 level L2 3000 slab:300
 space /L1/a room X1..X2 Y1..Y2
 column 600 L2
@@ -1357,7 +1361,7 @@ column 600 L2
 ```muro-warn
 grid X 0 3000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 column 600 L1
 column 800 L1
@@ -1380,7 +1384,7 @@ column 800 L1
 koyu 0.1
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a hall X1..X2 Y1..Y2
 space /L1/b hall X2..X3 Y1..Y2
 ```
@@ -1405,7 +1409,7 @@ space /L1/b hall X2..X3 Y1..Y2
 koyu 0.3
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 

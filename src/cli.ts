@@ -86,9 +86,10 @@ function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
-      "使い方: koyu <check|validate|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]\n" +
+      "使い方: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]\n" +
         "  check:    --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1) — 構造整合だけを見る\n" +
         "  validate: --json (Finding[]をJSONで出力) — 建築的な判定 (checkの保証ではない)\n" +
+        "  layers:   合成に参加した層を強度順に。--attrs で属性ごとの出所\n" +
         "  diff:  koyu diff <a.muro> <b.muro> [--json] — 構成の言葉の差分 (0=差分なし / 1=差分あり / 2=入力が壊れている)",
     );
     return 2;
@@ -192,6 +193,24 @@ function main(argv: string[]): number {
           : `判定 — 違反 ${violations} / 注意 ${cautions}`,
       );
       return violations > 0 ? 1 : 0;
+    }
+    case "layers": {
+      // 合成の規則1と6 (spec/composition.md) — 強度順序を見せ、最終値の出所を言う。
+      // **暗黙の解決はどこにも無い**ことを、目で確かめられるようにするための面である
+      if (model.layers.length === 0) {
+        console.log("層がありません (単一ファイルの解析には合成が無い)");
+        return 0;
+      }
+      console.log("層 (弱い順 — 後の層ほど強い):");
+      model.layers.forEach((l, i) => console.log(`  ${i}\t${l}`));
+      if (rest.includes("--attrs")) {
+        console.log("\n属性の出所:");
+        const rows = [...model.attrSrc].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+        for (const [key, layerIdx] of rows) {
+          console.log(`  ${key}\t← ${layerIdx} ${model.layers[layerIdx] ?? "?"}`);
+        }
+      }
+      return 0;
     }
     case "json": {
       process.stdout.write(toCanonical(model));
