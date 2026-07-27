@@ -25,9 +25,14 @@ export function siteFindings(model: Model): Finding[] {
   const out: Finding[] = [];
   const withRect = [...model.spaces.values()].filter((s) => s.rects.length > 0);
 
-  // 接道 — core が返すのは接道長という数だけで、2m という下限は建築の側の規則である
+  // 接道 — core が返すのは接道長という数だけで、2m という下限は建築の側の規則である。
+  //
+  // **敷地が宣言されていなければ問わない。**接道長は「敷地と道路が共有する境界の長さ」なので、
+  // site:1 のゾーンが無い模型では 0 が導かれるが、それは「接道が無い」ではなく
+  // 「導けていない」である。地下の断面だけを書いた例のように、道路は書くが敷地は書かない
+  // 模型は現にある — 導けていない数に線を引くと、書いていないことが違反になる。
   const report = siteReport(model);
-  for (const road of report.roads) {
+  for (const road of report.siteZone ? report.roads : []) {
     if (road.frontage >= FRONTAGE_MIN) continue;
     out.push(
       finding(

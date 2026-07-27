@@ -89,7 +89,8 @@ koyu は三つの領域からなる。**求められる品質が違うので、�
 | 敷地 | 敷地面積・接道長・建築面積・延べ面積・その商 (`siteReport`) | 2m の接道 (`site.frontage`)・はみ出し (`site.escape`) |
 | 縦動線 | 段数・蹴上・踏面・勾配 (`verticalRuns`) | 窮屈さ (`stair.proportion`)・勾配 (`run.slope`) |
 | 外皮 | 何にも面していない外周の線分 (`envelopeGaps`) | それが穴か (`envelope.gap`) |
-| 動線 | 最少扉数の経路 (`doorsBetween`) | — |
+| 動線 | 最少扉数の経路と通行可能性 (`doorsBetween` / `passable`) | 外部へ出られるか (`access.unreachable` ほか `access.*`) |
+| 柱と開口 | 通り芯から立つ柱と線分上の開口 (`columnsFor` / `placeOpening`) | 重なっているか (`column.blocksdoor`) |
 
 **閾値は建築の側にある。**1/7 も 2m も 240mm も、原本の構成が満たすべき不変量ではない。数を返すところまでが core で、数に線を引くのが検証である。
 

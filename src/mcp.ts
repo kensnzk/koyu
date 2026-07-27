@@ -257,7 +257,7 @@ const TOOLS: Record<string, Tool> = {
   },
   validate: {
     description:
-      "建築的な判定 (採光・外皮の連続・階段の寸法・勾配・敷地) を返す。**check の保証とは別の面である** — rule/level を持ち、code/severity は持たない。増える面であって凍らない",
+      "建築的な判定 (採光・外皮の連続・階段の寸法・勾配・到達可能性・柱と扉の衝突・敷地) を返す。**check の保証とは別の面である** — rule/level を持ち、code/severity は持たない。増える面であって凍らない",
     schema: { type: "object", properties: FILE_PROP, required: ["file"] },
     run: (a) => {
       const m = load(str(a.file, "file"));

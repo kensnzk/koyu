@@ -34,9 +34,15 @@ koyu v1.0.0-rc.1 現在。**この面は凍らない** ([scope.md §8](scope.md#
 | `stair.proportion` | caution | 導出された段が窮屈 (踏面 <240mm、または 2×蹴上+踏面 が 550〜700mm の外)。折返しでは**最も窮屈な走り**が代表する |
 | `run.slope` | caution | 導出された勾配が宣言 `slope:` より急、またはエスカレーターの常用域 (約1/1.7) から外れる |
 | `run.disconnected` | caution | 縦動線の形はあるが上下を繋ぐ垂直境界が無い (形はあってもグラフでは通れない) |
+| `access.unreachable` | violation | 領域を持つ室から、通れる境界を辿って外部空間へ出られない。**扉の有無ではなく到達性**を問う。シャフト (人が通れない)・吹抜け (床が無い)・外部は対象外 |
+| `access.voidonly` | violation | 通れる境界を持つのに、その行き先が全部 `type:void` — 扉が床の無い穴に向かって開いている |
+| `access.throughtenant` | caution | 階段室から外部へ出る経路が `use:rentable` の空間を必ず通る (テナントが施錠すると死ぬ避難路)。専用通路として通す設計もあるので caution |
+| `access.parking` | violation | `use:parking` の空間から車が外部へ出られない。車が通れるのは `type:open` の境界・幅 2400mm 以上の扉・斜路 (`ramp:` を持つ空間の縦連結) だけ |
+| `access.backofhouse` | caution | 縦動線の宣言を持つ共用空間へ、共用廊下から `type:backyard` を通らずに届かない。共用廊下が一つも無い建物では問わない。当の空間へは**水平に**入れることを要求する〈近似〉 |
+| `column.blocksdoor` | violation | 導出された柱が導出された扉と重なる ([ADR-0023](../docs/decisions/0023-columns.md))。**どちらも原本には座標が無い**ので、衝突は導出でしか分からない |
 | `site.escape` | violation | 建物が敷地形状からはみ出す。四隅の内包に加え頂点の入り込みと辺の交差を見るため凹敷地でも正しい。境界上は内側扱い・許容1mm。外部空間タイルは検査しない〈近似〉 |
 | `site.area` | caution | 敷地面積の宣言 (`area:` 測量値) と多角形からの導出が ±0.05㎡ を超えて食い違う |
-| `site.frontage` | violation | 接道長が 2000mm 未満 (法43条の粗い写し)。建物外壁が道路に面する分は数えない |
+| `site.frontage` | violation | 接道長が 2000mm 未満 (法43条の粗い写し)。建物外壁が道路に面する分は数えない。**`site:1` のゾーンが無い模型では問わない** — 導かれる0は「接道が無い」ではなく「導けていない」である |
 
 ## 閾値
 
@@ -48,6 +54,7 @@ koyu v1.0.0-rc.1 現在。**この面は凍らない** ([scope.md §8](scope.md#
 | `TREAD_MIN` | 240mm | `src/validate/runs.ts` |
 | `STEP_RULE` | 550〜700mm | 同上 |
 | `ESCALATOR_SLOPE` | 1/2.3 〜 1/1.4 | 同上 |
+| `CAR_WIDTH_MIN` | 2400mm | `src/validate/access.ts` — 車が通れる開口の最小幅 (人の扉 900mm では車は出られない) |
 | `FRONTAGE_MIN` | 2000mm | `src/validate/site.ts` |
 | `COVERED_SEMI_FACTOR` | 0.7 | `src/core/light.ts` — これは**係数であって閾値ではない**ので core にある (窓の先が何かという導出) |
 

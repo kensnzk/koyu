@@ -165,6 +165,150 @@ space /L2/s stair X1..X2 Y1..Y1+7000
 **直し方** — `stack s L1..L2 type:stair` を書く。逆に「形は要らないが繋がっている」場合 (EVシャフト等) は、空間の宣言を外して垂直境界だけを残す。
 
 
+## 到達 — access / column
+
+**check が緑でも建物が使えるとは限らない。**接する空間の既定は壁なので ([ADR-0014](../docs/decisions/0014-default-boundaries.md))、扉を一枚も宣言しない二階建ては緑のまま完全に密封される。この章は、その予言を旗艦例が実際に踏んだときに書かれた — 「床の無い吹抜けにしか扉が開かない区画が20」「他人の店舗を貫通する避難路」「車の出入口の無い2層の駐車場」「バックヤードの奥で孤立したエスカレーター」を、check 緑のまま抱えていたのである。
+
+<a id="access-unreachable"></a>
+### `access.unreachable` — 外部へ到達できません
+
+`violation`
+
+```muro-fail
+grid X 0 4000
+grid Y 0 5000
+level L1 0 h:2700
+space /out exterior
+space /L1/a room X1..X2 Y1..Y2
+boundary /L1/a /out t:150
+```
+
+`外部へ到達できません: /L1/a (通れる境界を辿って外部空間へ出られません — 扉を書きます)`
+
+**原因** — 領域を持つ室から、通れる境界を辿って外部空間へ出られない。**問うのは扉の有無ではなく到達性である** — 扉を持っていても、その先が行き止まりなら出られない。ここでは外部への壁は書いたが、そこに開口が無い。シャフト (人が通れない)・吹抜け (床が無い)・外部そのものは対象外で、外部空間が一つも書かれていない模型では問わない。
+
+**直し方** — 外部へ抜ける経路のどこかに `door` を書く。外部への境界は線分が複数になるので `edge:N/E/S/W` で辺を選ぶ。どこで切れているかは `koyu doors <file> <from> <to>` が最少扉数の経路で答える。
+
+<a id="access-voidonly"></a>
+### `access.voidonly` — 扉が吹抜けにしか開いていません
+
+`violation`
+
+```muro-fail
+grid X 0 4000 8000
+grid Y 0 5000
+level L1 0 h:2700
+space /L1/v void X1..X2 Y1..Y2
+space /L1/a room X2..X3 Y1..Y2
+boundary /L1/a /L1/v type:open
+```
+
+`扉が吹抜けにしか開いていません: /L1/a (床の無い所へ開いているので出入りできません)`
+
+**原因** — 通れる境界を持つのに、その行き先が全部 `type:void` である。吹抜けは空間としては連続するが床が無いので、扉は穴に向かって開いている — 出入りしたつもりでどこへも行けない。区画を吹抜けに面して並べ、廊下との境界を書き忘れると起きる。
+
+**直し方** — 床のある隣 (廊下・階段室) へ扉を書く。吹抜けに面した縁が本当に開いているのなら、それは通行ではなく見下ろしなので `type:open` ではなく `air:1` の壁 (手すり) にする。
+
+<a id="access-throughtenant"></a>
+### `access.throughtenant` — 避難が賃貸区画を通ります
+
+`caution`
+
+```muro-caution
+grid X 0 3000 9000
+grid Y 0 6000
+level L1 0 h:2700
+space /out exterior
+space /L1/s stair X1..X2 Y1..Y2
+space /L1/t room X2..X3 Y1..Y2 use:rentable
+boundary /L1/s /L1/t
+  door w:900
+boundary /L1/t /out
+  door w:1800 edge:S
+boundary /L1/s /out t:150
+```
+
+`/L1/s からの避難が賃貸区画を通ります (テナントが施錠すると外部へ出られません)`
+
+**原因** — 階段室から外部へ出るどの経路も `use:rentable` の空間を通る。テナントが施錠した瞬間、その階段は避難に使えなくなる。
+
+**caution にしてある理由** — 通ってよいかは契約と管轄の側の事実であって、原本には書かれていない。賃貸区画の中に専用通路を通す設計は現にある。疑う値打ちはあるが、断じる根拠がここには無い。
+
+**直し方** — 賃貸区画を避けて外部へ抜ける経路 (共用廊下・附室) を書く。階段室から直接外部へ出るなら、その境界に `door` を書く。
+
+<a id="access-parking"></a>
+### `access.parking` — 車が外部へ出られません
+
+`violation`
+
+```muro-fail
+grid X 0 6000
+grid Y 0 6000
+level L1 0 h:2700
+space /out exterior
+space /L1/p room X1..X2 Y1..Y2 use:parking
+boundary /L1/p /out
+  door w:900 edge:S
+```
+
+`車が外部へ出られません: /L1/p (幅2400mm以上の開口・type:open の境界・斜路のいずれかが要ります)`
+
+**原因** — `use:parking` の空間から車が出られない。**人は900mmの扉と階段で出られてしまうので `access.unreachable` では見えない。**車が通れるのは `type:open` の境界・幅2400mm以上の扉・斜路 (`ramp:` を持つ空間の縦連結) だけで、階段の縦連結は車にとってただの段差である。
+
+**直し方** — 車路の開口を `door w:2400` 以上にするか、境界を `type:open` にする。地下や上階の駐車場なら、斜路の空間に `ramp:` を書いて `stack` で繋ぐ。
+
+<a id="access-backofhouse"></a>
+### `access.backofhouse` — 共用廊下からバックヤードを通らずに届きません
+
+`caution`
+
+```muro-caution
+grid X 0 3000 6000 9000
+grid Y 0 8000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/c corridor X1..X2 Y1..Y2 use:common
+space /L1/b backyard X2..X3 Y1..Y2
+space /L1/e room X3..X4 Y1..Y2 use:common escalator:N
+space /L2/e room X3..X4 Y1..Y2 use:common
+stack e L1..L2 type:stair
+boundary /L1/c /L1/b
+  door w:900
+boundary /L1/b /L1/e
+  door w:900
+```
+
+`/L1/e へ共用廊下からバックヤードを通らずに届きません (客が乗れない縦動線です)`
+
+**原因** — 縦動線の宣言 (`stair:` / `escalator:` — [ADR-0021](../docs/decisions/0021-vertical-circulation.md)) を持つ共用の空間は客動線の一部なのに、共用廊下から `type:backyard` を通らずに届かない。当の空間へは**水平に**入れなければならない — 自分の縦連結を経由してよいことにすると「上の階からそのエスカレーターで降りてくれば乗り場に着く」という循環が成り立ち、孤立をそのまま素通しする。共用廊下 (`type:corridor` かつ `use:common`) が一つも無い建物には客動線の区別が無いので問わない。
+
+**caution にしてある理由** — 「共用の縦動線はすべて客用」は粗い推定である。従業員用の共用階段を客用と読み違えることがある。
+
+**直し方** — 共用廊下から直接届く位置へ動かすか、廊下との間に扉を書く。従業員用の縦動線なら `use:common` を外す。
+
+<a id="column-blocksdoor"></a>
+### `column.blocksdoor` — 柱が扉を塞いでいます
+
+`violation`
+
+```muro-fail
+grid X 0 4000 8000
+grid Y 0 5000 10000
+level L1 0 h:2700
+space /L1/a room X1..X3 Y1..Y2
+space /L1/b room X1..X3 Y2..Y3
+column 600 L1
+boundary /L1/a /L1/b
+  door w:900 at:X2
+```
+
+`柱が扉を塞いでいます: /L1/a | /L1/b の扉 (幅900mm) が X2・Y2 の柱と重なります`
+
+**原因** — **位置を書かない要素が二つあると、衝突は導出でしか分からない。**柱は通り芯の交点から ([ADR-0023](../docs/decisions/0023-columns.md))、扉は境界線分の上から (`at:` の比率か通り参照から) 導かれるので、どちらも原本には座標が無い。通り芯の交点は境界線分の上でもあるので、扉を通りに寄せると必ずぶつかる。
+
+**直し方** — 扉を通りからずらす (`at:X2+900` のようにオフセットを足す)、柱を `x:` / `y:` で通りから外す、または壁の位置を変える。`koyu plan` の平面図で結果を確かめられる。
+
+
 ## 敷地 — site
 
 <a id="site-escape"></a>

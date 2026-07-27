@@ -26,6 +26,7 @@ import { heff, isSemiOutdoor, levelsSorted, type Attrs, type Boundary, type Edge
   polygonSelfIntersection,
 } from "./model.js";
 import { cutsInWindow } from "./poly.js";
+import { ASSET_ELEM, attrSpec, isNamespaced } from "./vocabulary.js";
 import { runDecls, runIssues } from "./vertical.js";
 
 export interface CheckResult {
@@ -103,6 +104,7 @@ export const DIAGNOSTIC_CODES = {
   UID03: "error", // uidの重複
   ATT01: "error", // 解釈される属性の値が数値でない (ADR-0028)
   ATT02: "error", // 解釈される属性の値が台帳の語彙にない (ADR-0028)
+  ATT03: "error", // 台帳に無い属性キー — 名前空間が無い (ADR-0033)
   DAY01: "error", // daylightの値が 0/1 以外 (ADR-0020)
   RUN01: "error", // 一つの空間に縦動線の宣言が複数 (ADR-0021)
   RUN02: "error", // 縦動線の値が上る向き (N/E/S/W) でない
@@ -136,58 +138,53 @@ const VERTICAL = new Set(["stair", "shaft", "void"]);
 const LEGACY_DAYLIT = new Set(["unit", "room", "ldk", "bedroom", "living"]);
 
 /** 互換層 — 従来の文字列形式。位置を持つ診断は「file:N行目: 本文」に組み立てる */
-/**
- * 解釈される属性の値の台帳 (ADR-0028)。**spec/vocabulary.md の★が契約であり、これはその写しである。**
- *
- * `of` があれば列挙、無ければ正の数値。ここに無い属性は自由に書けてそのまま運ばれる
- * (台帳の規則3)。daylight は DAY01 が、form は RUN05 が、縦動線の向きは RUN02 が
- * 既に守っているので重ねない。
- */
-const ATTR_RULES: Record<string, Record<string, { of?: Array<string | number> }>> = {
-  space: {
-    h: {},
-    ceiling: { of: [0, 1] },
-    turn: { of: ["R", "L"] },
-    riser: {},
-    tread: {},
-    entry: {},
-    landing: {},
-    lane: {},
-    slope: {},
-    road: {},
-  },
-  zone: { site: { of: [0, 1] }, area: {} },
-  // air:1 の境界の天端高 (手すり・腰壁) — 立体が読むので台帳に載る (ADR-0028)
-  boundary: { h: {} },
-  opening: { style: { of: ["hinged", "sliding", "auto"] } },
-};
-
 interface AttrSubject {
-  rules: Record<string, { of?: Array<string | number> }>;
+  /** 台帳を引く要素名 */
+  elem: string;
   of: Attrs;
 }
 
-/** 値を検査すべき宣言を、出所つきで数え上げる — 母集団は**書かれた宣言**である */
+/**
+ * 属性を検査すべき宣言を、出所つきで数え上げる — 母集団は**書かれた宣言**である。
+ * 走査は宣言の順 (空間 → ゾーン → 境界 → その開口・seg → 空間の area → 柱)。
+ */
 function attrSubjects(
   model: Model,
 ): Array<[string, AttrSubject, { line?: number; file?: string; path?: string[] }]> {
   const out: Array<[string, AttrSubject, { line?: number; file?: string; path?: string[] }]> = [];
   for (const s of model.spaces.values()) {
-    out.push([s.path, { rules: ATTR_RULES["space"]!, of: s.attrs }, { line: s.line, file: s.file, path: [s.path] }]);
+    const at = { line: s.line, file: s.file, path: [s.path] };
+    out.push([s.path, { elem: "space", of: s.attrs }, at]);
+    for (const a of s.areas) {
+      out.push([`area (${s.path})`, { elem: "area", of: a.attrs }, { line: a.line, file: s.file, path: [s.path] }]);
+    }
   }
   for (const z of model.zones.values()) {
-    out.push([`ゾーン ${z.path}`, { rules: ATTR_RULES["zone"]!, of: z.attrs }, { line: z.line, file: z.file, path: [z.path] }]);
+    out.push([`ゾーン ${z.path}`, { elem: "zone", of: z.attrs }, { line: z.line, file: z.file, path: [z.path] }]);
   }
   for (const b of model.boundaries) {
     const at = { line: b.line, file: b.file, path: [b.a, b.b] };
-    out.push([`境界 ${b.a} | ${b.b}`, { rules: ATTR_RULES["boundary"]!, of: b.attrs }, at]);
+    out.push([`境界 ${b.a} | ${b.b}`, { elem: "boundary", of: b.attrs }, at]);
     for (const o of b.openings) {
       out.push([
         `${o.kind} (${b.a} | ${b.b})`,
-        { rules: ATTR_RULES["opening"]!, of: o.attrs },
+        { elem: "opening", of: o.attrs },
         { line: o.line, file: b.file, path: [b.a, b.b] },
       ]);
     }
+    for (const g of b.segs) {
+      out.push([
+        `seg (${b.a} | ${b.b})`,
+        { elem: "seg", of: g.attrs },
+        { line: g.line, file: b.file, path: [b.a, b.b] },
+      ]);
+    }
+  }
+  for (const a of model.assets.values()) {
+    out.push([`アセット ${a.name}`, { elem: ASSET_ELEM, of: a.attrs }, { line: a.line, file: a.file }]);
+  }
+  for (const c of model.columns) {
+    out.push([`柱 ${c.size}mm`, { elem: "column", of: c.attrs }, { line: c.line, file: c.file }]);
   }
   return out;
 }
@@ -449,23 +446,33 @@ function checkDaylightScope(ctx: Ctx): void {
 
 /** 解釈される属性の値 — ATT01 / ATT02 */
 function checkAttrValues(ctx: Ctx): void {
-  const { model, emit, loc, withRect, levels, levelIndex } = ctx;
-  // 解釈される属性の値 (ADR-0028): **書いたのに解釈されなかった値は、黙って既定へ落とさない。**
+  const { model, emit } = ctx;
+  // 属性の三層 (spec/scope.md §7)。**書いたのに解釈されなかったものを、黙って落とさない。**
   //
-  // daylight だけが DAY01 で守られていて、他の★属性は素通りだった。帰結は黙殺である —
-  // `site:yes` は敷地の検査 (SIT03 error) を丸ごと無効にし、`h:35OO` は高さ不変量
-  // (HGT01 error) を消し、`ceiling:none` は天井を張り、`turn:l` は階段を鏡像にする。
-  // どれも check は緑のままだった。台帳 (spec/vocabulary.md) が契約である以上、
-  // 台帳の型に合わない値はエラーである。
-  for (const [where, attrs, at] of attrSubjects(model)) {
-    for (const [key, rule] of Object.entries(attrs.rules)) {
-      const v = attrs.of[key];
-      if (v === undefined) continue;
-      if (rule.of) {
-        if (!rule.of.includes(v as string | number)) {
-          emit("ATT02", `${where} の ${key} は ${rule.of.join(" / ")} のどれかです: ${key}:${v}`, at);
+  // ADR-0028 は値を守った — `site:yes` は敷地の判定を、`h:35OO` は高さ不変量を、
+  // それぞれ丸ごと無音にしていた。だが**キー**は無防備のままだった。
+  // `heigh:2400` `sit:1` `stiar:N` は、一字違いで同じことを起こしながら緑で通る。
+  //
+  // 台帳に無いキーは、名前空間 (`acme.sensor`) を持たなければエラーである (ATT03) —
+  // これが「見ていない」と「見て問題がない」を区別できる唯一の形である (ADR-0033)。
+  for (const [where, subj, at] of attrSubjects(model)) {
+    for (const [key, v] of Object.entries(subj.of)) {
+      const spec = attrSpec(subj.elem, key);
+      if (!spec) {
+        if (isNamespaced(key)) continue; // 運搬層 — core は中身に一切の意味を与えない
+        emit(
+          "ATT03",
+          `${where} に台帳に無い属性 ${key}: があります (綴りを確かめるか、運ぶだけの値なら名前空間を付けます — 例 acme.${key}:${v})`,
+          at,
+        );
+        continue;
+      }
+      if (spec.tier === "carry") continue; // 運搬層は値を見ない
+      if (spec.of) {
+        if (!spec.of.includes(v as string | number)) {
+          emit("ATT02", `${where} の ${key} は ${spec.of.join(" / ")} のどれかです: ${key}:${v}`, at);
         }
-      } else if (typeof v !== "number" || !(v > 0)) {
+      } else if (spec.num && (typeof v !== "number" || !(v > 0))) {
         emit("ATT01", `${where} の ${key} は正の数値で書きます: ${key}:${v}`, at);
       }
     }

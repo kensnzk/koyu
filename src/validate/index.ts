@@ -20,6 +20,7 @@
 // (test/domains.test.ts が import を機械的に検査する)。
 
 import type { Model } from "../core/model.js";
+import { accessFindings } from "./access.js";
 import { daylightFindings } from "./light.js";
 import { envelopeFindings } from "./envelope.js";
 import { runFindings } from "./runs.js";
@@ -29,8 +30,8 @@ import { siteFindings } from "./site.js";
  * 判定の台帳。**綴りが core の診断コードと違う**のは事故を防ぐためである —
  * `ENV01` と `envelope.gap` を取り違える読み手はいない。
  *
- * 章 (`envelope` / `daylight` / `stair` / `run` / `site`) は管轄ではなく主題である。
- * 管轄が二つ目を持ったとき (日本の法規と別の国の法規) に章の下へ足す。
+ * 章 (`envelope` / `daylight` / `stair` / `run` / `access` / `column` / `site`) は管轄ではなく
+ * 主題である。管轄が二つ目を持ったとき (日本の法規と別の国の法規) に章の下へ足す。
  */
 export const VALIDATION_RULES = {
   "envelope.gap": "caution", // 外皮に穴 — 何にも面していない外周 (ADR-0025)
@@ -39,6 +40,12 @@ export const VALIDATION_RULES = {
   "stair.proportion": "caution", // 導出された段が窮屈 (踏面 <240 / 2R+T が 550〜700 の外)
   "run.slope": "caution", // 導出された勾配が宣言より急・常用域の外
   "run.disconnected": "caution", // 縦動線の形はあるが上下を繋ぐ垂直境界が無い
+  "access.unreachable": "violation", // 領域を持つ室から外部へ辿り着けない
+  "access.voidonly": "violation", // 扉が吹抜け (床の無い所) にしか開いていない
+  "access.throughtenant": "caution", // 階段室からの避難が賃貸区画を通る
+  "access.parking": "violation", // 駐車場から車が出られない
+  "access.backofhouse": "caution", // 共用廊下からバックヤードを通らずに縦動線へ届かない
+  "column.blocksdoor": "violation", // 導出された柱が導出された扉と重なる (ADR-0023)
   "site.escape": "violation", // 建物が敷地形状からはみ出す
   "site.area": "caution", // 敷地面積の宣言と導出の食い違い
   "site.frontage": "violation", // 接道長が 2m 未満 (法43条の粗い写し)
@@ -94,10 +101,12 @@ export function validate(model: Model): Finding[] {
     ...envelopeFindings(model),
     ...daylightFindings(model),
     ...runFindings(model),
+    ...accessFindings(model),
     ...siteFindings(model),
   ];
 }
 
+export { accessFindings } from "./access.js";
 export { daylightFindings } from "./light.js";
 export { envelopeFindings } from "./envelope.js";
 export { runFindings } from "./runs.js";

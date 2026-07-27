@@ -358,6 +358,14 @@ function ingest(
         const slab = takeNumber(attrs, "slab", ln);
         const pitch = takeNumber(attrs, "pitch", ln);
         const under = takeNumber(attrs, "underground", ln);
+        // **level は attrs を持たない。**残ったキーは正準JSONにも痕跡を残さず消えるので、
+        // ここで拒まないと `undergound:1` が黙って地上階になる (ADR-0033)
+        for (const key of Object.keys(attrs)) {
+          throw new SourceError(
+            ln,
+            `level に台帳に無い属性 ${key}: があります (level が読むのは h / slab / pitch / underground です)`,
+          );
+        }
         if (under !== undefined && under !== 0 && under !== 1) {
           throw new SourceError(ln, "underground は 0 / 1 で指定します (1=地下)");
         }
@@ -574,6 +582,7 @@ function parseSpace(rest: string[], ln: number, model: Model): Space {
   }
   const type = rest[1];
   if (!type) throw new SourceError(ln, `space ${path} に型(語彙)が要ります`);
+  guardStructuralType(type, ln);
 
   // 領域は「+」区切りで複数書ける (L字などの合併)
   const groups: string[][] = [[]];
@@ -674,6 +683,7 @@ function parseBandMember(rest: string[], ln: number): BandMember {
   if (!type || type.includes(":")) {
     throw new SourceError(ln, `band の要素 ${path} に型(語彙)が要ります`);
   }
+  guardStructuralType(type, ln);
   let w: number | "rest" | undefined;
   const attrTokens: string[] = [];
   for (const t of rest.slice(2)) {
@@ -1095,6 +1105,55 @@ export function tokenize(line: string, ln: number): string[] {
   if (inQuote) throw new SourceError(ln, "引用符が閉じていません");
   if (cur) tokens.push(cur);
   return tokens;
+}
+
+/**
+ * 型として構造的に解釈される二語 (spec/vocabulary.md 規則1)。
+ * `exterior` は「外部」、`void` は「床面積に算入しない」— どちらも構成の事実である。
+ */
+const STRUCTURAL_TYPES = ["exterior", "void"];
+
+/** 編集距離が1以内か (挿入・削除・置換をそれぞれ1と数える) */
+function nearBy1(a: string, b: string): boolean {
+  if (a === b) return false;
+  if (Math.abs(a.length - b.length) > 1) return false;
+  let i = 0;
+  let j = 0;
+  let diff = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      i++;
+      j++;
+      continue;
+    }
+    if (++diff > 1) return false;
+    if (a.length > b.length) i++;
+    else if (a.length < b.length) j++;
+    else {
+      i++;
+      j++;
+    }
+  }
+  return diff + (a.length - i) + (b.length - j) <= 1;
+}
+
+/**
+ * 型の綴りを守る (ADR-0033)。**型の語彙は開いている** — `room` も `ldk` も `厨房` も自由である。
+ * だが構造として解釈される二語だけは、一字違いが黙って意味を変える:
+ * `exteriorr` と書けば外部でなくなり、延床が倍になる。check は緑のままだった。
+ *
+ * 開かれた語彙を殺さずにこれを塞ぐ唯一の形が、**二語の近傍だけを拒むこと**である。
+ * 遠い語 (room / yard / ldk) は何も言われない。
+ */
+function guardStructuralType(type: string, ln: number): void {
+  for (const w of STRUCTURAL_TYPES) {
+    if (nearBy1(type.toLowerCase(), w)) {
+      throw new SourceError(
+        ln,
+        `型 ${type} は ${w} の綴り違いに見えます (${w} は構造として解釈される語です — 別の語彙のつもりなら綴りを離します)`,
+      );
+    }
+  }
 }
 
 function parseAttrs(tokens: string[], ln: number): Attrs {

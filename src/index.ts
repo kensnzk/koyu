@@ -48,6 +48,7 @@ export { svgAxo, type AxoOptions } from "./draw/axo.js";
 export {
   validate,
   VALIDATION_RULES,
+  accessFindings,
   daylightFindings,
   envelopeFindings,
   runFindings,

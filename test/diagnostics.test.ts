@@ -178,6 +178,9 @@ test("母集団: 「延べ面積」は一箇所が答える — stats と site �
 
 test("順序: 診断の並びは走査の順序である — 一つの境界が出す複数のコードは離れない", () => {
   // **並びは契約である。**互換層は診断を出た順に文字列へ写す。
+  // (24行目はかつて `kind:open` と書かれていて、boundary の語は `type:` なので
+  //  黙って壁のままだった。ATT03 がそれを見つけた — この模型自身が、
+  //  台帳に無いキーが何を起こすかの実例である)
   // ここで効く模型は「一本の境界が複数のコードを出す」もの — 15行目の境界は
   // BND04・OPN04・SEG04 を続けて出す。checkDiagnostics を**コード族**で節に割ると
   // この三つが他の境界の診断で分断され、並びが崩れる。走査単位で割れば崩れない。
@@ -204,7 +207,7 @@ boundary /L1/a /L2/a t:120
 boundary /L1/a /out type:void
   door w:900
   seg w:600
-boundary /L1/b /out kind:open
+boundary /L1/b /out type:open
   door w:900
   seg w:600`);
   assert.deepEqual(
@@ -217,8 +220,9 @@ boundary /L1/b /out kind:open
       ["SEG04", 17],
       ["BND03", 18],
       ["VRT01", 21],
+      ["OPN03", 25],
       ["OPN05", 25],
-      ["SEG05", 26],
+      ["SEG03", 26],
     ],
   );
 });

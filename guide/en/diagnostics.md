@@ -1107,6 +1107,33 @@ space /site/a room X1..X2 Y1..Y2 level:L1
 
 **Fix** — use the ledger's spelling. `site:1` declares that this zone is the site, and it is the entrance to the site's area, frontage and containment checks (SIT01–SIT05) as well as to the `site` subcommand.
 
+<a id="att03"></a>
+### ATT03 — the attribute is not in the ledger
+
+`error`
+
+```muro-bad
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400
+space /L1/a room X1..X2 Y1..Y2 heigh:2200
+```
+
+**Cause** — a key that is not in the element's ledger ([spec/vocabulary.md](../../spec/vocabulary.md)) was written without a namespace. **A single wrong letter silently does nothing**: `heigh:2200` is not a ceiling height, and it silences the height invariant (HGT01) entirely.
+
+Attributes come in three layers ([spec/en/scope.md §7](../../spec/en/scope.md)). The **structure** and **interpreted** layers are read by the tools, so the ledger is the contract; the **carry** layer is only transported, so anyone may write it. Requiring a namespace on the carry layer is the only way to tell the two apart by sight.
+
+**Fix** — check the spelling. If the value really is free (sensor readings, survey data, a third party's ledger), give it a **dot-separated namespace**.
+
+```muro
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400
+space /L1/a room X1..X2 Y1..Y2 h:2200 acme.sensor:23 bems.temp:22.5
+```
+
+Core gives no meaning at all to a namespaced attribute — it checks no value domain and uses it in neither derivation nor validation. **It can be carried but is not judged**, and saying so explicitly is the point of the layer.
+
 ## Daylight — DAY
 
 <a id="day01"></a>

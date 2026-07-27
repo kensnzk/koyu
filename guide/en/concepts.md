@@ -261,11 +261,22 @@ One step outside derivation there is **generation**. The plan drawing is generat
 
 ## 6. The vocabulary is open
 
-The second positional of `space` (its type) is required, but **any value passes**. The same holds for attribute keys: anything may be written and is carried through. This openness is intended — it is the consequence of choosing to give meaning by a vocabulary rather than a vast class hierarchy ([spec/vocabulary.md](../../spec/en/vocabulary.md)).
+The second positional of `space` (its type) is required, but **any value passes**. This openness is intended — it is the consequence of choosing to give meaning by a vocabulary rather than a vast class hierarchy ([spec/vocabulary.md](../../spec/en/vocabulary.md)).
 
-The price is that **a typo passes silently**.
+Attributes are open too, but **the openness has a shape**. They come in three layers ([spec/scope.md §7](../../spec/en/scope.md)): the layers the tools read (structure, interpreted) are contracted by the ledger, and the layer that is merely carried has a **namespace**.
 
 ```muro
+grid X 0 2000
+grid Y 0 2000
+level L1 0
+space /L1/a room X1..X2 Y1..Y2 name:居間 acme.sensor:23 bems.temp:22.5
+```
+
+Both `acme.sensor` and `bems.temp` carry a dot, so they belong to the carry layer. Core gives them **no meaning at all** — it checks no value domain and uses them in neither derivation nor validation. Write whatever you like.
+
+A key that is neither in the ledger nor namespaced is an error.
+
+```muro-bad
 grid X 0 2000
 grid Y 0 2000
 level L1 0
@@ -273,10 +284,12 @@ space /L1/a room X1..X2 Y1..Y2 nmae:居間
 ```
 
 ```text
-✔ 整合 — 空間 1 / 境界 0
+✖ 4行目: /L1/a に台帳に無い属性 nmae: があります (綴りを確かめるか、運ぶだけの値なら名前空間を付けます — 例 acme.nmae:居間)
 ```
 
-`nmae:` is a typo for `name:`, but it is neither an error nor a warning, and it comes out in the canonical JSON as `"nmae": "居間"`. A word absent from the ledger is not "wrong" — it is "not interpreted".
+**This once passed silently.** `nmae:` is a typo for `name:`, but the reasoning was that a word absent from the ledger is not "wrong" — merely "not interpreted" — and it came out in the canonical JSON unchanged. The reasoning was consistent; the price was too high. By the same reasoning `heigh:2400` silenced the height invariant (HGT01) entirely, `sit:1` silenced the site verdicts, and `stiar:N` erased the vertical circulation — **all of them green**.
+
+**Being open and being trustworthy are compatible, provided the boundary is declared.** Without the declaration there is no way to tell "not looked at" from "looked at and fine" — and "nothing wrong" in that state means nothing. The namespace is how that boundary is spelled ([ADR-0033](../../docs/decisions/0033-attribute-tiers.md)).
 
 Of the types, only two are interpreted structurally by the tools.
 
@@ -285,7 +298,7 @@ Of the types, only two are interpreted structurally by the tools.
 | `exterior` | The outside. May have no region. Adding `road:` makes it a subject of road frontage |
 | `void` | A void through the floor. Excluded from floor area, and not passable |
 
-**Every other type, however meaningful it looks, is a free word equivalent to any other as far as the tools are concerned.** Whether a space is a subject of the daylight check is not decided by the type either — it is declared, by writing `daylight:1` ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). The entrance to a verdict is never the type; it is an attribute, and the attribute names the tool's test rather than a legal category.
+**Every other type, however meaningful it looks, is a free word equivalent to any other as far as the tools are concerned.** These two words alone have their spelling guarded, though — write `exteriorr` and the space stops being outside, doubling the gross floor area, so a type within **one edit** of either word is refused. Distant words (`room`, `yard`, `ldk`) draw no comment. Whether a space is a subject of the daylight check is not decided by the type either — it is declared, by writing `daylight:1` ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). The entrance to a verdict is never the type; it is an attribute, and the attribute names the tool's test rather than a legal category.
 
 The bundled examples actually use 31 type words (across 135 `space` lines). Not as a ledger but as usage, they are distributed like this.
 
