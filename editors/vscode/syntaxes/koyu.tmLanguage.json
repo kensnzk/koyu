@@ -1,0 +1,220 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "koyu",
+  "scopeName": "source.koyu",
+  "fileTypes": ["muro"],
+  "information_for_contributors": [
+    "koyu (.muro) の TextMate 文法。VS Code と Shiki (Docusaurus) が同じこの一枚を読む — ADR-0031。",
+    "語彙は spec/vocabulary.md の台帳が契約であり、この文法はその写しである。",
+    "test/grammar.test.ts が src/parse.ts の語と台帳の★に対する一致を検査する — 手で足すときは台帳を先に直す。"
+  ],
+  "patterns": [
+    { "include": "#string" },
+    { "include": "#comment" },
+    { "include": "#line-version" },
+    { "include": "#line-unit" },
+    { "include": "#line-name" },
+    { "include": "#line-import" },
+    { "include": "#line-asset" },
+    { "include": "#line-grid" },
+    { "include": "#line-level" },
+    { "include": "#line-stack" },
+    { "include": "#line-band" },
+    { "include": "#line-boundary" },
+    { "include": "#line-zone" },
+    { "include": "#line-polygon" },
+    { "include": "#line-space" },
+    { "include": "#line-opening" },
+    { "include": "#keyword-child" },
+    { "include": "#keyword-directive" },
+    { "include": "#path" },
+    { "include": "#attr-ledger" },
+    { "include": "#attr-free" },
+    { "include": "#gridref" },
+    { "include": "#range" },
+    { "include": "#union" },
+    { "include": "#number" }
+  ],
+  "repository": {
+    "string": {
+      "comment": "引用符の中は空白も # も保たれる (tokenize) — コメントより先に食う",
+      "name": "string.quoted.double.koyu",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [{ "match": "." }]
+    },
+    "comment": {
+      "comment": "引用符の外の # 以降は行末までコメント",
+      "match": "#.*$",
+      "name": "comment.line.number-sign.koyu"
+    },
+    "line-version": {
+      "match": "^(koyu)[ \\t]+([0-9][0-9.]*)",
+      "captures": {
+        "1": { "name": "keyword.control.directive.koyu" },
+        "2": { "name": "constant.numeric.version.koyu" }
+      }
+    },
+    "line-unit": {
+      "match": "^(unit)[ \\t]+([^\\s#]+)",
+      "captures": {
+        "1": { "name": "keyword.control.directive.koyu" },
+        "2": { "name": "constant.language.koyu" }
+      }
+    },
+    "line-name": {
+      "comment": "建物の名 — 行の残りが自由語 (日本語可)",
+      "match": "^(name)[ \\t]+([^#\\n]*)",
+      "captures": {
+        "1": { "name": "keyword.control.directive.koyu" },
+        "2": { "name": "string.unquoted.koyu" }
+      }
+    },
+    "line-import": {
+      "match": "^(import)[ \\t]+([^\\s#]+)",
+      "captures": {
+        "1": { "name": "keyword.control.import.koyu" },
+        "2": { "name": "string.unquoted.path.koyu" }
+      }
+    },
+    "line-asset": {
+      "comment": "asset <名> door|window ...",
+      "match": "^(asset)[ \\t]+(?![^\\s#\"]*:)([^\\s#]+)[ \\t]+(door|window)\\b",
+      "captures": {
+        "1": { "name": "keyword.control.directive.koyu" },
+        "2": { "name": "entity.name.function.asset.koyu" },
+        "3": { "name": "support.type.koyu" }
+      }
+    },
+    "line-grid": {
+      "match": "^(grid)[ \\t]+([XY])\\b",
+      "captures": {
+        "1": { "name": "keyword.control.directive.koyu" },
+        "2": { "name": "constant.language.axis.koyu" }
+      }
+    },
+    "line-level": {
+      "comment": "level <名|等差範囲> <z> ... — 名はモデル全体の参照子",
+      "match": "^(level)[ \\t]+(?![^\\s#\"]*:)([^\\s#]+)",
+      "captures": {
+        "1": { "name": "keyword.control.directive.koyu" },
+        "2": { "name": "entity.name.type.level.koyu" }
+      }
+    },
+    "line-stack": {
+      "match": "^(stack)[ \\t]+(?![^\\s#\"]*:)([^\\s#]+)",
+      "captures": {
+        "1": { "name": "keyword.control.directive.koyu" },
+        "2": { "name": "entity.name.function.stack.koyu" }
+      }
+    },
+    "line-band": {
+      "match": "^(band)[ \\t]+([XY])\\b",
+      "captures": {
+        "1": { "name": "keyword.control.directive.koyu" },
+        "2": { "name": "constant.language.axis.koyu" }
+      }
+    },
+    "line-boundary": {
+      "comment": "boundary <パス> <パス> — 壁は物ではなく二つの空間の関係である",
+      "match": "^(boundary)[ \\t]+(/[^\\s#\"]+)[ \\t]+(/[^\\s#\"]+)",
+      "captures": {
+        "1": { "name": "keyword.control.directive.koyu" },
+        "2": { "name": "entity.name.type.path.koyu" },
+        "3": { "name": "entity.name.type.path.koyu" }
+      }
+    },
+    "line-zone": {
+      "match": "^(zone)[ \\t]+(/[^\\s#\"]+)",
+      "captures": {
+        "1": { "name": "keyword.control.directive.koyu" },
+        "2": { "name": "entity.name.type.path.koyu" }
+      }
+    },
+    "line-polygon": {
+      "match": "^(polygon)[ \\t]+(/[^\\s#\"]+)",
+      "captures": {
+        "1": { "name": "keyword.control.directive.koyu" },
+        "2": { "name": "entity.name.type.path.koyu" }
+      }
+    },
+    "line-space": {
+      "comment": "space <パス> <型> ... — 字下げした space は帯 (band) の要素。型は開かれた語彙",
+      "match": "^([ \\t]*)(space)[ \\t]+(/[^\\s#\"]+)(?:[ \\t]+(?![^\\s#\"]*:)([^\\s#]+))?",
+      "captures": {
+        "2": { "name": "keyword.control.directive.koyu" },
+        "3": { "name": "entity.name.type.path.koyu" },
+        "4": { "name": "support.type.koyu" }
+      }
+    },
+    "line-opening": {
+      "comment": "door/window の第1トークンが k:v でなければアセット参照 (ADR-0010)",
+      "match": "^([ \\t]+)(door|window)[ \\t]+(?![^\\s#\"]*:)([^\\s#]+)",
+      "captures": {
+        "2": { "name": "keyword.other.child.koyu" },
+        "3": { "name": "entity.name.function.asset.koyu" }
+      }
+    },
+    "keyword-child": {
+      "comment": "字下げして書く語 — src/parse.ts の indented 分岐",
+      "match": "^[ \\t]+(door|window|seg|line|area|space)\\b",
+      "captures": { "1": { "name": "keyword.other.child.koyu" } }
+    },
+    "keyword-directive": {
+      "comment": "行頭に書く語 — src/parse.ts の switch (head)",
+      "match": "^(koyu|import|asset|polygon|name|unit|grid|level|column|band|space|boundary|zone|stack)\\b",
+      "captures": { "1": { "name": "keyword.control.directive.koyu" } }
+    },
+    "path": {
+      "comment": "空間・ゾーンのパス — /L1/a /out /L2..L9/A",
+      "match": "(?:^|[ \\t])(/[^\\s#\"]*)",
+      "captures": { "1": { "name": "entity.name.type.path.koyu" } }
+    },
+    "attr-ledger": {
+      "comment": "台帳の★ — ツールが解釈する属性 (spec/vocabulary.md が契約)。自由な k:v とは色が分かれる",
+      "match": "\\b(underground|escalator|daylight|ceiling|landing|hinge|level|riser|slope|stair|style|swing|tread|pitch|entry|lane|lift|form|road|slab|site|area|turn|type|edge|kind|ramp|uid|air|use|at|h|w|t|d|x|y)(:)",
+      "captures": {
+        "1": { "name": "entity.other.attribute-name.koyu" },
+        "2": { "name": "punctuation.separator.key-value.koyu" }
+      }
+    },
+    "attr-free": {
+      "comment": "台帳に無い k:v — 運ばれるが解釈されない (規則2・3)",
+      "match": "\\b([A-Za-z_][A-Za-z0-9_-]*)(:)",
+      "captures": {
+        "1": { "name": "variable.other.property.koyu" },
+        "2": { "name": "punctuation.separator.key-value.koyu" }
+      }
+    },
+    "gridref": {
+      "comment": "通り芯参照とオフセット — X2 / X2+600 / X1..X2 / X1+3200..X2+3200",
+      "match": "\\b([XY][0-9]+)((?:[+-][0-9]+)?)(?:(\\.\\.)([XY][0-9]+)((?:[+-][0-9]+)?))?",
+      "captures": {
+        "1": { "name": "constant.language.gridref.koyu" },
+        "2": { "name": "constant.numeric.offset.koyu" },
+        "3": { "name": "keyword.operator.range.koyu" },
+        "4": { "name": "constant.language.gridref.koyu" },
+        "5": { "name": "constant.numeric.offset.koyu" }
+      }
+    },
+    "range": {
+      "comment": "レベルの範囲 — B2..L5 L14..L19",
+      "match": "\\b([A-Za-z][A-Za-z0-9_]*)(\\.\\.)([A-Za-z][A-Za-z0-9_]*)\\b",
+      "captures": {
+        "1": { "name": "entity.name.type.level.koyu" },
+        "2": { "name": "keyword.operator.range.koyu" },
+        "3": { "name": "entity.name.type.level.koyu" }
+      }
+    },
+    "union": {
+      "comment": "領域の合併 — L字は矩形を + でつなぐ",
+      "match": "(?<=[ \\t])\\+(?=[ \\t])",
+      "name": "keyword.operator.union.koyu"
+    },
+    "number": {
+      "comment": "長さはmm、面積は㎡、比率は0..1。名の中の数字 (南区画01) は数値ではないので、前後が区切りのときだけ採る",
+      "match": "(?<![^\\s,:])-?[0-9]+(?:\\.[0-9]+)?(?![^\\s,#])",
+      "name": "constant.numeric.koyu"
+    }
+  }
+}

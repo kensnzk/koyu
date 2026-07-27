@@ -1,0 +1,57 @@
+{
+  "name": "koyu",
+  "displayName": "koyu (.muro)",
+  "description": "空間を一次要素とするテキストネイティブ建築記述 — 色と、門番 (check) をエディタに",
+  "version": "0.1.0",
+  "publisher": "kensnzk",
+  "license": "Apache-2.0",
+  "engines": { "vscode": "^1.75.0" },
+  "categories": ["Programming Languages", "Linters"],
+  "keywords": ["koyu", "muro", "architecture", "BIM", "DSL"],
+  "repository": { "type": "git", "url": "git+https://github.com/kensnzk/koyu.git" },
+  "main": "./extension.js",
+  "activationEvents": ["onLanguage:koyu"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "koyu",
+        "aliases": ["koyu", "muro"],
+        "extensions": [".muro"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "koyu",
+        "scopeName": "source.koyu",
+        "path": "./syntaxes/koyu.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "koyu.check",
+        "title": "koyu: 整合を確かめる (check)"
+      }
+    ],
+    "configuration": {
+      "title": "koyu",
+      "properties": {
+        "koyu.check.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "保存時と開いたときに koyu check を走らせ、診断を問題パネルに出す。"
+        },
+        "koyu.cliPath": {
+          "type": "string",
+          "default": "",
+          "description": "koyu CLI の場所。空なら node_modules/.bin/koyu → dist/cli.js → PATH の koyu の順に探す。"
+        },
+        "koyu.entry": {
+          "type": "string",
+          "default": "",
+          "description": "合成の起点となる .muro (ワークスペースからの相対)。空なら、開いている層と同じディレクトリの main.muro があればそれを、無ければ開いている層そのものを起点にする。"
+        }
+      }
+    }
+  }
+}
