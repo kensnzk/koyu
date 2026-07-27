@@ -187,6 +187,11 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   };
   for (const pr of prisms) {
     const n = pr.poly.length;
+    // **底面から描く。**箱を「上面+側面」だけで作ると底の無い箱になり、
+    // 下から覗ける所 (-l で階を絞った最下段・外へ張り出した柱) で中が見える。
+    // 塗り重ね順で先に置けば、隠れているときは側面と上面が覆う
+    const bottom = pr.poly.map((p, i) => proj(p, pr.bottom[i]!));
+    out.push(face([...bottom].reverse(), pr.fill, 0.55));
     // 側面: 投影して時計回り (面積が負) のものだけが手前を向く
     for (let i = 0; i < n; i++) {
       const j = (i + 1) % n;

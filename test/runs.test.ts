@@ -436,6 +436,34 @@ stack s L1..L2 type:stair
   assert.notEqual(svgAxo(m, { dir: "NW" }), svg);
 });
 
+test("軸測: 立体には底面がある — 下から覗ける所で中が見えない", () => {
+  // 箱を「上面+側面」だけで作ると**底の無い箱**になる。普通は見えないが、
+  // -l で階を絞った最下段や、外へ張り出した柱では下から覗けて中身が見える。
+  // 実際に見えた (外周柱の足元が抜けていた)
+  const m = parse(`koyu 0.5
+grid X 0 4000
+grid Y 0 4000
+level L1 0 h:3000 slab:300
+space /L1/a room X1..X2 Y1..Y2
+space /out exterior
+boundary /L1/a /out t:200 spec:CW`);
+  const svg = svgAxo(m, {});
+  // **底面と上面は同じ形が上下にずれて現れる。**軸測投影は平行投影なので、
+  // 一つの立体の上端と下端は合同な多角形になり、y だけが違う。
+  // 色や面の数ではなくこの形の対で見るので、陰影を変えても壊れない
+  const shapes = new Map<string, number[]>();
+  for (const m2 of svg.matchAll(/<path d="([^"]+)"/g)) {
+    const pts = [...m2[1]!.matchAll(/-?\d+(?:\.\d+)?/g)].map(Number);
+    if (pts.length < 6) continue;
+    const [x0, y0] = pts;
+    // 先頭を原点に寄せた相対座標が「形」。y の絶対値だけを別に持つ
+    const key = pts.map((v, i) => (i % 2 ? v - y0! : v - x0!).toFixed(1)).join(",");
+    (shapes.get(key) ?? shapes.set(key, []).get(key)!).push(y0!);
+  }
+  const paired = [...shapes.values()].filter((ys) => ys.length >= 2 && Math.max(...ys) - Math.min(...ys) > 1);
+  assert.ok(paired.length > 0, "同じ形が上下に二つ現れない — 底面が描かれていない");
+});
+
 test("軸測: 床の不在は屋根の不在ではない — 吹抜けの上は塞がる", () => {
   const m = parse(`koyu 0.5
 grid X 0 4000 8000
