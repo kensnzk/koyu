@@ -39,7 +39,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
+      # **Trusted Publishing (OIDC) には npm 11.5.1 以上が要る。**
+      # Node 22 に同梱の npm は 10.x で、古いと OIDC を試みもせず未認証のまま publish し、
+      # レジストリは 401 ではなく **404 を返す** (スコープ付きパッケージの存在を隠すため)。
+      # 「404 Not Found - PUT」は「認証されていない」と読む
+      - name: npm を Trusted Publishing の使える版に上げる
+        run: |
+          npm install -g npm@latest
+          echo "node $(node -v) / npm $(npm -v)"
+          npx semver "$(npm -v)" -r ">=11.5.1" >/dev/null \
+            || { echo "::error::npm $(npm -v) では Trusted Publishing (OIDC) が使えません"; exit 1; }
       - run: npm ci
 
       # 門番を先に通す。**check が緑でも建物が使えるとは限らない** (AGENTS.md 掟2) ので、
