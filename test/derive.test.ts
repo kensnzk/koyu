@@ -44,11 +44,11 @@ const digest = (file: string): string =>
  */
 const GOLDEN: Record<string, string> = {
   "examples/two-rooms.muro": "ae6e08bb1ea7579c",
-  "examples/office.muro": "0c2e2572477c27ae",
-  "examples/house/main.muro": "838a630e4ca95caf",
-  "examples/basement/main.muro": "5d67ba01a2f7902f",
-  "examples/tower/main.muro": "cc0b48ae4295d01f",
-  "examples/complex/main.muro": "1b1c80b3e3fa3ef4",
+  "examples/office.muro": "2848970924f67cf6",
+  "examples/house/main.muro": "3b06def277c72721",
+  "examples/basement/main.muro": "57dd17fc4a3598d5",
+  "examples/tower/main.muro": "bbe79ad46b6afdd6",
+  "examples/complex/main.muro": "aced50916d6bbecb",
 };
 
 test("derive: the Form of every bundled example matches its golden", () => {

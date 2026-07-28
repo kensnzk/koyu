@@ -39,6 +39,7 @@ import {
   type Opening,
   type Pt,
   type Space,
+  canonicalBoundaryOrder,
 } from "./model.js";
 import { EPS, SPAN_EPS } from "./tolerance.js";
 import {
@@ -567,7 +568,9 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
   const boundaries: FormBoundary[] = [];
   const openings: FormOpening[] = [];
   const segs: FormSeg[] = [];
-  for (const [bi, b] of model.boundaries.entries()) {
+  // **関係の同一性の綴りは正準順で振る** — 宣言順で振ると、正準JSONが同じでも
+  // `a|b@0` と `a|b@1` に割れる (ADR-0041)
+  for (const [bi, b] of canonicalBoundaryOrder(model).entries()) {
     const wallSegs = segmentsFor(model, b);
     if (wallSegs.length === 0) continue;
     const room = boundaryRoom(model, b);
@@ -829,7 +832,7 @@ function planOf(
 
   // 上部吹抜けの投影 — 切断面より上のものが下階の平面に落ちる。
   // **落とすのは導出された形である** — 割付で落とすと、切られた吹抜けが切られる前の姿で出る
-  for (const b of model.boundaries) {
+  for (const b of canonicalBoundaryOrder(model)) {
     if (b.kind !== "void") continue;
     const sa = model.spaces.get(b.a);
     const sb = model.spaces.get(b.b);

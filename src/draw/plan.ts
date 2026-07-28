@@ -10,7 +10,7 @@
 // 切断線を平行な二本の斜線として引くか、矢印に "UP" と書くかは、ここが決める。
 
 import { band, derive, type PlanEntity } from "../core/derive.js";
-import { displayName, polyBounds, type Model, type Pt } from "../core/model.js";
+import { canonicalBoundaryOrder, displayName, polyBounds, type Model, type Pt } from "../core/model.js";
 import { slopeText } from "../core/vertical.js";
 
 export interface PlanOptions {
@@ -156,10 +156,13 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   // 数えない分節 (seg): 壁材が途中から変わる区間 — 色調を変えて示す。
   // 帯の形は core の構成子が起こす。ここから引くのは注記の言葉 (`spec`) だけで、
   // それは形ではないので Form には載らない — 添字は宣言の並びの位置 = seg の同一性である
+  const ordered = canonicalBoundaryOrder(model);
   for (const g of form.segs) {
     if (g.level !== level) continue;
     parts.push(fill(band(g.segment, g.cx, g.cy, g.w, g.t), "#77716a"));
-    const spec = model.boundaries[g.boundary]?.segs[g.index]?.attrs["spec"];
+    // `g.boundary` は **Form の境界の添字 = 正準順の添字**である (spec/derivation.md)。
+    // 宣言順の配列を引くと、宣言順を入れ替えただけで注記が別の境界のものになる
+    const spec = ordered[g.boundary]?.segs[g.index]?.attrs["spec"];
     if (typeof spec === "string") {
       const h = g.segment.horizontal;
       parts.push(

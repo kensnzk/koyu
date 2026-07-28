@@ -12,13 +12,23 @@ The norm for scope is [scope.md](scope.md), semantics is [semantics.md](semantic
 
 ---
 
-## 0. Three promises
+## 0. Four promises
 
-**1. There is one entrance to the shape.** The shape of a space is its `pieces` (the derived convex parts), never its `rects` (the written allotment). The allotment is the spelling of cells, not a shape. Areas, shared edges, outlines, coverage, where columns land, projections — every derivation that reads shape goes through that one entrance.
+**1. The form is a function of the canonical form.**
 
-**2. No default is invented.** If a value that is needed is not written, no default is quietly supplied: **the element is not made**. Sufficiency (SUF01-04) puts "it cannot be made" into words. The derivation defaults listed in §5 are the exception — those are rules the specification sets, not inventions.
+```
+toCanonical(a) === toCanonical(b)  ⟹  derive(a) ≡ derive(b)
+```
 
-**3. Convex parts run counter-clockwise.** Every outline `Form` returns is counter-clockwise (its signed area is positive), and reading the orientation of an edge (N/E/S/W) assumes that winding.
+The canonical form is the definition of "what counts as the same building" ([canonical-json.md](canonical-json.md)). Therefore **whatever the canonical form discards must not move the form** — not the written order of a line's endpoints, not the declaration order of boundaries, not the order of lines in the file. This restates the promise of uniqueness in §6 in a shape a machine can hold ([scope.md](scope.md) §6).
+
+Two rules follow from this promise. **A drawn line has no direction** (§1.5). **Recutting happens in canonical boundary order** (§1.1).
+
+**2. There is one entrance to the shape.** The shape of a space is its `pieces` (the derived convex parts), never its `rects` (the written allotment). The allotment is the spelling of cells, not a shape. Areas, shared edges, outlines, coverage, where columns land, projections — every derivation that reads shape goes through that one entrance.
+
+**3. No default is invented.** If a value that is needed is not written, no default is quietly supplied: **the element is not made**. Sufficiency (SUF01-04) puts "it cannot be made" into words. The derivation defaults listed in §5 are the exception — those are rules the specification sets, not inventions.
+
+**4. Convex parts run counter-clockwise.** Every outline `Form` returns is counter-clockwise (its signed area is positive), and reading the orientation of an edge (N/E/S/W) assumes that winding.
 
 ---
 
@@ -29,11 +39,13 @@ The norm for scope is [scope.md](scope.md), semantics is [semantics.md](semantic
 A region is written as a union of rectangles. Derivation first maps each rectangle to four counter-clockwise vertices `[(x1,y1),(x2,y1),(x2,y2),(x1,y2)]`, and then, if a boundary carries a **drawn line** (`line`), cuts it again by that half-plane.
 
 ```
-pieces = rects                                  # 線が無ければ割付の写し
-pieces = outside(window) + halfplane(inside)    # 線があれば窓の中だけを切り直す
+pieces = rects                                  # no line: a copy of the allotment
+pieces = outside(window) + halfplane(inside)    # a line: recut only inside the window
 ```
 
-The recut happens **exactly once**, at the exit of `parse`, in declaration order. It is not idempotent — a region shrunk by an earlier line shrinks the window of a later one.
+The recut happens **exactly once**, at the exit of `parse`, in **canonical boundary order**. It is not idempotent — a region shrunk by an earlier line shrinks the window of a later one.
+
+**That order is not declaration order.** The canonical JSON discards the declaration order of boundaries ([canonical-json.md](canonical-json.md)), so cutting in declaration order would produce different areas from the same canonical form, against promise 1 of §0. The ordering rule is the one `toCanonical` uses — lexicographic by `between`, and serialization order within one `between`. Inserting a boundary through composition does not move it.
 
 ### 1.2 The window a line reaches
 
@@ -57,11 +69,19 @@ Which side of the line is kept is decided by **measuring, whole, the convex part
 - **Cutting the envelope**: the bias of the side that holds a region is the side kept. No bias means no cut (LIN01)
 - **Two spaces**: take the bias on both sides; if exactly one is zero, give it the opposite of the other. Both zero, or the same side, means no cut (LIN01)
 
+**Which space is written first does not affect the side kept.** `boundary /L1/room /out` and `boundary /out /L1/room` are two spellings of the same relation, and the side kept is decided by **the side that holds a region, itself**. The `a`/`b` orientation means something only to `edge` and `swing` — the two notions that need "seen from which side".
+
 ### 1.4 The re-division itself
 
 The parts are split into inside and outside of the window, and **the allotments inside the window are merged and then re-divided to the two sides of the line**. So re-dividing two spaces conserves total area (the triangle one loses, the other gains). Cutting the envelope only shrinks the side that holds a region; the other side gains nothing.
 
 If a half-plane cut leaves fewer than three vertices, or an area at or below the tolerance, that part never existed. Without that threshold a hair-thin sliver survives at the end of a clipped corner, gets read as an edge, and grows a ghost wall.
+
+### 1.5 The direction of a line
+
+**A line segment has no direction.** A line joining the same two points is the same line whichever end it is written from. Before recutting, derivation orders each line's endpoints by **resolved coordinate, ascending in x then y** — the same rule the canonical JSON applies to the pair. The spelling (the grid references) moves with them, so a diagnostic quotes exactly what was written, only in the other order.
+
+**This canonical start is the origin of `at:` for openings carried on the line** (§3.2). Without the ordering, a door lands somewhere else while the canonical JSON stays byte-identical — against promise 1 of §0.
 
 ---
 
@@ -102,7 +122,7 @@ Back-to-back edges (an N edge and an S edge on the same line) differ in orientat
 
 Cut the line at the edges of the convex parts of both spaces, take two points offset from the midpoint of each interval along the normal by the probe distance (`PROBE` in §6), and keep only the intervals where the left and the right are exactly a and b. Against a side that holds no region, the side that does holds one flank and that is enough. The test is symmetric in a and b.
 
-The output segment keeps **the order of the written endpoints** (p→q) and carries no orientation seen from `a`. So writing `edge:` on a boundary that carries a `line` has no effect.
+The output segment keeps **the canonical order of the endpoints** (§1.5 — ascending in resolved coordinate) and carries no orientation seen from `a`. So writing `edge:` on a boundary that carries a `line` has no effect.
 
 ---
 
@@ -132,7 +152,7 @@ An opening and a `seg` are both "an interval along a boundary segment", and both
 5. With a **grid reference** (`at:X2+450`), it cannot sit on a diagonal segment (OPN07 / SEG07), a horizontal segment takes an X line and a vertical one takes a Y line (OPN07 / SEG07), and running off the end cannot be placed (OPN08 / SEG08)
 6. With a **ratio** (`at:0.2`, default 0.5), the centre is **clamped** into the range where it fits (no diagnostic is raised)
 
-The centre is taken as a parameter from the start of the segment to its end — one formula, axis-parallel or diagonal. **So if the direction of the segment changes, the same `at:` points somewhere else.** Derived segments always run in ascending coordinate order and so do not depend on the order a and b were written, but the segment of a drawn line keeps the order of the written endpoints.
+The centre is taken as a parameter from the start of the segment to its end — one formula, axis-parallel or diagonal. **So if the direction of the segment changes, the same `at:` points somewhere else.** Segments — derived ones and those of drawn lines alike — **always run in ascending coordinate order** (§1.5), so neither the order a and b were written nor the order the line's endpoints were written has any effect.
 
 ### 3.3 The z range of an opening, and the wall being split
 
@@ -356,6 +376,10 @@ What is dropped as the projection of a void above is **the derived shape**. Drop
 ## 9. The implementation, and what checks it
 
 The reference implementation is `derive(model, {cut?})`, returning a `Form` (the table of the public face in [tools.md](tools.md)). The ledger of constants is `DERIVATION_CONSTANTS` and the ledger of tolerances is `TOLERANCES`, and **the tables in §5 and §6 are copies of them** — `test/derive.test.ts` binds the tables to the implementation.
+
+**Promise 1 of §0 (the form is a function of the canonical form) is bound by machine** (`test/uniqueness.test.ts`). Each case first asserts the canonical forms are equal **as its premise** and only then asserts the forms agree, so a broken premise fails with "this pair proves nothing". There is a case for the written order of a line's endpoints, for the declaration order of boundaries, and for the `a`/`b` orientation.
+
+**The order in which `Form` lists boundaries is the canonical order** (the same rule as §1.1). Indices such as `FormSeg.boundary` point into that ordering, so a consumer must not index `model.boundaries[i]` (declaration order) against it. The function that yields the ordering, `canonicalBoundaryOrder(model)`, is part of the public face ([tools.md](tools.md)).
 
 That `Form` carries no appearance is bound by machine too: the `Form` of every bundled example is turned into JSON and checked for the absence of any colour spelling, any Japanese, and any `UP`/`DN`.
 

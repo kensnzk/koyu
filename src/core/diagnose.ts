@@ -521,11 +521,10 @@ function checkDrawnLines(ctx: Ctx): void {
       emit("LIN01", `A line cannot be drawn between spaces that have no region: ${b.a} | ${b.b}`, bAt);
       continue;
     }
-    // 判定と操作を同じ関数に通す (ADR-0027)。窓の中で分離が決まらなければ LIN01、
-    // 決まるが実際には何も切っていなければ LIN03。以前は判定だけが別の窓 (線分の
-    // 外接矩形) を使っていたので、軸平行の線では窓が潰れて必ず誤報していた
-    const cut = drawnCut(sa, sb, b.drawn.a, b.drawn.b);
-    if (!cut) {
+    // **帰結は導出のその場で記録されている** (ADR-0041)。ここで計算し直すと、
+    // 既に切られた形を相手に窓を組み立てることになり、母集団が食い違う —
+    // 実際に切った線に「何も切っていない」と言う経路がそこにあった
+    if (b.drawn.effect === "undetermined") {
       emit(
         "LIN01",
         sa.rects.length > 0 && sb.rects.length > 0
@@ -535,8 +534,7 @@ function checkDrawnLines(ctx: Ctx): void {
       );
       continue;
     }
-    const target = cut.solo ? [cut.solo] : [sa, sb];
-    if (!target.some((s) => cutsInWindow(s.rects.map(rectToPoly), cut.window, b.drawn!.a, b.drawn!.b))) {
+    if (b.drawn.effect === "nothing") {
       emit(
         "LIN03",
         `Line ${b.drawn.aRef}..${b.drawn.bRef} cuts nothing (it is the same as the default adjacency line, or falls outside the allocation)`,

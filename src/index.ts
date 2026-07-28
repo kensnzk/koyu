@@ -47,6 +47,7 @@ export type {
 // **合否は言わない** (spec/scope.md §4)。数と形を返すところまでが core である
 export {
   areaM2,
+  canonicalBoundaryOrder,
   columnsFor,
   DEFAULT_LANGUAGE_VERSION,
   displayName,

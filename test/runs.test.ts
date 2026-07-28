@@ -3,7 +3,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { check } from "../src/core/diagnose.js";
+import { check, checkDiagnostics } from "../src/core/diagnose.js";
 import { validate } from "../src/validate/index.js";
 import { doorsBetween, segmentsFor } from "../src/core/graph.js";
 import { areaM2, columnsFor, polyBounds, polygonAreaM2 } from "../src/core/model.js";
@@ -331,6 +331,33 @@ boundary /L1/a /L1/b t:120
   assert.ok(check(m).errors.some((e) => e.includes("does not separate")));
 });
 
+test("line: a line that actually cut is never reported as cutting nothing (LIN03 / ADR-0041)", () => {
+  // 帰結は導出のその場で記録する。判定を後から計算し直すと、切った後の pieces から
+  // 窓を組み立てて切る前の rects に当てることになり、母集団が食い違う
+  const src = `koyu 1.0
+grid X 0 3000 6000
+grid Y 0 3000 6000
+level L1 0 h:2700 slab:300
+space /L1/a room X1..X2 Y1..Y3
+space /L1/b room X2..X3 Y1..Y3
+space /out exterior
+boundary /L1/a /out edge:S
+boundary /L1/a /L1/b
+  line X1,Y1 X1,Y2
+boundary /L1/a /out
+  line X1,Y1+1500 X2,Y1+1500
+`;
+  const m = parse(src);
+  // 二本目は 18.00㎡ を 13.50㎡ に落としている — 実際に切っている
+  assert.equal(areaM2(m.spaces.get("/L1/a")!), 13.5);
+  const cutsNothing = checkDiagnostics(m).filter((d) => d.code === "LIN03");
+  assert.deepEqual(
+    cutsNothing.map((d) => d.message),
+    [],
+    "a line that removed 4.5 m2 must not be reported as cutting nothing",
+  );
+});
+
 // ---- 柱 (ADR-0023) ----
 
 test("column: the position is not written; it emerges where grid intersections meet a floor", () => {
@@ -544,7 +571,7 @@ boundary /L1/a /out t:200
   assert.deepEqual([segs[0]!.x1, segs[0]!.y1, segs[0]!.x2, segs[0]!.y2], [8000, 0, 8000, 8000]);
 });
 
-// ---- 母集団のずれ (ADR-0027) — どれも check が緑のまま黙って壊れていた ----
+// ---- 母集団のずれ (ADR-0041) — どれも check が緑のまま黙って壊れていた ----
 
 test("line: a distant wing does not flip the direction of the corner cut (the L-shaped room does not vanish)", () => {
   const m = parse(`koyu 0.5

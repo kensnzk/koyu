@@ -197,6 +197,18 @@ export interface DrawnLine {
   a: Pt;
   b: Pt;
   line: number;
+  /**
+   * 切り分けの帰結 — **導出したその場で記録する** (ADR-0041)。
+   *
+   * `derivePieces` は割付から形を起こしながら線を順に適用するので、その時点でしか
+   * 「この線が実際に何かを切ったか」を正しくは言えない。診断が後から計算し直すと、
+   * **既に切られた形**を相手に窓を組み立てることになり、母集団が食い違う。
+   * 判定と操作を同じ場所に置く — 同じ関数を通すだけでなく、同じ母集団を見る (ADR-0041)。
+   *
+   * `undetermined` = 残す側が決まらない (LIN01) / `nothing` = 何も切らない (LIN03)。
+   * 正準JSONには出ない — 書かれた構成ではなく導出の帰結だからである。
+   */
+  effect?: "cut" | "nothing" | "undetermined";
 }
 
 /** 境界はどちらの空間にも属さない。二つの空間パスを結ぶ第一級の関係 */
@@ -334,7 +346,7 @@ export interface SitePolygon {
   file?: string;
 }
 
-/** 多角形の面積 ㎡。シューレースの実体は poly.ts にひとつだけある (ADR-0027) */
+/** 多角形の面積 ㎡。シューレースの実体は poly.ts にひとつだけある */
 export const polygonAreaM2 = (points: Pt[]): number => poly.area(points) / 1e6;
 
 /** 線分同士が内部で交差するか (端点・境界上の接触は交差としない、許容誤差eps mm)。交点を返す */
@@ -403,7 +415,7 @@ export class SourceError extends Error {
 }
 
 /**
- * 空間の導出された領域 (ADR-0022 / ADR-0027)。**形を読むときの唯一の入口**。
+ * 空間の導出された領域 (ADR-0022 / spec/derivation.md §1)。**形を読むときの唯一の入口**。
  * parse の出口で必ず埋まるので、割付への退避は「未parseのModelを手で組んだとき」だけに効く。
  * この式が各所に散っていたことが、rects と pieces の取り違えを四度生んだ根である。
  */
@@ -747,6 +759,23 @@ export function canonicalBoundaryEntry(b: Boundary): Record<string, unknown> {
   };
 }
 
+/**
+ * 境界を正準の順に並べる (ADR-0041)。
+ *
+ * **宣言順は正準JSONが捨てる情報である。**捨てられる情報が形を変えてはならないので、
+ * 境界を順に読む導出 — 線の切り分け (`derivePieces`) と、関係の同一性の綴り
+ * (`derive` の `a|b@i`) — はこの並びを使う。
+ *
+ * 既定境界 (derived) は正準JSONに出ないが、`model.spaces` の並び (= 宣言順) から
+ * 導かれるので、同じ規則で並べ直さないと同じ病を持つ。
+ */
+export function canonicalBoundaryOrder(model: Model): Boundary[] {
+  return [...model.boundaries]
+    .map((b, i) => ({ b, key: JSON.stringify(canonicalBoundaryEntry(b)), i }))
+    .sort((p, q) => (p.key < q.key ? -1 : p.key > q.key ? 1 : p.i - q.i))
+    .map((x) => x.b);
+}
+
 /** 正準JSON — 機械形式。差分とレイヤー合成の土台 (キーは安定順) */
 export function toCanonical(model: Model): string {
   const spaces: Record<string, unknown> = {};
@@ -827,8 +856,36 @@ export function toCanonical(model: Model): string {
  * 書き順は綴りの揺れである (規則1)。綴り自体は通り参照のまま保つ (規則3)
  */
 function canonicalLineEnds(d: DrawnLine): [string, string] {
-  const forward = d.a.x < d.b.x || (d.a.x === d.b.x && d.a.y <= d.b.y);
-  return forward ? [d.aRef, d.bRef] : [d.bRef, d.aRef];
+  return drawnIsForward(d) ? [d.aRef, d.bRef] : [d.bRef, d.aRef];
+}
+
+/**
+ * 描かれた線の正準の向き — 解決座標の (x, then y) 昇順。
+ *
+ * **線分は向きを持たない。**同じ二点を結ぶ線は、どちらの端から書いても同じ線である。
+ * 正準JSONはこの規則で端点の対を並べ替える。したがって**書き順は形を変えてはならない** —
+ * `canonicalizeDrawn` が parse の出口でモデルの側もこの向きに揃える (ADR-0041)。
+ */
+export function drawnIsForward(d: DrawnLine): boolean {
+  return d.a.x < d.b.x || (d.a.x === d.b.x && d.a.y <= d.b.y);
+}
+
+/**
+ * 描かれた線を正準の向きへ揃える。綴り (`aRef`/`bRef`) も一緒に入れ替えるので、
+ * 診断が引用する綴りは書かれたとおりのまま入れ替わる。
+ *
+ * これをしないと、**正準JSONがバイト同一のまま扉が別の位置に出る** — 実測で
+ * `line X1,Y1+2000 X2,Y1+4000` と `line X2,Y1+4000 X1,Y1+2000` が sha256 一致のまま
+ * 扉を (1500,2500) と (4500,3500) に置いていた。開口の `at:` は線分の始端からの比なので、
+ * 始端が書き順で決まる限り、形は正準形の関数にならない。
+ */
+export function canonicalizeDrawn(d: DrawnLine): void {
+  if (drawnIsForward(d)) return;
+  const { a, b, aRef, bRef } = d;
+  d.a = b;
+  d.b = a;
+  d.aRef = bRef;
+  d.bRef = aRef;
 }
 
 /** 通り名の列を通りの並び順に整える — `x:X2,X1` と `x:X1,X2` は同じ構成である */

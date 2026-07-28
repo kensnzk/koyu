@@ -1,4 +1,4 @@
-// 凸片の幾何 (ADR-0027) の保証。
+// 凸片の幾何 (ADR-0022 / spec/derivation.md §1) の保証。
 // ここが守るのは一つの規律 — 「測る範囲」と「切る範囲」は同じでなければならない。
 
 import assert from "node:assert/strict";

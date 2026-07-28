@@ -4,7 +4,7 @@
 // 空間の領域は矩形の合併 (L字など)。壁は合併の外周と共有辺から導出される。
 
 import type { Boundary, Edge, Model, Opening, Pt, Rect, Space } from "./model.js";
-import { rectToPoly, srcRef } from "./model.js";
+import { canonicalBoundaryOrder, canonicalizeDrawn, rectToPoly, srcRef } from "./model.js";
 import * as poly from "./poly.js";
 import { EPS, PARALLEL_EPS, PROBE, SPAN_EPS } from "./tolerance.js";
 
@@ -192,15 +192,33 @@ export function deriveDefaultBoundaries(model: Model): void {
  */
 export function derivePieces(model: Model): void {
   for (const s of model.spaces.values()) s.pieces = s.rects.map(rectToPoly);
-  // 線は宣言順に効く。derivePieces は parse の出口で一度だけ呼ぶ (冪等ではない)
 
-  for (const b of model.boundaries) {
+  // **線の向きを正準に揃えてから切る。**線分は向きを持たないので、正準JSONは端点の対を
+  // 解決座標の昇順に並べ替える。モデルの側が書き順のままだと、開口の `at:` の起点が
+  // 書き順で決まり、**正準JSONがバイト同一のまま扉が別の位置に出る** (ADR-0041)
+  for (const b of model.boundaries) if (b.drawn) canonicalizeDrawn(b.drawn);
+
+  // **正準の境界順で切る。**線の切り分けは直前の切り分けの結果を読むので順序が効くが、
+  // 正準JSONは境界の宣言順を捨てる。宣言順で切ると、同じ正準JSONから違う面積が出る
+  // (実測: 交差する二本の線で /L1/a が 27.00㎡ ↔ 22.50㎡)。並びは toCanonical と同じ規則
+  for (const b of canonicalBoundaryOrder(model)) {
     if (!b.drawn) continue;
     const sa = model.spaces.get(b.a);
     const sb = model.spaces.get(b.b);
     if (!sa || !sb) continue;
     const cut = drawnCut(sa, sb, b.drawn.a, b.drawn.b);
-    if (!cut) continue;
+    if (!cut) {
+      b.drawn.effect = "undetermined";
+      continue;
+    }
+    // **何を切ったかは、切るその場で記録する。**後から計算し直すと、既に切られた形を
+    // 相手に窓を組み立てることになる (ADR-0041)
+    const targets = cut.solo ? [cut.solo] : [sa, sb];
+    b.drawn.effect = targets.some((s) =>
+      poly.cutsInWindow(s.pieces, cut.window, b.drawn!.a, b.drawn!.b),
+    )
+      ? "cut"
+      : "nothing";
 
     if (cut.solo) {
       // 外皮を切る線 — 持つ側だけが窓の中で自分の側へ切り落とされる。相手は面積を得ない
@@ -230,7 +248,7 @@ export function derivePieces(model: Model): void {
 }
 
 /**
- * 描かれた線の切り方を一度に決める — 窓・残す側・片側かどうか (ADR-0022 / ADR-0027)。
+ * 描かれた線の切り方を一度に決める — 窓・残す側・片側かどうか (ADR-0022 / spec/derivation.md §1.2-1.3)。
  *
  * **窓と側は必ず一緒に決める。**別々に決めていたために、側は空間の全割付を無限直線で
  * 測るのに切るのは線の近傍だけ、という母集団のずれが生まれ、線から遠い翼が符号を
@@ -254,7 +272,10 @@ export function drawnCut(
     if (!poly.validWindow(w)) return undefined;
     const side = poly.sideOfTouching(solo.pieces, w, a, b);
     if (side === 0) return undefined; // 窓の中でちょうど二等分 — 残す側が決まらない (LIN01)
-    return { window: w, sideA: solo === sa ? side : -side, solo };
+    // **残す側は、領域を持つ側そのものが決める。**a/b の向きで符号を返していたので、
+    // `boundary /out /L1/room` と書くと残す側が反転していた (実測 26㎡ ↔ 34㎡、check は緑)。
+    // a/b の向きが意味を持つのは `edge` と `swing` だけで、形はそれに従わない (ADR-0041)
+    return { window: w, sideA: side, solo };
   }
   const w = poly.lineWindow(a, b, ba, bb);
   if (!poly.validWindow(w)) return undefined;
@@ -266,11 +287,6 @@ export function drawnCut(
   if (ia === ib) return undefined; // 同じ側 — 分離していない (LIN01)
   return { window: w, sideA: ia };
 }
-
-
-
-
-
 
 /** 境界の壁芯線分を導く。壁の位置は空間の割付から生成される — 壁を置く操作は存在しない */
 export function segmentsFor(model: Model, b: Boundary): Segment[] {

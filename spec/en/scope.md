@@ -144,11 +144,18 @@ Since identity is "the containing subject plus a name unique within it", **one n
 
 Not making the form and not being able to make it are different things. **From this description a unique form must be derivable.**
 
-The assurance is first of all structural — the given data supplies coordinates, a relation supplies a seat in the shape of a shared face, and substance sits on that seat. **Substance is born holding a seat.** Three further things are fixed.
+The assurance is first of all structural — the given data supplies coordinates, a relation supplies a seat in the shape of a shared face, and substance sits on that seat. **Substance is born holding a seat.** Four further things are fixed.
 
 1. **The rules of derivation belong to the specification**, not to the implementation. If the rules differ from consumer to consumer, different buildings come out of the same source. Then it is not a source. The rules are held by [derivation.md](derivation.md) (the account from the side of semantics is [semantics.md](semantics.md) §2-4)
 2. **Sufficiency is checked.** Whether the information a form needs is present is part of structural consistency (SUF01-04). **It is a check of completeness, not a judgement of soundness**
 3. **A reference implementation exists and is exercised by the tests.** `derive(model): Form` is the only entrance, and it **has no appearance** — it returns no color, no typeface, no line weight, no annotation string. `src/draw/` and ugatsu merely draw this `Form` ([derivation.md](derivation.md) §7)
+4. **Uniqueness is a predicate a machine can hold.** "Unique" is not a promise made in prose; it is written as this implication ([ADR-0041](../../docs/decisions/0041-derivation-uniqueness.md)):
+
+   ```
+   toCanonical(a) === toCanonical(b)  ⟹  derive(a) ≡ derive(b)
+   ```
+
+   **The form is a function of the canonical form.** The canonical form is the definition of "what counts as the same building" ([canonical-json.md](canonical-json.md)), so whatever it discards — the written order of a line's endpoints, the declaration order of boundaries, the order of lines in the file — must not move the form. If it does, either something discardable was not discarded, or something that had to be kept was thrown away
 
 **"Several forms come out of one composition" is a defect.** What may be several is the **appearance**, not the form.
 
