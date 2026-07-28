@@ -3,7 +3,7 @@ node_modules/
 build/
 .vercel/
 
-# Generated from the canonical guide/ and spec/.
+# Generated from the canonical docs/.
 .generated/
 i18n/en/docusaurus-plugin-content-docs/current/
 

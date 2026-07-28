@@ -1,5 +1,212 @@
-/** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
-const sidebars = {
+import {existsSync, readdirSync} from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+// One sidebar, not four sidebars plus a navbar. Splitting navigation across two
+// places means the reader has to know which of the two holds the thing they
+// want before they can look for it — the same defect, one level up, as the old
+// Guide/Reference split. The four modes are collapsible sections here; the
+// navbar keeps only what leaves the documentation (locale, npm, GitHub).
+//
+// The sidebar is derived from the published tree, never hand-listed. Hand-listed
+// ids are how six pages — including the one declared authoritative over every
+// other — shipped unreachable.
+
+const generatedDocs = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '.generated',
+  'docs',
+);
+
+const SECTIONS = [
+  {
+    label: '入門',
+    index: 'start/index',
+    prefix: 'start/',
+    order: ['start/install', 'start/first-program', 'start/next'],
+  },
+  {
+    // Explanation is an argument, so it is ordered the way the argument builds,
+    // not alphabetically: what the notation takes as primary, what follows from
+    // that, what the tools therefore can and cannot promise, and only then the
+    // comparisons with what already exists.
+    label: '解説',
+    index: 'why/index',
+    prefix: 'why/',
+    groupsLast: true,
+    order: [
+      'why/space-is-primary',
+      'why/boundary-is-a-relation',
+      'why/silence',
+      'why/source-and-derived',
+      'why/paths',
+      'why/open-vocabulary',
+      'why/green-is-not-a-building',
+      'why/two-kinds-of-green',
+      'why/three-domains',
+      'why/composition-is-for-time',
+      'why/form-must-be-unique',
+      'why/plan-is-not-a-section',
+      'why/resolution',
+      'why/bim-ifc-usd',
+      'why/vs-ifc',
+      'why/ifc4-coverage',
+      'why/dsl-not-yaml',
+    ],
+    groups: [{label: '実例', prefix: 'examples/', index: 'examples/index'}],
+  },
+  {
+    // The same three bands the how-to index uses: write a building, drive the
+    // tools, get unstuck.
+    label: '手順',
+    index: 'howto/index',
+    prefix: 'howto/',
+    order: [
+      'howto/add-a-storey',
+      'howto/connect-storeys',
+      'howto/subdivide-a-unit',
+      'howto/typical-floors',
+      'howto/windows-and-daylight',
+      'howto/find-unreachable',
+      'howto/describe-a-site',
+      'howto/split-into-layers',
+      'howto/survive-a-rename',
+      'howto/write-as-built',
+      'howto/uncounted-divisions',
+      'howto/choose-dimensions',
+      'howto/install-mcp',
+      'howto/agent-loop',
+      'howto/debug-mcp',
+      'howto/embed-in-a-program',
+      'howto/write-docs',
+      'howto/by-symptom',
+      'howto/troubleshooting',
+    ],
+  },
+  {
+    label: 'リファレンス',
+    index: 'reference/index',
+    prefix: 'reference/',
+    groups: [
+      {label: '記法 (.muro)', prefix: 'reference/muro/', index: 'reference/muro/index'},
+      {
+        label: '診断 — koyu check',
+        prefix: 'reference/diagnostics/',
+        index: 'reference/diagnostics/index',
+      },
+      {
+        label: '判定 — koyu validate',
+        prefix: 'reference/validate/',
+        index: 'reference/validate/index',
+      },
+      {label: 'CLI', prefix: 'reference/cli/', index: 'reference/cli/index'},
+      {label: 'MCP サーバー', prefix: 'reference/mcp/', index: 'reference/mcp/index'},
+      {
+        label: 'TypeScript API',
+        prefix: 'reference/api/',
+        index: 'reference/api/index',
+      },
+      {label: '形', prefix: 'reference/form/', index: 'reference/form/index'},
+      {label: '機械形式', prefix: 'reference/json/', index: 'reference/json/index'},
+      {label: '用語', prefix: 'glossary'},
+    ],
+    // Loose reference pages come after the volumes: they are the promise, not
+    // a surface. Then the roadmap, which belongs to nothing else.
+    order: [
+      'reference/scope',
+      'reference/stability',
+      'reference/identity',
+      'reference/not-held',
+    ],
+    tail: ['roadmap'],
+  },
+];
+
+function documentIds(root) {
+  const ids = [];
+  const walk = (directory) => {
+    for (const entry of readdirSync(directory, {withFileTypes: true}).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    )) {
+      const absolute = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === 'img') continue;
+        walk(absolute);
+      } else if (entry.isFile() && entry.name.endsWith('.md')) {
+        ids.push(
+          path.relative(root, absolute).split(path.sep).join('/').replace(/\.md$/, ''),
+        );
+      }
+    }
+  };
+  walk(root);
+  return ids;
+}
+
+function build() {
+  const all = documentIds(generatedDocs);
+  const placed = new Set(['index']);
+
+  const take = (predicate) => {
+    const taken = all.filter((id) => !placed.has(id) && predicate(id));
+    taken.forEach((id) => placed.add(id));
+    return taken;
+  };
+
+  const sections = SECTIONS.map((section) => {
+    // The section's own index is its category link, so it must not also appear
+    // as an item inside itself.
+    placed.add(section.index);
+
+    const groups = (section.groups ?? []).map((group) => {
+      if (group.index) placed.add(group.index);
+      const items = take((id) => id.startsWith(group.prefix));
+      return {group, items};
+    }).filter(({group, items}) => items.length > 0 || all.includes(group.index ?? ''));
+
+    const ordered = (section.order ?? []).filter((id) => all.includes(id));
+    ordered.forEach((id) => placed.add(id));
+    const rest = take((id) => id.startsWith(section.prefix));
+    const tail = (section.tail ?? []).filter((id) => all.includes(id));
+    tail.forEach((id) => placed.add(id));
+
+    return {
+      type: 'category',
+      label: section.label,
+      collapsed: true,
+      collapsible: true,
+      ...(all.includes(section.index) ? {link: {type: 'doc', id: section.index}} : {}),
+      items: (() => {
+        const categories = groups.map(({group, items}) => ({
+          type: 'category',
+          label: group.label,
+          collapsed: true,
+          collapsible: true,
+          ...(group.index && all.includes(group.index)
+            ? {link: {type: 'doc', id: group.index}}
+            : {}),
+          items,
+        }));
+        const pages = [...ordered, ...rest];
+        // Reference leads with its volumes — they are what a reader came for,
+        // and the pages about the extent of the promise read as a coda.
+        // Explanation is the other way round: the argument first, examples last.
+        return section.groupsLast
+          ? [...pages, ...categories, ...tail]
+          : [...categories, ...pages, ...tail];
+      })(),
+    };
+  });
+
+  // Anything the layout forgot still gets a home rather than disappearing.
+  const orphans = all.filter((id) => !placed.has(id));
+
+  return {docs: ['index', ...sections, ...orphans]};
+}
+
+// Until the canonical tree lands, keep publishing the old two-book layout so
+// the site never goes dark mid-migration. Delete this branch with the switch.
+const LEGACY = {
   guide: [
     'guide/README',
     'guide/start',
@@ -18,25 +225,33 @@ const sidebars = {
         'guide/howto/doors-and-escape',
         'guide/howto/site-and-far',
         'guide/howto/split-into-files',
+        'guide/howto/identity',
         'guide/howto/agent-mcp',
         'guide/howto/editor',
         'guide/howto/troubleshooting',
       ],
     },
     'guide/diagnostics',
+    'guide/validation',
     'guide/glossary',
     'guide/cli',
     'guide/api',
   ],
   reference: [
     'spec/README',
+    'spec/scope',
     'spec/language',
-    'spec/semantics',
     'spec/vocabulary',
+    'spec/composition',
+    'spec/semantics',
+    'spec/derivation',
+    'spec/validation',
     'spec/canonical-json',
     'spec/tools',
     'spec/notation-v0',
   ],
 };
 
-export default sidebars;
+const canonical = existsSync(path.join(generatedDocs, 'reference'));
+
+export default canonical ? build() : LEGACY;

@@ -123,7 +123,7 @@ a {
 }
 
 .menu {
-  font-size: 12px;
+  font-size: 13px;
   padding: 24px 16px 40px;
 }
 
@@ -154,13 +154,43 @@ a {
   background: var(--wash-1);
 }
 
+/* Nested volumes (記法 / 診断 / CLI / …) — a quiet label above their pages. */
 .menu__list-item-collapsible > .menu__link {
   color: var(--ink-3);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* The four modes are the whole top-level navigation now that the navbar no
+   longer carries them, so they are set as headings rather than as the mono
+   eyebrow used for the volumes nested beneath. Uppercase and wide tracking do
+   nothing for Japanese labels except loosen them, so both come off here. */
+.menu > .menu__list > .menu__list-item > .menu__list-item-collapsible > .menu__link {
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  text-transform: none;
+}
+
+/* The site root sits above the four modes; give it the same weight as them. */
+.menu > .menu__list > .menu__list-item > .menu__link:not(.menu__link--sublist) {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Separate the modes from each other so the four blocks read as four. */
+.menu > .menu__list > .menu__list-item + .menu__list-item {
+  border-top: 1px solid var(--line);
+  margin-top: 6px;
+  padding-top: 6px;
 }
 
 .theme-doc-markdown,
@@ -170,7 +200,7 @@ a {
 
 .theme-doc-markdown {
   color: var(--ink-2);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.85;
 }
 
@@ -187,29 +217,32 @@ a {
   scroll-margin-top: 96px;
 }
 
+/* Titles used to run to 48px, which suited a nine-page site where every page
+   was an essay. Most pages are now one reference entry each, and a title that
+   fills a third of the first screen just pushes the answer below the fold. */
 .theme-doc-markdown h1 {
   font-family: var(--font-sans);
-  font-size: clamp(34px, 3.5vw, 48px);
+  font-size: 31px;
   font-weight: 600;
-  letter-spacing: -0.045em;
-  line-height: 1.18;
+  letter-spacing: -0.032em;
+  line-height: 1.28;
 }
 
 .theme-doc-markdown h2 {
   border-top: 1px solid var(--line-strong);
   font-family: var(--font-sans);
-  font-size: 25px;
+  font-size: 21px;
   font-weight: 600;
-  letter-spacing: -0.025em;
-  margin-top: 4rem;
+  letter-spacing: -0.02em;
+  margin-top: 3.25rem;
   padding-top: 1.1rem;
 }
 
 .theme-doc-markdown h3 {
   font-family: var(--font-sans);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  margin-top: 3rem;
+  margin-top: 2.25rem;
 }
 
 .theme-doc-markdown strong {
@@ -423,11 +456,11 @@ pre.theme-code-block.language-muro-warn::before {
   }
 
   .theme-doc-markdown h1 {
-    font-size: 38px;
+    font-size: 28px;
   }
 
   .theme-doc-markdown h2 {
-    font-size: 27px;
+    font-size: 20px;
   }
 }
 
@@ -437,7 +470,7 @@ pre.theme-code-block.language-muro-warn::before {
   }
 
   .theme-doc-markdown h1 {
-    font-size: 35px;
+    font-size: 26px;
   }
 
   pre.theme-code-block[class*='language-muro'] {
