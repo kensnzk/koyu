@@ -48,8 +48,51 @@ async function walkMarkdown(directory) {
   return files;
 }
 
+// The canonical documentation lives in docs/. Everything else under docs/ is
+// internal and stays internal: ADRs are point-in-time records that are never
+// amended and so drift from the truth by design; the log and reviews are
+// working notes. They remain in the repository as history — they are simply
+// not part of what the site publishes.
+const INTERNAL = [
+  'docs/decisions/',
+  'docs/log/',
+  'docs/reviews/',
+  'docs/notes/',
+];
+// Source material for the canonical pages, kept in the repo, not published.
+const INTERNAL_FILES = [
+  'docs/policy.md',
+  'docs/horizon.md',
+  'docs/ifc-coverage.md',
+  'docs/ifcx-notes.md',
+  'docs/modules.md',
+  'docs/terminology.md',
+  'docs/writing-architecture.md',
+];
+
+function isInternal(relative) {
+  return (
+    INTERNAL.some((prefix) => relative.startsWith(prefix)) ||
+    INTERNAL_FILES.includes(relative)
+  );
+}
+
 function outputDocumentPath(sourceAbsolute, locale) {
   const relative = toPosix(path.relative(repositoryDir, sourceAbsolute));
+
+  // Only markdown becomes a document. Without this, an image under docs/ maps
+  // to a document path and link rewriting sends the reader to a page that does
+  // not exist instead of to the picture.
+  if (!relative.endsWith('.md')) return null;
+
+  if (relative.startsWith('docs/')) {
+    if (isInternal(relative)) return null;
+    const isEnglish = relative.startsWith('docs/en/');
+    if (locale === 'en') {
+      return isEnglish ? relative.slice('docs/en/'.length) : null;
+    }
+    return isEnglish ? null : relative.slice('docs/'.length);
+  }
 
   if (locale === 'en') {
     if (relative.startsWith('guide/en/')) {
@@ -163,8 +206,12 @@ async function transformMarkdown(
       /^<a id="([^"]+)"><\/a>\n(#{1,6}\s+.+)$/gm,
       (_match, id, heading) => `${heading} {#${id}}`,
     )
+    // Prose that names a fence marker writes it as `<code>```muro-bad</code>`.
+    // Raw <code> holding three backticks derails the MDX parser, which swallows
+    // the rest of the sentence into a code block. Rewrite it as inline code.
+    // Every marker must be listed: a missed one fails silently, mid-paragraph.
     .replace(
-      /<code>(```muro-(?:bad|warn))<\/code>/g,
+      /<code>(```muro(?:-(?:part|bad|warn|fail|caution))?)<\/code>/g,
       (_match, fence) => `\`\`\`\` ${fence} \`\`\`\``,
     )
     .split('\n');
@@ -214,19 +261,26 @@ async function transformMarkdown(
     transformed.shift();
   }
 
+  // An index page addresses its directory, so /reference/muro/index.md is
+  // /reference/muro/ — not /reference/muro/index/.
+  const basename = path.basename(outputRelative).toLowerCase();
   let frontMatter = '';
-  if (path.basename(outputRelative).toLowerCase() === 'readme.md') {
+  if (basename === 'index.md' || basename === 'readme.md') {
     const documentDirectory = toPosix(path.dirname(outputRelative)).replace(
       /^\.$/,
       '',
     );
-    // The documentation root is the guide itself. Product introduction and
-    // positioning belong to koyucore.dev, not to a second landing page here.
     const slug =
-      outputRelative.toLowerCase() === 'guide/readme.md'
+      documentDirectory === '' || outputRelative.toLowerCase() === 'guide/readme.md'
         ? '/'
         : `/${documentDirectory}`;
-    frontMatter = `---\nslug: ${slug}\n---\n\n`;
+    // Pages the authors gave front matter of their own keep it; the slug is
+    // prepended into the same block rather than opening a second one.
+    if (/^---\r?\n/.test(transformed[0] ?? '') || transformed[0] === '---') {
+      transformed.splice(1, 0, `slug: ${slug}`);
+    } else {
+      frontMatter = `---\nslug: ${slug}\n---\n\n`;
+    }
   }
 
   return `${frontMatter}${transformed.join('\n')}`;
@@ -264,17 +318,31 @@ await rm(jaContentDir, {recursive: true, force: true});
 await rm(enContentDir, {recursive: true, force: true});
 await rm(generatedStaticDir, {recursive: true, force: true});
 
-await writeLocale(
-  'ja',
-  [path.join(repositoryDir, 'guide'), path.join(repositoryDir, 'spec')],
-  jaContentDir,
-);
-await writeLocale(
-  'en',
-  [path.join(repositoryDir, 'guide', 'en'), path.join(repositoryDir, 'spec', 'en')],
-  enContentDir,
-);
+// docs/reference/ existing is the signal that the canonical tree has landed.
+// Until then keep publishing the two-book layout so the site never goes dark
+// mid-migration. Delete this branch, and the guide/spec roots, with the switch.
+const canonical = existsSync(path.join(repositoryDir, 'docs', 'reference'));
+
+const roots = canonical
+  ? {
+      ja: [path.join(repositoryDir, 'docs')],
+      en: [path.join(repositoryDir, 'docs', 'en')],
+    }
+  : {
+      ja: [path.join(repositoryDir, 'guide'), path.join(repositoryDir, 'spec')],
+      en: [
+        path.join(repositoryDir, 'guide', 'en'),
+        path.join(repositoryDir, 'spec', 'en'),
+      ],
+    };
+
+await writeLocale('ja', roots.ja, jaContentDir);
+await writeLocale('en', roots.en, enContentDir);
 await copyContentAssets(jaContentDir);
 await copyContentAssets(enContentDir);
 
-console.log('Prepared Japanese and English documentation content.');
+console.log(
+  canonical
+    ? 'Prepared the canonical documentation (docs/), Japanese and English.'
+    : 'Prepared the legacy guide/ and spec/ content, Japanese and English.',
+);

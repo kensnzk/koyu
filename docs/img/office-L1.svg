@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1128" height="768" viewBox="0 0 1128 768" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
 <rect width="1128" height="768" fill="#faf8f4"/>
-<rect x="84" y="364" width="320" height="320" fill="#f1ebdd"/>
-<rect x="404" y="364" width="640" height="320" fill="#f1ebdd"/>
-<rect x="84" y="284" width="960" height="80" fill="#f1ebdd"/>
-<rect x="84" y="84" width="160" height="200" fill="#f1ebdd"/>
-<rect x="244" y="84" width="160" height="200" fill="#f1ebdd"/>
-<rect x="404" y="84" width="150" height="200" fill="#f1ebdd"/>
-<rect x="554" y="84" width="170" height="200" fill="#f1ebdd"/>
-<rect x="724" y="84" width="320" height="200" fill="#f1ebdd"/>
+<path d="M 84 684 L 404 684 L 404 364 L 84 364 Z" fill="#f1ebdd"/>
+<path d="M 404 684 L 1044 684 L 1044 364 L 404 364 Z" fill="#f1ebdd"/>
+<path d="M 84 364 L 1044 364 L 1044 284 L 84 284 Z" fill="#f1ebdd"/>
+<path d="M 84 284 L 244 284 L 244 84 L 84 84 Z" fill="#f1ebdd"/>
+<path d="M 244 284 L 404 284 L 404 84 L 244 84 Z" fill="#f1ebdd"/>
+<path d="M 404 284 L 554 284 L 554 84 L 404 84 Z" fill="#f1ebdd"/>
+<path d="M 554 284 L 724 284 L 724 84 L 554 84 Z" fill="#f1ebdd"/>
+<path d="M 724 284 L 1044 284 L 1044 84 L 724 84 Z" fill="#f1ebdd"/>
 <rect x="84" y="364" width="90" height="320" fill="#e7dfcc" fill-opacity="0.55" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="4 3"/>
-<text x="90" y="376" font-size="8.5" fill="#8a8171">土間 ・ モルタル</text>
+<text x="90" y="376" font-size="8.5" fill="#8a8171">土間 · モルタル</text>
 <line x1="84" y1="58" x2="84" y2="710" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="84" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="84" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X1</text>
@@ -34,83 +34,91 @@
 <line x1="58" y1="84" x2="1070" y2="84" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="44" cy="84" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="44" y="87.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y4</text>
-<rect x="401" y="364" width="6" height="320" fill="#1f1f1f"/>
+<path d="M 244 279.5 L 301.5 279.5 L 301.5 288.5 L 244 288.5 Z" fill="#1f1f1f"/>
+<path d="M 346.5 279.5 L 404 279.5 L 404 288.5 L 346.5 288.5 Z" fill="#1f1f1f"/>
 <line x1="84" y1="364" x2="404" y2="364" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>
-<rect x="404" y="361" width="640" height="6" fill="#1f1f1f"/>
-<rect x="794" y="361" width="180" height="6" fill="#77716a"/>
+<path d="M 724 281 L 864 281 L 864 287 L 724 287 Z" fill="#1f1f1f"/>
+<path d="M 904 281 L 1044 281 L 1044 287 L 904 287 Z" fill="#1f1f1f"/>
+<path d="M 404 361 L 701.5 361 L 701.5 367 L 404 367 Z" fill="#1f1f1f"/>
+<path d="M 746.5 361 L 1044 361 L 1044 367 L 746.5 367 Z" fill="#1f1f1f"/>
+<path d="M 84 279.5 L 141.5 279.5 L 141.5 288.5 L 84 288.5 Z" fill="#1f1f1f"/>
+<path d="M 186.5 279.5 L 244 279.5 L 244 288.5 L 186.5 288.5 Z" fill="#1f1f1f"/>
+<path d="M 404 281 L 459 281 L 459 287 L 404 287 Z" fill="#1f1f1f"/>
+<path d="M 499 281 L 554 281 L 554 287 L 499 287 Z" fill="#1f1f1f"/>
+<path d="M 554 281 L 619 281 L 619 287 L 554 287 Z" fill="#1f1f1f"/>
+<path d="M 659 281 L 724 281 L 724 287 L 659 287 Z" fill="#1f1f1f"/>
+<path d="M 1039.5 364 L 1039.5 284 L 1048.5 284 L 1048.5 364 Z" fill="#1f1f1f"/>
+<path d="M 79.5 364 L 79.5 284 L 88.5 284 L 88.5 364 Z" fill="#1f1f1f"/>
+<path d="M 239.5 284 L 239.5 84 L 248.5 84 L 248.5 284 Z" fill="#1f1f1f"/>
+<path d="M 399.5 284 L 399.5 84 L 408.5 84 L 408.5 284 Z" fill="#1f1f1f"/>
+<path d="M 244 79.5 L 404 79.5 L 404 88.5 L 244 88.5 Z" fill="#1f1f1f"/>
+<path d="M 401 684 L 401 453 L 407 453 L 407 684 Z" fill="#1f1f1f"/>
+<path d="M 401 403 L 401 364 L 407 364 L 407 403 Z" fill="#1f1f1f"/>
+<path d="M 84 679.5 L 199 679.5 L 199 688.5 L 84 688.5 Z" fill="#1f1f1f"/>
+<path d="M 289 679.5 L 404 679.5 L 404 688.5 L 289 688.5 Z" fill="#1f1f1f"/>
+<path d="M 79.5 684 L 79.5 584 L 88.5 584 L 88.5 684 Z" fill="#1f1f1f"/>
+<path d="M 79.5 464 L 79.5 364 L 88.5 364 L 88.5 464 Z" fill="#1f1f1f"/>
+<path d="M 721 284 L 721 84 L 727 84 L 727 284 Z" fill="#1f1f1f"/>
+<path d="M 1039.5 284 L 1039.5 84 L 1048.5 84 L 1048.5 284 Z" fill="#1f1f1f"/>
+<path d="M 724 79.5 L 1044 79.5 L 1044 88.5 L 724 88.5 Z" fill="#1f1f1f"/>
+<path d="M 404 679.5 L 474 679.5 L 474 688.5 L 404 688.5 Z" fill="#1f1f1f"/>
+<path d="M 654 679.5 L 774.8000000000001 679.5 L 774.8000000000001 688.5 L 654 688.5 Z" fill="#1f1f1f"/>
+<path d="M 954.8000000000001 679.5 L 1044 679.5 L 1044 688.5 L 954.8000000000001 688.5 Z" fill="#1f1f1f"/>
+<path d="M 1039.5 684 L 1039.5 584 L 1048.5 584 L 1048.5 684 Z" fill="#1f1f1f"/>
+<path d="M 1039.5 464 L 1039.5 364 L 1048.5 364 L 1048.5 464 Z" fill="#1f1f1f"/>
+<path d="M 84 79.5 L 244 79.5 L 244 88.5 L 84 88.5 Z" fill="#1f1f1f"/>
+<path d="M 79.5 284 L 79.5 84 L 88.5 84 L 88.5 284 Z" fill="#1f1f1f"/>
+<path d="M 552 284 L 552 84 L 556 84 L 556 284 Z" fill="#1f1f1f"/>
+<path d="M 404 79.5 L 554 79.5 L 554 88.5 L 404 88.5 Z" fill="#1f1f1f"/>
+<path d="M 554 79.5 L 724 79.5 L 724 88.5 L 554 88.5 Z" fill="#1f1f1f"/>
+<path d="M 794 361 L 974 361 L 974 367 L 794 367 Z" fill="#77716a"/>
 <text x="884" y="357" text-anchor="middle" font-size="8" fill="#77716a">ガラスパーティション</text>
-<rect x="84" y="279.5" width="160" height="9" fill="#1f1f1f"/>
-<rect x="244" y="279.5" width="160" height="9" fill="#1f1f1f"/>
-<rect x="404" y="281" width="150" height="6" fill="#1f1f1f"/>
-<rect x="554" y="281" width="170" height="6" fill="#1f1f1f"/>
-<rect x="724" y="281" width="320" height="6" fill="#1f1f1f"/>
-<rect x="239.5" y="84" width="9" height="200" fill="#1f1f1f"/>
-<rect x="399.5" y="84" width="9" height="200" fill="#1f1f1f"/>
-<rect x="552" y="84" width="4" height="200" fill="#1f1f1f"/>
-<rect x="721" y="84" width="6" height="200" fill="#1f1f1f"/>
-<rect x="84" y="679.5" width="320" height="9" fill="#1f1f1f"/>
-<rect x="79.5" y="364" width="9" height="320" fill="#1f1f1f"/>
-<rect x="1039.5" y="364" width="9" height="320" fill="#1f1f1f"/>
-<rect x="404" y="679.5" width="640" height="9" fill="#1f1f1f"/>
-<rect x="1039.5" y="284" width="9" height="80" fill="#1f1f1f"/>
-<rect x="79.5" y="284" width="9" height="80" fill="#1f1f1f"/>
-<rect x="84" y="79.5" width="160" height="9" fill="#1f1f1f"/>
-<rect x="79.5" y="84" width="9" height="200" fill="#1f1f1f"/>
-<rect x="244" y="79.5" width="160" height="9" fill="#1f1f1f"/>
-<rect x="404" y="79.5" width="150" height="9" fill="#1f1f1f"/>
-<rect x="554" y="79.5" width="170" height="9" fill="#1f1f1f"/>
-<rect x="724" y="79.5" width="320" height="9" fill="#1f1f1f"/>
-<rect x="1039.5" y="84" width="9" height="200" fill="#1f1f1f"/>
-<rect x="400.25" y="403" width="7.5" height="50" fill="#faf8f4"/>
-<line x1="404" y1="453" x2="354" y2="453" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 354 453 A 50 50 0 0 1 404 403" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<rect x="701.5" y="360.25" width="45" height="7.5" fill="#faf8f4"/>
-<line x1="701.5" y1="364" x2="701.5" y2="409" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 701.5 409 A 45 45 0 0 0 746.5 364" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<rect x="141.5" y="278.75" width="45" height="10.5" fill="#faf8f4"/>
-<line x1="141.5" y1="284" x2="141.5" y2="329" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 141.5 329 A 45 45 0 0 0 186.5 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<rect x="301.5" y="278.75" width="45" height="10.5" fill="#faf8f4"/>
-<line x1="301.5" y1="284" x2="301.5" y2="329" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 301.5 329 A 45 45 0 0 0 346.5 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<rect x="459" y="280.25" width="40" height="7.5" fill="#faf8f4"/>
-<line x1="459" y1="284" x2="459" y2="324" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 459 324 A 40 40 0 0 0 499 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<rect x="619" y="280.25" width="40" height="7.5" fill="#faf8f4"/>
-<line x1="619" y1="284" x2="619" y2="324" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 619 324 A 40 40 0 0 0 659 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<rect x="864" y="280.25" width="40" height="7.5" fill="#faf8f4"/>
-<line x1="864" y1="284" x2="864" y2="324" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 864 324 A 40 40 0 0 0 904 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<rect x="199" y="678.75" width="90" height="10.5" fill="#faf8f4"/>
-<line x1="199" y1="684" x2="199" y2="594" stroke="#1f1f1f" stroke-width="1.4"/><path d="M 199 594 A 90 90 0 0 1 289 684" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<rect x="78.75" y="464" width="10.5" height="120" fill="#faf8f4"/>
-<line x1="84" y1="464" x2="84" y2="584" stroke="#1f1f1f" stroke-width="1"/>
-<rect x="474" y="678.75" width="180" height="10.5" fill="#faf8f4"/>
+<line x1="301.5" y1="284" x2="301.5" y2="329" stroke="#1f1f1f" stroke-width="1.4"/>
+<path d="M 301.5 329 A 45 45 0 0 0 346.5 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="864" y1="284" x2="864" y2="324" stroke="#1f1f1f" stroke-width="1.4"/>
+<path d="M 864 324 A 40 40 0 0 0 904 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="701.5" y1="364" x2="701.5" y2="409" stroke="#1f1f1f" stroke-width="1.4"/>
+<path d="M 701.5 409 A 45 45 0 0 0 746.5 364" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="141.5" y1="284" x2="141.5" y2="329" stroke="#1f1f1f" stroke-width="1.4"/>
+<path d="M 141.5 329 A 45 45 0 0 0 186.5 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="459" y1="284" x2="459" y2="324" stroke="#1f1f1f" stroke-width="1.4"/>
+<path d="M 459 324 A 40 40 0 0 0 499 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="619" y1="284" x2="619" y2="324" stroke="#1f1f1f" stroke-width="1.4"/>
+<path d="M 619 324 A 40 40 0 0 0 659 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="404" y1="453" x2="354" y2="453" stroke="#1f1f1f" stroke-width="1.4"/>
+<path d="M 354 453 A 50 50 0 0 1 404 403" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="199" y1="684" x2="199" y2="594" stroke="#1f1f1f" stroke-width="1.4"/>
+<path d="M 199 594 A 90 90 0 0 1 289 684" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="84" y1="584" x2="84" y2="464" stroke="#1f1f1f" stroke-width="1"/>
 <line x1="474" y1="684" x2="654" y2="684" stroke="#1f1f1f" stroke-width="1"/>
-<rect x="774.8000000000001" y="678.75" width="180" height="10.5" fill="#faf8f4"/>
 <line x1="774.8000000000001" y1="684" x2="954.8000000000001" y2="684" stroke="#1f1f1f" stroke-width="1"/>
-<rect x="1038.75" y="464" width="10.5" height="120" fill="#faf8f4"/>
-<line x1="1044" y1="464" x2="1044" y2="584" stroke="#1f1f1f" stroke-width="1"/>
+<line x1="1044" y1="584" x2="1044" y2="464" stroke="#1f1f1f" stroke-width="1"/>
 <text x="244" y="520" text-anchor="middle" font-size="14" fill="#1f1f1f">エントランスホール</text>
-<text x="244" y="537" text-anchor="middle" font-size="10" fill="#8a8171">hall ・ 40.96㎡</text>
+<text x="244" y="537" text-anchor="middle" font-size="10" fill="#8a8171">hall · 40.96 m2</text>
 <text x="244" y="551" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/hall</text>
 <text x="724" y="520" text-anchor="middle" font-size="14" fill="#1f1f1f">事務室</text>
-<text x="724" y="537" text-anchor="middle" font-size="10" fill="#8a8171">office ・ 81.92㎡</text>
+<text x="724" y="537" text-anchor="middle" font-size="10" fill="#8a8171">office · 81.92 m2</text>
 <text x="724" y="551" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/office</text>
 <text x="564" y="320" text-anchor="middle" font-size="14" fill="#1f1f1f">廊下</text>
-<text x="564" y="337" text-anchor="middle" font-size="10" fill="#8a8171">corridor ・ 30.72㎡</text>
+<text x="564" y="337" text-anchor="middle" font-size="10" fill="#8a8171">corridor · 30.72 m2</text>
 <text x="564" y="351" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/corridor</text>
 <text x="164" y="180" text-anchor="middle" font-size="14" fill="#1f1f1f">階段室</text>
-<text x="164" y="197" text-anchor="middle" font-size="10" fill="#8a8171">stair ・ 12.8㎡</text>
+<text x="164" y="197" text-anchor="middle" font-size="10" fill="#8a8171">stair · 12.8 m2</text>
 <text x="164" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/stair</text>
 <text x="324" y="180" text-anchor="middle" font-size="14" fill="#1f1f1f">EV</text>
-<text x="324" y="197" text-anchor="middle" font-size="10" fill="#8a8171">ev ・ 12.8㎡</text>
+<text x="324" y="197" text-anchor="middle" font-size="10" fill="#8a8171">ev · 12.8 m2</text>
 <text x="324" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/ev</text>
 <text x="479" y="180" text-anchor="middle" font-size="14" fill="#1f1f1f">男子WC</text>
-<text x="479" y="197" text-anchor="middle" font-size="10" fill="#8a8171">wc ・ 12㎡</text>
+<text x="479" y="197" text-anchor="middle" font-size="10" fill="#8a8171">wc · 12 m2</text>
 <text x="479" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/wc-m</text>
 <text x="639" y="180" text-anchor="middle" font-size="14" fill="#1f1f1f">女子WC</text>
-<text x="639" y="197" text-anchor="middle" font-size="10" fill="#8a8171">wc ・ 13.6㎡</text>
+<text x="639" y="197" text-anchor="middle" font-size="10" fill="#8a8171">wc · 13.6 m2</text>
 <text x="639" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/wc-w</text>
 <text x="884" y="180" text-anchor="middle" font-size="14" fill="#1f1f1f">機械室</text>
-<text x="884" y="197" text-anchor="middle" font-size="10" fill="#8a8171">machine ・ 25.6㎡</text>
+<text x="884" y="197" text-anchor="middle" font-size="10" fill="#8a8171">machine · 25.6 m2</text>
 <text x="884" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/machine</text>
-<rect x="84" y="364" width="320" height="320" fill="none" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>
-<text x="244" y="564" text-anchor="middle" font-size="9" fill="#b3ab9c">上部吹抜け</text>
-<text x="22" y="750" font-size="12" fill="#1f1f1f">小さなオフィス — L1 平面</text>
-<text x="1106" y="750" text-anchor="end" font-size="9" fill="#a49b8a">koyu v0 — 空間から生成 (壁芯・mm)</text>
+<path d="M 84 684 L 404 684 L 404 364 L 84 364 Z" fill="none" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>
+<text x="244" y="564" text-anchor="middle" font-size="9" fill="#b3ab9c">void above</text>
+<text x="22" y="750" font-size="12" fill="#1f1f1f">小さなオフィス — L1 plan</text>
+<text x="1106" y="750" text-anchor="end" font-size="9" fill="#a49b8a">koyu — generated from spaces (wall centrelines, mm)</text>
 </svg>

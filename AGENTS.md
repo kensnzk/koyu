@@ -2,9 +2,13 @@
 
 koyu は建築をテキストで書く記法 (`.muro`) とその処理系である。空間が一次要素で、壁は物ではなく二つの空間の境界という関係であり、平面図・面積・動線は書かれるものではなく導出される。
 
-この頁は**地図と掟**であって、説明の写しではない。人間の入口は [README.md](README.md)、学ぶ本は [guide/](guide/README.md)、規範は [spec/](spec/README.md) にある。同じ事実を二度書かない — 迷ったらここではなくリンク先を読む。
+この頁は**地図と掟**であって、説明の写しではない。同じ事実を二度書かない — 迷ったらここではなくリンク先を読む。
 
-**最初に [spec/scope.md](spec/scope.md) を読むこと。**何を約束し、何を約束しないか — 三つの領域・保証の範囲・凍る八つの面が、そこにある。spec の別の頁とそこが食い違ったら、scope.md が正である。目的と範囲の規範は [docs/policy.md](docs/policy.md)。
+**公開ドキュメント (`docs/`) が正である。**何を約束し、何を約束しないかは [docs/reference/scope.md](docs/reference/scope.md)、凍る面は [docs/reference/stability.md](docs/reference/stability.md) にある。挙動を変えたら、その頁を同じ変更で直す。
+
+> **統治が反転している (2026-07-28)。**以前は「規範は spec/ が所有し、食い違ったら spec/ が正しい」だった。いまは公開ドキュメントが正で、`spec/` は公開されない内部文書である。`spec/` の持ち方は未決 — **当面、規範は二箇所にあり、同期の仕組みは無い。**`docs/` を直したら `spec/` は放っておいてよいが、逆はしてはならない。
+
+**ADR と `spec/` は公開されない。**リポジトリには履歴として残るが、`docs/` のどの頁からも参照してはならない — ADR はその時点の決定の記録で後から直さないため、時が経つほど現在の真と食い違うからである。`npm run gate:docs` がこれを機械で守る。
 
 ## ファイルの地図
 
@@ -14,10 +18,11 @@ koyu は建築をテキストで書く記法 (`.muro`) とその処理系であ�
 | `src/validate/` | **凍らない領域** — 建築的な判定 (`access.ts` `envelope.ts` `light.ts` `runs.ts` `site.ts`)。`Finding { rule, level }` を返す | **汚くてよい。**増やしてよいし捨ててよい。条件は一つ — core の保証と混同されないこと |
 | `src/draw/` | **凍らない領域** — `plan.ts` `axo.ts` (SVG生成)。凍結対象外 ([spec/scope.md §8](spec/scope.md)) | 見た目は自由に変えてよい。**形は変えない** |
 | `src/` 直下 | `index.ts` (公開面) `cli.ts` `mcp.ts` `parse-file.ts` | `test/domains.test.ts` が依存の一方向を機械的に守る |
-| `spec/` | **規範リファレンス** (現在形) — 文法・意味論・語彙台帳・正準JSON・ツール契約 | 追補を積まない。本文をその場で書き換える |
-| `guide/` | **学ぶ本** — チュートリアル・概念・how-to・診断事典・CLI/API | 規範を書かない。spec へリンクする |
-| `docs/decisions/` | **ADR** — なぜそう決めたか、何を棄却したか | 決定は追記のみ。覆すときは新しいADRを書く |
-| `docs/` | `policy.md` (**目的と範囲の規範**)・`roadmap.md` (1.0 の残り作業)・`writing-architecture.md` (主張の本文)・`modules.md` (寸法モジュールの台帳)・`horizon.md`・`ifc-coverage.md`・`log/`・`reviews/` | |
+| `docs/` | **公開ドキュメント。これが正である。**165頁 ×2言語。`start/` (チュートリアル) `why/` (説明) `howto/` (手順) `reference/` (規範 — `muro/` `diagnostics/` `validate/` `cli/` `mcp/` `api/` `form/` `json/`) `examples/` `glossary.md` | **1ページ1仕事。**自己完結させる — ADR にも `spec/` にも委譲しない。挙動を変えたら該当頁を同じ変更で直す |
+| `docs/decisions/` | **ADR** — なぜそう決めたか、何を棄却したか。**公開しない** | 決定は追記のみ。**後から直さない** (直せば記録の意味が消える)。覆すときは新しいADRを書く |
+| `docs/log/` `docs/reviews/` | 作業の記録・設計レビュー。**公開しない** | |
+| `spec/` `guide/` | **旧レイアウトの残骸。公開しない。**`docs/` を書き起こした素材で、いまや古びうる | **参照しない。**食い違ったら `docs/` が正。持ち方は未決 |
+| `docs/policy.md` ほか loose な .md | `policy.md` `writing-architecture.md` `modules.md` `horizon.md` `ifc-coverage.md` `terminology.md`。**公開しない**素材 | |
 | `examples/` | 同梱の建物 — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (縦動線の最小例) `complex/` (延床31,606㎡) `twin/` (延床141,449㎡の双塔再開発) `comparison/`。`steps/` は guide/start.md の各段の到達点 | 触ったら `npm run check:examples` が門番 |
 | `test/` | `node --test`。`domains.test.ts` (領域の分離) `composition.test.ts` (合成の六規則) `diagnostics.test.ts` (診断契約) ほか | 保証はテストで固定する。仕様の文だけでは着地していない |
 | `eval/` | エージェント編集evalのハーネス (`run.ts` `score.ts` `tasks/` `fixtures/`) | |
@@ -63,12 +68,13 @@ model_summary → layers → write_layer → check ──エラー──→ 直�
 
 ## この企ての掟
 
-1. **check が門番である。**`npm test` と `npm run check:examples` と `npm run gate:examples` と当のファイルの `check` が緑になるまで、終わったと言わない。
-2. **check が緑でも建物が使えるとは限らない。**`check` が言うのは「書かれたものがデータとして矛盾していない」までである ([spec/scope.md §3](spec/scope.md))。建築的な妥当性は `koyu validate` が別に言う。接する空間の既定は壁なので ([ADR-0014](docs/decisions/0014-default-boundaries.md))、扉を一枚も宣言しない二階建ては**緑のまま完全に密封される**。緑を根拠に「動く」と主張しない。
-2b. **領域を混ぜない** ([ADR-0032](docs/decisions/0032-three-domains.md))。判定を core に足さない。core は `Diagnostic { code, severity }`、検証は `Finding { rule, level }` — 型からして別である。判定を足すなら `VALIDATION_RULES` に一行と、spec/validation.md と guide/validation.md に節を足すだけで済む。**言語の版は動かない。**
-3. **変更は三点セットで着地する — ADR (なぜ) + テスト (保証) + spec (現在形)。**どれかを欠いた変更は未完了である。
-4. **spec は現在形で、その場で書き換える。**日付や「追補」や「v0.9では〜」を積まない。版は git が持つ。
-5. **診断は必ずコードを持ち、severity はコードの属性である** ([ADR-0016](docs/decisions/0016-diagnostic-contract.md))。同じコードが場合によって error になったり warning になったりはしない。コードを足したら [spec/semantics.md](spec/semantics.md) の台帳と [guide/diagnostics.md](guide/diagnostics.md) の両方に載せる。
+1. **check が門番である。**`npm test` と `npm run check:examples` と `npm run gate:examples` と `npm run gate:docs` と当のファイルの `check` が緑になるまで、終わったと言わない。
+2. **check が緑でも建物が使えるとは限らない。**`check` が言うのは「書かれたものがデータとして矛盾していない」までである ([docs/reference/scope.md](docs/reference/scope.md))。建築的な妥当性は `koyu validate` が別に言う。接する空間の既定は壁なので ([ADR-0014](docs/decisions/0014-default-boundaries.md))、扉を一枚も宣言しない二階建ては**緑のまま完全に密封される**。緑を根拠に「動く」と主張しない。
+2b. **領域を混ぜない** ([ADR-0032](docs/decisions/0032-three-domains.md))。判定を core に足さない。core は `Diagnostic { code, severity }`、検証は `Finding { rule, level }` — 型からして別である。判定を足すなら `VALIDATION_RULES` に一行と、[docs/reference/validate/](docs/reference/validate/index.md) に節を足すだけで済む。**言語の版は動かない。**
+3. **変更は三点セットで着地する — ADR (なぜ) + テスト (保証) + 公開ドキュメント (現在形)。**どれかを欠いた変更は未完了である。
+3b. **機械の出所がある台帳は、手で数えない。**診断コード・判定規則・サブコマンド・MCPツール・公開エクスポートの数と綴りは `test/docs-ledger.test.ts` が実装と文書を突き合わせる。「全49エクスポート」「診断51件」の類はこれで死んだ。
+4. **公開ドキュメントは現在形で、その場で書き換える。**日付や「追補」や「v0.9では〜」を積まない。版は git が持つ。
+5. **診断は必ずコードを持ち、severity はコードの属性である** ([ADR-0016](docs/decisions/0016-diagnostic-contract.md))。同じコードが場合によって error になったり warning になったりはしない。コードを足したら [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) の該当の族に節を足す (`test/docs-ledger.test.ts` が漏れを落とす)。
    **母集団は書かれた宣言、出所は必ず持つ、並びは走査の順** ([ADR-0028](docs/decisions/0028-diagnostics-per-declaration.md))。解釈される属性 (台帳の★) の値は検査する — 書いたのに解釈されなかった値を黙って既定へ落とさない。`checkDiagnostics` を触るときは節の粒度を走査単位に保つ (コードの族で割ると並びが崩れる)。
 6. **言語の意味論を変える変更は言語版を上げる** ([ADR-0017](docs/decisions/0017-language-versioning.md))。現行は `koyu 1.0` ([ADR-0038](docs/decisions/0038-version-1-0-rc.md))。移行はADRに書き、examples は最新版へ揃える。
 7. **語彙は台帳が契約である** ([ADR-0008](docs/decisions/0008-vocabulary-and-level-attr.md) / [ADR-0033](docs/decisions/0033-attribute-tiers.md))。実装の唯一の出所は `src/core/vocabulary.ts` の `ATTR_LEDGER` で、[spec/vocabulary.md](spec/vocabulary.md) はその写しである。**台帳に無いキーは名前空間 (`acme.sensor`) を持たなければ書けない** — 「見ていない」と「見て問題がない」を区別するための境界である。

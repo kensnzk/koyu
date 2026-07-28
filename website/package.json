@@ -4,25 +4,30 @@
   "private": true,
   "scripts": {
     "prepare:content": "node scripts/prepare-content.mjs",
-    "prestart": "npm run prepare:content",
+    "check:navigation": "node scripts/check-navigation.mjs",
+    "prestart": "npm run prepare:content && npm run check:navigation",
     "start": "docusaurus start",
-    "prebuild": "npm run prepare:content",
+    "prebuild": "npm run prepare:content && npm run check:navigation && npm run gate:canonical",
     "build": "docusaurus build",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "gate:canonical": "node scripts/check-canonical.mjs --strict"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
     "@docusaurus/faster": "3.10.2",
+    "@docusaurus/plugin-client-redirects": "^3.10.2",
     "@docusaurus/preset-classic": "3.10.2",
+    "@easyops-cn/docusaurus-search-local": "^0.55.2",
     "@kensnzk/koyu-design-system": "0.3.0",
     "@mdx-js/react": "3.1.1",
     "@shikijs/rehype": "4.3.1",
     "clsx": "2.1.1",
     "prism-react-renderer": "2.4.1",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "remark-cjk-friendly": "^2.3.1"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.10.2",

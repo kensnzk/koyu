@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1868" height="968" viewBox="0 0 1868 968" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="1868" height="968" fill="#faf8f4"/>
+<path d="M 84 884 L 884 884 L 884 84 L 84 84 Z" fill="#f1ebdd"/>
+<path d="M 884 884 L 1784 884 L 1784 534 L 884 534 Z" fill="#f1ebdd"/>
+<path d="M 884 534 L 1014 534 L 1014 264 L 884 264 Z" fill="#f1ebdd"/>
+<path d="M 1014 534 L 1144 534 L 1144 264 L 1014 264 Z" fill="#f1ebdd"/>
+<path d="M 1144 534 L 1784 534 L 1784 84 L 1144 84 Z" fill="#f1ebdd"/>
+<path d="M 884 264 L 1144 264 L 1144 84 L 884 84 Z" fill="#f1ebdd"/>
+<line x1="84" y1="58" x2="84" y2="910" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="84" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="84" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X1</text>
+<line x1="484" y1="58" x2="484" y2="910" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="484" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="484" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X2</text>
+<line x1="884" y1="58" x2="884" y2="910" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="884" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="884" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X3</text>
+<line x1="1334" y1="58" x2="1334" y2="910" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="1334" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="1334" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X4</text>
+<line x1="1784" y1="58" x2="1784" y2="910" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="1784" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="1784" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X5</text>
+<line x1="58" y1="884" x2="1810" y2="884" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="44" cy="884" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="44" y="887.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y1</text>
+<line x1="58" y1="534" x2="1810" y2="534" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="44" cy="534" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="44" y="537.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y2</text>
+<line x1="58" y1="84" x2="1810" y2="84" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="44" cy="84" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="44" y="87.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y3</text>
+<path d="M 1137.75 534 L 1137.75 264 L 1150.25 264 L 1150.25 534 Z" fill="#1f1f1f"/>
+<path d="M 1014 257.75 L 1144 257.75 L 1144 270.25 L 1014 270.25 Z" fill="#1f1f1f"/>
+<path d="M 1014 527.75 L 1144 527.75 L 1144 540.25 L 1014 540.25 Z" fill="#1f1f1f"/>
+<path d="M 1007.75 534 L 1007.75 264 L 1020.25 264 L 1020.25 534 Z" fill="#1f1f1f"/>
+<path d="M 877.75 264 L 877.75 204 L 890.25 204 L 890.25 264 Z" fill="#1f1f1f"/>
+<path d="M 877.75 144 L 877.75 84 L 890.25 84 L 890.25 144 Z" fill="#1f1f1f"/>
+<path d="M 1144 527.75 L 1784 527.75 L 1784 540.25 L 1144 540.25 Z" fill="#1f1f1f"/>
+<path d="M 884 257.75 L 1014 257.75 L 1014 270.25 L 884 270.25 Z" fill="#1f1f1f"/>
+<path d="M 1771.5 534 L 1771.5 84 L 1796.5 84 L 1796.5 534 Z" fill="#1f1f1f"/>
+<path d="M 884 71.5 L 1784 71.5 L 1784 96.5 L 884 96.5 Z" fill="#1f1f1f"/>
+<line x1="884" y1="884" x2="884" y2="534" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>
+<path d="M 877.75 534 L 877.75 421.5 L 890.25 421.5 L 890.25 534 Z" fill="#1f1f1f"/>
+<path d="M 877.75 376.5 L 877.75 264 L 890.25 264 L 890.25 376.5 Z" fill="#1f1f1f"/>
+<path d="M 84 71.5 L 884 71.5 L 884 96.5 L 84 96.5 Z" fill="#1f1f1f"/>
+<path d="M 84 871.5 L 884 871.5 L 884 896.5 L 84 896.5 Z" fill="#1f1f1f"/>
+<path d="M 71.5 884 L 71.5 84 L 96.5 84 L 96.5 884 Z" fill="#1f1f1f"/>
+<path d="M 884 527.75 L 1014 527.75 L 1014 540.25 L 884 540.25 Z" fill="#1f1f1f"/>
+<path d="M 1771.5 884 L 1771.5 534 L 1796.5 534 L 1796.5 884 Z" fill="#1f1f1f"/>
+<path d="M 884 871.5 L 1784 871.5 L 1784 896.5 L 884 896.5 Z" fill="#1f1f1f"/>
+<line x1="884" y1="204" x2="824" y2="204" stroke="#1f1f1f" stroke-width="1.4"/>
+<path d="M 824 204 A 60 60 0 0 1 884 144" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="884" y1="421.5" x2="839" y2="421.5" stroke="#1f1f1f" stroke-width="1.4"/>
+<path d="M 839 421.5 A 45 45 0 0 1 884 376.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<path d="M 64 904 L 104 904 L 104 864 L 64 864 Z" fill="#1f1f1f"/>
+<path d="M 64 554 L 104 554 L 104 514 L 64 514 Z" fill="#1f1f1f"/>
+<path d="M 64 104 L 104 104 L 104 64 L 64 64 Z" fill="#1f1f1f"/>
+<path d="M 464 904 L 504 904 L 504 864 L 464 864 Z" fill="#1f1f1f"/>
+<path d="M 464 554 L 504 554 L 504 514 L 464 514 Z" fill="#1f1f1f"/>
+<path d="M 464 104 L 504 104 L 504 64 L 464 64 Z" fill="#1f1f1f"/>
+<path d="M 864 904 L 904 904 L 904 864 L 864 864 Z" fill="#1f1f1f"/>
+<path d="M 864 554 L 904 554 L 904 514 L 864 514 Z" fill="#1f1f1f"/>
+<path d="M 864 104 L 904 104 L 904 64 L 864 64 Z" fill="#1f1f1f"/>
+<path d="M 1314 904 L 1354 904 L 1354 864 L 1314 864 Z" fill="#1f1f1f"/>
+<path d="M 1314 554 L 1354 554 L 1354 514 L 1314 514 Z" fill="#1f1f1f"/>
+<path d="M 1314 104 L 1354 104 L 1354 64 L 1314 64 Z" fill="#1f1f1f"/>
+<path d="M 1764 904 L 1804 904 L 1804 864 L 1764 864 Z" fill="#1f1f1f"/>
+<path d="M 1764 554 L 1804 554 L 1804 514 L 1764 514 Z" fill="#1f1f1f"/>
+<path d="M 1764 104 L 1804 104 L 1804 64 L 1764 64 Z" fill="#1f1f1f"/>
+<line x1="1026.5" y1="521.5" x2="1026.5" y2="276.5" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="1131.5" y1="521.5" x2="1131.5" y2="276.5" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="1026.5" y1="521.5" x2="1131.5" y2="521.5" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="1026.5" y1="276.5" x2="1131.5" y2="276.5" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="1026.5" y1="521.5" x2="1131.5" y2="276.5" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="1131.5" y1="521.5" x2="1026.5" y2="276.5" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="939" y1="534" x2="1373.5945945945948" y2="534" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="939" y1="709" x2="1373.5945945945948" y2="709" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="1399.5945945945948" y1="534" x2="1369.5945945945948" y2="709" stroke="#1f1f1f" stroke-width="1.4"/>
+<line x1="1377.5945945945948" y1="534" x2="1347.5945945945948" y2="709" stroke="#1f1f1f" stroke-width="1.4"/>
+<line x1="946.5" y1="621.5" x2="1366.0945945945948" y2="621.5" stroke="#1f1f1f" stroke-width="1"/>
+<path d="M 1366.0945945945948 621.5 L 1345.0945945945948 611.5 L 1345.0945945945948 631.5 Z" fill="#1f1f1f"/>
+<text x="950.5" y="625.5" font-size="9" fill="#1f1f1f">UP</text>
+<text x="1334" y="751" text-anchor="middle" font-size="8" fill="#8a8171">勾配 1/7.2</text>
+<line x1="884" y1="479" x2="884" y2="386.1253071253072" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="949" y1="479" x2="949" y2="386.1253071253072" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="884" y1="464" x2="949" y2="464" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="884" y1="449" x2="949" y2="449" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="884" y1="434" x2="949" y2="434" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="884" y1="419" x2="949" y2="419" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="884" y1="404" x2="949" y2="404" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="884" y1="389" x2="949" y2="389" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="884" y1="360.1253071253072" x2="949" y2="390.1253071253072" stroke="#1f1f1f" stroke-width="1.4"/>
+<line x1="884" y1="382.1253071253072" x2="949" y2="412.1253071253072" stroke="#1f1f1f" stroke-width="1.4"/>
+<line x1="916.5" y1="471.5" x2="916.5" y2="393.6253071253072" stroke="#1f1f1f" stroke-width="1"/>
+<path d="M 916.5 393.6253071253072 L 906.5 414.6253071253072 L 926.5 414.6253071253072 Z" fill="#1f1f1f"/>
+<text x="920.5" y="475.5" font-size="9" fill="#1f1f1f">UP</text>
+<text x="949" y="441" text-anchor="middle" font-size="8" fill="#8a8171">21段 蹴上176/踏面300</text>
+<line x1="1373.5945945945948" y1="534" x2="1609" y2="534" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="1373.5945945945948" y1="709" x2="1609" y2="709" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="1609" y1="534" x2="1784" y2="534" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="1609" y1="884" x2="1784" y2="884" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="939" y1="709" x2="1609" y2="709" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="939" y1="884" x2="1609" y2="884" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="946.5" y1="796.5" x2="1601.5" y2="796.5" stroke="#1f1f1f" stroke-width="1"/>
+<path d="M 1601.5 796.5 L 1580.5 786.5 L 1580.5 806.5 Z" fill="#1f1f1f"/>
+<text x="950.5" y="800.5" font-size="9" fill="#1f1f1f">DN</text>
+<line x1="884" y1="386.1253071253072" x2="884" y2="329" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="949" y1="386.1253071253072" x2="949" y2="329" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="884" y1="329" x2="884" y2="264" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="1014" y1="329" x2="1014" y2="264" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="949" y1="479" x2="949" y2="329" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="1014" y1="479" x2="1014" y2="329" stroke="#1f1f1f" stroke-width="1.1"/>
+<line x1="884" y1="374" x2="949" y2="374" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="884" y1="359" x2="949" y2="359" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="884" y1="344" x2="949" y2="344" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="949" y1="462.3333333333333" x2="1014" y2="462.3333333333333" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="949" y1="445.66666666666674" x2="1014" y2="445.66666666666674" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="949" y1="429" x2="1014" y2="429" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="949" y1="412.3333333333333" x2="1014" y2="412.3333333333333" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="949" y1="395.66666666666663" x2="1014" y2="395.66666666666663" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="949" y1="379" x2="1014" y2="379" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="949" y1="362.3333333333333" x2="1014" y2="362.3333333333333" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="949" y1="345.66666666666663" x2="1014" y2="345.66666666666663" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="981.5" y1="471.5" x2="981.5" y2="336.5" stroke="#1f1f1f" stroke-width="1"/>
+<path d="M 981.5 336.5 L 971.5 357.5 L 991.5 357.5 Z" fill="#1f1f1f"/>
+<text x="985.5" y="475.5" font-size="9" fill="#1f1f1f">DN</text>
+<text x="484" y="480" text-anchor="middle" font-size="14" fill="#1f1f1f">駐車場</text>
+<text x="484" y="497" text-anchor="middle" font-size="10" fill="#8a8171">parking · 256 m2</text>
+<text x="484" y="511" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/B1/park</text>
+<text x="1334" y="705" text-anchor="middle" font-size="14" fill="#1f1f1f">車路</text>
+<text x="1334" y="722" text-anchor="middle" font-size="10" fill="#8a8171">ramp · 126 m2</text>
+<text x="1334" y="736" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/B1/ramp</text>
+<text x="949" y="395" text-anchor="middle" font-size="14" fill="#1f1f1f">避難階段</text>
+<text x="949" y="412" text-anchor="middle" font-size="10" fill="#8a8171">stair · 14.04 m2</text>
+<text x="949" y="426" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/B1/st</text>
+<text x="1079" y="395" text-anchor="middle" font-size="14" fill="#1f1f1f">EV</text>
+<text x="1079" y="412" text-anchor="middle" font-size="10" fill="#8a8171">shaft · 14.04 m2</text>
+<text x="1079" y="426" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/B1/ev</text>
+<text x="1464" y="305" text-anchor="middle" font-size="14" fill="#1f1f1f">機械室</text>
+<text x="1464" y="322" text-anchor="middle" font-size="10" fill="#8a8171">machine · 133.92 m2</text>
+<text x="1464" y="336" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/B1/mech</text>
+<text x="22" y="950" font-size="12" fill="#1f1f1f">地下駐車場 — 縦動線の最小例 — B1 plan</text>
+<text x="1846" y="950" text-anchor="end" font-size="9" fill="#a49b8a">koyu — generated from spaces (wall centrelines, mm)</text>
+</svg>

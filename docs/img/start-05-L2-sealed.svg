@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="438" height="368" viewBox="0 0 438 368" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="438" height="368" fill="#faf8f4"/>
+<path d="M 84 284 L 264 284 L 264 84 L 84 84 Z" fill="#f1ebdd"/>
+<path d="M 264 284 L 354 284 L 354 84 L 264 84 Z" fill="#f1ebdd"/>
+<line x1="84" y1="58" x2="84" y2="310" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="84" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="84" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X1</text>
+<line x1="264" y1="58" x2="264" y2="310" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="264" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="264" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X2</text>
+<line x1="354" y1="58" x2="354" y2="310" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="354" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="354" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X3</text>
+<line x1="58" y1="284" x2="380" y2="284" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="44" cy="284" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="44" y="287.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y1</text>
+<line x1="58" y1="84" x2="380" y2="84" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="44" cy="84" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="44" y="87.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y2</text>
+<path d="M 261.5 284 L 261.5 84 L 266.5 84 L 266.5 284 Z" fill="#1f1f1f"/>
+<path d="M 84 280.25 L 129 280.25 L 129 287.75 L 84 287.75 Z" fill="#1f1f1f"/>
+<path d="M 219 280.25 L 264 280.25 L 264 287.75 L 219 287.75 Z" fill="#1f1f1f"/>
+<path d="M 84 80.25 L 264 80.25 L 264 87.75 L 84 87.75 Z" fill="#1f1f1f"/>
+<path d="M 80.25 284 L 80.25 84 L 87.75 84 L 87.75 284 Z" fill="#1f1f1f"/>
+<path d="M 264 280.25 L 354 280.25 L 354 287.75 L 264 287.75 Z" fill="#1f1f1f"/>
+<path d="M 350.25 284 L 350.25 84 L 357.75 84 L 357.75 284 Z" fill="#1f1f1f"/>
+<path d="M 264 80.25 L 354 80.25 L 354 87.75 L 264 87.75 Z" fill="#1f1f1f"/>
+<line x1="129" y1="284" x2="219" y2="284" stroke="#1f1f1f" stroke-width="1"/>
+<text x="174" y="180" text-anchor="middle" font-size="14" fill="#1f1f1f">bed</text>
+<text x="174" y="197" text-anchor="middle" font-size="10" fill="#8a8171">bedroom · 14.4 m2</text>
+<text x="174" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L2/bed</text>
+<text x="309" y="180" text-anchor="middle" font-size="14" fill="#1f1f1f">hall</text>
+<text x="309" y="197" text-anchor="middle" font-size="10" fill="#8a8171">hall · 7.2 m2</text>
+<text x="309" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L2/hall</text>
+<text x="22" y="350" font-size="12" fill="#1f1f1f">Untitled — L2 plan</text>
+<text x="416" y="350" text-anchor="end" font-size="9" fill="#a49b8a">koyu — generated from spaces (wall centrelines, mm)</text>
+</svg>
