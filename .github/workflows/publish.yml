@@ -1,22 +1,7 @@
-# npm へ出す。入口は三つあるが、**出口は一つ** — このファイルの publish ジョブである。
+# GitHub のリリースを公開したら npm へ出す。
 #
-# | 入口 | いつ | 何が起きるか |
-# |---|---|---|
-# | `main` への push | PR をマージしたとき | package.json の版が未公開なら、タグとリリースを作って公開する |
-# | リリースの公開 | GitHub でリリースを作ったとき | そのタグの版を公開する |
-# | 手押し | Actions の画面から | 指定したタグの版を公開する |
-#
-# **マージが公開である。**版を上げる PR をマージすれば、そこで公開まで届く。
-# 版を上げない PR をマージしても何も起きない — 既に公開済みの版だからである (下の門番)。
-# これで「マージしたのに公開を忘れる」も「同じ版を二度出す」も構造的に起きない。
-#
-# **なぜタグとリリースを同じジョブで作るのか。**
-# GITHUB_TOKEN が作ったリリースは他のワークフローを起動しない (Actions の仕様)。
-# だから「push でリリースを作る → publish が反応する」という連鎖は組めない。
-# 一つのジョブでタグ・リリース・公開まで通す。
-#
-# **手元のコマンドラインを要らなくする**のが目的である。スマホからでも PR をマージすれば
-# 公開まで届く。二要素認証のワンタイムコードも要らない —
+# **手元のコマンドラインを要らなくする**のが目的である。スマホからでもリリースを
+# 作れば公開まで届く。二要素認証のワンタイムコードも要らない —
 # npm の Trusted Publishing (OIDC) は、このワークフローそのものを身元として信じるので、
 # トークンを保管しない。漏れるトークンが存在しないのが、この方式のいちばんの利点である。
 #
@@ -27,11 +12,10 @@
 #     Workflow filename    : publish.yml
 #     Environment          : (空のまま)
 #
-#   **ファイル名がそのまま身元である。**このファイルを別名にすると OIDC が通らない。
+# 公開の順序は変わらない。**タグを打ってリリースを作る前に、main が緑であること。**
+# ここでも publish の前に全部を回す — CIが緑でないものはレジストリへ出さない。
 name: publish
 on:
-  push:
-    branches: [main]
   release:
     types: [published]
   # 既に作ったリリースを出し直すとき / 設定を入れた直後に一度回すとき。
@@ -39,135 +23,50 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 出すタグ (例 v0.16.0)
+        description: 出すタグ (例 v0.14.0)
         required: true
-
-# 同じ版を二つのジョブが同時に出しにいかない
-concurrency:
-  group: publish-${{ github.ref }}
-  cancel-in-progress: false
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      # push 入口ではタグとリリースを作るので write が要る。
-      # release / workflow_dispatch 入口では read で足りるが、権限は job 単位でしか書けない
-      contents: write
+      contents: read
       id-token: write # Trusted Publishing (OIDC) に要る
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
-          fetch-depth: 0 # タグを作るので全履歴が要る
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      # **出す版を決め、出す必要があるかを決める。**
-      #
-      # push 入口では、package.json の版が既にレジストリにあれば**ここで降りる** —
-      # 版を上げない PR をマージしたときに何も起きないのは、この一段のためである。
-      # release / workflow_dispatch は人が名指しで押しているので、降りずに進んで
-      # レジストリに拒ませる (同じ版を二度出せば npm が 403 を返す)。
-      - name: 出す版を決める
-        id: v
-        run: |
-          set -euo pipefail
-          PKG="$(node -p "require('./package.json').version")"
-          NAME="$(node -p "require('./package.json').name")"
-          echo "version=$PKG" >> "$GITHUB_OUTPUT"
-          echo "name=$NAME" >> "$GITHUB_OUTPUT"
-          echo "package.json: $NAME@$PKG"
-
-          if [ "${{ github.event_name }}" = "push" ]; then
-            # 空文字なら未公開。`npm view pkg@ver version` は版が無いとき
-            # 非ゼロで落ちることも空で返ることもあるので、**出力の中身で見る**
-            PUBLISHED="$(npm view "$NAME@$PKG" version 2>/dev/null || true)"
-            if [ -n "$PUBLISHED" ]; then
-              echo "$NAME@$PKG は公開済み — 何もしない"
-              echo "go=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            echo "$NAME@$PKG は未公開 — タグを作って公開する"
-          else
-            # リリース / 手押しでは、名指しされたタグと package.json が一致していること。
-            # 版は git が持つ (ADR-0017) 以上、二つが同じであることは前提である
-            RAW="${{ github.event.inputs.tag || github.ref_name }}"
-            TAG="${RAW#v}"
-            echo "tag=$TAG package.json=$PKG"
-            [ "$TAG" = "$PKG" ] \
-              || { echo "::error::リリースのタグ v$TAG と package.json の $PKG が食い違っています"; exit 1; }
-          fi
-          echo "go=true" >> "$GITHUB_OUTPUT"
-
       # **Trusted Publishing (OIDC) には npm 11.5.1 以上が要る。**
       # Node 22 に同梱の npm は 10.x で、古いと OIDC を試みもせず未認証のまま publish し、
       # レジストリは 401 ではなく **404 を返す** (スコープ付きパッケージの存在を隠すため)。
       # 「404 Not Found - PUT」は「認証されていない」と読む
       - name: npm を Trusted Publishing の使える版に上げる
-        if: steps.v.outputs.go == 'true'
         run: |
           npm install -g npm@latest
           echo "node $(node -v) / npm $(npm -v)"
           npx semver "$(npm -v)" -r ">=11.5.1" >/dev/null \
             || { echo "::error::npm $(npm -v) では Trusted Publishing (OIDC) が使えません"; exit 1; }
-
       - run: npm ci
-        if: steps.v.outputs.go == 'true'
 
-      # **門番は重いほうまで回す。**
-      #
-      # かつてここは速い三つだけを回していた — 「リリースは既に緑の main から切るのが前提で、
-      # 公開の待ち時間に gate:examples の数分をもう一度払わない」という理屈だった。
-      # **マージそのものが公開の引き金になった今、その前提は成り立たない** (main はいま
-      # 変わったばかりで、ci.yml の門番はまだ走っている最中である)。
-      # 公開は稀にしか起きない (版を上げたときだけ) ので、数分は払う。
+      # 速い検査だけをここで回す。重い門番 (gate:examples — 数分) は publish ではなく
+      # ci.yml がコミットのたびに回している — リリースは既に緑の main から切るのが前提で、
+      # 公開の待ち時間に同じ数分をもう一度払わない
       - run: npm run typecheck
-        if: steps.v.outputs.go == 'true'
       - run: npm test
-        if: steps.v.outputs.go == 'true'
       - run: npm run check:examples
-        if: steps.v.outputs.go == 'true'
-      - run: npm run gate:examples
-        if: steps.v.outputs.go == 'true'
 
-      # **タグとリリースは、検査が通ってから作る。**
-      # 落ちた版のタグが残ると、履歴が「出したことになっている」嘘をつく。
-      # GITHUB_TOKEN が作るので、これが publish を再帰的に起動することはない
-      - name: タグとリリースを作る (push 入口のときだけ)
-        if: steps.v.outputs.go == 'true' && github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ github.token }}
+      # リリースのタグと package.json の版が食い違ったまま出さない。
+      # 版は git が持つ (ADR-0017) 以上、二つが同じであることは前提である
+      - name: タグと版の一致を確かめる
         run: |
-          set -euo pipefail
-          V="v${{ steps.v.outputs.version }}"
-          if gh release view "$V" >/dev/null 2>&1; then
-            echo "リリース $V は既にある — 作らずに公開へ進む"
-          else
-            gh release create "$V" \
-              --target "${{ github.sha }}" \
-              --title "$V" \
-              --generate-notes
-            echo "リリース $V を作った"
-          fi
+          RAW="${{ github.event.inputs.tag || github.ref_name }}"
+          TAG="${RAW#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          echo "tag=$TAG package.json=$PKG"
+          [ "$TAG" = "$PKG" ] || { echo "::error::リリースのタグ v$TAG と package.json の $PKG が食い違っています"; exit 1; }
 
       - run: npm run build
-        if: steps.v.outputs.go == 'true'
       - run: npm publish --access public
-        if: steps.v.outputs.go == 'true'
-
-      - name: 結果
-        if: steps.v.outputs.go == 'true'
-        run: |
-          echo "### 公開した — \`${{ steps.v.outputs.name }}@${{ steps.v.outputs.version }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "https://www.npmjs.com/package/${{ steps.v.outputs.name }}/v/${{ steps.v.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: 何もしなかった理由
-        if: steps.v.outputs.go != 'true'
-        run: |
-          echo "### 公開しなかった" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`${{ steps.v.outputs.name }}@${{ steps.v.outputs.version }}\` は既にレジストリにある。版を上げない変更をマージしたときは、これが正しい振る舞いである。" >> "$GITHUB_STEP_SUMMARY"
