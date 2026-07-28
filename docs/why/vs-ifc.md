@@ -1,15 +1,15 @@
 ---
-title: koyu と IFC4・IFCX・BOT・USD
+title: IFC・USD との比較
 mode: explanation
 ---
 
-# koyu と IFC4・IFCX・BOT・USD
+# IFC・USD との比較
 
 空間をノード、境界を関係とするモデルは新しくない。W3C BOT の `bot:Space` と `bot:Interface`、IndoorGML のセル空間と双対グラフ、IFC の `IfcSpace` と `IfcRelSpaceBoundary` は、どれも近い形をしている。合成の仕組みは USD が持つ。
 
 **近さは隠すべき弱点ではなく、設計上の狙いである。**近い形をしているからこそ、それらへの射影が自明になる。新規性は個々の要素にではなく、**それらを同時に備えていること**にある。
 
-用語に馴染みが無ければ [前提: BIM・IFC・IfcSpace・USD](bim-ifc-usd.md) を先に読む。
+用語に馴染みが無ければ [BIM・IFC・USD の基礎](bim-ifc-usd.md) を先に読む。
 
 ## 立ち位置の違い
 
@@ -102,7 +102,7 @@ OpenUSD からは**機構だけ**を借りている。
 
 > **建築の意味論を持つ形式は合成を持たず、合成を持つ形式は建築の意味論を持たない。**
 
-koyu の主張は、**両方を持てる**というところにある ([合成は時間と分担のためにある](composition-is-for-time.md))。
+koyu の主張は、**両方を持てる**というところにある ([ファイル分割と重ね合わせ](composition-is-for-time.md))。
 
 ## 相互運用の方針 — 出口は作る。往復は作らない
 
@@ -128,7 +128,7 @@ UUID と GUID は名前から決定的に導いているので、生成し直し
 
 ## この先
 
-- [IFC4 エンティティ対応表](ifc4-coverage.md) — 何が書けて、何を方針として書かないか
-- [このデータの解像度](resolution.md)
-- [著者形式が DSL である理由](dsl-not-yaml.md)
+- [IFC4 対応表](ifc4-coverage.md) — 何が書けて、何を方針として書かないか
+- [記述できる粒度](resolution.md)
+- [記法形式の比較](dsl-not-yaml.md)
 - [正準 JSON](../reference/json/index.md)

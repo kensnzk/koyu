@@ -1,9 +1,9 @@
 ---
-title: 書かないことが意味を持つ
+title: 既定の境界
 mode: explanation
 ---
 
-# 書かないことが意味を持つ
+# 既定の境界
 
 koyu の記法が短いのは、覚えることが少ないからではなく、**書かないことが多い**からである。何が書かれず、書かれないことが何を意味するのかを知らないまま構文表を読むと、行が足りないのか多いのかが判断できない。
 
@@ -85,7 +85,7 @@ npx tsx src/cli.ts validate gap.muro
 ⚠ [envelope.gap] gap.muro:line 6: Perimeter not faced by any envelope: /L1/b — S 3600mm / E 4000mm / N 3600mm (11200mm over 3 run(s)). Write a boundary to the exterior
 ```
 
-この判定は粗い — **外部への境界を一本でも書いたレベルだけ**を見る。外皮をまだ模型にしていない階を「穴が開いている」とは言わない。「書き始めたなら閉じきる」という整合の要求であって、完全性の要求ではない。粗さが許されるのは、判定が凍らない領域にあるからである ([二種類の緑](two-kinds-of-green.md))。規則は [envelope.gap](../reference/validate/envelope.md)。
+この判定は粗い — **外部への境界を一本でも書いたレベルだけ**を見る。外皮をまだ模型にしていない階を「穴が開いている」とは言わない。「書き始めたなら閉じきる」という整合の要求であって、完全性の要求ではない。粗さが許されるのは、判定が凍らない領域にあるからである ([check と validate の違い](two-kinds-of-green.md))。規則は [envelope.gap](../reference/validate/envelope.md)。
 
 ## 沈黙が導出を生む — 半屋外
 
@@ -126,7 +126,7 @@ Semi-outdoor 7.20 m2 (balconies, external stairs and the like — whether they c
 
 ## この先
 
-- [原本が持つもの、koyu が計算するもの](source-and-derived.md)
-- [緑の check は「使える建物」を意味しない](green-is-not-a-building.md)
+- [導出される情報](source-and-derived.md)
+- [check の保証範囲](green-is-not-a-building.md)
 - [既定境界](../reference/muro/defaults.md)
 - [導出の定数](../reference/form/constants.md) — 書かれなかったときに何を導くか

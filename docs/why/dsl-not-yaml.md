@@ -1,9 +1,9 @@
 ---
-title: 著者形式が DSL である理由
+title: 記法形式の比較
 mode: explanation
 ---
 
-# 著者形式が DSL である理由
+# 記法形式の比較
 
 「JSON か YAML でよかったのでは」は最初に来る問いである。新しい構文には値段がある — パーサ、エディタ支援、シンタックスハイライト、そして読み手が覚え直す手間。
 
@@ -164,7 +164,7 @@ band X X2..X4 Y4-3200..Y5
   space /L14..L19/s03 room w:rest name:スイート03
 ```
 
-複合建築の実例では、コアの 21 レベル分が 9 行、ホテル 78 室が 13 行の帯の宣言から展開されている ([koyu と IFC4・IFCX・BOT・USD](vs-ifc.md))。
+複合建築の実例では、コアの 21 レベル分が 9 行、ホテル 78 室が 13 行の帯の宣言から展開されている ([IFC・USD との比較](vs-ifc.md))。
 
 汎用形式でこれをやろうとすれば、アンカーとエイリアス、あるいは外部のテンプレート機構が要る。**そしてそこで畳まれた結果は、もう YAML パーサだけでは読めない。**
 
@@ -198,5 +198,5 @@ band X X2..X4 Y4-3200..Y5
 
 - [正準 JSON](../reference/json/index.md) — 機械形式
 - [記法 (.muro)](../reference/muro/index.md) — 文の一覧
-- [koyu と IFC4・IFCX・BOT・USD](vs-ifc.md)
+- [IFC・USD との比較](vs-ifc.md)
 - [koyu diff](../reference/cli/diff.md)

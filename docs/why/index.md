@@ -1,9 +1,9 @@
 ---
-title: koyu は何のためにあるか
+title: koyu とは何か
 mode: explanation
 ---
 
-# koyu は何のためにあるか
+# koyu とは何か
 
 建築のデータは、図面から CAD、BIM に至るまで、一貫して**建てるべき物**の記述だった。壁・床・柱・梁を並べ、室はその囲みの結果として後から導かれる。物のデータは三十年かけて何度もデジタル化されたが、**建築そのもの — 空間の分節・接続・序列 — は、いまだに機械可読になっていない。**
 
@@ -36,7 +36,7 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-二つの室が接しているので、その間の壁が**導かれている**。壁を置く操作は koyu に存在しない。詳しくは [空間が一次要素である](space-is-primary.md) と [壁は関係である](boundary-is-a-relation.md)。
+二つの室が接しているので、その間の壁が**導かれている**。壁を置く操作は koyu に存在しない。詳しくは [空間中心のモデル](space-is-primary.md) と [境界による壁の表現](boundary-is-a-relation.md)。
 
 ## 五分で「自分に向いているか」を確かめる
 
@@ -125,7 +125,7 @@ $ npx tsx src/cli.ts doors sealed.muro /L2/bed /out
 Cannot reach /out from /L2/bed
 ```
 
-ここで納得できるかどうかが分かれ目である。`check` は「書かれたものがデータとして矛盾していない」までしか言わない — [緑の check は「使える建物」を意味しない](green-is-not-a-building.md)。建築としての判定は `koyu validate` が別に言う。
+ここで納得できるかどうかが分かれ目である。`check` は「書かれたものがデータとして矛盾していない」までしか言わない — [check の保証範囲](green-is-not-a-building.md)。建築としての判定は `koyu validate` が別に言う。
 
 ### 向いている
 
@@ -142,34 +142,34 @@ Cannot reach /out from /L2/bed
 - 構造解析・設備計算のモデルが欲しい
 - 既存の IFC 資産と往復させたい (出口は作るが往復は作らない)
 
-境界線の引き方は [このデータの解像度](resolution.md) にある。
+境界線の引き方は [記述できる粒度](resolution.md) にある。
 
 ## この巻の読み方
 
 **記法の考え方**
 
-- [空間が一次要素である](space-is-primary.md) — 出発点
-- [壁は物ではなく、二つの空間の関係である](boundary-is-a-relation.md)
-- [書かないことが意味を持つ](silence.md) — 既定の三段構え
-- [原本が持つもの、koyu が計算するもの](source-and-derived.md)
-- [パスは住所であり、集計の階層である](paths.md)
-- [語彙が開いている理由と、開いていない二語](open-vocabulary.md)
+- [空間中心のモデル](space-is-primary.md) — 出発点
+- [境界による壁の表現](boundary-is-a-relation.md)
+- [既定の境界](silence.md)
+- [導出される情報](source-and-derived.md)
+- [パスと面積集計](paths.md)
+- [属性の拡張](open-vocabulary.md)
 
 **約束の形**
 
-- [緑の check は「使える建物」を意味しない](green-is-not-a-building.md)
-- [二種類の緑](two-kinds-of-green.md) — 構成の診断と建築の判定
-- [三つの領域](three-domains.md) — 小さく凍る核と、汚くてよい二つの面
-- [合成は時間と分担のためにある](composition-is-for-time.md)
-- [同じ原本からは同じ形が出なければならない](form-must-be-unique.md)
-- [平面図は水平断面ではない](plan-is-not-a-section.md)
+- [check の保証範囲](green-is-not-a-building.md)
+- [check と validate の違い](two-kinds-of-green.md)
+- [言語・判定・描画の分離](three-domains.md)
+- [ファイル分割と重ね合わせ](composition-is-for-time.md)
+- [導出の決定性](form-must-be-unique.md)
+- [平面図の生成](plan-is-not-a-section.md)
 
 **既存の世界との関係**
 
-- [前提: BIM・IFC・IfcSpace・USD](bim-ifc-usd.md) — この分野の語彙を持たない読者へ
-- [koyu と IFC4・IFCX・BOT・USD](vs-ifc.md) — トークン実測つき
-- [IFC4 エンティティ対応表](ifc4-coverage.md)
-- [著者形式が DSL である理由](dsl-not-yaml.md) — YAML/JSON との書き比べ
-- [このデータの解像度](resolution.md)
+- [BIM・IFC・USD の基礎](bim-ifc-usd.md) — この分野の語彙を持たない読者へ
+- [IFC・USD との比較](vs-ifc.md) — トークン実測つき
+- [IFC4 対応表](ifc4-coverage.md)
+- [記法形式の比較](dsl-not-yaml.md) — YAML/JSON との書き比べ
+- [記述できる粒度](resolution.md)
 
 約束の正確な範囲は [約束の範囲](../reference/scope.md) にある。

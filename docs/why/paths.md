@@ -1,9 +1,9 @@
 ---
-title: パスは住所であり、集計の階層である
+title: パスと面積集計
 mode: explanation
 ---
 
-# パスは住所であり、集計の階層である
+# パスと面積集計
 
 `/L5/A/ldk` は名前ではなく住所である。そして `/` で切られた階層は、そのまま集計の単位になる。**パスは二役を兼ねている。**
 
@@ -107,17 +107,17 @@ space /L5/A/ldk ldk X1..X3 Y1..Y2 uid:u-7f3k9m2qx4b8dhtv
 | 集計の階層 | **パス** |
 | 改名を跨ぐ長期の同一性 (センサー・実測・台帳) | **uid** |
 
-`uid` を書けるのは `space` と `zone` の二つに閉じている。関係に書けないのは、関係の同一性が両端から導かれるからである ([壁は関係である](boundary-is-a-relation.md))。詳細は [同一性](../reference/identity.md)。
+`uid` を書けるのは `space` と `zone` の二つに閉じている。関係に書けないのは、関係の同一性が両端から導かれるからである ([境界による壁の表現](boundary-is-a-relation.md))。詳細は [同一性](../reference/identity.md)。
 
 ## 名前空間としても働く
 
 合成で複数のファイルを重ねるとき、層ごとの名前空間接頭辞は要らない — **パスの階層がすでに名前空間である。**`L5.muro` が `/L5/...` を書き、`core.muro` が `/B2..L19/core/...` を書けば、それだけで衝突しない。
 
-これは USD からパス名前空間という機構だけを借りた結果である ([合成は時間と分担のためにある](composition-is-for-time.md))。
+これは USD からパス名前空間という機構だけを借りた結果である ([ファイル分割と重ね合わせ](composition-is-for-time.md))。
 
 ## この先
 
 - [zone の書き方](../reference/muro/zone.md)
 - [同一性](../reference/identity.md)
-- [合成は時間と分担のためにある](composition-is-for-time.md)
+- [ファイル分割と重ね合わせ](composition-is-for-time.md)
 - [koyu stats](../reference/cli/stats.md)

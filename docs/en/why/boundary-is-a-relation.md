@@ -1,9 +1,9 @@
 ---
-title: A wall is not a thing but a relation between two spaces
+title: Walls as boundaries
 mode: explanation
 ---
 
-# A wall is not a thing but a relation between two spaces
+# Walls as boundaries
 
 `boundary /L1/a /L1/b` is not a line that places a wall. It is a line that declares **that a relation — a boundary — exists between two spaces**. The wall centerline itself is written nowhere; it is derived as the shared edge of the two regions.
 
@@ -111,7 +111,7 @@ A `boundary` may be written before the spaces it names — **relation declaratio
 
 ## Next
 
-- [Not writing something means something](silence.md) — why touching spaces default to a wall
-- [A plan is not a horizontal section](plan-is-not-a-section.md) — where segments come out of relations
+- [Default boundaries](silence.md) — why touching spaces default to a wall
+- [How plans are generated](plan-is-not-a-section.md) — where segments come out of relations
 - [Writing `boundary`](../reference/muro/boundary.md)
 - [Default boundaries](../reference/muro/defaults.md)

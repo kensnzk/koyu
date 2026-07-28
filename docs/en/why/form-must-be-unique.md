@@ -1,9 +1,9 @@
 ---
-title: The same source must yield the same form
+title: Determinism of derivation
 mode: explanation
 ---
 
-# The same source must yield the same form
+# Determinism of derivation
 
 Not making form and not being able to make form are different things. **A unique form must be derivable from this description.**
 
@@ -40,7 +40,7 @@ Before any rules are listed, the structure itself carries uniqueness.
 
 Three places where this pays off.
 
-**Walls.** A wall is not *placed*; it appears as the shared edge of two regions. With no placing operation, there is no ambiguity about where it was placed ([A wall is a relation](boundary-is-a-relation.md)).
+**Walls.** A wall is not *placed*; it appears as the shared edge of two regions. With no placing operation, there is no ambiguity about where it was placed ([Walls as boundaries](boundary-is-a-relation.md)).
 
 **Columns.** A column's position is written nowhere. It appears where a grid crossing meets a floor. **Two columns never stand at the same crossing** — a deterministic rule says the earlier declaration wins.
 
@@ -92,5 +92,5 @@ The reason for abandoning it is simple. **If several forms come out, the source 
 
 - [Form — what derivation returns](../reference/form/index.md)
 - [Derivation constants](../reference/form/constants.md)
-- [A plan is not a horizontal section](plan-is-not-a-section.md)
+- [How plans are generated](plan-is-not-a-section.md)
 - [Canonical JSON](../reference/json/index.md)

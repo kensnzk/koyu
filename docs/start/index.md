@@ -424,7 +424,7 @@ npx tsx src/cli.ts plan out/house.muro -l L2
 
 > `check` が緑でも建物が使えるとは限らない。動線は `doors` で、採光は `light` で、外皮は自分の目で確かめる。
 
-この一行がなぜそうなっていて、どこまでを信用してよいのかは[緑の check は「使える建物」を意味しない](../why/green-is-not-a-building.md)で扱う。
+この一行がなぜそうなっていて、どこまでを信用してよいのかは[check の保証範囲](../why/green-is-not-a-building.md)で扱う。
 
 引くなら [垂直動線](../reference/muro/vertical-circulation.md)・[koyu levels](../reference/cli/levels.md)・[koyu doors](../reference/cli/doors.md)。
 

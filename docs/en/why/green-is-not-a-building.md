@@ -1,9 +1,9 @@
 ---
-title: A green check is not a usable building
+title: What check guarantees
 mode: explanation
 ---
 
-# A green check is not a usable building
+# What check guarantees
 
 ```text
 ✔ Consistent — 3 spaces / 3 boundaries
@@ -47,7 +47,7 @@ npx tsx src/cli.ts doors sealed.muro /L2/bed /out
 Cannot reach /out from /L2/bed
 ```
 
-The reason is simple. **The default between touching spaces is a wall, and a wall without a door cannot be passed.** Declare not one door and a two-storey house is perfectly sealed while staying green ([Not writing something means something](silence.md)).
+The reason is simple. **The default between touching spaces is a wall, and a wall without a door cannot be passed.** Declare not one door and a two-storey house is perfectly sealed while staying green ([Default boundaries](silence.md)).
 
 There used to be a warning for "these touch but no boundary is declared". Once the default became a wall it had no work left to do and was retired. **In a system where silence means a default wall, silence is not an omission.**
 
@@ -65,7 +65,7 @@ npx tsx src/cli.ts validate sealed.muro
 Validation — 2 violations / 0 cautions
 ```
 
-`check` and `validate` are **different commands, returning different types, in different states of freeze**. That split is itself a design decision, and [Two kinds of green](two-kinds-of-green.md) takes it up.
+`check` and `validate` are **different commands, returning different types, in different states of freeze**. That split is itself a design decision, and [check and validate](two-kinds-of-green.md) takes it up.
 
 ## An empty file is green too
 
@@ -109,7 +109,7 @@ The full list, mapped to diagnostic codes, is in [Scope](../reference/scope.md).
 
 ## Next
 
-- [Two kinds of green](two-kinds-of-green.md) — why there are two
+- [check and validate](two-kinds-of-green.md) — why there are two
 - [Scope](../reference/scope.md) — the complete list of guarantees
 - [Judgement — koyu validate](../reference/validate/index.md)
 - [koyu doors](../reference/cli/doors.md)

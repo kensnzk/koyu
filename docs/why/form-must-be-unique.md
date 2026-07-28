@@ -1,9 +1,9 @@
 ---
-title: 同じ原本からは同じ形が出なければならない
+title: 導出の決定性
 mode: explanation
 ---
 
-# 同じ原本からは同じ形が出なければならない
+# 導出の決定性
 
 形を作らないことと、形を作れないことは違う。**この記述からは、一意な形が作れなければならない。**
 
@@ -40,7 +40,7 @@ toCanonical(a) === toCanonical(b)  ⟹  derive(a) ≡ derive(b)
 
 これが効いている場面を三つ挙げる。
 
-**壁。**壁は「置かれる」のではなく、二つの領域の共有辺として現れる。置く操作が無いので、置き場所の曖昧さも無い ([壁は関係である](boundary-is-a-relation.md))。
+**壁。**壁は「置かれる」のではなく、二つの領域の共有辺として現れる。置く操作が無いので、置き場所の曖昧さも無い ([境界による壁の表現](boundary-is-a-relation.md))。
 
 **柱。**柱の位置はどこにも書かれない。通り芯の交点と床の交わりから現れる。**同じ交点に二本は立たない** — 先に書かれた宣言が勝つ、という決定的な規則がある。
 
@@ -92,5 +92,5 @@ toCanonical(a) === toCanonical(b)  ⟹  derive(a) ≡ derive(b)
 
 - [形 — 導出が返すもの](../reference/form/index.md)
 - [導出の定数](../reference/form/constants.md)
-- [平面図は水平断面ではない](plan-is-not-a-section.md)
+- [平面図の生成](plan-is-not-a-section.md)
 - [正準 JSON](../reference/json/index.md)

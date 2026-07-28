@@ -1,11 +1,11 @@
 ---
-title: 前提 — BIM・IFC・IfcSpace・USD
+title: BIM・IFC・USD の基礎
 mode: explanation
 ---
 
-# 前提 — BIM・IFC・IfcSpace・USD
+# BIM・IFC・USD の基礎
 
-koyu の位置づけを述べる文章は、この分野の語彙を前提にしている。**この頁はその語彙だけを説明する。**建築情報の実務に慣れている読者は [koyu と IFC4・IFCX・BOT・USD](vs-ifc.md) へ飛んでよい。
+koyu の位置づけを述べる文章は、この分野の語彙を前提にしている。**この頁はその語彙だけを説明する。**建築情報の実務に慣れている読者は [IFC・USD との比較](vs-ifc.md) へ飛んでよい。
 
 ## BIM
 
@@ -36,7 +36,7 @@ koyu の位置づけを述べる文章は、この分野の語彙を前提にし
 
 しかし多くの現場では、**部材が囲んだ結果として導かれる二次的な情報**として扱われ、書き出されないことも珍しくない。空間境界を表す `IfcRelSpaceBoundary` は規格にあるが、境界の接続ジオメトリが省略されることが最も多い箇所でもある。
 
-**koyu の主題はここを一次要素へ格上げすることである。**`IfcSpace` が二級市民であり続けているのは規格の不備ではなく、**形を原本にしたことの帰結**である ([空間が一次要素である](space-is-primary.md))。
+**koyu の主題はここを一次要素へ格上げすることである。**`IfcSpace` が二級市民であり続けているのは規格の不備ではなく、**形を原本にしたことの帰結**である ([空間中心のモデル](space-is-primary.md))。
 
 ## IFC5 と IFCX
 
@@ -88,7 +88,7 @@ koyu の主題はまさにこの問い — **建築において何を「存在�
 
 ## この先
 
-- [koyu と IFC4・IFCX・BOT・USD](vs-ifc.md) — トークン実測つきの比較
-- [IFC4 エンティティ対応表](ifc4-coverage.md)
-- [空間が一次要素である](space-is-primary.md)
-- [合成は時間と分担のためにある](composition-is-for-time.md)
+- [IFC・USD との比較](vs-ifc.md) — トークン実測つきの比較
+- [IFC4 対応表](ifc4-coverage.md)
+- [空間中心のモデル](space-is-primary.md)
+- [ファイル分割と重ね合わせ](composition-is-for-time.md)

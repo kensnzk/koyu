@@ -1,9 +1,9 @@
 ---
-title: Two kinds of green — structural diagnostics and architectural judgement
+title: check and validate
 mode: explanation
 ---
 
-# Two kinds of green — structural diagnostics and architectural judgement
+# check and validate
 
 koyu splits "correct" in two.
 
@@ -126,7 +126,7 @@ Fifteen rules is not a finished set. Fire compartmentation, shadow studies, setb
 
 ## Next
 
-- [Three domains](three-domains.md) — the whole picture of this split
+- [Separating language, checks and drawing](three-domains.md) — the whole picture of this split
 - [Diagnostics — koyu check](../reference/diagnostics/index.md) — 65 codes
 - [Judgement — koyu validate](../reference/validate/index.md) — 15 rules
 - [Scope](../reference/scope.md)

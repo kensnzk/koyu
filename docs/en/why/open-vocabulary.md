@@ -1,9 +1,9 @@
 ---
-title: Why the vocabulary is open, and the two words that are not
+title: Extending attributes
 mode: explanation
 ---
 
-# Why the vocabulary is open, and the two words that are not
+# Extending attributes
 
 There are two ways to give meaning: **a large class hierarchy**, or **a few interpreted words plus an open vocabulary**. koyu takes the second. Extension is adding a word, not revising a schema, and that is where connections to outside classification systems — city data, property identifiers, sensors, network data — can land.
 
@@ -128,4 +128,4 @@ An open vocabulary does not mean anything may be added. Five questions settle wh
 - [Attributes](../reference/muro/attributes.md) — the ledger
 - [ATT — attribute diagnostics](../reference/diagnostics/att.md)
 - [Judgement — koyu validate](../reference/validate/index.md)
-- [Two kinds of green](two-kinds-of-green.md)
+- [check and validate](two-kinds-of-green.md)

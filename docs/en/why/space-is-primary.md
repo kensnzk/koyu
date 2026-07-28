@@ -1,9 +1,9 @@
 ---
-title: Space is the primary element
+title: The space-centred model
 mode: explanation
 ---
 
-# Space is the primary element
+# The space-centred model
 
 What architecture deals in is not walls, floors and ceilings themselves but the space they produce. Yet architectural data has consistently described the things to be built. **koyu reverses the order — enumerate the rooms and the walls between them come with them.**
 
@@ -63,7 +63,7 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-One boundary, though none was written. The two rooms touch, so the wall between them is derived ([Not writing something means something](silence.md)).
+One boundary, though none was written. The two rooms touch, so the wall between them is derived ([Default boundaries](silence.md)).
 
 **A file of nothing but `space` lines is not a deficient drawing; it is a complete description of architecture.** That is where this notation starts.
 
@@ -113,13 +113,13 @@ Structure and services are led by things, not by space: columns, beams, ducts, b
 
 Columns are the one exception with a settled treatment — they are **an element whose position is never written**, appearing where grid crossings meet a floor ([column](../reference/muro/column.md)). It is the rule that makes walls appear from boundaries, applied to a point element.
 
-Places where the boundary of a space is ambiguous remain: voids, semi-outdoor space, exterior space. Part of why `IfcSpace` works poorly in practice lives here, and koyu decides it rather than dodging it — **semi-outdoor is derived, never declared** ([What the source holds, what koyu computes](source-and-derived.md)).
+Places where the boundary of a space is ambiguous remain: voids, semi-outdoor space, exterior space. Part of why `IfcSpace` works poorly in practice lives here, and koyu decides it rather than dodging it — **semi-outdoor is derived, never declared** ([Derived information](source-and-derived.md)).
 
-Granularity is not obvious either. Cut at rooms, at zones, or hold both? koyu's answer is "hold both, and let the path join them" ([A path is an address and an aggregation hierarchy](paths.md)).
+Granularity is not obvious either. Cut at rooms, at zones, or hold both? koyu's answer is "hold both, and let the path join them" ([Paths and area aggregation](paths.md)).
 
 ## Next
 
-- [A wall is not a thing but a relation between two spaces](boundary-is-a-relation.md) — the direct consequence
-- [Not writing something means something](silence.md) — the three tiers of default
-- [What the source holds, what koyu computes](source-and-derived.md)
+- [Walls as boundaries](boundary-is-a-relation.md) — the direct consequence
+- [Default boundaries](silence.md) — the three tiers of default
+- [Derived information](source-and-derived.md)
 - [Writing `space`](../reference/muro/space.md)

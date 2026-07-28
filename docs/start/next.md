@@ -23,11 +23,11 @@ mode: explanation
 
 ## なぜこう書くのかが腑に落ちていない
 
-→ **[koyu は何のためにあるか](../why/index.md)**
+→ **[koyu とは何か](../why/index.md)**
 
-[空間が一次要素である](../why/space-is-primary.md)・[壁は物ではなく、二つの空間の関係である](../why/boundary-is-a-relation.md)・[書かないことが意味を持つ](../why/silence.md)・[パスは住所であり、集計の階層である](../why/paths.md)・[原本が持つもの、koyu が計算するもの](../why/source-and-derived.md)・[語彙が開いている理由と、開いていない二語](../why/open-vocabulary.md) — 記法の形の裏にある考えを、実装の話を挟まずに扱う巻である。
+[空間中心のモデル](../why/space-is-primary.md)・[境界による壁の表現](../why/boundary-is-a-relation.md)・[既定の境界](../why/silence.md)・[パスと面積集計](../why/paths.md)・[導出される情報](../why/source-and-derived.md)・[属性の拡張](../why/open-vocabulary.md) — 記法の形の裏にある考えを、実装の話を挟まずに扱う巻である。
 
-チュートリアル第5段で踏んだ罠だけを正面から見たいなら **[緑の check は「使える建物」を意味しない](../why/green-is-not-a-building.md)** が一枚で答える。
+チュートリアル第5段で踏んだ罠だけを正面から見たいなら **[check の保証範囲](../why/green-is-not-a-building.md)** が一枚で答える。
 
 ## エラーが出て止まっている
 

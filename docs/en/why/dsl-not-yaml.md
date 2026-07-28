@@ -1,9 +1,9 @@
 ---
-title: Why the authored format is a DSL
+title: Notation format comparison
 mode: explanation
 ---
 
-# Why the authored format is a DSL
+# Notation format comparison
 
 "Couldn't this have been JSON or YAML?" is the first question. New syntax has a price — a parser, editor support, syntax highlighting, and the effort a reader spends learning it.
 
@@ -164,7 +164,7 @@ band X X2..X4 Y4-3200..Y5
   space /L14..L19/s03 room w:rest name:スイート03
 ```
 
-In the bundled complex, 21 levels of core come from 9 lines and 78 hotel rooms come from a 13-line band declaration ([koyu against IFC4, IFCX, BOT and USD](vs-ifc.md)).
+In the bundled complex, 21 levels of core come from 9 lines and 78 hotel rooms come from a 13-line band declaration ([Comparison with IFC and USD](vs-ifc.md)).
 
 Doing this in a general-purpose format takes anchors and aliases, or an external templating mechanism. **And the folded result is then no longer readable by a YAML parser alone.**
 
@@ -198,5 +198,5 @@ Stated honestly.
 
 - [Canonical JSON](../reference/json/index.md) — the machine format
 - [The whole syntax of .muro](../reference/muro/index.md)
-- [koyu against IFC4, IFCX, BOT and USD](vs-ifc.md)
+- [Comparison with IFC and USD](vs-ifc.md)
 - [koyu diff](../reference/cli/diff.md)
