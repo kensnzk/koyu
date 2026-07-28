@@ -77,7 +77,7 @@ Every wrong example on this page exits 1 under `koyu check --strict`, each produ
 | You thought you wrote a level and were told "its level cannot be determined" | [SUF02](#suf02) |
 | The floor-height arithmetic does not pass | [HGT01](#hgt01) [HGT02](#hgt02) |
 | No ceiling height or floor-construction thickness written, and neither ceilings nor floors are generated | [SUF01](#suf01) [SUF03](#suf03) |
-| The site's figures do not agree | `check` does not say — [`site.escape` / `site.area`](validation.md) (the validation surface) |
+| The site's figures do not agree | [SIT01](#sit01) [SIT02](#sit02) [SIT04](#sit04) |
 | The file dies without a single line being read | [SYN01](#syn01) |
 
 ## Boundaries — BND
