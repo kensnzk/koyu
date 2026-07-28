@@ -14,6 +14,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run check:examples
-      # 重い門番 (twin の到達可能性BFS等で数分) はここで回す — push/PR の裏で走り、
-      # 人が待つ publish には載せない。緑でない main からリリースを切らないこと
+      # 重い門番 (twin の到達可能性BFS等で数分)。PR の段でここが赤なら、そもそもマージしない。
+      # publish.yml も同じ門番を回す — マージが公開の引き金である以上、
+      # 「main は既に緑」を前提にできないため (publish.yml の同じ箇所に理由がある)
       - run: npm run gate:examples
