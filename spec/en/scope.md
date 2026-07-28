@@ -216,7 +216,7 @@ There are two lines of version.
 
 ugatsu versions independently and declares the version of muro it follows. The validation surface carries no version and grows by addition.
 
-**muro 1.0 and koyu 1.0.0 arrive together.** The implementation's surface cannot be frozen while the language's surface is unsettled, and neither can the reverse.
+**The two are different promises, so they need not arrive together** ([ADR-0042](../../docs/decisions/0042-two-version-lines.md)). muro's version promises "a file written this way keeps meaning this"; koyu's version promises "this implementation's surface will not break". As it stands muro has reached 1.0 and koyu is still 0.x — **the language is settled, the implementation has promised no freeze yet.**
 
 ---
 
