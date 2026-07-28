@@ -1,15 +1,15 @@
 ---
-title: koyu against IFC4, IFCX, BOT and USD
+title: Comparison with IFC and USD
 mode: explanation
 ---
 
-# koyu against IFC4, IFCX, BOT and USD
+# Comparison with IFC and USD
 
 A model with spaces as nodes and boundaries as relations is not new. W3C BOT's `bot:Space` and `bot:Interface`, IndoorGML's cellular space and its dual graph, IFC's `IfcSpace` and `IfcRelSpaceBoundary` all have a similar shape. The composition mechanism belongs to USD.
 
 **The closeness is not a weakness to hide but the design intent.** It is because the shapes are close that projections onto them are trivial. The novelty is not in any single element but in **holding them all at once**.
 
-If the terminology is unfamiliar, read [Background: BIM, IFC, IfcSpace, USD](bim-ifc-usd.md) first.
+If the terminology is unfamiliar, read [BIM, IFC and USD basics](bim-ifc-usd.md) first.
 
 ## Where each one stands
 
@@ -102,7 +102,7 @@ And **USD has no architectural semantics.** Space, boundary, use and storey cann
 
 > **Formats with architectural semantics have no composition; formats with composition have no architectural semantics.**
 
-koyu's claim is that **you can have both** ([Composition is for time, not for size](composition-is-for-time.md)).
+koyu's claim is that **you can have both** ([Splitting and layering files](composition-is-for-time.md)).
 
 ## The interoperability policy — build an exit, not a round trip
 
@@ -128,7 +128,7 @@ UUIDs and GUIDs are derived deterministically from names, so regenerating produc
 
 ## Next
 
-- [IFC4 entity coverage](ifc4-coverage.md) — what can be written, and what is deliberately not
-- [The resolution of this data](resolution.md)
-- [Why the authored format is a DSL](dsl-not-yaml.md)
+- [IFC4 coverage](ifc4-coverage.md) — what can be written, and what is deliberately not
+- [Level of detail](resolution.md)
+- [Notation format comparison](dsl-not-yaml.md)
 - [Canonical JSON](../reference/json/index.md)

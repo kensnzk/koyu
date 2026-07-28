@@ -1,9 +1,9 @@
 ---
-title: 緑の check は「使える建物」を意味しない
+title: check の保証範囲
 mode: explanation
 ---
 
-# 緑の check は「使える建物」を意味しない
+# check の保証範囲
 
 ```text
 ✔ Consistent — 3 spaces / 3 boundaries
@@ -47,7 +47,7 @@ npx tsx src/cli.ts doors sealed.muro /L2/bed /out
 Cannot reach /out from /L2/bed
 ```
 
-理由は単純である。**接する空間の既定は壁であり、扉の無い壁は通れない。**扉を一枚も宣言しなければ、二階建ては緑のまま完全に密封される ([書かないことが意味を持つ](silence.md))。
+理由は単純である。**接する空間の既定は壁であり、扉の無い壁は通れない。**扉を一枚も宣言しなければ、二階建ては緑のまま完全に密封される ([既定の境界](silence.md))。
 
 「接しているのに境界が宣言されていない」という警告はかつて存在したが、既定が壁になったことで役目を終え、廃止された。**沈黙が既定の壁を意味する体系では、沈黙は欠落ではない。**
 
@@ -65,7 +65,7 @@ npx tsx src/cli.ts validate sealed.muro
 Validation — 2 violations / 0 cautions
 ```
 
-`check` と `validate` は**別のコマンドで、別の型を返し、別の凍結状態にある。**この分け方そのものが設計判断であり、[二種類の緑](two-kinds-of-green.md) が扱う。
+`check` と `validate` は**別のコマンドで、別の型を返し、別の凍結状態にある。**この分け方そのものが設計判断であり、[check と validate の違い](two-kinds-of-green.md) が扱う。
 
 ## 空のファイルも緑である
 
@@ -109,7 +109,7 @@ Validation — 2 violations / 0 cautions
 
 ## この先
 
-- [二種類の緑](two-kinds-of-green.md) — なぜ二つに分かれているか
+- [check と validate の違い](two-kinds-of-green.md) — なぜ二つに分かれているか
 - [約束の範囲](../reference/scope.md) — 保証の完全な一覧
 - [判定 — koyu validate](../reference/validate/index.md)
 - [koyu doors](../reference/cli/doors.md)

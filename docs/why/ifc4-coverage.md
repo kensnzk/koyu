@@ -1,13 +1,13 @@
 ---
-title: IFC4 エンティティ対応表
+title: IFC4 対応表
 mode: explanation
 ---
 
-# IFC4 エンティティ対応表
+# IFC4 対応表
 
 IFC4 のスキーマを鏡にして、**koyu が何を書けるか・何をまだ書けないか・何を方針として書かないか**を並べた表である。参考であって契約ではない — 契約は [約束の範囲](../reference/scope.md) と [持たないもの](../reference/not-held.md) が持つ。
 
-用語に馴染みが無ければ [前提: BIM・IFC・IfcSpace・USD](bim-ifc-usd.md) を先に読む。
+用語に馴染みが無ければ [BIM・IFC・USD の基礎](bim-ifc-usd.md) を先に読む。
 
 | 記号 | 意味 |
 |---|---|
@@ -31,7 +31,7 @@ IFC のスキーマ (IFC2x3/4/4x3 統合) の約 1,140 エンティティのう�
 | `IfcSpatialZone` / `IfcZone` | ● | [`zone`](../reference/muro/zone.md) (数える集約)。階を跨ぐくくりは `level:` 属性 |
 | `IfcSite` (敷地) | ◐ | `zone … site:1` + 地上の外部空間 + [`polygon`](../reference/muro/polygon.md) (所与のジオメトリ)。接道・建蔽率・容積率は `koyu site` が導出。残: 測地座標と真北、建築面積の算入細則 |
 | `IfcExternalSpatialElement` | ● | `/out` は方角・性格ごとの複数の `exterior` に割れる (道路は `road:` に幅員)。粒度は自由で、一枚岩も有効 |
-| `IfcRelAggregates` (空間分解) | ● | パスの階層そのもの ([パスは住所であり、集計の階層である](paths.md)) |
+| `IfcRelAggregates` (空間分解) | ● | パスの階層そのもの ([パスと面積集計](paths.md)) |
 
 ## B. 空間境界
 
@@ -50,7 +50,7 @@ IFC のスキーマ (IFC2x3/4/4x3 統合) の約 1,140 エンティティのう�
 | `IfcSlab` (床) | ● | 書かない — `level` の `slab` が既定。不在は `void` 境界 |
 | `IfcSlab.ROOF` / `IfcRoof` (屋根) | ◐ | **陸屋根は導出される** — 上に空間が重なっていない範囲に、上階の `slab` または既定の厚さで架かる。吹抜けにも架かる。残: 勾配屋根・庇・パラペット |
 | `IfcDoor` / `IfcWindow` | ● | [`door`](../reference/muro/door.md) / [`window`](../reference/muro/window.md) (`w` / `h` / `at` / `edge`)、開き勝手 `hinge` / `swing`、明示位置 `at:X2+450` (はみ出し・重なりは検査)。建具の型は [`asset`](../reference/muro/asset.md)、開き方は `style:hinged/sliding/auto`。窓台 `sill` は運搬層。残: 折戸、防火設備の別 (`fire` は運搬層で解釈しない)、枠と納まり |
-| `IfcOpeningElement` / `IfcRelVoids` / `IfcRelFills` | ● | 開口は境界の字下げ。**ブーリアンは存在しない** — 壁は最初から開口で割られた区間の列である ([平面図は水平断面ではない](plan-is-not-a-section.md)) |
+| `IfcOpeningElement` / `IfcRelVoids` / `IfcRelFills` | ● | 開口は境界の字下げ。**ブーリアンは存在しない** — 壁は最初から開口で割られた区間の列である ([平面図の生成](plan-is-not-a-section.md)) |
 | `IfcStair` / `IfcStairFlight` / `IfcRamp` | ● | 空間の属性 (`stair:N` / `ramp:N` / `escalator:N` / `lift:1`) と垂直境界。**段数・蹴上げ・踏面・踊り場・勾配はすべて導出される** — 領域と階高と上る向きだけから。窮屈さと勾配は `stair.proportion` / `run.slope` が判定する ([縦動線](../reference/muro/vertical-circulation.md)) |
 | `IfcColumn` | ● | [`column`](../reference/muro/column.md) — **位置を書かない要素。**通り芯の交点と床の交わりから現れる。空しか支えない半屋外 (上に床の無い屋上テラス) には立たない。扉との重なりは `column.blocksdoor` が判定する |
 | `IfcBeam` / `IfcMember` | — | 構造は物の別の層。梁は空間の一次モデルに座を持たない |
@@ -70,7 +70,7 @@ IFC4 にバルコニー専用のエンティティは無い (実務は `IfcSlab`
 
 | IFC | 状態 | koyu での対応 |
 |---|---|---|
-| `IfcPropertySet` / `IfcProperty` | ● | 開かれた `key:value` + [属性の台帳](../reference/muro/attributes.md)。台帳に無いキーは名前空間が要る ([語彙が開いている理由](open-vocabulary.md)) |
+| `IfcPropertySet` / `IfcProperty` | ● | 開かれた `key:value` + [属性の台帳](../reference/muro/attributes.md)。台帳に無いキーは名前空間が要る ([属性の拡張](open-vocabulary.md)) |
 | `IfcTypeObject` / `IfcRelDefinesByType` | ◐ | [`asset`](../reference/muro/asset.md) が建具の型を持つ。建具以外の型 (壁種別など) は `spec` の自由語のまま |
 | `IfcElementQuantity` (数量) | ◐ | **数量は宣言せず導出する** (`koyu stats` / `koyu light`)。壁芯固定で、内法・容積対象・区画面積の規約は未 |
 | `IfcClassification` (外部分類) | ○ | 台帳と外部辞書 (bSDD / Uniclass / 室用途コード) の橋。未着手 |
@@ -107,10 +107,10 @@ IFC の「エンティティ」は、koyu では三つのどれかに落ちる�
 
 **エンティティを増やさずにカバレッジを広げるのがこの設計の賭けであり、この表はその検算である。**
 
-そして**カバー率は価値ではない。**足せば機械の視野から外れ、目的が壊れる ([このデータの解像度](resolution.md))。○ の行は「いつか埋める穴」ではなく、**埋めるかどうかを五つの問いで判断する候補**である ([語彙が開いている理由](open-vocabulary.md))。
+そして**カバー率は価値ではない。**足せば機械の視野から外れ、目的が壊れる ([記述できる粒度](resolution.md))。○ の行は「いつか埋める穴」ではなく、**埋めるかどうかを五つの問いで判断する候補**である ([属性の拡張](open-vocabulary.md))。
 
 ## この先
 
-- [koyu と IFC4・IFCX・BOT・USD](vs-ifc.md) — トークン実測つきの比較
-- [このデータの解像度](resolution.md)
+- [IFC・USD との比較](vs-ifc.md) — トークン実測つきの比較
+- [記述できる粒度](resolution.md)
 - [持たないもの](../reference/not-held.md)

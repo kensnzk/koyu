@@ -1,9 +1,9 @@
 ---
-title: Composition is for time and division of labour, not for size
+title: Splitting and layering files
 mode: explanation
 ---
 
-# Composition is for time and division of labour, not for size
+# Splitting and layering files
 
 koyu has a mechanism for stacking several files into one model. **It is not a tool for "splitting because the building is large".**
 
@@ -133,7 +133,7 @@ Canonical form answers "is this the same building", not "how was it written". If
 
 - **variants (branching options)** — branching is what git branches are for. Comparing design options is comparing branches
 - **nested asset references** — an asset does not reference an asset
-- **per-layer namespace prefixes** — the path hierarchy is already a namespace ([A path is an address and an aggregation hierarchy](paths.md))
+- **per-layer namespace prefixes** — the path hierarchy is already a namespace ([Paths and area aggregation](paths.md))
 - **partial loading of a layer** — a layer is composed whole
 
 Every one of these pushes towards composition becoming unresolvable. **Holding only what keeps the six rules** is what this list means.
@@ -149,4 +149,4 @@ That said, splitting does have a side effect. The bundled complex has 646 lines 
 - [Composition](../reference/muro/composition.md) — writing `import`
 - [over / drop](../reference/muro/over-drop.md) — overwriting and set editing
 - [koyu layers](../reference/cli/layers.md)
-- [A path is an address and an aggregation hierarchy](paths.md)
+- [Paths and area aggregation](paths.md)

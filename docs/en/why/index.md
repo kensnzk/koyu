@@ -1,9 +1,9 @@
 ---
-title: What koyu is for
+title: What koyu is
 mode: explanation
 ---
 
-# What koyu is for
+# What koyu is
 
 From drawings through CAD to BIM, architectural data has consistently described **the things to be built**. Walls, slabs, columns, beams are laid out, and rooms are derived afterwards as whatever those things happen to enclose. The data of things has been digitised over and over for thirty years, but **architecture itself — how space is divided, connected and ordered — has never become machine-readable.**
 
@@ -36,7 +36,7 @@ Not one wall is written in those five lines. `koyu check` nonetheless counts one
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-The two rooms touch, so the wall between them is **derived**. There is no operation in koyu that places a wall. See [Space is primary](space-is-primary.md) and [A wall is a relation](boundary-is-a-relation.md).
+The two rooms touch, so the wall between them is **derived**. There is no operation in koyu that places a wall. See [The space-centred model](space-is-primary.md) and [Walls as boundaries](boundary-is-a-relation.md).
 
 ## Five minutes to decide whether this is for you
 
@@ -125,7 +125,7 @@ $ npx tsx src/cli.ts doors sealed.muro /L2/bed /out
 Cannot reach /out from /L2/bed
 ```
 
-Whether that strikes you as right is the dividing line. `check` says only that **what is written does not contradict itself as data** — see [A green check is not a usable building](green-is-not-a-building.md). Architectural judgement is what `koyu validate` says, separately.
+Whether that strikes you as right is the dividing line. `check` says only that **what is written does not contradict itself as data** — see [What check guarantees](green-is-not-a-building.md). Architectural judgement is what `koyu validate` says, separately.
 
 ### It suits you if
 
@@ -142,34 +142,34 @@ Whether that strikes you as right is the dividing line. `check` says only that *
 - you want a model for structural or MEP analysis
 - you want a round trip with existing IFC assets (there is an exit, but no round trip)
 
-Where the line is drawn is set out in [The resolution of this data](resolution.md).
+Where the line is drawn is set out in [Level of detail](resolution.md).
 
 ## How to read this volume
 
 **How the notation thinks**
 
-- [Space is the primary element](space-is-primary.md) — the starting point
-- [A wall is not a thing but a relation between two spaces](boundary-is-a-relation.md)
-- [Not writing something means something](silence.md) — the three tiers of default
-- [What the source holds, what koyu computes](source-and-derived.md)
-- [A path is an address and an aggregation hierarchy](paths.md)
-- [Why the vocabulary is open, and the two words that are not](open-vocabulary.md)
+- [The space-centred model](space-is-primary.md) — the starting point
+- [Walls as boundaries](boundary-is-a-relation.md)
+- [Default boundaries](silence.md)
+- [Derived information](source-and-derived.md)
+- [Paths and area aggregation](paths.md)
+- [Extending attributes](open-vocabulary.md)
 
 **The shape of the promise**
 
-- [A green check is not a usable building](green-is-not-a-building.md)
-- [Two kinds of green](two-kinds-of-green.md) — structural diagnostics and architectural judgement
-- [Three domains](three-domains.md) — a small frozen core and two surfaces that may be messy
-- [Composition is for time, not for size](composition-is-for-time.md)
-- [The same source must yield the same form](form-must-be-unique.md)
-- [A plan is not a horizontal section](plan-is-not-a-section.md)
+- [What check guarantees](green-is-not-a-building.md)
+- [check and validate](two-kinds-of-green.md)
+- [Separating language, checks and drawing](three-domains.md)
+- [Splitting and layering files](composition-is-for-time.md)
+- [Determinism of derivation](form-must-be-unique.md)
+- [How plans are generated](plan-is-not-a-section.md)
 
 **Relation to the existing world**
 
-- [Background: BIM, IFC, IfcSpace, USD](bim-ifc-usd.md) — for readers without the vocabulary of this field
-- [koyu against IFC4, IFCX, BOT and USD](vs-ifc.md) — with measured token counts
-- [IFC4 entity coverage](ifc4-coverage.md)
-- [Why the authored format is a DSL](dsl-not-yaml.md) — written out in YAML and JSON for comparison
-- [The resolution of this data](resolution.md)
+- [BIM, IFC and USD basics](bim-ifc-usd.md) — for readers without the vocabulary of this field
+- [Comparison with IFC and USD](vs-ifc.md) — with measured token counts
+- [IFC4 coverage](ifc4-coverage.md)
+- [Notation format comparison](dsl-not-yaml.md) — written out in YAML and JSON for comparison
+- [Level of detail](resolution.md)
 
 The exact extent of the promise is in [Scope](../reference/scope.md).

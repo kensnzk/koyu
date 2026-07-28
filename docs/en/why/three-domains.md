@@ -1,9 +1,9 @@
 ---
-title: Three domains — a small frozen core and two surfaces that may be messy
+title: Separating language, checks and drawing
 mode: explanation
 ---
 
-# Three domains — a small frozen core and two surfaces that may be messy
+# Separating language, checks and drawing
 
 koyu is made of three domains. **They are kept apart because the quality demanded of each is different.**
 
@@ -41,7 +41,7 @@ core holds this and no more.
 
 **There are zero runtime dependencies.** That this domain depends on no outside package is what makes the promise to freeze possible at all.
 
-Adding to core is expensive: parsing, composition, machine format, spec and documentation all move at once, and after the freeze the change may be breaking. **Hence the five-question gate** ([Why the vocabulary is open](open-vocabulary.md)).
+Adding to core is expensive: parsing, composition, machine format, spec and documentation all move at once, and after the freeze the change may be breaking. **Hence the five-question gate** ([Extending attributes](open-vocabulary.md)).
 
 ## Validation — may be messy; grows
 
@@ -61,7 +61,7 @@ Form generation, drawing, and the human-facing surface. 2D and 3D, drawing conve
 
 **There is one condition on being allowed to be messy: what cannot be drawn must never be mistaken for what cannot be written.** What is drawn and what is not is enumerated and held. Without that, the limits of the drawing side get imported as limits of the description side, and **the source starts being dragged around by its presentation.**
 
-And this domain **must not change the form**. What may change is the appearance, not the form ([The same source must yield the same form](form-must-be-unique.md)). That line is machine-enforced too — the drawing code is checked to import none of the form-assembling parts, and the derivation constants are checked not to be spelled out on the drawing side.
+And this domain **must not change the form**. What may change is the appearance, not the form ([Determinism of derivation](form-must-be-unique.md)). That line is machine-enforced too — the drawing code is checked to import none of the form-assembling parts, and the derivation constants are checked not to be spelled out on the drawing side.
 
 ## The direction of dependency and of growth
 
@@ -94,7 +94,7 @@ Versions as a whole are covered in [Stability](../reference/stability.md).
 
 ## Next
 
-- [Two kinds of green](two-kinds-of-green.md) — how core's and validation's diagnostics are split
-- [The same source must yield the same form](form-must-be-unique.md) — how core and drawing are split
+- [check and validate](two-kinds-of-green.md) — how core's and validation's diagnostics are split
+- [Determinism of derivation](form-must-be-unique.md) — how core and drawing are split
 - [Scope](../reference/scope.md)
 - [What koyu does not hold](../reference/not-held.md)

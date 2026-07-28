@@ -1,9 +1,9 @@
 ---
-title: The resolution of this data is scheme design
+title: Level of detail
 mode: explanation
 ---
 
-# The resolution of this data is scheme design
+# Level of detail
 
 There is a lot a `.muro` file cannot say. Junctions, substrates, connections, curved surfaces, equipment model numbers — none of them.
 
@@ -56,17 +56,17 @@ By use: rentable 558.08 m2 (11.7%) / common 1611.52 m2 (33.7%) / exclusive 2616.
 | door and window frames, ironmongery, folding leaves | not yet |
 | true north and geodetic coordinates | not yet. A prerequisite for city-data connections |
 
-**Writing "not yet" and "out of scope" as separate things is the crux.** "Not yet" is a candidate to be judged by the five questions; "out of scope" is something decided as policy not to hold ([Why the vocabulary is open](open-vocabulary.md)).
+**Writing "not yet" and "out of scope" as separate things is the crux.** "Not yet" is a candidate to be judged by the five questions; "out of scope" is something decided as policy not to hold ([Extending attributes](open-vocabulary.md)).
 
-The lists are [IFC4 entity coverage](ifc4-coverage.md) and [What koyu does not hold](../reference/not-held.md).
+The lists are [IFC4 coverage](ifc4-coverage.md) and [What koyu does not hold](../reference/not-held.md).
 
 ## Adding breaks the goal
 
 **Not pursuing production-drawing resolution** is not merely a matter of not having the hands.
 
-A 31,606 m² mixed-use complex is 12,685 tokens of source. **A whole building fits inside one LLM context.** The same scene in IFC is an order of magnitude larger, and what a production authoring tool exports (tens of megabytes) fits in no context at all ([koyu against IFC4, IFCX, BOT and USD](vs-ifc.md)).
+A 31,606 m² mixed-use complex is 12,685 tokens of source. **A whole building fits inside one LLM context.** The same scene in IFC is an order of magnitude larger, and what a production authoring tool exports (tens of megabytes) fits in no context at all ([Comparison with IFC and USD](vs-ifc.md)).
 
-**Smallness is not the goal but a consequence of the role.** And the role is to hold what can only be written — meaning, relation, identity. Form is about to become available from reality ([What the source holds, what koyu computes](source-and-derived.md)).
+**Smallness is not the goal but a consequence of the role.** And the role is to hold what can only be written — meaning, relation, identity. Form is about to become available from reality ([Derived information](source-and-derived.md)).
 
 Add junctions and the smallness goes. Lose the smallness and the building no longer fits in the field of view. **Out of the field of view, an agent cannot edit it, diffs cannot be read, and it does not scale to the city.** Raising coverage breaks all four at once.
 
@@ -82,7 +82,7 @@ And the size of the written source is proportional **not to the size of the buil
 
 This is easy to get wrong.
 
-**A 2 m-wide lift and a 30 m-deep tenancy both come out green.** They are not contradictions in the composition ([A green check is not a usable building](green-is-not-a-building.md)).
+**A 2 m-wide lift and a 30 m-deep tenancy both come out green.** They are not contradictions in the composition ([What check guarantees](green-is-not-a-building.md)).
 
 So writing a building that is *plausible* at scheme-design resolution means **taking dimensions from reality**. For reference, a few values taken from Japanese practice and from real products.
 
@@ -109,7 +109,7 @@ This resolution is not isolated. **There is room to extend both up and downstrea
 
 ## Next
 
-- [IFC4 entity coverage](ifc4-coverage.md) — what can be written, and what will not be
+- [IFC4 coverage](ifc4-coverage.md) — what can be written, and what will not be
 - [What koyu does not hold](../reference/not-held.md)
-- [A green check is not a usable building](green-is-not-a-building.md)
-- [koyu against IFC4, IFCX, BOT and USD](vs-ifc.md)
+- [What check guarantees](green-is-not-a-building.md)
+- [Comparison with IFC and USD](vs-ifc.md)

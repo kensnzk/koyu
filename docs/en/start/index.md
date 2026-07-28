@@ -424,7 +424,7 @@ This is the most important thing about using koyu.
 
 > A green `check` does not mean the building works. Confirm circulation with `doors`, daylight with `light`, and the envelope with your own eyes.
 
-Why that line is where it is, and how far you may trust it, is in [A green check is not a usable building](../why/green-is-not-a-building.md).
+Why that line is where it is, and how far you may trust it, is in [What check guarantees](../why/green-is-not-a-building.md).
 
 To look things up: [Vertical circulation](../reference/muro/vertical-circulation.md), [koyu levels](../reference/cli/levels.md), [koyu doors](../reference/cli/doors.md).
 

@@ -24,7 +24,7 @@ One page per declaration: `space`, `zone`, `boundary`, `door`, `window`, `column
 | [Diagnostic code index](diagnostics/index.md) | What does this `koyu check` code mean, and what do I change? (65 codes) |
 | [koyu validate](validate/index.md) | Architectural judgement. **Not what `check` guarantees.** (15 rules) |
 
-They are two different surfaces. [Two kinds of green](../why/two-kinds-of-green.md) explains why.
+They are two different surfaces. [check and validate](../why/two-kinds-of-green.md) explains why.
 
 ## Running
 

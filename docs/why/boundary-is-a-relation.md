@@ -1,9 +1,9 @@
 ---
-title: 壁は物ではなく、二つの空間の関係である
+title: 境界による壁の表現
 mode: explanation
 ---
 
-# 壁は物ではなく、二つの空間の関係である
+# 境界による壁の表現
 
 `boundary /L1/a /L1/b` は壁を置く行ではない。**二つの空間の間に「境界という関係がある」と宣言する行**である。壁芯の線分そのものはどこにも書かれない — 二つの領域の共有辺として導かれる。
 
@@ -111,7 +111,7 @@ boundary /L1/a /L1/b type:open
 
 ## この先
 
-- [書かないことが意味を持つ](silence.md) — 接する空間の既定が壁であること
-- [平面図は水平断面ではない](plan-is-not-a-section.md) — 関係から線分が出るところ
+- [既定の境界](silence.md) — 接する空間の既定が壁であること
+- [平面図の生成](plan-is-not-a-section.md) — 関係から線分が出るところ
 - [boundary の書き方](../reference/muro/boundary.md)
 - [既定境界](../reference/muro/defaults.md)

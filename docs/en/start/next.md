@@ -23,11 +23,11 @@ This is the page to keep beside you while writing.
 
 ## Why it is written this way has not settled yet
 
-→ **[What koyu is for](../why/index.md)**
+→ **[What koyu is](../why/index.md)**
 
-[Space is the primary element](../why/space-is-primary.md) · [A wall is not a thing but a relation](../why/boundary-is-a-relation.md) · [Not writing something means something](../why/silence.md) · [A path is an address and an aggregation hierarchy](../why/paths.md) · [What the source holds, what koyu computes](../why/source-and-derived.md) · [Why the vocabulary is open, and the two words that are not](../why/open-vocabulary.md) — the thinking behind the shape of the notation, without the implementation in the way.
+[The space-centred model](../why/space-is-primary.md) · [Walls as boundaries](../why/boundary-is-a-relation.md) · [Default boundaries](../why/silence.md) · [Paths and area aggregation](../why/paths.md) · [Derived information](../why/source-and-derived.md) · [Extending attributes](../why/open-vocabulary.md) — the thinking behind the shape of the notation, without the implementation in the way.
 
-If you only want the trap from stage 5 looked at straight on, **[A green check is not a usable building](../why/green-is-not-a-building.md)** answers it in one page.
+If you only want the trap from stage 5 looked at straight on, **[What check guarantees](../why/green-is-not-a-building.md)** answers it in one page.
 
 ## An error has stopped me
 

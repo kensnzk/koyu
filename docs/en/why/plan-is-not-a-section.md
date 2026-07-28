@@ -1,9 +1,9 @@
 ---
-title: A plan is not a horizontal section
+title: How plans are generated
 mode: explanation
 ---
 
-# A plan is not a horizontal section
+# How plans are generated
 
 "A plan is the building cut horizontally at a fixed height above the floor" — that is half right. **Cutting a solid does not give you a plan.**
 
@@ -13,7 +13,7 @@ This page lists the four things that cutting never produces, and explains how th
 
 First, the cut itself. A plan is "the section at this level", and the cut plane sits at **a fixed height above FL** (1200 mm by default).
 
-**That height is an input to derivation, not something derivation decides.** Change it and a sill window is cut or not cut. **Give the same cut height and the same plan comes out** — the promise in [The same source must yield the same form](form-must-be-unique.md) is a promise given that input.
+**That height is an input to derivation, not something derivation decides.** Change it and a sill window is cut or not cut. **Give the same cut height and the same plan comes out** — the promise in [Determinism of derivation](form-must-be-unique.md) is a promise given that input.
 
 ## The four things a cut cannot produce
 
@@ -45,7 +45,7 @@ koyu produces it as **what its twin upward run left unhidden**, the two sharing 
 
 ## Which is why form is a classified 2D set
 
-Leave those four to be "invented by each consumer" and you get a different plan per consumer, which contradicts [Form must be unique](form-must-be-unique.md).
+Leave those four to be "invented by each consumer" and you get a different plan per consumer, which contradicts [Determinism of derivation](form-must-be-unique.md).
 
 So derivation returns the plan as **a set of 2D entities with classifications**, each carrying geometry, a class, and the identity of what it is the form of.
 
@@ -83,5 +83,5 @@ Because of that condition, a poor plan is never a reason to change the notation.
 
 - [Plan form](../reference/form/plan.md) — the classes and the entities
 - [Form — what derivation returns](../reference/form/index.md)
-- [The same source must yield the same form](form-must-be-unique.md)
+- [Determinism of derivation](form-must-be-unique.md)
 - [koyu plan](../reference/cli/plan.md)

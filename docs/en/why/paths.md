@@ -1,9 +1,9 @@
 ---
-title: A path is an address and an aggregation hierarchy
+title: Paths and area aggregation
 mode: explanation
 ---
 
-# A path is an address and an aggregation hierarchy
+# Paths and area aggregation
 
 `/L5/A/ldk` is not a name but an address. And the hierarchy cut by `/` is itself the unit of aggregation. **A path plays two roles at once.**
 
@@ -107,17 +107,17 @@ The division of labour is clean.
 | aggregation hierarchy | **the path** |
 | long-lived identity across renames (sensors, survey, registers) | **uid** |
 
-`uid` may be written on `space` and `zone` and nothing else. It cannot go on a relation because a relation's identity is derived from its two ends ([A wall is a relation](boundary-is-a-relation.md)). The details are in [Identity](../reference/identity.md).
+`uid` may be written on `space` and `zone` and nothing else. It cannot go on a relation because a relation's identity is derived from its two ends ([Walls as boundaries](boundary-is-a-relation.md)). The details are in [Identity](../reference/identity.md).
 
 ## It also works as a namespace
 
 When composing several files, no per-layer namespace prefix is needed — **the path hierarchy is already a namespace.** Let `L5.muro` write `/L5/...` and `core.muro` write `/B2..L19/core/...` and nothing collides.
 
-This is the result of borrowing from USD only the mechanism of a path namespace ([Composition is for time, not for size](composition-is-for-time.md)).
+This is the result of borrowing from USD only the mechanism of a path namespace ([Splitting and layering files](composition-is-for-time.md)).
 
 ## Next
 
 - [Writing `zone`](../reference/muro/zone.md)
 - [Identity](../reference/identity.md)
-- [Composition is for time, not for size](composition-is-for-time.md)
+- [Splitting and layering files](composition-is-for-time.md)
 - [koyu stats](../reference/cli/stats.md)

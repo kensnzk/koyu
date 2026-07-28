@@ -1,9 +1,9 @@
 ---
-title: What the source holds, what koyu computes
+title: Derived information
 mode: explanation
 ---
 
-# What the source holds, what koyu computes
+# Derived information
 
 **There is no form in a `.muro` file.** Plans, areas, the inside/outside distinction, circulation — none of it is written in the source; all of it is derived.
 
@@ -31,7 +31,7 @@ That table answers two beginner questions at once.
 
 **"Where do I write the floor?"** — You do not. Spaces overlapping in plan on adjacent levels are vertically adjacent, and the default reading is that there is a floor. Only the exceptions (stair, shaft, void) are declared as boundaries.
 
-**"I want to declare this space semi-outdoor."** — You cannot. Semi-outdoor is derived. A space with a region that meets the exterior across an `open` or `air:1` boundary is semi-outdoor ([Not writing something means something](silence.md)).
+**"I want to declare this space semi-outdoor."** — You cannot. Semi-outdoor is derived. A space with a region that meets the exterior across an `open` or `air:1` boundary is semi-outdoor ([Default boundaries](silence.md)).
 
 ## Only the given carries coordinates
 
@@ -71,7 +71,7 @@ One step outside derivation lies **generation**.
 - **Derivation** — what is uniquely determined by the written composition: areas, segments, columns, riser counts, floors and roofs. The same source always yields the same thing.
 - **Generation** — how the derived form is shown: line weight, colour, symbols, annotation, scale.
 
-**"The same composition yielding several forms" is a defect.** What may be plural is the appearance, not the form. That line is enforced by machine — see [The same source must yield the same form](form-must-be-unique.md).
+**"The same composition yielding several forms" is a defect.** What may be plural is the appearance, not the form. That line is enforced by machine — see [Determinism of derivation](form-must-be-unique.md).
 
 Take riser counts. Neither risers nor treads nor slope is written in the source. They are derived from **the region, the floor-to-floor height, and a declaration of which way is up**.
 
@@ -96,7 +96,7 @@ This is why `check` saying "1 boundary" and `koyu json` reporting `"boundaries":
 
 ## Next
 
-- [The same source must yield the same form](form-must-be-unique.md)
-- [A plan is not a horizontal section](plan-is-not-a-section.md)
+- [Determinism of derivation](form-must-be-unique.md)
+- [How plans are generated](plan-is-not-a-section.md)
 - [Form — what derivation returns](../reference/form/index.md)
-- [The resolution of this data](resolution.md)
+- [Level of detail](resolution.md)

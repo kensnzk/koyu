@@ -24,7 +24,7 @@ mode: reference
 | [診断コード索引](diagnostics/index.md) | `koyu check` が出したこのコードは何で、どこを直すか (65件) |
 | [koyu validate](validate/index.md) | 建築的な判定。**`check` の保証ではない** (15規則) |
 
-二つは別の面である。何が違うかは [構成の診断と建築の判定](../why/two-kinds-of-green.md) にある。
+二つは別の面である。何が違うかは [check と validate の違い](../why/two-kinds-of-green.md) にある。
 
 ## 動かす
 

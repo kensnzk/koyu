@@ -1,13 +1,13 @@
 ---
-title: IFC4 entity coverage
+title: IFC4 coverage
 mode: explanation
 ---
 
-# IFC4 entity coverage
+# IFC4 coverage
 
 A table that uses the IFC4 schema as a mirror to lay out **what koyu can write, what it cannot yet, and what it deliberately will not**. It is for reference, not a contract — the contract is held by [Scope](../reference/scope.md) and [What koyu does not hold](../reference/not-held.md).
 
-If the terminology is unfamiliar, read [Background: BIM, IFC, IfcSpace, USD](bim-ifc-usd.md) first.
+If the terminology is unfamiliar, read [BIM, IFC and USD basics](bim-ifc-usd.md) first.
 
 | Symbol | Meaning |
 |---|---|
@@ -31,7 +31,7 @@ Of the roughly 1,140 entities in the IFC schema (2x3, 4 and 4x3 combined), about
 | `IfcSpatialZone` / `IfcZone` | ● | [`zone`](../reference/muro/zone.md) (counted aggregation). Groupings across storeys use the `level:` attribute |
 | `IfcSite` | ◐ | `zone … site:1` plus exterior spaces at grade plus [`polygon`](../reference/muro/polygon.md) (given geometry). Frontage, coverage ratio and floor area ratio are derived by `koyu site`. Remaining: geodetic coordinates and true north, the finer rules of footprint measurement |
 | `IfcExternalSpatialElement` | ● | `/out` may be split into several `exterior` spaces by orientation or character (roads carry a width in `road:`). Granularity is free; a monolith works too |
-| `IfcRelAggregates` | ● | the path hierarchy itself ([A path is an address and an aggregation hierarchy](paths.md)) |
+| `IfcRelAggregates` | ● | the path hierarchy itself ([Paths and area aggregation](paths.md)) |
 
 ## B. Space boundaries
 
@@ -50,7 +50,7 @@ Of the roughly 1,140 entities in the IFC schema (2x3, 4 and 4x3 combined), about
 | `IfcSlab` (floor) | ● | not written — the `slab` of a `level` is the default. Its absence is a `void` boundary |
 | `IfcSlab.ROOF` / `IfcRoof` | ◐ | **flat roofs are derived** — laid over whatever has no space above it, at the upper level's `slab` thickness or the default. Voids get roofs too. Remaining: pitched roofs, eaves, parapets |
 | `IfcDoor` / `IfcWindow` | ● | [`door`](../reference/muro/door.md) / [`window`](../reference/muro/window.md) (`w` / `h` / `at` / `edge`), hand and swing (`hinge` / `swing`), explicit position `at:X2+450` (overruns and overlaps are checked). Door and window types are [`asset`](../reference/muro/asset.md); operation is `style:hinged/sliding/auto`. The sill height `sill` is carried, not interpreted. Remaining: folding leaves, fire-rated sets (`fire` is carried and not interpreted), frames and junctions |
-| `IfcOpeningElement` / `IfcRelVoids` / `IfcRelFills` | ● | an opening is an indented line under a boundary. **There is no boolean** — a wall is a run of intervals divided by openings from the start ([A plan is not a horizontal section](plan-is-not-a-section.md)) |
+| `IfcOpeningElement` / `IfcRelVoids` / `IfcRelFills` | ● | an opening is an indented line under a boundary. **There is no boolean** — a wall is a run of intervals divided by openings from the start ([How plans are generated](plan-is-not-a-section.md)) |
 | `IfcStair` / `IfcStairFlight` / `IfcRamp` | ● | attributes on a space (`stair:N` / `ramp:N` / `escalator:N` / `lift:1`) plus a vertical boundary. **Riser count, rise, tread, landings and slope are all derived** from the region, the storey height and the direction of ascent alone. Crampedness and slope are judged by `stair.proportion` / `run.slope` ([vertical circulation](../reference/muro/vertical-circulation.md)) |
 | `IfcColumn` | ● | [`column`](../reference/muro/column.md) — **an element whose position is never written.** It appears where a grid crossing meets a floor. It does not stand on semi-outdoor space that supports only sky (a roof terrace with nothing above it). Overlap with a door is judged by `column.blocksdoor` |
 | `IfcBeam` / `IfcMember` | — | structure is a separate layer of things. A beam has no seat in a space-primary model |
@@ -70,7 +70,7 @@ What remains is **the composite vertical profile** — a section like "1200 mm R
 
 | IFC | State | In koyu |
 |---|---|---|
-| `IfcPropertySet` / `IfcProperty` | ● | open `key:value` plus [the attribute ledger](../reference/muro/attributes.md). A key not in the ledger needs a namespace ([Why the vocabulary is open](open-vocabulary.md)) |
+| `IfcPropertySet` / `IfcProperty` | ● | open `key:value` plus [the attribute ledger](../reference/muro/attributes.md). A key not in the ledger needs a namespace ([Extending attributes](open-vocabulary.md)) |
 | `IfcTypeObject` / `IfcRelDefinesByType` | ◐ | [`asset`](../reference/muro/asset.md) holds door and window types. Other types (wall types and so on) stay free words in `spec` |
 | `IfcElementQuantity` | ◐ | **quantities are derived, never declared** (`koyu stats`, `koyu light`). Fixed to wall centerlines; conventions for internal-face, volumetric and compartment areas are absent |
 | `IfcClassification` | ○ | a bridge from the ledger to outside dictionaries (bSDD, Uniclass, room-use codes). Not started |
@@ -107,10 +107,10 @@ An IFC "entity" lands in one of three places in koyu.
 
 **Widening coverage without adding entities is the bet of this design, and this table is the arithmetic check on it.**
 
-And **coverage percentage is not a value.** Add and you fall out of the machine's field of view, and the goal breaks ([The resolution of this data](resolution.md)). The ○ rows are not "holes to be filled some day" but **candidates to be judged by the five questions** ([Why the vocabulary is open](open-vocabulary.md)).
+And **coverage percentage is not a value.** Add and you fall out of the machine's field of view, and the goal breaks ([Level of detail](resolution.md)). The ○ rows are not "holes to be filled some day" but **candidates to be judged by the five questions** ([Extending attributes](open-vocabulary.md)).
 
 ## Next
 
-- [koyu against IFC4, IFCX, BOT and USD](vs-ifc.md) — comparison with measured token counts
-- [The resolution of this data](resolution.md)
+- [Comparison with IFC and USD](vs-ifc.md) — comparison with measured token counts
+- [Level of detail](resolution.md)
 - [What koyu does not hold](../reference/not-held.md)

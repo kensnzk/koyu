@@ -1,9 +1,9 @@
 ---
-title: 二種類の緑 — 構成の診断と建築の判定
+title: check と validate の違い
 mode: explanation
 ---
 
-# 二種類の緑 — 構成の診断と建築の判定
+# check と validate の違い
 
 koyu は「正しさ」を二つに割っている。
 
@@ -126,7 +126,7 @@ Validation — 2 violations / 0 cautions
 
 ## この先
 
-- [三つの領域](three-domains.md) — この分割の全体像
+- [言語・判定・描画の分離](three-domains.md) — この分割の全体像
 - [診断 — koyu check](../reference/diagnostics/index.md) — 65 コード
 - [判定 — koyu validate](../reference/validate/index.md) — 15 規則
 - [約束の範囲](../reference/scope.md)

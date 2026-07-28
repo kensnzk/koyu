@@ -1,11 +1,11 @@
 ---
-title: Background — BIM, IFC, IfcSpace, USD
+title: BIM, IFC and USD basics
 mode: explanation
 ---
 
-# Background — BIM, IFC, IfcSpace, USD
+# BIM, IFC and USD basics
 
-Any statement of where koyu sits assumes the vocabulary of this field. **This page explains only that vocabulary.** Readers at home in building-information practice can skip to [koyu against IFC4, IFCX, BOT and USD](vs-ifc.md).
+Any statement of where koyu sits assumes the vocabulary of this field. **This page explains only that vocabulary.** Readers at home in building-information practice can skip to [Comparison with IFC and USD](vs-ifc.md).
 
 ## BIM
 
@@ -36,7 +36,7 @@ For a sense of scale: the IFC schema (2x3, 4 and 4x3 combined) holds about 1,140
 
 On many projects, though, it is treated as **secondary information derived from what the components enclose**, and it is not unusual for it not to be exported at all. `IfcRelSpaceBoundary` exists for space boundaries, but the connection geometry of those boundaries is one of the most commonly omitted things in the format.
 
-**koyu's whole subject is promoting this to a primary element.** That `IfcSpace` remains a second-class citizen is not a flaw in the standard but **a consequence of making form the source** ([Space is the primary element](space-is-primary.md)).
+**koyu's whole subject is promoting this to a primary element.** That `IfcSpace` remains a second-class citizen is not a flaw in the standard but **a consequence of making form the source** ([The space-centred model](space-is-primary.md)).
 
 ## IFC5 and IFCX
 
@@ -86,7 +86,7 @@ Japanese distinguishes 建築 (*architecture*) from 建築物 (*the building as 
 
 ## Next
 
-- [koyu against IFC4, IFCX, BOT and USD](vs-ifc.md) — comparison with measured token counts
-- [IFC4 entity coverage](ifc4-coverage.md)
-- [Space is the primary element](space-is-primary.md)
-- [Composition is for time, not for size](composition-is-for-time.md)
+- [Comparison with IFC and USD](vs-ifc.md) — comparison with measured token counts
+- [IFC4 coverage](ifc4-coverage.md)
+- [The space-centred model](space-is-primary.md)
+- [Splitting and layering files](composition-is-for-time.md)

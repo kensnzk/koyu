@@ -1,9 +1,9 @@
 ---
-title: 語彙が開いている理由と、開いていない二語
+title: 属性の拡張
 mode: explanation
 ---
 
-# 語彙が開いている理由と、開いていない二語
+# 属性の拡張
 
 意味の与え方には二つの流儀がある。**巨大なクラス階層**か、**少数の解釈語と開かれた語彙**か。koyu は後者を採る。拡張はスキーマ改訂ではなく語の追加で済み、外の分類体系 (都市データ・不動産 ID・センサー・ネットワークデータ) と接続する受け口がそこにできる。
 
@@ -123,4 +123,4 @@ boundary /L1/bath /out edge:S t:150
 - [属性](../reference/muro/attributes.md) — 台帳
 - [ATT — 属性の診断](../reference/diagnostics/att.md)
 - [判定 — koyu validate](../reference/validate/index.md)
-- [二種類の緑](two-kinds-of-green.md)
+- [check と validate の違い](two-kinds-of-green.md)

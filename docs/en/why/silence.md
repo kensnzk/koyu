@@ -1,9 +1,9 @@
 ---
-title: Not writing something means something
+title: Default boundaries
 mode: explanation
 ---
 
-# Not writing something means something
+# Default boundaries
 
 koyu's notation is short not because there is little to learn but because **there is much that goes unwritten**. Read the syntax tables without knowing what is left out, and what leaving it out means, and you cannot tell whether a file has too few lines or too many.
 
@@ -85,7 +85,7 @@ npx tsx src/cli.ts validate gap.muro
 ⚠ [envelope.gap] gap.muro:line 6: Perimeter not faced by any envelope: /L1/b — S 3600mm / E 4000mm / N 3600mm (11200mm over 3 run(s)). Write a boundary to the exterior
 ```
 
-The rule is deliberately coarse — it looks only at **levels where at least one boundary to the exterior has been written**. It will not call a storey whose envelope has not been modelled yet "full of holes". It demands "if you started, finish"; it does not demand completeness. Coarseness is allowed because judgement lives in a domain that does not freeze ([Two kinds of green](two-kinds-of-green.md)). The rule is [envelope.gap](../reference/validate/envelope.md).
+The rule is deliberately coarse — it looks only at **levels where at least one boundary to the exterior has been written**. It will not call a storey whose envelope has not been modelled yet "full of holes". It demands "if you started, finish"; it does not demand completeness. Coarseness is allowed because judgement lives in a domain that does not freeze ([check and validate](two-kinds-of-green.md)). The rule is [envelope.gap](../reference/validate/envelope.md).
 
 ## Silence generates derivation — semi-outdoor
 
@@ -126,7 +126,7 @@ The list is in [SUF — sufficiency](../reference/diagnostics/suf.md).
 
 ## Next
 
-- [What the source holds, what koyu computes](source-and-derived.md)
-- [A green check is not a usable building](green-is-not-a-building.md)
+- [Derived information](source-and-derived.md)
+- [What check guarantees](green-is-not-a-building.md)
 - [Default boundaries](../reference/muro/defaults.md)
 - [Derivation constants](../reference/form/constants.md) — what is derived when nothing is written
