@@ -326,7 +326,7 @@ stack ev L1..L10 type:shaft
 | 垂直の隣接 | 床 (slab) — **書かない**。例外 (stair / shaft / void) だけ宣言する |
 | **領域を持たない空間 (`/out` 等) との境界** | **無い。書かなければ存在しない** — どの外部かの名指しが情報だから |
 | boundary type | `wall` |
-| boundary t | なし (描画時のみ 100mm) |
+| boundary t | なし (導出の既定は 100mm) |
 | opening at | 0.5 (比率・クランプあり) |
 | opening hinge / swing | 線分の始端側 / a側 (領域を持つ方) |
 | opening style | `hinged` |

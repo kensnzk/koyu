@@ -153,7 +153,7 @@ drop column C1                        # 柱の宣言の削除
 | 項目 | 既定 |
 |---|---|
 | boundary type | `wall` |
-| boundary t | なし (描画時のみ 100mm) |
+| boundary t | なし (導出の既定は 100mm — [derivation.md §5](derivation.md)) |
 | 接する空間の境界 | `wall` — 書かない。例外だけ宣言 (open / air:1 / 属性・開口つき — ADR-0014) |
 | opening at | 0.5 (比率 — クランプあり) |
 | opening hinge / swing | 線分の始端側 / a側 (領域を持つ方) |

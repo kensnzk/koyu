@@ -634,6 +634,106 @@ console.log(placeBand(g, bIn, { w: 1000, at: 0.25, line: 0 }, "seg"));
 
 A ratio `at` is clamped to fit within the segment, but a grid reference (`atAbs`) is not — overrunning gives `OPN08` / `SEG08`.
 
+### The one entrance to shape — derive
+
+```ts
+function derive(model: Model, opts?: DeriveOptions): Form
+```
+
+**All shape comes out of here** ([ADR-0040](../../docs/decisions/0040-derive-reference.md)). The parts of derivation below can each be called on their own, but it is `derive` that assembles them into the shape of a whole building. Assemble it per consumer and the same source yields different buildings.
+
+`Form` **carries no appearance at all** — no colours, no typefaces, no line weights, no annotation words, no symbols, no scale. What comes back is coordinates, thicknesses, z ranges, orientations, and **the identity of the subject** (whose space, whose boundary, whose opening this shape is). The rules are held by [spec/derivation.md](../../spec/derivation.md).
+
+A wall comes back as **a list of intervals split by its openings** (`material.panels`). A plan is **a set of classified 2D entities**, splitting into `cut` (a cut section) / `below` (what shows below the cut) / `above` (what is projected from above the cut) / `swing` (the arc of a door) / `anchor` (where a symbol is placed). The height of the cut is an **input** to `derive`.
+
+```ts
+import { derive } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+
+const b = parseFile("examples/basement/main.muro");
+const form = derive(b);
+console.log(`levels=${form.levels.length} spaces=${form.spaces.length} boundaries=${form.boundaries.length} openings=${form.openings.length} columns=${form.columns.length} runs=${form.runs.length}`);
+
+const wall = form.boundaries.find((x) => x.material && x.material.panels.length > 1)!;
+console.log(wall.ref, `t=${wall.material!.t} z=${wall.material!.z0}→${wall.material!.z1}`);
+for (const p of wall.material!.panels) console.log(`  panel (${p.x1},${p.y1})-(${p.x2},${p.y2}) z ${p.z0}→${p.z1}`);
+
+const plan = form.plans.find((p) => p.level === "B1")!;
+const count = new Map<string, number>();
+for (const e of plan.entities) count.set(`${e.class}/${e.of}`, (count.get(`${e.class}/${e.of}`) ?? 0) + 1);
+console.log(`cut=${plan.cut} cutZ=${plan.cutZ}`);
+for (const [k, n] of [...count].sort()) console.log(`  ${k} ${n}`);
+```
+
+```text
+levels=4 spaces=13 boundaries=45 openings=7 columns=36 runs=7
+/B2/park|/B2/st@2 t=250 z=-7400→-3700
+  panel (16000,7000)-(16000,9250) z -7400→-3700
+  panel (16000,9250)-(16000,10150) z -5400→-3700
+  panel (16000,10150)-(16000,12400) z -7400→-3700
+cut=1200 cutZ=-2500
+  above/boundary 2
+  anchor/run 2
+  below/run 5
+  cut/boundary 19
+  cut/column 15
+  cut/opening 2
+  cut/run 9
+  cut/space 6
+  swing/opening 2
+```
+
+Left and right of the `|` are the two ends of the boundary, and what follows the `@` is its position in the order of declaration. The middle of the three intervals is the head panel above a door, and its underside sits at the head of the door (2000mm above the floor).
+
+### The constructors of substance — thicken / bandLine / band / columnRect / runPrism
+
+```ts
+function thicken(x1: number, y1: number, x2: number, y2: number, t: number): Pt[]
+function bandLine(seg: Segment, cx: number, cy: number, w: number): Seg2
+function band(seg: Segment, cx: number, cy: number, w: number, t: number): Pt[]
+function columnRect(c: { x: number; y: number; w: number; d: number }): Pt[]
+function runPrism(s: RunSolid): FormPrism
+
+interface FormPrism { poly: Pt[]; bottom: number[]; top: number[] }
+```
+
+What `Form` holds is **centrelines, thicknesses and z**. The rule that raises substance out of those (a thickened quadrilateral, a prism) is part of the derivation too, so **core holds the only implementation of it** ([spec/derivation.md §7.1](../../spec/derivation.md)). If each consumer rewrites it, the parts are shared but the rule of assembly is not, and one `Form` yields different shapes. `svgPlan` and `svgAxo` in `src/draw/` do nothing but call these.
+
+```ts
+import { band, bandLine, columnRect, derive, runPrism, thicken } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+
+const b = parseFile("examples/basement/main.muro");
+const form = derive(b);
+
+// a wall interval (centreline + thickness) → the quadrilateral of its footprint
+const wall = form.boundaries.find((x) => x.material && x.material.panels.length > 1)!;
+const p = wall.material!.panels[1]!;
+console.log(thicken(p.x1, p.y1, p.x2, p.y2, wall.material!.t).map((q) => `${q.x},${q.y}`).join(" "));
+
+// an opening (centre + width) → its interval on the segment → the quadrilateral of the leaf
+const o = form.openings.find((x) => x.kind === "door")!;
+console.log(o.ref, JSON.stringify(bandLine(o.segment, o.cx, o.cy, o.w)));
+console.log(band(o.segment, o.cx, o.cy, o.w, o.t).map((q) => `${q.x},${q.y}`).join(" "));
+
+// the section of a column, and the four corners of an inclined slab
+const c = form.columns[0]!;
+console.log(c.ref, columnRect(c).map((q) => `${q.x},${q.y}`).join(" "));
+const ramp = form.runs.flatMap((r) => r.solids).find((s) => s.kind === "incline")!;
+const pr = runPrism(ramp);
+console.log(ramp.kind, `up=${ramp.up}`, "bottom", pr.bottom.join(" "), "top", pr.top.join(" "));
+```
+
+```text
+15875,9250 15875,10150 16125,10150 16125,9250
+/B2/park|/B2/st@2/0 {"x1":16000,"y1":9250,"x2":16000,"y2":10150}
+15875,9250 15875,10150 16125,10150 16125,9250
+B2/X1/Y1 -400,-400 400,-400 400,400 -400,400
+incline up=E bottom -7600 -5750 -5750 -7600 top -7400 -5550 -5550 -7400
+```
+
+The vertices of the quadrilateral run start+n → end+n → end−n → start−n, so **joining the midpoints of the opposing edges returns the centreline**. A plan entity carries **both** the footprint (`polygon`) and the centreline (`lines`), so the side that draws a rail as a single line never has to reconstruct the centreline from the quadrilateral. On an inclined slab the two corners on the `up` side are the high ones, and the thickness follows the slab in parallel.
+
 ### What is generated — slabs / verticalRuns / runSolids / runDrawsForLevel
 
 ```ts
@@ -662,7 +762,7 @@ for (const s of slabs(b).slice(0, 3)) console.log(s.kind, s.space, s.level, `z $
 const stair = verticalRuns(b).find((r) => r.device === "stair")!;
 console.log(`${stair.path} ${stair.device} rise=${stair.rise} risers=${stair.risers} riser=${Math.round(stair.riser)} tread=${Math.round(stair.tread)} slope=${slopeText(stair.slope)}`);
 console.log(runSolids(stair).length, runSolids(stair)[0]!.kind);
-for (const d of runDrawsForLevel(b, "B1")) console.log(`${d.path} treads=${d.treads.length} arrows=${d.arrows.map((a) => a.label).join(" ")}`);
+for (const d of runDrawsForLevel(b, "B1")) console.log(`${d.path} treads=${d.treads.length} arrows=${d.arrows.map((a) => (a.up ? "UP" : "DN")).join(" ")}`);
 ```
 
 ```text

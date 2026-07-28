@@ -8,6 +8,7 @@
 // 段数も踏面も勾配も書かれない — 書かないが検査する (RUN06 / RUN07)。
 
 import { levelsSorted, type Edge, type Model, type Pt, type Rect, type Space } from "./model.js";
+import { EPS, SPAN_EPS } from "./tolerance.js";
 
 /** 装置。トポロジーではなく形の生成規則を選ぶ語 */
 export type RunDevice = "stair" | "ramp" | "escalator" | "lift";
@@ -19,29 +20,23 @@ export type RunForm = "straight" | "return";
 export const RUN_FORMS: readonly RunForm[] = ["straight", "return"];
 
 /** 既定の蹴上げ上限 mm (riser: で上書き) */
-const DEFAULT_RISER_MAX = 180;
-/** 踏面がこれを下回ると窮屈 (RUN06) */
-const TREAD_MIN = 240;
+export const DEFAULT_RISER_MAX = 180;
 /** 折返し階段の踊り場を導くときの目標踏面 mm (tread: で上書き) */
-const TREAD_TARGET = 300;
-/** 蹴上げ2倍+踏面 の快適域 (RUN06) */
-const STEP_RULE = { lo: 550, hi: 700 };
-/** エスカレーターの標準勾配 (30度 ≒ 1/1.73) と許容 */
-const ESCALATOR_SLOPE = { lo: 1 / 2.3, hi: 1 / 1.4 };
+export const TREAD_TARGET = 300;
 /** 平面図の切断面 — FLからの高さ mm */
 export const CUT_HEIGHT = 1200;
 /** 踊り場の最小奥行 mm */
-const LANDING_MIN = 1100;
+export const LANDING_MIN = 1100;
 /** 乗り込みの床の既定の奥行 mm (entry: で上書き) — 扉が段板に直接ぶつからないための帯 */
-const ENTRY_LANDING = 1100;
+export const ENTRY_LANDING = 1100;
 /** エスカレーター一台の既定の呼び幅 mm (lane: で上書き) */
-const LANE_ESCALATOR = 1200;
+export const LANE_ESCALATOR = 1200;
 /** 平面のエスカレーターの段の刻みのピッチ mm */
-const STEP_MARK = 400;
+export const STEP_MARK = 400;
 /** 段板の見付け厚 (立体) mm */
-const TREAD_SOLID = 200;
+export const TREAD_SOLID = 200;
 /** 斜路・エスカレーター床版の厚さ mm */
-const SLAB_T = 200;
+export const SLAB_T = 200;
 
 /** 走りと踊り場の一区間。局所座標は t (走り方向) と s (進行方向の左からの幅) */
 export interface RunPart {
@@ -512,23 +507,33 @@ export interface Seg2 {
   y2: number;
 }
 
+/**
+ * 進む向きを指す線分。**文字列は持たない** — "UP" と "DN" は言葉であって形ではない
+ * (spec/scope.md §6)。この面で人が上るかどうかを `up` が言い、注記は描画側が組む
+ */
 export interface RunArrow extends Seg2 {
-  label: string;
+  /** この面でこの走りを進むと上るか */
+  up: boolean;
 }
 
-/** そのレベルで切った縦動線の作図。平面図とビュアーが共有する唯一の答え */
+/**
+ * そのレベルで切った縦動線の作図。平面図とビュアーが共有する唯一の答え。
+ * **色も線種も注記文字列も持たない** (spec/scope.md §6 / spec/derivation.md §5)
+ */
 export interface RunDraw {
   path: string;
   device: RunDevice;
+  /** この面に現れるのは上る走りか、下りる走りか */
+  dir: "up" | "down";
   /** 段鼻 (階段) / 段の刻み (エスカレーター) */
   treads: Seg2[];
   /** 輪郭 — 走りの側線・踊り場の縁 */
   outline: Seg2[];
-  /** 切断線 (作図慣習の平行な二本の斜線) */
+  /** 走りが切断面を跨ぐ位置を、走りの幅いっぱいに横切る線分。作図慣習の二本の斜線は描画側が引く */
   breaks: Seg2[];
   arrows: RunArrow[];
-  /** 注記 (勾配・段数) */
-  notes: Array<{ x: number; y: number; text: string }>;
+  /** 注記を置く座 (上る走りにだけ、一つ)。**言葉は持たない** — 数は VerticalRun にある */
+  anchor?: { x: number; y: number };
 }
 
 /**
@@ -542,11 +547,11 @@ function upWindows(run: VerticalRun, cutZ: number | undefined): Array<[number, n
     if (cutZ === undefined) return [p.t0, p.t1] as [number, number];
     const lo = Math.min(p.z0, p.z1);
     const hi = Math.max(p.z0, p.z1);
-    if (cutZ >= hi - 1) return [p.t0, p.t1] as [number, number]; // 丸ごと切断面より下
-    if (cutZ <= lo + 1 || hi - lo < 1) return undefined; // 丸ごと上 (踊り場もここ)
+    if (cutZ >= hi - SPAN_EPS) return [p.t0, p.t1] as [number, number]; // 丸ごと切断面より下
+    if (cutZ <= lo + SPAN_EPS || hi - lo < SPAN_EPS) return undefined; // 丸ごと上 (踊り場もここ)
     const t = p.t0 + ((cutZ - p.z0) / (p.z1 - p.z0)) * (p.t1 - p.t0);
     const [a, b] = p.z0 < p.z1 ? [p.t0, t] : [t, p.t1];
-    return b - a > 1 ? ([a, b] as [number, number]) : undefined;
+    return b - a > SPAN_EPS ? ([a, b] as [number, number]) : undefined;
   });
 }
 
@@ -566,8 +571,8 @@ function downWindows(
     if (!w) return [p.t0, p.t1] as [number, number];
     const [a, b] = w;
     // 上りが占めたのが手前側 ([t0,t]) なら残りは奥側、逆なら手前側
-    const out: [number, number] = a <= p.t0 + 1 ? [b, p.t1] : [p.t0, a];
-    return out[1] - out[0] > 1 ? out : undefined;
+    const out: [number, number] = a <= p.t0 + SPAN_EPS ? [b, p.t1] : [p.t0, a];
+    return out[1] - out[0] > SPAN_EPS ? out : undefined;
   });
 }
 
@@ -606,10 +611,10 @@ export function runDrawsForLevel(model: Model, level: string, cut = CUT_HEIGHT):
  */
 function sameFrame(a: VerticalRun, b: VerticalRun): boolean {
   return (
-    Math.abs(a.rect.x1 - b.rect.x1) < 1 &&
-    Math.abs(a.rect.y1 - b.rect.y1) < 1 &&
-    Math.abs(a.rect.x2 - b.rect.x2) < 1 &&
-    Math.abs(a.rect.y2 - b.rect.y2) < 1 &&
+    Math.abs(a.rect.x1 - b.rect.x1) < SPAN_EPS &&
+    Math.abs(a.rect.y1 - b.rect.y1) < SPAN_EPS &&
+    Math.abs(a.rect.x2 - b.rect.x2) < SPAN_EPS &&
+    Math.abs(a.rect.y2 - b.rect.y2) < SPAN_EPS &&
     a.up === b.up &&
     a.form === b.form &&
     a.device === b.device &&
@@ -623,7 +628,7 @@ function crossings(run: VerticalRun, cutZ: number): Array<number | undefined> {
     if (p.kind !== "flight") return undefined;
     const lo = Math.min(p.z0, p.z1);
     const hi = Math.max(p.z0, p.z1);
-    if (cutZ < lo || cutZ > hi || hi - lo < 1) return undefined;
+    if (cutZ < lo || cutZ > hi || hi - lo < SPAN_EPS) return undefined;
     return p.t0 + ((cutZ - p.z0) / (p.z1 - p.z0)) * (p.t1 - p.t0);
   });
 }
@@ -638,11 +643,11 @@ function drawRun(
   const draw: RunDraw = {
     path: run.path,
     device: run.device,
+    dir,
     treads: [],
     outline: [],
     breaks: [],
     arrows: [],
-    notes: [],
   };
   const { rect, up } = run;
   const seg = (t0: number, s0: number, t1: number, s1: number): Seg2 => {
@@ -675,12 +680,12 @@ function drawRun(
 
     if (run.device === "stair") {
       const d = (p.t1 - p.t0) / Math.max(1, (p.risers ?? 2) - 1);
-      for (let t = p.t0 + d; t < p.t1 - 1; t += d) {
-        if (t < lo - 0.5 || t > hi + 0.5) continue;
+      for (let t = p.t0 + d; t < p.t1 - SPAN_EPS; t += d) {
+        if (t < lo - EPS || t > hi + EPS) continue;
         draw.treads.push(seg(t, p.s0, t, p.s1));
       }
     } else if (run.device === "escalator") {
-      for (let t = lo + STEP_MARK; t < hi - 1; t += STEP_MARK) {
+      for (let t = lo + STEP_MARK; t < hi - SPAN_EPS; t += STEP_MARK) {
         draw.treads.push(seg(t, p.s0, t, p.s1));
       }
     }
@@ -701,11 +706,12 @@ function drawRun(
       const back = flip ? !p.reversed : p.reversed; // t が減る向きに進むか
       const from = back ? hi - 150 : lo + 150;
       const to = back ? lo + 150 : hi - 150;
-      draw.arrows.push({ ...seg(from, c, to, c), label: goUp ? "UP" : "DN" });
+      draw.arrows.push({ ...seg(from, c, to, c), up: goUp });
     }
   }
 
-  // 切断線: 走りを横切る平行な二本の斜線 (作図慣習)。交差させると吹抜けの対角線と紛れる
+  // 切断線: 走りが切断面を跨ぐ位置を、走りの幅いっぱいに横切る一本の線分として返す。
+  // **作図慣習 (平行な二本の斜線・その振り分け寸法) は描画側が持つ** — 形は跨いだ位置だけである
   if (dir === "up" && cross) {
     // 並列の台はどれも同じ高さで切られる。切断線は**跨いだ走りに、その走り自身の
     // 位置で**引く — 一台の位置を全台に配ると、何も無い所に線が乗る
@@ -713,25 +719,12 @@ function drawRun(
       const p = run.parts[i]!;
       const ct = cross[i];
       if (ct === undefined || !windows?.[i]) continue;
-      const g = Math.min(300, (p.s1 - p.s0) / 4);
-      const off = Math.min(220, g);
-      draw.breaks.push(
-        seg(ct - g - off, p.s0, ct + g - off, p.s1),
-        seg(ct - g + off, p.s0, ct + g + off, p.s1),
-      );
+      draw.breaks.push(seg(ct, p.s0, ct, p.s1));
     }
   }
 
-  if (dir === "up") {
-    draw.notes.push({
-      x: (rect.x1 + rect.x2) / 2,
-      y: (rect.y1 + rect.y2) / 2,
-      text:
-        run.device === "stair"
-          ? `${run.risers}段 蹴上${Math.round(run.riser)}/踏面${Math.round(run.tread)}`
-          : `${run.lanes > 1 ? `${run.lanes}台 ` : ""}勾配 ${slopeText(run.slope)}`,
-    });
-  }
+  // 注記の座だけを返す。段数も勾配も VerticalRun が持っており、言葉にするのは描画側である
+  if (dir === "up") draw.anchor = { x: (rect.x1 + rect.x2) / 2, y: (rect.y1 + rect.y2) / 2 };
   return draw;
 }
 

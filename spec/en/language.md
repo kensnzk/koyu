@@ -154,7 +154,7 @@ drop column C1                        # remove a column declaration
 | Item | Default |
 |---|---|
 | boundary type | `wall` |
-| boundary t | none (100 mm when drawing only) |
+| boundary t | none (the derivation default is 100 mm — [derivation.md](derivation.md) §5) |
 | boundary between touching spaces | `wall` — not written. Declare only the exceptions (open / air:1 / anything carrying attributes or openings — ADR-0014) |
 | opening at | 0.5 (a ratio — clamped) |
 | opening hinge / swing | the starting end of the segment / the a side (the one with a region) |

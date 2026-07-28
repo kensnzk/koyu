@@ -328,7 +328,7 @@ stack ev L1..L10 type:shaft
 | Vertical adjacency | A floor (slab) — **do not write it**. Declare only the exceptions (stair / shaft / void) |
 | **The boundary with a space that has no region (`/out` etc.)** | **None. It does not exist unless you write it** — because naming which outside it is is the information |
 | boundary type | `wall` |
-| boundary t | None (100 mm when drawing only) |
+| boundary t | None (the derivation default is 100 mm) |
 | opening at | 0.5 (a ratio, clamped) |
 | opening hinge / swing | The starting end of the segment / the a side (the one with a region) |
 | opening style | `hinged` |

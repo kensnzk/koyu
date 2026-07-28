@@ -146,9 +146,9 @@ Not making the form and not being able to make it are different things. **From t
 
 The assurance is first of all structural — the given data supplies coordinates, a relation supplies a seat in the shape of a shared face, and substance sits on that seat. **Substance is born holding a seat.** Three further things are fixed.
 
-1. **The rules of derivation belong to the specification**, not to the implementation. If the rules differ from consumer to consumer, different buildings come out of the same source. Then it is not a source. The rules are held by [semantics.md](semantics.md) §2-4
+1. **The rules of derivation belong to the specification**, not to the implementation. If the rules differ from consumer to consumer, different buildings come out of the same source. Then it is not a source. The rules are held by [derivation.md](derivation.md) (the account from the side of semantics is [semantics.md](semantics.md) §2-4)
 2. **Sufficiency is checked.** Whether the information a form needs is present is part of structural consistency (SUF01-04). **It is a check of completeness, not a judgement of soundness**
-3. **A reference implementation exists and is exercised by the tests.** `derive(model): Form` is the only entrance, and it **has no appearance** — it returns no color, no typeface, no line weight, no annotation string. `src/draw/` and ugatsu merely draw this `Form`
+3. **A reference implementation exists and is exercised by the tests.** `derive(model): Form` is the only entrance, and it **has no appearance** — it returns no color, no typeface, no line weight, no annotation string. `src/draw/` and ugatsu merely draw this `Form` ([derivation.md](derivation.md) §7)
 
 **"Several forms come out of one composition" is a defect.** What may be several is the **appearance**, not the form.
 
@@ -189,7 +189,7 @@ For the details see [vocabulary.md](vocabulary.md).
 
 **These may exist; that they are not subject to the freeze is stated explicitly.**
 
-- **the generation and drawing of form** — `svgPlan` / `svgAxo` / the CLI's `plan` and `axo` / MCP's `plan_svg`. The CLI's **surface** (subcommand names, arguments, exit codes) freezes, but **the contents of the SVG do not**
+- **the generation and drawing of form** — `svgPlan` / `svgAxo` / the CLI's `plan` and `axo` / MCP's `plan_svg`. The CLI's **surface** (subcommand names, arguments, exit codes) freezes, but **the contents of the SVG do not**. Drawing only draws the `Form`, so **what may not change is the `Form`, not the SVG** ([derivation.md §9](derivation.md))
 - **architectural verdicts** — the body of rules in [validation.md](validation.md) and the output of `koyu validate`. It is a surface that grows
 - **the MCP tools** — treated as a surface that grows by addition
 - **round trips to and from external formats, and import**

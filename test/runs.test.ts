@@ -121,17 +121,18 @@ stack e L1..L2 type:stair
 `);
   const [d] = runDrawsForLevel(m, "L1");
   assert.equal(d!.arrows.length, 2, "one up and one down");
-  assert.deepEqual(d!.arrows.map((a) => a.label).sort(), ["DN", "UP"]);
+  assert.deepEqual(d!.arrows.map((a) => a.up).sort(), [false, true]);
   // 矢印は台ごとに違う s (幅方向) に乗る — 同じ台に二本ではない
   assert.notEqual(d!.arrows[0]!.x1, d!.arrows[1]!.x1);
   // 下りの矢印は下流へ向かう。up は N (+Y) なので DN は y が減る向き
-  const dn = d!.arrows.find((a) => a.label === "DN")!;
+  const dn = d!.arrows.find((a) => !a.up)!;
   assert.ok(dn.y2 < dn.y1, "DN points against the ascending slope");
-  const up = d!.arrows.find((a) => a.label === "UP")!;
+  const up = d!.arrows.find((a) => a.up)!;
   assert.ok(up.y2 > up.y1);
-  assert.equal(d!.breaks.length, 4, "two parallel lines per unit");
+  // 切断線は跨いだ台ごとに一本 (作図慣習の二本の斜線は描画側が引く — ADR-0040)
+  assert.equal(d!.breaks.length, 2, "one crossing per unit");
   // 切断線は台の幅の中に収まる (一台の位置を全台へ配っていない)
-  for (const b of d!.breaks) assert.ok(b.x2 - b.x1 <= 1200 + 1);
+  for (const b of d!.breaks) assert.ok(Math.abs(b.x2 - b.x1) <= 1200 + 1);
 });
 
 test("plan: the descending run appears in what the ascending run left — per unit even when parallel", () => {
@@ -228,11 +229,11 @@ stack s L1..L2 type:stair
   const l1 = runDrawsForLevel(m, "L1");
   assert.equal(l1.length, 1); // L1には上る走りだけ (下はレベルが無い)
   assert.ok(l1[0]!.breaks.length > 0, "a break line is drawn");
-  assert.deepEqual(l1[0]!.arrows.map((a) => a.label), ["UP"]);
+  assert.deepEqual(l1[0]!.arrows.map((a) => a.up), [true]);
 
   const l2 = runDrawsForLevel(m, "L2");
   // L2 は最上階なので上る走りが無く、下りる走りだけが丸ごと見える
-  assert.deepEqual(l2.map((d) => d.arrows.map((a) => a.label)), [["DN"]]);
+  assert.deepEqual(l2.map((d) => d.arrows.map((a) => a.up)), [[false]]);
   assert.equal(l2[0]!.breaks.length, 0);
 });
 

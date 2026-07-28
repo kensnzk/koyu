@@ -81,6 +81,7 @@ import { parseFile } from "@kensnzk/koyu/node";
 | 問い・導出・機械形式 | `areaM2` `zoneAreaM2` `unionAreaM2` `polygonAreaM2` `pointInPolygon` `polyBounds` `rectToPoly` `columnsFor` `displayName` `effectiveUse` `heff` `isIndoor` `isSemiOutdoor` `isCoveredAbove` `levelsSorted` `newUids` `toCanonical` `srcRef` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `DEFAULT_LANGUAGE_VERSION` | — |
 | 構造整合の診断 | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `Diagnostic` `DiagnosticCode` `CheckResult` |
 | 空間グラフ | `doorsBetween` `neighbors` `passable` `segmentsFor` `envelopeGaps` `deriveDefaultBoundaries` `placeOpening` `placeBand` | `Segment` `Route` `NeighborInfo` `Band` `PlacedBand` `BandError` `BandCode` |
+| 形の参照実装 | `derive` `levelPitch` `DERIVATION_CONSTANTS` `TOLERANCES` `thicken` `bandLine` `band` `columnRect` `runPrism` | `Form` `FormInput` `FormLevel` `FormSpace` `FormBoundary` `FormPanel` `FormOpening` `FormSwing` `FormSeg` `FormColumn` `FormRun` `FormSite` `FormPlan` `FormPrism` `PlanEntity` `PlanClass` `PlanSubject` `PlanRole` `DeriveOptions` |
 | 床・天井・屋根 | `slabs` | `Slab` `SlabKind` |
 | 採光 | `daylightInputs` | `DaylightInput` |
 | 縦動線 | `verticalRuns` `runSolids` `runDrawsForLevel` `slopeText` | `VerticalRun` `RunPart` `RunSolid` `RunDraw` `RunArrow` `RunDevice` `RunForm` `Seg2` |
@@ -94,7 +95,8 @@ import { parseFile } from "@kensnzk/koyu/node";
 - **合成の入口**: `parse(source)` (単一ソース — importはエラー) / `parseFiles(files, entry)` (仮想ファイル群 — キー空間の中でimport解決。ブラウザ向け) / `parseFile(path)` (fs) / `parseFileWith(path, overlay)` (fs+差し替え — 書き込み前の門番用) / `parseWith(loader, entry)` (独自ローダー)。合成に参加した全レイヤーは `model.layers` (合成順)。
 - **検査と問い**: `checkDiagnostics(model)` → `Diagnostic[]` (一次形式 — code/severity/message/出所/path/related。台帳は `DIAGNOSTIC_CODES`、コード表は semantics.md §5。ADR-0016) / `check(model)` → {errors, warnings} (互換の文字列形式 — 同件・同順)。問いは `doorsBetween` / `daylightInputs` / `siteReport` / `zoneAreaM2` / `neighbors` / `passable` / `envelopeGaps` — **どれも合否を言わない** (scope.md §4)。
 - **導出の部品**: `segmentsFor` / `deriveDefaultBoundaries` (既定境界 — parse系は適用済み。正準JSON由来のモデルに意味を与えるときに使う) / `placeOpening` / `placeBand` (この「帯」は境界線分上の区間 = 開口・seg のことで、記法のキーワード `band` 〈language.md §3〉とは別の層である) / `columnsFor` / `heff` / `isSemiOutdoor` / `isCoveredAbove` / `levelsSorted`。
-- **生成物**: `slabs(model)` (床・天井・屋根 — ADR-0024) / `verticalRuns(model)` (縦動線の形 — ADR-0021) / `runSolids(run)` (その立体) / `runDrawsForLevel(model, level)` (そのレベルで切った作図)。**どれも見た目を持たない** — 色も線幅も返さない。ビュアーはこれを幾何へ写すだけである (scope.md §6)。
+- **形の唯一の入口**: `derive(model, {cut?})` → `Form` (ADR-0040)。**規則は [derivation.md](derivation.md) が持ち、これはその参照実装である。**`Form` は見た目を一つも持たない — 色も書体も線幅も注記文字列も記号も縮尺も返さない (scope.md §6)。定数の台帳は `DERIVATION_CONSTANTS`、許容値の台帳は `TOLERANCES` で、derivation.md §5・§6 の表はその写しである。`levelPitch(model, level)` は階高 (壁と柱がどこまで立つか) を単独で答える。
+- **生成物** (Form が組み上げる部品。個別にも呼べる): `slabs(model)` (床・天井・屋根 — ADR-0024) / `verticalRuns(model)` (縦動線の形 — ADR-0021) / `runSolids(run)` (その立体) / `runDrawsForLevel(model, level)` (そのレベルで切った作図)。**どれも見た目を持たない** — 色も線幅も注記文字列も返さない。ビュアーはこれを幾何へ写すだけである (scope.md §6)。
 - **描画**: `svgPlan(model, {level, scale?})` / `svgAxo(model, {dir?, levels?, scale?, ceilings?, walls?})` / `toCanonical(model)`。
 - **差分**: `semanticDiff(a, b)` → `ModelDiff` (構成の言葉の差分 — 改名はuidで検出、境界は実効集合で比較。`toCanonical` 同一なら空。ADR-0018) / `renderDiff(d)` → 日本語の行 (空配列=差分なし)。
 - **同一性**: `newUids(model, count?)` → 新しい uid の列 (ADR-0039)。**合成済みのそのモデルとは衝突しない**が、まだ合成されていない層との非衝突は 80 ビットの乱数による確率的な保証であり、証明するのは `check` の UID03 だけである ([scope.md §5](scope.md))。**呼ばないかぎり、どのツールも uid を書かない。**

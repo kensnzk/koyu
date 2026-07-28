@@ -98,6 +98,41 @@ export {
   type Segment,
 } from "./core/graph.js";
 
+// ---- 形の参照実装 (ADR-0040) — **これが形の唯一の入口である** ----
+// Form は見た目を持たない (spec/scope.md §6)。規則は spec/derivation.md が持つ
+// 実体の構成子 (thicken / bandLine / band / columnRect / runPrism) も core が唯一の実装を
+// 持つ — 芯線と厚みから四辺形や角柱を起こす規則も導出の一部だからである
+export {
+  band,
+  bandLine,
+  columnRect,
+  derive,
+  DERIVATION_CONSTANTS,
+  levelPitch,
+  runPrism,
+  thicken,
+  type DeriveOptions,
+  type Form,
+  type FormBoundary,
+  type FormColumn,
+  type FormInput,
+  type FormLevel,
+  type FormOpening,
+  type FormPanel,
+  type FormPlan,
+  type FormPrism,
+  type FormRun,
+  type FormSeg,
+  type FormSite,
+  type FormSpace,
+  type FormSwing,
+  type PlanClass,
+  type PlanEntity,
+  type PlanRole,
+  type PlanSubject,
+} from "./core/derive.js";
+export { TOLERANCES } from "./core/tolerance.js";
+
 // ---- 床・天井・屋根 (ADR-0024) ----
 export { slabs, type Slab, type SlabKind } from "./core/fabric.js";
 

@@ -3,19 +3,15 @@
 // WebGLも実行環境も要らない — 平面と同じく SVG のテキストが出るので、
 // 生成して見る、という同じ手で立体を確かめられる。
 //
-// 描くのは**生成物だけ**である。床・屋根 (fabric.ts)、壁 (境界から)、柱 (通りの交点から)、
-// 縦動線 (vertical.ts)。どれもソースには無く、規則から現れる。
+// 描くのは**生成物だけ**である。床・屋根、壁 (境界から)、柱 (通りの交点から)、縦動線。
+// どれもソースには無く、規則から現れる。
+//
+// **ここに形の規則は一つも無い** (ADR-0040)。輪郭も厚みも z 範囲も `derive(model)` が返す
+// `Form` に既に入っており、芯線から実体を起こす構成子 (`thicken` / `columnRect` / `runPrism`)
+// も core が唯一の実装を持つ。この頁が決めるのは投影・陰影・重ね順・紙面だけである。
 
-import { slabs } from "../core/fabric.js";
-import { segmentsFor, type Segment } from "../core/graph.js";
-import {
-  columnsFor,
-  levelsSorted,
-  rectToPoly,
-  type Model,
-  type Pt,
-} from "../core/model.js";
-import { runSolids, verticalRuns } from "../core/vertical.js";
+import { columnRect, derive, runPrism, thicken } from "../core/derive.js";
+import { type Model, type Pt } from "../core/model.js";
 
 export interface AxoOptions {
   /** 見る向き — 建物のどの隅から見下ろすか (既定 SE) */
@@ -42,6 +38,9 @@ interface Prism {
 
 const INK = "#1f1f1f";
 const PAPER = "#faf8f4";
+/** 地盤面を見せる版の下端・上端 mm — 導出値ではなく紙の側の約束 */
+const GROUND_Z0 = -400;
+const GROUND_Z1 = -100;
 const C = {
   floor: "#cfc7b6",
   roof: "#8d8577",
@@ -50,17 +49,19 @@ const C = {
   column: "#5d574d",
   run: "#7f8f8a",
   ground: "#eceadf",
-  opening: "#f2efe6",
 };
 
 /** 軸測図のSVG。ソースに形は無い — ここに出るものはすべて規則からの生成物である */
 export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   const scale = opts.scale ?? 0.02;
   const dir = opts.dir ?? "SE";
-  const levels = levelsSorted(model).filter(
-    (l) => !opts.levels || opts.levels.includes(l.name),
+
+  // **形はすべて Form が持つ** (ADR-0040) — 壁の厚みも、開口で割られた区間も、
+  // 柱の z 範囲も、段板の立体も。ここが決めるのは投影と陰影と紙面だけである
+  const form = derive(model);
+  const names = new Set(
+    form.levels.filter((l) => !opts.levels || opts.levels.includes(l.name)).map((l) => l.name),
   );
-  const names = new Set(levels.map((l) => l.name));
 
   // 見る向き: 平面を90度ずつ回してから等角に落とす
   const turn = { NE: 0, NW: 1, SW: 2, SE: 3 }[dir];
@@ -93,67 +94,39 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   };
 
   // ---- 敷地 (地盤面) ----
-  for (const poly of model.polygons.values()) add(poly.points, -400, -100, C.ground);
+  // 地盤に厚みは導出されない (Form が持つのは所与の形だけ) ので、地面をどれだけの
+  // 厚みの版として見せるかは**紙の側の判断**である
+  for (const poly of form.site) add(poly.points, GROUND_Z0, GROUND_Z1, C.ground);
 
   // ---- 床・屋根 (ADR-0024) ----
-  for (const sl of slabs(model)) {
+  for (const sl of form.slabs) {
     if (!names.has(sl.level)) continue;
     if (sl.kind === "ceiling" && !opts.ceilings) continue;
     add(sl.outline, sl.z0, sl.z1, sl.kind === "roof" ? C.roof : sl.kind === "floor" ? C.floor : C.ceiling);
   }
 
-  // ---- 壁 (境界から生成) と開口 ----
+  // ---- 壁 (境界から生成) — **開口で割られた区間として立つ** ----
   if (opts.walls !== false) {
-    for (const b of model.boundaries) {
-      if (b.kind !== "wall") continue;
-      const sa = model.spaces.get(b.a);
-      const sb = model.spaces.get(b.b);
-      const room = sa && sa.rects.length > 0 ? sa : sb;
-      if (!room?.level || !names.has(room.level)) continue;
-      const z0 = model.levels[room.level]!.z;
-      const h = pitchOf(model, room.level);
-      const t = b.air ? Math.min(b.t ?? 60, 80) : (b.t ?? 100);
-      const top = b.air ? z0 + (typeof b.attrs["h"] === "number" ? (b.attrs["h"] as number) : 1100) : z0 + h;
-      for (const seg of segmentsFor(model, b)) add(thicken(seg, t), z0, top, C.wall);
+    for (const b of form.boundaries) {
+      if (!b.material || (b.level !== undefined && !names.has(b.level))) continue;
+      for (const p of b.material.panels) {
+        add(thicken(p.x1, p.y1, p.x2, p.y2, b.material.t), p.z0, p.z1, C.wall);
+      }
     }
   }
 
   // ---- 柱 (ADR-0023) ----
-  for (const l of levels) {
-    const h = pitchOf(model, l.name);
-    for (const c of columnsFor(model, l.name)) {
-      add(
-        rectToPoly({ x1: c.x - c.w / 2, y1: c.y - c.d / 2, x2: c.x + c.w / 2, y2: c.y + c.d / 2 }),
-        l.z,
-        l.z + h,
-        C.column,
-      );
-    }
+  for (const c of form.columns) {
+    if (!names.has(c.level)) continue;
+    add(columnRect(c), c.z0, c.z1, C.column);
   }
 
   // ---- 縦動線 (ADR-0021) — 段は段として、斜路は傾いた版として ----
-  for (const run of verticalRuns(model)) {
+  for (const run of form.runs) {
     if (!names.has(run.level)) continue;
-    for (const s of runSolids(run)) {
-      if (s.kind === "box") {
-        add(rectToPoly(s.rect), s.z0, s.z1, C.run);
-        continue;
-      }
-      // 傾いた版: 四隅の高さを走る向きに線形で振る
-      const poly = rectToPoly(s.rect);
-      const f = (p: Pt): number => {
-        const r = s.rect;
-        const u =
-          s.up === "E"
-            ? (p.x - r.x1) / Math.max(1, r.x2 - r.x1)
-            : s.up === "W"
-              ? (r.x2 - p.x) / Math.max(1, r.x2 - r.x1)
-              : s.up === "N"
-                ? (p.y - r.y1) / Math.max(1, r.y2 - r.y1)
-                : (r.y2 - p.y) / Math.max(1, r.y2 - r.y1);
-        return s.z0 + u * (s.z1 - s.z0);
-      };
-      add(poly, poly.map((p) => f(p) - s.t), poly.map(f), C.run);
+    for (const s of run.solids) {
+      const pr = runPrism(s);
+      add(pr.poly, pr.bottom, pr.top, C.run);
     }
   }
 
@@ -161,16 +134,24 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
 
   // ---- 投影して奥から描く (画家のアルゴリズム) ----
   prisms.sort((a, b) => a.depth - b.depth);
-  const pts: Array<[number, number]> = [];
+  // **外接範囲は畳んで取る。**Math.min(...pts) は引数の数がスタックの限界に当たる —
+  // 開口で割られた壁は区間ごとに一片なので、大きな例では十万点を超える
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  const see = (p: [number, number]): void => {
+    if (p[0] < minX) minX = p[0];
+    if (p[0] > maxX) maxX = p[0];
+    if (p[1] < minY) minY = p[1];
+    if (p[1] > maxY) maxY = p[1];
+  };
   for (const pr of prisms) {
     for (let i = 0; i < pr.poly.length; i++) {
-      pts.push(proj(pr.poly[i]!, pr.top[i]!), proj(pr.poly[i]!, pr.bottom[i]!));
+      see(proj(pr.poly[i]!, pr.top[i]!));
+      see(proj(pr.poly[i]!, pr.bottom[i]!));
     }
   }
-  const minX = Math.min(...pts.map((p) => p[0]));
-  const maxX = Math.max(...pts.map((p) => p[0]));
-  const minY = Math.min(...pts.map((p) => p[1]));
-  const maxY = Math.max(...pts.map((p) => p[1]));
   const M = 40;
   const W = (maxX - minX) * scale + M * 2;
   const H = (maxY - minY) * scale + M * 2;
@@ -216,30 +197,6 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
     "</svg>",
   );
   return out.join("\n") + "\n";
-}
-
-/** レベルの階高 (次のレベルまで)。最上階は天井高+slabで近似 */
-function pitchOf(model: Model, level: string): number {
-  const l = model.levels[level]!;
-  const up = Object.values(model.levels)
-    .filter((o) => o.z > l.z)
-    .sort((a, b) => a.z - b.z)[0];
-  return up ? up.z - l.z : (l.h ?? 2400) + (l.slab ?? 0);
-}
-
-/** 壁芯線分を厚みのある四角形へ (斜めの線分もそのまま扱える) */
-function thicken(seg: Segment, t: number): Pt[] {
-  const dx = seg.x2 - seg.x1;
-  const dy = seg.y2 - seg.y1;
-  const len = Math.hypot(dx, dy) || 1;
-  const nx = (-dy / len) * (t / 2);
-  const ny = (dx / len) * (t / 2);
-  return [
-    { x: seg.x1 + nx, y: seg.y1 + ny },
-    { x: seg.x2 + nx, y: seg.y2 + ny },
-    { x: seg.x2 - nx, y: seg.y2 - ny },
-    { x: seg.x1 - nx, y: seg.y1 - ny },
-  ];
 }
 
 function signedArea(ring: Array<[number, number]>): number {

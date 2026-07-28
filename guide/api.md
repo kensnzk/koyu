@@ -634,6 +634,106 @@ console.log(placeBand(g, bIn, { w: 1000, at: 0.25, line: 0 }, "seg"));
 
 比率の `at` は線分に収まるようクランプされるが、通り参照 (`atAbs`) はクランプされない — はみ出せば `OPN08` / `SEG08` になる。
 
+### 形の唯一の入口 — derive
+
+```ts
+function derive(model: Model, opts?: DeriveOptions): Form
+```
+
+**形はすべてここから出る** ([ADR-0040](../docs/decisions/0040-derive-reference.md))。以下の「導出の部品」は個別にも呼べるが、それを組み立てて一棟ぶんの形にするのは `derive` である。組み立てを消費者ごとにやると、同じ原本から違う建物が出る。
+
+`Form` は**見た目を一つも持たない** — 色も書体も線幅も注記の言葉も記号も縮尺も返さない。返るのは座標・厚み・z 範囲・向き・そして**対象の同一性** (どの空間の、どの境界の、どの開口の形か) である。規則は [spec/derivation.md](../spec/derivation.md) が持つ。
+
+壁は**開口で割られた区間の列** (`material.panels`) として返る。平面は**分類つきの2Dエンティティ集合**で、`cut` (切断された断面) / `below` (切断面より下の見えがかり) / `above` (切断面より上の投影) / `swing` (扉の軌跡) / `anchor` (記号を置く座) に割れる。切断高さは `derive` の**入力**である。
+
+```ts
+import { derive } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+
+const b = parseFile("examples/basement/main.muro");
+const form = derive(b);
+console.log(`levels=${form.levels.length} spaces=${form.spaces.length} boundaries=${form.boundaries.length} openings=${form.openings.length} columns=${form.columns.length} runs=${form.runs.length}`);
+
+const wall = form.boundaries.find((x) => x.material && x.material.panels.length > 1)!;
+console.log(wall.ref, `t=${wall.material!.t} z=${wall.material!.z0}→${wall.material!.z1}`);
+for (const p of wall.material!.panels) console.log(`  panel (${p.x1},${p.y1})-(${p.x2},${p.y2}) z ${p.z0}→${p.z1}`);
+
+const plan = form.plans.find((p) => p.level === "B1")!;
+const count = new Map<string, number>();
+for (const e of plan.entities) count.set(`${e.class}/${e.of}`, (count.get(`${e.class}/${e.of}`) ?? 0) + 1);
+console.log(`cut=${plan.cut} cutZ=${plan.cutZ}`);
+for (const [k, n] of [...count].sort()) console.log(`  ${k} ${n}`);
+```
+
+```text
+levels=4 spaces=13 boundaries=45 openings=7 columns=36 runs=7
+/B2/park|/B2/st@2 t=250 z=-7400→-3700
+  panel (16000,7000)-(16000,9250) z -7400→-3700
+  panel (16000,9250)-(16000,10150) z -5400→-3700
+  panel (16000,10150)-(16000,12400) z -7400→-3700
+cut=1200 cutZ=-2500
+  above/boundary 2
+  anchor/run 2
+  below/run 5
+  cut/boundary 19
+  cut/column 15
+  cut/opening 2
+  cut/run 9
+  cut/space 6
+  swing/opening 2
+```
+
+`|` の左右が境界の両端、`@` の後が宣言の並びの中の位置である。三枚の区間のうち真ん中が扉の上の垂れ壁で、下端が扉の頭 (床から 2000mm) に揃っている。
+
+### 実体の構成子 — thicken / bandLine / band / columnRect / runPrism
+
+```ts
+function thicken(x1: number, y1: number, x2: number, y2: number, t: number): Pt[]
+function bandLine(seg: Segment, cx: number, cy: number, w: number): Seg2
+function band(seg: Segment, cx: number, cy: number, w: number, t: number): Pt[]
+function columnRect(c: { x: number; y: number; w: number; d: number }): Pt[]
+function runPrism(s: RunSolid): FormPrism
+
+interface FormPrism { poly: Pt[]; bottom: number[]; top: number[] }
+```
+
+`Form` が持つのは**芯線と厚みと z** である。そこから実体 (厚みのある四辺形・立体の角柱) を起こす規則も導出の一部なので、**core が唯一の実装を持つ** ([spec/derivation.md §7.1](../spec/derivation.md))。消費者がそれぞれ書き直せば、部品を共有していても組み立ての規則は共有されず、同じ `Form` から違う形が出る。`src/draw/` の `svgPlan` / `svgAxo` もこれを呼ぶだけである。
+
+```ts
+import { band, bandLine, columnRect, derive, runPrism, thicken } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+
+const b = parseFile("examples/basement/main.muro");
+const form = derive(b);
+
+// 壁の区間 (芯線 + 厚み) → 足あとの四辺形
+const wall = form.boundaries.find((x) => x.material && x.material.panels.length > 1)!;
+const p = wall.material!.panels[1]!;
+console.log(thicken(p.x1, p.y1, p.x2, p.y2, wall.material!.t).map((q) => `${q.x},${q.y}`).join(" "));
+
+// 開口 (中心 + 幅) → 線分上の区間 → 建具の四辺形
+const o = form.openings.find((x) => x.kind === "door")!;
+console.log(o.ref, JSON.stringify(bandLine(o.segment, o.cx, o.cy, o.w)));
+console.log(band(o.segment, o.cx, o.cy, o.w, o.t).map((q) => `${q.x},${q.y}`).join(" "));
+
+// 柱の断面と、傾いた版の四隅
+const c = form.columns[0]!;
+console.log(c.ref, columnRect(c).map((q) => `${q.x},${q.y}`).join(" "));
+const ramp = form.runs.flatMap((r) => r.solids).find((s) => s.kind === "incline")!;
+const pr = runPrism(ramp);
+console.log(ramp.kind, `up=${ramp.up}`, "bottom", pr.bottom.join(" "), "top", pr.top.join(" "));
+```
+
+```text
+15875,9250 15875,10150 16125,10150 16125,9250
+/B2/park|/B2/st@2/0 {"x1":16000,"y1":9250,"x2":16000,"y2":10150}
+15875,9250 15875,10150 16125,10150 16125,9250
+B2/X1/Y1 -400,-400 400,-400 400,400 -400,400
+incline up=E bottom -7600 -5750 -5750 -7600 top -7400 -5550 -5550 -7400
+```
+
+四辺形の頂点は 始点+n → 終点+n → 終点−n → 始点−n の順なので、**向かい合う二辺の中点を結べば芯線に戻る**。平面のエンティティは足あと (`polygon`) と芯線 (`lines`) の**両方**を持つので、手すりを一本の線で描く側が四辺形から芯線を復元する必要は無い。傾いた版は `up` 側の二隅が高く、厚みは版なりに平行についてくる。
+
 ### 生成物 — slabs / verticalRuns / runSolids / runDrawsForLevel
 
 ```ts
@@ -662,7 +762,7 @@ for (const s of slabs(b).slice(0, 3)) console.log(s.kind, s.space, s.level, `z $
 const stair = verticalRuns(b).find((r) => r.device === "stair")!;
 console.log(`${stair.path} ${stair.device} rise=${stair.rise} risers=${stair.risers} riser=${Math.round(stair.riser)} tread=${Math.round(stair.tread)} slope=${slopeText(stair.slope)}`);
 console.log(runSolids(stair).length, runSolids(stair)[0]!.kind);
-for (const d of runDrawsForLevel(b, "B1")) console.log(`${d.path} treads=${d.treads.length} arrows=${d.arrows.map((a) => a.label).join(" ")}`);
+for (const d of runDrawsForLevel(b, "B1")) console.log(`${d.path} treads=${d.treads.length} arrows=${d.arrows.map((a) => (a.up ? "UP" : "DN")).join(" ")}`);
 ```
 
 ```text

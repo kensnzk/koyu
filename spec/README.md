@@ -12,6 +12,7 @@
 |---|---|---|
 | [language.md](language.md) | **言語リファレンス** — 字句・全宣言の文法・合成 (import)・既定値・位置指定 | .muroを書く人・パーサを触る人 |
 | [semantics.md](semantics.md) | **意味論リファレンス** — モデル・導出 (壁線分/垂直隣接/半屋外/高さ)・検査の一覧・問い (doors/stats/light/site) の定義 | 導出やcheckを触る人・結果を解釈する人 |
+| [derivation.md](derivation.md) | **導出の規範** — 書かれた構成から一意な形へ。領域・境界・実体・縦動線・導出の定数・許容値、そして形と見た目の線引き | 形を作る消費者・ビュアーを書く人 |
 | [vocabulary.md](vocabulary.md) | **語彙の台帳** — 属性の契約 (どの語をツールが解釈するか)・開かれた語彙の開き方の規則 | 属性を足す人・全員 |
 | [canonical-json.md](canonical-json.md) | **機械形式** — 正準JSONのスキーマと安定性の規則 | 外部接続・diff・合成を作る人 |
 | [tools.md](tools.md) | **ツールリファレンス** — CLI・MCPサーバー・公開API | koyuを使うプログラム・エージェント |

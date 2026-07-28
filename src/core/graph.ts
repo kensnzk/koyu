@@ -6,6 +6,7 @@
 import type { Boundary, Edge, Model, Opening, Pt, Rect, Space } from "./model.js";
 import { rectToPoly, srcRef } from "./model.js";
 import * as poly from "./poly.js";
+import { EPS, PARALLEL_EPS, PROBE, SPAN_EPS } from "./tolerance.js";
 
 /** 壁芯線分 (mm)。水平なら y1===y2、垂直なら x1===x2。
  *  描かれた線 (ADR-0022) は斜めになりうる — その場合 diagonal が立つ */
@@ -20,8 +21,6 @@ export interface Segment {
   /** boundary.a 側 (領域を持つ側) の矩形から見た辺 */
   edgeOfA?: Edge;
 }
-
-const EPS = 0.5;
 
 /**
  * 凸片の軸平行な辺 (向きから N/E/S/W を読む)。頂点列は反時計回りなので、
@@ -337,7 +336,7 @@ export function envelopeGaps(model: Model, s: Space): Segment[] {
       gaps = gaps.flatMap((g) => subtractOverlap(g, seg));
     }
   }
-  return gaps.filter((g) => segmentLength(g) > 1);
+  return gaps.filter((g) => segmentLength(g) > SPAN_EPS);
 }
 
 /** 軸平行の線分から、同一直線上で重なる区間を引く */
@@ -367,9 +366,6 @@ function piecesOf(s: Space): Pt[][] {
   return s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
 }
 
-/** 線の左右へ少し離れた点。どちらの空間に属するかを見るための探り */
-const PROBE = 5;
-
 /**
  * 描かれた線のうち、この二空間が実際に向かい合っている区間だけを返す (ADR-0022)。
  *
@@ -392,7 +388,7 @@ function drawnShare(model: Model, sa: Space, sb: Space, p: Pt, q: Pt): Segment[]
   for (const poly of [...A, ...B]) {
     for (let i = 0; i < poly.length; i++) {
       const t = lineHit(p, q, poly[i]!, poly[(i + 1) % poly.length]!);
-      if (t !== undefined && t > 1e-9 && t < 1 - 1e-9) cuts.add(t);
+      if (t !== undefined && t > PARALLEL_EPS && t < 1 - PARALLEL_EPS) cuts.add(t);
     }
   }
   const ts = [...cuts].sort((x, y) => x - y);
@@ -428,8 +424,8 @@ function drawnShare(model: Model, sa: Space, sb: Space, p: Pt, q: Pt): Segment[]
       last.y2 = end.y;
       continue;
     }
-    const horizontal = Math.abs(dy) < 0.5;
-    const vertical = Math.abs(dx) < 0.5;
+    const horizontal = Math.abs(dy) < EPS;
+    const vertical = Math.abs(dx) < EPS;
     out.push({
       x1: start.x,
       y1: start.y,
@@ -449,10 +445,10 @@ function lineHit(p: Pt, q: Pt, u: Pt, v: Pt): number | undefined {
   const sx = v.x - u.x;
   const sy = v.y - u.y;
   const d = rx * sy - ry * sx;
-  if (Math.abs(d) < 1e-9) return undefined;
+  if (Math.abs(d) < PARALLEL_EPS) return undefined;
   const t = ((u.x - p.x) * sy - (u.y - p.y) * sx) / d;
   const w = ((u.x - p.x) * ry - (u.y - p.y) * rx) / d;
-  return w >= -1e-9 && w <= 1 + 1e-9 ? t : undefined;
+  return w >= -PARALLEL_EPS && w <= 1 + PARALLEL_EPS ? t : undefined;
 }
 
 export function segmentLength(s: Segment): number {
