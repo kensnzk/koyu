@@ -422,6 +422,70 @@ test("guide: every relative link points at something that exists", () => {
   assert.ok(checked > 100, `too few relative links: ${checked} — the scanner is broken`);
 });
 
+/**
+ * 頁の中の錨 (anchor) を集める。三つの綴りがある —
+ * 明示の `<a id="x"></a>`、Docusaurus の `{#x}`、そして見出しから作られる slug。
+ * slug の作り方は github-slugger に倣う (小文字化 → 約物を落とす → 空白を `-` に)。
+ */
+function anchorsOf(source: string): Set<string> {
+  const out = new Set<string>();
+  for (const m of source.matchAll(/<a\s+id="([^"]+)"\s*><\/a>/g)) out.add(m[1]!);
+  for (const m of source.matchAll(/^#{1,6}\s+.*\{#([^}]+)\}\s*$/gm)) out.add(m[1]!);
+  for (const m of source.matchAll(/^#{1,6}\s+(.*)$/gm)) {
+    out.add(
+      m[1]!
+        .replace(/\{#[^}]+\}\s*$/, "")
+        .trim()
+        .toLowerCase()
+        // github-slugger が落とす約物 (`-` と `_` は残す)
+        .replace(/[ -⁯⸀-⹿\\'!"#$%&()*+,./:;<=>?@[\]^`{|}~]/g, "")
+        .replace(/\s/g, "-"),
+    );
+  }
+  return out;
+}
+
+test("guide: every link fragment points at an anchor that exists", () => {
+  // 相対リンクの `#...` は誰も見ていなかったので、実装から消えたコードを指す索引が
+  // 生き延びていた (`#sit03` / `#sit05` — SIT03/SIT05 は存在しない)。
+  // Docusaurus のビルドは警告を出すだけなので、**ここが唯一の門番である**
+  const INLINE = /!?\[[^\]\n]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+  const cache = new Map<string, Set<string>>();
+  const anchorsFor = (abs: string) => {
+    let a = cache.get(abs);
+    if (!a) {
+      a = anchorsOf(readFileSync(abs, "utf8"));
+      cache.set(abs, a);
+    }
+    return a;
+  };
+  let checked = 0;
+  for (const path of FILES) {
+    const file = relative(root, path);
+    const lines = readFileSync(path, "utf8").split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      for (const m of lines[i]!.matchAll(INLINE)) {
+        const t = m[1]!;
+        if (/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(t) || /^(?:https?|mailto):/i.test(t)) continue;
+        const hash = t.indexOf("#");
+        if (hash < 0) continue;
+        const frag = decodeURI(t.slice(hash + 1));
+        if (!frag) continue;
+        const target = t.slice(0, hash);
+        // 同じ頁の中の錨なら自分を、そうでなければリンク先の .md を見る
+        const abs = target ? resolve(dirname(path), decodeURI(target)) : path;
+        if (!abs.endsWith(".md") || !existsSync(abs)) continue;
+        checked++;
+        assert.ok(
+          anchorsFor(abs).has(frag),
+          `${file}:${i + 1}: the anchor does not exist — ${t}`,
+        );
+      }
+    }
+  }
+  assert.ok(checked > 50, `too few fragments: ${checked} — the scanner is broken`);
+});
+
 // ---- (6) CLIサブコマンド ----
 
 /** src/cli.ts から実在するサブコマンドを採る (ハードコードするとここが古びるため) */
