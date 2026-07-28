@@ -4,14 +4,14 @@
 # 合成時にコンフリクト (パス・アセット・グリッドの重複) が検査され、一棟としてビルドされる。
 #   koyu check examples/house/main.muro がそのビルドの門番になる。
 
-koyu 0.5
+koyu 1.0
 name 小さな戸建住宅
 unit mm
 
 grid X 0 3640 7280
 grid Y 0 3640 7280
 
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2900 h:2400 slab:500
 level R 5800 slab:500
 

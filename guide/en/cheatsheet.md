@@ -22,7 +22,7 @@ The skeleton of the notation ([language.md §1](../../spec/en/language.md)):
 ```muro
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
@@ -31,21 +31,21 @@ The smallest four lines on which `check` is green and `plan` draws a drawing.
 | Line | Required? | Why |
 |---|---|---|
 | `grid X` / `grid Y` | **Required** | Coordinates are never written directly, so without grid lines a region cannot be written. Put them **before** any line that uses them |
-| `level L1 0` | Effectively required for a space with a region | Without it `check` stops at a warning, but `plan` dies with `レベルが定義されていません` ("no level is defined") |
+| `level L1 0` | Effectively required for a space with a region | Without it `check` stops at a warning, but `plan` dies with `No level is defined` |
 | The type of `space` (2nd positional) | **Required** | Omit it and the first region token is read as the type, giving `領域は X?..X? と Y?..Y? の2つで指定します` |
-| `koyu 0.5` | Optional | Omitted, the file is read with the newest semantics, 0.4. Write it in files whose meaning you want pinned ([language.md §2](../../spec/en/language.md)) |
+| `koyu 1.0` | Optional | Omitted, the file is read with the newest semantics, 1.0. Write it in files whose meaning you want pinned ([language.md §2](../../spec/en/language.md)) |
 | `name …` / `unit mm` | Optional | |
-| `h:` / `slab:` | Optional | Omit them with a storey above and you get `レベル L2 に slab が未宣言のため、L1 との高さ検査ができません` |
+| `h:` / `slab:` | Optional | Omit them and neither floor nor ceiling is generated (`Level L2 has no slab:, so not one floor is generated on this storey` — SUF03) |
 | `space /out exterior` | Optional | But without it the building has no envelope (see "Defaults" below) |
 | `boundary` | Optional | The default between touching spaces is a wall ([language.md §4](../../spec/en/language.md)) |
 
-An empty file also gives `✔ 整合 — 空間 0 / 境界 0`. **Green means "what you wrote is free of contradiction", not "this stands up as a building".**
+An empty file also gives `✔ Consistent — 0 spaces / 0 boundaries`. **Green means "what you wrote is free of contradiction", not "this stands up as a building".**
 
 ## Foundation declarations — held once by the base layer ([language.md §2](../../spec/en/language.md))
 
 | How it is written | Meaning |
 |---|---|
-| `koyu 0.5` | The language version. Base layer (the entry) only, once. `0.1`, `0.2`, `0.3`, `0.4` are accepted |
+| `koyu 1.0` | The language version. Base layer (the entry) only, once. `0.1`, `0.2`, `0.3`, `0.4`, `0.5` are also accepted |
 | `name 街角の複合ビル` | The building name. Takes the rest of the line as its value (whitespace allowed). Once |
 | `unit mm` | v0 is mm only |
 | `grid X 0 6400 12800 19200` | The X-axis grid coordinates. Ascending, two or more. Named `X1`, `X2`, … automatically |
@@ -94,7 +94,7 @@ space /out/road-s exterior name:南側道路 road:12000
 | `use:exclusive` | Attribute | An aggregation axis. Inherited from `zone` |
 | `daylight:1` / `daylight:0` | Attribute | Adds to or removes from the daylight scope |
 | `road:12000` | Attribute | The width of an exterior space — the mark of a road |
-| `uid:…` | Attribute | A persistent identity token across renames. Digits alone, or whitespace, is an error |
+| `uid:…` | Attribute | A persistent identity token across renames. Digits alone, or whitespace, is an error. Only space and zone can carry one |
 
 **Types the tools interpret structurally** ([vocabulary.md](../../spec/en/vocabulary.md)):
 
@@ -113,7 +113,7 @@ space /out/road-s exterior name:南側道路 road:12000
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 band X X1..X3 Y1..Y2
   space /L1/ldk ldk w:3600 name:LDK
   space /L1/hall hall w:1800 name:玄関
@@ -136,12 +136,10 @@ The notation that writes **dimension and order** rather than position, letting p
 - Every fault is a parse error and surfaces in `check --json` as SYN01 (there is no dedicated code).
 
 ```text
-✖ 4行目: 帯の幅 5400mm に対し寸法の合計が 4600mm で、800mm 足りません (寸法を直すか、どれかを w:rest にします)
+✖ band.muro:line 4: The dimensions sum to 4600mm against a band width of 5400mm, 800mm short (fix a dimension, or make one of them w:rest)
   /L1/ldk w:3600
   /L1/hall w:1000
 ```
-
-("Against a band width of 5400 mm the dimensions total 4600 mm, 800 mm short — fix the dimensions, or make one of them w:rest.")
 
 A worked example is [examples/tower/typical.muro](../../examples/tower/typical.muro); why it was introduced is [ADR-0019](../../docs/decisions/0019-position-and-lines.md).
 
@@ -330,7 +328,7 @@ stack ev L1..L10 type:shaft
 | Vertical adjacency | A floor (slab) — **do not write it**. Declare only the exceptions (stair / shaft / void) |
 | **The boundary with a space that has no region (`/out` etc.)** | **None. It does not exist unless you write it** — because naming which outside it is is the information |
 | boundary type | `wall` |
-| boundary t | None (100 mm when drawing only) |
+| boundary t | None (the derivation default is 100 mm) |
 | opening at | 0.5 (a ratio, clamped) |
 | opening hinge / swing | The starting end of the segment / the a side (the one with a region) |
 | opening style | `hinged` |

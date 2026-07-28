@@ -34,7 +34,7 @@ mkdir -p out
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/ldk ldk X1..X2 Y1..Y2
 ```
 
@@ -56,7 +56,7 @@ npx tsx src/cli.ts check out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 1 / 境界 0
+✔ Consistent — 1 space / 0 boundaries
 ```
 
 平面図を出す。
@@ -66,7 +66,7 @@ npx tsx src/cli.ts plan out/house.muro
 ```
 
 ```text
-平面図を生成しました: out/house-L1.svg
+Generated the plan: out/house-L1.svg
 ```
 
 `out/house-L1.svg` をブラウザで開く。
@@ -75,7 +75,7 @@ npx tsx src/cli.ts plan out/house.muro
 
 **壁が一本も描かれていない。** 空間はあるが、境界が一つも無いからである。壁は空間に付属する持ち物ではない。
 
-なお `check` が見るのは「書かれたものが整合しているか」だけである。空のファイルも `✔ 整合 — 空間 0 / 境界 0` で通る。緑は「正しい建物」の意味ではない — この点は第5段で正面から扱う。
+なお `check` が見るのは「書かれたものが整合しているか」だけである。空のファイルも `✔ Consistent — 0 spaces / 0 boundaries` で通る。緑は「正しい建物」の意味ではない — この点は第5段で正面から扱う。
 
 ## 第2段 — 二室、そして書いていない壁
 
@@ -84,7 +84,7 @@ npx tsx src/cli.ts plan out/house.muro
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
 ```
@@ -96,7 +96,7 @@ npx tsx src/cli.ts check out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 2 / 境界 1
+✔ Consistent — 2 spaces / 1 boundary
 ```
 
 **境界が 0 から 1 に増えている。** 境界の行は一つも書いていない。
@@ -129,7 +129,7 @@ SVGの中身にはこの一行が増えている。
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -150,8 +150,8 @@ npx tsx src/cli.ts plan out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 2 / 境界 1
-平面図を生成しました: out/house-L1.svg
+✔ Consistent — 2 spaces / 1 boundary
+Generated the plan: out/house-L1.svg
 ```
 
 境界の数は 1 のままである。導出されていた壁が、宣言された壁に置き換わっただけだからである。
@@ -165,7 +165,7 @@ npx tsx src/cli.ts doors out/house.muro /L1/ldk /L1/hall
 ```
 
 ```text
-1枚 — /L1/ldk → /L1/hall
+1 door — /L1/ldk → /L1/hall
 ```
 
 **境界を宣言するのは、その境界について何か言うことがあるときだけである** — 厚み、仕様、開口。言うことが無ければ書かない。書かなくても壁はそこにある。
@@ -181,7 +181,7 @@ npx tsx src/cli.ts doors out/house.muro /L1/ldk /L1/hall
 ```muro-bad
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -203,8 +203,8 @@ npx tsx src/cli.ts check out/house.muro
 ```
 
 ```text
-✖ …/out/house.muro:13行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/ldk | /out)
-✖ …/out/house.muro:15行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/hall | /out)
+✖ …/out/house.muro:line 13: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/ldk | /out)
+✖ …/out/house.muro:line 15: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/hall | /out)
 ```
 
 (エラーは絶対パスで位置を言う。前半は `…` で省いてある。)
@@ -227,7 +227,7 @@ X は東が正、Y は北が正である。`edge` の方角は**先に書いた�
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -248,8 +248,8 @@ npx tsx src/cli.ts plan out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 3 / 境界 3
-平面図を生成しました: out/house-L1.svg
+✔ Consistent — 3 spaces / 3 boundaries
+Generated the plan: out/house-L1.svg
 ```
 
 ![外皮のついた平面図。外周がすべて黒い帯で囲まれ、南面に窓の芯線と玄関の開き戸が描かれている](img/start-04-exterior.svg)
@@ -267,8 +267,8 @@ npx tsx src/cli.ts light out/house.muro
 ```
 
 ```text
-✔ /L1/ldk	ldk	窓 4.32㎡ / 床 14.40㎡ = 1/3.3 (必要 1/7 ≈ 2.06㎡)
-✔ 全1室が 1/7 を満たします (補正係数なしの粗い判定)
+✔ /L1/ldk	ldk	window 4.32 m2 / floor 14.40 m2 = 1/3.3 (needs 1/7 ≈ 2.06 m2)
+✔ Every room meets 1/7 — 1 room in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 `hall` が出てこないのは、`daylight:1` を書いたのが `ldk` だけだからである。型は判定に一切関与しない — `hall` を `room` に書き換えても対象にはならず、`hall` のまま `daylight:1` を足せば対象になる。空間の型で構造として解釈されるのは `exterior` と `void` の二語だけで、残りは koyu が解釈しない自由な語である。台帳は [spec/vocabulary.md](../spec/vocabulary.md) にある。
@@ -280,7 +280,7 @@ npx tsx src/cli.ts light out/house.muro
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
@@ -315,7 +315,7 @@ npx tsx src/cli.ts check out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 5 / 境界 7
+✔ Consistent — 5 spaces / 7 boundaries
 ```
 
 高さの積み上がりを見る。
@@ -327,7 +327,7 @@ npx tsx src/cli.ts levels out/house.muro
 ```text
 L2	z:2800	h:2400	slab:400
 L1	z:0	h:2400
-  ↑ 階高 2800 = 天井2400 + slab400
+  ↑ storey height 2800 = ceiling 2400 + slab 400
 ```
 
 テキストの矩計である。天井高 + 上階のslab が階高を超えれば `check` がエラーにする。ここでは 2400 + 400 = 2800 でぴたりと収まっている。
@@ -339,7 +339,7 @@ npx tsx src/cli.ts plan out/house.muro -l L2
 ```
 
 ```text
-平面図を生成しました: out/house-L2.svg
+Generated the plan: out/house-L2.svg
 ```
 
 ![二階の平面図。寝室と階段ホールが壁で仕切られ、外周は黒い帯で囲まれている。寝室の南面に窓がある](img/start-05-L2-sealed.svg)
@@ -351,7 +351,7 @@ npx tsx src/cli.ts doors out/house.muro /L2/bed /out
 ```
 
 ```text
-/L2/bed から /out へは到達できません
+Cannot reach /out from /L2/bed
 ```
 
 **寝室は完全に密閉されている。** `/L2/bed` と `/L2/hall` は接しているので既定の壁が導出されており、その壁には扉が無い。書き忘れではなく、書かなかったことが「壁」という意味を持ったのである。
@@ -361,7 +361,7 @@ npx tsx src/cli.ts doors out/house.muro /L2/bed /out
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
@@ -394,8 +394,8 @@ npx tsx src/cli.ts doors out/house.muro /L2/bed /out
 ```
 
 ```text
-✔ 整合 — 空間 5 / 境界 7
-2枚 — /L2/bed → /L2/hall → /L1/hall → /out
+✔ Consistent — 5 spaces / 7 boundaries
+2 doors — /L2/bed → /L2/hall → /L1/hall → /out
 ```
 
 寝室から玄関ホールを抜けて外まで扉2枚。階段は扉ではないので数に入らない。
@@ -421,12 +421,12 @@ npx tsx src/cli.ts plan out/house.muro -l L2
 最後に、これまで省いてきたものを足す。
 
 ```muro
-koyu 0.5
+koyu 1.0
 name 小さな家
 
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク daylight:1
@@ -455,7 +455,7 @@ boundary /L2/hall /out t:150 spec:EW1
 
 足したものは三種類である。
 
-- **`koyu 0.5`** — 言語版の宣言。省いたファイルは常に最新版の意味論で読まれるので、ツールの版が上がると意味が動きうる。**新しく作るファイルには書く。**
+- **`koyu 1.0`** — 言語版の宣言。省いたファイルは常に最新版の意味論で読まれるので、ツールの版が上がると意味が動きうる。**新しく作るファイルには書く。**
 - **`name`** — 建物名 (図面のタイトルになる) と、空間・境界・開口それぞれの名前。
 - **`floor:` `spec:`** — koyu が解釈しない自由な属性。そのまま運ばれる。物の名 (RC・LGS・EW1…) は `spec` の値として書く、というのがこの記法の構えである。
 
@@ -469,16 +469,16 @@ npx tsx src/cli.ts stats out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 5 / 境界 7
+✔ Consistent — 5 spaces / 7 boundaries
 L1
   /L1/ldk	LDK	ldk	14.40㎡
-  /L1/hall	玄関ホール	hall	7.20㎡
-  小計 21.60㎡
+  /L1/hall	玄関ホール	hall	7.20 m2
+  Subtotal 21.60 m2
 L2
-  /L2/bed	寝室	bedroom	14.40㎡
-  /L2/hall	階段ホール	hall	7.20㎡
-  小計 21.60㎡
-合計 43.20㎡ (屋内床面積)
+  /L2/bed	寝室	bedroom	14.40 m2
+  /L2/hall	階段ホール	hall	7.20 m2
+  Subtotal 21.60 m2
+Total 43.20 m2 (indoor floor area)
   ldk: 14.40㎡
   hall: 14.40㎡
   bedroom: 14.40㎡
@@ -503,10 +503,10 @@ npx tsx src/cli.ts light out/house.muro
 ```
 
 ```text
-2枚 — /L2/bed → /L2/hall → /L1/hall → /out
-✔ /L1/ldk	LDK	窓 4.32㎡ / 床 14.40㎡ = 1/3.3 (必要 1/7 ≈ 2.06㎡)
-✔ /L2/bed	寝室	窓 2.16㎡ / 床 14.40㎡ = 1/6.7 (必要 1/7 ≈ 2.06㎡)
-✔ 全2室が 1/7 を満たします (補正係数なしの粗い判定)
+2 doors — /L2/bed → /L2/hall → /L1/hall → /out
+✔ /L1/ldk	LDK	window 4.32 m2 / floor 14.40 m2 = 1/3.3 (needs 1/7 ≈ 2.06 m2)
+✔ /L2/bed	寝室	window 2.16 m2 / floor 14.40 m2 = 1/6.7 (needs 1/7 ≈ 2.06 m2)
+✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 30行のテキストから、二階建ての家と、その平面図と、動線と採光の答えが出た。

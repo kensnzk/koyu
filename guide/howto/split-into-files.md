@@ -80,7 +80,7 @@ entry を `check` する。import は自動でたどられ、一棟として合�
 
 ```text
 $ npx tsx src/cli.ts check examples/house/main.muro
-✔ 整合 — 空間 13 / 境界 31
+✔ Consistent — 13 spaces / 31 boundaries
 ```
 
 `stats` や `plan` も entry を渡せば合成後のモデルを見る。合成に参加した層の一覧が要るときは、MCP の `layers` ツールが `{file, source}` を返す ([spec/tools.md](../../spec/tools.md))。
@@ -91,7 +91,7 @@ $ npx tsx src/cli.ts check examples/house/main.muro
 
 ```text
 $ npx tsx src/cli.ts check examples/house/L1.muro
-✖ examples/house/L1.muro:3行目: 未宣言のレベルです: level:L1
+✖ examples/house/L1.muro:line 3: Undeclared level: level:L1
 ```
 
 検査はつねに entry に対して行う。
@@ -108,7 +108,7 @@ space /home/ldk   ldk  X1..X2 Y1..Y3 level:L2 name:LDK上部
 ```
 
 ```text
-✖ house/L2.muro:6行目: 空間パスが重複しています: /home/ldk (既出: house/L1.muro:3行目)
+✖ house/L2.muro:line 6: Duplicate space path: /home/ldk (first seen in house/L1.muro at line 3)
 ```
 
 パスは同一性そのものである。別の空間なら別のパスを与える。
@@ -116,7 +116,7 @@ space /home/ldk   ldk  X1..X2 Y1..Y3 level:L2 name:LDK上部
 **`grid` / `name` の再宣言** — 層が独立に動くようにと基盤を書き足したとき。
 
 ```text
-✖ house/L2.muro:3行目: grid X は一度だけ宣言します (合成時はbase層で)
+✖ house/L2.muro:line 3: grid X is declared once (in the base layer when composing)
 ```
 
 base層から消さずに、層の側の行を消す。
@@ -124,7 +124,7 @@ base層から消さずに、層の側の行を消す。
 **アセット名の重複** — 建具の型を層ごとに書いたとき。
 
 ```text
-✖ house/L2.muro:3行目: アセット名が重複しています: W1 (既出: house/assets.muro:7行目)
+✖ house/L2.muro:line 3: Duplicate asset name: W1 (first seen in house/assets.muro at line 7)
 ```
 
 アセットは一つの層にまとめる。寸法違いが要るなら別の名前を与えるか、参照側で属性を上書きする (`window W1 h:1200`)。

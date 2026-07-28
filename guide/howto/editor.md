@@ -44,7 +44,7 @@ npx --yes @vscode/vsce package     # editors/vscode で実行 → koyu-0.1.0.vsi
 
 ### 3. 保存して、赤を見る
 
-`.muro` を保存すると check が走る。エラーと警告が問題パネルに出て、診断コード (`SYN01` などの [68コード](../diagnostics.md)) がそのまま表示される。手で走らせたいときはコマンドパレットの **koyu: 整合を確かめる (check)**。
+`.muro` を保存すると check が走る。エラーと警告が問題パネルに出て、診断コード (`SYN01` などの [64コード](../diagnostics.md)) がそのまま表示される。手で走らせたいときはコマンドパレットの **koyu: 整合を確かめる (check)**。
 
 CLI で同じ答えを見るとこうなる。
 
@@ -53,7 +53,7 @@ koyu check examples/two-rooms.muro
 ```
 
 ```text
-✔ 整合 — 空間 3 / 境界 3
+✔ Consistent — 3 spaces / 3 boundaries
 ```
 
 ### 4. 複数ファイルの建物
@@ -123,6 +123,6 @@ const koyu = { ...JSON.parse(readFileSync(require.resolve("@kensnzk/koyu/syntax"
 ## 次に読む
 
 - [troubleshooting.md](troubleshooting.md) — エラーが出たときに原因まで降りる
-- [diagnostics.md](../diagnostics.md) — 診断コードから直し方を引く (全68コード)
+- [diagnostics.md](../diagnostics.md) — 診断コードから直し方を引く (全65コード)
 - [cli.md](../cli.md) — 拡張が呼んでいる CLI そのもの
 - [ADR-0031](../../docs/decisions/0031-editor-support.md) — なぜ文法を一枚にし、赤を CLI に預けたか

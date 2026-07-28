@@ -57,10 +57,8 @@ npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
 ```
 
 ```text
-2枚 — /L1/a → /L1/b → /out
+2 doors — /L1/a → /L1/b → /out
 ```
-
-("2 doors.")
 
 Look at the adjacencies as a whole. The distinction between `壁` (wall) and `扉1` (1 door) is exactly the weight of an edge in the graph.
 
@@ -70,14 +68,14 @@ npx tsx src/cli.ts graph examples/two-rooms.muro
 
 ```text
 /L1/a (居室A)
-  — 扉1 → /L1/b  (spec:PW1)
-  | 壁 → /out  (spec:EW1 fire:60)
+  — 1 door → /L1/b  (spec:PW1)
+  | wall → /out  (spec:EW1 fire:60)
 /L1/b (居室B)
-  — 扉1 → /L1/a  (spec:PW1)
-  — 扉1 → /out  (spec:EW1 fire:60)
+  — 1 door → /L1/a  (spec:PW1)
+  — 1 door → /out  (spec:EW1 fire:60)
 /out (外部)
-  | 壁 → /L1/a  (spec:EW1 fire:60)
-  — 扉1 → /L1/b  (spec:EW1 fire:60)
+  | wall → /L1/a  (spec:EW1 fire:60)
+  — 1 door → /L1/b  (spec:EW1 fire:60)
 ```
 
 What the same scene looks like written in IFC4 / IFCX is at the end of this page, [examples/comparison/](#examplescomparison).
@@ -130,7 +128,7 @@ npx tsx src/cli.ts doors examples/office.muro /L2/office /out
 ```
 
 ```text
-4枚 — /L2/office → /L2/corridor → /L2/stair → /L1/stair → /L1/corridor → /L1/hall → /out
+4 doors — /L2/office → /L2/corridor → /L2/stair → /L1/stair → /L1/corridor → /L1/hall → /out
 ```
 
 Look at how the heights stack up. The hall's `h:6700` appears at the end as an individual ceiling height.
@@ -142,10 +140,10 @@ npx tsx src/cli.ts levels examples/office.muro
 ```text
 R	z:8000	slab:1300
 L2	z:4000	h:2700	slab:1300
-  ↑ 階高 4000 = 天井2700 + slab1300
+  ↑ storey height 4000 = ceiling 2700 + slab 1300
 L1	z:0	h:2700
-  ↑ 階高 4000 = 天井2700 + slab1300
-個別天井高: /L1/hall h:6700
+  ↑ storey height 4000 = ceiling 2700 + slab 1300
+Per-space ceiling height: /L1/hall h:6700
 ```
 
 (`個別天井高` is "individual ceiling height".)
@@ -158,11 +156,11 @@ npx tsx src/cli.ts stats examples/office.muro
 
 ```text
 L2
-  /L2/void	エントランス吹抜け	吹抜け (床面積不算入)
-  /L2/office	執務室	office	102.40㎡
+  /L2/void	エントランス吹抜け	void (not counted as floor area)
+  /L2/office	執務室	office	102.40 m2
   …
-合計 419.84㎡ (屋内床面積)
-use別: common 235.52㎡ (56.1%) / rentable 184.32㎡ (43.9%)
+Total 419.84 m2 (indoor floor area)
+By use: common 235.52 m2 (56.1%) / rentable 184.32 m2 (43.9%)
 ```
 
 (`吹抜け (床面積不算入)` is "void (not counted in floor area)".)
@@ -226,11 +224,11 @@ npx tsx src/cli.ts site examples/house.muro
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地面積: 宣言 126.24㎡ / 導出 126.24㎡ ✔ 一致
-  接道: /out/road (南側道路) 幅員6000mm ・ 接道長 10280mm ✔ 2m以上
-  建築面積 (水平投影・粗): 53.00㎡ → 建蔽率 42.0%
-  延べ面積: 92.75㎡ → 容積率 73.5%
+Site /site (敷地)
+  Site area: declared 126.24 m2 / derived 126.24 m2
+  Road: /out/road (南側道路) width 6000mm / frontage 10280mm
+  Building footprint (horizontal projection, rough): 53.00 m2 → building coverage ratio 42.0%
+  Total floor area: 92.75 m2 → floor area ratio 73.5%
 ```
 
 Daylight. The LDK's window area of 7.54 m² is the sum of the full-height window (2.6×2.2 = 5.72 m²) and the sill window (1.65×1.1 = 1.815 m²) — the garden is open above, so the coefficient is 1.0.
@@ -240,9 +238,9 @@ npx tsx src/cli.ts light examples/house.muro
 ```
 
 ```text
-✔ /home/ldk	LDK	窓 7.54㎡ / 床 39.75㎡ = 1/5.3 (必要 1/7 ≈ 5.68㎡)
-✔ /home/bed1	主寝室	窓 5.72㎡ / 床 26.50㎡ = 1/4.6 (必要 1/7 ≈ 3.79㎡)
-✔ 全2室が 1/7 を満たします (補正係数なしの粗い判定)
+✔ /home/ldk	LDK	window 7.54 m2 / floor 39.75 m2 = 1/5.3 (needs 1/7 ≈ 5.68 m2)
+✔ /home/bed1	主寝室	window 5.72 m2 / floor 26.50 m2 = 1/4.6 (needs 1/7 ≈ 3.79 m2)
+✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 **How do the two ways of writing differ?** The output of `stats`, `light`, and `site` is identical. What differs is only how the openings are written, and `diff` says so in the language of composition.
@@ -258,10 +256,10 @@ npx tsx src/cli.ts diff examples/house.muro examples/house/main.muro
 + asset W1
 + asset W2
 + asset W3
-± 境界 /home/bed1 | /home/hall2: + door at:0.5 ref SD1 / + door at:0.5 h 2000 / + door at:0.5 name 寝室引き戸 / + door at:0.5 style sliding
+± boundary /home/bed1 | /home/hall2: + door at:0.5 ref SD1 / + door at:0.5 h 2000 / + door at:0.5 name 寝室引き戸 / + door at:0.5 style sliding
 …
-± 境界 /home/hall1 | /site/east: + door at:Y2+1820 D1 w:900 h:2100 style:hinged name:玄関 / − door at:0.5 (w:900 name:玄関)
-± 境界 /home/ldk | /site/garden: + window at:X2 W1 w:2600 h:2200 sill:0 name:掃き出し窓 / − window at:0.5 (w:2600 h:2200 sill:0 name:掃き出し窓)
+± boundary /home/hall1 | /site/east: + door at:Y2+1820 D1 w:900 h:2100 style:hinged name:玄関 / − door at:0.5 (w:900 name:玄関)
+± boundary /home/ldk | /site/garden: + window at:X2 W1 w:2600 h:2200 sill:0 name:掃き出し窓 / − window at:0.5 (w:2600 h:2200 sill:0 name:掃き出し窓)
 …
 ```
 
@@ -316,7 +314,7 @@ npx tsx src/cli.ts doors examples/mansion.muro /L5/A/ldk /out
 ```
 
 ```text
-3枚 — /L5/A/ldk → /L5/A/hall → /L5/corridor → /L5/stair → /L4/stair → /L3/stair → /L2/stair → /L1/stair → /out
+3 doors — /L5/A/ldk → /L5/A/hall → /L5/corridor → /L5/stair → /L4/stair → /L3/stair → /L2/stair → /L1/stair → /out
 ```
 
 Daylight. The typical floor's windows are written once, but the verdict comes out for all 51 rooms after expansion. The eighth and ninth floors' LDKs give different answers because nothing sits above the ninth floor's balcony.
@@ -326,12 +324,12 @@ npx tsx src/cli.ts light examples/mansion.muro
 ```
 
 ```text
-✔ /L2/A/ldk	LDK	窓 4.00㎡ / 床 17.08㎡ = 1/4.3 (必要 1/7 ≈ 2.44㎡)
+✔ /L2/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3 (needs 1/7 ≈ 2.44 m2)
 …
-✔ /L8/A/ldk	LDK	窓 4.00㎡ / 床 17.08㎡ = 1/4.3 (必要 1/7 ≈ 2.44㎡)
-✔ /L9/A/ldk	LDK	窓 5.72㎡ / 床 17.08㎡ = 1/3.0 (必要 1/7 ≈ 2.44㎡)
+✔ /L8/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3 (needs 1/7 ≈ 2.44 m2)
+✔ /L9/A/ldk	LDK	window 5.72 m2 / floor 17.08 m2 = 1/3.0 (needs 1/7 ≈ 2.44 m2)
 …
-✔ 全51室が 1/7 を満たします (補正係数なしの粗い判定)
+✔ Every room meets 1/7 — 51 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 The by-zone aggregation counts a subdivided dwelling as one unit.
@@ -341,13 +339,13 @@ npx tsx src/cli.ts stats examples/mansion.muro
 ```
 
 ```text
-合計 2366.40㎡ (屋内床面積)
-半屋外 162.16㎡ (バルコニー・屋外階段等 — 算入条件は法規細部のため別掲)
-ゾーン別 (数える集約):
-  /L2/A	Aタイプ	34.80㎡
-  /L3/A	Aタイプ	34.80㎡
+Total 2366.40 m2 (indoor floor area)
+Semi-outdoor 162.16 m2 (balconies, external stairs and the like — whether they count is a matter of regulatory detail, so it is reported separately)
+By zone (counted aggregation):
+  /L2/A	Aタイプ	34.80 m2
+  /L3/A	Aタイプ	34.80 m2
   …
-use別: common 662.40㎡ (28.0%) / exclusive 1704.00㎡ (72.0%)
+By use: common 662.40 m2 (28.0%) / exclusive 1704.00 m2 (72.0%)
 ```
 
 ## examples/tower/
@@ -411,7 +409,7 @@ npx tsx src/cli.ts doors examples/tower/main.muro /L9/A/ldk /out/road-s
 ```
 
 ```text
-4枚 — /L9/A/ldk → /L9/A/hall → /L9/corridor → /L9/st2 → /L8/st2 → /L7/st2 → /L6/st2 → /L5/st2 → /L4/st2 → /L3/st2 → /L2/st2 → /L1/st2 → /site/west → /site/walk → /out/road-s
+4 doors — /L9/A/ldk → /L9/A/hall → /L9/corridor → /L9/st2 → /L8/st2 → /L7/st2 → /L6/st2 → /L5/st2 → /L4/st2 → /L3/st2 → /L2/st2 → /L1/st2 → /site/west → /site/walk → /out/road-s
 ```
 
 The site's figures. The declared surveyed value of 1,097.80 m² agrees with the polygon's shoelace area.
@@ -421,13 +419,13 @@ npx tsx src/cli.ts site examples/tower/main.muro
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地形状: 多角形 5頂点 (polygon宣言 — 所与のジオメトリ)
-  敷地面積: 宣言 1097.80㎡ / 導出 1097.80㎡ ✔ 一致
-  接道: /out/road-s (南側道路) 幅員12000mm ・ 接道長 40600mm ✔ 2m以上
-  接道: /out/road-e (東側道路) 幅員6000mm ・ 接道長 20200mm ✔ 2m以上
-  建築面積 (水平投影・粗): 569.60㎡ → 建蔽率 51.9%
-  延べ面積: 4785.92㎡ → 容積率 436.0%
+Site /site (敷地)
+  Site shape: polygon with 5 vertices (a polygon declaration — given geometry)
+  Site area: declared 1097.80 m2 / derived 1097.80 m2
+  Road: /out/road-s (南側道路) width 12000mm / frontage 40600mm
+  Road: /out/road-e (東側道路) width 6000mm / frontage 20200mm
+  Building footprint (horizontal projection, rough): 569.60 m2 → building coverage ratio 51.9%
+  Total floor area: 4785.92 m2 → floor area ratio 436.0%
 ```
 
 The daylight verdict for 66 rooms comes out at once from 432 lines of description.
@@ -437,11 +435,11 @@ npx tsx src/cli.ts light examples/tower/main.muro
 ```
 
 ```text
-✔ /L3/A/ldk	LDK	窓 6.01㎡ / 床 33.28㎡ = 1/5.5 (必要 1/7 ≈ 4.75㎡)
+✔ /L3/A/ldk	LDK	window 6.01 m2 / floor 33.28 m2 = 1/5.5 (needs 1/7 ≈ 4.75 m2)
 …
-✔ /L11/PA	ペントハウスA	窓 15.07㎡ / 床 89.60㎡ = 1/5.9 (必要 1/7 ≈ 12.80㎡)
-✔ /L11/PB	ペントハウスB	窓 15.07㎡ / 床 89.60㎡ = 1/5.9 (必要 1/7 ≈ 12.80㎡)
-✔ 全66室が 1/7 を満たします (補正係数なしの粗い判定)
+✔ /L11/PA	ペントハウスA	window 15.07 m2 / floor 89.60 m2 = 1/5.9 (needs 1/7 ≈ 12.80 m2)
+✔ /L11/PB	ペントハウスB	window 15.07 m2 / floor 89.60 m2 = 1/5.9 (needs 1/7 ≈ 12.80 m2)
+✔ Every room meets 1/7 — 66 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 ## examples/comparison/

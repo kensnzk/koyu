@@ -11,21 +11,23 @@ import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import {
   areaM2,
   isIndoor,
-  daylight,
+  daylightInputs,
+  validate,
   displayName,
   doorsBetween,
   effectiveUse,
   isSemiOutdoor,
   levelsSorted,
+  newUids,
   polygonAreaM2,
   toCanonical,
   zoneAreaM2,
   type Model,
   type Space,
 } from "./index.js";
-import { check, checkDiagnostics } from "./check.js";
-import { svgPlan } from "./plan.js";
-import { siteReport } from "./site.js";
+import { check, checkDiagnostics } from "./core/diagnose.js";
+import { svgPlan } from "./draw/plan.js";
+import { siteReport } from "./core/site.js";
 import { parseFile, parseFileWith } from "./parse-file.js";
 
 // ---- モデルの読み込みと要約 ----
@@ -43,7 +45,7 @@ function layerFiles(model: Model, entry: string): string[] {
 function assertInside(entryDir: string, targetDir: string): void {
   const rel = relative(entryDir, targetDir);
   if (rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
-    throw new Error("entryのディレクトリの外へは書き込めません");
+    throw new Error("Cannot write outside the entry's directory");
   }
 }
 
@@ -62,7 +64,7 @@ function summarize(model: Model, file: string): unknown {
   }
   const byUse: Record<string, number> = {};
   for (const s of indoor) {
-    const u = effectiveUse(model, s) ?? "(未指定)";
+    const u = effectiveUse(model, s) ?? "(unspecified)";
     byUse[u] = Math.round(((byUse[u] ?? 0) + (areaM2(s) ?? 0)) * 100) / 100;
   }
   const r = check(model);
@@ -99,7 +101,7 @@ function summarize(model: Model, file: string): unknown {
     floorsM2: byLevel,
     byUseM2: byUse,
     check: { errors: r.errors.length, warnings: r.warnings.length },
-    hint: "レイヤーの中身は layers で、検査は check で、変更は write_layer で (checkが門番)。",
+    hint: "Read layer contents with layers, check with check, and edit with write_layer (check is the gatekeeper). Architectural verdicts come from validate.",
   };
 }
 
@@ -124,17 +126,17 @@ interface Tool {
 }
 
 const FILE_PROP = {
-  file: { type: "string", description: "entryの.muroファイルパス (importは自動で合成される)" },
+  file: { type: "string", description: "Path to the entry .muro file (imports are composed automatically)" },
 };
 const str = (v: unknown, name: string): string => {
-  if (typeof v !== "string" || !v) throw new Error(`${name} (文字列) が必要です`);
+  if (typeof v !== "string" || !v) throw new Error(`${name} (a string) is required`);
   return v;
 };
 
 const TOOLS: Record<string, Tool> = {
   model_summary: {
     description:
-      "建物の要約 (名前・レベル・レイヤー構成・ゾーン・建具アセット・面積・check結果)。まずこれを呼ぶ",
+      "Summary of the building: name, levels, layer composition, zones, door/window assets, areas, and check counts. Call this first",
     schema: { type: "object", properties: FILE_PROP, required: ["file"] },
     run: (a) => {
       const file = str(a.file, "file");
@@ -143,7 +145,7 @@ const TOOLS: Record<string, Tool> = {
   },
   check: {
     description:
-      "一棟のビルドの門番: 合成して整合を検査する。エラー・警告は出所レイヤー:行つき。編集のたびに呼ぶこと",
+      "The gatekeeper of the build: composes the layers and checks structural consistency. Errors and warnings carry layer:line. Call it after every edit. **This says nothing about architectural soundness** — that is the validate tool",
     schema: { type: "object", properties: FILE_PROP, required: ["file"] },
     run: (a) => {
       const m = load(str(a.file, "file"));
@@ -159,7 +161,7 @@ const TOOLS: Record<string, Tool> = {
     },
   },
   layers: {
-    description: "合成に参加している全レイヤー (.muroファイル) の名前と中身を返す — 原本を読む",
+    description: "Returns every layer (.muro file) taking part in the composition, in strength order (later layers are stronger), with its source — this is how you read the original",
     schema: { type: "object", properties: FILE_PROP, required: ["file"] },
     run: (a) => {
       const file = str(a.file, "file");
@@ -169,14 +171,13 @@ const TOOLS: Record<string, Tool> = {
   },
   write_layer: {
     description:
-      "レイヤー (.muroファイル) を検査してから書き換える。parse不能な合成になる内容は書き込まれない (原本不変)。" +
-      "checkのエラーは返すが書き込みは行う (複数レイヤーにまたがる編集の途中を許す) — 直して再度書くこと。履歴はgitに任せる",
+      "Checks a layer (.muro file) before replacing it. Content that would make the composition unparsable is never written (the original stays intact). Check errors are returned but the write still happens, so that an edit spanning several layers can be made in steps — fix it and write again. History is left to git",
     schema: {
       type: "object",
       properties: {
         ...FILE_PROP,
-        layer: { type: "string", description: "書き込む.muroファイルパス (entryからの相対または絶対)" },
-        content: { type: "string", description: "レイヤーの全文 (全置換)" },
+        layer: { type: "string", description: "Path of the .muro file to write (relative to the entry, or absolute)" },
+        content: { type: "string", description: "The full text of the layer (a whole-file replacement)" },
       },
       required: ["file", "layer", "content"],
     },
@@ -185,7 +186,7 @@ const TOOLS: Record<string, Tool> = {
       const content = str(a.content, "content");
       const entryDir = resolve(dirname(resolve(file)));
       const target = resolve(entryDir, str(a.layer, "layer"));
-      if (!target.endsWith(".muro")) throw new Error("書き込みは .muro ファイルに限ります");
+      if (!target.endsWith(".muro")) throw new Error("Only .muro files can be written");
       assertInside(entryDir, dirname(target));
       // 門番は書き込みの前 — 差し替え内容で仮想合成し、parse不能なら原本に触れない (ADR-0013)。
       // 合成に参加しないファイルの内容は検証されない (importされた時のcheckが捕まえる)
@@ -209,14 +210,36 @@ const TOOLS: Record<string, Tool> = {
       return { written: target, ok: r.errors.length === 0, spaces: m.spaces.size, ...r };
     },
   },
-  doors: {
-    description: "避難・動線の問い: 空間Aから空間Bまで扉を何枚通るか (最少扉数の経路)",
+  new_uids: {
+    description:
+      "Mints fresh identity tokens (uid) to write onto spaces or zones with write_layer. They collide with nothing already composed into this model, and 80 bits of randomness keeps them apart from layers that are not composed here. **Nothing assigns a uid on its own** — call this only when a space has to be pointed at across renames (sensors, registers, long-running operations), and run check afterwards, because UID03 is the only thing that proves uniqueness",
     schema: {
       type: "object",
       properties: {
         ...FILE_PROP,
-        from: { type: "string", description: "起点の空間パス (例 /L9/A/ldk)" },
-        to: { type: "string", description: "終点の空間パス (例 /out/road-s)" },
+        count: { type: "integer", description: "How many tokens to mint (default 1)" },
+      },
+      required: ["file"],
+    },
+    run: (a) => {
+      const count = a.count === undefined ? 1 : Number(a.count);
+      if (!Number.isInteger(count) || count < 1 || count > 1000) {
+        throw new Error("count is an integer between 1 and 1000");
+      }
+      return {
+        uids: newUids(load(str(a.file, "file")), count),
+        note: "Write these as uid: on a space or zone. No other element accepts uid (the ledger rejects it). A uid is carried across renames by hand — that act is the record of the design decision that it is still the same space",
+      };
+    },
+  },
+  doors: {
+    description: "Circulation query: how many doors lie between space A and space B (the path with the fewest doors)",
+    schema: {
+      type: "object",
+      properties: {
+        ...FILE_PROP,
+        from: { type: "string", description: "Path of the space to start from (e.g. /L9/A/ldk)" },
+        to: { type: "string", description: "Path of the space to reach (e.g. /out/road-s)" },
       },
       required: ["file", "from", "to"],
     },
@@ -226,10 +249,10 @@ const TOOLS: Record<string, Tool> = {
     },
   },
   spaces: {
-    description: "空間の一覧 (パス・型・レベル・面積・半屋外・出所レイヤー)。levelで絞り込み可",
+    description: "List of spaces: path, type, level, area, semi-outdoor flag, and originating layer. Optionally filtered by level",
     schema: {
       type: "object",
-      properties: { ...FILE_PROP, level: { type: "string", description: "レベル名で絞る (省略可)" } },
+      properties: { ...FILE_PROP, level: { type: "string", description: "Filter by level name (optional)" } },
       required: ["file"],
     },
     run: (a) => {
@@ -240,22 +263,37 @@ const TOOLS: Record<string, Tool> = {
     },
   },
   light: {
-    description: "採光の検査: daylight:1 を書いた室で窓面積/床面積 ≥ 1/7 (バルコニー・庇下は0.7掛け)",
+    description:
+      "Daylight inputs: floor area and effective window area for every space written with daylight:1 (a 0.7 factor applies through a covered semi-outdoor space). **It delivers no verdict** — the 1/7 judgement comes from the validate tool",
     schema: { type: "object", properties: FILE_PROP, required: ["file"] },
     run: (a) => {
       const m = load(str(a.file, "file"));
-      return daylight(m).map((r) => ({
-        path: r.space.path,
-        name: displayName(r.space),
-        ok: r.ok,
-        windowM2: r.window,
-        floorM2: r.floor,
-        needM2: r.need,
+      return daylightInputs(m).map((d) => ({
+        path: d.space.path,
+        name: displayName(d.space),
+        windowM2: d.window,
+        floorM2: d.floor,
+        missingH: d.missingH,
       }));
     },
   },
+  validate: {
+    description:
+      "Architectural verdicts: daylight, envelope continuity, stair proportions, slopes, reachability, column/door collisions, and the site. **This is a different surface from the check guarantee** — findings carry rule/level, never code/severity. The surface grows and is not frozen",
+    schema: { type: "object", properties: FILE_PROP, required: ["file"] },
+    run: (a) => {
+      const m = load(str(a.file, "file"));
+      const findings = validate(m);
+      return {
+        findings,
+        violations: findings.filter((f) => f.level === "violation").length,
+        cautions: findings.filter((f) => f.level === "caution").length,
+        note: "These are verdicts, not the structural-consistency guarantee of koyu check",
+      };
+    },
+  },
   site: {
-    description: "敷地の問い: 敷地面積 (宣言/導出の照合)・接道・建築面積・建蔽率・容積率",
+    description: "Site query: site area (declared against derived), road frontage, footprint, and the coverage and floor-area ratios",
     schema: { type: "object", properties: FILE_PROP, required: ["file"] },
     run: (a) => {
       const r = siteReport(load(str(a.file, "file")));
@@ -282,16 +320,16 @@ const TOOLS: Record<string, Tool> = {
     },
   },
   plan_svg: {
-    description: "指定レベルの平面図SVGを生成して返す (形は生成物 — 最下階は配置図兼用)",
+    description: "Generates and returns the plan SVG for a level (form is generated, not written — the lowest level doubles as the site plan)",
     schema: {
       type: "object",
-      properties: { ...FILE_PROP, level: { type: "string", description: "レベル名 (例 L5)" } },
+      properties: { ...FILE_PROP, level: { type: "string", description: "Level name (e.g. L5)" } },
       required: ["file", "level"],
     },
     run: (a) => svgPlan(load(str(a.file, "file")), { level: str(a.level, "level") }),
   },
   canonical_json: {
-    description: "正準JSON (機械形式 — 合成後の単一モデル、バイト安定)。diff・外部接続の土台",
+    description: "The canonical JSON (machine format — one composed model, byte-stable). The ground for diffing and for external connections",
     schema: { type: "object", properties: FILE_PROP, required: ["file"] },
     run: (a) => JSON.parse(toCanonical(load(str(a.file, "file")))),
   },
@@ -327,11 +365,9 @@ function handle(msg: Json): void {
       result(id, {
         protocolVersion: (params.protocolVersion as string) ?? "2025-06-18",
         capabilities: { tools: {} },
-        serverInfo: { name: "koyu", version: "0.15.0" },
+        serverInfo: { name: "koyu", version: "0.16.0" },
         instructions:
-          "空間一次の建築記述koyuのサーバー。model_summaryで建物を掴み、layersで原本 (.muroレイヤー群) を読み、" +
-          "write_layerで編集する。checkが一棟のビルドの門番 — エラーは出所レイヤー:行つきで返る。" +
-          "doors/light/site/spacesは同じ記述への異なる問い。形 (plan_svg) は生成物。",
+          "Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written.",
       });
       return;
     }
@@ -352,7 +388,7 @@ function handle(msg: Json): void {
       const name = params.name as string;
       const tool = TOOLS[name];
       if (!tool) {
-        rpcError(id, -32602, `未知のツールです: ${name}`);
+        rpcError(id, -32602, `Unknown tool: ${name}`);
         return;
       }
       try {
@@ -374,7 +410,7 @@ function handle(msg: Json): void {
       result(id, { prompts: [] });
       return;
     default:
-      rpcError(id, -32601, `未対応のメソッドです: ${method}`);
+      rpcError(id, -32601, `Unsupported method: ${method}`);
   }
 }
 

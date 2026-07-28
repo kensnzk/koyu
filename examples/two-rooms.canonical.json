@@ -1,5 +1,6 @@
 {
-  "koyu": "0.5",
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
   "grid": {
@@ -16,7 +17,8 @@
   "levels": {
     "L1": {
       "z": 0,
-      "h": 2400
+      "h": 2400,
+      "slab": 150
     }
   },
   "spaces": {

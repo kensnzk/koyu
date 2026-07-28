@@ -5,16 +5,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check } from "../src/check.js";
-import { daylight } from "../src/light.js";
-import { doorsBetween } from "../src/graph.js";
-import { isSemiOutdoor, zoneAreaM2 } from "../src/model.js";
+import { check } from "../src/core/diagnose.js";
+import { daylightInputs } from "../src/core/light.js";
+import { validate } from "../src/validate/index.js";
+import { doorsBetween } from "../src/core/graph.js";
+import { isSemiOutdoor, zoneAreaM2 } from "../src/core/model.js";
 import { parseFile } from "../src/parse-file.js";
-import { siteReport } from "../src/site.js";
+import { siteReport } from "../src/core/site.js";
 
 const mainPath = fileURLToPath(new URL("../examples/tower/main.muro", import.meta.url));
 
-test("tower: 9レイヤーが一棟にビルドされ、警告ゼロで整合する", () => {
+test("tower: nine layers build into one building and check with zero warnings", () => {
   const m = parseFile(mainPath);
   const r = check(m);
   assert.deepEqual(r.errors, []);
@@ -23,14 +24,14 @@ test("tower: 9レイヤーが一棟にビルドされ、警告ゼロで整合す
   assert.equal(m.boundaries.length, 543); // L2廊下の東面 (外皮の穴 ENV01 が見つけた)
 });
 
-test("tower: 延床4785.92㎡ (商業+住宅)、Aタイプは各階61.44㎡", () => {
+test("tower: 4785.92 m2 of total floor area (retail + housing), type A is 61.44 m2 on every storey", () => {
   const m = parseFile(mainPath);
   assert.equal(zoneAreaM2(m, "/L5/A"), 61.44);
   const site = siteReport(m);
   assert.equal(site.totalFloor, 4785.92);
 });
 
-test("tower: 非矩形敷地 — polygon導出面積が測量宣言と一致し、角地の接道が2本出る", () => {
+test("tower: a non-rectangular site — the area derived from the polygon matches the surveyed declaration, and the corner lot yields two frontages", () => {
   const m = parseFile(mainPath);
   const site = siteReport(m);
   assert.equal(site.polygon?.points.length, 5);
@@ -41,15 +42,15 @@ test("tower: 非矩形敷地 — polygon導出面積が測量宣言と一致し�
   assert.deepEqual(widths, [6000, 12000]);
 });
 
-test("tower: 敷地形状の外に建物を出すとエラーになる", () => {
+test("tower: putting the building outside the site shape is an error", () => {
   const m = parseFile(mainPath);
   // 塔状部の東端住戸を敷地東端 (x=38000) を越えて広げたと仮定した検査は
   // polygon.test.ts が担う。ここでは現状が内包されていることだけ確かめる
   const r = check(m);
-  assert.equal(r.errors.filter((e) => e.includes("敷地形状")).length, 0);
+  assert.equal(r.errors.filter((e) => e.includes("site shape")).length, 0);
 });
 
-test("tower: バルコニーとテラスは半屋外の導出 (宣言なし)", () => {
+test("tower: balconies and terraces are derived as semi-outdoor (never declared)", () => {
   const m = parseFile(mainPath);
   assert.equal(isSemiOutdoor(m, m.spaces.get("/L5/bA")!), true);
   assert.equal(isSemiOutdoor(m, m.spaces.get("/L3/tA")!), true);
@@ -57,14 +58,15 @@ test("tower: バルコニーとテラスは半屋外の導出 (宣言なし)", (
   assert.equal(isSemiOutdoor(m, m.spaces.get("/L5/A/ldk")!), false);
 });
 
-test("tower: 全居室が採光1/7を満たす (バルコニー越し0.7掛け含む)", () => {
+test("tower: every habitable room meets the 1/7 daylight ratio (the 0.7 factor through a balcony included)", () => {
   const m = parseFile(mainPath);
-  const rep = daylight(m);
+  const rep = daylightInputs(m);
   assert.equal(rep.length > 60, true);
-  assert.deepEqual(rep.filter((r) => !r.ok).map((r) => r.space.path), []);
+  // 合否は検証の面が言う — core が返すのは床面積と有効窓面積だけ
+  assert.deepEqual(validate(m).filter((f) => f.rule === "daylight.ratio"), []);
 });
 
-test("tower: 避難の問い — 9階LDKから道路まで扉4枚、PHは3枚", () => {
+test("tower: asking about escape — four doors from the ninth-floor LDK to the road, three from the penthouse", () => {
   const m = parseFile(mainPath);
   const a = doorsBetween(m, "/L9/A/ldk", "/out/road-s");
   assert.equal(a?.doors, 4);
@@ -74,7 +76,7 @@ test("tower: 避難の問い — 9階LDKから道路まで扉4枚、PHは3枚", 
   assert.equal(doorsBetween(m, "/L5/corridor", "/L4/ev"), undefined);
 });
 
-test("tower: 例外階L3 — バルコニーは無く、低層部屋根のテラスに開く", () => {
+test("tower: the exceptional storey L3 — no balcony, opening onto the terrace on the low-rise roof", () => {
   const m = parseFile(mainPath);
   assert.equal(m.spaces.has("/L3/bA"), false);
   assert.equal(m.spaces.has("/L4/bA"), true);

@@ -17,7 +17,7 @@ npx tsx src/cli.ts check examples/two-rooms.muro
 ## The common shape
 
 ```text
-koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <entry.muro> [args...]
+koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <entry.muro> [args...]
 ```
 
 **What you pass is always one path, the entry.** Even for a model split up with `import`, pass only the base layer's file (`examples/house/main.muro`, say) — the layers are composed automatically each time. Pass one of the split files on its own and it dies, because that file has neither grid nor level.
@@ -27,12 +27,12 @@ npx tsx src/cli.ts check examples/house/L1.muro
 ```
 
 ```text
-✖ <絶対パス>/examples/house/L1.muro:3行目: 未宣言のレベルです: level:L1
+✖ <absolute path>/examples/house/L1.muro:line 3: Undeclared level: level:L1
 ```
 
-("Undeclared level." `<絶対パス>` stands in for the absolute path.)
+(`<absolute path>` stands in for the resolved absolute path.)
 
-An `import` path is resolved **relative to the file it is written in**, so copying just the base layer's file somewhere else will not compose (`ファイルが読めません: ./assets.muro`, "cannot read the file").
+An `import` path is resolved **relative to the file it is written in**, so copying just the base layer's file somewhere else will not compose (`Cannot read file: ./assets.muro`).
 
 Every command shares the same derivations. The CLI, MCP, and the public API are different entrances to the same answers.
 
@@ -55,9 +55,11 @@ npx tsx src/cli.ts --help
 ```
 
 ```text
-使い方: koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]
-  check: --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1)
-  diff:  koyu diff <a.muro> <b.muro> [--json] — 構成の言葉の差分 (0=差分なし / 1=差分あり / 2=入力が壊れている)
+Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [args...]
+  check:    --json (emit Diagnostic[] as JSON) / --strict (exit 1 if there are warnings) — structural consistency only
+  validate: --json (emit Finding[] as JSON) — architectural judgement (not what check guarantees)
+  layers:   the layers that took part in composition, weakest first. --attrs for the provenance of each attribute
+  diff:  koyu diff <a.muro> <b.muro> [--json] — the difference in the language of composition (0=no difference / 1=differences / 2=the input is broken)
 ```
 
 (`使い方` is "usage".) That usage text is not exhaustive. **`plan`'s `-l` / `-o` and `doors`'s two path arguments are not written there.** This page is the norm for each command's flags.
@@ -71,7 +73,7 @@ npx tsx src/cli.ts check examples/two-rooms.muro
 ```
 
 ```text
-✔ 整合 — 空間 3 / 境界 3
+✔ Consistent — 3 spaces / 3 boundaries
 ```
 
 | Flag | Effect |
@@ -101,9 +103,9 @@ With errors, `--json` takes this shape. `message` is the body only; the position
  {
   "code": "BND04",
   "severity": "error",
-  "message": "空間が接していないため境界を導けません: /L1/a | /L1/b",
+  "message": "The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b",
   "line": 6,
-  "file": "<絶対パス>/bad.muro",
+  "file": "<absolute path>/bad.muro",
   "path": [
    "/L1/a",
    "/L1/b"
@@ -134,7 +136,7 @@ npx tsx src/cli.ts diff before.muro after.muro
 
 ```text
 ± /L1/b: name 居室B → 書斎
-± 境界 /L1/a | /L1/b: door at:0.5 w 780 → 900
+± boundary /L1/a | /L1/b: door at:0.5 w 780 → 900
 ```
 
 With no differences it prints this.
@@ -144,10 +146,8 @@ npx tsx src/cli.ts diff examples/two-rooms.muro examples/two-rooms.muro
 ```
 
 ```text
-差分なし
+No differences
 ```
-
-("No differences.")
 
 | Flag | Effect |
 |---|---|
@@ -172,7 +172,7 @@ npx tsx src/cli.ts plan examples/house/main.muro -l L2 -o out/house-L2.svg
 ```
 
 ```text
-平面図を生成しました: out/house-L2.svg
+Generated the plan: out/house-L2.svg
 ```
 
 | Flag | Effect |
@@ -193,23 +193,21 @@ npx tsx src/cli.ts plan examples/house/main.muro -l L2 -o out/house-L2.svg
 
 **Omit `-o` and it writes beside the input file.** `plan examples/two-rooms.muro` creates `examples/two-rooms-L1.svg`. When you do not want to dirty the repository, pass `-o`. The destination directory is created if it does not exist.
 
-**On failure it emits a Node stack trace.** Give `-l` a file with no level declared at all, or a level holding no space with a region, and you get a raw exception rather than a composed Japanese error (exit code 1).
+**On failure it emits a Node stack trace.** Give `-l` a file with no level declared at all, or a level holding no space with a region, and you get a raw exception rather than a composed diagnostic (exit code 1).
 
 ```sh
 npx tsx src/cli.ts plan examples/house/main.muro -l R -o out/house-R.svg
 ```
 
 ```text
-<絶対パス>/src/plan.ts:35
-  if (rooms.length === 0) throw new Error(`レベル ${level} に領域を持つ空間がありません`);
+<absolute path>/src/draw/plan.ts:44
+  if (rooms.length === 0) throw new Error(`There is no space with a region on level ${level}`);
                                 ^
 
-Error: レベル R に領域を持つ空間がありません
+Error: There is no space with a region on level R
 ```
 
-("There is no space with a region on level R.")
-
-**`plan` can die even when `check` is green.** In particular when a space is not on a level (diagnostic [HGT05](diagnostics.md#hgt05) stops at a warning). When `plan` dies, try putting it through `check --strict` first.
+**`plan` can die even when `check` is green.** Drawing is not what `check` inspects. A space that is not on a level is stopped by [SUF02](diagnostics.md#suf02) as an error, but mistaking the name passed to `-l` lies outside `check`.
 
 The drawing conventions (the black band of a wall, the dashed line of an `open`, the swing of a door, the diagonal of a void, the site boundary line) are in [spec/semantics.md §7](../../spec/en/semantics.md). What the bundled examples come out as is in [gallery.md](gallery.md).
 
@@ -223,7 +221,7 @@ npx tsx src/cli.ts axo examples/basement/main.muro -o out/axo.svg
 ```
 
 ```text
-軸測図を生成しました: out/axo.svg
+Generated the axonometric: out/axo.svg
 ```
 
 Floors, roofs, walls, columns and vertical circulation are projected. `-d NE|NW|SE|SW`
@@ -238,7 +236,21 @@ npx tsx src/cli.ts axo examples/complex/main.muro -l ZZ9
 ```
 
 ```text
-レベルが宣言されていません: ZZ9 (宣言済み: B2 B1 L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 R)
+Undeclared level: ZZ9 (declared: B2 B1 L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 R)
+```
+
+**A value it cannot read is treated the same way.** Hand the scale something that is not a
+number and it used to write an SVG full of `width="NaN"`, then say "generated" and exit 0.
+**A question of how it was called is returned as a question of how it was called**
+([ADR-0037](../../docs/decisions/0037-public-surface.md)). The direction (`-d`) is the same —
+anything but the four is rejected.
+
+```sh
+npx tsx src/cli.ts axo examples/complex/main.muro -s abc
+```
+
+```text
+-s takes a positive number: abc
 ```
 
 ## runs — how the vertical circulation was derived
@@ -253,11 +265,11 @@ npx tsx src/cli.ts runs examples/basement/main.muro
 
 ```text
 B2→B1	lift	EV	/B2/ev
-B2→B1	ramp	車路	上り3700mm	折返し	勾配 1/7.2	走り26800mm	/B2/ramp
-B2→B1	stair	避難階段	上り3700mm	折返し	21段 蹴上176 踏面300	走り6000mm	/B2/st
+B2→B1	ramp	車路	rise 3700mm	return	slope 1/7.2	going 26800mm	/B2/ramp
+B2→B1	stair	避難階段	rise 3700mm	return	21 risers of 176mm, tread 300mm	going 6000mm	/B2/st
 B1→L1	lift	EV	/B1/ev
-B1→L1	ramp	車路	上り3700mm	折返し	勾配 1/7.2	走り26800mm	/B1/ramp
-B1→L1	stair	避難階段	上り3700mm	折返し	21段 蹴上176 踏面300	走り6000mm	/B1/st
+B1→L1	ramp	車路	rise 3700mm	return	slope 1/7.2	going 26800mm	/B1/ramp
+B1→L1	stair	避難階段	rise 3700mm	return	21 risers of 176mm, tread 300mm	going 6000mm	/B1/st
 ```
 
 The same stair shaft divides differently when the storey height differs. The difference is
@@ -273,7 +285,7 @@ npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
 ```
 
 ```text
-2枚 — /L1/a → /L1/b → /out
+2 doors — /L1/a → /L1/b → /out
 ```
 
 | Argument | Meaning |
@@ -293,7 +305,7 @@ npx tsx src/cli.ts doors examples/house/main.muro /home/bed1 /out/road
 ```
 
 ```text
-3枚 — /home/bed1 → /home/hall2 → /home/hall1 → /site/east → /site/garden → /out/road
+3 doors — /home/bed1 → /home/hall2 → /home/hall1 → /site/east → /site/garden → /out/road
 ```
 
 **Passing a path that does not exist also prints "cannot reach".** A misspelling and a genuine unreachability give the same message and the same exit code 1.
@@ -303,7 +315,7 @@ npx tsx src/cli.ts doors examples/house/main.muro /home/bed9 /site/garden
 ```
 
 ```text
-/home/bed9 から /site/garden へは到達できません
+Cannot reach /site/garden from /home/bed9
 ```
 
 When it says unreachable, confirm the spelling of the path with `graph` first. The outside is not necessarily one thing — `examples/house`'s outside splits into `/out/road`, `/out/n`, `/out/e`, and `/out/w`, and no space called `/out` exists.
@@ -318,14 +330,14 @@ npx tsx src/cli.ts graph examples/two-rooms.muro
 
 ```text
 /L1/a (居室A)
-  — 扉1 → /L1/b  (spec:PW1)
-  | 壁 → /out  (spec:EW1 fire:60)
+  — 1 door → /L1/b  (spec:PW1)
+  | wall → /out  (spec:EW1 fire:60)
 /L1/b (居室B)
-  — 扉1 → /L1/a  (spec:PW1)
-  — 扉1 → /out  (spec:EW1 fire:60)
+  — 1 door → /L1/a  (spec:PW1)
+  — 1 door → /out  (spec:EW1 fire:60)
 /out (外部)
-  | 壁 → /L1/a  (spec:EW1 fire:60)
-  — 扉1 → /L1/b  (spec:EW1 fire:60)
+  | wall → /L1/a  (spec:EW1 fire:60)
+  — 1 door → /L1/b  (spec:EW1 fire:60)
 ```
 
 | Exit code | Meaning |
@@ -356,26 +368,26 @@ npx tsx src/cli.ts stats examples/house/main.muro
 
 ```text
 L1
-  /site/garden	南庭	garden	41.12㎡ (半屋外・別掲)
-  /site/west	西側通路	yard	12.42㎡ (半屋外・別掲)
-  /site/east	東側通路	yard	12.42㎡ (半屋外・別掲)
-  /site/north	北側通路	yard	7.28㎡ (半屋外・別掲)
-  /home/ldk	LDK	ldk	39.75㎡
-  /home/hall1	玄関・階段	hall	13.25㎡
-  小計 53.00㎡
+  /site/garden	南庭	garden	41.12 m2 (semi-outdoor, reported separately)
+  /site/west	西側通路	yard	12.42 m2 (semi-outdoor, reported separately)
+  /site/east	東側通路	yard	12.42 m2 (semi-outdoor, reported separately)
+  /site/north	北側通路	yard	7.28 m2 (semi-outdoor, reported separately)
+  /home/ldk	LDK	ldk	39.75 m2
+  /home/hall1	玄関・階段	hall	13.25 m2
+  Subtotal 53.00 m2
 L2
-  /home/bed1	主寝室	bedroom	26.50㎡
-  /home/void	リビング上部	吹抜け (床面積不算入)
-  /home/hall2	2階ホール	hall	13.25㎡
-  小計 39.75㎡
-合計 92.75㎡ (屋内床面積)
-半屋外 73.24㎡ (バルコニー・屋外階段等 — 算入条件は法規細部のため別掲)
-ゾーン別 (数える集約):
-  /home	住戸	92.75㎡
-  ldk: 39.75㎡
-  hall: 26.50㎡
-  bedroom: 26.50㎡
-use別: exclusive 92.75㎡ (100.0%)
+  /home/bed1	主寝室	bedroom	26.50 m2
+  /home/void	リビング上部	void (not counted as floor area)
+  /home/hall2	2階ホール	hall	13.25 m2
+  Subtotal 39.75 m2
+Total 92.75 m2 (indoor floor area)
+Semi-outdoor 73.24 m2 (balconies, external stairs and the like — whether they count is a matter of regulatory detail, so it is reported separately)
+By zone (counted aggregation):
+  /home	住戸	92.75 m2
+  ldk: 39.75 m2
+  hall: 26.50 m2
+  bedroom: 26.50 m2
+By use: exclusive 92.75 m2 (100.0%)
 ```
 
 | Exit code | Meaning |
@@ -397,9 +409,9 @@ npx tsx src/cli.ts levels examples/house/main.muro
 ```text
 R	z:5800	slab:500
 L2	z:2900	h:2400	slab:500
-  ↑ 階高 2900 = 天井2400 + slab500
-L1	z:0	h:2400
-  ↑ 階高 2900 = 天井2400 + slab500
+  ↑ storey height 2900 = ceiling 2400 + slab 500
+L1	z:0	h:2400	slab:400
+  ↑ storey height 2900 = ceiling 2400 + slab 500
 ```
 
 | Exit code | Meaning |
@@ -416,13 +428,13 @@ npx tsx src/cli.ts levels examples/office.muro
 ```text
 R	z:8000	slab:1300
 L2	z:4000	h:2700	slab:1300
-  ↑ 階高 4000 = 天井2700 + slab1300
-L1	z:0	h:2700
-  ↑ 階高 4000 = 天井2700 + slab1300
-個別天井高: /L1/hall h:6700
+  ↑ storey height 4000 = ceiling 2700 + slab 1300
+L1	z:0	h:2700	slab:600
+  ↑ storey height 4000 = ceiling 2700 + slab 1300
+Per-space ceiling height: /L1/hall h:6700
 ```
 
-When the decomposition does not appear, either the storey below has no `h` or the one above has no `slab`. In that case the height check does not run either, and the warnings [HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) appear. **Declaring a roof level that holds no space (`level R 5800 slab:500`) brings the top storey into the check as well.**
+When the decomposition does not appear, either the storey below has no `h` or the one above has no `slab`. `check` says so: the former as the error [SUF01](diagnostics.md#suf01), the latter as the warning [SUF03](diagnostics.md#suf03) (in both cases the height check does not run). **Declaring a roof level that holds no space (`level R 5800 slab:500`) brings the top storey into the check as well.**
 
 ## light — does what is in scope meet 1/7
 
@@ -433,9 +445,9 @@ npx tsx src/cli.ts light examples/house/main.muro
 ```
 
 ```text
-✔ /home/ldk	LDK	窓 7.54㎡ / 床 39.75㎡ = 1/5.3 (必要 1/7 ≈ 5.68㎡)
-✔ /home/bed1	主寝室	窓 5.72㎡ / 床 26.50㎡ = 1/4.6 (必要 1/7 ≈ 3.79㎡)
-✔ 全2室が 1/7 を満たします (補正係数なしの粗い判定)
+✔ /home/ldk	LDK	window 7.54 m2 / floor 39.75 m2 = 1/5.3 (needs 1/7 ≈ 5.68 m2)
+✔ /home/bed1	主寝室	window 5.72 m2 / floor 26.50 m2 = 1/4.6 (needs 1/7 ≈ 3.79 m2)
+✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 | Exit code | Meaning |
@@ -450,9 +462,9 @@ npx tsx src/cli.ts light examples/two-rooms.muro
 ```
 
 ```text
-✔ /L1/a	居室A	窓 2.86㎡ / 床 16.20㎡ = 1/5.7 (必要 1/7 ≈ 2.31㎡)
-✔ /L1/b	居室B	窓 2.86㎡ / 床 16.20㎡ = 1/5.7 (必要 1/7 ≈ 2.31㎡)
-✔ 全2室が 1/7 を満たします (補正係数なしの粗い判定)
+✔ /L1/a	居室A	window 2.86 m2 / floor 16.20 m2 = 1/5.7 (needs 1/7 ≈ 2.31 m2)
+✔ /L1/b	居室B	window 2.86 m2 / floor 16.20 m2 = 1/5.7 (needs 1/7 ≈ 2.31 m2)
+✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 **With nothing in scope the exit code is 0 too.** In a model where no space carries `daylight:1` (an office, say) the test simply does not run.
@@ -462,10 +474,10 @@ npx tsx src/cli.ts light examples/office.muro
 ```
 
 ```text
-採光の対象がありません (判定する室に daylight:1 を書きます)
+Nothing is in daylight scope (write daylight:1 on the rooms to be judged)
 ```
 
-("Nothing is in scope for the daylight check — write daylight:1 on the rooms to test.") Do not read this as a pass — forget a `daylight:1` and you get the same output. A `window` with no `h` is not counted, and a note saying so is appended to the line (`⚠ h未指定の窓は数えていません`). The definition of the test is in [spec/semantics.md §6](../../spec/en/semantics.md).
+Do not read this as a pass — forget a `daylight:1` and you get the same output. A `window` with no `h` is not counted, and a note saying so is appended to the line (`⚠ windows without h: are not counted`). The definition of the test is in [spec/semantics.md §6](../../spec/en/semantics.md).
 
 ## site — the site's figures
 
@@ -476,11 +488,11 @@ npx tsx src/cli.ts site examples/house/main.muro
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地面積: 宣言 126.24㎡ / 導出 126.24㎡ ✔ 一致
-  接道: /out/road (南側道路) 幅員6000mm ・ 接道長 10280mm ✔ 2m以上
-  建築面積 (水平投影・粗): 53.00㎡ → 建蔽率 42.0%
-  延べ面積: 92.75㎡ → 容積率 73.5%
+Site /site (敷地)
+  Site area: declared 126.24 m2 / derived 126.24 m2
+  Road: /out/road (南側道路) width 6000mm / frontage 10280mm
+  Building footprint (horizontal projection, rough): 53.00 m2 → building coverage ratio 42.0%
+  Total floor area: 92.75 m2 → floor area ratio 73.5%
 ```
 
 | Exit code | Meaning |
@@ -495,10 +507,8 @@ npx tsx src/cli.ts site examples/mansion.muro
 ```
 
 ```text
-敷地がありません (zone に site:1 を、道路に road:幅員 を宣言します)
+There is no site (write site:1 on a zone and road:<width> on the road)
 ```
-
-("There is no site — declare site:1 on a zone and road:<width> on the road.")
 
 Declare the site shape with a `polygon` and the area comes from the polygon by the shoelace formula, reconciled against the zone's `area:` (the surveyed value).
 
@@ -507,20 +517,20 @@ npx tsx src/cli.ts site examples/tower/main.muro
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地形状: 多角形 5頂点 (polygon宣言 — 所与のジオメトリ)
-  敷地面積: 宣言 1097.80㎡ / 導出 1097.80㎡ ✔ 一致
-  接道: /out/road-s (南側道路) 幅員12000mm ・ 接道長 40600mm ✔ 2m以上
-  接道: /out/road-e (東側道路) 幅員6000mm ・ 接道長 20200mm ✔ 2m以上
-  建築面積 (水平投影・粗): 569.60㎡ → 建蔽率 51.9%
-  延べ面積: 4785.92㎡ → 容積率 436.0%
+Site /site (敷地)
+  Site shape: polygon with 5 vertices (a polygon declaration — given geometry)
+  Site area: declared 1097.80 m2 / derived 1097.80 m2
+  Road: /out/road-s (南側道路) width 12000mm / frontage 40600mm
+  Road: /out/road-e (東側道路) width 6000mm / frontage 20200mm
+  Building footprint (horizontal projection, rough): 569.60 m2 → building coverage ratio 51.9%
+  Total floor area: 4785.92 m2 → floor area ratio 436.0%
 ```
 
 Frontage length is the total of the boundary segment lengths between spaces beneath the site zone and the roads — **the part where the building's own outer wall directly faces the road is not counted.** The inclusion rules for the building footprint are coarse. The definitions are in [spec/semantics.md §6](../../spec/en/semantics.md).
 
 ## json — the form machines read
 
-Writes the canonical JSON to standard output. It is the footing for diffs, external connections, and layer composition, and the ordering of its keys is stable.
+Writes the canonical JSON to standard output. It is the footing for diffs and external connections, and the ordering of its keys is stable. The first key, `format`, is the version of this format's own spelling; the next, `koyu`, is the language version written in the source (absent when nothing was written).
 
 ```sh
 npx tsx src/cli.ts json examples/two-rooms.muro
@@ -528,7 +538,8 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```text
 {
-  "koyu": "0.5",
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
   "grid": {
@@ -545,7 +556,8 @@ npx tsx src/cli.ts json examples/two-rooms.muro
   "levels": {
     "L1": {
       "z": 0,
-      "h": 2400
+      "h": 2400,
+      "slab": 150
     }
   },
   "spaces": {
@@ -562,7 +574,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 ```
@@ -572,7 +584,7 @@ npx tsx src/cli.ts check derived.muro
 ```
 
 ```text
-✔ 整合 — 空間 2 / 境界 1
+✔ Consistent — 2 spaces / 1 boundary
 ```
 
 ```sh
@@ -593,7 +605,7 @@ npx tsx src/cli.ts json derived.muro
 npx tsx src/cli.ts check examples/house/main.muro --strict
 ```
 
-`--strict` makes warnings fail too. Without it, the "the check could not run" warnings ([HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) / [HGT05](diagnostics.md#hgt05)) slip through green. Give the gate `--strict`.
+`--strict` makes warnings fail too. Without it, "not one floor is generated" ([SUF03](diagnostics.md#suf03)) and "no shape is generated for the vertical circulation" ([SUF04](diagnostics.md#suf04)) slip through green. Give the gate `--strict`.
 
 **Review an edit.** Read it in the language of composition rather than as a text diff. Take out the state before the commit and compare.
 
@@ -603,7 +615,7 @@ npx tsx src/cli.ts diff before.muro examples/two-rooms.muro
 ```
 
 ```text
-差分なし
+No differences
 ```
 
 **This trick does not work on a model split with `import`.** `diff` composes the layers from the entry, so putting one extracted file somewhere else leaves the relative `import`s unresolvable. To compare a split model, expand the old version's whole tree with `git worktree` and pass both base-layer paths.

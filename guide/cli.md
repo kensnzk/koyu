@@ -17,7 +17,7 @@ npx tsx src/cli.ts check examples/two-rooms.muro
 ## 共通のかたち
 
 ```text
-koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <entry.muro> [args...]
+koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <entry.muro> [args...]
 ```
 
 **渡すのは常に entry のファイルパス一つである。** `import` で分割されたモデルでも、base層のファイル (`examples/house/main.muro` など) だけを渡す — レイヤーの合成は毎回自動で行われる。分割されたファイルの一枚を単体で渡すと、そのファイルには grid も level も無いので落ちる。
@@ -27,10 +27,10 @@ npx tsx src/cli.ts check examples/house/L1.muro
 ```
 
 ```text
-✖ <絶対パス>/examples/house/L1.muro:3行目: 未宣言のレベルです: level:L1
+✖ <absolute path>/examples/house/L1.muro:line 3: Undeclared level: level:L1
 ```
 
-`import` の相対パスは**書かれたファイルからの相対**で解決されるので、base層のファイルだけを別の場所にコピーしても合成できない (`ファイルが読めません: ./assets.muro`)。
+`import` の相対パスは**書かれたファイルからの相対**で解決されるので、base層のファイルだけを別の場所にコピーしても合成できない (`Cannot read file: ./assets.muro`)。
 
 すべてのコマンドは同じ導出を共有する。CLI・MCP・公開API は同じ答えの別の入口である。
 
@@ -53,9 +53,11 @@ npx tsx src/cli.ts --help
 ```
 
 ```text
-使い方: koyu <check|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [引数...]
-  check: --json (Diagnostic[]をJSONで出力) / --strict (警告があれば終了コード1)
-  diff:  koyu diff <a.muro> <b.muro> [--json] — 構成の言葉の差分 (0=差分なし / 1=差分あり / 2=入力が壊れている)
+Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [args...]
+  check:    --json (emit Diagnostic[] as JSON) / --strict (exit 1 if there are warnings) — structural consistency only
+  validate: --json (emit Finding[] as JSON) — architectural judgement (not what check guarantees)
+  layers:   the layers that took part in composition, weakest first. --attrs for the provenance of each attribute
+  diff:  koyu diff <a.muro> <b.muro> [--json] — the difference in the language of composition (0=no difference / 1=differences / 2=the input is broken)
 ```
 
 この使い方の表示は網羅していない。**`plan` の `-l` / `-o` と `doors` の二つのパス引数は書かれていない。** 各コマンドのフラグはこの頁が正である。
@@ -69,7 +71,7 @@ npx tsx src/cli.ts check examples/two-rooms.muro
 ```
 
 ```text
-✔ 整合 — 空間 3 / 境界 3
+✔ Consistent — 3 spaces / 3 boundaries
 ```
 
 | フラグ | 効果 |
@@ -99,9 +101,9 @@ npx tsx src/cli.ts check examples/two-rooms.muro --json
  {
   "code": "BND04",
   "severity": "error",
-  "message": "空間が接していないため境界を導けません: /L1/a | /L1/b",
+  "message": "The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b",
   "line": 6,
-  "file": "<絶対パス>/bad.muro",
+  "file": "<absolute path>/bad.muro",
   "path": [
    "/L1/a",
    "/L1/b"
@@ -132,7 +134,7 @@ npx tsx src/cli.ts diff before.muro after.muro
 
 ```text
 ± /L1/b: name 居室B → 書斎
-± 境界 /L1/a | /L1/b: door at:0.5 w 780 → 900
+± boundary /L1/a | /L1/b: door at:0.5 w 780 → 900
 ```
 
 差分が無いときはこう出る。
@@ -142,7 +144,7 @@ npx tsx src/cli.ts diff examples/two-rooms.muro examples/two-rooms.muro
 ```
 
 ```text
-差分なし
+No differences
 ```
 
 | フラグ | 効果 |
@@ -151,7 +153,7 @@ npx tsx src/cli.ts diff examples/two-rooms.muro examples/two-rooms.muro
 
 | 終了コード | 意味 |
 |---|---|
-| 0 | 差分なし |
+| 0 | No differences |
 | 1 | 差分あり |
 | 2 | 入力が壊れている (構文・合成エラー)、または比較先のファイルが渡されていない |
 
@@ -168,7 +170,7 @@ npx tsx src/cli.ts plan examples/house/main.muro -l L2 -o out/house-L2.svg
 ```
 
 ```text
-平面図を生成しました: out/house-L2.svg
+Generated the plan: out/house-L2.svg
 ```
 
 | フラグ | 効果 |
@@ -189,21 +191,21 @@ npx tsx src/cli.ts plan examples/house/main.muro -l L2 -o out/house-L2.svg
 
 **`-o` を省くと入力ファイルの隣に書き出す。** `plan examples/two-rooms.muro` は `examples/two-rooms-L1.svg` を作る。リポジトリを汚したくないときは `-o` を付ける。出力先のディレクトリは無ければ作られる。
 
-**失敗すると Node のスタックトレースが出る。** レベルが一つも宣言されていないファイル、あるいは領域を持つ空間が一つも無いレベルを `-l` に渡すと、整った日本語のエラーではなく生の例外が出る (終了コード1)。
+**失敗すると Node のスタックトレースが出る。** レベルが一つも宣言されていないファイル、あるいは領域を持つ空間が一つも無いレベルを `-l` に渡すと、整えられた診断ではなく生の例外が出る (終了コード1)。
 
 ```sh
 npx tsx src/cli.ts plan examples/house/main.muro -l R -o out/house-R.svg
 ```
 
 ```text
-<絶対パス>/src/plan.ts:35
-  if (rooms.length === 0) throw new Error(`レベル ${level} に領域を持つ空間がありません`);
+<absolute path>/src/draw/plan.ts:44
+  if (rooms.length === 0) throw new Error(`There is no space with a region on level ${level}`);
                                 ^
 
-Error: レベル R に領域を持つ空間がありません
+Error: There is no space with a region on level R
 ```
 
-**`check` が緑でも `plan` は落ちうる。** 特に、空間がレベルに載っていないとき (診断 [HGT05](diagnostics.md#hgt05) は警告どまり) がこれである。`plan` が落ちたら、まず `check --strict` を通してみるとよい。
+**`check` が緑でも `plan` は落ちうる。** 描画は `check` の検査対象ではない。空間がレベルに載っていない場合は [SUF02](diagnostics.md#suf02) がエラーで止めるが、`-l` に渡した名前の取り違えは `check` の外にある。
 
 描画の規約 (壁の黒帯・open の破線・扉の軌跡・吹抜けの対角線・敷地境界線) は [spec/semantics.md §7](../spec/semantics.md)。同梱例の出来上がりは [gallery.md](gallery.md)。
 
@@ -217,7 +219,7 @@ npx tsx src/cli.ts axo examples/basement/main.muro -o out/axo.svg
 ```
 
 ```text
-軸測図を生成しました: out/axo.svg
+Generated the axonometric: out/axo.svg
 ```
 
 床・屋根・壁・柱・縦動線が投影される。`-d NE|NW|SE|SW` で見る向き (既定 SE)、
@@ -232,7 +234,19 @@ npx tsx src/cli.ts axo examples/complex/main.muro -l ZZ9
 ```
 
 ```text
-レベルが宣言されていません: ZZ9 (宣言済み: B2 B1 L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 R)
+Undeclared level: ZZ9 (declared: B2 B1 L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 R)
+```
+
+**読めない値も同じ扱いである。**縮尺に数でない値を渡すと、以前は `width="NaN"` のSVGを書いて
+終了コード0で「生成しました」と言っていた。**呼び方の問題は、呼び方の問題として返す**
+([ADR-0037](../docs/decisions/0037-public-surface.md))。向き (`-d`) も同じで、四つ以外は落ちる。
+
+```sh
+npx tsx src/cli.ts axo examples/complex/main.muro -s abc
+```
+
+```text
+-s takes a positive number: abc
 ```
 
 ## runs — 縦動線はどう導かれたか
@@ -246,11 +260,11 @@ npx tsx src/cli.ts runs examples/basement/main.muro
 
 ```text
 B2→B1	lift	EV	/B2/ev
-B2→B1	ramp	車路	上り3700mm	折返し	勾配 1/7.2	走り26800mm	/B2/ramp
-B2→B1	stair	避難階段	上り3700mm	折返し	21段 蹴上176 踏面300	走り6000mm	/B2/st
+B2→B1	ramp	車路	rise 3700mm	return	slope 1/7.2	going 26800mm	/B2/ramp
+B2→B1	stair	避難階段	rise 3700mm	return	21 risers of 176mm, tread 300mm	going 6000mm	/B2/st
 B1→L1	lift	EV	/B1/ev
-B1→L1	ramp	車路	上り3700mm	折返し	勾配 1/7.2	走り26800mm	/B1/ramp
-B1→L1	stair	避難階段	上り3700mm	折返し	21段 蹴上176 踏面300	走り6000mm	/B1/st
+B1→L1	ramp	車路	rise 3700mm	return	slope 1/7.2	going 26800mm	/B1/ramp
+B1→L1	stair	避難階段	rise 3700mm	return	21 risers of 176mm, tread 300mm	going 6000mm	/B1/st
 ```
 
 同じ階段室でも階高が違えば段割りが変わる。書き分けはどこにも無い —
@@ -266,7 +280,7 @@ npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
 ```
 
 ```text
-2枚 — /L1/a → /L1/b → /out
+2 doors — /L1/a → /L1/b → /out
 ```
 
 | 引数 | 意味 |
@@ -286,7 +300,7 @@ npx tsx src/cli.ts doors examples/house/main.muro /home/bed1 /out/road
 ```
 
 ```text
-3枚 — /home/bed1 → /home/hall2 → /home/hall1 → /site/east → /site/garden → /out/road
+3 doors — /home/bed1 → /home/hall2 → /home/hall1 → /site/east → /site/garden → /out/road
 ```
 
 **存在しないパスを渡しても「到達できません」と出る。** 綴りの間違いと本当の未到達は同じメッセージ・同じ終了コード1になる。
@@ -296,7 +310,7 @@ npx tsx src/cli.ts doors examples/house/main.muro /home/bed9 /site/garden
 ```
 
 ```text
-/home/bed9 から /site/garden へは到達できません
+Cannot reach /site/garden from /home/bed9
 ```
 
 到達できないと出たら、まず `graph` でパスの綴りを確かめる。外部は一つとは限らない — `examples/house` の外部は `/out/road` `/out/n` `/out/e` `/out/w` に割れていて、`/out` という空間は存在しない。
@@ -311,14 +325,14 @@ npx tsx src/cli.ts graph examples/two-rooms.muro
 
 ```text
 /L1/a (居室A)
-  — 扉1 → /L1/b  (spec:PW1)
-  | 壁 → /out  (spec:EW1 fire:60)
+  — 1 door → /L1/b  (spec:PW1)
+  | wall → /out  (spec:EW1 fire:60)
 /L1/b (居室B)
-  — 扉1 → /L1/a  (spec:PW1)
-  — 扉1 → /out  (spec:EW1 fire:60)
+  — 1 door → /L1/a  (spec:PW1)
+  — 1 door → /out  (spec:EW1 fire:60)
 /out (外部)
-  | 壁 → /L1/a  (spec:EW1 fire:60)
-  — 扉1 → /L1/b  (spec:EW1 fire:60)
+  | wall → /L1/a  (spec:EW1 fire:60)
+  — 1 door → /L1/b  (spec:EW1 fire:60)
 ```
 
 | 終了コード | 意味 |
@@ -349,26 +363,26 @@ npx tsx src/cli.ts stats examples/house/main.muro
 
 ```text
 L1
-  /site/garden	南庭	garden	41.12㎡ (半屋外・別掲)
-  /site/west	西側通路	yard	12.42㎡ (半屋外・別掲)
-  /site/east	東側通路	yard	12.42㎡ (半屋外・別掲)
-  /site/north	北側通路	yard	7.28㎡ (半屋外・別掲)
-  /home/ldk	LDK	ldk	39.75㎡
-  /home/hall1	玄関・階段	hall	13.25㎡
-  小計 53.00㎡
+  /site/garden	南庭	garden	41.12 m2 (semi-outdoor, reported separately)
+  /site/west	西側通路	yard	12.42 m2 (semi-outdoor, reported separately)
+  /site/east	東側通路	yard	12.42 m2 (semi-outdoor, reported separately)
+  /site/north	北側通路	yard	7.28 m2 (semi-outdoor, reported separately)
+  /home/ldk	LDK	ldk	39.75 m2
+  /home/hall1	玄関・階段	hall	13.25 m2
+  Subtotal 53.00 m2
 L2
-  /home/bed1	主寝室	bedroom	26.50㎡
-  /home/void	リビング上部	吹抜け (床面積不算入)
-  /home/hall2	2階ホール	hall	13.25㎡
-  小計 39.75㎡
-合計 92.75㎡ (屋内床面積)
-半屋外 73.24㎡ (バルコニー・屋外階段等 — 算入条件は法規細部のため別掲)
-ゾーン別 (数える集約):
-  /home	住戸	92.75㎡
-  ldk: 39.75㎡
-  hall: 26.50㎡
-  bedroom: 26.50㎡
-use別: exclusive 92.75㎡ (100.0%)
+  /home/bed1	主寝室	bedroom	26.50 m2
+  /home/void	リビング上部	void (not counted as floor area)
+  /home/hall2	2階ホール	hall	13.25 m2
+  Subtotal 39.75 m2
+Total 92.75 m2 (indoor floor area)
+Semi-outdoor 73.24 m2 (balconies, external stairs and the like — whether they count is a matter of regulatory detail, so it is reported separately)
+By zone (counted aggregation):
+  /home	住戸	92.75 m2
+  ldk: 39.75 m2
+  hall: 26.50 m2
+  bedroom: 26.50 m2
+By use: exclusive 92.75 m2 (100.0%)
 ```
 
 | 終了コード | 意味 |
@@ -390,9 +404,9 @@ npx tsx src/cli.ts levels examples/house/main.muro
 ```text
 R	z:5800	slab:500
 L2	z:2900	h:2400	slab:500
-  ↑ 階高 2900 = 天井2400 + slab500
-L1	z:0	h:2400
-  ↑ 階高 2900 = 天井2400 + slab500
+  ↑ storey height 2900 = ceiling 2400 + slab 500
+L1	z:0	h:2400	slab:400
+  ↑ storey height 2900 = ceiling 2400 + slab 500
 ```
 
 | 終了コード | 意味 |
@@ -409,13 +423,13 @@ npx tsx src/cli.ts levels examples/office.muro
 ```text
 R	z:8000	slab:1300
 L2	z:4000	h:2700	slab:1300
-  ↑ 階高 4000 = 天井2700 + slab1300
-L1	z:0	h:2700
-  ↑ 階高 4000 = 天井2700 + slab1300
-個別天井高: /L1/hall h:6700
+  ↑ storey height 4000 = ceiling 2700 + slab 1300
+L1	z:0	h:2700	slab:600
+  ↑ storey height 4000 = ceiling 2700 + slab 1300
+Per-space ceiling height: /L1/hall h:6700
 ```
 
-分解が出ないときは、下階に `h` が無いか、上階に `slab` が無い。そのときは高さの検査も行われず、[HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) の警告が出る。**空間を持たない屋上レベル (`level R 5800 slab:500`) を宣言しておくと、最上階も検査の対象になる。**
+分解が出ないときは、下階に `h` が無いか、上階に `slab` が無い。前者は [SUF01](diagnostics.md#suf01) のエラー、後者は [SUF03](diagnostics.md#suf03) の警告として `check` が言う (どちらの場合も高さの検査は行われない)。**空間を持たない屋上レベル (`level R 5800 slab:500`) を宣言しておくと、最上階も検査の対象になる。**
 
 ## light — 採光の対象は 1/7 を満たすか
 
@@ -426,9 +440,9 @@ npx tsx src/cli.ts light examples/house/main.muro
 ```
 
 ```text
-✔ /home/ldk	LDK	窓 7.54㎡ / 床 39.75㎡ = 1/5.3 (必要 1/7 ≈ 5.68㎡)
-✔ /home/bed1	主寝室	窓 5.72㎡ / 床 26.50㎡ = 1/4.6 (必要 1/7 ≈ 3.79㎡)
-✔ 全2室が 1/7 を満たします (補正係数なしの粗い判定)
+✔ /home/ldk	LDK	window 7.54 m2 / floor 39.75 m2 = 1/5.3 (needs 1/7 ≈ 5.68 m2)
+✔ /home/bed1	主寝室	window 5.72 m2 / floor 26.50 m2 = 1/4.6 (needs 1/7 ≈ 3.79 m2)
+✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 | 終了コード | 意味 |
@@ -443,9 +457,9 @@ npx tsx src/cli.ts light examples/two-rooms.muro
 ```
 
 ```text
-✔ /L1/a	居室A	窓 2.86㎡ / 床 16.20㎡ = 1/5.7 (必要 1/7 ≈ 2.31㎡)
-✔ /L1/b	居室B	窓 2.86㎡ / 床 16.20㎡ = 1/5.7 (必要 1/7 ≈ 2.31㎡)
-✔ 全2室が 1/7 を満たします (補正係数なしの粗い判定)
+✔ /L1/a	居室A	window 2.86 m2 / floor 16.20 m2 = 1/5.7 (needs 1/7 ≈ 2.31 m2)
+✔ /L1/b	居室B	window 2.86 m2 / floor 16.20 m2 = 1/5.7 (needs 1/7 ≈ 2.31 m2)
+✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 **対象が無いときも終了コードは 0 である。** `daylight:1` を一つも書いていないモデル (事務所など) では判定そのものが行われない。
@@ -455,10 +469,10 @@ npx tsx src/cli.ts light examples/office.muro
 ```
 
 ```text
-採光の対象がありません (判定する室に daylight:1 を書きます)
+Nothing is in daylight scope (write daylight:1 on the rooms to be judged)
 ```
 
-これを「合格」と読まないこと。`daylight:1` を書き忘れても同じ出力になる。`h` を持たない `window` は数えられず、その旨が行末に付く (`⚠ h未指定の窓は数えていません`)。判定の定義は [spec/semantics.md §6](../spec/semantics.md)。
+これを「合格」と読まないこと。`daylight:1` を書き忘れても同じ出力になる。`h` を持たない `window` は数えられず、その旨が行末に付く (`⚠ windows without h: are not counted`)。判定の定義は [spec/semantics.md §6](../spec/semantics.md)。
 
 ## site — 敷地の数字
 
@@ -469,11 +483,11 @@ npx tsx src/cli.ts site examples/house/main.muro
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地面積: 宣言 126.24㎡ / 導出 126.24㎡ ✔ 一致
-  接道: /out/road (南側道路) 幅員6000mm ・ 接道長 10280mm ✔ 2m以上
-  建築面積 (水平投影・粗): 53.00㎡ → 建蔽率 42.0%
-  延べ面積: 92.75㎡ → 容積率 73.5%
+Site /site (敷地)
+  Site area: declared 126.24 m2 / derived 126.24 m2
+  Road: /out/road (南側道路) width 6000mm / frontage 10280mm
+  Building footprint (horizontal projection, rough): 53.00 m2 → building coverage ratio 42.0%
+  Total floor area: 92.75 m2 → floor area ratio 73.5%
 ```
 
 | 終了コード | 意味 |
@@ -488,7 +502,7 @@ npx tsx src/cli.ts site examples/mansion.muro
 ```
 
 ```text
-敷地がありません (zone に site:1 を、道路に road:幅員 を宣言します)
+There is no site (write site:1 on a zone and road:<width> on the road)
 ```
 
 `polygon` で敷地形状を宣言すると、面積はシューレース公式で多角形から出て、ゾーンの `area:` (測量値) と照合される。
@@ -498,20 +512,20 @@ npx tsx src/cli.ts site examples/tower/main.muro
 ```
 
 ```text
-敷地 /site (敷地)
-  敷地形状: 多角形 5頂点 (polygon宣言 — 所与のジオメトリ)
-  敷地面積: 宣言 1097.80㎡ / 導出 1097.80㎡ ✔ 一致
-  接道: /out/road-s (南側道路) 幅員12000mm ・ 接道長 40600mm ✔ 2m以上
-  接道: /out/road-e (東側道路) 幅員6000mm ・ 接道長 20200mm ✔ 2m以上
-  建築面積 (水平投影・粗): 569.60㎡ → 建蔽率 51.9%
-  延べ面積: 4785.92㎡ → 容積率 436.0%
+Site /site (敷地)
+  Site shape: polygon with 5 vertices (a polygon declaration — given geometry)
+  Site area: declared 1097.80 m2 / derived 1097.80 m2
+  Road: /out/road-s (南側道路) width 12000mm / frontage 40600mm
+  Road: /out/road-e (東側道路) width 6000mm / frontage 20200mm
+  Building footprint (horizontal projection, rough): 569.60 m2 → building coverage ratio 51.9%
+  Total floor area: 4785.92 m2 → floor area ratio 436.0%
 ```
 
 接道長は敷地ゾーン配下の空間と道路の境界線分長の合計である — **建物の外壁が直接道路に面する分は数えない。** 建築面積の算入細則は粗い。定義は [spec/semantics.md §6](../spec/semantics.md)。
 
 ## json — 機械が読む形
 
-正準JSONを標準出力に書く。差分・外部接続・レイヤー合成の土台であり、キーの並びは安定している。
+正準JSONを標準出力に書く。差分・外部接続の土台であり、キーの並びは安定している。最初のキー `format` はこの形式自身の綴りの版で、次の `koyu` は原本に書かれた言語版である (書いていなければ出ない)。
 
 ```sh
 npx tsx src/cli.ts json examples/two-rooms.muro
@@ -519,7 +533,8 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```text
 {
-  "koyu": "0.5",
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
   "grid": {
@@ -536,7 +551,8 @@ npx tsx src/cli.ts json examples/two-rooms.muro
   "levels": {
     "L1": {
       "z": 0,
-      "h": 2400
+      "h": 2400,
+      "slab": 150
     }
   },
   "spaces": {
@@ -553,7 +569,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 ```
@@ -563,7 +579,7 @@ npx tsx src/cli.ts check derived.muro
 ```
 
 ```text
-✔ 整合 — 空間 2 / 境界 1
+✔ Consistent — 2 spaces / 1 boundary
 ```
 
 ```sh
@@ -584,7 +600,7 @@ npx tsx src/cli.ts json derived.muro
 npx tsx src/cli.ts check examples/house/main.muro --strict
 ```
 
-`--strict` を付けると警告も落とす。付けないと「検査ができていません」系の警告 ([HGT03](diagnostics.md#hgt03) / [HGT04](diagnostics.md#hgt04) / [HGT05](diagnostics.md#hgt05)) が緑のまま通り抜ける。門番には `--strict` を付ける。
+`--strict` を付けると警告も落とす。付けないと「床が一枚も生成されない」([SUF03](diagnostics.md#suf03)) や「縦動線の形が生成されない」([SUF04](diagnostics.md#suf04)) が緑のまま通り抜ける。門番には `--strict` を付ける。
 
 **編集を見直す。** テキストの diff ではなく、構成の言葉で読む。コミット前の姿を取り出して比べる。
 
@@ -594,7 +610,7 @@ npx tsx src/cli.ts diff before.muro examples/two-rooms.muro
 ```
 
 ```text
-差分なし
+No differences
 ```
 
 **`import` で分割したモデルではこの手は使えない。** `diff` は entry からレイヤーを合成するので、取り出した一枚だけを別の場所に置くと相対 `import` が解決できない。分割モデルを比べるときは `git worktree` で旧版のツリーを丸ごと展開し、両方の base層のパスを渡す。

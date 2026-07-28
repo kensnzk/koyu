@@ -42,7 +42,7 @@ koyu の語を引き当てるための表である。各行は「一文の定義
 | ゾーン (zone) | 幾何を持たず、パス接頭辞で配下の空間を束ねる**数える**集約。領域つきの空間を子に持ちたいときは親をこれにする | [language.md §5](../spec/language.md)・[ADR-0005](../docs/decisions/0005-zones-and-unions.md) | [tower/typical](../examples/tower/typical.muro) |
 | 数えない分節 (area / seg) | 面積・室数・グラフ・通行に影響しない区分。`area` は空間の中の領域、`seg` は境界の上の区間で、どちらも属性の上書きだけを運ぶ | [language.md §3・§4](../spec/language.md)・[ADR-0003](../docs/decisions/0003-uncounted-divisions.md) | [tower/L1](../examples/tower/L1.muro) |
 | 敷地形状 (polygon) | `polygon /site x,y x,y …` — この記法で唯一、格子に載らない自由頂点で書かれる形。測量由来の所与として例外的に認められる | [language.md §7](../spec/language.md)・[ADR-0011](../docs/decisions/0011-site-polygon.md) | [tower/site-geometry](../examples/tower/site-geometry.muro) |
-| `uid` | 空間・ゾーンに付ける不透明な永続同一性トークン。モデル全体で一意、パスから導出しない。改名を跨ぐ外部 join のためにあり、リポジトリ内の参照はパスのままでよい | [vocabulary.md](../spec/vocabulary.md)・[ADR-0015](../docs/decisions/0015-identity-uid.md) | [concepts.md §4](concepts.md) |
+| `uid` | 空間・ゾーンに付ける不透明な永続同一性トークン。モデル全体で一意、パスから導出しない。改名を跨ぐ外部 join のためにあり、リポジトリ内の参照はパスのままでよい。書ける対象はこの二つに閉じていて、生成は乱数 (`newUids`) | [vocabulary.md](../spec/vocabulary.md)・[ADR-0015](../docs/decisions/0015-identity-uid.md)・[ADR-0039](../docs/decisions/0039-identity-generation.md) | [howto/identity.md](howto/identity.md) |
 
 ## 導出される性質 — 書かれないもの
 
@@ -68,7 +68,7 @@ koyu の語を引き当てるための表である。各行は「一文の定義
 | 層 (レイヤー) | 合成に参加する一ファイル。分担の単位であり、衝突 (パス・アセット名・grid の重複) は出所つきのビルドエラーになる。黙った上書きは無い | [language.md §8](../spec/language.md) | [tower/](../examples/tower/main.muro) |
 | base 層 (entry) | 合成の入口となるファイル。`koyu` / `name` / `unit` / `grid` / `level` を一度だけ宣言できるのはここだけである | [language.md §2・§8](../spec/language.md) | [tower/main](../examples/tower/main.muro) |
 | 出所 (file:行) | 診断が指す位置。合成に参加した層の名前と行番号で表される | [semantics.md §1](../spec/semantics.md) | [diagnostics.md](diagnostics.md) |
-| 言語版 | `koyu 0.5` — 記法の意味論の版。対応は `0.1, 0.2, 0.3, 0.4, 0.5` で、宣言を省略すると最新版として読まれる。base 層で一度だけ書ける | [language.md §2 版の規範](../spec/language.md)・[ADR-0017](../docs/decisions/0017-language-versioning.md) | [two-rooms](../examples/two-rooms.muro) |
+| 言語版 | `koyu 1.0` — 記法の意味論の版。対応は `0.1, 0.2, 0.3, 0.4, 0.5, 1.0` で、宣言を省略すると最新版として読まれる。base 層で一度だけ書ける | [language.md §2 版の規範](../spec/language.md)・[ADR-0017](../docs/decisions/0017-language-versioning.md) | [two-rooms](../examples/two-rooms.muro) |
 | 正準JSON | `koyu json` が出す機械形式。同じ構成からは常にバイト同一で、**書かれた構成のみ**を持つ (既定境界は出ない)。diff・ハッシュ・外部接続の土台 | [canonical-json.md](../spec/canonical-json.md)・[ADR-0013](../docs/decisions/0013-semantic-guarantees.md) | [two-rooms.canonical.json](../examples/two-rooms.canonical.json) |
 | 意味差分 (semantic diff) | `koyu diff` が出す構成の言葉の差分。行順・書式・素 wall 宣言と省略の違いは差分にせず、改名は `uid` の一致で検出する | [tools.md](../spec/tools.md)・[ADR-0018](../docs/decisions/0018-semantic-diff.md) | [cli.md](cli.md) |
 

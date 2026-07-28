@@ -43,17 +43,15 @@ boundary /L1/a /out t:150 spec:EW
 The width `w:` is grammatically required; without it the file stops at load time.
 
 ```text
-✖ daylight.muro:16行目: window には幅 w:(mm) が要ります (アセット側でも可)
+✖ daylight.muro:line 16: window requires a width w:(mm) (the asset may supply it)
 ```
-
-("A window needs a width w:(mm) — it may come from the asset.")
 
 The height `h:` is grammatically optional, but `light` counts only windows that carry `h:`. A window that has lost its `h:` is treated as an area of 0 without erroring.
 
 When a window has no `h:`, `light` puts a note at the end of the line.
 
 ```text
-✖ /L1/a	居室A	窓 0.00㎡ / 床 16.20㎡ = 窓なし (必要 1/7 ≈ 2.31㎡) ⚠ h未指定の窓は数えていません
+✖ /L1/a	居室A	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2) ⚠ windows without h: are not counted
 ```
 
 (`窓なし` is "no windows"; the note reads "windows with no h: were not counted".)
@@ -67,7 +65,7 @@ A boundary with a space that has no region (`/out` and the like) is what remains
 Place an opening on a multi-segment boundary without writing `edge:` and `check` says this.
 
 ```text
-✖ daylight.muro:16行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/a | /out)
+✖ daylight.muro:line 16: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)
 ```
 
 ## Confirming it
@@ -83,7 +81,7 @@ unit mm
 
 grid X 0 3600 7200
 grid Y 0 4500
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 
 space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
 space /L1/b room X2..X3 Y1..Y2 name:居室B daylight:1
@@ -100,9 +98,9 @@ boundary /L1/b /out t:150 spec:EW
 
 ```text
 $ npx tsx src/cli.ts light daylight.muro
-✔ /L1/a	居室A	窓 5.72㎡ / 床 16.20㎡ = 1/2.8 (必要 1/7 ≈ 2.31㎡)
-✔ /L1/b	居室B	窓 2.86㎡ / 床 16.20㎡ = 1/5.7 (必要 1/7 ≈ 2.31㎡)
-✔ 全2室が 1/7 を満たします (補正係数なしの粗い判定)
+✔ /L1/a	居室A	window 5.72 m2 / floor 16.20 m2 = 1/2.8 (needs 1/7 ≈ 2.31 m2)
+✔ /L1/b	居室B	window 2.86 m2 / floor 16.20 m2 = 1/5.7 (needs 1/7 ≈ 2.31 m2)
+✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 Read a line from the left: the verdict (✔/✖), the space path, the name, the effective window area **after the coefficient**, the floor area, their ratio, and the required area. A room with no windows at all shows `窓なし` ("no windows"). The last line reads "all 2 rooms satisfy 1/7 — a coarse test with no correction factors".
@@ -110,12 +108,10 @@ Read a line from the left: the verdict (✔/✖), the space path, the name, the 
 The same two rooms with their windows dropped look like this.
 
 ```text
-✖ /L1/a	居室A	窓 0.00㎡ / 床 16.20㎡ = 窓なし (必要 1/7 ≈ 2.31㎡)
-✖ /L1/b	居室B	窓 0.00㎡ / 床 16.20㎡ = 窓なし (必要 1/7 ≈ 2.31㎡)
-✖ 2室中 2室が不足しています
+✖ /L1/a	居室A	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2)
+✖ /L1/b	居室B	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2)
+✖ Short of 1/7: 2 of 2 rooms (this is a validation judgement)
 ```
-
-("2 of 2 rooms fall short.")
 
 ## Taking light through a semi-outdoor space
 
@@ -130,7 +126,7 @@ unit mm
 
 grid X 0 4000
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 
 space /L1/liv living  X1..X2 Y1..Y2      name:居間 daylight:1
 space /L1/bal balcony X1..X2 Y1-1500..Y1 name:テラス
@@ -142,7 +138,7 @@ boundary /L1/bal /out edge:S t:120 spec:手すり air:1 h:1100
 ```
 
 ```text
-✔ /L1/liv	居間	窓 5.72㎡ / 床 16.00㎡ = 1/2.8 (必要 1/7 ≈ 2.29㎡)
+✔ /L1/liv	居間	window 5.72 m2 / floor 16.00 m2 = 1/2.8 (needs 1/7 ≈ 2.29 m2)
 ```
 
 Add an upstairs balcony in the same position and the terrace becomes covered above, taking the 0.7. Neither the window nor the floor has been changed at all.
@@ -154,7 +150,7 @@ unit mm
 
 grid X 0 4000
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:500
 level L2 2900 h:2400 slab:500
 level R 5800 slab:500
 
@@ -170,7 +166,7 @@ boundary /L2/bal /out edge:S t:120 spec:手すり air:1 h:1100
 ```
 
 ```text
-✔ /L1/liv	居間	窓 4.00㎡ / 床 16.00㎡ = 1/4.0 (必要 1/7 ≈ 2.29㎡)
+✔ /L1/liv	居間	window 4.00 m2 / floor 16.00 m2 = 1/4.0 (needs 1/7 ≈ 2.29 m2)
 ```
 
 Note that a space is judged semi-outdoor when it has a region and carries an `open` or `air:1` boundary with the outside. A balcony whose railing (`air:1`) was forgotten is not semi-outdoor, and a window taken across it counts as 0.

@@ -1,4 +1,4 @@
-// koyu — 凸片の幾何 (ADR-0027)
+// koyu — 凸片の幾何 (ADR-0022 / spec/derivation.md §1)
 //
 // 空間の形は**凸片の集合** (`Pt[][]`) である (ADR-0022)。矩形はその入口の綴りにすぎない。
 // この層が存在しなかったあいだ、面積・被覆・切り分けの計算が model / graph / fabric /
@@ -11,11 +11,10 @@
 // どの範囲で測り、どの範囲を切るのかを、呼び手が必ず一緒に言う。
 
 import type { Pt, Rect } from "./model.js";
+import { AREA_EPS, CROSS_EPS, EPS, POINT_EPS } from "./tolerance.js";
 
-/** 幾何の許容 mm。座標はmmの整数が基本なので、これより細かい差は同一とみなす */
-export const EPS = 0.5;
-/** 面積の退化の閾値 mm² — 1mm×1mm 未満の片は捨てる */
-const AREA_EPS = 1;
+/** 幾何の許容 mm — 台帳は tolerance.ts が持つ (ADR-0040) */
+export { EPS };
 
 // ---- 基本 ----
 
@@ -79,8 +78,8 @@ export function clipHalf(poly: Pt[], a: Pt, b: Pt, keepLeft: boolean): Pt[] {
     const q = poly[(i + 1) % poly.length]!;
     const sp = side(p);
     const sq = side(q);
-    if (sp >= -1e-6) out.push(p);
-    if ((sp > 1e-6 && sq < -1e-6) || (sp < -1e-6 && sq > 1e-6)) {
+    if (sp >= -CROSS_EPS) out.push(p);
+    if ((sp > CROSS_EPS && sq < -CROSS_EPS) || (sp < -CROSS_EPS && sq > CROSS_EPS)) {
       const t = sp / (sp - sq);
       out.push({ x: p.x + t * (q.x - p.x), y: p.y + t * (q.y - p.y) });
     }
@@ -250,7 +249,7 @@ export function cutsInWindow(pieces: Pt[][], w: Rect, a: Pt, b: Pt): boolean {
 // ---- 包含 ----
 
 /** 点が多角形の辺の上にあるか */
-export function onEdge(p: Pt, poly: Pt[], eps = 1): boolean {
+export function onEdge(p: Pt, poly: Pt[], eps = POINT_EPS): boolean {
   for (let i = 0; i < poly.length; i++) {
     const a = poly[i]!;
     const b = poly[(i + 1) % poly.length]!;
@@ -266,7 +265,7 @@ export function onEdge(p: Pt, poly: Pt[], eps = 1): boolean {
 }
 
 /** 点が多角形の内側にあるか (境界上は内側扱い) */
-export function pointIn(p: Pt, poly: Pt[], eps = 1): boolean {
+export function pointIn(p: Pt, poly: Pt[], eps = POINT_EPS): boolean {
   if (onEdge(p, poly, eps)) return true;
   let inside = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {

@@ -7,7 +7,7 @@ This is the translation contract for `spec/en/` and `guide/en/`. Japanese is the
 ## 規則 / Rules
 
 1. **記法のキーワードと属性名は訳さない。** `space` `boundary` `zone` `band` `w:` `edge:` などはコードであり、英文中でもコードのまま書く。
-2. **コードブロックは一字も変えない。** `.muro` の中身・CLIの実行例・貼られた出力は日英で**バイト同一**である (テストが検査する)。**出力に現れる日本語 (`✔ 整合 — 空間 3 / 境界 3`、診断の本文) もそのまま**である — それが実際に出るものだからで、英文の側は直後に括弧で訳を添える。
+2. **コードブロックは一字も変えない。** `.muro` の中身・CLIの実行例・貼られた出力は日英で**バイト同一**である (テストが検査する)。**機械向けの出力は英語である** (`✔ Consistent — 3 spaces / 3 boundaries`、診断の本文) — 日本語の頁も英語の出力をそのまま貼り、解説だけを日本語で書く。出力に日本語が残るのは `name:` のような**書き手の言葉**だけである。
 3. **診断コード (`BND04` 等) は識別子である。** 訳さない。
 4. **法規まわりの語は日本の制度語である。** `建蔽率` を coverage ratio と訳すのはよいが、それが日本の建築基準法の用語であることを一度は明記する。
 5. 英語は米国綴りに寄せる (`center`, `neighbor`)。ただし建築の慣用で英国綴りが標準の語 (`storey`) はそちらに従う。
@@ -63,6 +63,10 @@ This is the translation contract for `spec/en/` and `guide/en/`. Japanese is the
 | 矩計 | section stack-up | `levels` が出すテキストの断面 |
 | 高さの不変量 | height invariant | 天井高 + 上階slab ≤ 階高 |
 | 正準JSON | canonical JSON | バイト安定な機械形式 |
+| 形式版 | format version | 正準JSONの綴りの版 (`format`)。言語版とは別 |
+| 言語版 | language version | 原本の `koyu <版>`。muro の版 |
+| 照合順 | collation order | キーの並び — 符号位置の昇順 (= UTF-8バイト順) |
+| 正規化 | normalization | 文字の NFC 正規化 (同一性はここで決まる) |
 | 意味保存 | meaning-preserving | 導出物が不変であること |
 | 床規則 | floor rule | 帯の内側の切り位置の綴り方 |
 | 閉じた帯 | closed band | `w:rest` を使わず合計を照合する帯 |

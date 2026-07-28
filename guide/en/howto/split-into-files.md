@@ -80,7 +80,7 @@ Run `check` on the entry. The imports are followed automatically and the result 
 
 ```text
 $ npx tsx src/cli.ts check examples/house/main.muro
-✔ 整合 — 空間 13 / 境界 31
+✔ Consistent — 13 spaces / 31 boundaries
 ```
 
 `stats` and `plan` also see the composed model when given the entry. When you need the list of layers that took part, the MCP `layers` tool returns `{file, source}` for each ([spec/tools.md](../../../spec/en/tools.md)).
@@ -91,10 +91,10 @@ A layer file has neither `grid` nor `level`, so it cannot be read alone.
 
 ```text
 $ npx tsx src/cli.ts check examples/house/L1.muro
-✖ examples/house/L1.muro:3行目: 未宣言のレベルです: level:L1
+✖ examples/house/L1.muro:line 3: Undeclared level: level:L1
 ```
 
-("Undeclared level.") Checking is always done against the entry.
+Checking is always done against the entry.
 
 ## When there is a collision
 
@@ -108,26 +108,26 @@ space /home/ldk   ldk  X1..X2 Y1..Y3 level:L2 name:LDK上部
 ```
 
 ```text
-✖ house/L2.muro:6行目: 空間パスが重複しています: /home/ldk (既出: house/L1.muro:3行目)
+✖ house/L2.muro:line 6: Duplicate space path: /home/ldk (first seen in house/L1.muro at line 3)
 ```
 
-("Duplicate space path, first seen at house/L1.muro line 3.") A path is identity itself. If it is a different space, give it a different path.
+A path is identity itself. If it is a different space, give it a different path.
 
 **A re-declared `grid` or `name`** — when the foundation was added so that a layer would work independently.
 
 ```text
-✖ house/L2.muro:3行目: grid X は一度だけ宣言します (合成時はbase層で)
+✖ house/L2.muro:line 3: grid X is declared once (in the base layer when composing)
 ```
 
-("grid X is declared once — in the base layer when composing.") Remove the line on the layer's side, not from the base layer.
+Remove the line on the layer's side, not from the base layer.
 
 **A duplicate asset name** — when opening types were written per layer.
 
 ```text
-✖ house/L2.muro:3行目: アセット名が重複しています: W1 (既出: house/assets.muro:7行目)
+✖ house/L2.muro:line 3: Duplicate asset name: W1 (first seen in house/assets.muro at line 7)
 ```
 
-("Duplicate asset name.") Gather assets into one layer. If you need a different size, give it a different name, or override the attribute at the reference (`window W1 h:1200`).
+Gather assets into one layer. If you need a different size, give it a different name, or override the attribute at the reference (`window W1 h:1200`).
 
 ## Related
 

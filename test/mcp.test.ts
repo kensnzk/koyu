@@ -63,7 +63,7 @@ class McpClient {
   }
 }
 
-test("MCP: initialize → tools/list → towerへの問い → write_layerの門番", { timeout: 120000 }, async () => {
+test("MCP: initialize → tools/list → questions about tower → the write_layer gatekeeper", { timeout: 120000 }, async () => {
   // towerを一時ディレクトリへコピー (write_layerで汚さないため)
   const dir = mkdtempSync(join(tmpdir(), "koyu-mcp-"));
   cpSync(join(root, "examples/tower"), dir, { recursive: true });
@@ -78,7 +78,9 @@ test("MCP: initialize → tools/list → towerへの問い → write_layerの門
     });
     const initRes = init.result as { serverInfo: { name: string }; instructions: string };
     assert.equal(initRes.serverInfo.name, "koyu");
-    assert.match(initRes.instructions, /門番/);
+    // MCP の応答はすべて英語である — 機械が読む面だから (ADR-0036)
+    assert.match(initRes.instructions, /gatekeeper/);
+    assert.doesNotMatch(initRes.instructions, /[ぁ-んァ-ヶ]/, "no Japanese is left on the MCP surface");
 
     const list = await c.request("tools/list");
     const tools = (list.result as { tools: Array<{ name: string }> }).tools.map((t) => t.name);

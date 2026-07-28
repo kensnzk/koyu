@@ -10,9 +10,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { renderDiff, semanticDiff, type ModelDiff } from "../src/diff.js";
-import { toCanonical } from "../src/model.js";
-import { parse } from "../src/parse.js";
+import { renderDiff, semanticDiff, type ModelDiff } from "../src/core/diff.js";
+import { toCanonical } from "../src/core/model.js";
+import { parse } from "../src/core/parse.js";
 import { parseFile } from "../src/parse-file.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -37,12 +37,12 @@ function assertEmpty(d: ModelDiff): void {
 
 // ---- (a) 同一・同義は空 ----
 
-test("diff: 同一モデルの差分は空", () => {
+test("diff: the diff of an identical model is empty", () => {
   const src = `${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /L1/b room X2..X3 Y1..Y2\nboundary /L1/a /L1/b t:120`;
   assertEmpty(semanticDiff(parse(src), parse(src)));
 });
 
-test("diff: 行順・領域合併の+順・開口順の入替は差分ではない (toCanonical同一 ⇒ diff空)", () => {
+test("diff: line order, the + order of merged regions and opening order are not differences (same toCanonical ⇒ empty diff)", () => {
   const a = parse(
     `${BASE}
 space /L1/a room X1..X2 Y1..Y2 + X2..X3 Y1..Y2
@@ -63,14 +63,14 @@ boundary /L1/a /out t:150
   assertEmpty(semanticDiff(a, b));
 });
 
-test("diff: 向き (a/b) の入替は edge/開口が無ければ差分ではない (toCanonicalは異なる)", () => {
+test("diff: swapping the a/b orientation is not a difference when no edge or opening is written (toCanonical does differ)", () => {
   const a = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /L1/b room X2..X3 Y1..Y2\nboundary /L1/a /L1/b t:120`);
   const b = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /L1/b room X2..X3 Y1..Y2\nboundary /L1/b /L1/a t:120`);
   assert.notEqual(toCanonical(a), toCanonical(b)); // 正準JSONは書かれた向きを保存する
   assertEmpty(semanticDiff(a, b));
 });
 
-test("diff: examples全6エントリの自己差分は空", () => {
+test("diff: the self-diff of all 6 example entries is empty", () => {
   for (const f of [
     "examples/two-rooms.muro",
     "examples/office.muro",
@@ -88,7 +88,7 @@ test("diff: examples全6エントリの自己差分は空", () => {
 
 // ---- (b) 素wall宣言 vs 省略 (derived) ----
 
-test("diff: 素の宣言wallと既定壁 (derived) は同一視される (ADR-0014の吸収)", () => {
+test("diff: a bare declared wall and a default (derived) wall are treated as one (ADR-0014 absorbed)", () => {
   const rooms = `space /L1/a room X1..X2 Y1..Y2\nspace /L1/b room X2..X3 Y1..Y2`;
   const verbose = parse(`${BASE}\n${rooms}\nboundary /L1/a /L1/b`);
   const slim = parse(`${BASE}\n${rooms}`);
@@ -97,7 +97,7 @@ test("diff: 素の宣言wallと既定壁 (derived) は同一視される (ADR-00
   assertEmpty(semanticDiff(slim, verbose));
 });
 
-test("diff: 素でないwall宣言の省略は通常のフィールド差分になる (t 120 → 無し)", () => {
+test("diff: dropping a wall declaration that is not bare becomes an ordinary field difference (t 120 → none)", () => {
   const rooms = `space /L1/a room X1..X2 Y1..Y2\nspace /L1/b room X2..X3 Y1..Y2`;
   const d = semanticDiff(parse(`${BASE}\n${rooms}\nboundary /L1/a /L1/b t:120`), parse(`${BASE}\n${rooms}`));
   assert.equal(d.boundaries.added.length + d.boundaries.removed.length, 0);
@@ -107,7 +107,7 @@ test("diff: 素でないwall宣言の省略は通常のフィールド差分に�
 
 // ---- (c) uid改名 ----
 
-test("diff: uid一致・パス不一致は改名 — 境界は対応対のトークンが継ぎ、削除+追加の洪水にならない", () => {
+test("diff: same uid with a different path is a rename — the matched pair's token carries the boundaries over, so no flood of removals and additions", () => {
   const BASE3 = ["koyu 0.2", "unit mm", "grid X 0 4000 8000 12000", "grid Y 0 4000", "level L1 0 h:2400"].join("\n");
   const a = parse(
     `${BASE3}
@@ -132,10 +132,10 @@ boundary /L1/a /L1/living t:120
   assert.deepEqual(d.spaces.changed, []);
   // 宣言境界 (a|b) も既定境界 (b|c) も改名を跨いで対応する
   assert.deepEqual(d.boundaries, { added: [], removed: [], changed: [] });
-  assert.match(renderDiff(d)[0]!, /^改名 \/L1\/b → \/L1\/living \(uid:sp-b\)$/);
+  assert.match(renderDiff(d)[0]!, /^renamed \/L1\/b → \/L1\/living \(uid:sp-b\)$/);
 });
 
-test("diff: zoneのuid改名も同様に報告される", () => {
+test("diff: a zone uid rename is reported the same way", () => {
   const a = parse(`${BASE}\nspace /Z1/a room X1..X2 Y1..Y2 level:L1\nzone /Z1 uid:zn-1 use:exclusive`);
   const b = parse(`${BASE}\nspace /Z2/a room X1..X2 Y1..Y2 level:L1\nzone /Z2 uid:zn-1 use:exclusive`);
   const d = semanticDiff(a, b);
@@ -145,7 +145,7 @@ test("diff: zoneのuid改名も同様に報告される", () => {
 
 // ---- (d) 変化の検出 ----
 
-test("diff: 領域・面積・属性・レベルの変化", () => {
+test("diff: changes of region, area, attribute and level", () => {
   const a = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2 floor:畳`);
   const b = parse(`koyu 0.2\nunit mm\ngrid X 0 3600 7200\ngrid Y 0 4500\nlevel L1 0 h:2600\nspace /L1/a room X1..X3 Y1..Y2 floor:オーク`);
   const d = semanticDiff(a, b);
@@ -154,13 +154,13 @@ test("diff: 領域・面積・属性・レベルの変化", () => {
   const c = d.spaces.changed[0]!;
   assert.equal(c.path, "/L1/a");
   assert.deepEqual(c.fields, [
-    { field: "領域", from: "X1..X2 Y1..Y2", to: "X1..X3 Y1..Y2" },
-    { field: "面積", from: "16.20㎡", to: "32.40㎡" },
+    { field: "region", from: "X1..X2 Y1..Y2", to: "X1..X3 Y1..Y2" },
+    { field: "area", from: "16.20 m2", to: "32.40 m2" },
     { field: "floor", from: "畳", to: "オーク" },
   ]);
 });
 
-test("diff: 境界のtと開口の幅の変化は一つの対応対のフィールド差分になる", () => {
+test("diff: a change of boundary t and opening width becomes field differences on a single matched pair", () => {
   const rooms = `space /L1/a room X1..X2 Y1..Y2\nspace /L1/b room X2..X3 Y1..Y2`;
   const a = parse(`${BASE}\n${rooms}\nboundary /L1/a /L1/b t:120\n  door w:780 h:2000`);
   const b = parse(`${BASE}\n${rooms}\nboundary /L1/a /L1/b t:150\n  door w:900 h:2000`);
@@ -172,10 +172,10 @@ test("diff: 境界のtと開口の幅の変化は一つの対応対のフィー�
     { field: "t", from: "120", to: "150" },
     { field: "door at:0.5 w", from: "780", to: "900" },
   ]);
-  assert.equal(renderDiff(d)[0], "± 境界 /L1/a | /L1/b: t 120 → 150 / door at:0.5 w 780 → 900");
+  assert.equal(renderDiff(d)[0], "± boundary /L1/a | /L1/b: t 120 → 150 / door at:0.5 w 780 → 900");
 });
 
-test("diff: grid座標の移動は出力の先頭に出て、面積差分の原因を説明する", () => {
+test("diff: a moved grid coordinate comes first in the output and explains the cause of the area difference", () => {
   const rooms = `space /L1/a room X1..X2 Y1..Y2`;
   const a = parse(`${BASE}\n${rooms}`);
   const b = parse(`koyu 0.2\nunit mm\ngrid X 0 4200 7200\ngrid Y 0 4500\nlevel L1 0 h:2400\n${rooms}`);
@@ -183,10 +183,10 @@ test("diff: grid座標の移動は出力の先頭に出て、面積差分の原�
   assert.deepEqual(d.grid, [{ axis: "X", name: "X2", kind: "moved", from: 3600, to: 4200 }]);
   const lines = renderDiff(d);
   assert.equal(lines[0], "± grid X X2 3600 → 4200");
-  assert.ok(lines.some((l) => l.includes("面積 16.20㎡ → 18.90㎡")));
+  assert.ok(lines.some((l) => l.includes("area 16.20 m2 → 18.90 m2")));
 });
 
-test("diff: polygonは巡回正規化 (回転・反転) で比べ、本文は変わった項だけを言う", () => {
+test("diff: a polygon is compared under cyclic normalization (rotation and reversal), and the text names only the fields that changed", () => {
   const site = `zone /site site:1`;
   const a = parse(`${BASE}\n${site}\npolygon /site 0,0 10000,0 10000,10000 0,10000`);
   const rotated = parse(`${BASE}\n${site}\npolygon /site 10000,0 10000,10000 0,10000 0,0`);
@@ -196,31 +196,31 @@ test("diff: polygonは巡回正規化 (回転・反転) で比べ、本文は変
   // 面積だけが変わったなら面積だけを言う — 「頂点 4 → 4」は何も伝えない
   const grown = parse(`${BASE}\n${site}\npolygon /site 0,0 12000,0 12000,10000 0,10000`);
   assert.deepEqual(semanticDiff(a, grown).polygons.changed, [
-    { path: "/site", fields: [{ field: "面積", from: "100.00㎡", to: "120.00㎡" }] },
+    { path: "/site", fields: [{ field: "area", from: "100.00 m2", to: "120.00 m2" }] },
   ]);
   // 頂点数も面積も同じまま形が変わることはある — そのときは黙らずにそう言う
   const sheared = parse(`${BASE}\n${site}\npolygon /site 0,0 10000,0 12000,10000 2000,10000`);
   assert.deepEqual(semanticDiff(a, sheared).polygons.changed, [
-    { path: "/site", fields: [{ field: "形", from: "頂点数も面積も同じ", to: "頂点の位置が違う" }] },
+    { path: "/site", fields: [{ field: "shape", from: "same vertex count and same area", to: "the vertices sit elsewhere" }] },
   ]);
 });
 
-test("diff: 0.5 の三語 — 柱・描かれた線・地下は差分に出る (ADR-0029)", () => {
+test("diff: the three words of 0.5 — column, drawn line and underground all show in the diff (ADR-0029)", () => {
   const B = ["koyu 0.5", "unit mm", "grid X 0 4000 8000", "grid Y 0 3000", "level L1 0 h:2700"].join("\n");
 
   // 柱: 宣言そのものを比べる。位置は書かれないので、比べるものは宣言しかない
   const noCol = parse(`${B}\nspace /L1/a room X1..X3 Y1..Y2`);
   const withCol = parse(`${B}\nspace /L1/a room X1..X3 Y1..Y2\ncolumn 800 L1 x:X2`);
-  assert.deepEqual(semanticDiff(noCol, withCol).columns.added, [{ at: 1, label: "800角 L1 x:X2" }]);
-  assert.deepEqual(renderDiff(semanticDiff(withCol, noCol)), ["− 柱 800角 L1 x:X2"]);
+  assert.deepEqual(semanticDiff(noCol, withCol).columns.added, [{ at: 1, label: "800 square L1 x:X2" }]);
+  assert.deepEqual(renderDiff(semanticDiff(withCol, noCol)), ["− column 800 square L1 x:X2"]);
 
   // **宣言順は意味である** (同じ交点は先の宣言が勝つ) — 入れ替えは順位の差分になる
   const two = (first: string, second: string) =>
     parse(`${B}\nspace /L1/a room X1..X3 Y1..Y2\ncolumn ${first}\ncolumn ${second}`);
   const d = semanticDiff(two("900 L1 x:X2", "500 L1"), two("500 L1", "900 L1 x:X2"));
   assert.deepEqual(d.columns.changed.map((c) => [c.path, c.fields[0]!.from, c.fields[0]!.to]), [
-    ["900角 L1 x:X2", "1", "2"],
-    ["500角 L1", "2", "1"],
+    ["900 square L1 x:X2", "1", "2"],
+    ["500 square L1", "2", "1"],
   ]);
 
   // 描かれた線: 面積が変わらない移動 (隅切りを反対の隅へ) でも見える
@@ -241,7 +241,7 @@ test("diff: 0.5 の三語 — 柱・描かれた線・地下は差分に出る (
   ]);
 });
 
-test("正準JSON: 柱の宣言順は保たれ、通り名の並びは正準化される (ADR-0029)", () => {
+test("canonical JSON: the declaration order of columns is kept, the order of grid line names is canonicalized (ADR-0029)", () => {
   const B = ["koyu 0.5", "unit mm", "grid X 0 4000 8000", "grid Y 0 4000", "level L1 0 h:3000"].join("\n");
   const two = (first: string, second: string) =>
     parse(`${B}\nspace /L1/a room X1..X3 Y1..Y2\ncolumn ${first}\ncolumn ${second}`);
@@ -252,7 +252,7 @@ test("正準JSON: 柱の宣言順は保たれ、通り名の並びは正準化�
   assert.equal(toCanonical(names("x:X1,X2 y:Y1,Y2")), toCanonical(names("x:X2,X1 y:Y2,Y1")));
 });
 
-test("diff: version・nameの変化", () => {
+test("diff: changes of version and name", () => {
   const a = parse(`koyu 0.1\nname 甲\nunit mm\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0\nspace /L1/a room X1..X2 Y1..Y2`);
   const b = parse(`koyu 0.2\nname 乙\nunit mm\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0\nspace /L1/a room X1..X2 Y1..Y2`);
   const d = semanticDiff(a, b);
@@ -262,7 +262,7 @@ test("diff: version・nameの変化", () => {
 
 // ---- (e) uid重複モデルでも完走 ----
 
-test("diff: uidが重複しているモデル (UID03) ではパス照合へフォールバックし、落ちない", () => {
+test("diff: on a model with duplicate uids (UID03) it falls back to path matching and does not crash", () => {
   const a = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2 uid:dup\nspace /L1/b room X2..X3 Y1..Y2 uid:dup`);
   const b = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2 uid:dup\nspace /L1/c room X2..X3 Y1..Y2 uid:dup`);
   const d = semanticDiff(a, b);
@@ -276,13 +276,13 @@ test("diff: uidが重複しているモデル (UID03) ではパス照合へフ�
 
 // ---- (f) 追加/削除 ----
 
-test("diff: 空間の追加/削除 (型と面積つき)。新しい接触の既定境界も追加として出る", () => {
+test("diff: spaces added and removed (with type and area). The default boundary of a new contact shows as an addition too", () => {
   const a = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2`);
   const b = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /L1/study room X2..X3 Y1..Y2`);
   const d = semanticDiff(a, b);
   assert.deepEqual(d.spaces.added, [{ path: "/L1/study", type: "room", areaM2: 16.2 }]);
   assert.deepEqual(d.boundaries.added, [{ between: ["/L1/a", "/L1/study"], kind: "wall" }]);
-  assert.ok(renderDiff(d).includes("+ 空間 /L1/study (room 16.20㎡)"));
+  assert.ok(renderDiff(d).includes("+ space /L1/study (room 16.20 m2)"));
   const r = semanticDiff(b, a);
   assert.equal(r.spaces.removed[0]!.path, "/L1/study");
   assert.equal(r.boundaries.removed.length, 1);
@@ -290,7 +290,7 @@ test("diff: 空間の追加/削除 (型と面積つき)。新しい接触の既�
 
 // ---- CLI: 終了コード 0/1/2 ----
 
-test("CLI: diff の終了コードは 0=差分なし / 1=差分あり / 2=入力が壊れている", { timeout: 60000 }, () => {
+test("CLI: the exit code of diff is 0 = no differences / 1 = differences / 2 = broken input", { timeout: 60000 }, () => {
   const dir = mkdtempSync(join(tmpdir(), "koyu-diff-"));
   const fa = join(dir, "a.muro");
   const fb = join(dir, "b.muro");
@@ -307,7 +307,7 @@ test("CLI: diff の終了コードは 0=差分なし / 1=差分あり / 2=入力
 
   const same = run(fa, fa);
   assert.equal(same.status, 0);
-  assert.match(same.stdout, /差分なし/);
+  assert.match(same.stdout, /No differences/);
 
   const changed = run(fa, fb);
   assert.equal(changed.status, 1);
@@ -320,10 +320,10 @@ test("CLI: diff の終了コードは 0=差分なし / 1=差分あり / 2=入力
 
   const bad = run(fa, broken);
   assert.equal(bad.status, 2);
-  assert.match(bad.stderr, /未定義の通り名/);
+  assert.match(bad.stderr, /Undefined grid line name/);
 });
 
-test("level:の付け替えは差分になる (正準JSONにも現れる — 不変量の維持)", () => {
+test("moving level: to another level is a difference (it appears in the canonical JSON too — the invariant holds)", () => {
   const src = (lv: string) =>
     `koyu 0.2\nunit mm\ngrid X 0 4000\ngrid Y 0 4000\nlevel L1 0\nlevel L2 3000\nspace /Z/a room X1..X2 Y1..Y2 level:${lv}`;
   const a = parse(src("L1"));

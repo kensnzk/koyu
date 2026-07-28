@@ -4,17 +4,17 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check } from "../src/check.js";
-import { doorsBetween } from "../src/graph.js";
-import { areaM2, effectiveUse, isSemiOutdoor, zoneAreaM2 } from "../src/model.js";
-import { parse } from "../src/parse.js";
+import { check } from "../src/core/diagnose.js";
+import { doorsBetween } from "../src/core/graph.js";
+import { areaM2, effectiveUse, isSemiOutdoor, zoneAreaM2 } from "../src/core/model.js";
+import { parse } from "../src/core/parse.js";
 
 const src = readFileSync(
   fileURLToPath(new URL("../examples/mansion.muro", import.meta.url)),
   "utf8",
 );
 
-test("200行たらずのテキストが10フロア122空間に展開される", () => {
+test("under 200 lines of text expands into 10 storeys and 122 spaces", () => {
   const m = parse(src);
   assert.ok(src.split("\n").length < 200);
   assert.equal(m.spaces.size, 122);
@@ -23,7 +23,7 @@ test("200行たらずのテキストが10フロア122空間に展開される", 
   assert.equal(m.zones.size, 8); // Aタイプのゾーン × L2..L9
 });
 
-test("基準階の展開: どの階も同じ割付、レベルのzはpitchで積まれる", () => {
+test("typical-floor expansion: every storey gets the same layout, and the z of a level stacks by pitch", () => {
   const m = parse(src);
   assert.deepEqual(m.spaces.get("/L5/A/ldk")!.rects, m.spaces.get("/L2/A/ldk")!.rects);
   assert.deepEqual(m.spaces.get("/L9/E")!.rects, m.spaces.get("/L3/E")!.rects);
@@ -31,20 +31,20 @@ test("基準階の展開: どの階も同じ割付、レベルのzはpitchで積
   assert.equal(m.levels["L9"]!.z, 24100);
 });
 
-test("stackの展開: EVシャフト9本・階段9本の垂直境界", () => {
+test("stack expansion: nine lift-shaft and nine stair vertical boundaries", () => {
   const m = parse(src);
   assert.equal(m.boundaries.filter((b) => b.kind === "shaft").length, 9);
   assert.equal(m.boundaries.filter((b) => b.kind === "stair").length, 9);
 });
 
-test("整合チェックが警告ゼロで通る (10フロアぶんの高さ不変量含む)", () => {
+test("the consistency check passes with zero warnings (the height invariants of all ten storeys included)", () => {
   const m = parse(src);
   const r = check(m);
   assert.deepEqual(r.errors, []);
   assert.deepEqual(r.warnings, []);
 });
 
-test("避難の問い: 9階のLDKから地上まで扉3枚 (室内扉・玄関・階段防火戸)", () => {
+test("asking about escape: three doors from the ninth-floor LDK to the ground (interior door, entrance, stair fire door)", () => {
   const m = parse(src);
   const route = doorsBetween(m, "/L9/A/ldk", "/out")!;
   assert.equal(route.doors, 3);
@@ -54,12 +54,12 @@ test("避難の問い: 9階のLDKから地上まで扉3枚 (室内扉・玄関�
   assert.ok(ev.path.includes("/L5/corridor"));
 });
 
-test("2階の洋室から9階の洋室へは扉8枚", () => {
+test("eight doors from the second-floor bedroom to the ninth-floor bedroom", () => {
   const m = parse(src);
   assert.equal(doorsBetween(m, "/L2/A/bedroom", "/L9/A/bedroom")!.doors, 8);
 });
 
-test("面積: 専有1704㎡ — 間取りに割っても、バルコニーが付いても不変", () => {
+test("area: 1704 m2 of exclusive floor — unchanged by splitting into a layout or by adding balconies", () => {
   const m = parse(src);
   const exclusive = [...m.spaces.values()]
     .filter((s) => effectiveUse(m, s) === "exclusive" && !isSemiOutdoor(m, s))
@@ -68,7 +68,7 @@ test("面積: 専有1704㎡ — 間取りに割っても、バルコニーが付
   assert.equal(zoneAreaM2(m, "/L5/A"), 34.8); // 住戸=ゾーンの面積は室の合計 (半屋外は数えない)
 });
 
-test("半屋外は導出される: バルコニー・屋外階段は半屋外、内廊下は違う", () => {
+test("semi-outdoor is derived: balconies and outdoor stairs are semi-outdoor, an interior corridor is not", () => {
   const m = parse(src);
   assert.equal(isSemiOutdoor(m, m.spaces.get("/L5/A/balcony")!), true);
   assert.equal(isSemiOutdoor(m, m.spaces.get("/L5/stair")!), true);
@@ -77,7 +77,7 @@ test("半屋外は導出される: バルコニー・屋外階段は半屋外、
   assert.equal(isSemiOutdoor(m, m.spaces.get("/L5/A/ldk")!), false); // バルコニーの内側
 });
 
-test("一行の中で異なるレベル範囲は使えない", () => {
+test("different level ranges cannot be mixed on one line", () => {
   assert.throws(
     () =>
       parse(`
@@ -90,10 +90,10 @@ space /L1..L2/a room X1..X2 Y1..Y2
 space /L2..L3/b room X2..X3 Y1..Y2
 boundary /L1..L2/a /L2..L3/b t:120
 `),
-    /レベル範囲は揃えます/,
+    /Level ranges on one line must agree/,
   );
 });
 
-test("レベル範囲の宣言には pitch が要る", () => {
+test("a level range declaration requires pitch", () => {
   assert.throws(() => parse("level L2..L5 3000 h:2400"), /pitch/);
 });

@@ -4,8 +4,9 @@
 // 空間の領域は矩形の合併 (L字など)。壁は合併の外周と共有辺から導出される。
 
 import type { Boundary, Edge, Model, Opening, Pt, Rect, Space } from "./model.js";
-import { rectToPoly, srcRef } from "./model.js";
+import { canonicalBoundaryOrder, canonicalizeDrawn, rectToPoly, srcRef } from "./model.js";
 import * as poly from "./poly.js";
+import { EPS, PARALLEL_EPS, PROBE, SPAN_EPS } from "./tolerance.js";
 
 /** 壁芯線分 (mm)。水平なら y1===y2、垂直なら x1===x2。
  *  描かれた線 (ADR-0022) は斜めになりうる — その場合 diagonal が立つ */
@@ -19,35 +20,6 @@ export interface Segment {
   diagonal?: boolean;
   /** boundary.a 側 (領域を持つ側) の矩形から見た辺 */
   edgeOfA?: Edge;
-}
-
-const EPS = 0.5;
-
-/** 二つの矩形が共有する辺の線分 (触れていなければ undefined) */
-export function sharedSegment(a: Rect, b: Rect): Segment | undefined {
-  for (const [x, ea] of [
-    [a.x2, "E"],
-    [a.x1, "W"],
-  ] as const) {
-    const bx = ea === "E" ? b.x1 : b.x2;
-    if (Math.abs(x - bx) < EPS) {
-      const y1 = Math.max(a.y1, b.y1);
-      const y2 = Math.min(a.y2, b.y2);
-      if (y2 - y1 > EPS) return { x1: x, y1, x2: x, y2, horizontal: false, edgeOfA: ea };
-    }
-  }
-  for (const [y, ea] of [
-    [a.y2, "N"],
-    [a.y1, "S"],
-  ] as const) {
-    const by = ea === "N" ? b.y1 : b.y2;
-    if (Math.abs(y - by) < EPS) {
-      const x1 = Math.max(a.x1, b.x1);
-      const x2 = Math.min(a.x2, b.x2);
-      if (x2 - x1 > EPS) return { x1, y1: y, x2, y2: y, horizontal: true, edgeOfA: ea };
-    }
-  }
-  return undefined;
 }
 
 /**
@@ -118,8 +90,8 @@ function pieceOutline(pieces: Pt[][], others: Pt[][]): Segment[] {
 }
 
 /**
- * 二つの領域 (凸片の集合) が共有する軸平行な辺。
- * `sharedSegment` の矩形版を凸片へ広げたもので、切られた形にも正しい。
+ * 二つの領域 (凸片の集合) が共有する軸平行な辺。矩形どうしの共有辺ではなく凸片で見るので、
+ * 描かれた線で切られた形にも正しい。
  * 斜めの辺は返さない — それは描かれた線であり、自分の境界が実現を持っている
  */
 function sharedFromPieces(A: Pt[][], B: Pt[][]): Segment[] {
@@ -220,15 +192,33 @@ export function deriveDefaultBoundaries(model: Model): void {
  */
 export function derivePieces(model: Model): void {
   for (const s of model.spaces.values()) s.pieces = s.rects.map(rectToPoly);
-  // 線は宣言順に効く。derivePieces は parse の出口で一度だけ呼ぶ (冪等ではない)
 
-  for (const b of model.boundaries) {
+  // **線の向きを正準に揃えてから切る。**線分は向きを持たないので、正準JSONは端点の対を
+  // 解決座標の昇順に並べ替える。モデルの側が書き順のままだと、開口の `at:` の起点が
+  // 書き順で決まり、**正準JSONがバイト同一のまま扉が別の位置に出る** (ADR-0041)
+  for (const b of model.boundaries) if (b.drawn) canonicalizeDrawn(b.drawn);
+
+  // **正準の境界順で切る。**線の切り分けは直前の切り分けの結果を読むので順序が効くが、
+  // 正準JSONは境界の宣言順を捨てる。宣言順で切ると、同じ正準JSONから違う面積が出る
+  // (実測: 交差する二本の線で /L1/a が 27.00㎡ ↔ 22.50㎡)。並びは toCanonical と同じ規則
+  for (const b of canonicalBoundaryOrder(model)) {
     if (!b.drawn) continue;
     const sa = model.spaces.get(b.a);
     const sb = model.spaces.get(b.b);
     if (!sa || !sb) continue;
     const cut = drawnCut(sa, sb, b.drawn.a, b.drawn.b);
-    if (!cut) continue;
+    if (!cut) {
+      b.drawn.effect = "undetermined";
+      continue;
+    }
+    // **何を切ったかは、切るその場で記録する。**後から計算し直すと、既に切られた形を
+    // 相手に窓を組み立てることになる (ADR-0041)
+    const targets = cut.solo ? [cut.solo] : [sa, sb];
+    b.drawn.effect = targets.some((s) =>
+      poly.cutsInWindow(s.pieces, cut.window, b.drawn!.a, b.drawn!.b),
+    )
+      ? "cut"
+      : "nothing";
 
     if (cut.solo) {
       // 外皮を切る線 — 持つ側だけが窓の中で自分の側へ切り落とされる。相手は面積を得ない
@@ -258,7 +248,7 @@ export function derivePieces(model: Model): void {
 }
 
 /**
- * 描かれた線の切り方を一度に決める — 窓・残す側・片側かどうか (ADR-0022 / ADR-0027)。
+ * 描かれた線の切り方を一度に決める — 窓・残す側・片側かどうか (ADR-0022 / spec/derivation.md §1.2-1.3)。
  *
  * **窓と側は必ず一緒に決める。**別々に決めていたために、側は空間の全割付を無限直線で
  * 測るのに切るのは線の近傍だけ、という母集団のずれが生まれ、線から遠い翼が符号を
@@ -282,7 +272,10 @@ export function drawnCut(
     if (!poly.validWindow(w)) return undefined;
     const side = poly.sideOfTouching(solo.pieces, w, a, b);
     if (side === 0) return undefined; // 窓の中でちょうど二等分 — 残す側が決まらない (LIN01)
-    return { window: w, sideA: solo === sa ? side : -side, solo };
+    // **残す側は、領域を持つ側そのものが決める。**a/b の向きで符号を返していたので、
+    // `boundary /out /L1/room` と書くと残す側が反転していた (実測 26㎡ ↔ 34㎡、check は緑)。
+    // a/b の向きが意味を持つのは `edge` と `swing` だけで、形はそれに従わない (ADR-0041)
+    return { window: w, sideA: side, solo };
   }
   const w = poly.lineWindow(a, b, ba, bb);
   if (!poly.validWindow(w)) return undefined;
@@ -294,11 +287,6 @@ export function drawnCut(
   if (ia === ib) return undefined; // 同じ側 — 分離していない (LIN01)
   return { window: w, sideA: ia };
 }
-
-
-
-
-
 
 /** 境界の壁芯線分を導く。壁の位置は空間の割付から生成される — 壁を置く操作は存在しない */
 export function segmentsFor(model: Model, b: Boundary): Segment[] {
@@ -364,7 +352,7 @@ export function envelopeGaps(model: Model, s: Space): Segment[] {
       gaps = gaps.flatMap((g) => subtractOverlap(g, seg));
     }
   }
-  return gaps.filter((g) => segmentLength(g) > 1);
+  return gaps.filter((g) => segmentLength(g) > SPAN_EPS);
 }
 
 /** 軸平行の線分から、同一直線上で重なる区間を引く */
@@ -394,9 +382,6 @@ function piecesOf(s: Space): Pt[][] {
   return s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
 }
 
-/** 線の左右へ少し離れた点。どちらの空間に属するかを見るための探り */
-const PROBE = 5;
-
 /**
  * 描かれた線のうち、この二空間が実際に向かい合っている区間だけを返す (ADR-0022)。
  *
@@ -419,7 +404,7 @@ function drawnShare(model: Model, sa: Space, sb: Space, p: Pt, q: Pt): Segment[]
   for (const poly of [...A, ...B]) {
     for (let i = 0; i < poly.length; i++) {
       const t = lineHit(p, q, poly[i]!, poly[(i + 1) % poly.length]!);
-      if (t !== undefined && t > 1e-9 && t < 1 - 1e-9) cuts.add(t);
+      if (t !== undefined && t > PARALLEL_EPS && t < 1 - PARALLEL_EPS) cuts.add(t);
     }
   }
   const ts = [...cuts].sort((x, y) => x - y);
@@ -455,8 +440,8 @@ function drawnShare(model: Model, sa: Space, sb: Space, p: Pt, q: Pt): Segment[]
       last.y2 = end.y;
       continue;
     }
-    const horizontal = Math.abs(dy) < 0.5;
-    const vertical = Math.abs(dx) < 0.5;
+    const horizontal = Math.abs(dy) < EPS;
+    const vertical = Math.abs(dx) < EPS;
     out.push({
       x1: start.x,
       y1: start.y,
@@ -476,10 +461,10 @@ function lineHit(p: Pt, q: Pt, u: Pt, v: Pt): number | undefined {
   const sx = v.x - u.x;
   const sy = v.y - u.y;
   const d = rx * sy - ry * sx;
-  if (Math.abs(d) < 1e-9) return undefined;
+  if (Math.abs(d) < PARALLEL_EPS) return undefined;
   const t = ((u.x - p.x) * sy - (u.y - p.y) * sx) / d;
   const w = ((u.x - p.x) * ry - (u.y - p.y) * rx) / d;
-  return w >= -1e-9 && w <= 1 + 1e-9 ? t : undefined;
+  return w >= -PARALLEL_EPS && w <= 1 + PARALLEL_EPS ? t : undefined;
 }
 
 export function segmentLength(s: Segment): number {
@@ -559,15 +544,15 @@ export function placeBand(
   let segs = segmentsFor(model, b);
   if (band.edge) segs = segs.filter((s) => s.edgeOfA === band.edge);
   if (segs.length === 0) {
-    return fail("04", `${label} を置ける境界線分がありません (${b.a} | ${b.b})`);
+    return fail("04", `No boundary segment can hold the ${label} (${b.a} | ${b.b})`);
   }
   if (segs.length > 1) {
-    return fail("05", `境界線分が複数あります。edge:N/E/S/W で辺を指定してください (${b.a} | ${b.b})`);
+    return fail("05", `There is more than one boundary segment; pick an edge with edge:N/E/S/W (${b.a} | ${b.b})`);
   }
   const seg = segs[0]!;
   const len = segmentLength(seg);
   if (band.w > len) {
-    return fail("06", `${label}の幅 ${band.w} が境界線分の長さ ${len} を超えています`);
+    return fail("06", `The ${label} width ${band.w} exceeds the boundary segment length ${len}`);
   }
   const half = band.w / 2;
   let pos: number;
@@ -576,7 +561,7 @@ export function placeBand(
     if (seg.diagonal) {
       return fail(
         "07",
-        `${label} の位置 ${band.atRef} は斜めの線分では使えません (at:0..1 の比率で書きます)`,
+        `The ${label} position ${band.atRef} cannot be used on a diagonal segment (write it as a ratio, at:0..1)`,
       );
     }
     // 明示位置: 通り参照で置かれたものはクランプしない — はみ出しは言葉のエラーになる
@@ -584,9 +569,11 @@ export function placeBand(
     if (!axisOk) {
       return fail(
         "07",
-        `${label} の位置 ${band.atRef} は${
-          seg.horizontal ? "水平線分なのでX系" : "垂直線分なのでY系"
-        }の通りで指定します`,
+        // **期待する軸を言う。**書かれた軸を言うと「X1+200 は Y系で書かれています」のような
+        // 偽の文になる (この枝は軸が食い違ったときにだけ通るので、書かれた軸は期待と逆である)
+        `The ${label} position ${band.atRef} is on the wrong axis: ${
+          seg.horizontal ? "a horizontal segment takes an X" : "a vertical segment takes a Y"
+        } grid line`,
       );
     }
     const start = seg.horizontal ? seg.x1 : seg.y1;
@@ -594,9 +581,9 @@ export function placeBand(
     if (pos < half - EPS || pos > len - half + EPS) {
       return fail(
         "08",
-        `位置 ${band.atRef} では ${label} (幅${band.w}) が境界線分からはみ出します (線分 ${Math.round(
+        `At ${band.atRef} the ${label} (width ${band.w}) runs off the boundary segment (segment ${Math.round(
           start,
-        )}〜${Math.round(start + len)}mm、中心の許容 ${Math.round(start + half)}〜${Math.round(
+        )}-${Math.round(start + len)}mm, center allowed ${Math.round(start + half)}-${Math.round(
           start + len - half,
         )}mm)`,
       );

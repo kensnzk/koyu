@@ -8,12 +8,13 @@
 
 import { heff, isSemiOutdoor, levelsSorted, type Model, type Pt, type Space } from "./model.js";
 import { areaOf, rectToPoly, subtract } from "./poly.js";
+import { AREA_EPS } from "./tolerance.js";
 import { runDecls } from "./vertical.js";
 
 /** 天井面の見付け厚 mm (仕上げの面としての厚み) */
-const CEILING_T = 30;
+export const CEILING_T = 30;
 /** 上に何も無いときの屋根版の厚さ mm (上階レベルの slab が無い場合の既定) */
-const ROOF_T = 200;
+export const ROOF_T = 200;
 
 /** 空間の導出された領域。parse の出口で必ず埋まる (ADR-0022) — 割付への退避は持たない */
 export const regionOf = (s: Space): Pt[][] =>
@@ -113,7 +114,7 @@ export function slabs(model: Model): Slab[] {
       const t = upper?.slab ?? ROOF_T;
       for (const outline of pieces) {
         for (const tile of subtract(outline, covers)) {
-          if (areaOf([tile]) < 1) continue;
+          if (areaOf([tile]) < AREA_EPS) continue;
           out.push({ kind: "roof", space: s.path, level: level.name, outline: tile, z0: top - t, z1: top });
         }
       }

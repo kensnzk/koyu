@@ -14,7 +14,7 @@ What you will have at the end:
 
 The endpoint of each stage is kept as-is under [examples/steps/](../../examples/steps/). Compare against them whenever you lose your way.
 
-**The tool speaks Japanese.** Its output is pasted here exactly as it appears — `✔ 整合` means "consistent", `平面図を生成しました` means "generated the plan", `✖` marks an error. Each block is glossed in the prose that follows, so you never need to guess.
+**The tool speaks English.** Its output is pasted here exactly as it appears; `✔` marks success, `⚠` a warning, and `✖` an error. Names written in the examples stay in Japanese, because they are the author's words, not the tool's.
 
 ## Getting ready
 
@@ -36,7 +36,7 @@ Create `out/house.muro` and write these four lines.
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/ldk ldk X1..X2 Y1..Y2
 ```
 
@@ -58,10 +58,8 @@ npx tsx src/cli.ts check out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 1 / 境界 0
+✔ Consistent — 1 space / 0 boundaries
 ```
-
-("Consistent — 1 space / 0 boundaries.")
 
 Produce the plan.
 
@@ -70,10 +68,8 @@ npx tsx src/cli.ts plan out/house.muro
 ```
 
 ```text
-平面図を生成しました: out/house-L1.svg
+Generated the plan: out/house-L1.svg
 ```
-
-("Generated the plan: out/house-L1.svg.")
 
 Open `out/house-L1.svg` in a browser.
 
@@ -81,7 +77,7 @@ Open `out/house-L1.svg` in a browser.
 
 **Not one wall is drawn.** There is a space, but not one boundary. A wall is not a possession that comes attached to a space.
 
-Note that all `check` looks at is whether what was written is consistent. An empty file passes too, with `✔ 整合 — 空間 0 / 境界 0`. Green does not mean "a correct building" — stage 5 takes this head on.
+Note that all `check` looks at is whether what was written is consistent. An empty file passes too, with `✔ Consistent — 0 spaces / 0 boundaries`. Green does not mean "a correct building" — stage 5 takes this head on.
 
 ## Stage 2 — two rooms, and the wall you did not write
 
@@ -90,7 +86,7 @@ Add one `space` line. Change nothing else.
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
 ```
@@ -102,7 +98,7 @@ npx tsx src/cli.ts check out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 2 / 境界 1
+✔ Consistent — 2 spaces / 1 boundary
 ```
 
 **The boundary count has gone from 0 to 1.** You have not written a single boundary line.
@@ -135,7 +131,7 @@ The derived wall stands there as a thing, so without a door you cannot get throu
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -156,8 +152,8 @@ npx tsx src/cli.ts plan out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 2 / 境界 1
-平面図を生成しました: out/house-L1.svg
+✔ Consistent — 2 spaces / 1 boundary
+Generated the plan: out/house-L1.svg
 ```
 
 The boundary count is still 1. The wall that had been derived was simply replaced by a declared one.
@@ -171,10 +167,8 @@ npx tsx src/cli.ts doors out/house.muro /L1/ldk /L1/hall
 ```
 
 ```text
-1枚 — /L1/ldk → /L1/hall
+1 door — /L1/ldk → /L1/hall
 ```
-
-("1 door — /L1/ldk → /L1/hall.")
 
 **You declare a boundary only when you have something to say about it** — a thickness, a specification, an opening. If you have nothing to say, do not write it. The wall is there whether you write it or not.
 
@@ -189,7 +183,7 @@ A space whose type is `exterior` need not have a region. Add the following.
 ```muro-bad
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -211,11 +205,11 @@ npx tsx src/cli.ts check out/house.muro
 ```
 
 ```text
-✖ …/out/house.muro:13行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/ldk | /out)
-✖ …/out/house.muro:15行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/hall | /out)
+✖ …/out/house.muro:line 13: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/ldk | /out)
+✖ …/out/house.muro:line 15: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/hall | /out)
 ```
 
-("There are several boundary segments. Specify the side with edge:N/E/S/W." `13行目` means "line 13". The error gives its position as an absolute path; the front of it is elided here as `…`.)
+(The error gives its position as an absolute path; the front of it is elided here as `…`.)
 
 This is where the outside differs from the inside. The boundary between two rooms is a single shared edge, but the boundary between a room and the outside is **what remains of the perimeter once the intervals shared with other spaces are removed**, and it splits across several edges. `/L1/ldk` faces the outside on three sides — north, south, and west — so where you want the window cannot be settled from the notation.
 
@@ -235,7 +229,7 @@ Put the window and the entrance on the south face. Add `edge:S` on lines 13 and 
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
@@ -256,8 +250,8 @@ npx tsx src/cli.ts plan out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 3 / 境界 3
-平面図を生成しました: out/house-L1.svg
+✔ Consistent — 3 spaces / 3 boundaries
+Generated the plan: out/house-L1.svg
 ```
 
 ![A plan with its envelope. The whole perimeter is enclosed by black bands, with the centerline of a window and the swing of an entrance door on the south face](../img/start-04-exterior.svg)
@@ -275,11 +269,9 @@ npx tsx src/cli.ts light out/house.muro
 ```
 
 ```text
-✔ /L1/ldk	ldk	窓 4.32㎡ / 床 14.40㎡ = 1/3.3 (必要 1/7 ≈ 2.06㎡)
-✔ 全1室が 1/7 を満たします (補正係数なしの粗い判定)
+✔ /L1/ldk	ldk	window 4.32 m2 / floor 14.40 m2 = 1/3.3 (needs 1/7 ≈ 2.06 m2)
+✔ Every room meets 1/7 — 1 room in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
-
-("Window 4.32 m² / floor 14.40 m² = 1/3.3, requires 1/7 ≈ 2.06 m². All 1 room satisfies 1/7 — a coarse test with no correction factors.")
 
 `hall` does not appear because `daylight:1` was written only on `ldk`. The type plays no part in the verdict whatsoever — rewrite `hall` as `room` and it still stays out of scope; leave it as `hall` and add `daylight:1` and it comes into scope. Of the space types, exactly two are interpreted structurally, `exterior` and `void`; the rest are free words that koyu does not interpret. The ledger is in [spec/vocabulary.md](../../spec/en/vocabulary.md).
 
@@ -290,7 +282,7 @@ Put a second storey on. Add one `level` line, add `h:` to `L1` as well, then two
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
@@ -325,7 +317,7 @@ npx tsx src/cli.ts check out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 5 / 境界 7
+✔ Consistent — 5 spaces / 7 boundaries
 ```
 
 Look at how the heights stack up.
@@ -337,10 +329,8 @@ npx tsx src/cli.ts levels out/house.muro
 ```text
 L2	z:2800	h:2400	slab:400
 L1	z:0	h:2400
-  ↑ 階高 2800 = 天井2400 + slab400
+  ↑ storey height 2800 = ceiling 2400 + slab 400
 ```
-
-("Floor-to-floor 2800 = ceiling 2400 + slab 400.")
 
 This is a section in text. If the ceiling height plus the slab above exceeds the floor-to-floor height, `check` makes it an error. Here 2400 + 400 = 2800 fits exactly.
 
@@ -351,7 +341,7 @@ npx tsx src/cli.ts plan out/house.muro -l L2
 ```
 
 ```text
-平面図を生成しました: out/house-L2.svg
+Generated the plan: out/house-L2.svg
 ```
 
 ![An upstairs plan. The bedroom and the stair hall are separated by a wall and the perimeter is enclosed by black bands. There is a window on the south face of the bedroom](../img/start-05-L2-sealed.svg)
@@ -363,10 +353,8 @@ npx tsx src/cli.ts doors out/house.muro /L2/bed /out
 ```
 
 ```text
-/L2/bed から /out へは到達できません
+Cannot reach /out from /L2/bed
 ```
-
-("/L2/bed cannot reach /out.")
 
 **The bedroom is completely sealed.** `/L2/bed` and `/L2/hall` touch, so a default wall was derived, and that wall has no door. It is not that something was forgotten — it is that not writing something meant "wall".
 
@@ -375,7 +363,7 @@ Fix it. Declare the boundary between the bedroom and the stair hall, and cut a d
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
@@ -408,11 +396,11 @@ npx tsx src/cli.ts doors out/house.muro /L2/bed /out
 ```
 
 ```text
-✔ 整合 — 空間 5 / 境界 7
-2枚 — /L2/bed → /L2/hall → /L1/hall → /out
+✔ Consistent — 5 spaces / 7 boundaries
+2 doors — /L2/bed → /L2/hall → /L1/hall → /out
 ```
 
-("2 doors.") Two doors from the bedroom, through the entrance hall, to the outside. The stair is not a door, so it does not count.
+Two doors from the bedroom, through the entrance hall, to the outside. The stair is not a door, so it does not count.
 
 **The boundary count is still 7, unchanged.** The wall that had been derived was simply replaced by a wall with a door. The output of `check` does not differ by a single character before and after — `check` does not distinguish a sealed house from a usable one.
 
@@ -435,12 +423,12 @@ What `check` answers is whether the authored composition is consistent, not whet
 Finally, add what has been left out until now.
 
 ```muro
-koyu 0.5
+koyu 1.0
 name 小さな家
 
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2800 h:2400 slab:400
 
 space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク daylight:1
@@ -469,7 +457,7 @@ boundary /L2/hall /out t:150 spec:EW1
 
 Three kinds of thing were added. (The Japanese values are names: 小さな家 "a small house", 寝室 "bedroom", オーク "oak", 掃き出し窓 "full-height window".)
 
-- **`koyu 0.5`** — the language version declaration. A file that omits it is always read with the newest version's semantics, so its meaning can move when the tool's version rises. **Write it in files you create.**
+- **`koyu 1.0`** — the language version declaration. A file that omits it is always read with the newest version's semantics, so its meaning can move when the tool's version rises. **Write it in files you create.**
 - **`name`** — the building's name (it becomes the drawing's title), plus a name for each space, boundary, and opening.
 - **`floor:` and `spec:`** — free attributes that koyu does not interpret. They are carried through as they are. That the name of a thing (RC, LGS, EW1…) is written as the value of `spec` is the stance of this notation.
 
@@ -483,16 +471,16 @@ npx tsx src/cli.ts stats out/house.muro
 ```
 
 ```text
-✔ 整合 — 空間 5 / 境界 7
+✔ Consistent — 5 spaces / 7 boundaries
 L1
   /L1/ldk	LDK	ldk	14.40㎡
-  /L1/hall	玄関ホール	hall	7.20㎡
-  小計 21.60㎡
+  /L1/hall	玄関ホール	hall	7.20 m2
+  Subtotal 21.60 m2
 L2
-  /L2/bed	寝室	bedroom	14.40㎡
-  /L2/hall	階段ホール	hall	7.20㎡
-  小計 21.60㎡
-合計 43.20㎡ (屋内床面積)
+  /L2/bed	寝室	bedroom	14.40 m2
+  /L2/hall	階段ホール	hall	7.20 m2
+  Subtotal 21.60 m2
+Total 43.20 m2 (indoor floor area)
   ldk: 14.40㎡
   hall: 14.40㎡
   bedroom: 14.40㎡
@@ -519,10 +507,10 @@ npx tsx src/cli.ts light out/house.muro
 ```
 
 ```text
-2枚 — /L2/bed → /L2/hall → /L1/hall → /out
-✔ /L1/ldk	LDK	窓 4.32㎡ / 床 14.40㎡ = 1/3.3 (必要 1/7 ≈ 2.06㎡)
-✔ /L2/bed	寝室	窓 2.16㎡ / 床 14.40㎡ = 1/6.7 (必要 1/7 ≈ 2.06㎡)
-✔ 全2室が 1/7 を満たします (補正係数なしの粗い判定)
+2 doors — /L2/bed → /L2/hall → /L1/hall → /out
+✔ /L1/ldk	LDK	window 4.32 m2 / floor 14.40 m2 = 1/3.3 (needs 1/7 ≈ 2.06 m2)
+✔ /L2/bed	寝室	window 2.16 m2 / floor 14.40 m2 = 1/6.7 (needs 1/7 ≈ 2.06 m2)
+✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
 From 30 lines of text came a two-storey house, its plan drawings, and the answers about circulation and daylight.

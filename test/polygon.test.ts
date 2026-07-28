@@ -3,10 +3,11 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { check } from "../src/check.js";
-import { pointInPolygon, polygonAreaM2, toCanonical } from "../src/model.js";
-import { parse, parseFiles } from "../src/parse.js";
-import { siteReport } from "../src/site.js";
+import { check } from "../src/core/diagnose.js";
+import { validate } from "../src/validate/index.js";
+import { pointInPolygon, polygonAreaM2, toCanonical } from "../src/core/model.js";
+import { parse, parseFiles } from "../src/core/parse.js";
+import { siteReport } from "../src/core/site.js";
 
 const BASE = [
   "koyu 0.4",
@@ -17,7 +18,7 @@ const BASE = [
   "level L1 0 h:2400",
 ].join("\n");
 
-test("polygonAreaM2: シューレース (三角形・非凸)", () => {
+test("polygonAreaM2: shoelace (triangle and non-convex)", () => {
   assert.equal(polygonAreaM2([{ x: 0, y: 0 }, { x: 10000, y: 0 }, { x: 0, y: 10000 }]), 50);
   // 凹型 (L字): 20m×20m から 10m×10m を欠く = 300㎡
   const L = [
@@ -31,14 +32,14 @@ test("polygonAreaM2: シューレース (三角形・非凸)", () => {
   assert.equal(polygonAreaM2(L), 300);
 });
 
-test("pointInPolygon: 内・外・境界上 (epsで内側扱い)", () => {
+test("pointInPolygon: inside, outside, and on the edge (eps counts the edge as inside)", () => {
   const tri = [{ x: 0, y: 0 }, { x: 10000, y: 0 }, { x: 0, y: 10000 }];
   assert.equal(pointInPolygon({ x: 2000, y: 2000 }, tri), true);
   assert.equal(pointInPolygon({ x: 9000, y: 9000 }, tri), false);
   assert.equal(pointInPolygon({ x: 5000, y: 0 }, tri), true); // 辺上
 });
 
-test("siteReport: polygonがあるとき導出面積は多角形から出る (タイルは近似でよい)", () => {
+test("siteReport: with a polygon the derived area comes from the polygon (the tiles may be approximate)", () => {
   const m = parse(
     `${BASE}
 zone /site name:敷地 site:1 area:96.00
@@ -55,26 +56,27 @@ boundary /site/yard /out edge:S t:120 air:1 spec:フェンス`,
   assert.equal(r.declaredArea, 96);
 });
 
-test("check: 建物が敷地形状からはみ出すとエラー、タイルは検査しない", () => {
+test("validation: a building escaping the site shape is a finding, and tiles are not checked", () => {
   const src = (bldg: string) =>
     `${BASE}
 zone /site name:敷地 site:1
 polygon /site -1000,-1000 9000,-1000 9000,9000 -1000,9000
 ${bldg}
 space /site/yard yard X1-2000..X1 Y1..Y2 level:L1`; // タイルは西へ1mはみ出すが検査されない
-  const ok = check(parse(src("space /a room X1..X2 Y1..Y2 level:L1")));
-  assert.deepEqual(ok.errors, []);
-  const bad = check(parse(src("space /a room X1..X2+2000 Y1..Y2 level:L1"))); // 東へ1000はみ出す
-  assert.equal(bad.errors.length, 1);
-  assert.match(bad.errors[0]!, /敷地形状からはみ出しています \(10000,0 付近\)/);
+  const ok = validate(parse(src("space /a room X1..X2 Y1..Y2 level:L1")));
+  assert.deepEqual(ok.filter((f) => f.rule === "site.escape"), []);
+  const bad = validate(parse(src("space /a room X1..X2+2000 Y1..Y2 level:L1"))) // 東へ1000はみ出す
+    .filter((f) => f.rule === "site.escape");
+  assert.equal(bad.length, 1);
+  assert.match(bad[0]!.message, /escapes the site shape \(near 10000,0\)/);
 });
 
-test("check: 対応するゾーンのないpolygonは警告", () => {
+test("check: a polygon with no corresponding zone is a warning", () => {
   const r = check(parse(`${BASE}\npolygon /nowhere 0,0 1000,0 0,1000`));
-  assert.match(r.warnings.join("\n"), /polygon \/nowhere に対応するゾーンがありません/);
+  assert.match(r.warnings.join("\n"), /No zone corresponds to polygon \/nowhere/);
 });
 
-test("正準JSON: polygonsブロックに頂点列が保存される", () => {
+test("canonical JSON: the polygons block keeps the vertex list", () => {
   const m = parse(
     `${BASE}\nzone /site site:1\npolygon /site 0,0 8000,0 8000,8000 0,8000\nspace /a room X1..X2 Y1..Y2 level:L1`,
   );
@@ -82,7 +84,7 @@ test("正準JSON: polygonsブロックに頂点列が保存される", () => {
   assert.deepEqual(j.polygons["/site"], [[0, 0], [8000, 0], [8000, 8000], [0, 8000]]);
 });
 
-test("合成: 敷地形状の重複は出所つきコンフリクト", () => {
+test("composition: a duplicate site shape is a conflict carrying its origin", () => {
   assert.throws(
     () =>
       parseFiles(
@@ -93,10 +95,10 @@ test("合成: 敷地形状の重複は出所つきコンフリクト", () => {
         },
         "main.muro",
       ),
-    /geoB\.muro.*敷地形状が重複.*geoA\.muro/s,
+    /geoB\.muro.*Duplicate site shape.*geoA\.muro/s,
   );
 });
 
-test("polygon: 頂点2つ以下はエラー", () => {
-  assert.throws(() => parse(`${BASE}\npolygon /site 0,0 1000,0`), /頂点を3つ以上/);
+test("polygon: two or fewer vertices is an error", () => {
+  assert.throws(() => parse(`${BASE}\npolygon /site 0,0 1000,0`), /three or more vertices/);
 });

@@ -14,6 +14,7 @@ If this is your first contact with koyu, write [start.md](../start.md) through f
 | Connect doors and confirm the escape route and reachability | [doors-and-escape.md](doors-and-escape.md) |
 | Give the site its shape and produce frontage, coverage ratio, and floor area ratio | [site-and-far.md](site-and-far.md) |
 | Split one building across several files with `import`, and divide the work | [split-into-files.md](split-into-files.md) |
+| Make something pointable across a rename (`uid` and `name`) | [identity.md](identity.md) |
 | Have an agent read and write koyu over MCP | [agent-mcp.md](agent-mcp.md) |
 | Colour `.muro` in an editor and check on every save | [editor.md](editor.md) |
 | Get down to the cause when an error or warning appears | [troubleshooting.md](troubleshooting.md) |

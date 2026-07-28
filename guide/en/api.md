@@ -43,7 +43,7 @@ import { parseFile, parseFileWith } from "@kensnzk/koyu/node";  // pulls in node
 
 **The root entry does not pull in `node:fs`.** It runs as-is in a browser or a worker. Only the entrances that touch the filesystem are split out into `@kensnzk/koyu/node`. They are split to keep the parser itself pure — composition (resolving `import`) takes a "how do I read a layer" function from outside, and fs is only one implementation of it. A browser passes a set of virtual files (`parseFiles`) or its own loader (`parseWith`) ([ADR-0010](../../docs/decisions/0010-assets-and-composition.md)).
 
-There are 47 runtime values exported from the root and 2 from `/node`. What follows covers all of them.
+There are 48 runtime values exported from the root and 2 from `/node`. **The complete list is in [spec/tools.md](../../spec/tools.md)** — go there to see the face as a single table ([ADR-0037](../../docs/decisions/0037-public-surface.md)). This page picks up the ones you reach for, from the side of what you want to do.
 
 ## Loading and composing
 
@@ -201,7 +201,7 @@ function checkDiagnostics(model: Model): Diagnostic[]
 interface Diagnostic {
   code: string;                 // a code from the DIAGNOSTIC_CODES ledger
   severity: "error" | "warning";
-  message: string;              // the Japanese body (no position prefix)
+  message: string;              // the message body (no position prefix)
   line?: number;
   file?: string;                // the provenance layer, when composing
   path?: string[];              // the subject space/zone paths (both, for a boundary)
@@ -228,7 +228,7 @@ console.log(JSON.stringify(checkDiagnostics(model), null, 1));
  {
   "code": "BND04",
   "severity": "error",
-  "message": "空間が接していないため境界を導けません: /L1/a | /L1/b",
+  "message": "The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b",
   "line": 6,
   "path": [
    "/L1/a",
@@ -260,7 +260,7 @@ console.log(errors, warnings);
 ```
 
 ```text
-[ '6行目: 空間が接していないため境界を導けません: /L1/a | /L1/b' ] []
+[ 'line 6: The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b' ] []
 ```
 
 (This example was read with `parse`, so there is no provenance file and the prefix is just the line number. Read with `parseFile` it would carry `<absolute path>:6行目: `.)
@@ -361,33 +361,31 @@ console.log(passable(m.boundaries.find((b) => b.kind === "stair")!));
 true
 ```
 
-### daylight — the coarse daylight verdict
+### daylightInputs — the inputs to daylight (it returns no verdict)
 
 ```ts
-function daylight(model: Model): DaylightResult[]
-interface DaylightResult {
+function daylightInputs(model: Model): DaylightInput[]
+interface DaylightInput {
   space: Space;
   floor: number;      // floor area, m²
   window: number;     // effective window area, m² (after the coefficient)
-  need: number;       // required area, m² (floor / 7)
-  ok: boolean;
   missingH: boolean;  // whether some window went uncounted for want of h
 }
 ```
 
-The subjects are only the spaces carrying `daylight:1`; the type is not consulted ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). **With nothing in scope an empty array comes back** — indistinguishable from "everything passed", so look at `length`.
+The subjects are only the spaces carrying `daylight:1`; the type is not consulted ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). **What comes back is only numbers — there is no `ok` and no `need`.** Drawing the line at 1/7 is a judgement on the architectural side, and the validation face says it (`validate`'s `daylight.ratio` — [validation.md](validation.md)) ([spec/scope.md §4](../../spec/en/scope.md)). With nothing in scope an empty array comes back — indistinguishable from "everything passed", so look at `length`.
 
 ```ts
-import { daylight } from "@kensnzk/koyu";
+import { daylightInputs } from "@kensnzk/koyu";
 
-for (const r of daylight(m)) {
-  console.log(`${r.space.path} floor=${r.floor} window=${r.window.toFixed(2)} need=${r.need.toFixed(2)} ok=${r.ok} missingH=${r.missingH}`);
+for (const d of daylightInputs(m)) {
+  console.log(`${d.space.path} floor=${d.floor} window=${d.window.toFixed(2)} missingH=${d.missingH}`);
 }
 ```
 
 ```text
-/home/ldk floor=39.75 window=7.54 need=5.68 ok=true missingH=false
-/home/bed1 floor=26.5 window=5.72 need=3.79 ok=true missingH=false
+/home/ldk floor=39.75 window=7.54 missingH=false
+/home/bed1 floor=26.5 window=5.72 missingH=false
 ```
 
 ### siteReport — the site's figures
@@ -467,31 +465,56 @@ console.log(effectiveUse(m, m.spaces.get("/home/ldk")!), displayName(m.spaces.ge
 exclusive LDK
 ```
 
+## Identity
+
+### newUids — mint a fresh uid
+
+```ts
+function newUids(model: Model, count?: number): string[]
+```
+
+**Derived neither from the path nor from the contents.** It is random — the prefix `u-` plus 16 characters of Crockford base32, 80 bits in all ([ADR-0039](../../docs/decisions/0039-identity-generation.md)).
+
+```ts
+import { newUids } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+
+const m = parseFile("examples/two-rooms.muro");
+const [uid] = newUids(m);
+console.log(uid, uid.length);
+```
+
+```text
+u-qkk0xrtqn2gqjypk 18
+```
+
+**The tokens that come back collide with nothing in that model.** Non-collision with layers not composed here is a probabilistic guarantee; UID03 under `check` is the only thing that actually proves uniqueness ([spec/en/scope.md §5.2](../../spec/en/scope.md)). Compose and check after writing them in.
+
+**Until it is called, no tool writes a uid.** Assignment is an explicit act. The list of what can carry one is closed at `space` and `zone` — for how to use them see [howto/identity.md](howto/identity.md).
+
 ## The parts of derivation
 
 The functions you borrow when drawing a plan yourself, or writing your own check. **There is no operation for placing a wall here either** — walls are derived from the layout of spaces.
 
-### Wall centerline segments — segmentsFor / sharedSegment / segmentLength / mergeCollinear
+### Wall centerline segments — segmentsFor
 
 ```ts
 interface Segment {
   x1: number; y1: number; x2: number; y2: number;
   horizontal: boolean;      // horizontal means y1===y2, vertical means x1===x2
+  diagonal?: boolean;       // not axis-parallel (a drawn line)
   edgeOfA?: Edge;           // the side as seen from boundary.a's rectangle (N/E/S/W)
 }
 
 function segmentsFor(model: Model, b: Boundary): Segment[]
-function sharedSegment(a: Rect, b: Rect): Segment | undefined
-function segmentLength(s: Segment): number
-function mergeCollinear(segs: Segment[]): Segment[]
 ```
 
-`segmentsFor` is the central one. **When both sides have regions it returns the shared edge; when one side has none (an `exterior`, say) it returns what remains of the perimeter.** A vertical boundary (`stair` / `shaft` / `void`) has no segment, so the array is empty.
+**This one function is the whole answer to where a wall appears.** When both sides have regions it returns the shared edge; when one side has none (an `exterior`, say) it returns what remains of the perimeter. A vertical boundary (`stair` / `shaft` / `void`) has no segment, so the array is empty.
 
 The compass of `edgeOfA` is **N=+Y, S=−Y, E=+X, W=−X** — X is east-positive and Y is north-positive.
 
 ```ts
-import { parse, segmentLength, segmentsFor, sharedSegment } from "@kensnzk/koyu";
+import { parse, segmentsFor } from "@kensnzk/koyu";
 
 const g = parse(`grid X 0 3600 7200
 grid Y 0 4000
@@ -504,10 +527,10 @@ boundary /L1/a /L1/b t:120
 boundary /L1/a /out t:150`);
 
 const bIn = g.boundaries.find((b) => b.b === "/L1/b")!;
-console.log(segmentsFor(g, bIn), segmentLength(segmentsFor(g, bIn)[0]!));
+console.log(segmentsFor(g, bIn));
 
 const bOut = g.boundaries.find((b) => b.b === "/out")!;
-for (const s of segmentsFor(g, bOut)) console.log(`edge:${s.edgeOfA} len=${segmentLength(s)}`);
+for (const s of segmentsFor(g, bOut)) console.log(`edge:${s.edgeOfA} ${s.x1},${s.y1} → ${s.x2},${s.y2}`);
 ```
 
 ```text
@@ -520,37 +543,15 @@ for (const s of segmentsFor(g, bOut)) console.log(`edge:${s.edgeOfA} len=${segme
     horizontal: false,
     edgeOfA: 'E'
   }
-] 4000
-edge:N len=3600
-edge:S len=3600
-edge:W len=4000
+]
+edge:S 0,0 → 3600,0
+edge:N 0,4000 → 3600,4000
+edge:W 0,0 → 0,4000
 ```
 
 Only three external walls come out because `/L1/b` occupies `/L1/a`'s E side. **That is why a boundary with the outside splits into several segments, and why placing an opening requires selecting a side with `edge:`.**
 
-`sharedSegment` finds the shared edge of two rectangles directly. `mergeCollinear` merges collinear, contiguous segments into one (used to make the perimeter of an L into a single wall).
-
-```ts
-import { mergeCollinear, sharedSegment } from "@kensnzk/koyu";
-
-console.log(sharedSegment(g.spaces.get("/L1/a")!.rects[0]!, g.spaces.get("/L1/b")!.rects[0]!));
-console.log(mergeCollinear([
-  { x1: 0, y1: 0, x2: 1000, y2: 0, horizontal: true, edgeOfA: "S" },
-  { x1: 1000, y1: 0, x2: 2500, y2: 0, horizontal: true, edgeOfA: "S" },
-]));
-```
-
-```text
-{
-  x1: 3600,
-  y1: 0,
-  x2: 3600,
-  y2: 4000,
-  horizontal: false,
-  edgeOfA: 'E'
-}
-[ { x1: 0, y1: 0, x2: 2500, y2: 0, horizontal: true, edgeOfA: 'S' } ]
-```
+If you need a length, measure it from the endpoints yourself. **What koyu holds is where the segments are; from there on, it is the borrower's work.**
 
 ### Default boundaries — deriveDefaultBoundaries
 
@@ -612,10 +613,10 @@ console.log(placeBand(g, bIn, { w: 1000, at: 0.25, line: 0 }, "seg"));
   cy: 2000
 }
 {
-  error: '8行目: 境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/a | /out)',
+  error: 'line 8: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)',
   code: 'OPN05',
   line: 8,
-  message: '境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/a | /out)'
+  message: 'There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)'
 }
 {
   segment: {
@@ -633,25 +634,151 @@ console.log(placeBand(g, bIn, { w: 1000, at: 0.25, line: 0 }, "seg"));
 
 A ratio `at` is clamped to fit within the segment, but a grid reference (`atAbs`) is not — overrunning gives `OPN08` / `SEG08`.
 
-### Overlap — planOverlap / spacesOverlap
+### The one entrance to shape — derive
 
 ```ts
-function planOverlap(a: Rect, b: Rect): Rect | undefined   // the overlapping rectangle. undefined if merely touching
-function spacesOverlap(a: Space, b: Space): boolean        // between rectangle unions
+function derive(model: Model, opts?: DeriveOptions): Form
 ```
 
-Used for deriving vertical adjacency (whether storeys overlap in plan) and for checking region overlap. **Touching (sharing an edge) is not overlapping.**
+**All shape comes out of here** ([ADR-0040](../../docs/decisions/0040-derive-reference.md)). The parts of derivation below can each be called on their own, but it is `derive` that assembles them into the shape of a whole building. Assemble it per consumer and the same source yields different buildings.
+
+`Form` **carries no appearance at all** — no colours, no typefaces, no line weights, no annotation words, no symbols, no scale. What comes back is coordinates, thicknesses, z ranges, orientations, and **the identity of the subject** (whose space, whose boundary, whose opening this shape is). The rules are held by [spec/derivation.md](../../spec/derivation.md).
+
+A wall comes back as **a list of intervals split by its openings** (`material.panels`). A plan is **a set of classified 2D entities**, splitting into `cut` (a cut section) / `below` (what shows below the cut) / `above` (what is projected from above the cut) / `swing` (the arc of a door) / `anchor` (where a symbol is placed). The height of the cut is an **input** to `derive`.
 
 ```ts
-import { planOverlap, spacesOverlap } from "@kensnzk/koyu";
-console.log(planOverlap({ x1: 0, y1: 0, x2: 100, y2: 100 }, { x1: 50, y1: 50, x2: 200, y2: 200 }));
-console.log(spacesOverlap(g.spaces.get("/L1/a")!, g.spaces.get("/L1/b")!));
+import { derive } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+
+const b = parseFile("examples/basement/main.muro");
+const form = derive(b);
+console.log(`levels=${form.levels.length} spaces=${form.spaces.length} boundaries=${form.boundaries.length} openings=${form.openings.length} columns=${form.columns.length} runs=${form.runs.length}`);
+
+const wall = form.boundaries.find((x) => x.material && x.material.panels.length > 1)!;
+console.log(wall.ref, `t=${wall.material!.t} z=${wall.material!.z0}→${wall.material!.z1}`);
+for (const p of wall.material!.panels) console.log(`  panel (${p.x1},${p.y1})-(${p.x2},${p.y2}) z ${p.z0}→${p.z1}`);
+
+const plan = form.plans.find((p) => p.level === "B1")!;
+const count = new Map<string, number>();
+for (const e of plan.entities) count.set(`${e.class}/${e.of}`, (count.get(`${e.class}/${e.of}`) ?? 0) + 1);
+console.log(`cut=${plan.cut} cutZ=${plan.cutZ}`);
+for (const [k, n] of [...count].sort()) console.log(`  ${k} ${n}`);
 ```
 
 ```text
-{ x1: 50, y1: 50, x2: 100, y2: 100 }
-false
+levels=4 spaces=13 boundaries=45 openings=7 columns=36 runs=7
+/B2/park|/B2/st@2 t=250 z=-7400→-3700
+  panel (16000,7000)-(16000,9250) z -7400→-3700
+  panel (16000,9250)-(16000,10150) z -5400→-3700
+  panel (16000,10150)-(16000,12400) z -7400→-3700
+cut=1200 cutZ=-2500
+  above/boundary 2
+  anchor/run 2
+  below/run 5
+  cut/boundary 19
+  cut/column 15
+  cut/opening 2
+  cut/run 9
+  cut/space 6
+  swing/opening 2
 ```
+
+Left and right of the `|` are the two ends of the boundary, and what follows the `@` is its position in the order of declaration. The middle of the three intervals is the head panel above a door, and its underside sits at the head of the door (2000mm above the floor).
+
+### The constructors of substance — thicken / bandLine / band / columnRect / runPrism
+
+```ts
+function thicken(x1: number, y1: number, x2: number, y2: number, t: number): Pt[]
+function bandLine(seg: Segment, cx: number, cy: number, w: number): Seg2
+function band(seg: Segment, cx: number, cy: number, w: number, t: number): Pt[]
+function columnRect(c: { x: number; y: number; w: number; d: number }): Pt[]
+function runPrism(s: RunSolid): FormPrism
+
+interface FormPrism { poly: Pt[]; bottom: number[]; top: number[] }
+```
+
+What `Form` holds is **centrelines, thicknesses and z**. The rule that raises substance out of those (a thickened quadrilateral, a prism) is part of the derivation too, so **core holds the only implementation of it** ([spec/derivation.md §7.1](../../spec/derivation.md)). If each consumer rewrites it, the parts are shared but the rule of assembly is not, and one `Form` yields different shapes. `svgPlan` and `svgAxo` in `src/draw/` do nothing but call these.
+
+```ts
+import { band, bandLine, columnRect, derive, runPrism, thicken } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+
+const b = parseFile("examples/basement/main.muro");
+const form = derive(b);
+
+// a wall interval (centreline + thickness) → the quadrilateral of its footprint
+const wall = form.boundaries.find((x) => x.material && x.material.panels.length > 1)!;
+const p = wall.material!.panels[1]!;
+console.log(thicken(p.x1, p.y1, p.x2, p.y2, wall.material!.t).map((q) => `${q.x},${q.y}`).join(" "));
+
+// an opening (centre + width) → its interval on the segment → the quadrilateral of the leaf
+const o = form.openings.find((x) => x.kind === "door")!;
+console.log(o.ref, JSON.stringify(bandLine(o.segment, o.cx, o.cy, o.w)));
+console.log(band(o.segment, o.cx, o.cy, o.w, o.t).map((q) => `${q.x},${q.y}`).join(" "));
+
+// the section of a column, and the four corners of an inclined slab
+const c = form.columns[0]!;
+console.log(c.ref, columnRect(c).map((q) => `${q.x},${q.y}`).join(" "));
+const ramp = form.runs.flatMap((r) => r.solids).find((s) => s.kind === "incline")!;
+const pr = runPrism(ramp);
+console.log(ramp.kind, `up=${ramp.up}`, "bottom", pr.bottom.join(" "), "top", pr.top.join(" "));
+```
+
+```text
+15875,9250 15875,10150 16125,10150 16125,9250
+/B2/park|/B2/st@2/0 {"x1":16000,"y1":9250,"x2":16000,"y2":10150}
+15875,9250 15875,10150 16125,10150 16125,9250
+B2/X1/Y1 -400,-400 400,-400 400,400 -400,400
+incline up=E bottom -7600 -5750 -5750 -7600 top -7400 -5550 -5550 -7400
+```
+
+The vertices of the quadrilateral run start+n → end+n → end−n → start−n, so **joining the midpoints of the opposing edges returns the centreline**. A plan entity carries **both** the footprint (`polygon`) and the centreline (`lines`), so the side that draws a rail as a single line never has to reconstruct the centreline from the quadrilateral. On an inclined slab the two corners on the `up` side are the high ones, and the thickness follows the slab in parallel.
+
+### What is generated — slabs / verticalRuns / runSolids / runDrawsForLevel
+
+```ts
+function slabs(model: Model): Slab[]                    // floors, ceilings, roofs (ADR-0024)
+function verticalRuns(model: Model): VerticalRun[]      // the shape of vertical circulation (ADR-0021)
+function runSolids(run: VerticalRun): RunSolid[]        // its solids (box / incline)
+function runDrawsForLevel(model: Model, level: string, cut?: number): RunDraw[]  // the drawing cut at that level
+
+interface Slab {
+  kind: "floor" | "ceiling" | "roof";
+  space: string; level: string;
+  outline: Pt[];            // the outline of the derived convex piece
+  z0: number; z1: number;
+}
+```
+
+**Nothing that comes out here is written anywhere in the source.** The thickness of a floor, the number of risers, the going, the slope — all of it appears from the rules. And **none of it carries an appearance** — no colours, no line weights, no note formatting — so a viewer only maps it into geometry ([spec/scope.md §6](../../spec/en/scope.md)). ugatsu's 3D view, and the vertical circulation in its plan, are made of these four calls and nothing else.
+
+```ts
+import { runDrawsForLevel, runSolids, slabs, slopeText, verticalRuns } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+
+const b = parseFile("examples/basement/main.muro");
+for (const s of slabs(b).slice(0, 3)) console.log(s.kind, s.space, s.level, `z ${s.z0}→${s.z1}`);
+
+const stair = verticalRuns(b).find((r) => r.device === "stair")!;
+console.log(`${stair.path} ${stair.device} rise=${stair.rise} risers=${stair.risers} riser=${Math.round(stair.riser)} tread=${Math.round(stair.tread)} slope=${slopeText(stair.slope)}`);
+console.log(runSolids(stair).length, runSolids(stair)[0]!.kind);
+for (const d of runDrawsForLevel(b, "B1")) console.log(`${d.path} treads=${d.treads.length} arrows=${d.arrows.map((a) => (a.up ? "UP" : "DN")).join(" ")}`);
+```
+
+```text
+floor /B2/park B2 z -8200→-7400
+ceiling /B2/park B2 z -4830→-4800
+floor /B2/ramp B2 z -8200→-7400
+/B2/st stair rise=3700 risers=21 riser=176 tread=300 slope=1/1.5
+20 box
+/B1/ev treads=2 arrows=
+/B1/ramp treads=0 arrows=UP
+/B1/st treads=6 arrows=UP
+/B2/ramp treads=0 arrows=DN
+/B2/st treads=11 arrows=DN
+```
+
+Notice that a single plan carries **both the run going up and the run coming down**. Since a plan is "the section cut at that level", B1 shows at once the stair rising from B1 (UP) and the stair that arrived from B2 (DN).
 
 ### Height and derived properties — heff / levelsSorted / isSemiOutdoor / isCoveredAbove
 
@@ -678,30 +805,29 @@ true false
 true false
 ```
 
-### Site geometry — polygonAreaM2 / pointInPolygon / rectEscapesPolygon / polygonSelfIntersection
+### Site geometry — polygonAreaM2 / pointInPolygon / polyBounds / rectToPoly
 
 ```ts
 interface Pt { x: number; y: number }
 
-function polygonAreaM2(points: Pt[]): number                              // the shoelace formula. vertex order does not matter
-function pointInPolygon(p: Pt, poly: Pt[], eps?: number): boolean         // on the boundary counts as inside (default eps=1mm)
-function rectEscapesPolygon(r: Rect, poly: Pt[], eps?: number): Pt | undefined  // the escaping point
-function polygonSelfIntersection(poly: Pt[], eps?: number): Pt | undefined      // the self-intersection point
+function polygonAreaM2(points: Pt[]): number                      // the shoelace formula. vertex order does not matter
+function pointInPolygon(p: Pt, poly: Pt[], eps?: number): boolean // on the boundary counts as inside (default eps=1mm)
+function polyBounds(poly: Pt[]): Rect                             // the bounding rectangle
+function rectToPoly(r: Rect): Pt[]                                // a rectangle as a vertex list (counter-clockwise)
 ```
 
-`rectEscapesPolygon` looks beyond the containment of the four corners at vertex intrusion into the rectangle and at edge crossings — **so it is correct for a concave site too.** Coordinates are in mm and areas come back in m².
+Coordinates are in mm and areas come back in m². **"Does the building escape the site?" is not here** — that is a judgement, so the validation face says it (`validate`'s `site.escape`) ([spec/scope.md §4](../../spec/en/scope.md)). What is here is only the numbers and shapes that judgement reads.
 
 ```ts
-import { pointInPolygon, polygonAreaM2, polygonSelfIntersection, rectEscapesPolygon } from "@kensnzk/koyu";
+import { pointInPolygon, polyBounds, polygonAreaM2 } from "@kensnzk/koyu";
 
 const poly = [{ x: 0, y: 0 }, { x: 10000, y: 0 }, { x: 10000, y: 10000 }, { x: 0, y: 10000 }];
 console.log(polygonAreaM2(poly), pointInPolygon({ x: 5000, y: 5000 }, poly),
-  polygonSelfIntersection(poly),
-  rectEscapesPolygon({ x1: 9000, y1: 0, x2: 12000, y2: 3000 }, poly));
+  pointInPolygon({ x: 12000, y: 0 }, poly), polyBounds(poly));
 ```
 
 ```text
-100 true undefined { x: 12000, y: 0 }
+100 true false { x1: 0, x2: 10000, y1: 0, y2: 10000 }
 ```
 
 ## Generating
@@ -732,7 +858,7 @@ try { svgPlan(a, { level: "L9" }); } catch (e) { console.log("throws:", (e as Er
 ```text
 3369文字
 <svg xmlns="http://www.w3.org/2000/svg" width="528" height="393" viewBox="0 0 528 393" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
-throws: レベル L9 に領域を持つ空間がありません
+throws: There is no space with a region on level L9
 ```
 
 The drawing conventions are in [spec/semantics.md §7](../../spec/en/semantics.md).
@@ -743,7 +869,7 @@ The drawing conventions are in [spec/semantics.md §7](../../spec/en/semantics.m
 function toCanonical(model: Model): string
 ```
 
-A JSON string in stable order (with a trailing newline). `import` does not survive. **Default boundaries (`derived`) do not appear** — the canonical JSON holds only the authored composition.
+A JSON string in stable order (with a trailing newline). `import` does not survive. **Default boundaries (`derived`) do not appear** — the canonical JSON holds only the authored composition. The leading `format` is the version of this format's spelling.
 
 ```ts
 import { toCanonical } from "@kensnzk/koyu";
@@ -752,40 +878,14 @@ console.log(toCanonical(a).split("\n").slice(0, 6).join("\n"));
 
 ```text
 {
-  "koyu": "0.5",
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
   "grid": {
-    "X": [
 ```
 
 The schema and the stability rules are in [spec/canonical-json.md](../../spec/en/canonical-json.md).
-
-### The parts of a canonical entry — canonicalSpaceEntry and others
-
-```ts
-function canonicalSpaceEntry(s: Space): Record<string, unknown>
-function canonicalBoundaryEntry(b: Boundary): Record<string, unknown>
-function canonicalOpeningEntry(o: Opening): Record<string, unknown>
-function canonicalSegEntry(g: Seg): Record<string, unknown>
-function sortBySerial<T>(items: T[]): T[]
-```
-
-The parts `toCanonical` uses to assemble, shared by the semantic diff as the basis of its comparison. Use them when you want the canonical form of a single element. `sortBySerial` orders "a set whose declaration order carries no meaning" by the lexicographic order of its serialized JSON — the footing of the canonical order.
-
-```ts
-import { canonicalBoundaryEntry, canonicalSpaceEntry, sortBySerial } from "@kensnzk/koyu";
-
-console.log(JSON.stringify(canonicalSpaceEntry(a.spaces.get("/L1/a")!)));
-console.log(JSON.stringify(canonicalBoundaryEntry(a.boundaries[0]!)));
-console.log(sortBySerial([{ k: "b" }, { k: "a" }]));
-```
-
-```text
-{"type":"room","at":["X1","Y1","X2","Y2"],"attrs":{"name":"居室A"}}
-{"between":["/L1/a","/L1/b"],"a":"/L1/a","kind":"wall","t":120,"attrs":{"spec":"PW1"},"openings":[{"kind":"door","w":780,"h":2000,"at":0.5}]}
-[ { k: 'a' }, { k: 'b' } ]
-```
 
 ## Diffs
 
@@ -860,9 +960,9 @@ try {
 {
   name: 'SourceError',
   line: 4,
-  raw: '未定義の通り名です: X9',
+  raw: 'Undefined grid line name: X9',
   file: undefined,
-  message: '4行目: 未定義の通り名です: X9'
+  message: 'line 4: Undefined grid line name: X9'
 }
 ```
 
@@ -876,7 +976,7 @@ try { parseFile("examples/house/L1.muro"); } catch (e) {
 ```
 
 ```text
-examples/house/L1.muro:3行目: 未宣言のレベルです: level:L1
+examples/house/L1.muro:line 3: Undeclared level: level:L1
 ```
 
 (Only one of the split layers was read, so the `level` declaration in the base layer is absent.)
@@ -895,7 +995,7 @@ console.log(srcRef(12), srcRef(12, "L1.muro"));
 ```
 
 ```text
-12行目 L1.muro:12行目
+line 12 L1.muro:line 12
 ```
 
 ## Versions
@@ -918,17 +1018,19 @@ console.log(SUPPORTED_LANGUAGE_VERSIONS, DEFAULT_LANGUAGE_VERSION);
 
 ## Types
 
-The types come out alongside the values. Only the main ones are listed.
+The types come out alongside the values. Only the main ones are listed (the complete table is in [spec/tools.md](../../spec/en/tools.md)).
 
 | Origin | Types |
 |---|---|
-| Model | `Model` `Space` `Zone` `Boundary` `Opening` `Seg` `Area` `Asset` `Level` `Rect` `Pt` `GridAxis` `GridRef` `SitePolygon` `Edge` `BoundaryKind` `Attrs` `AttrValue` |
+| Model | `Model` `Space` `Zone` `Boundary` `Opening` `Seg` `Area` `Asset` `Level` `Rect` `Pt` `GridAxis` `GridRef` `SitePolygon` `Column` `ColumnDecl` `DrawnLine` `Edge` `BoundaryKind` `Attrs` `AttrValue` |
 | Composition | `LayerLoader` |
-| Checking | `Diagnostic` `CheckResult` |
-| Graph and derivation | `Segment` `Band` `PlacedBand` `BandError` `Route` `NeighborInfo` |
-| Queries | `DaylightResult` `SiteReport` `RoadFrontage` |
-| Generation | `PlanOptions` |
-| Diffs | `ModelDiff` `FieldChange` `ChangedItem` `RenamedItem` `GridChange` `SpaceItem` `BoundaryItem` `BoundaryChange` |
+| Checking | `Diagnostic` `DiagnosticCode` `CheckResult` |
+| Graph and derivation | `Segment` `Band` `PlacedBand` `BandError` `BandCode` `Route` `NeighborInfo` |
+| What is generated | `Slab` `SlabKind` `VerticalRun` `RunPart` `RunSolid` `RunDraw` `RunArrow` `RunDevice` `RunForm` `Seg2` |
+| Queries | `DaylightInput` `SiteReport` `RoadFrontage` |
+| Generation | `PlanOptions` `AxoOptions` |
+| Diffs | `ModelDiff` `FieldChange` `ChangedItem` `RenamedItem` `GridChange` `SpaceItem` `BoundaryItem` `BoundaryChange` `ColumnItem` |
+| Validation | `Finding` `ValidationRule` |
 
 ## An implementation to look at
 

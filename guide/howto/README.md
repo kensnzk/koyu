@@ -14,6 +14,7 @@ koyu にはじめて触れるなら、まず [start.md](../start.md) を通し�
 | 扉をつなぎ、避難経路と到達性を確かめる | [doors-and-escape.md](doors-and-escape.md) |
 | 敷地形状を与え、接道・建蔽率・容積率を出す | [site-and-far.md](site-and-far.md) |
 | `import` で一棟を複数ファイルに割り、分担して書く | [split-into-files.md](split-into-files.md) |
+| 改名を跨いで指せるようにする (`uid` と `name`) | [identity.md](identity.md) |
 | エージェント (MCP) から koyu を読み書きさせる | [agent-mcp.md](agent-mcp.md) |
 | エディタで色を付け、保存のたびに check を走らせる | [editor.md](editor.md) |
 | エラー・警告が出たときに原因まで降りる | [troubleshooting.md](troubleshooting.md) |

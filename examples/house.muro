@@ -7,14 +7,14 @@
 # 敷地 = zone site:1 (宣言面積と導出面積を site コマンドが突き合わせる)。
 # L1の平面図はそのまま配置図兼用になる。
 
-koyu 0.5
+koyu 1.0
 name 小さな戸建住宅
 unit mm
 
 grid X 0 3640 7280
 grid Y 0 3640 7280
 
-level L1 0 h:2400
+level L1 0 h:2400 slab:400
 level L2 2900 h:2400 slab:500
 level R 5800 slab:500
 

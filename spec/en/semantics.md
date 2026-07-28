@@ -2,7 +2,7 @@
 
 # Semantics reference — derivation, checking, queries
 
-As of koyu v0.15.0. For the grammar see [language.md](language.md). What is written here is what is derived from what was authored, what is checked, and what the queries answer — form, quantity, and the inside/outside distinction are all absent from the authored source, and all defined here as derivations.
+As of koyu v0.16.0. For the grammar see [language.md](language.md). What is written here is what is derived from what was authored, what is checked, and what the queries answer — form, quantity, and the inside/outside distinction are all absent from the authored source, and all defined here as derivations.
 
 > This is a reference. If you are learning koyu, start at [guide/en/start.md](../../guide/en/start.md).
 
@@ -25,6 +25,8 @@ The composed model consists of: `spaces` (path → space: type, level, rectangle
 **Vertical adjacency is not declared.** Spaces on consecutive levels are vertically adjacent where they overlap in plan. The default reading is "there is a floor". Only the exceptions are declared as boundaries: `stair` (passable), `shaft` (continuous but not passable), or `void` (the absence of a floor).
 
 **The height invariant (the floor-height check).** For each space, `ceiling height (heff) + the slab above ≤ the floor-to-floor height (to the next level's z)` is checked, and exceeding it is a collision error. `levels` displays this stack-up as a textual section. **Void exemption**: a lower space joined by a void boundary is declaratively exempted from the invariant. Only at a coverage ratio ≥99% (a full-height void) may a ceiling height that spans levels be declared — under a partial void the lower ceiling height stays within its own floor. The space above a void is expected to be `type:void` (otherwise a warning — the implementation and its tests are the norm here, and the spec was brought into line with them; ADR-0013).
+
+**The surface elements (floor, ceiling, roof).** Only a level's `slab` (the floor-construction thickness) gives a floor — leave it out and not one floor is generated on that storey (SUF03). The ceiling is given by the effective ceiling height `heff` (the space's `h`, then its level's `h`) — if that is undetermined, no ceiling is generated (SUF01). A void (`type:void`) has neither floor nor ceiling; the exterior and semi-outdoor spaces have neither ceiling nor roof. A roof is laid over the range that no space above covers, and **where a level sits above, the ceiling height is not read** — that level gives both the apex and the thickness (ADR-0024; the formula is in [derivation.md](derivation.md) §3.6). **The rules are deterministic** — where a value is missing, no default is invented and no element is made. So the same composition always yields the same shape, but **that the shape has come out thin must be told.** That is why the sufficiency checks (SUF01-04) exist.
 
 ## 4. Derived properties
 
@@ -68,18 +70,22 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | SEG08 | error | An explicit seg position overruns the segment (the seg counterpart of OPN08) |
 | HGT01 | error | Height invariant violated — collision into the floor above (ceiling height + the slab above > the floor-to-floor height) |
 | HGT02 | error | Insufficient coverage for a partial void (below 99% coverage a ceiling height spanning levels may not be declared) |
+| SUF01 | error | The ceiling height cannot be determined — neither the space's `h` nor the level's. There is no height to extrude, so no ceiling and no roof can be generated (voids, the exterior and semi-outdoor spaces are excluded — ADR-0034) |
+| SUF02 | error | A space with a region whose level cannot be determined — z is undetermined, so not one solid can be generated |
 | SIT01 | error | Duplicate vertex in the site shape |
 | SIT02 | error | The site shape is self-intersecting |
-| SIT03 | error | The building escapes the site shape (against the polygon of the site:1 zone, for any space with a region that is neither beneath the site zone nor exterior — beyond the containment of the four corners it also looks at vertex intrusion and edge crossing, so it is correct for a concave site. On the boundary counts as inside, with a 1 mm tolerance. Exterior space tiles are not checked ⟨an approximation⟩) |
 | UID01 | error | A uid made only of digits (the parser's numeric coercion would lose the distinction between tokens — ADR-0015) |
 | UID02 | error | A uid containing whitespace |
 | ATT01 | error | An interpreted attribute's value is not a positive number (`h` `riser` `tread` `entry` `landing` `lane` `slope` `road` `area` — a value that does not match the ledger's type never quietly falls back to the default. ADR-0028) |
 | ATT02 | error | An interpreted attribute's value is not in the ledger's vocabulary (`ceiling` 0/1, `turn` R/L, `site` 0/1, `style` hinged/sliding/auto — ADR-0028) |
+| ATT03 | error | An attribute key that is not in the ledger and carries no namespace (dot-separated, e.g. `acme.sensor`) — ADR-0033 |
 | UID03 | error | A duplicate uid (unique across the whole model, spanning space and zone) |
+| UID04 | error | A duplicate `name` within the containing subject (openings and segs within a boundary, areas within a space, columns within the model). A name an opening inherits from an asset is the type's name and does not count — ADR-0039 |
 | DAY01 | error | The value of daylight is neither 0 nor 1 (being in scope is a binary declaration — ADR-0020) |
 | VER01 | error | A default boundary would be derived in a koyu 0.1 file (an older version is accepted only when meaning is preserved — ADR-0017) |
 | VER02 | error | In a koyu 0.3-or-earlier file, a space of a type that used to be inferred in scope (unit/room/ldk/bedroom/living) carries no daylight (in 0.4 it falls out of scope, so the meaning changes — ADR-0020) |
 | VER03 | error | A koyu 0.4-or-earlier file uses a 0.5 word (a vertical-circulation declaration, a drawn line, a column, underground) — the older processor does not know the word, so the form is silently never generated (ADR-0017/0021/0022/0023) |
+| VER04 | error | A koyu 0.5-or-earlier file uses a 1.0 word (the override `over`, the removal `drop`, or a set edit `+` `-` `=` directly under `over`) — the older processor does not know the word, so neither the override nor the removal happens and it silently becomes a different building (ADR-0017/0035/0038) |
 | SYN01 | error | A syntax or composition error (a copy of SourceError — `check --json` only; check does not turn thrown exceptions into diagnostics, the parser throws them) |
 | BND05 | warning | A pair of spaces carrying a mix of edge-restricted and unrestricted boundaries (the segments overlap) |
 | BND06 | warning | The boundary segment is of zero length (no edge remains on the perimeter) |
@@ -91,9 +97,7 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | SEG03 | warning | A seg on an open boundary (no wall — not interpreted) |
 | ZON01 | warning | An empty zone (no spaces beneath it) |
 | ZON02 | warning | A zone sharing a path with a space |
-| HGT03 | warning | The slab of the level above is undeclared, so the height check cannot run |
-| HGT04 | warning | The ceiling height is unknown, so the height check cannot run |
-| HGT05 | warning | A space with a region whose level cannot be determined |
+| SUF03 | warning | The level has no `slab`, so not one floor is generated on that storey (the height invariant cannot be formulated either; the shape is settled, hence a warning — ADR-0034) |
 | SIT04 | warning | A polygon with no corresponding zone |
 | RUN01 | error | More than one vertical-circulation declaration on one space (stair/ramp/escalator/lift — one per space. ADR-0021) |
 | RUN02 | error | The value of a vertical-circulation declaration is not an ascending direction (N/E/S/W; for lift it is 1) |
@@ -104,13 +108,12 @@ Diagnostic messages are emitted in Japanese by the implementation. The English g
 | LIN03 | warning | A drawn line cuts nothing (one side comes out empty) |
 | COL01 | warning | Not one column stands for a column declaration (the grid intersections have no floor — ADR-0023) |
 | COL02 | warning | A column declaration stands nowhere because an earlier declaration took the same intersections (the earlier one wins) |
-| ENV01 | warning | A perimeter faces no envelope (on a level that already declares one — the missing boundary to the outside would otherwise be a silent absence of wall. ADR-0025) |
-| RUN04 | warning | No level above, so no form can be generated for the vertical circulation (a stair on the top floor and the like) |
-| RUN06 | warning | The derived step dimensions are cramped (going < 240mm, or 2×riser+going outside 550–700mm; in a return stair the tightest flight speaks — written nowhere, checked all the same. ADR-0021) |
-| RUN07 | warning | The derived slope is steeper than the declared `slope:`, or outside an escalator's usual range (about 1/1.7) |
-| RUN08 | warning | The form of a vertical circulation exists but no vertical boundary joins the levels (form without passage in the graph) |
-| SIT05 | warning | The declared and derived site areas disagree (by more than ±0.05 m² — when a polygon is present) |
+| SUF04 | warning | A vertical circulation is declared but not one shape is generated (there is no level above — a stair on the top floor and the like) |
 | BND07 | — | Retired — the "these touch but no boundary is declared" warning was abolished by ADR-0014 (an undeclared contact means the default wall) |
+| HGT03 | — | Retired — "no slab on the level above" merged into SUF03 (ADR-0034) |
+| HGT04 | — | Retired — "the ceiling height is unknown" merged into SUF01 and became an error (ADR-0034) |
+| HGT05 | — | Retired — "its level cannot be determined" merged into SUF02 and became an error (ADR-0034) |
+| RUN04 | — | Retired — "no level above, so no shape is generated" merged into SUF04 (ADR-0034) |
 
 ## 6. Queries — the same description, read differently
 

@@ -2,7 +2,7 @@
 
 # Language reference — .muro (the authored form)
 
-The norm for the notation as of koyu v0.15.0. For semantics (derivation, checking, queries) see [semantics.md](semantics.md); for the attribute contract see [vocabulary.md](vocabulary.md).
+The norm for the notation as of koyu v0.16.0. For semantics (derivation, checking, queries) see [semantics.md](semantics.md); for the attribute contract see [vocabulary.md](vocabulary.md).
 
 > This is a reference. If you are learning koyu, start at [guide/en/start.md](../../guide/en/start.md).
 
@@ -17,7 +17,7 @@ The norm for the notation as of koyu v0.15.0. For semantics (derivation, checkin
 ## 2. Foundation declarations (the base layer holds these, once)
 
 ```
-koyu 0.5                      # version declaration (base layer only, once)
+koyu 1.0                      # version declaration (base layer only, once)
 name 街角の複合ビル             # building name (the rest of the line, whitespace allowed)
 unit mm                       # v0 is mm only
 grid X 0 6400 12800 19200     # X-axis grid-line coordinates (ascending, two or more). X1, X2, … are named automatically
@@ -28,7 +28,7 @@ level L4..L10 11000 pitch:3000 h:2500 slab:450   # range declaration (arithmetic
 
 `grid` is declared once per axis (in the base layer when composing). `name` is also declared once (it may be repeated only if identical). A `level` range declaration `L4..L10` is a prefix plus consecutive numbers, expanded to `z + pitch×k`. Duplicate level names are an error. Declaring a level that holds no space (a roof `R`, say) makes it the upper bound for the topmost floor's height check.
 
-**The version norm (ADR-0017).** The language versions this tool accepts are `0.1, 0.2, 0.3, 0.4, 0.5`; when the declaration is omitted the file is read with the semantics of the newest version, `0.4` (omission is *not* stable in meaning across tool versions — write the version in any file whose meaning you want pinned). The version declaration is the two tokens `koyu <version>` (a missing version, or extra tokens, is an error), in the base layer (the entry) only, and only once (the same discipline as `grid` — re-declaring is an error even with an identical value, which forbids a silent override that depends on composition order). An older version is accepted **only when meaning is preserved** — the parser reads it, but a file whose meaning would change is made an error by check, which offers two ways out. For `0.1`, that is a file in which default boundaries (§4) would be derived (**VER01** — declare the boundaries, or raise the file to `koyu 0.2`). For `0.3` and earlier, which inferred the daylight scope from the type, it is a space of one of those types (`unit`, `room`, `ldk`, `bedroom`, `living`) carrying no `daylight` (**VER02** — write `daylight:1`/`daylight:0`, then raise the file to `koyu 0.5`; ADR-0020). A change that changes the language raises the version, and the migration is written in an ADR.
+**The version norm (ADR-0017).** The language versions this tool accepts are `0.1, 0.2, 0.3, 0.4, 0.5, 1.0`; when the declaration is omitted the file is read with the semantics of the newest version, `1.0` (omission is *not* stable in meaning across tool versions — write the version in any file whose meaning you want pinned). Newer and older follow that listed order, not the lexical order of the spelling (`1.0` is newer than `0.5`). The version declaration is the two tokens `koyu <version>` (a missing version, or extra tokens, is an error), in the base layer (the entry) only, and only once (the same discipline as `grid` — re-declaring is an error even with an identical value, which forbids a silent override that depends on composition order). An older version is accepted **only when meaning is preserved** — the parser reads it, but a file whose meaning would change is made an error by check, which offers two ways out. For `0.1`, that is a file in which default boundaries (§4) would be derived (**VER01** — declare the boundaries, or raise the file to `koyu 0.2`). For `0.3` and earlier, which inferred the daylight scope from the type, it is a space of one of those types (`unit`, `room`, `ldk`, `bedroom`, `living`) carrying no `daylight` (**VER02** — write `daylight:1`/`daylight:0`, then raise the file to `koyu 0.4`; ADR-0020). For `0.4` and earlier, which know nothing of the vertical-circulation declarations (`stair:` `ramp:` `escalator:` `lift:`), drawn lines (`line`), columns (`column`) or basements (`underground:`), it is a file in which one of them is written (**VER03** — raise the file to `koyu 0.5`; ADR-0021/0022/0023). For `0.5` and earlier, which know nothing of the composition override (`over`), removal (`drop`) or the set edits directly under `over` (`+` `-` `=`), it is a file in which one of them is written (**VER04** — raise the file to `koyu 1.0`; ADR-0035/0038). A change that changes the language raises the version, and the migration is written in an ADR.
 
 ### Grid references and offsets
 
@@ -116,18 +116,32 @@ polygon /site -2600,-7000 38000,-7000 38000,19600 2000,21000 -2600,15000
 
 **This is the one place in the notation where a shape is *written* with free vertices that do not sit on the grid** (a space's region is also a written shape, but as a rectangle in grid references; an arbitrary vertex list is only `polygon`). A site's shape is surveyed input from the world rather than designed form, so it is admitted as an exception. Vertices are `x,y` in mm (the same coordinate system as the grid), three or more. Associate it with a `site:1` zone path (a missing association is a warning). The derived area, the containment check for the building, and the site boundary line on the plan all follow from it (semantics.md §5). The standard practice is to keep it in a quarantined layer (its own file, brought in by import). A duplicate is an error.
 
-## 8. import — composition
+## 8. import / over / drop — composition
+
+The normative rules live in [composition.md](composition.md). Only the spelling is given here.
 
 ```
-import ./assets.muro
+import ./assets.muro                  # lay a layer on top. **The order is the declaration of strength** (later is stronger)
+
+over /L5/A/ldk h:2600 spec:改修後      # override a space (one path; a zone if no space has it)
+over /L5/A/hall /L5/corridor t:200    # override a boundary (two paths)
+over level L3 h:2600                  # override a level (h / slab / underground only)
+over asset SD1 w:900                  # override an asset
+  - door D2                           # indented: remove from a set (named)
+  = door D1 w:1000                    # replace in a set (only the attributes written)
+  + window w:600 h:1200 name:W1       # add to a set (name: required)
+
+drop /L5/A/store                      # remove a space (its boundaries go with it)
+drop /L5/a /L5/b                      # remove a boundary
+drop column C1                        # remove a column declaration
 ```
 
-Loads a layer by a path relative to the file it is written in and **composes it additively**. The base layer (the entry) declares the foundation (koyu/name/unit/grid/level) once, and each layer adds spaces, boundaries, zones, assets, and polygons. The rules:
-
-- The same layer is composed only once (a double import, or a cycle, is idempotent).
-- **A collision is a build error**: a duplicate space path, zone path, asset name, or site shape; a re-declared grid or name. The error names the provenance of both (`file:line`). There is no silent override (layer strength is deliberately not adopted).
-- The list of composition entry points is in the public API section of [tools.md](tools.md) (`parse` / `parseFile` / `parseFiles` / `parseFileWith` / `parseWith`). Check's errors and warnings also come back tagged with the layer they came from.
-- The canonical JSON is the single composed model; imports do not survive in it.
+- **`import`** takes a path relative to the file it is written in. The base layer (the entry) declares the foundation (`koyu`/`name`/`unit`/`grid`/`level`) once. The same layer is composed only once (a double import, or a cycle, is idempotent).
+- **`space` / `boundary` / `zone` / `asset` / `polygon` are definitions**, and a duplicate is a build error naming the provenance of both. **`over` is an override**, and a missing target is an error.
+- **Only `+` / `-` / `=` may be written under `over`.** Set members are pointed at by `name:` — an element without a name cannot be edited.
+- The list of composition entry points is in the public API section of [tools.md](tools.md) (`parse` / `parseFile` / `parseFiles` / `parseFileWith` / `parseWith`).
+- The canonical JSON is the single composed model; neither `import` nor `over` nor `drop` survives in it.
+- **`over`, `drop` and the set edits are muro 1.0 words.** Written in a file that declares `0.5` or earlier, they are stopped with **VER04** (§2, the version norm).
 
 ## 9. column — an element with no written position
 
@@ -140,7 +154,7 @@ Loads a layer by a path relative to the file it is written in and **composes it 
 | Item | Default |
 |---|---|
 | boundary type | `wall` |
-| boundary t | none (100 mm when drawing only) |
+| boundary t | none (the derivation default is 100 mm — [derivation.md](derivation.md) §5) |
 | boundary between touching spaces | `wall` — not written. Declare only the exceptions (open / air:1 / anything carrying attributes or openings — ADR-0014) |
 | opening at | 0.5 (a ratio — clamped) |
 | opening hinge / swing | the starting end of the segment / the a side (the one with a region) |

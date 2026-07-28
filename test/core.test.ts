@@ -2,16 +2,16 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check } from "../src/check.js";
-import { doorsBetween, neighbors, placeOpening } from "../src/graph.js";
-import { areaM2, SourceError, toCanonical } from "../src/model.js";
-import { parse, tokenize } from "../src/parse.js";
-import { svgPlan } from "../src/plan.js";
+import { check } from "../src/core/diagnose.js";
+import { doorsBetween, neighbors, placeOpening } from "../src/core/graph.js";
+import { areaM2, SourceError, toCanonical } from "../src/core/model.js";
+import { parse, tokenize } from "../src/core/parse.js";
+import { svgPlan } from "../src/draw/plan.js";
 
 const examplePath = fileURLToPath(new URL("../examples/two-rooms.muro", import.meta.url));
 const exampleSrc = readFileSync(examplePath, "utf8");
 
-test("二室の例が読める", () => {
+test("the two-room example parses", () => {
   const m = parse(exampleSrc);
   assert.equal(m.name, "二室");
   assert.equal(m.spaces.size, 3);
@@ -23,7 +23,7 @@ test("二室の例が読める", () => {
   assert.equal(m.spaces.get("/out")!.rects.length, 0);
 });
 
-test("グラフへの問い: 扉をいくつ通るか", () => {
+test("asking the graph: how many doors does the route pass through", () => {
   const m = parse(exampleSrc);
   assert.equal(doorsBetween(m, "/L1/a", "/L1/b")!.doors, 1);
   assert.equal(doorsBetween(m, "/L1/b", "/out")!.doors, 1);
@@ -33,7 +33,7 @@ test("グラフへの問い: 扉をいくつ通るか", () => {
   assert.equal(neighbors(m, "/L1/a").length, 2);
 });
 
-test("開口は境界線分の上に配置される", () => {
+test("an opening is placed on the boundary segment", () => {
   const m = parse(exampleSrc);
   const ab = m.boundaries.find((b) => b.b === "/L1/b")!;
   const placed = placeOpening(m, ab, ab.openings[0]!);
@@ -51,20 +51,20 @@ test("開口は境界線分の上に配置される", () => {
   }
 });
 
-test("整合チェックが通る", () => {
+test("the consistency check passes", () => {
   const m = parse(exampleSrc);
   const r = check(m);
   assert.deepEqual(r.errors, []);
   assert.deepEqual(r.warnings, []);
 });
 
-test("外部境界の扉は辺の指定がなければ曖昧としてエラー", () => {
+test("a door on an exterior boundary is ambiguous without an edge, so it is an error", () => {
   const m = parse(exampleSrc.replace("edge:S ", ""));
   const r = check(m);
-  assert.ok(r.errors.some((e) => e.includes("複数")));
+  assert.ok(r.errors.some((e) => e.includes("more than one boundary segment")));
 });
 
-test("領域の重なりはエラー", () => {
+test("overlapping regions are an error", () => {
   const m = parse(`
 grid X 0 3600 7200
 grid Y 0 4500
@@ -73,10 +73,10 @@ space /L1/a room X1..X3 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 `);
   const r = check(m);
-  assert.ok(r.errors.some((e) => e.includes("重なって")));
+  assert.ok(r.errors.some((e) => e.includes("Space regions overlap")));
 });
 
-test("接していない空間の境界はエラー", () => {
+test("a boundary between spaces that do not touch is an error", () => {
   const m = parse(`
 grid X 0 3600 7200 10800 14400
 grid Y 0 4500
@@ -86,14 +86,14 @@ space /L1/c room X3..X4 Y1..Y2
 boundary /L1/a /L1/c t:120
 `);
   const r = check(m);
-  assert.ok(r.errors.some((e) => e.includes("接していない")));
+  assert.ok(r.errors.some((e) => e.includes("do not touch")));
 });
 
-test("接しているのに境界が無ければ既定の壁が導出される (ADR-0014)", () => {
+test("touching spaces with no boundary written derive a default wall (ADR-0014)", () => {
   const m = parse(`
 grid X 0 3600 7200
 grid Y 0 4500
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 `);
@@ -107,7 +107,7 @@ space /L1/b room X2..X3 Y1..Y2
   assert.equal(doorsBetween(m, "/L1/a", "/L1/b"), undefined);
 });
 
-test("開口が線分より広ければエラー", () => {
+test("an opening wider than the segment is an error", () => {
   const m = parse(`
 grid X 0 3600 7200
 grid Y 0 4500
@@ -118,10 +118,10 @@ boundary /L1/a /L1/b t:120
   door w:99999
 `);
   const r = check(m);
-  assert.ok(r.errors.some((e) => e.includes("超えて")));
+  assert.ok(r.errors.some((e) => e.includes("exceeds the boundary segment length")));
 });
 
-test("open境界は扉なしで通れる", () => {
+test("an open boundary is passable without a door", () => {
   const m = parse(`
 grid X 0 3600 7200
 grid Y 0 4500
@@ -133,7 +133,7 @@ boundary /L1/a /L1/b type:open
   assert.equal(doorsBetween(m, "/L1/a", "/L1/b")!.doors, 0);
 });
 
-test("記法のエラーは行番号つきで言葉になる", () => {
+test("notation errors come back in words with a line number", () => {
   assert.throws(() => parse("space /L1/a"), SourceError);
   assert.throws(
     () =>
@@ -143,12 +143,12 @@ grid Y 0 4500
 level L1 0
 space /L1/a room X1..X9 Y1..Y2
 `),
-    /未定義の通り名/,
+    /Undefined grid line name/,
   );
-  assert.throws(() => parse("nonsense 1 2 3"), /未知のキーワード/);
+  assert.throws(() => parse("nonsense 1 2 3"), /Unknown keyword/);
 });
 
-test("引用符で空白を含む値が書ける", () => {
+test("quotes let a value carry whitespace", () => {
   assert.deepEqual(tokenize('space /L1/a room name:"居室 A"', 1), [
     "space",
     "/L1/a",
@@ -157,21 +157,21 @@ test("引用符で空白を含む値が書ける", () => {
   ]);
 });
 
-test("正準JSONは安定している", () => {
+test("canonical JSON is stable", () => {
   const m = parse(exampleSrc);
   const j1 = toCanonical(m);
   const j2 = toCanonical(parse(exampleSrc));
   assert.equal(j1, j2);
   assert.ok(j1.includes('"between"'));
-  assert.ok(j1.includes('"koyu": "0.5"'));
+  assert.ok(j1.includes('"koyu": "1.0"'));
 });
 
-test("平面図SVGが生成される", () => {
+test("a plan SVG is generated", () => {
   const m = parse(exampleSrc);
   const svg = svgPlan(m);
   assert.ok(svg.startsWith("<svg"));
   assert.ok(svg.includes("居室A"));
-  assert.ok(svg.includes("㎡"));
+  assert.ok(svg.includes("m2"));
   assert.ok(svg.includes(" A ")); // 扉の軌跡の円弧
   assert.ok(svg.trimEnd().endsWith("</svg>"));
 });

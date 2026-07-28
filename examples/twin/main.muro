@@ -29,7 +29,7 @@
 #   koyu plan   examples/twin/main.muro -l L8    A棟基準階とB棟ホテル階
 #   koyu axo    examples/twin/main.muro -l L1,L2,L3,L4,L5
 
-koyu 0.5
+koyu 1.0
 name 双塔複合建築 — 商業・事務所・ホテル・レジデンス
 unit mm
 
@@ -48,7 +48,7 @@ level M1 28200 h:3200 slab:900
 level L6..L20 32800 h:2800 slab:1400 pitch:4200
 level M2 95800 h:2800 slab:1400
 level L21..L34 100000 h:2800 slab:1400 pitch:4200
-level R1 158800 slab:900
+level R1 158800 h:3000 slab:900
 
 import ./assets.muro
 import ./site.muro

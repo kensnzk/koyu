@@ -12,6 +12,7 @@ This folder is the normative reference for **how koyu behaves right now**. It do
 |---|---|---|
 | [language.md](language.md) | **Language reference** — lexis, the grammar of every declaration, composition (import), defaults, and how position is written | People who write .muro; people who touch the parser |
 | [semantics.md](semantics.md) | **Semantics reference** — the model; derivation (wall segments, vertical adjacency, semi-outdoor, height); the list of checks; the definitions of the queries (doors/stats/light/site) | People who touch derivation or check; people interpreting results |
+| [derivation.md](derivation.md) | **The norm for derivation** — from a written composition to a single shape: regions, boundaries, substance, vertical circulation, the constants of derivation, tolerances, and where shape ends and appearance begins | Consumers that build shape; people writing a viewer |
 | [vocabulary.md](vocabulary.md) | **The vocabulary ledger** — the contract for attributes (which words the tools interpret) and the rule for how an open vocabulary is opened | People adding attributes; everyone |
 | [canonical-json.md](canonical-json.md) | **The machine format** — the schema of the canonical JSON and its stability rules | People building external connections, diffs, or composition |
 | [tools.md](tools.md) | **Tool reference** — the CLI, the MCP server, the public API | Programs and agents that use koyu |
@@ -26,4 +27,4 @@ Translations follow the same discipline. Japanese is the default locale and `spe
 
 ## The version this describes
 
-This set of documents describes koyu v0.15.0. If it diverges from the package version, fix whatever diverged.
+This set of documents describes koyu v0.16.0. If it diverges from the package version, fix whatever diverged.

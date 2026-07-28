@@ -4,16 +4,16 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { check } from "../src/check.js";
-import { semanticDiff } from "../src/diff.js";
-import { toCanonical } from "../src/model.js";
-import { parse, parseFiles } from "../src/parse.js";
+import { check } from "../src/core/diagnose.js";
+import { semanticDiff } from "../src/core/diff.js";
+import { toCanonical } from "../src/core/model.js";
+import { parse, parseFiles } from "../src/core/parse.js";
 
 const HEAD = "koyu 0.4\nunit mm\ngrid X 0 6400 12800\ngrid Y 0 5600\nlevel L1 0 h:2400\n";
 
 // ---- A. 展開 ----
 
-test("帯: X方向・閉じた帯は位置で書いた版と同じ矩形になる", () => {
+test("band: along X, a closed band gives the same rects as the version written by position", () => {
   const m = parse(
     `${HEAD}band X X1+3200..X2+3200 Y1+4000..Y2\n  space /L1/wet wet w:4800\n  space /L1/hall hall w:1600\n`,
   );
@@ -28,7 +28,7 @@ test("帯: X方向・閉じた帯は位置で書いた版と同じ矩形にな�
   ]);
 });
 
-test("帯: Y方向", () => {
+test("band: along Y", () => {
   const m = parse(
     `${HEAD}band Y X1..X1+3200 Y1..Y2\n  space /L1/bed2 bedroom w:2400\n  space /L1/bed1 bedroom w:3200\n`,
   );
@@ -39,7 +39,7 @@ test("帯: Y方向", () => {
   ]);
 });
 
-test("帯: w:rest は末尾でも先頭でも中間でも同じ矩形を与える", () => {
+test("band: w:rest gives the same rects last, first, or in the middle", () => {
   const last = parse(
     `${HEAD}band X X1..X2 Y1..Y2\n  space /L1/a room w:1600\n  space /L1/b room w:rest\n`,
   );
@@ -54,7 +54,7 @@ test("帯: w:rest は末尾でも先頭でも中間でも同じ矩形を与え�
   assert.deepEqual(mid.spaces.get("/L1/b")!.rects, [{ x1: 1600, x2: 4800, y1: 0, y2: 5600 }]);
 });
 
-test("帯: 通り芯に一致する切り位置は通り名だけで綴られる (X2+0 にしない)", () => {
+test("band: a cut that lands on a grid line is spelled with the grid name alone (not X2+0)", () => {
   const m = parse(
     `${HEAD}band X X1..X3 Y1..Y2\n  space /L1/a room w:6400\n  space /L1/b room w:rest\n`,
   );
@@ -62,19 +62,19 @@ test("帯: 通り芯に一致する切り位置は通り名だけで綴られる
   assert.equal(m.spaces.get("/L1/b")!.grids[0]!.xa, "X2");
 });
 
-test("帯: 先頭の通り芯より手前は負のオフセットで綴られる", () => {
+test("band: a cut before the first grid line is spelled with a negative offset", () => {
   const m = parse(
     `${HEAD}band X X1-3200..X2 Y1..Y2\n  space /L1/a room w:1600\n  space /L1/b room w:rest\n`,
   );
   assert.equal(m.spaces.get("/L1/a")!.grids[0]!.xb, "X1-1600");
 });
 
-test("帯: 要素が一つでも成立する", () => {
+test("band: a single member is enough", () => {
   const m = parse(`${HEAD}band X X1..X2 Y1..Y2\n  space /L1/a room w:rest\n`);
   assert.deepEqual(m.spaces.get("/L1/a")!.rects, [{ x1: 0, x2: 6400, y1: 0, y2: 5600 }]);
 });
 
-test("帯: レベルスパンは全要素まとめて展開される", () => {
+test("band: a level span expands all members together", () => {
   const src =
     "koyu 0.4\nunit mm\ngrid X 0 6400\ngrid Y 0 5600\nlevel L1 0 h:2400\nlevel L2 3000 h:2400\nlevel L3 6000 h:2400\n" +
     "band X X1..X2 Y1..Y2\n  space /L1..L3/a room w:1600\n  space /L1..L3/b room w:rest\n";
@@ -85,7 +85,7 @@ test("帯: レベルスパンは全要素まとめて展開される", () => {
   }
 });
 
-test("帯: 直交方向の綴りは全要素に書かれたまま渡される", () => {
+test("band: the spelling across the band passes to every member as written", () => {
   const m = parse(
     `${HEAD}band X X1..X2 Y1+1000..Y2\n  space /L1/a room w:1600\n  space /L1/b room w:rest\n`,
   );
@@ -95,7 +95,7 @@ test("帯: 直交方向の綴りは全要素に書かれたまま渡される", 
   }
 });
 
-test("帯: import層の中でも働き、エラーは出所つきで返る", () => {
+test("band: it works inside an imported layer, and errors come back carrying their origin", () => {
   const m = parseFiles(
     {
       "main.muro": `${HEAD}import ./floor.muro\n`,
@@ -113,11 +113,11 @@ test("帯: import層の中でも働き、エラーは出所つきで返る", () 
         },
         "main.muro",
       ),
-    /floor\.muro:1行目/,
+    /floor\.muro:line 1/,
   );
 });
 
-test("帯: 帯が作った空間も zone が集約する", () => {
+test("band: a zone aggregates the spaces a band made as well", () => {
   const m = parse(
     `${HEAD}zone /L1 name:全体\nband X X1..X2 Y1..Y2\n  space /L1/a room w:1600\n  space /L1/b room w:rest\n`,
   );
@@ -125,7 +125,7 @@ test("帯: 帯が作った空間も zone が集約する", () => {
   assert.deepEqual(check(m).errors, []);
 });
 
-test("帯: 隣り合う要素には既定の壁が導出される (ADR-0014)", () => {
+test("band: adjacent members derive a default wall (ADR-0014)", () => {
   const m = parse(
     `${HEAD}band X X1..X2 Y1..Y2\n  space /L1/a room w:1600\n  space /L1/b room w:rest\n`,
   );
@@ -136,7 +136,7 @@ test("帯: 隣り合う要素には既定の壁が導出される (ADR-0014)", (
 
 // ---- B. 保証: 帯で書いた版 == 位置で書いた版 ----
 
-test("保証: 帯で書いた版と位置で書いた版は正準JSONがバイト同一・semanticDiffが空", () => {
+test("guarantee: the band version and the position version give byte-identical canonical JSON and an empty semanticDiff", () => {
   const band = parse(
     `${HEAD}band X X1+3200..X2+3200 Y1+4000..Y2\n  space /L1/wet wet w:4800 name:水回り\n  space /L1/hall hall w:1600 name:玄関\n`,
   );
@@ -148,18 +148,18 @@ test("保証: 帯で書いた版と位置で書いた版は正準JSONがバイ�
   assert.equal(d.spaces.changed.length + d.spaces.added.length + d.spaces.removed.length, 0);
 });
 
-test("保証: 正準JSONに band / rest / w は漏れない", () => {
+test("guarantee: band / rest / w never leak into canonical JSON", () => {
   const j = toCanonical(
     parse(`${HEAD}band X X1..X2 Y1..Y2\n  space /L1/a room w:1600\n  space /L1/b room w:rest\n`),
   );
-  assert.ok(!j.includes("band"), "band が漏れている");
-  assert.ok(!j.includes("rest"), "rest が漏れている");
-  assert.ok(!/"w":/.test(j), "w が漏れている");
+  assert.ok(!j.includes("band"), "band leaked");
+  assert.ok(!j.includes("rest"), "rest leaked");
+  assert.ok(!/"w":/.test(j), "w leaked");
 });
 
 // ---- C. 編集の伝播 (帯の価値の証拠) ----
 
-test("編集の伝播: 一箇所の w: を変えると隣が追随し、checkは緑のまま", () => {
+test("edit propagation: changing one w: makes the neighbour follow, and check stays green", () => {
   const mk = (w: number) =>
     parse(`${HEAD}band X X1..X2 Y1..Y2\n  space /L1/a room w:${w}\n  space /L1/b room w:rest\n`);
   const before = mk(1600);
@@ -176,107 +176,107 @@ test("編集の伝播: 一箇所の w: を変えると隣が追随し、checkは
 
 const bad = (src: string, re: RegExp) => assert.throws(() => parse(HEAD + src), re);
 
-test("帯のエラー: 軸", () => {
-  bad("band X1..X2 Y1..Y2\n  space /L1/a room w:rest\n", /band の割る向きは X か Y です/);
-  bad("band Z X1..X2 Y1..Y2\n  space /L1/a room w:rest\n", /band の割る向きは X か Y です/);
+test("band errors: the axis", () => {
+  bad("band X1..X2 Y1..Y2\n  space /L1/a room w:rest\n", /A band divides along X or Y/);
+  bad("band Z X1..X2 Y1..Y2\n  space /L1/a room w:rest\n", /A band divides along X or Y/);
 });
 
-test("帯のエラー: 帯の行に属性は書けない", () => {
+test("band errors: attributes cannot be written on the band line", () => {
   bad(
     "band X X1..X2 Y1..Y2 floor:オーク\n  space /L1/a room w:rest\n",
-    /band の行に書けるのは 軸と領域だけです/,
+    /Only the axis and the extent may be written on a band line/,
   );
 });
 
-test("帯のエラー: 範囲は昇順", () => {
-  bad("band X X2..X1 Y1..Y2\n  space /L1/a room w:rest\n", /band の範囲は昇順で書きます/);
+test("band errors: the range is ascending", () => {
+  bad("band X X2..X1 Y1..Y2\n  space /L1/a room w:rest\n", /A band range is written in ascending order/);
 });
 
-test("帯のエラー: 過剰決定と不足", () => {
+test("band errors: overdetermined and short", () => {
   bad(
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:4800\n  space /L1/b room w:3200\n",
-    /帯の幅 6400mm に対し寸法の合計が 8000mm で、1600mm 超えています/,
+    /The dimensions sum to 8000mm against a band width of 6400mm, 1600mm over/,
   );
   bad(
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:3200\n",
-    /帯の幅 6400mm に対し寸法の合計が 3200mm で、3200mm 足りません/,
+    /The dimensions sum to 3200mm against a band width of 6400mm, 3200mm short/,
   );
 });
 
-test("帯のエラー: rest は高々一つ / 残りがゼロ", () => {
+test("band errors: at most one rest, and a remainder of zero", () => {
   bad(
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:rest\n  space /L1/b room w:rest\n",
-    /残りを吸収する要素 \(w:rest\) は帯に一つだけです/,
+    /Only one member per band absorbs the remainder \(w:rest\)/,
   );
   bad(
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:6400\n  space /L1/b room w:rest\n",
-    /残りがゼロです/,
+    /leaving zero for \/L1\/b \(w:rest\)/,
   );
 });
 
-test("帯のエラー: 幅の欠落と不正な幅", () => {
-  bad("band X X1..X2 Y1..Y2\n  space /L1/a room\n", /band の要素には幅 w:\(mm\) か w:rest が要ります/);
+test("band errors: a missing width and an invalid width", () => {
+  bad("band X X1..X2 Y1..Y2\n  space /L1/a room\n", /A band member requires a width, w:\(mm\) or w:rest/);
   for (const v of ["w:0", "w:-100", "w:1600.5", "w:ret"]) {
     bad(
       `band X X1..X2 Y1..Y2\n  space /L1/a room ${v}\n`,
-      /band の要素の幅は正の整数mm か rest で書きます/,
+      /A band member width is written as a positive integer in mm, or as rest/,
     );
   }
 });
 
-test("帯のエラー: 要素の型・領域・level:", () => {
-  bad("band X X1..X2 Y1..Y2\n  space /L1/a w:1600\n", /band の要素 \/L1\/a に型\(語彙\)が要ります/);
+test("band errors: the member type, region, and level:", () => {
+  bad("band X X1..X2 Y1..Y2\n  space /L1/a w:1600\n", /The band member \/L1\/a requires a type \(a word from the vocabulary\)/);
   bad(
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:rest X1..X2\n",
-    /band の要素に領域は書けません/,
+    /A region may not be written on a band member/,
   );
   bad(
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:rest level:L1\n",
-    /band の要素に level: は書けません/,
+    /level: may not be written on a band member/,
   );
 });
 
-test("帯のエラー: 要素なし / 帯の外の字下げ space / 帯の下の area", () => {
-  bad("band X X1..X2 Y1..Y2\n", /band の下に space を字下げして1つ以上書きます/);
+test("band errors: no members, an indented space outside a band, and area under a band", () => {
+  bad("band X X1..X2 Y1..Y2\n", /band takes one or more indented space lines below it/);
   bad(
     "space /L1/a room X1..X2 Y1..Y2\n  space /L1/b room w:1600\n",
-    /字下げした space は band の直下に書きます/,
+    /an indented space is written directly under band/,
   );
   bad(
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:rest\n  area X1..X2 Y1..Y2\n",
-    /band の要素に area は書けません/,
+    /area may not be written on a band member/,
   );
 });
 
-test("帯のエラー: 要素が違うレベルに展開される", () => {
+test("band errors: members expanding onto different levels", () => {
   const src =
     "koyu 0.4\nunit mm\ngrid X 0 6400\ngrid Y 0 5600\nlevel L1 0 h:2400\nlevel L2 3000 h:2400\n" +
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:1600\n  space /L2/b room w:rest\n";
-  assert.throws(() => parse(src), /帯の要素は同じレベルに展開します/);
+  assert.throws(() => parse(src), /Band members expand onto the same level/);
 });
 
-test("帯のエラー: 要素のパス重複", () => {
+test("band errors: a duplicated member path", () => {
   bad(
     "space /L1/a room X1..X2 Y1..Y2\nband X X1..X2 Y1..Y2\n  space /L1/a room w:rest\n",
-    /空間パスが重複しています: \/L1\/a/,
+    /Duplicate space path: \/L1\/a/,
   );
 });
 
 // ---- E. 字下げを落とした要素を黙って通さない (最重要の防御) ----
 
-test("非字下げの space に w: は書けない — 字下げ落ちが黙って通るのを防ぐ", () => {
-  bad("space /L1/a room w:1600\n", /space に w: は書けません/);
+test("w: cannot be written on an unindented space, which keeps a lost indent from passing silently", () => {
+  bad("space /L1/a room w:1600\n", /w: may not be written on space/);
   // 帯の要素が字下げを失った形 (帯自体は閉じているので、破れではなく字下げ落ちが露見する)。
   // これが通ると室が領域を持たないまま全ての図から消え、check は緑のままになる
   bad(
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:6400\nspace /L1/b room w:rest\n",
-    /space に w: は書けません/,
+    /w: may not be written on space/,
   );
 });
 
 // ---- F. 版 ----
 
-test("帯に語彙の版ゲートは無い (koyu 0.2 宣言でも読める)", () => {
+test("band has no vocabulary version gate (it parses even under a koyu 0.2 declaration)", () => {
   // koyu は zone / stack / polygon / import のいずれにも字句の版ゲートを持たない。
   // band にだけ設けるのは新機構の密輸になるため、意図的に設けていない (ADR-0019)。
   const m = parse(

@@ -4,11 +4,11 @@
 
 A page for looking up every diagnostic code `check` returns, with its **cause** and its **fix**. The ledger of codes, severities, and summaries is held by [spec/semantics.md §5](../../spec/en/semantics.md) — this adds to that ledger the things the spec deliberately does not carry: why it happens, what to rewrite, and a minimal reproduction.
 
-Diagnostic messages are emitted in Japanese by the implementation. Each code below quotes the real message and glosses it in English immediately after.
+Each code below quotes the message the implementation actually emits.
 
 ## First, get the code
 
-**The human-facing `check` does not display codes.** What comes out is the Japanese body alone; a code like `BND04` appears nowhere. When you need the code, add `--json`. Run this before looking anything up here.
+**The human-facing `check` does not display codes.** What comes out is the message body alone; a code like `BND04` appears nowhere. When you need the code, add `--json`. Run this before looking anything up here.
 
 ```sh
 koyu check bad.muro --json
@@ -19,7 +19,7 @@ Take, for instance, this file (two rooms touching only at a corner).
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b t:120
@@ -28,10 +28,10 @@ boundary /L1/a /L1/b t:120
 The human output looks like this.
 
 ```text
-✖ <絶対パス>/bad.muro:6行目: 空間が接していないため境界を導けません: /L1/a | /L1/b
+✖ <absolute path>/bad.muro:line 6: The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b
 ```
 
-("The spaces do not touch, so no boundary can be derived." The leading provenance is the **resolved absolute path**; it is elided here as `<絶対パス>`.)
+(The leading provenance is the **resolved absolute path**; it is elided here as `<absolute path>`.)
 
 Add `--json` and the same diagnostic comes out with its code.
 
@@ -40,9 +40,9 @@ Add `--json` and the same diagnostic comes out with its code.
  {
   "code": "BND04",
   "severity": "error",
-  "message": "空間が接していないため境界を導けません: /L1/a | /L1/b",
+  "message": "The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b",
   "line": 6,
-  "file": "<絶対パス>/bad.muro",
+  "file": "<absolute path>/bad.muro",
   "path": [
    "/L1/a",
    "/L1/b"
@@ -74,9 +74,9 @@ Every wrong example on this page exits 1 under `koyu check --strict`, each produ
 | You placed a door or window and were told "there are several segments" | [OPN05](#opn05) |
 | You wrote a stair or a void and were told off | [VRT01](#vrt01) [VRT02](#vrt02) [VRT03](#vrt03) |
 | You laid out spaces and were told "the regions overlap" | [GEO02](#geo02) |
-| You thought you wrote a level and were told "its level cannot be determined" | [HGT05](#hgt05) |
+| You thought you wrote a level and were told "its level cannot be determined" | [SUF02](#suf02) |
 | The floor-height arithmetic does not pass | [HGT01](#hgt01) [HGT02](#hgt02) |
-| The check only says it "cannot be done" | [HGT03](#hgt03) [HGT04](#hgt04) |
+| No ceiling height or floor-construction thickness written, and neither ceilings nor floors are generated | [SUF01](#suf01) [SUF03](#suf03) |
 | The site's figures do not agree | [SIT03](#sit03) [SIT05](#sit05) |
 | The file dies without a single line being read | [SYN01](#syn01) |
 
@@ -90,13 +90,13 @@ Every wrong example on this page exits 1 under `koyu check --strict`, each produ
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out exterior
 boundary /out /out
 ```
 
-`同じ空間同士の境界は書けません: /out` — "a boundary between the same space cannot be written".
+`A boundary between a space and itself cannot be written: /out`
 
 **Cause** — a boundary is a relation joining two **different** spaces. The same path was written twice. Copying a line and forgetting to fix one side is almost the whole of it.
 
@@ -110,14 +110,14 @@ boundary /out /out
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
 boundary /L1/a /L1/b type:open
 ```
 
-`境界が重複しています: /L1/a | /L1/b (既出: <絶対パス>/bad.muro:6行目)` — "duplicate boundary, first seen at line 6".
+`Duplicate boundary: /L1/a | /L1/b (first seen at <absolute path>/bad.muro:line 6)`
 
 **Cause** — there are two boundaries on the same pair of spaces (identical down to the `edge` restriction). Since the order carries no meaning, neither can be said to win. Even when `wall` and `open` contradict as they do here, the later one is not silently taken. `related` carries the position of the earlier one.
 
@@ -138,7 +138,7 @@ space /L2/a room X1..X2 Y1..Y2
 boundary /L1/a /L2/a t:120
 ```
 
-`異なるレベルの空間に壁境界は書けません (垂直は type:stair/shaft/void): /L1/a | /L2/a` — "a wall boundary cannot be written to a space on a different level; vertical takes type:stair/shaft/void".
+`A wall boundary cannot be written to a space on a different level (vertical takes type:stair/shaft/void): /L1/a | /L2/a`
 
 **Cause** — a wall does not stand across storeys. A `boundary` was written meaning to connect two storeys, but `type:` was omitted so it defaulted to `wall`.
 
@@ -152,13 +152,13 @@ boundary /L1/a /L2/a t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b t:120
 ```
 
-`空間が接していないため境界を導けません: /L1/a | /L1/b`
+`The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b`
 
 **Cause** — the wall centerline segment is derived from the layout of the two spaces. Unless they touch in a way from which it can be derived, the boundary relation does not stand up. The commonest case is **touching only at a corner**. In the example, `/L1/a` is `X1..X2 Y1..Y2` and `/L1/b` is `X2..X3 Y2..Y3`; they share only the point (X2, Y2) and no edge of any length. **Without a shared edge of nonzero length, they are not "touching".** Coordinates that are simply off (writing `Y3..Y4` where `Y2..Y3` was meant) give the same symptom.
 
@@ -174,14 +174,14 @@ boundary /L1/a /L1/b t:120
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
 boundary /L1/a /L1/b edge:E t:150
 ```
 
-`同じ空間対に edge 限定つきと無しの境界が併存しています (線分が重なります): /L1/a | /L1/b` — "the segments overlap".
+`The same pair of spaces carries both an edge-restricted and an unrestricted boundary (the segments overlap): /L1/a | /L1/b`
 
 **Cause** — a boundary with no `edge` points at **all** the segments of that pair. A boundary with `edge:E` points at the E side among them. Write both and two boundaries ride on the E side, doubling both the thickness (`t`) and the specification. It slips past BND02 (the duplicate error), but is almost never the intended state.
 
@@ -195,7 +195,7 @@ boundary /L1/a /L1/b edge:E t:150
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out exterior
@@ -206,7 +206,7 @@ boundary /L1/a /out edge:W t:150
 boundary /L1/b /out t:150
 ```
 
-`edge:E の外周に残る辺が無く、境界線分がゼロです: /L1/a | /out`
+`No edge remains on the perimeter for edge:E, so the boundary segment is of zero length: /L1/a | /out`
 
 **Cause** — a boundary with a space that has no region (an `exterior`, say) is **what remains of the room's perimeter after removing the intervals that touch other spaces**. In the example, `/L1/a`'s E side is occupied entirely by `/L1/b`, so nothing remains facing `/out`. The boundary you wrote points at nothing.
 
@@ -222,12 +222,12 @@ boundary /L1/b /out t:150
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /L1/zzz
 ```
 
-`未定義の空間を参照しています: /L1/zzz`
+`References an undefined space: /L1/zzz`
 
 **Cause** — there is no `space` matching the path written on the `boundary`. Either a typo in the path, a forgotten `space`, or a layer not loaded in composition (`import`).
 
@@ -245,11 +245,11 @@ boundary /L1/a /L1/zzz
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X3 Y1..Y2 + X2..X3 Y1..Y2
 ```
 
-`/L1/a の領域同士が重なっています: X1..X3 Y1..Y2 と X2..X3 Y1..Y2`
+`Regions within /L1/a overlap: X1..X3 Y1..Y2 and X2..X3 Y1..Y2`
 
 **Cause** — the rectangles one space bundles with `+` overlap each other. It appears when you meant to write an L and got the start of the second rectangle wrong. The overlapping part would be counted twice in the area, so it is not let through.
 
@@ -263,12 +263,12 @@ space /L1/a room X1..X3 Y1..Y2 + X2..X3 Y1..Y2
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X3 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 ```
 
-`空間の領域が重なっています: /L1/a と /L1/b`
+`Space regions overlap: /L1/a and /L1/b`
 
 **Cause** — two spaces on the same level occupy the same place. `related` carries the position of the one written later.
 
@@ -277,7 +277,7 @@ space /L1/b room X2..X3 Y1..Y2
 ```muro
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /L1/home name:住戸
 space /L1/home/ldk ldk X1..X2 Y1..Y2 name:LDK
 space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
@@ -293,13 +293,13 @@ The definition of `zone` is in [spec/language.md §5](../../spec/en/language.md)
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out exterior
   area X1..X2 Y1..Y2 floor:タイル
 ```
 
-`領域を持たない空間 /out に area は書けません`
+`An area cannot be written on /out, which has no region`
 
 **Cause** — an `area` is an uncounted subdivision inside a room, pointing at part of the parent's region. With no region on the parent there is nothing to point at. Often the indentation has landed under the wrong `space`, one below the intended one.
 
@@ -313,12 +313,12 @@ space /out exterior
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
   area X1..X3 Y1..Y2 floor:タイル
 ```
 
-`area が /L1/a の領域からはみ出しています`
+`The area spills outside the region of /L1/a`
 
 **Cause** — the `area`'s rectangle does not fit within the parent's. Because an `area` affects neither area, room counts, nor the graph, this is a warning rather than an error.
 
@@ -336,14 +336,14 @@ space /L1/a room X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
   door w:800 hinge:E
 ```
 
-`hinge:E は垂直線分 (N/S)で指定します` — "hinge:E: a vertical segment takes N/S".
+`hinge:E: a vertical segment takes N/S`
 
 **Cause** — `hinge` says which **end** the hinge is at. It only means something as a compass along the segment. The two rooms in the example sit east and west, so the edge they share is a **vertical segment running north–south**, whose ends are N and S.
 
@@ -357,7 +357,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
@@ -365,7 +365,7 @@ boundary /L1/a /L1/b t:120
   door w:2000 at:0.6
 ```
 
-`開口同士が重なっています (doorとdoor — 中心間 800mm < 必要 2000mm)` — "center to center 800 mm < the required 2000 mm".
+`Openings overlap (door and door — center to center 800mm < the required 2000mm)`
 
 **Cause** — two openings on the same segment cut into each other. The required center-to-center distance is `(w₁ + w₂) / 2`, and the message prints both the measured and the required value.
 
@@ -379,14 +379,14 @@ boundary /L1/a /L1/b t:120
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b type:open
   door w:800
 ```
 
-`open境界のdoorは通行に影響しません (常に通れます)` — "it is always passable".
+`A door on an open boundary has no effect on passage (it is always passable)`
 
 **Cause** — `open` declares that there is nothing there. It is always passable to begin with, so adding a door changes nothing about passability. It is not counted in `doors` either.
 
@@ -400,14 +400,14 @@ boundary /L1/a /L1/b type:open
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
   door w:800 edge:N
 ```
 
-`door を置ける境界線分がありません (/L1/a | /L1/b)`
+`No boundary segment can hold the door (/L1/a | /L1/b)`
 
 **Cause** — there is no segment where the opening's `edge:` narrowed to. The two rooms in the example sit east and west, so their shared edge is on E (seen from the a side) and there is nothing on N. The same code also appears when the boundary itself has no segment (arriving together with BND04 / BND06).
 
@@ -421,7 +421,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out exterior
@@ -430,7 +430,7 @@ boundary /L1/a /out t:150
 boundary /L1/b /out t:150
 ```
 
-`境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/a | /out)` — "specify the side with edge:N/E/S/W".
+`There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)`
 
 **Cause** — a boundary with the outside (`/out` and other spaces with no region) is **all that remains** of the room's perimeter not touching another room, and it usually splits across several edges. Where on that boundary to put the door is not settled. You may as well remember it as: **placing an opening on an external wall always needs `edge:`**.
 
@@ -444,14 +444,14 @@ boundary /L1/b /out t:150
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
   door w:5000
 ```
 
-`doorの幅 5000 が境界線分の長さ 4000 を超えています` — "a door width of 5000 exceeds the segment length of 4000".
+`The door width 5000 exceeds the boundary segment length 4000`
 
 **Cause** — the width is longer than the wall. The message prints the segment's real length, so you can reconcile it against the layout right there. When using an asset reference (`door SD1`), the width may be coming from the asset.
 
@@ -465,14 +465,14 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X1..X2 Y2..Y3
 boundary /L1/a /L1/b t:120
   door w:800 at:Y1+2000
 ```
 
-`door の位置 Y1+2000 は水平線分なのでX系の通りで指定します` — "a horizontal segment takes an X-axis grid reference".
+`The door position Y1+2000 is on the wrong axis: a horizontal segment takes an X grid line`
 
 **Cause** — when writing a position as a grid reference, it is only a position if it is on the axis along the segment. The two rooms in the example sit north and south, so their shared edge is a **horizontal segment running east–west**, and a position on it is measured on the X axis.
 
@@ -486,14 +486,14 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
   door w:900 at:Y1+200
 ```
 
-`位置 Y1+200 では door (幅900) が境界線分からはみ出します (線分 0〜4000mm、中心の許容 450〜3550mm)` — "at Y1+200 the door (width 900) overruns the segment; the segment is 0–4000 mm and the center is permitted 450–3550 mm".
+`At Y1+200 the door (width 900) runs off the boundary segment (segment 0-4000mm, center allowed 450-3550mm)`
 
 **Cause** — when `at` is a grid reference it is **not clamped**. A ratio (`at:0.5` and the like) is pushed back automatically to fit the segment, but a grid reference is an instruction to put it *there*, so if it does not fit it errors rather than moving silently. `at` points at the opening's **center**, so it must be at least `w/2` inside from the end.
 
@@ -511,14 +511,14 @@ A `seg` is an uncounted subdivision along a boundary — an interval where the w
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b type:open
   seg w:800 spec:X
 ```
 
-`open境界 (壁が無い) の seg は解釈されません` — "there is no wall".
+`A seg on an open boundary (there is no wall) is not interpreted`
 
 **Cause** — a `seg` switches the specification of part of a wall. An `open` has no wall, so there is nothing to switch.
 
@@ -532,14 +532,14 @@ boundary /L1/a /L1/b type:open
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
   seg w:800 edge:N spec:X
 ```
 
-`seg を置ける境界線分がありません (/L1/a | /L1/b)`
+`No boundary segment can hold the seg (/L1/a | /L1/b)`
 
 **Cause and fix** — the same as [OPN04](#opn04). The compass of `edge:` points at a side with no segment.
 
@@ -551,7 +551,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out exterior
@@ -560,7 +560,7 @@ boundary /L1/a /out t:150
 boundary /L1/b /out t:150
 ```
 
-`境界線分が複数あります。edge:N/E/S/W で辺を指定してください (/L1/a | /out)`
+`There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)`
 
 **Cause and fix** — the same as [OPN05](#opn05). A `seg` on an external wall needs `edge:`.
 
@@ -572,14 +572,14 @@ boundary /L1/b /out t:150
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
   seg w:5000 spec:X
 ```
 
-`segの幅 5000 が境界線分の長さ 4000 を超えています`
+`The seg width 5000 exceeds the boundary segment length 4000`
 
 **Cause and fix** — the same as [OPN06](#opn06). To write a subdivision spanning the whole length of a wall, make it an attribute of the boundary itself rather than a `seg`.
 
@@ -591,14 +591,14 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000 8000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X1..X2 Y2..Y3
 boundary /L1/a /L1/b t:120
   seg w:800 at:Y1+2000 spec:X
 ```
 
-`seg の位置 Y1+2000 は水平線分なのでX系の通りで指定します`
+`The seg position Y1+2000 is on the wrong axis: a horizontal segment takes an X grid line`
 
 **Cause and fix** — the same as [OPN07](#opn07).
 
@@ -610,14 +610,14 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
   seg w:900 at:Y1+200 spec:X
 ```
 
-`位置 Y1+200 では seg (幅900) が境界線分からはみ出します (線分 0〜4000mm、中心の許容 450〜3550mm)`
+`At Y1+200 the seg (width 900) runs off the boundary segment (segment 0-4000mm, center allowed 450-3550mm)`
 
 **Cause and fix** — the same as [OPN08](#opn08). A grid reference is not clamped.
 
@@ -633,13 +633,13 @@ Adjacency between storeys is not declared — it is derived from overlap in plan
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out exterior
 boundary /L1/a /out type:stair
 ```
 
-`stair 境界は領域とレベルを持つ空間同士に書きます`
+`A stair boundary is written between spaces that have both a region and a level`
 
 **Cause** — a vertical relation says "this part of the plan connects up and down", so unless both sides have a region and a level the position is undetermined. The partner is an `exterior` (no region), or a space whose level could not be determined.
 
@@ -653,7 +653,7 @@ boundary /L1/a /out type:stair
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 level L3 6000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
@@ -661,7 +661,7 @@ space /L3/a room X1..X2 Y1..Y2
 boundary /L1/a /L3/a type:stair
 ```
 
-`stair 境界は隣り合うレベルの間に書きます: /L1/a | /L3/a`
+`A stair boundary is written between adjacent levels: /L1/a | /L3/a`
 
 **Cause** — one vertical boundary spans exactly one step between levels **adjacent** in z order. The example is L1 and L3, skipping L2 in between.
 
@@ -670,7 +670,7 @@ boundary /L1/a /L3/a type:stair
 ```muro
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 level L3 6000 h:2400 slab:200
 space /L1/ev shaft X1..X2 Y1..Y2
@@ -687,14 +687,14 @@ stack ev L1..L3 type:shaft
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/b room X2..X3 Y1..Y2
 boundary /L1/a /L2/b type:stair
 ```
 
-`stair 境界の空間が平面上で重なっていません: /L1/a | /L2/b`
+`The spaces of a stair boundary do not overlap in plan: /L1/a | /L2/b`
 
 **Cause** — to connect up and down they must overlap in plan. The layouts of the stair or shaft differ between the storeys.
 
@@ -708,14 +708,14 @@ boundary /L1/a /L2/b type:stair
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
 boundary /L1/a /L2/a type:void
 ```
 
-`void境界の上側は type:void の空間を想定しています: /L2/a`
+`The space above a void boundary is expected to be type:void: /L2/a`
 
 **Cause** — a `type:void` boundary says "there is no floor here". If the space sitting above it stays an ordinary room, it is counted as floor area despite having no floor.
 
@@ -729,7 +729,7 @@ boundary /L1/a /L2/a type:void
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
@@ -737,7 +737,7 @@ boundary /L1/a /L2/a type:stair
   door w:800
 ```
 
-`垂直境界のdoorは解釈されません`
+`A door on a vertical boundary is not interpreted`
 
 **Cause** — an opening rides on a wall centerline segment, and a vertical boundary has no segment. Written, it affects neither daylight nor passage nor the drawing. A `stair` is passable without a door, and adding one does not raise the count in `doors`.
 
@@ -751,7 +751,7 @@ boundary /L1/a /L2/a type:stair
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
@@ -759,7 +759,7 @@ boundary /L1/a /L2/a type:stair
   seg w:800 spec:X
 ```
 
-`垂直境界の seg は解釈されません`
+`A seg on a vertical boundary is not interpreted`
 
 **Cause and fix** — the same as [VRT05](#vrt05). A vertical boundary has no segment.
 
@@ -775,13 +775,13 @@ Height is checked as a declared invariant: **that space's ceiling height + the l
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0 h:2800
+level L1 0 h:2800 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
 ```
 
-`/L1/a が上階に食い込みます: 天井高2800 + L2のslab400 = 3200 > 階高3000` — "ceiling 2800 + L2's slab 400 = 3200 > floor-to-floor 3000".
+`/L1/a collides into the floor above: ceiling height 2800 + L2's slab 400 = 3200 > storey height 3000`
 
 **Cause** — the ceiling height plus the slab thickness exceeds the floor-to-floor height. The message prints all three numbers, so which to move is settled right there.
 
@@ -795,7 +795,7 @@ space /L2/a room X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0 h:5400
+level L1 0 h:5400 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X3 Y1..Y2
 space /L2/v void X1..X2 Y1..Y2
@@ -803,14 +803,61 @@ space /L2/b room X2..X3 Y1..Y2
 boundary /L1/a /L2/v type:void
 ```
 
-`/L1/a が上階に食い込みます: 天井高5400 + L2のslab400 = 5800 > 階高3000。吹抜けの被覆は50.0%しかありません — 部分吹抜けでは天井高を階高内に収めます (吹抜け部分の高さは導出)` — "the void's coverage is 50%; under a partial void keep the ceiling height within the storey (the void's height is derived)".
+`/L1/a collides into the floor above: ceiling height 5400 + L2's slab 400 = 5800 > storey height 3000. The void covers only 50.0% — under a partial void keep the ceiling height within the storey height (the height of the void part is derived)`
 
 **Cause** — a void (a `type:void` boundary) is a **declarative exemption** from the height invariant, but the exemption holds only as far as the void covers the lower storey's plan. The example voids only half the lower storey, yet declares its ceiling height as 5400, piercing the storey. Over the other half there is a floor, and that part cannot be 5400. The exemption holds only at a coverage ratio of 99% or more (a full-height void).
 
 **Fix** — bring the lower storey's ceiling height within the storey (`level L1 0 h:2400`). The height of the void part is derived from the `void` relation and need not be declared. To make the whole thing a void, make the `void` space's region the same as the lower storey's.
 
-<a id="hgt03"></a>
-### HGT03 — no slab declared above, so the height check cannot run
+## Sufficiency — SUF
+
+**Not making a shape and not being able to make one are different things.** A unique shape has to be derivable from this description, so whether the information needed to make that shape is present is part of structural integrity ([spec/scope.md §6](../../spec/scope.md)). **This is a completeness check, not a validity judgement** — it never says "that ceiling height is wrong". It says only "no ceiling height is written".
+
+<a id="suf01"></a>
+### SUF01 — the ceiling height cannot be determined
+
+`error`
+
+```muro-bad
+grid X 0 3600
+grid Y 0 4000
+level L1 0 slab:150
+space /L1/a room X1..X2 Y1..Y2
+```
+
+`The ceiling height of /L1/a cannot be determined (neither the space's h: nor level L1's h: is there)`
+
+**Cause** — the space has no `h:`, and neither does the level it sits on. There is no height to extrude, so **no ceiling and no roof are generated** for this space. The height invariant ([HGT01](#hgt01)) cannot be formulated either, so a ceiling height that pierces a storey passes in silence.
+
+Three kinds are not blamed: voids (`type:void` — having neither floor nor ceiling is what a void is), the exterior (`type:exterior` — it is the ground), and semi-outdoor spaces (spaces meeting the exterior across `type:open` or `air:1` — a balcony has no ceiling height). For these three the shape is settled without a ceiling height.
+
+**Fix** — write a base ceiling height on the level (`level L1 0 h:2400 slab:150`). Write `h:` on the space for individual rooms that differ (`space /L1/a room X1..X2 Y1..Y2 h:2700` — a space's `h` beats the level's).
+
+<a id="suf02"></a>
+### SUF02 — its level cannot be determined
+
+`error`
+
+```muro-bad
+grid X 0 3600
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /house/a room X1..X2 Y1..Y2
+```
+
+`/house/a has a region, but its level cannot be determined (give it at the head of the path or with level:)`
+
+**Cause** — **this is usually a problem with the `level` declaration rather than with how the path is written.** A space sits on a level when the first segment of its path matches a declared level name, or when it carries a `level:` attribute. The example cuts its path by an aggregation hierarchy (`/house/…`), so the first segment `house` is not a level name. Conversely, if you wrote `/L1/a` and get this, **the `level L1 0` line is missing** — writing `/L1/` in a path does not declare a level.
+
+**Fix** — one of two.
+
+- You want the path cut by an aggregation hierarchy (`/home/ldk` and the like) → write `level:` on the space: `space /house/a room X1..X2 Y1..Y2 level:L1`
+- You want the path's head to state the level (`/L1/a`) → add a `level L1 0 h:2400 slab:150` line to the base layer
+
+**Why it is an error** — z is undetermined, so **not one solid is generated** from this space. No floor, no ceiling, no roof, no walls, and nothing in the plan drawing either. This is the state in which `koyu plan` dies with "there is no space with a region on level …".
+
+<a id="suf03"></a>
+### SUF03 — no slab, so no floor is generated
 
 `warning`
 
@@ -818,59 +865,36 @@ boundary /L1/a /L2/v type:void
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400
-level L2 3000 h:2400
 space /L1/a room X1..X2 Y1..Y2
-space /L2/a room X1..X2 Y1..Y2
 ```
 
-`レベル L2 に slab が未宣言のため、L1 との高さ検査ができません`
+`Level L1 has no slab:, so not one floor is generated on this storey`
 
-**Cause** — the height invariant cannot be formulated without the level above's `slab` (the floor-construction thickness: slab plus void plus finish). This is not "you are wrong" but "**the check has not run**". Leave it green and nobody looks at height contradictions at all.
+**Cause** — only a `level`'s `slab` (the floor-construction thickness: slab plus void plus finish) gives a floor ([ADR-0024](../../docs/decisions/0024-fabric.md)). There is no operation that places a floor; writing `slab` *is* declaring the floor. Leave it out and not one floor is generated on that storey. On top of that, the height invariant ([HGT01](#hgt01)) cannot be formulated without the level above's `slab`, so the storey below goes unchecked as well.
 
-**Fix** — write `slab:` on the level above (`level L2 3000 h:2400 slab:500`). Adding a roof level holding no space above the top storey (`level R 5800 slab:500`) brings the top storey into the check too.
+**Why it stops at a warning** — because the shape itself is settled. "No `slab`, no floor element" is a deterministic rule; it is not a case of several shapes coming out of one composition. But **that the building ends up with no floors ought to be told.**
 
-<a id="hgt04"></a>
-### HGT04 — the ceiling height is unknown, so the height check cannot run
+**Fix** — write `slab:` on the level (`level L1 0 h:2400 slab:150`). A roof level holding no space (`level R 5800 slab:500`) carries nothing that could have a floor, so this never fires for it — that level exists only to give the top storey its upper bound.
+
+<a id="suf04"></a>
+### SUF04 — no level above, so no shape is generated
 
 `warning`
 
 ```muro-warn
-grid X 0 3600
-grid Y 0 4000
-level L1 0
-level L2 3000 slab:400
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y2
-space /L2/a room X1..X2 Y1..Y2
+space /L2/s stair X1..X2 Y1..Y2 stair:N
 ```
 
-`/L1/a の天井高が不明で、L2 との高さ検査ができません`
+`No level sits above L2, so no form is generated for /L2/s`
 
-**Cause** — the reverse of [HGT03](#hgt03): this time the lower storey has no ceiling height. Neither the space has `h:` nor its level does.
+**Cause** — a vertical circulation's shape is settled by "from this level's FL to the next level's FL". A stair on the top storey has nowhere to climb to, so no steps are generated (on that storey's plan only the flight coming up from below appears). The declaration is there and the shape is not: a matter of sufficiency.
 
-**Fix** — write a base ceiling height on the level (`level L1 0 h:2400`). Write `h:` on the space for individual rooms that differ.
-
-<a id="hgt05"></a>
-### HGT05 — its level cannot be determined
-
-`warning`
-
-```muro-warn
-grid X 0 3600
-grid Y 0 4000
-level L1 0
-space /house/a room X1..X2 Y1..Y2
-```
-
-`/house/a は領域を持ちますが、レベルが特定できません (パス先頭か level: で指定します)`
-
-**Cause** — **this is usually a problem with the `level` declaration rather than with how the path is written.** A space sits on a level when the first segment of its path matches a declared level name, or when it carries a `level:` attribute. The example cuts its path by an aggregation hierarchy (`/house/…`), so the first segment `house` is not a level name. Conversely, if you wrote `/L1/a` and get this warning, **the `level L1 0` line is missing** — writing `/L1/` in a path does not declare a level.
-
-**Fix** — one of two.
-
-- You want the path cut by an aggregation hierarchy (`/home/ldk` and the like) → write `level:` on the space: `space /house/a room X1..X2 Y1..Y2 level:L1`
-- You want the path's head to state the level (`/L1/a`) → add a `level L1 0` line to the base layer
-
-**Why it stops at a warning** — there is a region, so the composition does stand up. But **a space that does not sit on a level does not appear in the plan drawing.** This is the state in which `check` is green and `koyu plan` dies with "there is no space with a region on level …".
+**Fix** — if the stair goes out to the roof, declare the roof surface as `level R`. If it does not, drop the declaration.
 
 ## Levels — LVL
 
@@ -886,7 +910,7 @@ level L1 0
 level L2 0
 ```
 
-`レベル L1 と L2 のzが同じです`
+`Levels L1 and L2 have the same z`
 
 **Cause** — two levels are at the same height. Their order in z is undetermined, so neither which is above which nor the floor-to-floor height is settled. It also appears when a **range declaration** (`level L4..L10 11000 pitch:3000`) collides at the same z with an individual declaration.
 
@@ -902,12 +926,12 @@ level L2 0
 ```muro-warn
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 zone /wing name:西棟
 ```
 
-`ゾーン /wing の下に空間がありません`
+`There are no spaces beneath zone /wing`
 
 **Cause** — a zone bundles the spaces beneath it by path prefix. There is nothing to bundle, so its area is 0 and nothing of it appears in the aggregations. The zone's path being offset from the spaces' paths (`/wing` versus `/L1/wing/…`) is almost the whole of it.
 
@@ -921,13 +945,13 @@ zone /wing name:西棟
 ```muro-warn
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/a/x room X2..X3 Y1..Y2
 zone /L1/a name:重なった名
 ```
 
-`ゾーンと同じパスの空間があります (どちらかに寄せます): /L1/a` — "settle on one of them".
+`A space shares its path with a zone (settle on one of them): /L1/a`
 
 **Cause** — the path is identity, yet the same path carries both a space (an entity with geometry) and a zone (an aggregation). A reading exists in which the area is counted twice.
 
@@ -945,13 +969,13 @@ The site checks take as their subject a zone carrying `site:1` and the `polygon`
 ```muro-bad
 grid X 0 10000
 grid Y 0 10000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /site name:敷地 site:1
 polygon /site 0,0 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```
 
-`敷地形状に重複する頂点があります (0,0)`
+`The site shape has a duplicate vertex (0,0)`
 
 **Cause** — two consecutive vertices are at the same point (within 1 mm). The typical case is pasting survey data where the final point duplicates the start. With a zero-length edge, neither the area calculation nor the intersection test can be trusted.
 
@@ -965,38 +989,17 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```muro-bad
 grid X 0 10000
 grid Y 0 10000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /site name:敷地 site:1
 polygon /site 0,0 10000,0 0,10000 10000,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```
 
-`敷地形状が自己交差しています (5000,5000 付近)` — "near (5000,5000)".
+`The site shape is self-intersecting (near 5000,5000)`
 
 **Cause** — the edges cross each other (a bow-tie). The **order** of the vertices is wrong. Neither the area nor the inside/outside test can be defined, so the site checks are abandoned from there.
 
 **Fix** — reorder the vertices along the perimeter (clockwise or counter-clockwise, either is fine). The message prints the coordinates of the intersection, so look at the two edges near it.
-
-<a id="sit03"></a>
-### SIT03 — it escapes the site shape
-
-`error`
-
-```muro-bad
-grid X 0 10000 14000
-grid Y 0 10000
-level L1 0
-zone /site name:敷地 site:1
-polygon /site 0,0 10000,0 10000,10000 0,10000
-space /site/yard yard X1..X2 Y1..Y2 level:L1
-space /L1/a room X2..X3 Y1..Y2
-```
-
-`/L1/a が敷地形状からはみ出しています (14000,0 付近)`
-
-**Cause** — a space with a region has gone outside the site. Beyond the containment of the four corners it also looks at vertex intrusion and edge crossing, so it catches this correctly on a concave site too. On the boundary counts as inside (1 mm tolerance). Spaces beneath the site zone (`/site/…`) and `exterior`s are out of scope.
-
-**Fix** — bring the layout within the site, or correct the surveyed values in the `polygon`. The message prints the coordinates of the first escaping point it found.
 
 <a id="sit04"></a>
 ### SIT04 — there is no zone corresponding to the polygon
@@ -1006,36 +1009,16 @@ space /L1/a room X2..X3 Y1..Y2
 ```muro-warn
 grid X 0 10000
 grid Y 0 10000
-level L1 0
+level L1 0 h:2400 slab:150
 polygon /site 0,0 10000,0 10000,10000 0,10000
 space /L1/a room X1..X2 Y1..Y2
 ```
 
-`polygon /site に対応するゾーンがありません`
+`No zone corresponds to polygon /site`
 
 **Cause** — a `polygon` is written against a zone's path. With no corresponding zone, this shape is not used as a site — neither area, nor frontage, nor the escape check runs. Either the `zone` was forgotten or the path is spelled differently.
 
 **Fix** — declare a zone at the same path: `zone /site name:敷地 site:1`. Without `site:1` it does not become the subject of the `site` query, so do not forget it.
-
-<a id="sit05"></a>
-### SIT05 — the declared and derived site areas disagree
-
-`warning`
-
-```muro-warn
-grid X 0 10000
-grid Y 0 10000
-level L1 0
-zone /site name:敷地 site:1 area:120.00
-polygon /site 0,0 10000,0 10000,10000 0,10000
-space /site/yard yard X1..X2 Y1..Y2 level:L1
-```
-
-`敷地面積の宣言と導出が食い違います: 宣言 120㎡ / 導出 100.00㎡` — "declared 120 m² / derived 100.00 m²".
-
-**Cause** — the zone's `area:` (the surveyed value) and the area computed from the `polygon` differ by more than 0.05 m². Either a mistyped vertex, a transcription error in `area:`, or a survey update reflected on only one side.
-
-**Fix** — decide which is right and correct the other. Since `area:` is a transcription of the survey result, the thing to suspect is usually the `polygon`'s vertices. `koyu site <file>` prints both figures side by side.
 
 ## Identity — UID
 
@@ -1049,11 +1032,11 @@ A `uid` is an opaque token, unique across the whole model spanning `space` and `
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 uid:0123
 ```
 
-`uid は数字だけのトークンにできません: uid:123 (sp-123 のような形にします)` — "make it something like sp-123".
+`A uid cannot be a token of digits alone: uid:123 (write something like sp-123)`
 
 **Cause** — an attribute value in numeric form is held as a number. Write `0123` and it becomes `123`, losing the distinction of the token written (the message saying `uid:123` is exactly that). For a token that carries identity this is not allowed.
 
@@ -1067,11 +1050,11 @@ space /L1/a room X1..X2 Y1..Y2 uid:0123
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 uid:"sp 1"
 ```
 
-`uid に空白は使えません: "sp 1"`
+`A uid cannot contain whitespace: "sp 1"`
 
 **Cause** — quoting lets a value contain whitespace, but a `uid` is an opaque token and does not permit it. An empty value is refused likewise.
 
@@ -1085,16 +1068,40 @@ space /L1/a room X1..X2 Y1..Y2 uid:"sp 1"
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 uid:sp-1
 space /L1/b room X2..X3 Y1..Y2 uid:sp-1
 ```
 
-`uid が重複しています: sp-1 (space /L1/a — <絶対パス>/bad.muro:4行目, space /L1/b — <絶対パス>/bad.muro:5行目)`
+`Duplicate uid: sp-1 (space /L1/a — <absolute path>/bad.muro:line 4, space /L1/b — <absolute path>/bad.muro:line 5)`
 
 **Cause** — the same `uid` appears in two places. It must be unique across `space` and `zone`. It appears when a line was copied and the `uid` was not corrected. The message and `related` list every origin.
 
-**Fix** — change one to a different token. When it collides with another layer under composition (`import`), deciding a prefix per layer reduces the accidents.
+**Fix** — change one to a different token. When it collides with another layer under composition (`import`), deciding a prefix per layer reduces the accidents. To have a machine make one, use the MCP tool `new_uids` or the API's `newUids` ([Giving something an identity](howto/identity.md)).
+
+<a id="uid04"></a>
+### UID04 — a duplicate name within one container
+
+`error`
+
+```muro-bad
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /out exterior
+boundary /L1/a /out t:150
+  window w:1200 h:1100 edge:S at:0.25 name:W1
+  window w:1200 h:1100 edge:S at:0.75 name:W1
+```
+
+`Duplicate opening name within boundary /L1/a | /out: W1 (<absolute path>/bad.muro:line 7, <absolute path>/bad.muro:line 8) — the name is what identifies it inside its container`
+
+**Cause** — the identity of an opening or of something contained is derived from the containing subject plus a name unique within it ([spec/en/scope.md §5](../../spec/en/scope.md)). If the name points at two elements, then `= window W1` cannot say which one it replaces and `- window W1` cannot say which one it removes. koyu **does not guess**, so it is an error on the spot ([ADR-0039](../../docs/decisions/0039-identity-generation.md)). Four things are checked — openings within a boundary, `seg`s within a boundary, `area`s within a space, and `column`s within the model.
+
+A name inherited from an asset does not count. The `name` in `asset W1 window … name:掃き出し窓` is **the type's name**, not that opening's claim — putting the same product twice on one wall is not a collision.
+
+**Fix** — change one of the names (`name:W1-e` / `name:W1-w`). If nothing needs to point at them, do not write `name:` at all — an element without a name claims no identity, so it is not in the population.
 
 ## Interpreted attribute values — ATT
 
@@ -1122,7 +1129,7 @@ space /L1/a room X1..X2 Y1..Y2 h:35OO
 space /L2/a room X1..X2 Y1..Y2
 ```
 
-`/L1/a の h は正の数値で書きます: h:35OO`
+`h on /L1/a is written as a positive number: h:35OO`
 
 **Why** — a value meant as a number does not read as one. `35OO` (letter O instead of digit 0), `3500mm` (with a unit) and `1/12` (a fraction) are all carried as strings, and the reader treats them as unwritten and falls back to the default. `level`'s own `h:` turns the same mistake into a syntax error on the spot; only a space's `h:` sat outside that guard.
 
@@ -1136,17 +1143,46 @@ space /L2/a room X1..X2 Y1..Y2
 ```muro-bad
 grid X 0 5000
 grid Y 0 5000
-level L1 0 h:2400
+level L1 0 h:2400 slab:150
 zone /site name:敷地 site:yes
 polygon /site 0,0 5000,0 5000,5000 0,5000
 space /site/a room X1..X2 Y1..Y2 level:L1
 ```
 
-`ゾーン /site の site は 0 / 1 のどれかです: site:yes`
+`site on zone /site is one of 0 / 1: site:yes`
 
 **Why** — an attribute whose value set is fixed was given a spelling outside that set: `site` (0/1), `ceiling` (0/1), `turn` (R/L), `style` (hinged/sliding/auto). Case matters — `turn:l` is not `turn:L`.
 
 **Fix** — use the ledger's spelling. `site:1` declares that this zone is the site, and it is the entrance to the site's area, frontage and containment checks (SIT01–SIT05) as well as to the `site` subcommand.
+
+<a id="att03"></a>
+### ATT03 — the attribute is not in the ledger
+
+`error`
+
+```muro-bad
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2 heigh:2200
+```
+
+`/L1/a carries heigh:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.heigh:2200)`
+
+**Cause** — a key that is not in the element's ledger ([spec/vocabulary.md](../../spec/vocabulary.md)) was written without a namespace. **A single wrong letter silently does nothing**: `heigh:2200` is not a ceiling height, and it silences the height invariant (HGT01) entirely.
+
+Attributes come in three layers ([spec/en/scope.md §7](../../spec/en/scope.md)). The **structure** and **interpreted** layers are read by the tools, so the ledger is the contract; the **carry** layer is only transported, so anyone may write it. Requiring a namespace on the carry layer is the only way to tell the two apart by sight.
+
+**Fix** — check the spelling. If the value really is free (sensor readings, survey data, a third party's ledger), give it a **dot-separated namespace**.
+
+```muro
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2 h:2200 acme.sensor:23 bems.temp:22.5
+```
+
+Core gives no meaning at all to a namespaced attribute — it checks no value domain and uses it in neither derivation nor validation. **It can be carried but is not judged**, and saying so explicitly is the point of the layer.
 
 ## Daylight — DAY
 
@@ -1158,11 +1194,11 @@ space /site/a room X1..X2 Y1..Y2 level:L1
 ```muro-bad
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 daylight:yes
 ```
 
-`daylight は 1 (採光判定の対象) か 0 (対象外) です: /L1/a に daylight:yes` — "daylight is either 1 (in scope for the daylight check) or 0 (out of scope); /L1/a carries daylight:yes".
+`daylight is either 1 (in scope for the daylight check) or 0 (out of scope): /L1/a carries daylight:yes`
 
 **Cause** — `daylight` is the binary declaration of whether `light`'s 1/7 test applies to a room, and it is the **sole entrance** to that check ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). A spelling like `daylight:yes` or `daylight:true` would pass as a free attribute and drop the room silently out of scope — a total loss of the verdict — so any value but 0 or 1 is rejected.
 
@@ -1186,7 +1222,7 @@ space /L1/s stair X1..X2 Y1..Y2 stair:N ramp:N
 space /L2/s stair X1..X2 Y1..Y2
 ```
 
-`縦動線の宣言が複数あります: stair:N ramp:N (一つの空間に一つです)`
+`More than one vertical circulation declaration: stair:N ramp:N (one space carries one)`
 
 **Why** — `stair:` `ramp:` `escalator:` `lift:` each select a **shape-generation rule**, and one space cannot have its shape produced by two rules. A space where a stair and a ramp coexist is, in fact, two spaces.
 
@@ -1206,7 +1242,7 @@ space /L1/s stair X1..X2 Y1..Y2 stair:up
 space /L2/s stair X1..X2 Y1..Y2
 ```
 
-`stair の値は上る向き N/E/S/W です: stair:up`
+`The value of stair is the direction it rises, N/E/S/W: stair:up`
 
 **Why** — laying out treads needs to know which way the run climbs. It is the one piece of information that cannot be derived from the region, so it has to be written. The value is a compass direction (N=+Y, S=-Y, E=+X, W=-X); only `lift:` has no direction and takes `1`.
 
@@ -1226,31 +1262,11 @@ space /L1/s stair X1..X2 Y1..Y2 + X2..X3 Y1..Y2 stair:N
 space /L2/s stair X1..X3 Y1..Y2
 ```
 
-`縦動線の領域は矩形一つです (合併は段割りが決まりません): /L1/s`
+`The region of vertical circulation is a single rectangle (a union leaves the step division undetermined): /L1/s`
 
 **Why** — the layout is fixed by a length along travel and a width across it. A union of rectangles has no single answer for either.
 
 **Fix** — give the stair shaft one rectangle. An L-shaped shaft is usually better written as a stair plus a landing hall.
-
-<a id="run04"></a>
-### RUN04 — no level above, so no shape is generated
-
-`warning`
-
-```muro-warn
-grid X 0 3000 6000
-grid Y 0 6000
-level L1 0 h:2700 slab:300
-level L2 3000 h:2700 slab:300
-space /L1/a room X1..X2 Y1..Y2
-space /L2/s stair X1..X2 Y1..Y2 stair:N
-```
-
-`L2 の上にレベルが無いため、/L2/s の形は生成されません`
-
-**Why** — a run's shape spans from its own level's FL to the next level's FL. The top storey's stair has nowhere to climb, so no treads are generated (its plan shows only the flight arriving from below).
-
-**Fix** — if the stair reaches the roof, declare the roof as a `level R`. If it does not, drop the declaration.
 
 <a id="run05"></a>
 ### RUN05 — invalid `form`
@@ -1266,75 +1282,11 @@ space /L1/s stair X1..X2 Y1..Y2 stair:N form:spiral
 space /L2/s stair X1..X2 Y1..Y2
 ```
 
-`form は straight / return です: form:spiral (螺旋は折返しの連続として書きます)`
+`form is straight / return: form:spiral (write a spiral as a succession of turns)`
 
 **Why** — koyu has no curves. Spiral stairs and helical ramps are approximated as a succession of half-turns ([ADR-0021](../../docs/decisions/0021-vertical-circulation.md) records this as an explicit surrender rather than a silent approximation).
 
 **Fix** — use `form:return`, or stack half-turns across several levels.
-
-<a id="run06"></a>
-### RUN06 — the derived step dimensions are cramped
-
-`warning`
-
-```muro-warn
-grid X 0 3000 6000
-grid Y 0 6000
-level L1 0 h:2700 slab:300
-level L2 3000 h:2700 slab:300
-space /L1/s stair X1..X2 Y1..Y1+4600 stair:N
-space /L2/s stair X1..X2 Y1..Y1+4600
-stack s L1..L2 type:stair
-```
-
-`導出された段の寸法が窮屈です: 17段 蹴上176mm / 踏面150mm (2×蹴上+踏面 = 502mm、目安 550〜700mm)`
-
-**Why** — **neither the number of risers nor the going is written anywhere.** Both fall out of the storey height and the region, which is precisely why checking the derived result is worth doing ([ADR-0021](../../docs/decisions/0021-vertical-circulation.md) — write nothing, check everything). Here the shaft is too shallow and the going comes out at 150mm.
-
-**Fix** — deepen the shaft along travel, fold it with `form:return`, or raise `riser:` to use fewer steps. This is a dimensional warning, not a code-compliance verdict.
-
-In a return stair each flight has its own going. The check reads the **tightest flight**, so the going reported is that flight's.
-
-<a id="run07"></a>
-### RUN07 — the derived slope is steeper than declared
-
-`warning`
-
-```muro-warn
-grid X 0 3000 6000
-grid Y 0 6000
-level L1 0 h:2700 slab:300
-level L2 3000 h:2700 slab:300
-space /L1/r ramp X1..X2 Y1..Y2 ramp:N slope:12
-space /L2/r ramp X1..X2 Y1..Y2
-stack r L1..L2 type:stair
-```
-
-`導出された勾配 1/1.3 が宣言 1/12 より急です (走り長を伸ばすか階高を下げます)`
-
-**Why** — the slope is not written either; it is the level difference over the derived run length. `slope:` is **not the slope but the limit you will accept**, and exists only so that this check can be made. Escalators get the same code without any `slope:` when the derived pitch leaves the usual band (about 1/1.7, i.e. 30°).
-
-**Fix** — lengthen the ramp along travel, fold it with `form:return` to double the run, or lower the storey height.
-
-<a id="run08"></a>
-### RUN08 — no vertical boundary connects the levels
-
-`warning`
-
-```muro-warn
-grid X 0 3000 6000
-grid Y 0 8000
-level L1 0 h:2700 slab:300
-level L2 3000 h:2700 slab:300
-space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
-space /L2/s stair X1..X2 Y1..Y1+7000
-```
-
-`/L1/s は縦動線の形を持ちますが、上下を繋ぐ垂直境界がありません (stack か boundary type:stair を書きます — 形はあってもグラフでは通れません)`
-
-**Why** — **shape and topology are written separately.** `stair:N` builds treads; it does not claim the two levels are connected. Without a vertical boundary (`stack` / `boundary type:stair`), `doors` will not find a route upstairs. A stair that is drawn but not walkable is the hardest mismatch to notice, so it warns.
-
-**Fix** — add `stack s L1..L2 type:stair`. Conversely, if you want connection without a generated shape (a lift shaft, say), drop the space declaration and keep the vertical boundary.
 
 ## Lines — LIN
 
@@ -1348,14 +1300,14 @@ space /L2/s stair X1..X2 Y1..Y1+7000
 ```muro-bad
 grid X 0 3000 6000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
   line X1,Y1 X1,Y2
 ```
 
-`線 X1,Y1..X1,Y2 は /L1/a と /L1/b を分離していません (二つの割付が線の両側に来るように引きます)`
+`Line X1,Y1..X1,Y2 does not separate /L1/a and /L1/b (draw it so the two allocations fall on opposite sides)`
 
 **Why** — a drawn line redistributes the union of the two spaces' declared cells across its two sides. If both cells lie on the same side there is nothing to redistribute. Which side a space takes is decided by where its area lies; a space the line bisects exactly takes the side opposite its partner — and if neither has a bias, nothing decides.
 
@@ -1369,7 +1321,7 @@ boundary /L1/a /L1/b t:120
 ```muro-bad
 grid X 0 3000 6000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:300
 level L2 3000 slab:300
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a void X1..X2 Y1..Y2
@@ -1377,7 +1329,7 @@ boundary /L1/a /L2/a type:void
   line X1,Y1 X2,Y2
 ```
 
-`垂直境界に線は描けません (線は平面を区切る行為です): /L1/a | /L2/a`
+`A line cannot be drawn on a vertical boundary (drawing a line is an act of dividing a plan): /L1/a | /L2/a`
 
 **Why** — a line divides space in plan, and vertical boundaries (`stair` / `shaft` / `void`) have no segment in plan. To make the edge of a void diagonal, draw the line on **the horizontal boundary of that level** — between the void and the room next to it.
 
@@ -1391,46 +1343,18 @@ boundary /L1/a /L2/a type:void
 ```muro-warn
 grid X 0 3000 6000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
   line X2,Y1 X2,Y2
 ```
 
-`線 X2,Y1..X2,Y2 は何も切っていません (既定の隣接線と同じか、割付の外にあります)`
+`Line X2,Y1..X2,Y2 cuts nothing (it is the same as the default adjacency line, or falls outside the allocation)`
 
 **Why** — either the line sits exactly where the derived adjacency line already is (so writing it changes nothing), or the cells do not reach the extent the line covers. The first is harmless, but **a line that does nothing should still say so**.
 
 **Fix** — redraw the line where you meant it, or delete it. A mistyped endpoint that was meant to be diagonal shows up here.
-
-## The envelope — ENV
-
-Walls appear from boundaries, but **boundaries to the outside are never derived** — the default boundary (ADR-0014) is not drawn against a space with no region, because naming the other side is itself information. As a result, a forgotten boundary to the outside becomes **a silently missing wall**. This code puts into words what you could previously only catch by looking at the drawing ([ADR-0025](../../docs/decisions/0025-envelope-gaps.md)).
-
-<a id="env01"></a>
-### ENV01 — part of the outline faces nothing
-
-`warning`
-
-```muro-warn
-grid X 0 4000 8000
-grid Y 0 5000
-level L1 0 h:2700
-space /L1/a room X1..X2 Y1..Y2
-space /L1/b room X2..X3 Y1..Y2
-space /out exterior
-boundary /L1/a /out edge:W t:200
-boundary /L1/b /out t:150
-```
-
-`外皮に面していない外周があります: /L1/a — S 4000mm / N 4000mm (合計 8000mm・2区間)。外部への境界を書きます`
-
-**Why** — of `/L1/a`'s outline, everything except the east side it shares with `/L1/b` — the north, the south and the rest of the west — faces neither another space nor a declared boundary. Because a boundary was written on the west, this level counts as **having started to describe its envelope**, so the remaining holes are counted.
-
-**What is checked is the consistency of "finish what you started", not completeness.** A level with no boundary to the outside at all says nothing — it simply has not modelled its envelope yet, and a two-room example should not be nagged. Exterior spaces, semi-outdoor spaces (derived) and the site tiles under a `site:1` zone are not counted either: not being enclosed is normal for them.
-
-**Fix** — write boundaries for the remaining edges, choosing them with `edge:N/E/S/W` or catching the whole remainder with one unrestricted boundary. If an edge is genuinely open, write `type:open`; if it is a railing, write `air:1` — **all of these differ from writing nothing.**
 
 ## Columns — COL
 
@@ -1444,13 +1368,13 @@ A column declaration carries a size, the levels and (optionally) the grid lines 
 ```muro-warn
 grid X 0 3000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:300
 level L2 3000 slab:300
 space /L1/a room X1..X2 Y1..Y2
 column 600 L2
 ```
 
-`柱の宣言に対して立つ柱がありません (通りの交点に床がありません): L2 600角`
+`Not one column stands for this declaration (the grid intersections have no floor): L2 600mm square`
 
 **Why** — a column stands at "grid intersection ∩ floor on that level". If no space of that level covers any intersection, nothing is generated. Usually the level is wrong, the `x:` / `y:` restriction is mistyped, or that floor has not been written yet.
 
@@ -1464,13 +1388,13 @@ column 600 L2
 ```muro-warn
 grid X 0 3000
 grid Y 0 6000
-level L1 0 h:2700
+level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 column 600 L1
 column 800 L1
 ```
 
-`この柱の宣言 (L1 800角) は同じ交点を先の宣言に取られていて、一本も立ちません (同じ交点では先の宣言が勝ちます)`
+`This column declaration (L1 800mm square) stands nowhere because an earlier declaration took the same intersections (at the same intersection the earlier declaration wins)`
 
 **Why** — two columns never stand at the same intersection, so the earlier declaration wins and the later size is silently ignored. There is no implicit "take the larger" rule.
 
@@ -1487,12 +1411,12 @@ column 800 L1
 koyu 0.1
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a hall X1..X2 Y1..Y2
 space /L1/b hall X2..X3 Y1..Y2
 ```
 
-`koyu 0.1 のファイルに境界が宣言されていない接触ペアがあります: /L1/a | /L1/b — 0.2では既定の壁が導出され意味が変わります。境界を宣言するか、koyu 0.2 へ上げます` — "in 0.2 a default wall is derived and the meaning changes; declare the boundary, or raise it to koyu 0.2".
+`A koyu 0.1 file has a touching pair with no declared boundary: /L1/a | /L1/b — in 0.2 a default wall is derived and the meaning changes. Declare the boundary, or raise the version to koyu 0.2`
 
 **Cause** — in 0.1, "they touch but there is no boundary" stopped at a warning and no boundary grew. In 0.2 a default wall is derived ([ADR-0014](../../docs/decisions/0014-default-boundaries.md)). Since the same file means different things under different versions, it is not silently read with the new meaning. An older version is accepted **only when meaning is preserved** ([ADR-0017](../../docs/decisions/0017-language-versioning.md)).
 
@@ -1501,7 +1425,7 @@ space /L1/b hall X2..X3 Y1..Y2
 - Have it read with the new meaning → make the first line `koyu 0.2`
 - Keep 0.1's meaning → write the `boundary` explicitly for the pair named
 
-**Note** — a file that omits the version declaration is always read with the newest version's semantics (`0.4`), so this code does not appear. Write the version in files whose meaning you want pinned. (The message body cites `0.2` because this code is the rule at the boundary between `0.1` and `0.2`.)
+**Note** — a file that omits the version declaration is always read with the newest version's semantics (`1.0`), so this code does not appear. Write the version in files whose meaning you want pinned. (The message body cites `0.2` because this code is the rule at the boundary between `0.1` and `0.2`.)
 
 <a id="ver02"></a>
 ### VER02 — a koyu 0.3 file has a room with no daylight
@@ -1512,11 +1436,11 @@ space /L1/b hall X2..X3 Y1..Y2
 koyu 0.3
 grid X 0 3600 7200
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
-`koyu 0.3 のファイルに daylight の無い room があります: /L1/a — 0.4では型から採光の対象を推定しないので判定から外れます。daylight:1 (対象) か daylight:0 (対象外) を書いてから koyu 0.5 へ上げます` — "0.4 does not infer the daylight scope from the type, so this room falls out of the check; write daylight:1 or daylight:0, then raise the file to koyu 0.5".
+`A koyu 0.3 file has a room with no daylight: /L1/a — 0.4 does not infer the daylight scope from the type, so it falls out of the check. Write daylight:1 (in scope) or daylight:0 (out of scope), then raise the version to koyu 0.4`
 
 **Cause** — 0.3 and earlier inferred five types (`unit`, `room`, `ldk`, `bedroom`, `living`) to be in scope and put them in the daylight check. 0.4 does not infer the scope from the type at all ([ADR-0020](../../docs/decisions/0020-daylight-scope-is-declared.md)). Raise the version without writing `daylight` and this room **falls silently out of scope, and `light` returns output indistinguishable from "everything passed"**. Since an older version is accepted only when meaning is preserved ([ADR-0017](../../docs/decisions/0017-language-versioning.md)), it is stopped here.
 
@@ -1524,7 +1448,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 - It is to be tested → add `daylight:1`
 - It is not (you had been writing storage or a closet) → add `daylight:0`
-- Either way, once that is written, make the first line `koyu 0.5`
+- Either way, once that is written, make the first line `koyu 0.4`
 
 **Note** — a room that already carries `daylight` means the same thing under both versions, so this code does not appear for it. Nor does it appear in a file that omits the version declaration, which is read as the newest version.
 
@@ -1544,11 +1468,32 @@ space /L2/s stair X1..X2 Y1..Y1+7000
 stack s L1..L2 type:stair
 ```
 
-`koyu 0.4 のファイルに 0.5 の語があります: /L1/s の stair: (縦動線) — koyu 0.5 へ上げます`
+`A koyu 0.4 file uses a 0.5 word: /L1/s carries stair: (a vertical circulation) — raise the version to koyu 0.5`
 
 **Why** — the words introduced in 0.5 — vertical-circulation declarations (`stair:` `ramp:` `escalator:` `lift:`), drawn lines (`line`), columns (`column`) and basements (`underground:`) — mean nothing to a 0.4 toolchain. There they are read as free attributes and **the shape is silently not generated**. Old versions are accepted only when meaning is preserved ([ADR-0017](../../docs/decisions/0017-language-versioning.md)), so this stops here.
 
 **Fix** — make the first line `koyu 0.5`. If you are not using the new words, 0.4 remains fine.
+
+<a id="ver04"></a>
+### VER04 — a koyu 0.5-or-earlier file uses 1.0 vocabulary
+
+`error`
+
+```muro-bad
+koyu 0.5
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+over /L1/a h:2600
+```
+
+`A koyu 0.5 file uses a 1.0 word: over /L1/a h:2600 (a composition override) — raise the version to koyu 1.0`
+
+**Why** — the words introduced in 1.0 — the override (`over`), the removal (`drop`) and the set edits directly under `over` (`+` `-` `=`) — mean nothing to a 0.5 toolchain. There the line does not read as a word at all, so **neither the override nor the removal happens and it becomes a different building**. Old versions are accepted only when meaning is preserved ([ADR-0017](../../docs/decisions/0017-language-versioning.md) / [ADR-0035](../../docs/decisions/0035-composition-rules.md)), so this stops here.
+
+**Fix** — make the first line `koyu 1.0`. If you are not using the composition edits, 0.5 remains fine.
 
 ## Syntax — SYN
 
@@ -1564,7 +1509,7 @@ level L1 0
 space /L1/a room X1..X9 Y1..Y2
 ```
 
-`未定義の通り名です: X9`
+`Undefined grid line name: X9`
 
 **Cause** — SYN01 is not an individual code but **a copy, gathered into one, of the exception the parser threw**. Since the file never became a model, not one semantic check ran. With even a single syntax error, the result of `check` is just "one SYN01".
 
@@ -1587,7 +1532,7 @@ space /L1/a room X1..X9 Y1..Y2
 | `属性は key:value で書きます: …` | A token with no `:` is in an attribute position | Make it `key:value`. To include whitespace in a value, wrap it in `"…"` |
 | `レベルが重複しています: L2` | The same level name declared twice (including a clash with a range declaration) | Delete one |
 | `grid X は一度だけ宣言します (合成時はbase層で)` | Several layers carry a `grid` | Consolidate into the base layer (the entry) |
-| `ファイルが読めません: ./assets.muro` | The `import`'s relative path is wrong | A path is resolved **relative to the file it is written in** |
+| `Cannot read file: ./assets.muro` | The `import`'s relative path is wrong | A path is resolved **relative to the file it is written in** |
 
 **Note** — **a misspelled attribute key is not detected.** Write `nmae:居室A` and it is carried through as an uninterpreted free attribute, and `check` is green. The ledger of interpreted attributes is in [spec/vocabulary.md](../../spec/en/vocabulary.md). Likewise the type (the second positional) is an open vocabulary, so writing `bedroom` as `bedrom` is not an error — it simply drops out of the daylight scope, silently.
 

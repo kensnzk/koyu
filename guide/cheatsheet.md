@@ -22,7 +22,7 @@
 ```muro
 grid X 0 3600
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
@@ -31,21 +31,21 @@ space /L1/a room X1..X2 Y1..Y2
 | 行 | 要否 | 理由 |
 |---|---|---|
 | `grid X` / `grid Y` | **必須** | 座標の直書きが無いため、通り芯が無いと領域を書けない。使う行より**前**に置く |
-| `level L1 0` | 領域を持つ空間には実質必須 | 無いと `check` は警告どまりだが、`plan` は `レベルが定義されていません` で落ちる |
+| `level L1 0` | 領域を持つ空間には実質必須 | 無いと `check` は警告どまりだが、`plan` は `No level is defined` で落ちる |
 | `space` の型 (第2位置引数) | **必須** | 省略すると領域の1つ目が型と読まれ、`領域は X?..X? と Y?..Y? の2つで指定します` になる |
-| `koyu 0.5` | 任意 | 省略時は最新版 0.5 の意味論。意味を固定したいファイルは書く ([language.md §2](../spec/language.md)) |
+| `koyu 1.0` | 任意 | 省略時は最新版 1.0 の意味論。意味を固定したいファイルは書く ([language.md §2](../spec/language.md)) |
 | `name …` / `unit mm` | 任意 | |
-| `h:` / `slab:` | 任意 | 上階があるのに書かないと `レベル L2 に slab が未宣言のため、L1 との高さ検査ができません` の警告が出る |
+| `h:` / `slab:` | 任意 | 書かないと床も天井も生成されない (`Level L2 has no slab:, so not one floor is generated on this storey` — SUF03) |
 | `space /out exterior` | 任意 | ただし書かないと建物に外皮が無い (下の「既定値」参照) |
 | `boundary` | 任意 | 接する空間の既定は壁 ([language.md §4](../spec/language.md)) |
 
-空のファイルも `✔ 整合 — 空間 0 / 境界 0` になる。**緑は「書いたものに矛盾が無い」であって「建物として成立している」ではない。**
+空のファイルも `✔ Consistent — 0 spaces / 0 boundaries` になる。**緑は「書いたものに矛盾が無い」であって「建物として成立している」ではない。**
 
 ## 基盤の宣言 — base層が一度だけ持つ ([language.md §2](../spec/language.md))
 
 | 書き方 | 意味 |
 |---|---|
-| `koyu 0.5` | 言語版。base層 (entry) でのみ・一度だけ。対応は `0.1` `0.2` `0.3` `0.4` `0.5` |
+| `koyu 1.0` | 言語版。base層 (entry) でのみ・一度だけ。対応は `0.1` `0.2` `0.3` `0.4` `0.5` `1.0` |
 | `name 街角の複合ビル` | 建物名。残りの行全体を値にとる (空白可)。一度だけ |
 | `unit mm` | v0はmmのみ |
 | `grid X 0 6400 12800 19200` | X軸の通り芯座標。昇順・2つ以上。`X1` `X2` … と自動命名される |
@@ -94,7 +94,7 @@ space /out/road-s exterior name:南側道路 road:12000
 | `use:exclusive` | 属性 | 集計軸。`zone` から継承される |
 | `daylight:1` / `daylight:0` | 属性 | 採光判定を掛ける / 掛けない (既定)。`light` の唯一の入口 |
 | `road:12000` | 属性 | exterior空間の幅員 — 道路の印 |
-| `uid:…` | 属性 | 改名を跨ぐ永続同一性トークン。数字だけ・空白はエラー |
+| `uid:…` | 属性 | 改名を跨ぐ永続同一性トークン。数字だけ・空白はエラー。書けるのは space と zone だけ |
 
 **ツールが構造として解釈する型** ([vocabulary.md](../spec/vocabulary.md)):
 
@@ -113,7 +113,7 @@ space /out/road-s exterior name:南側道路 road:12000
 ```muro
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0
+level L1 0 h:2400 slab:150
 band X X1..X3 Y1..Y2
   space /L1/ldk ldk w:3600 name:LDK
   space /L1/hall hall w:1800 name:玄関
@@ -136,7 +136,7 @@ band X X1..X3 Y1..Y2
 - 破れはすべて parse のエラーで、`check --json` では SYN01 として出る (専用コードは無い)。
 
 ```text
-✖ 4行目: 帯の幅 5400mm に対し寸法の合計が 4600mm で、800mm 足りません (寸法を直すか、どれかを w:rest にします)
+✖ band.muro:line 4: The dimensions sum to 4600mm against a band width of 5400mm, 800mm short (fix a dimension, or make one of them w:rest)
   /L1/ldk w:3600
   /L1/hall w:1000
 ```
@@ -326,7 +326,7 @@ stack ev L1..L10 type:shaft
 | 垂直の隣接 | 床 (slab) — **書かない**。例外 (stair / shaft / void) だけ宣言する |
 | **領域を持たない空間 (`/out` 等) との境界** | **無い。書かなければ存在しない** — どの外部かの名指しが情報だから |
 | boundary type | `wall` |
-| boundary t | なし (描画時のみ 100mm) |
+| boundary t | なし (導出の既定は 100mm) |
 | opening at | 0.5 (比率・クランプあり) |
 | opening hinge / swing | 線分の始端側 / a側 (領域を持つ方) |
 | opening style | `hinged` |

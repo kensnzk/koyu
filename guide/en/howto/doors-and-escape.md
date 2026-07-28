@@ -25,7 +25,7 @@ unit mm
 
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:500
 level L2 2900 h:2400 slab:500
 
 space /out exterior name:外部
@@ -49,7 +49,7 @@ npx tsx src/cli.ts check house.muro
 ```
 
 ```text
-✔ 整合 — 空間 5 / 境界 7
+✔ Consistent — 5 spaces / 7 boundaries
 ```
 
 Only five boundaries were written, yet there are seven. The two extra are the default walls derived between the touching rooms.
@@ -61,10 +61,10 @@ npx tsx src/cli.ts doors house.muro /L2/bed /out
 ```
 
 ```text
-/L2/bed から /out へは到達できません
+Cannot reach /out from /L2/bed
 ```
 
-("/L2/bed cannot reach /out.") The exit code is 1. There is no way out of the bedroom of a green building.
+The exit code is 1. There is no way out of the bedroom of a green building.
 
 ### 3. If it is unreachable, look at the adjacencies
 
@@ -76,24 +76,24 @@ npx tsx src/cli.ts graph house.muro
 
 ```text
 /out (外部)
-  — 扉1 → /L1/hall  (spec:EW)
-  | 壁 → /L1/ldk  (spec:EW)
-  | 壁 → /L2/bed  (spec:EW)
-  | 壁 → /L2/hall  (spec:EW)
+  — 1 door → /L1/hall  (spec:EW)
+  | wall → /L1/ldk  (spec:EW)
+  | wall → /L2/bed  (spec:EW)
+  | wall → /L2/hall  (spec:EW)
 /L1/ldk (LDK)
-  | 壁 → /out  (spec:EW)
-  | 壁 → /L1/hall
+  | wall → /out  (spec:EW)
+  | wall → /L1/hall
 /L1/hall (玄関)
-  — 扉1 → /out  (spec:EW)
-  ↕ 階段 → /L2/hall
-  | 壁 → /L1/ldk
+  — 1 door → /out  (spec:EW)
+  ↕ stair → /L2/hall
+  | wall → /L1/ldk
 /L2/bed (寝室)
-  | 壁 → /out  (spec:EW)
-  | 壁 → /L2/hall
+  | wall → /out  (spec:EW)
+  | wall → /L2/hall
 /L2/hall (2階ホール)
-  | 壁 → /out  (spec:EW)
-  ↕ 階段 → /L1/hall
-  | 壁 → /L2/bed
+  | wall → /out  (spec:EW)
+  ↕ stair → /L1/hall
+  | wall → /L2/bed
 ```
 
 (`| 壁` is "wall", `— 扉1` is "1 door", `↕ 階段` is "stair".)
@@ -118,10 +118,8 @@ npx tsx src/cli.ts doors house.muro /L2/bed /out
 ```
 
 ```text
-2枚 — /L2/bed → /L2/hall → /L1/hall → /out
+2 doors — /L2/bed → /L2/hall → /L1/hall → /out
 ```
-
-("2 doors.")
 
 ## Which boundaries become edges
 
@@ -153,7 +151,7 @@ npx tsx src/cli.ts doors examples/tower/main.muro /L9/A/ldk /out/road-s
 ```
 
 ```text
-4枚 — /L9/A/ldk → /L9/A/hall → /L9/corridor → /L9/st2 → /L8/st2 → /L7/st2 → /L6/st2 → /L5/st2 → /L4/st2 → /L3/st2 → /L2/st2 → /L1/st2 → /site/west → /site/walk → /out/road-s
+4 doors — /L9/A/ldk → /L9/A/hall → /L9/corridor → /L9/st2 → /L8/st2 → /L7/st2 → /L6/st2 → /L5/st2 → /L4/st2 → /L3/st2 → /L2/st2 → /L1/st2 → /site/west → /site/walk → /out/road-s
 ```
 
 The four are the door inside the dwelling (LDK to entrance), the dwelling's entrance door, the fire door of the stair enclosure, and the exterior exit on the ground floor. The stair adds no doors across the eight storeys from the ninth to the first (`stair` counts 0). Between the setback walkway and the road it is `type:open`, so that is 0 as well.
@@ -165,7 +163,7 @@ npx tsx src/cli.ts doors examples/tower/main.muro /L1/ev /L2/ev
 ```
 
 ```text
-/L1/ev から /L2/ev へは到達できません
+Cannot reach /L2/ev from /L1/ev
 ```
 
 Nor can a railing. The void and the upstairs hall in `examples/house.muro` are separated by an `air:1` railing.
@@ -175,7 +173,7 @@ npx tsx src/cli.ts doors examples/house.muro /home/void /home/hall2
 ```
 
 ```text
-/home/void から /home/hall2 へは到達できません
+Cannot reach /home/hall2 from /home/void
 ```
 
 The exit code is 0 when it is reachable and 1 when it is not. Use that when guarding an escape route in CI.

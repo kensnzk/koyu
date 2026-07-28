@@ -7,9 +7,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { check } from "../src/check.js";
-import { toCanonical, zoneAreaM2 } from "../src/model.js";
-import { parse, parseFiles } from "../src/parse.js";
+import { check } from "../src/core/diagnose.js";
+import { toCanonical, zoneAreaM2 } from "../src/core/model.js";
+import { parse, parseFiles } from "../src/core/parse.js";
 import { parseFile } from "../src/parse-file.js";
 
 const mainPath = fileURLToPath(
@@ -18,7 +18,7 @@ const mainPath = fileURLToPath(
 
 // ---- 合成: examples/house/ ----
 
-test("import合成: 5ファイルが一棟にビルドされ整合する", () => {
+test("import composition: five files build into one building and stay consistent", () => {
   const m = parseFile(mainPath);
   const r = check(m);
   assert.deepEqual(r.errors, []);
@@ -27,14 +27,14 @@ test("import合成: 5ファイルが一棟にビルドされ整合する", () =>
   assert.equal(zoneAreaM2(m, "/home"), 92.75); // 単一ファイル版 house.muro と同じ答え
 });
 
-test("import合成: 空間に出所ファイルが記録される", () => {
+test("import composition: each space records the file it came from", () => {
   const m = parseFile(mainPath);
   assert.match(m.spaces.get("/home/ldk")!.file ?? "", /L1\.muro$/);
   assert.match(m.spaces.get("/home/bed1")!.file ?? "", /L2\.muro$/);
   assert.match(m.spaces.get("/site/garden")!.file ?? "", /site\.muro$/);
 });
 
-test("import合成: 同一ファイルの二重importは一度だけ読み込まれる", () => {
+test("import composition: importing the same file twice reads it only once", () => {
   const dir = mkdtempSync(join(tmpdir(), "koyu-"));
   writeFileSync(join(dir, "a.muro"), "space /a room X1..X2 Y1..Y2 level:L1\n");
   writeFileSync(
@@ -54,7 +54,7 @@ test("import合成: 同一ファイルの二重importは一度だけ読み込ま
   assert.equal(m.spaces.size, 1); // 重複エラーにならず、冪等
 });
 
-test("parseFiles: 仮想ファイル群 (ブラウザ向け) でも同じ合成が動く", () => {
+test("parseFiles: the same composition runs over a virtual file set (for the browser)", () => {
   const m = parseFiles(
     {
       "main.muro": [
@@ -80,7 +80,7 @@ test("parseFiles: 仮想ファイル群 (ブラウザ向け) でも同じ合成�
   assert.equal(m.spaces.get("/a")!.file, "floors/L1.muro"); // キーがそのまま出所になる
 });
 
-test("parseFiles: 無いファイルのimportはその行のエラー", () => {
+test("parseFiles: importing a missing file is an error on that line", () => {
   assert.throws(
     () =>
       parseFiles(
@@ -89,11 +89,11 @@ test("parseFiles: 無いファイルのimportはその行のエラー", () => {
         },
         "main.muro",
       ),
-    /main\.muro:7行目: ファイルが読めません: \.\/nope\.muro/,
+    /main\.muro:line 7: Cannot read file: \.\/nope\.muro/,
   );
 });
 
-test("check: 合成モデルのcheckエラーは出所レイヤーつき", () => {
+test("check: an error on a composed model carries the layer it came from", () => {
   const m = parseFiles(
     {
       "main.muro":
@@ -105,7 +105,7 @@ test("check: 合成モデルのcheckエラーは出所レイヤーつき", () =>
   );
   const res = check(m);
   assert.equal(res.errors.length, 1);
-  assert.match(res.errors[0]!, /^L1\.muro:4行目: 位置 Y1\+200/);
+  assert.match(res.errors[0]!, /^L1\.muro:line 4: At Y1\+200/);
 });
 
 // ---- コンフリクト検出 ----
@@ -126,35 +126,35 @@ const BASE = [
   "level L1 0 h:2400",
 ].join("\n");
 
-test("コンフリクト: 別ファイル間の空間パス重複は出所つきでエラー", () => {
+test("conflict: a space path duplicated across files is an error carrying its origin", () => {
   const run = compose({
     "main.muro": `${BASE}\nimport ./a.muro\nimport ./b.muro`,
     "a.muro": "space /r room X1..X2 Y1..Y2 level:L1\n",
     "b.muro": "space /r office X1..X2 Y1..Y2 level:L1\n",
   });
-  assert.throws(run, /空間パスが重複.*\/r.*既出.*a\.muro/s);
+  assert.throws(run, /Duplicate space path.*\/r.*first seen.*a\.muro/s);
 });
 
-test("コンフリクト: アセット名の重複もエラー", () => {
+test("conflict: a duplicated asset name is an error too", () => {
   const run = compose({
     "main.muro": `${BASE}\nimport ./a.muro\nimport ./b.muro`,
     "a.muro": "asset D1 door w:900 h:2100\n",
     "b.muro": "asset D1 door w:800 h:2000\n",
   });
-  assert.throws(run, /アセット名が重複.*D1.*既出.*a\.muro/s);
+  assert.throws(run, /Duplicate asset name.*D1.*first seen.*a\.muro/s);
 });
 
-test("コンフリクト: グリッドの二重宣言はエラー (基盤はbase層が一度だけ持つ)", () => {
+test("conflict: declaring a grid twice is an error (the base layer holds the foundation once)", () => {
   const run = compose({
     "main.muro": `${BASE}\nimport ./a.muro`,
     "a.muro": "grid X 0 5000\n",
   });
-  assert.throws(run, /grid X は一度だけ宣言します/);
+  assert.throws(run, /grid X is declared once/);
 });
 
 // ---- アセット参照 (Reference/Instance) ----
 
-test("アセット参照: door SD1 がアセットの寸法・styleを引き継ぐ", () => {
+test("asset reference: door SD1 inherits the dimensions and style of the asset", () => {
   const m = parseFile(mainPath);
   const b = [...m.boundaries.values()].find(
     (x) => x.a === "/home/ldk" && x.b === "/home/hall1",
@@ -166,7 +166,7 @@ test("アセット参照: door SD1 がアセットの寸法・styleを引き継�
   assert.equal(d.attrs["style"], "sliding");
 });
 
-test("アセット参照: インスタンス側の属性がアセットを上書きする", () => {
+test("asset reference: attributes on the instance override the asset", () => {
   const m = parseFile(mainPath);
   const b = [...m.boundaries.values()].find(
     (x) => x.a === "/home/bed1" && x.b === "/out/road",
@@ -177,19 +177,19 @@ test("アセット参照: インスタンス側の属性がアセットを上書
   assert.equal(w.attrs["sill"], 800); // インスタンスが sill:0 を上書き
 });
 
-test("アセット参照: 未定義アセットはエラー", () => {
+test("asset reference: an undefined asset is an error", () => {
   assert.throws(
     () =>
       parse(
         `${BASE}\nspace /a room X1..X2 Y1..Y2 level:L1\nboundary /a /out edge:S t:150\n  door NOPE`,
       ),
-    /未定義の建具アセット/,
+    /Undefined opening asset/,
   );
 });
 
 // ---- 明示位置とはみ出し検査 ----
 
-test("明示位置: at:通り芯±寸法 が座標に解決され、正準JSONは表記を保存する", () => {
+test("explicit position: at:gridline+-offset resolves to a coordinate and canonical JSON keeps the notation", () => {
   const m = parseFile(mainPath);
   const b = [...m.boundaries.values()].find(
     (x) => x.a === "/home/hall1" && x.b === "/site/east",
@@ -205,7 +205,7 @@ test("明示位置: at:通り芯±寸法 が座標に解決され、正準JSON�
   assert.equal(cb.openings[0].at, "Y2+1820");
 });
 
-test("はみ出し検査: 幅が線分から溢れる位置は許容範囲つきでエラー", () => {
+test("run-off check: a position whose width spills off the segment is an error carrying the allowed range", () => {
   const model = parse(
     [
       "koyu 0.4",
@@ -222,10 +222,10 @@ test("はみ出し検査: 幅が線分から溢れる位置は許容範囲つき
   );
   const res = check(model);
   assert.equal(res.errors.length, 1);
-  assert.match(res.errors[0]!, /はみ出します.*中心の許容 450〜3190/s);
+  assert.match(res.errors[0]!, /runs off the boundary segment.*center allowed 450-3190mm/s);
 });
 
-test("はみ出し検査: 軸違いの通り芯参照はエラー (垂直線分にX系)", () => {
+test("run-off check: a grid line reference on the wrong axis is an error (an X line on a vertical segment)", () => {
   const model = parse(
     [
       "koyu 0.4",
@@ -242,10 +242,10 @@ test("はみ出し検査: 軸違いの通り芯参照はエラー (垂直線分�
   );
   const res = check(model);
   assert.equal(res.errors.length, 1);
-  assert.match(res.errors[0]!, /垂直線分なのでY系/);
+  assert.match(res.errors[0]!, /on the wrong axis: a vertical segment takes a Y grid line/);
 });
 
-test("重なり検査: 同じ線分上の2つの開口が重なるとエラー", () => {
+test("overlap check: two openings overlapping on the same segment is an error", () => {
   const model = parse(
     [
       "koyu 0.4",
@@ -263,10 +263,10 @@ test("重なり検査: 同じ線分上の2つの開口が重なるとエラー",
   );
   const res = check(model);
   assert.equal(res.errors.length, 1);
-  assert.match(res.errors[0]!, /重なっています/);
+  assert.match(res.errors[0]!, /Openings overlap/);
 });
 
-test("比率位置は従来どおり動く (at:0.25 は線分内にクランプ)", () => {
+test("a ratio position still works (at:0.25 is clamped within the segment)", () => {
   const model = parse(
     [
       "koyu 0.4",

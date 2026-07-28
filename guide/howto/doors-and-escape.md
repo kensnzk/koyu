@@ -25,7 +25,7 @@ unit mm
 
 grid X 0 3600 5400
 grid Y 0 4000
-level L1 0 h:2400
+level L1 0 h:2400 slab:500
 level L2 2900 h:2400 slab:500
 
 space /out exterior name:外部
@@ -49,7 +49,7 @@ npx tsx src/cli.ts check house.muro
 ```
 
 ```text
-✔ 整合 — 空間 5 / 境界 7
+✔ Consistent — 5 spaces / 7 boundaries
 ```
 
 境界を5本しか書いていないのに7本ある。差の2本が、接する室の間に導かれた既定の壁である。
@@ -61,7 +61,7 @@ npx tsx src/cli.ts doors house.muro /L2/bed /out
 ```
 
 ```text
-/L2/bed から /out へは到達できません
+Cannot reach /out from /L2/bed
 ```
 
 終了コードは1。緑の建物の寝室から外に出られない。
@@ -76,24 +76,24 @@ npx tsx src/cli.ts graph house.muro
 
 ```text
 /out (外部)
-  — 扉1 → /L1/hall  (spec:EW)
-  | 壁 → /L1/ldk  (spec:EW)
-  | 壁 → /L2/bed  (spec:EW)
-  | 壁 → /L2/hall  (spec:EW)
+  — 1 door → /L1/hall  (spec:EW)
+  | wall → /L1/ldk  (spec:EW)
+  | wall → /L2/bed  (spec:EW)
+  | wall → /L2/hall  (spec:EW)
 /L1/ldk (LDK)
-  | 壁 → /out  (spec:EW)
-  | 壁 → /L1/hall
+  | wall → /out  (spec:EW)
+  | wall → /L1/hall
 /L1/hall (玄関)
-  — 扉1 → /out  (spec:EW)
-  ↕ 階段 → /L2/hall
-  | 壁 → /L1/ldk
+  — 1 door → /out  (spec:EW)
+  ↕ stair → /L2/hall
+  | wall → /L1/ldk
 /L2/bed (寝室)
-  | 壁 → /out  (spec:EW)
-  | 壁 → /L2/hall
+  | wall → /out  (spec:EW)
+  | wall → /L2/hall
 /L2/hall (2階ホール)
-  | 壁 → /out  (spec:EW)
-  ↕ 階段 → /L1/hall
-  | 壁 → /L2/bed
+  | wall → /out  (spec:EW)
+  ↕ stair → /L1/hall
+  | wall → /L2/bed
 ```
 
 `| 壁` は扉のない壁で、通れない。`spec:` が付いていない `| 壁` の行 (`/L1/ldk` ↔ `/L1/hall` と `/L2/bed` ↔ `/L2/hall`) が、書いていないのに導かれた既定の壁である。寝室からホールへも、LDKから玄関へも出られない。
@@ -116,7 +116,7 @@ npx tsx src/cli.ts doors house.muro /L2/bed /out
 ```
 
 ```text
-2枚 — /L2/bed → /L2/hall → /L1/hall → /out
+2 doors — /L2/bed → /L2/hall → /L1/hall → /out
 ```
 
 ## 辺になる境界
@@ -149,7 +149,7 @@ npx tsx src/cli.ts doors examples/tower/main.muro /L9/A/ldk /out/road-s
 ```
 
 ```text
-4枚 — /L9/A/ldk → /L9/A/hall → /L9/corridor → /L9/st2 → /L8/st2 → /L7/st2 → /L6/st2 → /L5/st2 → /L4/st2 → /L3/st2 → /L2/st2 → /L1/st2 → /site/west → /site/walk → /out/road-s
+4 doors — /L9/A/ldk → /L9/A/hall → /L9/corridor → /L9/st2 → /L8/st2 → /L7/st2 → /L6/st2 → /L5/st2 → /L4/st2 → /L3/st2 → /L2/st2 → /L1/st2 → /site/west → /site/walk → /out/road-s
 ```
 
 4枚の内訳は、住戸内の扉 (LDK→玄関)・住戸の玄関扉 (A玄関)・階段室の防火戸 (西階段防火戸)・1階の屋外出口 (西階段屋外出口)。階段は9階から1階まで8層降りても扉を増やさない (`stair` は0枚)。歩道状空地と道路の間は `type:open` なので、これも0枚である。
@@ -161,7 +161,7 @@ npx tsx src/cli.ts doors examples/tower/main.muro /L1/ev /L2/ev
 ```
 
 ```text
-/L1/ev から /L2/ev へは到達できません
+Cannot reach /L2/ev from /L1/ev
 ```
 
 手すりも通れない。`examples/house.muro` の吹抜けと2階ホールは `air:1` の手すりで仕切られている。
@@ -171,7 +171,7 @@ npx tsx src/cli.ts doors examples/house.muro /home/void /home/hall2
 ```
 
 ```text
-/home/void から /home/hall2 へは到達できません
+Cannot reach /home/hall2 from /home/void
 ```
 
 終了コードは、到達できたとき0、到達できないとき1。CIで避難経路を守るときはこれを使う。
