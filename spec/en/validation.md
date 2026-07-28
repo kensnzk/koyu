@@ -2,7 +2,7 @@
 
 # The ledger of verdicts — the validation surface
 
-As of koyu v1.0.0-rc.1. **This surface does not freeze** ([scope.md §8](scope.md#8-the-eight-surfaces-that-100-freezes)).
+As of koyu v0.16.0. **This surface does not freeze** ([scope.md §8](scope.md#8-the-eight-surfaces-that-100-freezes)).
 
 What `koyu check` says stops at "what is written is not self-contradictory as data" ([scope.md §3](scope.md#3-the-extent-of-the-guarantee--what-the-check-passed-means)). Whether it is sound as architecture is what this surface says. Causes and fixes are in [guide/en/validation.md](../../guide/en/validation.md).
 

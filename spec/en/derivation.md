@@ -2,7 +2,7 @@
 
 # Derivation — from what is written to a single shape
 
-koyu v1.0.0-rc.1 / muro 1.0. **This document is the norm for what shape comes out of a written composition.**
+koyu v0.16.0 / muro 1.0. **This document is the norm for what shape comes out of a written composition.**
 
 The source holds no geometry ([policy.md](../../docs/policy.md) §2). Plans, areas and circulation are not written; they are derived. If the rules of derivation differ from consumer to consumer, the same source yields different buildings — **and then it is not a source** ([scope.md](scope.md) §6). So the rules live here, and the implementation follows as a reference implementation.
 

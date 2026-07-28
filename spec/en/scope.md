@@ -2,7 +2,7 @@
 
 # Scope — the three domains, and the surfaces that freeze
 
-As of koyu v1.0.0-rc.1 / muro 1.0. **This document is the norm for what is promised and what is not.**
+As of koyu v0.16.0 / muro 1.0. **This document is the norm for what is promised and what is not.**
 For the grammar see [language.md](language.md), for the semantics [semantics.md](semantics.md), for the ledger of verdicts [validation.md](validation.md).
 
 The lines drawn here are stronger than those drawn in any other document. Where another page of the spec disagrees with this one, **this one is right**.

@@ -1,6 +1,6 @@
 # ADR-0040: 形の参照実装 — `derive(model): Form` を唯一の入口にする
 
-日付: 2026-07-28 / 状態: 採用 (v1.0.0-rc.1、言語版 muro 1.0) / 起点: [方針の総覧](../policy.md) §5.6-1・§5.6-3・[spec/scope.md §6](../../spec/scope.md) / 関連: [ADR-0032](0032-three-domains.md) (三つの領域)・[ADR-0022](0022-lines.md) (描かれた線)・[ADR-0024](0024-fabric.md) (面)・[ADR-0021](0021-vertical-circulation.md) (縦動線)
+日付: 2026-07-28 / 状態: 採用 (v0.16.0、言語版 muro 1.0) / 起点: [方針の総覧](../policy.md) §5.6-1・§5.6-3・[spec/scope.md §6](../../spec/scope.md) / 関連: [ADR-0032](0032-three-domains.md) (三つの領域)・[ADR-0022](0022-lines.md) (描かれた線)・[ADR-0024](0024-fabric.md) (面)・[ADR-0021](0021-vertical-circulation.md) (縦動線)
 
 ## 文脈
 

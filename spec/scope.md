@@ -2,7 +2,7 @@
 
 # 範囲の規範 — 三つの領域と、凍る面
 
-koyu v1.0.0-rc.1 / muro 1.0 現在。**この文書が「何を約束し、何を約束しないか」の規範である。**
+koyu v0.16.0 / muro 1.0 現在。**この文書が「何を約束し、何を約束しないか」の規範である。**
 文法は [language.md](language.md)、意味論は [semantics.md](semantics.md)、判定の台帳は [validation.md](validation.md)。
 
 ここに書かれた線は、他のどの文書よりも強い。spec の別の頁とここが食い違ったら、**ここが正である**。

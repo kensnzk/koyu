@@ -365,7 +365,7 @@ function handle(msg: Json): void {
       result(id, {
         protocolVersion: (params.protocolVersion as string) ?? "2025-06-18",
         capabilities: { tools: {} },
-        serverInfo: { name: "koyu", version: "1.0.0-rc.1" },
+        serverInfo: { name: "koyu", version: "0.16.0" },
         instructions:
           "Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written.",
       });

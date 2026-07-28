@@ -1,6 +1,6 @@
 # ADR-0039: 同一性の生成規則 — 乱数で作り、範囲を明示し、opt-in のまま凍らせる
 
-日付: 2026-07-27 / 状態: 採用 (v1.0.0-rc.1、言語版 muro 1.0) / 起点: [方針の総覧](../policy.md) §5.3・§19-4 / 関連: [ADR-0015](0015-identity-uid.md) (uid の導入)・[ADR-0035](0035-composition-rules.md) (`name:` が集合編集の鍵)・[ADR-0038](0038-version-1-0-rc.md) (rc が名指しで残した三つ)
+日付: 2026-07-27 / 状態: 採用 (v0.16.0、言語版 muro 1.0) / 起点: [方針の総覧](../policy.md) §5.3・§19-4 / 関連: [ADR-0015](0015-identity-uid.md) (uid の導入)・[ADR-0035](0035-composition-rules.md) (`name:` が集合編集の鍵)・[ADR-0038](0038-version-1-0-rc.md) (rc が名指しで残した三つ)
 
 ## 文脈
 

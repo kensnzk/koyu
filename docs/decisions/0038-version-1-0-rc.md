@@ -1,6 +1,6 @@
 # ADR-0038: muro 1.0 と koyu 1.0.0-rc.1 — 凍らせられる面を先に固定し、残りを名指しで残す
 
-日付: 2026-07-27 / 状態: 採用 (v1.0.0-rc.1、言語版 muro 1.0) / 起点: [方針の総覧](../policy.md) §12・[spec/scope.md §8-9](../../spec/scope.md) / 関連: [ADR-0017](0017-language-versioning.md) (言語版の規律)・[ADR-0033](0033-attribute-tiers.md)・[ADR-0035](0035-composition-rules.md)
+日付: 2026-07-27 / 状態: 採用 (言語版 muro 1.0) — **実装版の決定は [ADR-0042](0042-two-version-lines.md) が覆す** (rc.1 は公開されず、実装は 0.16.0 として出る) / 起点: [方針の総覧](../policy.md) §12・[spec/scope.md §8-9](../../spec/scope.md) / 関連: [ADR-0017](0017-language-versioning.md) (言語版の規律)・[ADR-0033](0033-attribute-tiers.md)・[ADR-0035](0035-composition-rules.md)
 
 ## 文脈
 

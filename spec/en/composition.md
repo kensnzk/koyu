@@ -2,7 +2,7 @@
 
 # The rules of composition
 
-koyu v1.0.0-rc.1 / muro 1.0. The grammar is in [language.md](language.md) §8; the normative scope is in [scope.md](scope.md).
+koyu v0.16.0 / muro 1.0. The grammar is in [language.md](language.md) §8; the normative scope is in [scope.md](scope.md).
 
 **Composition exists for time and for division of labour, not for size.** Writing in parts, writing an exception as a difference, laying as-built over the plan — these are what composition is for. Files are not split because a building is large.
 

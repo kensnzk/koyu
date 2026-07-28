@@ -2,7 +2,7 @@
 
 # Language reference — .muro (the authored form)
 
-The norm for the notation as of koyu v1.0.0-rc.1. For semantics (derivation, checking, queries) see [semantics.md](semantics.md); for the attribute contract see [vocabulary.md](vocabulary.md).
+The norm for the notation as of koyu v0.16.0. For semantics (derivation, checking, queries) see [semantics.md](semantics.md); for the attribute contract see [vocabulary.md](vocabulary.md).
 
 > This is a reference. If you are learning koyu, start at [guide/en/start.md](../../guide/en/start.md).
 

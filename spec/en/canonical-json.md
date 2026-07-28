@@ -2,7 +2,7 @@
 
 # Machine-format reference — the canonical JSON
 
-As of koyu v1.0.0-rc.1. Emitted by `koyu json <entry>` / `toCanonical(model)`.
+As of koyu v0.16.0. Emitted by `koyu json <entry>` / `toCanonical(model)`.
 
 **What is this for?** It is **the definition of what makes two buildings the same, written down.**
 The authored form (.muro) is free in line order and spelling, so whether two files are the same

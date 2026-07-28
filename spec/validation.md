@@ -2,7 +2,7 @@
 
 # 判定の台帳 — 検証の面
 
-koyu v1.0.0-rc.1 現在。**この面は凍らない** ([scope.md §8](scope.md#8-100-が凍結する八つの面))。
+koyu v0.16.0 現在。**この面は凍らない** ([scope.md §8](scope.md#8-100-が凍結する八つの面))。
 
 `koyu check` が言うのは「書かれたものがデータとして矛盾していない」までである ([scope.md §3](scope.md#3-保証の範囲--検査が通ったの意味))。建築として妥当かは、この面が言う。原因と直し方は [guide/validation.md](../guide/validation.md)。
 

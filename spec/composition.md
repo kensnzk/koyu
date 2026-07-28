@@ -2,7 +2,7 @@
 
 # 合成の規則
 
-koyu v1.0.0-rc.1 / muro 1.0 現在。文法は [language.md](language.md) §8、範囲の規範は [scope.md](scope.md)。
+koyu v0.16.0 / muro 1.0 現在。文法は [language.md](language.md) §8、範囲の規範は [scope.md](scope.md)。
 
 **合成は時間と分担のためにあり、大きさのためではない。**分担して書く、例外を差分として書く、計画の上に as-built を重ねる — これらが合成の用途である。一棟が大きいから分けるのではない。
 

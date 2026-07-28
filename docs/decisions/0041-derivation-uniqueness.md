@@ -1,6 +1,6 @@
 # ADR-0041: 形は正準形の関数である — 描かれた線が絡む四つの破れを閉じる
 
-日付: 2026-07-28 / 状態: 採用 (v1.0.0-rc.1、言語版 muro 1.0) / 起点: [spec/scope.md §6](../../spec/scope.md) (導出の契約)・[ADR-0040](0040-derive-reference.md) 代償4 / 関連: [ADR-0022](0022-lines.md) (描かれた線)・[ADR-0029](0029-order-as-meaning.md) (順序と正準化)・[ADR-0036](0036-machine-format-version.md) (機械形式)・[ADR-0016](0016-diagnostic-contract.md) (診断契約)
+日付: 2026-07-28 / 状態: 採用 (v0.16.0、言語版 muro 1.0) / 起点: [spec/scope.md §6](../../spec/scope.md) (導出の契約)・[ADR-0040](0040-derive-reference.md) 代償4 / 関連: [ADR-0022](0022-lines.md) (描かれた線)・[ADR-0029](0029-order-as-meaning.md) (順序と正準化)・[ADR-0036](0036-machine-format-version.md) (機械形式)・[ADR-0016](0016-diagnostic-contract.md) (診断契約)
 
 ## 文脈
 
