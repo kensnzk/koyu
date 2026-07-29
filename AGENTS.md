@@ -6,24 +6,24 @@ koyu は建築をテキストで書く記法 (`.muro`) とその処理系であ�
 
 **公開ドキュメント (`docs/`) が正である。**何を約束し、何を約束しないかは [docs/reference/scope.md](docs/reference/scope.md)、凍る面は [docs/reference/stability.md](docs/reference/stability.md) にある。挙動を変えたら、その頁を同じ変更で直す。
 
-> **統治が反転している (2026-07-28)。**以前は「規範は spec/ が所有し、食い違ったら spec/ が正しい」だった。いまは公開ドキュメントが正で、`spec/` は公開されない内部文書である。`spec/` の持ち方は未決 — **当面、規範は二箇所にあり、同期の仕組みは無い。**`docs/` を直したら `spec/` は放っておいてよいが、逆はしてはならない。
+> **統治が反転した (2026-07-28)。**以前は「規範は `spec/` が所有し、食い違ったら `spec/` が正しい」だった。いまは公開ドキュメントが正である。**`spec/` と `guide/` は畳んで消す** (2026-07-30 決定) — それまでのあいだ規範は二箇所にあり、同期の仕組みは無い。**古い側を読まないこと。**`docs/` を直したら `spec/` は放っておいてよいが、逆はしてはならない。
 
-**ADR と `spec/` は公開されない。**リポジトリには履歴として残るが、`docs/` のどの頁からも参照してはならない — ADR はその時点の決定の記録で後から直さないため、時が経つほど現在の真と食い違うからである。`npm run gate:docs` がこれを機械で守る。
+**ADR と `spec/` はサイトに公開されない。**リポジトリには履歴として残るが、`docs/` のどの頁からも参照してはならない — ADR はその時点の決定の記録で後から直さないため、時が経つほど現在の真と食い違うからである。`npm run gate:docs` がこれを機械で守る。**ただし `spec/` は npm パッケージには入っている** (`files` と `exports["./spec/*"]`。`docs/` は入らない) — 畳むときに外す。
 
 ## ファイルの地図
 
 | 場所 | 中身 | 触るときの規律 |
 |---|---|---|
-| `src/core/` | **凍る領域** — `parse.ts` (合成) `model.ts` `vocabulary.ts` (属性の台帳) `poly.ts` (幾何の一枚岩) `diagnose.ts` (構造整合の診断。`checkDiagnostics` は節の列で、節の粒度は**走査単位**) `graph.ts` `vertical.ts` (縦動線) `fabric.ts` (床・天井・屋根) `light.ts` `site.ts` `diff.ts` | **きれいでなければならない。**実行時依存ゼロ。挙動を変えたら spec とテストを同じ変更で直す |
+| `src/core/` | **凍る領域** — `parse.ts` (合成) `model.ts` `vocabulary.ts` (属性の台帳) `poly.ts` (幾何の一枚岩) `diagnose.ts` (構造整合の診断。`checkDiagnostics` は節の列で、節の粒度は**走査単位**) `graph.ts` `vertical.ts` (縦動線) `fabric.ts` (床・天井・屋根) `light.ts` `site.ts` `diff.ts` | **きれいでなければならない。**実行時依存ゼロ。挙動を変えたら公開ドキュメントとテストを同じ変更で直す |
 | `src/validate/` | **凍らない領域** — 建築的な判定 (`access.ts` `envelope.ts` `light.ts` `runs.ts` `site.ts`)。`Finding { rule, level }` を返す | **汚くてよい。**増やしてよいし捨ててよい。条件は一つ — core の保証と混同されないこと |
-| `src/draw/` | **凍らない領域** — `plan.ts` `axo.ts` (SVG生成)。凍結対象外 ([spec/scope.md §8](spec/scope.md)) | 見た目は自由に変えてよい。**形は変えない** |
+| `src/draw/` | **凍らない領域** — `plan.ts` `axo.ts` (SVG生成)。凍結対象外 ([docs/reference/stability.md](docs/reference/stability.md)) | 見た目は自由に変えてよい。**形は変えない** |
 | `src/` 直下 | `index.ts` (公開面) `cli.ts` `mcp.ts` `parse-file.ts` | `test/domains.test.ts` が依存の一方向を機械的に守る |
-| `docs/` | **公開ドキュメント。これが正である。**165頁 ×2言語。`start/` (チュートリアル) `why/` (説明) `howto/` (手順) `reference/` (規範 — `muro/` `diagnostics/` `validate/` `cli/` `mcp/` `api/` `form/` `json/`) `examples/` `glossary.md` | **1ページ1仕事。**自己完結させる — ADR にも `spec/` にも委譲しない。挙動を変えたら該当頁を同じ変更で直す |
+| `docs/` | **公開ドキュメント。これが正である。**167頁 ×2言語 (`npm run gate:docs` が数える)。`start/` (チュートリアル) `why/` (説明) `howto/` (手順) `reference/` (規範 — `muro/` `diagnostics/` `validate/` `cli/` `mcp/` `api/` `form/` `json/`) `examples/` `glossary.md` | **1ページ1仕事。**自己完結させる — ADR にも `spec/` にも委譲しない。挙動を変えたら該当頁を同じ変更で直す |
 | `docs/decisions/` | **ADR** — なぜそう決めたか、何を棄却したか。**公開しない** | 決定は追記のみ。**後から直さない** (直せば記録の意味が消える)。覆すときは新しいADRを書く |
 | `docs/log/` `docs/reviews/` | 作業の記録・設計レビュー。**公開しない** | |
-| `spec/` `guide/` | **旧レイアウトの残骸。公開しない。**`docs/` を書き起こした素材で、いまや古びうる | **参照しない。**食い違ったら `docs/` が正。持ち方は未決 |
+| `spec/` `guide/` | **旧レイアウトの残骸。公開しない。**`docs/` を書き起こした素材で、**現に古びている** (退役した診断コードを現役として教える箇所がある) | **読まない。この頁からも一切リンクしない。**畳んで消す途中で、いま残っているのは**テスト数本が台帳として読んでいる**からである (`public-api` `derive` `diagnostics` `grammar` `domains` `release`) |
 | `docs/policy.md` ほか loose な .md | `policy.md` `writing-architecture.md` `modules.md` `horizon.md` `ifc-coverage.md` `terminology.md`。**公開しない**素材 | |
-| `examples/` | 同梱の建物 — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (縦動線の最小例) `complex/` (延床31,606㎡) `twin/` (延床141,449㎡の双塔再開発) `comparison/`。`steps/` は guide/start.md の各段の到達点 | 触ったら `npm run check:examples` が門番 |
+| `examples/` | 同梱の建物 — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (縦動線の最小例) `complex/` (延床31,606㎡) `twin/` (延床141,449㎡の双塔再開発) `comparison/`。`steps/` は [チュートリアル](docs/start/index.md)の各段の到達点 | 触ったら `npm run check:examples` が門番 |
 | `test/` | `node --test`。`domains.test.ts` (領域の分離) `composition.test.ts` (合成の六規則) `diagnostics.test.ts` (診断契約) ほか | 保証はテストで固定する。仕様の文だけでは着地していない |
 | `eval/` | エージェント編集evalのハーネス (`run.ts` `score.ts` `tasks/` `fixtures/`) | |
 | `editors/vscode/` | エディタ支援 ([ADR-0031](docs/decisions/0031-editor-support.md)) — `syntaxes/koyu.tmLanguage.json` が**唯一の文法** (VS Code と Shiki/Docusaurus が共有)、`extension.js` は `koyu check --json` を写すだけ | 語を足したら文法も直す。`test/grammar.test.ts` が実装・台帳との一致を縛る |
@@ -47,9 +47,9 @@ npx tsx src/cli.ts doors examples/mansion.muro /L9/A/ldk /out
 npx tsx src/cli.ts json  examples/two-rooms.muro            # 正準JSON
 ```
 
-サブコマンドは `check` `validate` `layers` `diff` `plan` `axo` `doors` `graph` `stats` `levels` `runs` `light` `site` `json`。実際の出力つきの解説は [guide/cli.md](guide/cli.md)、契約は [spec/tools.md](spec/tools.md)。
+サブコマンドは `check` `validate` `layers` `diff` `plan` `axo` `doors` `graph` `stats` `levels` `runs` `light` `site` `json`。契約と実際の出力は [docs/reference/cli/](docs/reference/cli/index.md) にコマンドごと一頁ある。
 
-専用の `--help` は無い。引数を欠いた呼び出し (`--help` を含む) が使い方を印字して**終了コード2**を返す。使い方行は `plan` の `-l/-o` と `doors` の二つのパス引数を落としているので、そこは [guide/cli.md](guide/cli.md) を見る。
+専用の `--help` は無い。引数を欠いた呼び出し (`--help` を含む) が使い方を印字して**終了コード2**を返す。使い方行は `plan` の `-l/-o` と `doors` の二つのパス引数を落としているので、そこは [docs/reference/cli/plan.md](docs/reference/cli/plan.md) と [doors.md](docs/reference/cli/doors.md) を見る。
 
 ## MCPサーバー
 
@@ -64,7 +64,7 @@ model_summary → layers → write_layer → check ──エラー──→ 直�
                                          └───緑───→ doors / light / site で帰結を確かめる
 ```
 
-`write_layer` は全置換で書き、取り消しを持たない。**書かせる前にコミットしておくこと。**登録と実例は [guide/howto/agent-mcp.md](guide/howto/agent-mcp.md)。
+`write_layer` は全置換で書き、取り消しを持たない。**書かせる前にコミットしておくこと。**登録は [docs/howto/install-mcp.md](docs/howto/install-mcp.md)、ループの実例は [agent-loop.md](docs/howto/agent-loop.md)、詰まったら [debug-mcp.md](docs/howto/debug-mcp.md)。ツールの契約は [docs/reference/mcp/](docs/reference/mcp/index.md)。
 
 ## この企ての掟
 
@@ -77,17 +77,17 @@ model_summary → layers → write_layer → check ──エラー──→ 直�
 5. **診断は必ずコードを持ち、severity はコードの属性である** ([ADR-0016](docs/decisions/0016-diagnostic-contract.md))。同じコードが場合によって error になったり warning になったりはしない。コードを足したら [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) の該当の族に節を足す (`test/docs-ledger.test.ts` が漏れを落とす)。
    **母集団は書かれた宣言、出所は必ず持つ、並びは走査の順** ([ADR-0028](docs/decisions/0028-diagnostics-per-declaration.md))。解釈される属性 (台帳の★) の値は検査する — 書いたのに解釈されなかった値を黙って既定へ落とさない。`checkDiagnostics` を触るときは節の粒度を走査単位に保つ (コードの族で割ると並びが崩れる)。
 6. **言語の意味論を変える変更は言語版を上げる** ([ADR-0017](docs/decisions/0017-language-versioning.md))。現行は `koyu 1.0` ([ADR-0038](docs/decisions/0038-version-1-0-rc.md))。移行はADRに書き、examples は最新版へ揃える。
-7. **語彙は台帳が契約である** ([ADR-0008](docs/decisions/0008-vocabulary-and-level-attr.md) / [ADR-0033](docs/decisions/0033-attribute-tiers.md))。実装の唯一の出所は `src/core/vocabulary.ts` の `ATTR_LEDGER` で、[spec/vocabulary.md](spec/vocabulary.md) はその写しである。**台帳に無いキーは名前空間 (`acme.sensor`) を持たなければ書けない** — 「見ていない」と「見て問題がない」を区別するための境界である。
+7. **語彙は台帳が契約である** ([ADR-0008](docs/decisions/0008-vocabulary-and-level-attr.md) / [ADR-0033](docs/decisions/0033-attribute-tiers.md))。実装の唯一の出所は `src/core/vocabulary.ts` の `ATTR_LEDGER` で、[docs/reference/muro/attributes.md](docs/reference/muro/attributes.md) がその写しである。**台帳に無いキーは名前空間 (`acme.sensor`) を持たなければ書けない** — 「見ていない」と「見て問題がない」を区別するための境界である。
 8. **実行時依存はゼロ。**devDependencies 以外を足さない。
 9. **例は最新の言語版で書く。**新しい記法を入れたら examples を追随させる — release test がこれを検査する。
 10. **文書を書くなら、貼る出力は実行して得たものだけにする。**推測した出力を貼らない。
 
 ## エラーに当たったら
 
-`check` の人間向け出力に診断コードは出ない。`--json` を付けるとコードが出る。コードから原因と直し方を引く表は [guide/diagnostics.md](guide/diagnostics.md) (全65コード)。規範の台帳 (コード・severity・概要) は [spec/semantics.md](spec/semantics.md)。
+`check` の人間向け出力に診断コードは出ない。`--json` を付けるとコードが出る。コードから原因と直し方を引くのは [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) — 全65コードが族ごとに一頁ずつあり、コード・severity・直し方を持つ。症状から引くなら [docs/howto/by-symptom.md](docs/howto/by-symptom.md)。
 
-よく踏む罠は3つある。`grid` と `level` は使用より**前**に宣言しないと効かない (`boundary` は前方参照してよい)。空間を間取りに割るなら親は `space` ではなく `zone` にする。外部への開口は境界線分が複数になるので `edge:N/E/S/W` で辺を選ぶ (N=+Y, S=-Y, E=+X, W=-X)。詳細は [guide/howto/troubleshooting.md](guide/howto/troubleshooting.md)。
+よく踏む罠は3つある。`grid` と `level` は使用より**前**に宣言しないと効かない (`boundary` は前方参照してよい)。空間を間取りに割るなら親は `space` ではなく `zone` にする。外部への開口は境界線分が複数になるので `edge:N/E/S/W` で辺を選ぶ (N=+Y, S=-Y, E=+X, W=-X)。詳細は [docs/howto/troubleshooting.md](docs/howto/troubleshooting.md)。
 
 ## 記法そのものを知らないとき
 
-[guide/start.md](guide/start.md) を通す。30〜45分で二階建て一棟と平面図まで届く。記法の形の理由は [guide/concepts.md](guide/concepts.md)、構文の一覧は [guide/cheatsheet.md](guide/cheatsheet.md)。
+[docs/start/](docs/start/index.md) を通す。30〜45分で二階建て一棟と平面図まで届く。記法の形の理由は [docs/why/](docs/why/index.md)、構文の一覧は [docs/reference/muro/](docs/reference/muro/index.md) (宣言ごとに一頁、索引が全構文を一枚で持つ)。
