@@ -40,14 +40,16 @@ test("version sync: package / lockfile / CITATION / spec / MCP", () => {
   );
 });
 
-test("language version sync: the spec norm, the examples and the canonical JSON fixture (ADR-0017)", () => {
-  // spec/language.md の版規範が実装の台帳と一致する
-  const lang = read("spec/language.md");
-  assert.ok(
-    lang.includes(`対応する言語版は \`${SUPPORTED_LANGUAGE_VERSIONS.join(", ")}\``),
-    "supported versions in language.md",
-  );
-  assert.ok(lang.includes(`最新版 \`${DEFAULT_LANGUAGE_VERSION}\``), "the default when omitted, in language.md");
+test("language version sync: the published norm, the examples and the canonical JSON fixture (ADR-0017)", () => {
+  // The version norm of the published documentation agrees with the implementation ledger.
+  // The page lists the accepted versions on one line, oldest first — the order is the norm,
+  // because the newest is decided by index and not by how the string sorts.
+  const inOrder = new RegExp(SUPPORTED_LANGUAGE_VERSIONS.map((v) => v.replace(".", "\\.")).join("\\s+"));
+  for (const page of ["docs/reference/muro/version.md", "docs/en/reference/muro/version.md"]) {
+    const md = read(page);
+    assert.match(md, inOrder, `the accepted versions, in order, in ${page}`);
+    assert.ok(md.includes(`\`${DEFAULT_LANGUAGE_VERSION}\``), `the default when omitted, in ${page}`);
+  }
   // examplesは常に最新版で書く
   for (const f of [
     "examples/two-rooms.muro",

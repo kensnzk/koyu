@@ -100,7 +100,7 @@ For the two spaces joined by a `void` boundary, **the derived shape of the upper
 
 `Form.site` carries the given site polygon regardless of level.
 
-**`koyu plan` treats the lowest storey's plan as a site plan too, and draws the site boundary there — and only there — as a dash-dot line.** That is a judgement about the composition of the sheet, not shape. Neither which level it lands on nor the dash-dot line style is inside [what freezes](../stability.md).
+**`koyu plan` treats the lowest storey's plan as a site plan too, and draws the site boundary there — and only there — as a dash-double-dot line** (grid lines are dash-dot, so the two are told apart by style). That is a judgement about the composition of the sheet, not shape. Neither which level it lands on nor the line style is inside [what freezes](../stability.md).
 
 ## Neighbouring pages
 

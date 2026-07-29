@@ -419,29 +419,31 @@ test("compatibility: a diagnostic on a composed model carries file, and the comp
 
 // ---- (c) 台帳とspec表の一致 ----
 
-test("ledger: DIAGNOSTIC_CODES and the table in semantics.md §5 agree as sets, and BND07 is retired", () => {
-  const spec = readFileSync(join(root, "spec/semantics.md"), "utf8");
+/** The code → severity table of the diagnostics index. Rows read `| [BND01](#bnd01) | error | … |` */
+function indexLedger(page: string): Record<string, string> {
+  const md = readFileSync(join(root, page), "utf8");
   const table: Record<string, string> = {};
-  for (const m of spec.matchAll(/^\| ([A-Z]{3}\d{2}) \| (error|warning) \|/gm)) {
+  for (const m of md.matchAll(/^\| \[([A-Z]{3}\d{2})\]\([^)]*\) \| (error|warning) \|/gm)) {
     table[m[1]!] = m[2]!;
   }
-  assert.deepEqual(table, DIAGNOSTIC_CODES);
-  // 廃止コードは台帳から消えるが、specに墓標が残る
-  assert.match(spec, /\| BND07 \| — \| 欠番/);
-  assert.equal("BND07" in DIAGNOSTIC_CODES, false);
-});
+  return table;
+}
 
-test("ledger: the §5 table in the English translation agrees with the implementation as a set too (missing translations pile up silently)", () => {
-  // 訳の同期テストは見出しとコードブロックしか見ないので、**表の行が17本落ちても緑だった**。
-  // 台帳は三者 (実装・spec・spec/en) が一致して初めて契約である (ADR-0016)
-  const en = readFileSync(join(root, "spec/en/semantics.md"), "utf8");
-  const table: Record<string, string> = {};
-  for (const m of en.matchAll(/^\| ([A-Z]{3}\d{2}) \| (error|warning) \|/gm)) {
-    table[m[1]!] = m[2]!;
-  }
-  assert.deepEqual(table, DIAGNOSTIC_CODES);
-  assert.match(en, /\| BND07 \| — \|/);
-});
+// The ledger is a contract only when all three agree — the implementation and both locales
+// (ADR-0016). The translation-sync test reads headings and code blocks only, so **seventeen table
+// rows once went missing and it stayed green.**
+//
+// The pages checked are the **published documentation**. `spec/` is an internal tree on its way
+// out and has in fact gone stale; while two trees both claim to be normative, the machine must
+// bind the one that is canonical.
+for (const page of ["docs/reference/diagnostics/index.md", "docs/en/reference/diagnostics/index.md"]) {
+  test(`ledger: DIAGNOSTIC_CODES and the table in ${page} agree as sets, and BND07 is retired`, () => {
+    assert.deepEqual(indexLedger(page), DIAGNOSTIC_CODES);
+    // A retired code leaves the ledger but keeps a headstone in the index
+    assert.match(readFileSync(join(root, page), "utf8"), /`BND07`/);
+    assert.equal("BND07" in DIAGNOSTIC_CODES, false);
+  });
+}
 
 // ---- (d)(e) CLI: --json / --strict ----
 

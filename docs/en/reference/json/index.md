@@ -88,7 +88,9 @@ Keys of record shape (top level, level, space, boundary, opening, `seg`, column)
 - `boundaries` — lexicographic by `between`, ties broken by canonical content order
 - `zones` / `assets` / `polygons` — by key
 
-**Arrays whose declaration order carries no meaning are also sorted by canonical content** — openings, `seg`s, the union of regions, a column's grid names `x`/`y`, the endpoints of a drawn line. Writing the same composition with the lines in another order yields the same bytes.
+**Arrays whose declaration order carries no meaning are also sorted by canonical content** — openings, `seg`s, the union of regions, the endpoints of a drawn line. Writing the same composition with the lines in another order yields the same bytes.
+
+**A column's grid names `x`/`y` are the one exception: they go in grid order** ([schema](schema.md)), not collation order. So `x:X11,X2,X10` becomes `["X2","X10","X11"]` — for a grid line, position is the order it was declared in, not the spelling of its name. Only names that were never declared fall back to collation order.
 
 **`columns` is the exception. The declaration order of columns is meaning, so it is never sorted.** Two columns never stand on the same grid intersection and the earlier declaration wins, so swapping two lines changes which columns actually stand. Sorting them would give two different buildings identical bytes, and the whole reason this format exists would be lost for columns. **For an array whose order carries meaning, the canonical order is the declaration order itself.**
 

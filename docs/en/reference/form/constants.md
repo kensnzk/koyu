@@ -13,6 +13,8 @@ Both are published as `DERIVATION_CONSTANTS` and `TOLERANCES`, and a test binds 
 
 ## Derivation constants — seventeen
 
+<!-- derivation-constants -->
+
 | Constant | Value | Unit | What it decides |
 |---|---|---|---|
 | `WALL_T` | 100 | mm | default [wall thickness](bodies.md) (`t:` overrides), distributed half to each side of the centre line |
@@ -36,6 +38,8 @@ Both are published as `DERIVATION_CONSTANTS` and `TOLERANCES`, and a test binds 
 Three dimensions are solved on the spot rather than held as constants. **The lift car** is inset `min(300, side ÷ 6)` on all four sides and stands from FL + 60 to FL + 2400. **The escalator balustrade** is `min(140, unit width ÷ 8)` wide and 100mm thick, raised 900mm above the tread surface. Each is defined relative to another value, so none of them is a constant of its own.
 
 ## Tolerances — seven
+
+<!-- tolerances -->
 
 **No question may have two tolerances.**
 

@@ -124,7 +124,10 @@ function tableAfter(page: string, marker: string): Record<string, number> {
   return out;
 }
 
-for (const page of ["spec/derivation.md", "spec/en/derivation.md"]) {
+// The ledger is checked against the **published documentation**. `spec/` is an internal tree on
+// its way out and has in fact gone stale — while two trees both claim to be normative, the machine
+// must bind the one that is canonical.
+for (const page of ["docs/reference/form/constants.md", "docs/en/reference/form/constants.md"]) {
   test(`derive: the constants table in ${page} and DERIVATION_CONSTANTS agree`, () => {
     assert.deepEqual(tableAfter(page, "<!-- derivation-constants -->"), { ...DERIVATION_CONSTANTS });
   });

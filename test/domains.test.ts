@@ -112,41 +112,51 @@ test("domains: the ledgers do not intersect (no spelling appears on both faces)"
   for (const code of codes) assert.match(code, /^[A-Z]{3}\d{2}$/, `a diagnostic code is 3 letters and 2 digits: ${code}`);
 });
 
-test("ledger: VALIDATION_RULES and the table in spec/validation.md agree as sets", () => {
-  const md = readFileSync(join(root, "spec/validation.md"), "utf8");
-  const inSpec = new Map<string, string>();
-  for (const m of md.matchAll(/^\| `([a-z.]+)` \| (violation|caution) \|/gm)) {
-    inSpec.set(m[1]!, m[2]!);
-  }
-  assert.deepEqual(
-    [...inSpec.keys()].sort(),
-    Object.keys(VALIDATION_RULES).sort(),
-    "the table in spec/validation.md and the implementation ledger disagree",
-  );
-  for (const [rule, level] of inSpec) {
-    assert.equal(level, VALIDATION_RULES[rule as keyof typeof VALIDATION_RULES], `the level of ${rule}`);
-  }
-});
+// The page checked is the **published documentation**; `spec/` is an internal tree on its way out.
+// Rows read `| [`envelope.gap`](envelope.md#envelope-gap) | caution | … |`
+for (const page of ["docs/reference/validate/index.md", "docs/en/reference/validate/index.md"]) {
+  test(`ledger: VALIDATION_RULES and the table in ${page} agree as sets`, () => {
+    const md = readFileSync(join(root, page), "utf8");
+    const inDocs = new Map<string, string>();
+    for (const m of md.matchAll(/^\| \[`([a-z.]+)`\]\([^)]*\) \| (violation|caution) \|/gm)) {
+      inDocs.set(m[1]!, m[2]!);
+    }
+    assert.deepEqual(
+      [...inDocs.keys()].sort(),
+      Object.keys(VALIDATION_RULES).sort(),
+      `the table in ${page} and the implementation ledger disagree`,
+    );
+    for (const [rule, level] of inDocs) {
+      assert.equal(level, VALIDATION_RULES[rule as keyof typeof VALIDATION_RULES], `the level of ${rule}`);
+    }
+  });
+}
 
-test("ledger: the sections of guide/validation.md agree with VALIDATION_RULES as sets, and the levels match too", () => {
-  const md = readFileSync(join(root, "guide/validation.md"), "utf8");
-  const lines = md.split("\n");
-  const found = new Map<string, string>();
-  for (let i = 0; i < lines.length; i++) {
-    const h = /^###\s+`([a-z.]+)`\s+—\s+\S/.exec(lines[i]!);
-    if (!h) continue;
-    let level = "";
-    for (let j = i + 1; j < lines.length && !/^###\s/.test(lines[j]!); j++) {
-      const s = /^`(violation|caution)`$/.exec(lines[j]!.trim());
-      if (s) {
-        level = s[1]!;
-        break;
+// Every rule must also have its own section, with its level stated there. The family pages of the
+// published documentation carry them as `## `rule` — … {#anchor}` followed by `` `violation` ``.
+for (const dir of ["docs/reference/validate", "docs/en/reference/validate"]) {
+  test(`ledger: the sections under ${dir} agree with VALIDATION_RULES as sets, and the levels match too`, () => {
+    const found = new Map<string, string>();
+    for (const f of readdirSync(join(root, dir)).sort()) {
+      if (!f.endsWith(".md")) continue;
+      const lines = readFileSync(join(root, dir, f), "utf8").split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        const h = /^##\s+`([a-z]+\.[a-z]+)`\s+—\s+\S/.exec(lines[i]!);
+        if (!h) continue;
+        let level = "";
+        for (let j = i + 1; j < lines.length && !/^##\s/.test(lines[j]!); j++) {
+          const t = /^`(violation|caution)`$/.exec(lines[j]!.trim());
+          if (t) {
+            level = t[1]!;
+            break;
+          }
+        }
+        found.set(h[1]!, level);
       }
     }
-    found.set(h[1]!, level);
-  }
-  assert.deepEqual([...found.keys()].sort(), Object.keys(VALIDATION_RULES).sort());
-  for (const [rule, level] of found) {
-    assert.equal(level, VALIDATION_RULES[rule as keyof typeof VALIDATION_RULES], `the level of ${rule}`);
-  }
-});
+    assert.deepEqual([...found.keys()].sort(), Object.keys(VALIDATION_RULES).sort());
+    for (const [rule, level] of found) {
+      assert.equal(level, VALIDATION_RULES[rule as keyof typeof VALIDATION_RULES], `the level of ${rule}`);
+    }
+  });
+}
