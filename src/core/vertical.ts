@@ -37,6 +37,13 @@ export const STEP_MARK = 400;
 export const TREAD_SOLID = 200;
 /** 斜路・エスカレーター床版の厚さ mm */
 export const SLAB_T = 200;
+/**
+ * The shortest visible run interval that still carries a direction arrow, in mm.
+ *
+ * Below this the arrow would be longer than what it points along. The comparison is strict, so an
+ * interval of exactly this length carries none.
+ */
+export const ARROW_SPAN_MIN = 900;
 
 /** 走りと踊り場の一区間。局所座標は t (走り方向) と s (進行方向の左からの幅) */
 export interface RunPart {
@@ -695,7 +702,7 @@ function drawRun(
     const isFirst = i === run.parts.findIndex((q) => q.kind === "flight");
     const isLast = i === run.parts.map((q) => q.kind).lastIndexOf("flight");
     const wantArrow = run.device === "escalator" ? true : dir === "up" ? isFirst : isLast;
-    if (wantArrow && hi - lo > 900) {
+    if (wantArrow && hi - lo > ARROW_SPAN_MIN) {
       const c = (p.s0 + p.s1) / 2;
       // **矢印は人の進む向きだけから決まる。**reversed が「t の減る向きに進む」、
       // 昇り降りは進む先の高さで決まる。エスカレーターは機械の向きが固定なので

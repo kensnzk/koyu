@@ -86,7 +86,7 @@ Ascending runs land in `cut`, descending runs in `below`.
 
 Nosings are laid out from the part's t0 at the going interval, and anything outside the visible interval is dropped. Escalator step marks are laid out from **the start of the visible interval** at a constant `STEP_MARK` (400mm) pitch.
 
-Arrows are drawn per unit for an escalator, and for a stair or ramp one per departing flight (on the ascending face) or arriving flight (on the descending face). **The direction is decided by the way people travel and nothing else.** An escalator points the same way on both faces; a stair or ramp reverses on the descending face — the machine's direction is fixed, a person's changes with the face. A visible interval shorter than 900mm gets no arrow.
+Arrows are drawn per unit for an escalator, and for a stair or ramp one per departing flight (on the ascending face) or arriving flight (on the descending face). **The direction is decided by the way people travel and nothing else.** An escalator points the same way on both faces; a stair or ramp reverses on the descending face — the machine's direction is fixed, a person's changes with the face. A visible interval that does not **exceed** `ARROW_SPAN_MIN` (900mm) gets no arrow — an interval of exactly 900mm gets none either ([derivation constants](constants.md)).
 
 `anchor` returns only the seat for the annotation. The riser count and the slope live on the [vertical run](vertical-runs.md); turning them into words is the drawing side's job.
 

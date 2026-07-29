@@ -45,6 +45,7 @@ import {
 import { EPS, SPAN_EPS } from "./tolerance.js";
 import {
   CUT_HEIGHT,
+  ARROW_SPAN_MIN,
   DEFAULT_RISER_MAX,
   ENTRY_LANDING,
   LANDING_MIN,
@@ -95,6 +96,7 @@ export const DERIVATION_CONSTANTS: Readonly<Record<string, number>> = {
   CUT_HEIGHT,
   DEFAULT_RISER_MAX,
   TREAD_TARGET,
+  ARROW_SPAN_MIN,
   LANDING_MIN,
   ENTRY_LANDING,
   LANE_ESCALATOR,
