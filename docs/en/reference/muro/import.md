@@ -67,6 +67,8 @@ Index 0 is the entry. The entry enters the list before any file it reads.
 
 **A layer imported twice keeps its first position.** Above, `b.muro` is read from both `a.muro` and `c.muro`, but appears once, at the index it first reached — 2. Double imports and cycles are idempotent and are not errors: a layer is composed exactly once.
 
+**"The same layer" is decided by filesystem identity, not by spelling.** A path that goes through a symlink, and a different spelling on a case-insensitive filesystem (`b.muro` and `B.muro`), are the same layer as long as they name the same file. Counting by spelling would compose one file twice and collide with the once-only declaration of `grid X` — idempotence would break on nothing more than how the path was written.
+
 This order is not decoration. **Later layers are stronger, and the index is the strength.** When two layers hold an opinion about the same attribute, the index decides which wins. The rules of strength are in [the rules of composition](composition.md).
 
 ## What is declared exactly once

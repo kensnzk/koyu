@@ -2,7 +2,7 @@
 // パーサ本体 (parse.ts) は純粋で、fsはこの薄い層だけが知る。
 // ブラウザ (ugatsu等) は parseFiles (仮想ファイル群) を使う。
 
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import type { Model } from "./core/model.js";
 import { parseWith } from "./core/parse.js";
@@ -21,8 +21,21 @@ export function parseFileWith(
   overlay?: (absPath: string) => string | undefined,
 ): Model {
   return parseWith((from, ref) => {
-    const key = from === undefined ? resolve(ref) : resolve(dirname(from), ref);
-    const src = overlay?.(key) ?? readFileSync(key, "utf8");
+    const spelled = from === undefined ? resolve(ref) : resolve(dirname(from), ref);
+    // **層の同一性はファイルシステム上の同一性で決める。**綴りで決めると、同じファイルが
+    // symlink や大文字小文字の違いで届いたときに同じ層が二度合成され、「二度 import しても
+    // 合成は一度だけ」(規則1) が破れる — 実測では `grid X is declared once` で落ちていた。
+    // 未作成のパス (overlay が内容を持つ場合) では realpath が引けないので綴りのままにする。
+    // `.native` を使うのは OS に訊くためである — 大文字小文字を区別しないファイルシステム
+    // (macOS の既定) では JS 実装が綴りをそのまま返すので、`B.muro` と `b.muro` が別層になる
+    let key = spelled;
+    try {
+      key = realpathSync.native(spelled);
+    } catch {
+      /* まだ無いファイル — 綴りがそのまま同一性である */
+    }
+    // 差し替えは書かれた綴りでも実体でも引ける — MCP の門番は resolve した綴りで照合する
+    const src = overlay?.(spelled) ?? overlay?.(key) ?? readFileSync(key, "utf8");
     return { key, src };
   }, filePath);
 }

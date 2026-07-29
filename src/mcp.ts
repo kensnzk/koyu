@@ -36,9 +36,24 @@ function load(file: string): Model {
   return parseFile(resolve(file));
 }
 
-/** 合成に参加した全レイヤー — 要素の有無によらずModelが記録する (grid/levelだけの層も落ちない) */
-function layerFiles(model: Model, entry: string): string[] {
-  return [...new Set([resolve(entry), ...model.layers])].sort();
+/**
+ * 合成に参加した全レイヤー — 要素の有無によらずModelが記録する (grid/levelだけの層も落ちない)。
+ *
+ * entry は添字0で必ず入っている (`ingestLayer` が全層を push する)。**綴りの `resolve(entry)` を
+ * 足してはならない** — 層の同一性はファイルシステム上の同一性なので、symlink や大文字小文字の
+ * 違う綴りを足せば同じ層が二度数えられる。
+ */
+function layerFiles(model: Model): string[] {
+  return [...model.layers].sort();
+}
+
+/** パスを実体で見る。引けなければ綴りのまま — 層の同一性 (`parse-file.ts`) と同じ規則である */
+function real(path: string): string {
+  try {
+    return realpathSync.native(path);
+  } catch {
+    return path;
+  }
 }
 
 /** entryディレクトリ境界の検査 — 文字列prefixではなく相対パスで判定する (ADR-0013) */
@@ -71,7 +86,7 @@ function summarize(model: Model, file: string): unknown {
   return {
     name: model.name,
     unit: model.unit,
-    layers: layerFiles(model, file),
+    layers: layerFiles(model),
     levels: levelsSorted(model).map((l) => ({
       name: l.name,
       z: l.z,
@@ -166,7 +181,7 @@ const TOOLS: Record<string, Tool> = {
     run: (a) => {
       const file = str(a.file, "file");
       const m = load(file);
-      return layerFiles(m, file).map((f) => ({ file: f, source: readFileSync(f, "utf8") }));
+      return layerFiles(m).map((f) => ({ file: f, source: readFileSync(f, "utf8") }));
     },
   },
   write_layer: {
@@ -184,10 +199,12 @@ const TOOLS: Record<string, Tool> = {
     run: (a) => {
       const file = str(a.file, "file");
       const content = str(a.content, "content");
-      const entryDir = resolve(dirname(resolve(file)));
+      // 実体で見る。symlink を挟んだ綴りが境界検査を素通りするのを防ぎ、
+      // 合成が層を数える同一性と一致させる (一致しないと門番が古い内容を検証する)
+      const entryDir = real(resolve(dirname(resolve(file))));
       const target = resolve(entryDir, str(a.layer, "layer"));
       if (!target.endsWith(".muro")) throw new Error("Only .muro files can be written");
-      assertInside(entryDir, dirname(target));
+      assertInside(entryDir, real(dirname(target)));
       // 門番は書き込みの前 — 差し替え内容で仮想合成し、parse不能なら原本に触れない (ADR-0013)。
       // 合成に参加しないファイルの内容は検証されない (importされた時のcheckが捕まえる)
       let m: Model;

@@ -2,7 +2,7 @@
 // 一棟マージ時のコンフリクト検出。examples/house/ が実証モデル。
 
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -283,4 +283,46 @@ test("a ratio position still works (at:0.25 is clamped within the segment)", () 
   );
   const res = check(model);
   assert.deepEqual(res.errors, []);
+});
+
+// ---- 層の同一性 (規則1: 二度 import しても合成は一度だけ) ----
+//
+// 同一性は**ファイルシステム上の同一性**である。綴りで決めていたので、同じファイルが
+// symlink や大文字小文字の違う綴りで届くと同じ層が二度合成され、`grid X is declared once`
+// で落ちていた — 冪等の約束が、書き方だけで破れていた。
+
+test("layer identity: the same file reached through a symlink is one layer, not two", () => {
+  const dir = mkdtempSync(join(tmpdir(), "koyu-sym-"));
+  writeFileSync(
+    join(dir, "b.muro"),
+    ["grid X 0 3000", "grid Y 0 3000", "level L1 0 h:2700 slab:150", "space /L1/b room X1..X2 Y1..Y2"].join("\n"),
+  );
+  symlinkSync("b.muro", join(dir, "link.muro"));
+  writeFileSync(join(dir, "main.muro"), "koyu 1.0\nimport ./b.muro\nimport ./link.muro\n");
+
+  const m = parseFile(join(dir, "main.muro"));
+  assert.deepEqual(check(m).errors, []);
+  assert.equal(m.layers.length, 2, "the entry and one layer — the symlink is the same file");
+});
+
+test("layer identity: on a case-insensitive filesystem, two spellings are one layer", () => {
+  const dir = mkdtempSync(join(tmpdir(), "koyu-case-"));
+  writeFileSync(
+    join(dir, "b.muro"),
+    ["grid X 0 3000", "grid Y 0 3000", "level L1 0 h:2700 slab:150", "space /L1/b room X1..X2 Y1..Y2"].join("\n"),
+  );
+  // 大文字小文字を区別するファイルシステムでは B.muro は存在しないので、そこでは import 自体が
+  // 読めない — その場合この検査は成り立たないので飛ばす
+  let caseInsensitive = true;
+  try {
+    readFileSync(join(dir, "B.muro"), "utf8");
+  } catch {
+    caseInsensitive = false;
+  }
+  if (!caseInsensitive) return;
+
+  writeFileSync(join(dir, "main.muro"), "koyu 1.0\nimport ./b.muro\nimport ./B.muro\n");
+  const m = parseFile(join(dir, "main.muro"));
+  assert.deepEqual(check(m).errors, []);
+  assert.equal(m.layers.length, 2, "the entry and one layer — the two spellings are the same file");
 });
