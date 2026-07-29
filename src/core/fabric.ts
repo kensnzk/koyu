@@ -57,7 +57,8 @@ export function slabs(model: Model): Slab[] {
   const levels = levelsSorted(model);
   const out: Slab[] = [];
   const byLevel = new Map<string, Space[]>();
-  // 並びは正準順 — 宣言順は正準JSONが捨てるので、面が拾えば形が宣言順の関数になる (約束1)
+  // Canonical order — the canonical form discards declaration order, so a surface that reads
+  // it makes the shape a function of it (promise 1)
   for (const s of canonicalSpaceOrder(model)) {
     if (s.rects.length === 0 || !s.level) continue;
     const arr = byLevel.get(s.level) ?? [];

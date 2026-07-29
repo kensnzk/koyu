@@ -114,43 +114,47 @@ boundary /L1/a /out edge:S
   assert.equal(one["/L1/c"], 22.5);
 });
 
-// ---- 空間の宣言順 ----
+// ---- The declaration order of spaces ----
 //
-// 上の三つは**境界**の書き方が形に効かないことを見ている。空間の宣言順にも同じ約束がかかる —
-// 正準JSONは `spaces` をパスの照合順に並べるので、宣言順は捨てられる情報である。
-// 実測で三箇所から漏れていた: 既定境界の `a`/`b` (向きがどこにも記録されないので宣言順を拾っていた)、
-// `Form.spaces` の並び、`slabs` の並び。
+// The three above watch that how a **boundary** is written does not reach the shape. The same
+// promise covers the declaration order of spaces — the canonical form sorts `spaces` by path
+// collation, so declaration order is discarded information. It leaked from three places: the
+// `a`/`b` of a derived boundary (its orientation is recorded nowhere, so it took declaration
+// order), the ordering of `Form.spaces`, and the ordering of `slabs`.
 
-// 同じ二室を、行の順だけ入れ替えて書く。**空間とその領域の対応は動かさない** —
-// 動かせば別の建物になり、正準形が等しくないので何も証明しない
+// The same two rooms with only the order of the lines swapped. **The pairing of a space with its
+// region is left alone** — change it and this is a different building, whose canonical form is
+// not equal, so the pair proves nothing
 const A_LINE = "space /L1/a room X1..X2 Y1..Y2";
 const B_LINE = "space /L1/b room X2..X3 Y1..Y2";
 const aFirst = `${BASE}${A_LINE}\n${B_LINE}\n`;
 const bFirst = `${BASE}${B_LINE}\n${A_LINE}\n`;
 
 test("uniqueness: the declaration order of adjacent spaces does not move the form", () => {
-  // 境界を一本も書かない — 既定の壁が導かれる、muro の定型である
+  // No boundary written at all — the default wall is derived, which is the muro idiom
   sameForm(aFirst, bFirst, "adjacent spaces declared in the other order");
 });
 
 test("uniqueness: a derived boundary takes its a/b from the canonical order, not the declaration order", () => {
   const ab = derive(parse(aFirst)).boundaries[0]!;
   const ba = derive(parse(bFirst)).boundaries[0]!;
-  // 宣言順で `a|b@0` ↔ `b|a@0` に割れていた組。関係の同一性の綴りが宣言順の関数であってはならない
+  // The pair that split into `a|b@0` vs `b|a@0` by declaration order. The spelling of a relation's
+  // identity must not be a function of it
   assert.equal(ab.ref, "/L1/a|/L1/b@0");
   assert.deepEqual([ba.ref, ba.a, ba.b], [ab.ref, ab.a, ab.b]);
 });
 
-// ---- 領域の合併の書き順 ----
+// ---- The written order of a region union ----
 
 test("uniqueness: the written order of a region union does not move the form", () => {
   const src = (union: string) => `${BASE}space /L1/L room ${union}
 space /out exterior
 boundary /L1/L /out edge:N
 `;
-  // 正準JSONは `at` を綴りの正準順に並べて `+` の書き順を捨てる。捨てられた順が
-  // 凸片・スラブ・平面のエンティティに残っていたので、二片が同面積のときは
-  // 室名ラベルの座という物理量が宣言順の関数になっていた
+  // The canonical form sorts `at` into canonical spelling order, discarding the written order of
+  // `+`. That discarded order survived in the convex pieces, slabs and plan entities, so with two
+  // pieces of equal area the anchor of the room label — a physical quantity — became a function
+  // of declaration order
   sameForm(
     src("X1..X2 Y1..Y2 + X2..X3 Y1..Y2"),
     src("X2..X3 Y1..Y2 + X1..X2 Y1..Y2"),

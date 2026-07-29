@@ -777,24 +777,27 @@ export function canonicalBoundaryOrder(model: Model): Boundary[] {
 }
 
 /**
- * 空間を正準の順 (パスの照合順) に並べて返す。
+ * Spaces in canonical order (path collation).
  *
- * **宣言順は正準JSONが捨てる情報である** (`toCanonical` は `spaces` のキーを照合順に並べる)。
- * だから空間を順に読む導出 — `Form.spaces` の並び — はこの並びを使う。`Map` の挿入順そのものは
- * 動かさない: 診断の並びは**走査の順**が契約なので ([ADR-0028](../../docs/decisions/0028-diagnostics-per-declaration.md))、
- * 宣言順を必要とする読み手が別にいる。
+ * **Declaration order is information the canonical form discards** — `toCanonical` sorts the
+ * `spaces` keys by collation. So every derivation that reads spaces in order, such as the
+ * ordering of `Form.spaces`, uses this. The `Map` insertion order itself is left alone:
+ * diagnostics are contractually in **scan order** (ADR-0028), so another reader needs
+ * declaration order.
  */
 export function canonicalSpaceOrder(model: Model): Space[] {
   return [...model.spaces.keys()].sort(compareCanonical).map((p) => model.spaces.get(p)!);
 }
 
 /**
- * 領域の綴りを正準の順に整える。
+ * Puts the spelling of every region into canonical order.
  *
- * **`+` による合併の書き順は正準JSONが捨てる情報である** (`canonicalSpaceEntry` の `at` が
- * `sortBySerial` を通す)。捨てられる情報が形を変えてはならないので、`rects` を読む導出 —
- * 凸片・境界の線分・スラブ・平面のエンティティ、そして二片が同面積のときの室名の座 —
- * が書き順を拾わないよう、綴りの正準順へ揃える。`grids` と `rects` は同順である。
+ * **The order the parts of a `+` union were written in is information the canonical form
+ * discards** — `canonicalSpaceEntry` runs `at` through `sortBySerial`. Discarded information
+ * must not change the shape, so everything that reads `rects` — convex pieces, boundary
+ * segments, slabs, plan entities, and the anchor of a room label when two pieces have equal
+ * area — is kept off the written order by sorting the spelling. `grids` and `rects` stay
+ * parallel.
  */
 export function normalizeRegionOrder(model: Model): void {
   for (const s of model.spaces.values()) {

@@ -174,9 +174,9 @@ test("rule 5: the composed result matches the same configuration written in a si
   assert.equal(toCanonical(composed), toCanonical(flat), "no trace of the override remains in the machine format");
 });
 
-// `over` が空間に書く語は、`space` 宣言と同じ扱いを受けなければならない。
-// 汎用の属性適用に丸投げしていたので、キーの形を一切見ずに `attrs` へ落ちていた —
-// **どちらも check が緑のまま、書いた値が解釈されずに死んでいた。**
+// A word `over` writes on a space must be treated exactly as the `space` declaration treats it.
+// Handing it to the generic attribute path looked at no key at all and dropped it into `attrs` —
+// **in both cases check stayed green while the written value died uninterpreted.**
 
 test("rule 5: over moves a typed field, so it matches the same value written on the declaration", () => {
   const composed = build("over /L1/a level:L1\n");
@@ -185,7 +185,7 @@ test("rule 5: over moves a typed field, so it matches the same value written on 
     "main.muro",
   );
   assert.equal(composed.spaces.get("/L1/a")!.level, "L1");
-  // 死んだ属性を残さない — level は typed field であって attrs の住人ではない
+  // No dead attribute left behind — level is a typed field, not a resident of attrs
   assert.equal(composed.spaces.get("/L1/a")!.attrs["level"], undefined);
   assert.equal(toCanonical(composed), toCanonical(flat));
 });
@@ -198,7 +198,7 @@ test("over: an undeclared level is refused, exactly as it is on the declaration"
 });
 
 test("over: w: is refused on a space, exactly as it is on the declaration", () => {
-  // 帯の要素の幅を層から直したつもりの書き込みが、幅を動かさないまま attrs に落ちていた
+  // A write meant to change a band member's width used to land in attrs without moving the width
   assert.throws(
     () => build("over /L1/a w:1000\n"),
     (e: unknown) => e instanceof SourceError && /w: may not be written on space/.test(e.message),

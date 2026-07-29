@@ -285,11 +285,11 @@ test("a ratio position still works (at:0.25 is clamped within the segment)", () 
   assert.deepEqual(res.errors, []);
 });
 
-// ---- 層の同一性 (規則1: 二度 import しても合成は一度だけ) ----
+// ---- Layer identity (rule 1: a layer imported twice is still composed once) ----
 //
-// 同一性は**ファイルシステム上の同一性**である。綴りで決めていたので、同じファイルが
-// symlink や大文字小文字の違う綴りで届くと同じ層が二度合成され、`grid X is declared once`
-// で落ちていた — 冪等の約束が、書き方だけで破れていた。
+// Identity is **filesystem identity**. It used to be decided by spelling, so one file arriving
+// through a symlink or in different letter case was composed twice and failed with
+// `grid X is declared once` — idempotence broke on nothing but how the path was written.
 
 test("layer identity: the same file reached through a symlink is one layer, not two", () => {
   const dir = mkdtempSync(join(tmpdir(), "koyu-sym-"));
@@ -311,8 +311,8 @@ test("layer identity: on a case-insensitive filesystem, two spellings are one la
     join(dir, "b.muro"),
     ["grid X 0 3000", "grid Y 0 3000", "level L1 0 h:2700 slab:150", "space /L1/b room X1..X2 Y1..Y2"].join("\n"),
   );
-  // 大文字小文字を区別するファイルシステムでは B.muro は存在しないので、そこでは import 自体が
-  // 読めない — その場合この検査は成り立たないので飛ばす
+  // On a case-sensitive filesystem B.muro does not exist, so the import cannot be read at all —
+  // the premise does not hold there, so skip
   let caseInsensitive = true;
   try {
     readFileSync(join(dir, "B.muro"), "utf8");

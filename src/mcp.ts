@@ -37,17 +37,18 @@ function load(file: string): Model {
 }
 
 /**
- * 合成に参加した全レイヤー — 要素の有無によらずModelが記録する (grid/levelだけの層も落ちない)。
+ * Every layer that took part in the composition — the Model records them all, whether or not
+ * they carry elements (a layer holding only `grid`/`level` is not dropped).
  *
- * entry は添字0で必ず入っている (`ingestLayer` が全層を push する)。**綴りの `resolve(entry)` を
- * 足してはならない** — 層の同一性はファイルシステム上の同一性なので、symlink や大文字小文字の
- * 違う綴りを足せば同じ層が二度数えられる。
+ * The entry is always index 0 (`ingestLayer` pushes every layer). **Do not add the spelled
+ * `resolve(entry)`** — layer identity is filesystem identity, so adding a different spelling
+ * (a symlink, another letter case) counts one layer twice.
  */
 function layerFiles(model: Model): string[] {
   return [...model.layers].sort();
 }
 
-/** パスを実体で見る。引けなければ綴りのまま — 層の同一性 (`parse-file.ts`) と同じ規則である */
+/** A path as the filesystem sees it; the spelling if it cannot be resolved — the same rule as layer identity (`parse-file.ts`) */
 function real(path: string): string {
   try {
     return realpathSync.native(path);
@@ -199,8 +200,9 @@ const TOOLS: Record<string, Tool> = {
     run: (a) => {
       const file = str(a.file, "file");
       const content = str(a.content, "content");
-      // 実体で見る。symlink を挟んだ綴りが境界検査を素通りするのを防ぎ、
-      // 合成が層を数える同一性と一致させる (一致しないと門番が古い内容を検証する)
+      // Resolve to the real path: it stops a spelling that goes through a symlink from slipping
+      // past the boundary check, and it matches the identity the composition counts layers by
+      // (mismatch would make the gatekeeper validate stale content)
       const entryDir = real(resolve(dirname(resolve(file))));
       const target = resolve(entryDir, str(a.layer, "layer"));
       if (!target.endsWith(".muro")) throw new Error("Only .muro files can be written");

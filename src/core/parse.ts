@@ -86,8 +86,8 @@ export type LayerLoader = (
 export function parse(source: string): Model {
   const model = emptyModel();
   ingest(model, source, undefined, new Set(), undefined);
-  // 領域の綴りを正準順に整えてから切り分ける — 切り分けも既定境界も rects を読むので、
-  // ここで揃えないと `+` の書き順が形に残る
+  // Put the region spellings into canonical order before cutting — both the cutting and the
+  // default boundaries read `rects`, so without this the written order of `+` stays in the shape
   normalizeRegionOrder(model);
   // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / spec/derivation.md §1)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
@@ -107,8 +107,8 @@ export function parseWith(loader: LayerLoader, entry: string): Model {
     throw new SourceError(0, `Cannot read file: ${entry}`);
   }
   ingestLayer(model, layer.key, layer.src, new Set(), loader);
-  // 領域の綴りを正準順に整えてから切り分ける — 切り分けも既定境界も rects を読むので、
-  // ここで揃えないと `+` の書き順が形に残る
+  // Put the region spellings into canonical order before cutting — both the cutting and the
+  // default boundaries read `rects`, so without this the written order of `+` stays in the shape
   normalizeRegionOrder(model);
   // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / spec/derivation.md §1)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
@@ -1394,17 +1394,19 @@ function applyLevelAttr(
 }
 
 /** 境界の上書き — typed field (type/t/air/edge) と自由属性の両方を受ける */
-/** 帯の要素の語を `space` に書いたときの言葉。宣言と `over` の両方が同じ理由で拒む */
+/** The words for a band-member key written on `space`. Declaration and `over` refuse it alike */
 const W_ON_SPACE = "w: may not be written on space (a space written by width sits indented under band)";
 
 /**
- * `over` が空間に書いた属性を効かせる。
+ * Applies an attribute an `over` wrote on a space.
  *
- * **`space` 宣言が拒む語は `over` でも拒み、`space` が typed field に取る語は `over` でも
- * typed field に効かせる。**でなければ同じ語が書き方によって別の意味になり、`over` で直した版と
- * 最初からそう書いた版が同じ正準形を与える (合成の規則5) が破れる。汎用の `applyAttr` に丸投げすると
- * キーの形を一切見ないので、`w:` は「幅を直した」つもりの書き込みが無音で `attrs` に落ち、
- * `level:` は空間を動かさないまま死んだ属性として残った — どちらも `check` が緑のままだった。
+ * **A word the `space` declaration refuses, `over` refuses too; a word the declaration takes as
+ * a typed field, `over` sets as a typed field.** Otherwise one word means different things
+ * depending on how it was written, and composition rule 5 — an overridden model and one written
+ * that way from the start give the same canonical form — breaks. Handing this to the generic
+ * `applyAttr` looked at no key at all: `w:` let a write meant as "make it this wide" land
+ * silently in `attrs`, and `level:` left a dead attribute behind without moving the space.
+ * Both kept `check` green.
  */
 function applySpaceAttr(
   model: Model,
@@ -1419,7 +1421,7 @@ function applySpaceAttr(
     applyAttr(model, "space", s.path, s.attrs, key, v, layer, ln, layerOf(model, s.file));
     return;
   }
-  // level は typed field なので、強度の判定を自分で持つ (applyBoundaryAttr と同じ形)
+  // level is a typed field, so it carries its own strength check (same shape as applyBoundaryAttr)
   const k = srcKey("space", s.path, key);
   const prev = model.attrSrc.get(k) ?? layerOf(model, s.file);
   if (prev > layer) return;

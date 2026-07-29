@@ -170,10 +170,12 @@ export function deriveDefaultBoundaries(model: Model): void {
       if (declared.has(key)) continue;
       // 接触は**導出された形**で見る — 線で接触が消えた組に既定の壁を作らない
       if (sharedFromPieces(piecesOf(a), piecesOf(b)).length === 0) continue;
-      // a/b の向きは**正準順**で決める。宣言境界の a は書かれた向きで、正準JSONが `a` として
-      // 保存するから形に持ち込んでよい。既定境界は正準JSONに出ないので書かれた向きが無く、
-      // 空間の宣言順を拾えば「正準形が捨てた情報が形を変える」— 関係の同一性 (`a|b@i`)・
-      // `edgeOfA` の方位が宣言順で反転する (導出の約束1 に反する)
+      // The a/b orientation is decided in **canonical order**. On a declared boundary, `a` is
+      // the side as written and the canonical form preserves it as the `a` key, so the shape
+      // may read it. A derived boundary never appears in the canonical form, so it has no
+      // written orientation; taking the declaration order of the spaces would let discarded
+      // information change the shape — the relation identity (`a|b@i`) and the `edgeOfA`
+      // bearing would flip with it, against promise 1
       const [pa, pb] =
         compareCanonical(a.path, b.path) <= 0 ? [a.path, b.path] : [b.path, a.path];
       model.boundaries.push({

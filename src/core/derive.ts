@@ -547,8 +547,8 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
   const zOf = new Map(levels.map((l) => [l.name, l.z]));
 
   // ---- 空間 ----
-  // 並びは**正準順**であって宣言順ではない。宣言順は正準JSONが捨てるので、
-  // 形がそれを拾えば同じ建物から違う `Form` が出る (約束1)
+  // Canonical order, not declaration order. The canonical form discards declaration order,
+  // so a shape that reads it yields two different `Form`s for one building (promise 1)
   const spaces: FormSpace[] = [];
   for (const s of canonicalSpaceOrder(model)) {
     if (s.rects.length === 0) continue;
