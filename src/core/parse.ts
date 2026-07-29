@@ -13,6 +13,7 @@ import {
   type Edge,
   type Level,
   type Model,
+  normalizeRegionOrder,
   type Opening,
   type Pt,
   type Rect,
@@ -85,6 +86,9 @@ export type LayerLoader = (
 export function parse(source: string): Model {
   const model = emptyModel();
   ingest(model, source, undefined, new Set(), undefined);
+  // 領域の綴りを正準順に整えてから切り分ける — 切り分けも既定境界も rects を読むので、
+  // ここで揃えないと `+` の書き順が形に残る
+  normalizeRegionOrder(model);
   // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / spec/derivation.md §1)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
   // 出所の無い BND04 が出る — 書いていない関係を責めることになる
@@ -103,6 +107,9 @@ export function parseWith(loader: LayerLoader, entry: string): Model {
     throw new SourceError(0, `Cannot read file: ${entry}`);
   }
   ingestLayer(model, layer.key, layer.src, new Set(), loader);
+  // 領域の綴りを正準順に整えてから切り分ける — 切り分けも既定境界も rects を読むので、
+  // ここで揃えないと `+` の書き順が形に残る
+  normalizeRegionOrder(model);
   // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / spec/derivation.md §1)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
   // 出所の無い BND04 が出る — 書いていない関係を責めることになる

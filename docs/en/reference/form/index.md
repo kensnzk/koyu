@@ -24,9 +24,11 @@ const low  = derive(model, { cut: 900 });
 toCanonical(a) === toCanonical(b)  ⟹  derive(a) ≡ derive(b)
 ```
 
-[Canonical JSON](../json/index.md) is the definition of "what makes two buildings the same". Therefore **information the canonical form discards must not change the shape** — not the order the endpoints of a line were written in, not the declaration order of boundaries, not the order of the lines in the file.
+[Canonical JSON](../json/index.md) is the definition of "what makes two buildings the same". Therefore **information the canonical form discards must not change the shape** — not the order the endpoints of a line were written in, not the declaration order of boundaries, not the declaration order of spaces, not the order the parts of a `+` region union were written in, not the order of the lines in the file.
 
-This implication is not a promise made in prose; it is a predicate a machine can enforce. For the bundled examples, variants are built with the endpoints of a line swapped, with the boundaries reordered, and with `a`/`b` written the other way round. The test **first establishes that the canonical forms are equal**, then asserts that the shapes match. If the premise fails, the pair is reported as proving nothing.
+This implication is not a promise made in prose; it is a predicate a machine can enforce. Variants are built with the endpoints of a line swapped, with the boundaries reordered, with the spaces reordered, with a region union swapped, and with `a`/`b` written the other way round. The test **first establishes that the canonical forms are equal**, then asserts that the shapes match. If the premise fails, the pair is reported as proving nothing.
+
+**So that discarded information is never read, the shape fixes three orderings canonically.** Spaces (`spaces`, `slabs`) go in path collation order, boundaries (and the indices of `openings` and `segs`) in [canonical content order](../api/derive.md), and the convex pieces of a space in the canonical order of their written spelling. Each is the same rule canonical JSON uses — **never declaration order.**
 
 Two rules follow. **A drawn line has no direction** ([Regions](regions.md)). **Cutting happens in canonical boundary order** (same page).
 

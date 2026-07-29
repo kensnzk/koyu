@@ -4,7 +4,13 @@
 // 空間の領域は矩形の合併 (L字など)。壁は合併の外周と共有辺から導出される。
 
 import type { Boundary, Edge, Model, Opening, Pt, Rect, Space } from "./model.js";
-import { canonicalBoundaryOrder, canonicalizeDrawn, rectToPoly, srcRef } from "./model.js";
+import {
+  canonicalBoundaryOrder,
+  canonicalizeDrawn,
+  compareCanonical,
+  rectToPoly,
+  srcRef,
+} from "./model.js";
 import * as poly from "./poly.js";
 import { EPS, PARALLEL_EPS, PROBE, SPAN_EPS } from "./tolerance.js";
 
@@ -164,9 +170,15 @@ export function deriveDefaultBoundaries(model: Model): void {
       if (declared.has(key)) continue;
       // 接触は**導出された形**で見る — 線で接触が消えた組に既定の壁を作らない
       if (sharedFromPieces(piecesOf(a), piecesOf(b)).length === 0) continue;
+      // a/b の向きは**正準順**で決める。宣言境界の a は書かれた向きで、正準JSONが `a` として
+      // 保存するから形に持ち込んでよい。既定境界は正準JSONに出ないので書かれた向きが無く、
+      // 空間の宣言順を拾えば「正準形が捨てた情報が形を変える」— 関係の同一性 (`a|b@i`)・
+      // `edgeOfA` の方位が宣言順で反転する (導出の約束1 に反する)
+      const [pa, pb] =
+        compareCanonical(a.path, b.path) <= 0 ? [a.path, b.path] : [b.path, a.path];
       model.boundaries.push({
-        a: a.path,
-        b: b.path,
+        a: pa,
+        b: pb,
         kind: "wall",
         derived: true,
         attrs: {},

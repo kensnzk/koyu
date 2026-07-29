@@ -6,7 +6,15 @@
 // 壁が境界から現れ、柱が通りの交点から現れるのと同じ構えで、面もまた宣言から現れる —
 // 床を置く操作も、天井を張る操作も、屋根を架ける操作も存在しない。
 
-import { heff, isSemiOutdoor, levelsSorted, type Model, type Pt, type Space } from "./model.js";
+import {
+  canonicalSpaceOrder,
+  heff,
+  isSemiOutdoor,
+  levelsSorted,
+  type Model,
+  type Pt,
+  type Space,
+} from "./model.js";
 import { areaOf, rectToPoly, subtract } from "./poly.js";
 import { AREA_EPS } from "./tolerance.js";
 import { runDecls } from "./vertical.js";
@@ -49,7 +57,8 @@ export function slabs(model: Model): Slab[] {
   const levels = levelsSorted(model);
   const out: Slab[] = [];
   const byLevel = new Map<string, Space[]>();
-  for (const s of model.spaces.values()) {
+  // 並びは正準順 — 宣言順は正準JSONが捨てるので、面が拾えば形が宣言順の関数になる (約束1)
+  for (const s of canonicalSpaceOrder(model)) {
     if (s.rects.length === 0 || !s.level) continue;
     const arr = byLevel.get(s.level) ?? [];
     arr.push(s);

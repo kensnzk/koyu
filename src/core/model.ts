@@ -772,8 +772,40 @@ export function canonicalBoundaryEntry(b: Boundary): Record<string, unknown> {
 export function canonicalBoundaryOrder(model: Model): Boundary[] {
   return [...model.boundaries]
     .map((b, i) => ({ b, key: JSON.stringify(canonicalBoundaryEntry(b)), i }))
-    .sort((p, q) => (p.key < q.key ? -1 : p.key > q.key ? 1 : p.i - q.i))
+    .sort((p, q) => compareCanonical(p.key, q.key) || p.i - q.i)
     .map((x) => x.b);
+}
+
+/**
+ * 空間を正準の順 (パスの照合順) に並べて返す。
+ *
+ * **宣言順は正準JSONが捨てる情報である** (`toCanonical` は `spaces` のキーを照合順に並べる)。
+ * だから空間を順に読む導出 — `Form.spaces` の並び — はこの並びを使う。`Map` の挿入順そのものは
+ * 動かさない: 診断の並びは**走査の順**が契約なので ([ADR-0028](../../docs/decisions/0028-diagnostics-per-declaration.md))、
+ * 宣言順を必要とする読み手が別にいる。
+ */
+export function canonicalSpaceOrder(model: Model): Space[] {
+  return [...model.spaces.keys()].sort(compareCanonical).map((p) => model.spaces.get(p)!);
+}
+
+/**
+ * 領域の綴りを正準の順に整える。
+ *
+ * **`+` による合併の書き順は正準JSONが捨てる情報である** (`canonicalSpaceEntry` の `at` が
+ * `sortBySerial` を通す)。捨てられる情報が形を変えてはならないので、`rects` を読む導出 —
+ * 凸片・境界の線分・スラブ・平面のエンティティ、そして二片が同面積のときの室名の座 —
+ * が書き順を拾わないよう、綴りの正準順へ揃える。`grids` と `rects` は同順である。
+ */
+export function normalizeRegionOrder(model: Model): void {
+  for (const s of model.spaces.values()) {
+    if (s.grids.length < 2 || s.grids.length !== s.rects.length) continue;
+    const order = s.grids
+      .map((g, i) => [JSON.stringify([g.xa, g.ya, g.xb, g.yb]), i] as const)
+      .sort(([x], [y]) => compareCanonical(x, y))
+      .map(([, i]) => i);
+    s.grids = order.map((i) => s.grids[i]!);
+    s.rects = order.map((i) => s.rects[i]!);
+  }
 }
 
 /** 正準JSON — 機械形式。差分とレイヤー合成の土台 (キーは安定順) */

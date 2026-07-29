@@ -525,6 +525,8 @@ function deriveDefaultBoundaries(model: Model): void
 
 For every pair of region-bearing spaces on the same level that touch in plan and have no declared boundary at all, adds a `kind:"wall"` boundary to `model.boundaries`, marked `derived: true`. Contact is judged on the **derived shapes**, so a pair whose contact a line removed gets nothing.
 
+**The orientation of `a`/`b` is canonical.** On a declared boundary, `a` is the side as written, and canonical JSON preserves it as the `a` key, so the shape may read it. A derived boundary does not appear in canonical JSON, so it **has no written orientation**; taking the declaration order of the spaces would let information the canonical form discards change the shape ([promise 1](../form/index.md)). Path collation order decides it instead — the `edgeOfA` bearing and the relation identity `a|b@i` follow from that.
+
 **Nothing is derived against a space with no region** (an `exterior`). Naming that counterpart is itself information, so it is left to be declared.
 
 **Every [parse function](parsing.md) has already applied this on the way out.** It is idempotent, so calling it again is harmless.

@@ -40,6 +40,7 @@ import {
   type Pt,
   type Space,
   canonicalBoundaryOrder,
+  canonicalSpaceOrder,
 } from "./model.js";
 import { EPS, SPAN_EPS } from "./tolerance.js";
 import {
@@ -546,8 +547,10 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
   const zOf = new Map(levels.map((l) => [l.name, l.z]));
 
   // ---- 空間 ----
+  // 並びは**正準順**であって宣言順ではない。宣言順は正準JSONが捨てるので、
+  // 形がそれを拾えば同じ建物から違う `Form` が出る (約束1)
   const spaces: FormSpace[] = [];
-  for (const s of model.spaces.values()) {
+  for (const s of canonicalSpaceOrder(model)) {
     if (s.rects.length === 0) continue;
     const h = heff(model, s);
     const z = s.level !== undefined ? zOf.get(s.level) : undefined;
