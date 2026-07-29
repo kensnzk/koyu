@@ -304,7 +304,7 @@ function ingest(
         for (const [key, v] of Object.entries(attrs)) {
           switch (over.kind) {
             case "space":
-              applyAttr(model, "space", subject, over.space.attrs, key, v, layer, ln, layerOf(model, over.space.file));
+              applySpaceAttr(model, over.space, key, v, layer, ln);
               break;
             case "zone":
               applyAttr(model, "zone", subject, over.zone.attrs, key, v, layer, ln, layerOf(model, over.zone.file));
@@ -532,10 +532,7 @@ function ingest(
         if (!path) throw new SourceError(ln, "space requires a path");
         // w: は帯の要素の語 — 字下げを落とした要素が「領域なしの空間」として黙って通るのを防ぐ
         if (rest.some((t) => t === "w:" || t.startsWith("w:"))) {
-          throw new SourceError(
-            ln,
-            "w: may not be written on space (a space written by width sits indented under band)",
-          );
+          throw new SourceError(ln, W_ON_SPACE);
         }
         for (const [p] of expandSpan(model, [path], ln)) {
           const space = parseSpace([p!, ...rest.slice(1)], ln, model);
@@ -1397,6 +1394,44 @@ function applyLevelAttr(
 }
 
 /** 境界の上書き — typed field (type/t/air/edge) と自由属性の両方を受ける */
+/** 帯の要素の語を `space` に書いたときの言葉。宣言と `over` の両方が同じ理由で拒む */
+const W_ON_SPACE = "w: may not be written on space (a space written by width sits indented under band)";
+
+/**
+ * `over` が空間に書いた属性を効かせる。
+ *
+ * **`space` 宣言が拒む語は `over` でも拒み、`space` が typed field に取る語は `over` でも
+ * typed field に効かせる。**でなければ同じ語が書き方によって別の意味になり、`over` で直した版と
+ * 最初からそう書いた版が同じ正準形を与える (合成の規則5) が破れる。汎用の `applyAttr` に丸投げすると
+ * キーの形を一切見ないので、`w:` は「幅を直した」つもりの書き込みが無音で `attrs` に落ち、
+ * `level:` は空間を動かさないまま死んだ属性として残った — どちらも `check` が緑のままだった。
+ */
+function applySpaceAttr(
+  model: Model,
+  s: Space,
+  key: string,
+  v: AttrValue,
+  layer: number,
+  ln: number,
+): void {
+  if (key === "w") throw new SourceError(ln, W_ON_SPACE);
+  if (key !== "level") {
+    applyAttr(model, "space", s.path, s.attrs, key, v, layer, ln, layerOf(model, s.file));
+    return;
+  }
+  // level は typed field なので、強度の判定を自分で持つ (applyBoundaryAttr と同じ形)
+  const k = srcKey("space", s.path, key);
+  const prev = model.attrSrc.get(k) ?? layerOf(model, s.file);
+  if (prev > layer) return;
+  if (prev === layer) {
+    throw new SourceError(ln, `One layer holds two opinions about level on space ${s.path}`);
+  }
+  const name = String(v);
+  if (!model.levels[name]) throw new SourceError(ln, `Undeclared level: level:${name}`);
+  s.level = name;
+  model.attrSrc.set(k, layer);
+}
+
 function applyBoundaryAttr(
   model: Model,
   b: Boundary,
