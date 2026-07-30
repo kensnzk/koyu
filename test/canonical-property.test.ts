@@ -59,6 +59,8 @@ const COVERAGE: Array<[string, RegExp]> = [
   ["drawn line", /"line": \[/],
   ["namespaced carrier attribute", /"acme\.sensor"/],
   ["band (expanded into spaces)", /"\/L2\/A\/wet"/],
+  // 合併は `at` が二枚になることが要点 — 一枚に縮めば母集団から `+` が消える
+  ["region union (two rects in one space)", /"\/L2\/hall":\{"type":"corridor","at":\[\["X4","Y2","X5","Y3"\],\["X4","Y3","X5","Y4"\]\]/],
 ];
 
 /**
@@ -111,6 +113,10 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
   body.push({ lines: ["space /B1/park 駐車場 X1..X2 Y1..Y2 name:駐車場 acme.sensor:21"] });
   body.push({
     lines: [`space /L1/loft ${pick(rnd, ["room", "atelier"])} X4..X5 Y1..Y2 level:L2 name:ロフト`],
+  });
+  // + による領域の合併 — 書き順に意味は無い (正準形は綴りの正準順に並べる)
+  body.push({
+    lines: [`space /L2/hall corridor X4..X5 Y2..Y3 + X4..X5 Y3..Y4 name:廊下`],
   });
 
   // ---- 帯 (band) — 位置ではなく寸法と並びで割る。展開後は通常の空間になる ----
@@ -192,6 +198,72 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
 }
 
 const render = (bs: Block[]) => bs.flatMap((b) => b.lines).join("\n") + "\n";
+
+/**
+ * **`+` の合併の書き順を入れ替える意味保存変形。**
+ *
+ * 領域の合併に書き順の意味は無い — 正準形は割付を綴りの正準順に並べる ([凸片](../docs/reference/form/regions.md))。
+ * 入れ替えた版は同じバイトと同じ形を与えなければならない。
+ */
+function swapUnion(body: Block[]): Block[] {
+  return body.map((b) => ({
+    ...b,
+    lines: b.lines.map((l) => {
+      const m = /^(space \S+ \S+ )(\S+\.\.\S+ \S+\.\.\S+) \+ (\S+\.\.\S+ \S+\.\.\S+)( .*)$/.exec(l);
+      return m ? `${m[1]}${m[3]} + ${m[2]}${m[4]}` : l;
+    }),
+  }));
+}
+
+/**
+ * **帯を位置指定へ書き直す意味保存変形。**
+ *
+ * 帯は寸法と並びから位置を導く綴りであって、別の建物ではない — [band](../docs/reference/muro/band.md)
+ * が「帯で書いた版と位置で書いた版は同じ正準形を与える」と言う。
+ *
+ * **床規則をここで独立に実装することが要点である。**導出された切り位置の綴りは「その座標以下で
+ * 最も大きい通り芯からのオフセット」であり、実装からその綴りを読んで書き戻せば round-trip を
+ * 試すだけになる。二度目の実装を置いて突き合わせなければ、規則そのものを縛っていない。
+ *
+ * 正準JSONは `at` の綴りを素通しするので、**同じ座標を別の綴りで書けばバイトは変わる。**
+ * だからこの変形は「同じ座標を、帯が導くのと同じ綴りで書く」ものでなければならない。
+ */
+const GRID_X = [0, 3000, 6000, 9000, 12000];
+
+/** 床規則 — その座標以下で最も大きい通り芯からのオフセットとして綴る */
+function spellX(mm: number): string {
+  let i = 0;
+  for (let k = 0; k < GRID_X.length; k++) if (GRID_X[k]! <= mm) i = k;
+  const rest = mm - GRID_X[i]!;
+  return rest === 0 ? `X${i + 1}` : `X${i + 1}+${rest}`;
+}
+
+/**
+ * 帯のブロックを、同じ座標を指す位置指定の三行に置き換える。
+ * 帯は `band X X1..X4 Y1..Y2` で 0..9000mm を割る (通り芯は GRID_X)。
+ */
+function bandToPositions(body: Block[]): Block[] {
+  return body.map((b) => {
+    if (!b.lines[0]!.startsWith("band X ")) return b;
+    const widths = b.lines.slice(1).map((l) => {
+      const m = /^ {2}space (\S+) (\S+) w:(\S+) name:(\S+)$/.exec(l);
+      assert.ok(m, `帯の要素が読めない: ${l}`);
+      return { path: m[1]!, type: m[2]!, w: m[3]!, name: m[4]! };
+    });
+    let at = 0;
+    const cuts: number[] = [];
+    for (const w of widths.slice(0, -1)) {
+      at += Number(w.w);
+      cuts.push(at);
+    }
+    const edges = ["X1", ...cuts.map(spellX), "X4"];
+    return {
+      lines: widths.map(
+        (w, i) => `space ${w.path} ${w.type} ${edges[i]}..${edges[i + 1]} Y1..Y2 name:${w.name}`,
+      ),
+    };
+  });
+}
 
 /**
  * **層に割って書いた版** — 属性を `over` へ括り出す意味保存変形。
@@ -286,8 +358,10 @@ test("property: the population covers the whole notation and every model is cons
       `seed=${seed}: the generated model does not pass check`,
     );
     const json = toCanonical(model);
+    // 整形の空白に縛られないよう、当てるのは空白を潰した写しである
+    const flat = json.replace(/\s+/g, "");
     for (const [label, re] of COVERAGE) {
-      assert.ok(re.test(json), `seed=${seed}: the generated model carries no ${label}`);
+      assert.ok(re.test(json) || re.test(flat), `seed=${seed}: the generated model carries no ${label}`);
     }
   }
 });
@@ -335,6 +409,47 @@ test("property: what the canonical form calls one building has one shape (30 see
     assert.equal(form(shuffled), f0, `seed=${seed}: canonically equal but the shape differs (shuffle)`);
     assert.equal(form(reversed), f0, `seed=${seed}: canonically equal but the shape differs (reverse)`);
   }
+});
+
+test("property: swapping the operands of a + union gives the same building (30 seeds, whole notation)", () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const { header, body } = generate(lcg(seed));
+    const original = render([...header, ...body]);
+    const swapped = render([...header, ...swapUnion(body)]);
+    assert.notEqual(swapped, original, `seed=${seed}: 入れ替えが空振りしている`);
+    assert.equal(
+      toCanonical(parse(swapped)),
+      toCanonical(parse(original)),
+      `seed=${seed}: 合併の書き順がバイトに漏れている`,
+    );
+    assert.equal(
+      JSON.stringify(derive(parse(swapped))),
+      JSON.stringify(derive(parse(original))),
+      `seed=${seed}: 正準形は同じなのに形が違う (合併の書き順)`,
+    );
+  }
+});
+
+test("property: a band and the positions it derives are one building (30 seeds, whole notation)", () => {
+  let checked = 0;
+  for (let seed = 1; seed <= 30; seed++) {
+    const { header, body } = generate(lcg(seed));
+    const banded = render([...header, ...body]);
+    const positioned = render([...header, ...bandToPositions(body)]);
+    assert.notEqual(positioned, banded, `seed=${seed}: 書き直しが空振りしている`);
+    checked++;
+    assert.equal(
+      toCanonical(parse(positioned)),
+      toCanonical(parse(banded)),
+      `seed=${seed}: 帯と、それが導く位置指定が別の建物になった`,
+    );
+    assert.equal(
+      JSON.stringify(derive(parse(positioned))),
+      JSON.stringify(derive(parse(banded))),
+      `seed=${seed}: 正準形は同じなのに形が違う (帯と位置)`,
+    );
+  }
+  assert.equal(checked, 30, "全ての種で帯が生成されていなければ、母集団が帯を含んでいない");
 });
 
 test("property: lifting attributes into over gives the same building (30 seeds, whole notation)", () => {
@@ -475,4 +590,32 @@ test("property: one meaningful change always changes the bytes (injectivity, 30 
   // 一度も適用できなかった変更は、縛っているつもりで何も縛っていない
   const idle = MUTATIONS.map(([label]) => label).filter((label) => !applied.has(label));
   assert.deepEqual(idle, [], `mutations that never applied: ${idle.join(", ")}`);
+});
+
+/**
+ * **約束1の逆は成り立たない — その証人。**
+ *
+ * 「正準形が等しければ形も等しい」は[約束1](../docs/reference/form/index.md)である。
+ * **その逆 (バイトが違えば形も違う) は規範のどこにも無く、かつ偽である。**
+ * 運搬層の属性 (台帳の tier `carry`) は正準形に載るが core が解釈しないので、形に届かない。
+ *
+ * ここを試験で留めておくのは、逆を性質として書き足したくなったときに**それが偽だと分かる**ためと、
+ * 運搬層の属性が形へ漏れ出したときに落ちるためである (漏れれば下の等値が破れる)。
+ */
+test("witness: different bytes do not imply a different shape (the converse of promise 1 is false)", () => {
+  const src = (v: number) => `koyu 1.0
+unit mm
+grid X 0 3000
+grid Y 0 3000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2 acme.sensor:${v}
+`;
+  const a = parse(src(21));
+  const b = parse(src(99));
+  assert.notEqual(toCanonical(a), toCanonical(b), "運搬層の属性は正準形に載る");
+  assert.equal(
+    JSON.stringify(derive(a)),
+    JSON.stringify(derive(b)),
+    "運搬層の属性が形へ漏れている — core が解釈しない値は形に届いてはならない",
+  );
 });
