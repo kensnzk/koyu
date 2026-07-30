@@ -1,94 +1,95 @@
-# AGENTS.md — koyu で作業するエージェントへ
+# AGENTS.md — for agents working on koyu
 
-koyu は建築をテキストで書く記法 (`.muro`) とその処理系である。空間が一次要素で、壁は物ではなく二つの空間の境界という関係であり、平面図・面積・動線は書かれるものではなく導出される。
+koyu is a notation for writing architecture as text (`.muro`) and its processor. Space is the primary element, a wall is not a thing but the relation "the boundary between two spaces", and plans, areas and circulation are not written but derived.
 
-この頁は**地図と掟**であって、説明の写しではない。同じ事実を二度書かない — 迷ったらここではなくリンク先を読む。
+This page is a **map and a body of law**, not a copy of the explanations. The same fact is never written twice — when in doubt, read the link rather than this page.
 
-**公開ドキュメント (`docs/`) が正である。**何を約束し、何を約束しないかは [docs/reference/scope.md](docs/reference/scope.md)、凍る面は [docs/reference/stability.md](docs/reference/stability.md) にある。挙動を変えたら、その頁を同じ変更で直す。
+**The published documentation (`docs/`) is authoritative.** What is promised and what is not is in [docs/reference/scope.md](docs/reference/scope.md); the faces that freeze are in [docs/reference/stability.md](docs/reference/stability.md). If you change behaviour, fix those pages in the same change.
 
-> **正典は一つである。**かつては `spec/` (規範) と `guide/` (学ぶ本) の二冊で、「食い違ったら `spec/` が正しい」だった。2026-07-28 に統治が反転して公開ドキュメントが正となり、2026-07-30 に旧二冊を畳んで消した。**規範は `docs/` にしか無い。**
+> **There is one canon.** There used to be two books — `spec/` (normative) and `guide/` (the book to learn from) — with "if they disagree, `spec/` is right". On 2026-07-28 the governance inverted and the published documentation became authoritative; on 2026-07-30 the two old books were folded away and deleted. **The norm exists only in `docs/`.**
 
-**ADR は公開しない。**リポジトリには履歴として残るが、`docs/` のどの頁からも参照してはならない — ADR はその時点の決定の記録で後から直さないため、時が経つほど現在の真と食い違うからである。`npm run gate:docs` がこれを機械で守る。掟の根拠として ADR の番号を引くこともしない (この頁も引いていない) — 引けば古い文脈が読み手に届く。
+**ADRs are not published.** They remain in the repository as history, but no page under `docs/` may reference them — an ADR records a decision at a point in time and is never edited afterwards, so the older it gets the further it drifts from what is currently true. `npm run gate:docs` enforces this by machine. Nor do we cite ADR numbers as grounds for a law (this page cites none) — citing one delivers stale context to the reader.
 
-## ファイルの地図
+## Map of the files
 
-| 場所 | 中身 | 触るときの規律 |
+| Place | Contents | Discipline when touching it |
 |---|---|---|
-| `src/core/` | **凍る領域** — `parse.ts` (合成) `model.ts` `vocabulary.ts` (属性の台帳) `poly.ts` (幾何の一枚岩) `diagnose.ts` (構造整合の診断。`checkDiagnostics` は節の列で、節の粒度は**走査単位**) `graph.ts` `vertical.ts` (縦動線) `fabric.ts` (床・天井・屋根) `light.ts` `site.ts` `diff.ts` | **きれいでなければならない。**実行時依存ゼロ。挙動を変えたら公開ドキュメントとテストを同じ変更で直す |
-| `src/validate/` | **凍らない領域** — 建築的な判定 (`access.ts` `envelope.ts` `light.ts` `runs.ts` `site.ts`)。`Finding { rule, level }` を返す | **汚くてよい。**増やしてよいし捨ててよい。条件は一つ — core の保証と混同されないこと |
-| `src/draw/` | **凍らない領域** — `plan.ts` `axo.ts` (SVG生成)。凍結対象外 ([docs/reference/stability.md](docs/reference/stability.md)) | 見た目は自由に変えてよい。**形は変えない** |
-| `src/` 直下 | `index.ts` (公開面) `cli.ts` `mcp.ts` `parse-file.ts` | `test/domains.test.ts` が依存の一方向を機械的に守る |
-| `docs/` | **公開ドキュメント。これが正である。**167頁 ×2言語 (`npm run gate:docs` が数える)。`start/` (チュートリアル) `why/` (説明) `howto/` (手順) `reference/` (規範 — `muro/` `diagnostics/` `validate/` `cli/` `mcp/` `api/` `form/` `json/`) `examples/` `glossary.md` | **1ページ1仕事。**自己完結させる — ADR へ委譲しない。挙動を変えたら該当頁を同じ変更で直す |
-| `docs/decisions/` | **ADR** — なぜそう決めたか、何を棄却したか。**公開しない** | 決定は追記のみ。**後から直さない** (直せば記録の意味が消える)。覆すときは新しいADRを書く |
-| `docs/log/` `docs/reviews/` | 作業の記録・設計レビュー。**公開しない** | |
-| `docs/policy.md` ほか loose な .md | `policy.md` `writing-architecture.md` `modules.md` `horizon.md` `ifc-coverage.md` `terminology.md`。**公開しない**素材 | |
-| `examples/` | 同梱の建物 — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (縦動線の最小例) `complex/` (延床31,606㎡) `twin/` (延床141,449㎡の双塔再開発) `comparison/`。`steps/` は [チュートリアル](docs/start/index.md)の各段の到達点 | 触ったら `npm run check:examples` が門番 |
-| `conformance/` | **muro の定義の実体。**入力と期待だけで完結し、処理系の関数を一つも参照しない — 別の言語の実装が受験できる。122ケース・101の規範項目。期待は四つ (正準形はバイト、診断と形は構造、形の一点は JSON Pointer)。`validate` の判定は入れない (凍らない面である) | **ケースは最小に保つ。**期待値は実装の出力から始めてよいが、一件ずつ「規範がそう言っているか」を確かめる — 写しただけの期待値は誤挙動を正典に変える。等価性は対で縛る (単体では実装の写しにすぎない) |
-| `test/` | `node --test`。`domains.test.ts` (領域の分離) `composition.test.ts` (合成の六規則) `diagnostics.test.ts` (診断契約) ほか | 保証はテストで固定する。仕様の文だけでは着地していない |
-| `eval/` | エージェント編集evalのハーネス (`run.ts` `score.ts` `tasks/` `fixtures/`) | |
-| `editors/vscode/` | エディタ支援 ([docs/reference/cli/editor.md](docs/reference/cli/editor.md)) — `syntaxes/koyu.tmLanguage.json` が**唯一の文法** (VS Code と Shiki/Docusaurus が共有)、`extension.js` は `koyu check --json` を写すだけ | 語を足したら文法も直す。`test/grammar.test.ts` が実装・台帳との一致を縛る |
+| `src/core/` | **The frozen region** — `parse.ts` (composition) `model.ts` `vocabulary.ts` (the attribute ledger) `poly.ts` (the single slab of geometry) `diagnose.ts` (diagnostics for structural consistency; `checkDiagnostics` is a sequence of clauses whose granularity is **one scan**) `graph.ts` `vertical.ts` (vertical circulation) `fabric.ts` (floors, ceilings, roofs) `light.ts` `site.ts` `diff.ts` | **It must be clean.** Zero runtime dependencies. If you change behaviour, fix the published documentation and the tests in the same change. |
+| `src/validate/` | **The region that does not freeze** — architectural judgement (`access.ts` `envelope.ts` `light.ts` `runs.ts` `site.ts`). Returns `Finding { rule, level }`. | **It may be dirty.** Add to it freely, throw parts away freely. One condition only — it must never be confused with what core guarantees. |
+| `src/draw/` | **The region that does not freeze** — `plan.ts` `axo.ts` (SVG generation). Outside the freeze ([docs/reference/stability.md](docs/reference/stability.md)). | Appearance may change freely. **The shape may not.** |
+| directly under `src/` | `index.ts` (the public surface) `cli.ts` `mcp.ts` `parse-file.ts` | `test/domains.test.ts` enforces the one-way dependency by machine. |
+| `docs/` | **The published documentation. This is authoritative.** 167 pages × 2 languages (`npm run gate:docs` counts them). `start/` (tutorial) `why/` (explanation) `howto/` (procedures) `reference/` (normative — `muro/` `diagnostics/` `validate/` `cli/` `mcp/` `api/` `form/` `json/`) `examples/` `glossary.md` | **One page, one job.** Keep each page self-contained — never delegate to an ADR. If you change behaviour, fix the relevant page in the same change. |
+| `docs/decisions/` | **ADRs** — why it was decided this way and what was rejected. **Not published.** | Decisions are append-only. **Never edited afterwards** (editing destroys the point of the record). To reverse one, write a new ADR. |
+| `docs/log/` `docs/reviews/` | Work records and design reviews. **Not published.** | |
+| `docs/policy.md` and the other loose .md files | `policy.md` `writing-architecture.md` `modules.md` `horizon.md` `ifc-coverage.md` `terminology.md`. **Unpublished** raw material. | |
+| `examples/` | The bundled buildings — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (the minimal example of vertical circulation) `complex/` (31,606 m2 gross) `twin/` (a twin-tower redevelopment of 141,449 m2 gross) `comparison/`. `steps/` holds where each stage of the [tutorial](docs/start/index.md) lands. | Once touched, `npm run check:examples` is the gatekeeper. |
+| `conformance/` | **The substance of muro's definition.** Each case is complete with inputs and expectations alone and references not a single function of the processor — an implementation in another language can sit the exam. 124 cases, 101 normative statements. Expectations come in four kinds (the canonical form as bytes; diagnostics and the shape structurally; one point of the shape by JSON Pointer). Judgements from `validate` are excluded (that face does not freeze). | **Keep cases minimal.** An expectation may start as the implementation's output, but confirm one at a time that the norm actually says so — an expectation that is merely a copy turns misbehaviour into canon. Pin equivalences with pairs (a single case is no more than a copy of the implementation). |
+| `test/` | `node --test`. `domains.test.ts` (separation of the regions) `composition.test.ts` (the six rules of composition) `diagnostics.test.ts` (the diagnostics contract) and others. | Guarantees are fixed by tests. Prose in a specification has not landed anything. |
+| `eval/` | The harness for agent-editing evals (`run.ts` `score.ts` `tasks/` `fixtures/` `control/`). | |
+| `editors/vscode/` | Editor support ([docs/reference/cli/editor.md](docs/reference/cli/editor.md)) — `syntaxes/koyu.tmLanguage.json` is **the one grammar** (shared by VS Code and Shiki/Docusaurus); `extension.js` only relays `koyu check --json`. | Add a word and fix the grammar too. `test/grammar.test.ts` binds it to the implementation and the ledger. |
 
-## コマンド
+## Commands
 
 ```sh
-npm test                    # 全テスト (node --test、tsxで直接実行)
+npm test                    # every test (node --test, run directly through tsx)
 npm run typecheck           # tsc --noEmit
-npm run check:examples      # 同梱例が全て check を通るか — 記法を変えたらここが落ちる
-npm run conformance         # 適合試験 — muro の定義そのもの (conformance/README.md)
-npm run build               # dist/ を吐く
+npm run check:examples      # whether every bundled example passes check — changing the notation breaks this
+npm run conformance         # the conformance suite — muro's definition itself (conformance/README.md)
+npm run build               # emit dist/
 
-npx tsx src/cli.ts check    examples/two-rooms.muro         # 構造整合の門番 (建築的な妥当性は言わない)
-npx tsx src/cli.ts validate examples/tower/main.muro        # 建築的な判定 (checkの保証ではない)
-npx tsx src/cli.ts layers   examples/house/main.muro --attrs # 層の強度順序と、属性ごとの出所
-npx tsx src/cli.ts check bad.muro --json                    # 診断コードつき (人向け出力にコードは出ない)
-npx tsx src/cli.ts check bad.muro --strict                  # 警告も終了コード1
+npx tsx src/cli.ts check    examples/two-rooms.muro         # the gatekeeper for structural consistency (it says nothing about architectural validity)
+npx tsx src/cli.ts validate examples/tower/main.muro        # architectural judgement (not a guarantee of check)
+npx tsx src/cli.ts layers   examples/house/main.muro --attrs # the strength order of the layers, and the provenance of each attribute
+npx tsx src/cli.ts check bad.muro --json                    # with diagnostic codes (the human-facing output carries no codes)
+npx tsx src/cli.ts check bad.muro --strict                  # warnings also exit 1
 npx tsx src/cli.ts plan  examples/office.muro -l L2 -o out/office-L2.svg
-npx tsx src/cli.ts axo   examples/complex/main.muro -o out/axo.svg   # 立体もSVGで出る
+npx tsx src/cli.ts axo   examples/complex/main.muro -o out/axo.svg   # solids come out as SVG too
 npx tsx src/cli.ts doors examples/mansion.muro /L9/A/ldk /out
-npx tsx src/cli.ts json  examples/two-rooms.muro            # 正準JSON
+npx tsx src/cli.ts json  examples/two-rooms.muro            # canonical JSON
 ```
 
-サブコマンドは `check` `validate` `layers` `diff` `plan` `axo` `doors` `graph` `stats` `levels` `runs` `light` `site` `json`。契約と実際の出力は [docs/reference/cli/](docs/reference/cli/index.md) にコマンドごと一頁ある。
+The subcommands are `check` `validate` `layers` `diff` `plan` `axo` `doors` `graph` `stats` `levels` `runs` `light` `site` `json`. The contract and the actual output for each has its own page under [docs/reference/cli/](docs/reference/cli/index.md).
 
-専用の `--help` は無い。引数を欠いた呼び出し (`--help` を含む) が使い方を印字して**終了コード2**を返す。使い方行は `plan` の `-l/-o` と `doors` の二つのパス引数を落としているので、そこは [docs/reference/cli/plan.md](docs/reference/cli/plan.md) と [doors.md](docs/reference/cli/doors.md) を見る。
+There is no dedicated `--help`. A call missing its arguments (including `--help`) prints the usage and returns **exit code 2**. The usage lines omit `plan`'s `-l/-o` and `doors`'s two path arguments, so for those read [docs/reference/cli/plan.md](docs/reference/cli/plan.md) and [doors.md](docs/reference/cli/doors.md).
 
-## MCPサーバー
+## The MCP server
 
-`koyu-mcp` は依存ゼロの stdio MCP サーバーである ([docs/reference/mcp/](docs/reference/mcp/index.md))。ステートレスで、全ツールが entry の `.muro` パスを `file` で受け、毎回ゼロから合成する。原本はファイルシステムにあり、履歴は git が持つ。
+`koyu-mcp` is a dependency-free stdio MCP server ([docs/reference/mcp/](docs/reference/mcp/index.md)). It is stateless: every tool takes the entry `.muro` path as `file` and composes from scratch each time. The source of truth is the filesystem and the history belongs to git.
 
-ツールは12個 — `model_summary` `check` `layers` `write_layer` `new_uids` `doors` `spaces` `light` `validate` `site` `plan_svg` `canonical_json`。
+There are 12 tools — `model_summary` `check` `layers` `write_layer` `new_uids` `doors` `spaces` `light` `validate` `site` `plan_svg` `canonical_json`.
 
-標準ループはこれである。
+The standard loop is this.
 
 ```text
-model_summary → layers → write_layer → check ──エラー──→ 直して write_layer へ戻る
-                                         └───緑───→ doors / light / site で帰結を確かめる
+model_summary → layers → write_layer → check ──error──→ fix it and go back to write_layer
+                                         └───green───→ confirm the consequences with doors / light / site
 ```
 
-`write_layer` は全置換で書き、取り消しを持たない。**書かせる前にコミットしておくこと。**登録は [docs/howto/install-mcp.md](docs/howto/install-mcp.md)、ループの実例は [agent-loop.md](docs/howto/agent-loop.md)、詰まったら [debug-mcp.md](docs/howto/debug-mcp.md)。ツールの契約は [docs/reference/mcp/](docs/reference/mcp/index.md)。
+`write_layer` writes by whole replacement and has no undo. **Commit before letting anything write.** Registration is in [docs/howto/install-mcp.md](docs/howto/install-mcp.md), a worked example of the loop is in [agent-loop.md](docs/howto/agent-loop.md), and if you get stuck see [debug-mcp.md](docs/howto/debug-mcp.md). The tool contracts are in [docs/reference/mcp/](docs/reference/mcp/index.md).
 
-## この企ての掟
+## The laws of this undertaking
 
-1. **check が門番である。**`npm test` と `npm run check:examples` と `npm run gate:examples` と `npm run gate:docs` と `npm run conformance` と当のファイルの `check` が緑になるまで、終わったと言わない。
-2. **check が緑でも建物が使えるとは限らない。**`check` が言うのは「書かれたものがデータとして矛盾していない」までである ([docs/reference/scope.md](docs/reference/scope.md))。建築的な妥当性は `koyu validate` が別に言う。接する空間の既定は壁なので ([docs/reference/muro/defaults.md](docs/reference/muro/defaults.md))、扉を一枚も宣言しない二階建ては**緑のまま完全に密封される**。緑を根拠に「動く」と主張しない。
-2b. **領域を混ぜない** ([docs/why/three-domains.md](docs/why/three-domains.md))。判定を core に足さない。core は `Diagnostic { code, severity }`、検証は `Finding { rule, level }` — 型からして別である。判定を足すなら `VALIDATION_RULES` に一行と、[docs/reference/validate/](docs/reference/validate/index.md) に節を足すだけで済む。**言語の版は動かない。**
-3. **変更は三点セットで着地する — ADR (なぜ) + テスト (保証) + 公開ドキュメント (現在形)。**どれかを欠いた変更は未完了である。
-3b. **機械の出所がある台帳は、手で数えない。**診断コード・判定規則・サブコマンド・MCPツール・公開エクスポートの数と綴りは `test/docs-ledger.test.ts` が実装と文書を突き合わせる。「全49エクスポート」「診断51件」の類はこれで死んだ。
-4. **公開ドキュメントは現在形で、その場で書き換える。**日付や「追補」や「v0.9では〜」を積まない。版は git が持つ。
-5. **診断は必ずコードを持ち、severity はコードの属性である** ([docs/reference/diagnostics/index.md](docs/reference/diagnostics/index.md))。同じコードが場合によって error になったり warning になったりはしない。コードを足したら [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) の該当の族に節を足す (`test/docs-ledger.test.ts` が漏れを落とす)。
-   **母集団は書かれた宣言、出所は必ず持つ、並びは走査の順** ([docs/reference/diagnostics/reading.md](docs/reference/diagnostics/reading.md))。解釈される属性 (台帳の★) の値は検査する — 書いたのに解釈されなかった値を黙って既定へ落とさない。`checkDiagnostics` を触るときは節の粒度を走査単位に保つ (コードの族で割ると並びが崩れる)。
-6. **言語の意味論を変える変更は言語版を上げる** ([docs/reference/muro/version.md](docs/reference/muro/version.md))。現行は `koyu 1.0`。何が意味保存かは [docs/reference/stability.md](docs/reference/stability.md) が定める。移行は ADR に書き、examples は最新版へ揃える。
-7. **語彙は台帳が契約である** ([docs/reference/scope.md](docs/reference/scope.md) の属性の三層)。実装の唯一の出所は `src/core/vocabulary.ts` の `ATTR_LEDGER` で、[docs/reference/muro/attributes.md](docs/reference/muro/attributes.md) がその写しである。**台帳に無いキーは名前空間 (`acme.sensor`) を持たなければ書けない** — 「見ていない」と「見て問題がない」を区別するための境界である。
-8. **実行時依存はゼロ。**devDependencies 以外を足さない。
-9. **例は最新の言語版で書く。**新しい記法を入れたら examples を追随させる — release test がこれを検査する。
-10. **文書を書くなら、貼る出力は実行して得たものだけにする。**推測した出力を貼らない。
+1. **check is the gatekeeper.** Do not say you are done until `npm test`, `npm run check:examples`, `npm run gate:examples`, `npm run gate:docs`, `npm run conformance` and `check` on the file in question are all green.
+2. **Green from check does not mean the building works.** All `check` says is "what is written is not self-contradictory as data" ([docs/reference/scope.md](docs/reference/scope.md)). Architectural validity is what `koyu validate` says, separately. Because the default between touching spaces is a wall ([docs/reference/muro/defaults.md](docs/reference/muro/defaults.md)), a two-storey building that declares no door at all is **completely sealed while staying green**. Never claim "it works" on the grounds that it is green.
+2b. **Do not mix the regions** ([docs/why/three-domains.md](docs/why/three-domains.md)). Do not add judgement to core. core returns `Diagnostic { code, severity }` and validation returns `Finding { rule, level }` — different from the type up. Adding a judgement takes one line in `VALIDATION_RULES` and one section under [docs/reference/validate/](docs/reference/validate/index.md), nothing more. **The language version does not move.**
+3. **A change lands as a set of three — the ADR (why) + a test (the guarantee) + the published documentation (present tense).** A change missing any of them is unfinished.
+3b. **Never hand-count a ledger that has a machine source.** The counts and spellings of diagnostic codes, validation rules, subcommands, MCP tools and public exports are cross-checked against the documentation by `test/docs-ledger.test.ts`. That is what killed sentences like "all 49 exports" and "51 diagnostics".
+4. **The published documentation is written in the present tense and rewritten in place.** Do not accumulate dates, "addenda", or "in v0.9 this was…". Versions belong to git.
+5. **A diagnostic always carries a code, and severity is an attribute of the code** ([docs/reference/diagnostics/index.md](docs/reference/diagnostics/index.md)). The same code is never an error in one case and a warning in another. Add a code and add a section to the right family under [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) (`test/docs-ledger.test.ts` catches omissions).
+   **The population is the written declarations, provenance is always present, and the order is the order of the scan** ([docs/reference/diagnostics/reading.md](docs/reference/diagnostics/reading.md)). Check the values of interpreted attributes (the starred ones in the ledger) — never let a value that was written but not interpreted fall silently to a default. When touching `checkDiagnostics`, keep the granularity of the clauses at one scan (splitting by code family breaks the order).
+6. **A change to the semantics of the language raises the language version** ([docs/reference/muro/version.md](docs/reference/muro/version.md)). The current one is `koyu 1.0`. What counts as meaning-preserving is defined by [docs/reference/stability.md](docs/reference/stability.md). Write the migration in an ADR and bring the examples up to the newest version.
+7. **The ledger is the contract for vocabulary** (the three tiers of attributes in [docs/reference/scope.md](docs/reference/scope.md)). The single source in the implementation is `ATTR_LEDGER` in `src/core/vocabulary.ts`, and [docs/reference/muro/attributes.md](docs/reference/muro/attributes.md) is its copy. **A key absent from the ledger cannot be written unless it carries a namespace (`acme.sensor`)** — the boundary exists to distinguish "we have not looked at this" from "we looked and it is fine".
+8. **Zero runtime dependencies.** Add nothing outside devDependencies.
+9. **Examples are written in the newest language version.** Introduce new notation and bring the examples along — the release test checks this.
+10. **When writing a document, paste only output you actually ran.** Never paste guessed output.
+11. **Everything inside code is written in English** — comments, identifiers, test names, assertion messages, and the `description` fields of a JSON Schema. Documents are written in Japanese only where the reader is Japanese: the ADRs under `docs/decisions/`, and the Japanese half of the published bilingual `docs/`. Everything else — this page, the READMEs, the working notes — is English.
 
-## エラーに当たったら
+## When you hit an error
 
-`check` の人間向け出力に診断コードは出ない。`--json` を付けるとコードが出る。コードから原因と直し方を引くのは [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) — 全65コードが族ごとに一頁ずつあり、コード・severity・直し方を持つ。症状から引くなら [docs/howto/by-symptom.md](docs/howto/by-symptom.md)。
+The human-facing output of `check` carries no diagnostic codes. Add `--json` and the codes appear. To go from a code to the cause and the fix, use [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) — all 65 codes have a page per family carrying the code, its severity, and how to fix it. To go from a symptom, use [docs/howto/by-symptom.md](docs/howto/by-symptom.md).
 
-よく踏む罠は3つある。`grid` と `level` は使用より**前**に宣言しないと効かない (`boundary` は前方参照してよい)。空間を間取りに割るなら親は `space` ではなく `zone` にする。外部への開口は境界線分が複数になるので `edge:N/E/S/W` で辺を選ぶ (N=+Y, S=-Y, E=+X, W=-X)。詳細は [docs/howto/troubleshooting.md](docs/howto/troubleshooting.md)。
+There are three traps people hit often. `grid` and `level` have no effect unless declared **before** use (`boundary` may forward-reference). To divide a space into a plan, make the parent a `zone` rather than a `space`. An opening onto the outside has several boundary segments, so select the edge with `edge:N/E/S/W` (N=+Y, S=-Y, E=+X, W=-X). Details are in [docs/howto/troubleshooting.md](docs/howto/troubleshooting.md).
 
-## 記法そのものを知らないとき
+## If you do not know the notation itself
 
-[docs/start/](docs/start/index.md) を通す。30〜45分で二階建て一棟と平面図まで届く。記法の形の理由は [docs/why/](docs/why/index.md)、構文の一覧は [docs/reference/muro/](docs/reference/muro/index.md) (宣言ごとに一頁、索引が全構文を一枚で持つ)。
+Work through [docs/start/](docs/start/index.md). In 30–45 minutes it reaches a two-storey building and its plan. The reasons behind the shape of the notation are in [docs/why/](docs/why/index.md), and the list of syntax is in [docs/reference/muro/](docs/reference/muro/index.md) (one page per declaration, with an index holding all the syntax on one sheet).
