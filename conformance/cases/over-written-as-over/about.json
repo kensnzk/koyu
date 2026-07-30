@@ -1,0 +1,5 @@
+{
+  "pins": ["docs/reference/muro/composition.md", "docs/reference/muro/over-drop.md"],
+  "why": "合成の規則5 — over で直した模型と最初からそう書いた模型は同じ正準形を与える。上書きの跡は機械形式に残らない。三層 (entry / base / patch) に割った版で、対になるのは over-written-as-direct である",
+  "sameBuildingAs": "over-written-as-direct"
+}

@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/json/index.md#2-書かれた構成であり合成の結果である", "docs/reference/muro/defaults.md"],
+  "why": "接する二空間には既定の壁が導かれるが、正準JSONは書かれた構成だけを持つので既定境界は出ない。check が「1 boundary」と言い json が boundaries を持たないことは矛盾しない — 前者は導出された意味を数え、後者は書かれた構成を数える。Form には出る"
+}

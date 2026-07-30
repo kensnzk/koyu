@@ -1,0 +1,5 @@
+{
+  "pins": ["docs/reference/muro/band.md"],
+  "why": "帯で書いた版と位置で書いた版は同じ建物である。帯は寸法と並びから位置を導く綴りであって、別の建物ではない — band も rest も w も正準JSONに残らない。対になるのは band-written-as-position である",
+  "sameBuildingAs": "band-written-as-position"
+}

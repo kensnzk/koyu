@@ -1,0 +1,8 @@
+koyu 1.0
+unit mm
+grid X 0 6400 12800
+grid Y 0 4000
+level L1 0 h:2700 slab:150
+band X X1..X2 Y1..Y2
+  space /L1/wet wet w:4800 name:水回り
+  space /L1/hall hall w:rest name:玄関

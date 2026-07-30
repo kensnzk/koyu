@@ -1,0 +1,8 @@
+koyu 1.0
+unit mm
+grid X 0 3000 6000
+grid Y 0 3000
+level L1 0 h:2700 slab:150
+space /L1/L room X2..X3 Y1..Y2 + X1..X2 Y1..Y2 name:L字
+space /out exterior
+boundary /L1/L /out edge:N
