@@ -23,6 +23,7 @@ koyu は建築をテキストで書く記法 (`.muro`) とその処理系であ�
 | `docs/log/` `docs/reviews/` | 作業の記録・設計レビュー。**公開しない** | |
 | `docs/policy.md` ほか loose な .md | `policy.md` `writing-architecture.md` `modules.md` `horizon.md` `ifc-coverage.md` `terminology.md`。**公開しない**素材 | |
 | `examples/` | 同梱の建物 — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (縦動線の最小例) `complex/` (延床31,606㎡) `twin/` (延床141,449㎡の双塔再開発) `comparison/`。`steps/` は [チュートリアル](docs/start/index.md)の各段の到達点 | 触ったら `npm run check:examples` が門番 |
+| `conformance/` | **muro の定義の実体。**入力と期待だけで完結し、処理系の関数を一つも参照しない — 別の言語の実装が受験できる。122ケース・101の規範項目。期待は四つ (正準形はバイト、診断と形は構造、形の一点は JSON Pointer)。`validate` の判定は入れない (凍らない面である) | **ケースは最小に保つ。**期待値は実装の出力から始めてよいが、一件ずつ「規範がそう言っているか」を確かめる — 写しただけの期待値は誤挙動を正典に変える。等価性は対で縛る (単体では実装の写しにすぎない) |
 | `test/` | `node --test`。`domains.test.ts` (領域の分離) `composition.test.ts` (合成の六規則) `diagnostics.test.ts` (診断契約) ほか | 保証はテストで固定する。仕様の文だけでは着地していない |
 | `eval/` | エージェント編集evalのハーネス (`run.ts` `score.ts` `tasks/` `fixtures/`) | |
 | `editors/vscode/` | エディタ支援 ([docs/reference/cli/editor.md](docs/reference/cli/editor.md)) — `syntaxes/koyu.tmLanguage.json` が**唯一の文法** (VS Code と Shiki/Docusaurus が共有)、`extension.js` は `koyu check --json` を写すだけ | 語を足したら文法も直す。`test/grammar.test.ts` が実装・台帳との一致を縛る |
@@ -33,6 +34,7 @@ koyu は建築をテキストで書く記法 (`.muro`) とその処理系であ�
 npm test                    # 全テスト (node --test、tsxで直接実行)
 npm run typecheck           # tsc --noEmit
 npm run check:examples      # 同梱例が全て check を通るか — 記法を変えたらここが落ちる
+npm run conformance         # 適合試験 — muro の定義そのもの (conformance/README.md)
 npm run build               # dist/ を吐く
 
 npx tsx src/cli.ts check    examples/two-rooms.muro         # 構造整合の門番 (建築的な妥当性は言わない)
@@ -67,7 +69,7 @@ model_summary → layers → write_layer → check ──エラー──→ 直�
 
 ## この企ての掟
 
-1. **check が門番である。**`npm test` と `npm run check:examples` と `npm run gate:examples` と `npm run gate:docs` と当のファイルの `check` が緑になるまで、終わったと言わない。
+1. **check が門番である。**`npm test` と `npm run check:examples` と `npm run gate:examples` と `npm run gate:docs` と `npm run conformance` と当のファイルの `check` が緑になるまで、終わったと言わない。
 2. **check が緑でも建物が使えるとは限らない。**`check` が言うのは「書かれたものがデータとして矛盾していない」までである ([docs/reference/scope.md](docs/reference/scope.md))。建築的な妥当性は `koyu validate` が別に言う。接する空間の既定は壁なので ([docs/reference/muro/defaults.md](docs/reference/muro/defaults.md))、扉を一枚も宣言しない二階建ては**緑のまま完全に密封される**。緑を根拠に「動く」と主張しない。
 2b. **領域を混ぜない** ([docs/why/three-domains.md](docs/why/three-domains.md))。判定を core に足さない。core は `Diagnostic { code, severity }`、検証は `Finding { rule, level }` — 型からして別である。判定を足すなら `VALIDATION_RULES` に一行と、[docs/reference/validate/](docs/reference/validate/index.md) に節を足すだけで済む。**言語の版は動かない。**
 3. **変更は三点セットで着地する — ADR (なぜ) + テスト (保証) + 公開ドキュメント (現在形)。**どれかを欠いた変更は未完了である。
