@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kensnzk/koyu/eval/control/schema.json",
+  "title": "Naive building JSON — the W3 control group",
+  "description": "A building model carrying coordinates. It holds the same information as muro and stores every fact muro derives: areas, wall endpoints, absolute opening positions, storey heights, and the area of a grouping. This is standard JSON Schema, so a third party can validate with ajv or any other implementation.",
+  "type": "object",
+  "required": ["unit", "levels", "rooms", "walls", "openings", "columns", "groups"],
+  "additionalProperties": false,
+  "properties": {
+    "unit": { "const": "mm" },
+    "levels": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "z"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "z": { "type": "number" },
+          "ceilingHeight": { "type": "number", "exclusiveMinimum": 0 },
+          "slabThickness": { "type": "number", "exclusiveMinimum": 0 },
+          "storeyHeight": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
+    "rooms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "pieces", "indoor"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^/" },
+          "level": { "type": "string" },
+          "type": { "type": "string", "minLength": 1 },
+          "name": { "type": "string" },
+          "pieces": {
+            "description": "The convex pieces of the floor. The floor is their union and areaM2 ought to be their total — agreement is the writer's responsibility.",
+            "type": "array",
+            "items": { "$ref": "#/$defs/ring" }
+          },
+          "areaM2": { "type": "number", "minimum": 0 },
+          "floorZ": { "type": "number" },
+          "ceilingZ": { "type": "number" },
+          "indoor": { "type": "boolean" },
+          "attrs": { "$ref": "#/$defs/attrs" }
+        }
+      }
+    },
+    "walls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "sides", "start", "end", "kind"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^W[0-9]{3,}$" },
+          "level": { "type": "string" },
+          "sides": {
+            "description": "The identifiers of the rooms on either side. A wall is a thing rather than a relation, so it holds them as references.",
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "start": { "$ref": "#/$defs/point" },
+          "end": { "$ref": "#/$defs/point" },
+          "thickness": { "type": "number", "exclusiveMinimum": 0 },
+          "baseZ": { "type": "number" },
+          "topZ": { "type": "number" },
+          "kind": { "type": "string", "minLength": 1 },
+          "air": { "type": "boolean" },
+          "attrs": { "$ref": "#/$defs/attrs" }
+        }
+      }
+    },
+    "openings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "wall", "kind", "center", "width", "sillZ", "headZ", "leafThickness", "sliding"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^O[0-9]{3,}$" },
+          "wall": {
+            "description": "The identifier of the wall this opening sits on. **JSON Schema cannot say whether that wall exists** — referential integrity is not expressible.",
+            "type": "string",
+            "pattern": "^W[0-9]{3,}$"
+          },
+          "kind": { "enum": ["door", "window"] },
+          "name": { "type": "string" },
+          "center": { "$ref": "#/$defs/point" },
+          "width": { "type": "number", "exclusiveMinimum": 0 },
+          "sillZ": { "type": "number" },
+          "headZ": { "type": "number" },
+          "leafThickness": { "type": "number", "exclusiveMinimum": 0 },
+          "sliding": { "type": "boolean" }
+        }
+      }
+    },
+    "columns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "level", "center", "width", "depth", "baseZ", "topZ"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^C[0-9]{3,}$" },
+          "level": { "type": "string" },
+          "center": { "$ref": "#/$defs/point" },
+          "width": { "type": "number", "exclusiveMinimum": 0 },
+          "depth": { "type": "number", "exclusiveMinimum": 0 },
+          "baseZ": { "type": "number" },
+          "topZ": { "type": "number" }
+        }
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "areaM2"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^/" },
+          "name": { "type": "string" },
+          "areaM2": {
+            "description": "The total area in m2 of the indoor rooms belonging to this group (a stored derived quantity). Membership follows the identifier prefix.",
+            "type": "number",
+            "minimum": 0
+          },
+          "attrs": { "$ref": "#/$defs/attrs" }
+        }
+      }
+    },
+    "site": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "polygon", "areaM2"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^/" },
+          "polygon": { "$ref": "#/$defs/ring" },
+          "areaM2": { "type": "number", "minimum": 0 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "point": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "number" }
+    },
+    "ring": {
+      "description": "A polygon ring. It is not closed — the last point is taken to join the first.",
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/point" }
+    },
+    "attrs": {
+      "type": "object",
+      "additionalProperties": { "type": ["string", "number"] }
+    }
+  }
+}

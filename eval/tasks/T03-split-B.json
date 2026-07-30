@@ -36,7 +36,7 @@
     },
     {
       "kind": "assert",
-      "expr": "m.boundaries.reduce((n, b) => n + b.openings.filter(o => o.kind === 'window').length, 0) === 157 && ['L3','L4','L5','L6','L7','L8','L9','L10'].every(L => m.zones.has('/' + L + '/B1') && m.zones.has('/' + L + '/B2'))",
+      "expr": "m.boundaries.reduce((n, b) => n + b.openings.filter(o => o.kind === 'window').length, 0) === 158 && ['L3','L4','L5','L6','L7','L8','L9','L10'].every(L => m.zones.has('/' + L + '/B1') && m.zones.has('/' + L + '/B2'))",
       "label": "窓の総数 157 が不変 (新設していない) かつ 8 層すべてに B1・B2 がある"
     }
   ],

@@ -24,7 +24,7 @@ import { parseFile } from "../src/parse-file.js";
 import {
   areaM2,
   checkDiagnostics,
-  daylight,
+  daylightInputs,
   doorsBetween,
   parse,
   renderDiff,
@@ -33,6 +33,7 @@ import {
   SourceError,
   toCanonical,
   unionAreaM2,
+  validate,
   zoneAreaM2,
   type Model,
 } from "../src/index.js";
@@ -81,6 +82,16 @@ export interface Task {
   /** 被験エージェントに逐語で与える日本語の指示 */
   instruction: string;
   oracles: Oracle[];
+  /**
+   * The same claim written over the control group's JSON (W3). The generic oracles — schema, refs,
+   * geometry, agreement — are applied to every task by `eval/control/oracle.ts`; what belongs here
+   * is only the part specific to this task, and it must ask the geometry rather than a stored
+   * number (`areaOf(room(id))`, not `room(id).areaM2`) — otherwise the assertion would pass on a
+   * document whose stored values are stale, which is the very failure being measured.
+   *
+   * A task without this section can only be run in the muro condition.
+   */
+  control?: { asserts: Array<{ expr: string; label?: string }> };
   /** なぜこのオラクルの組か / どの報酬ハックをどれが塞ぐか */
   notes?: string;
 }
@@ -244,6 +255,22 @@ export function validateTask(t: Task, where = "task"): void {
         "単一の報酬は報酬ハックを招く (arXiv 2605.14117)",
     );
   }
+  if (t.control !== undefined) {
+    if (!Array.isArray(t.control.asserts) || t.control.asserts.length === 0) {
+      bad("control には asserts が最低1つ要ります (無ければ control を書かない)");
+    }
+    for (const [i, a] of (t.control.asserts as Array<{ expr?: unknown }>).entries()) {
+      const expr = a?.expr;
+      if (typeof expr !== "string" || expr === "") bad(`control.asserts[${i}]: expr が要ります`);
+      // 保存された数字を読む式は、測りたい失敗をすり抜ける
+      if (/\.\s*areaM2\b/.test(expr as string)) {
+        bad(
+          `control.asserts[${i}]: 保存された areaM2 を読んでいます。` +
+            "対照群の主張は幾何に問わなければならない (areaOf(room(id)) を使う)",
+        );
+      }
+    }
+  }
   for (const [i, o] of t.oracles.entries()) {
     const at = `oracles[${i}]`;
     switch (o.kind) {
@@ -356,12 +383,15 @@ function runOracle(o: Oracle, m: Model, taskDir: string): OracleResult {
         return done(pass, `error ${errors.length} / warning ${warnings.length}${codeText}`);
       }
       case "light": {
-        const rs = daylight(m);
-        const bad = rs.filter((r) => !r.ok);
+        // The judgement lives on the validation face, not in core — core only derives the inputs
+        // (floor area and effective window area). `daylight.ratio` is the rule that says 1/7.
+        const rs = daylightInputs(m);
+        const violations = validate(m).filter((f) => f.rule === "daylight.ratio");
+        const bad = violations.flatMap((f) => f.path ?? []);
         // 評価対象が0室のときは不合格にする。「居室を全部消せば全室合格」という
         // 真空の真は報酬ハックの入口そのものである。
         if (rs.length === 0) return done(false, "採光の評価対象が0室 (居室が消えている疑い)");
-        const names = bad.slice(0, 5).map((r) => r.space.path).join(" ");
+        const names = bad.slice(0, 5).join(" ");
         const more = bad.length > 5 ? ` ほか${bad.length - 5}室` : "";
         const missing = rs.filter((r) => r.missingH).length;
         const note = missing ? ` / h未指定の窓を持つ室 ${missing}` : "";
@@ -407,6 +437,11 @@ function runOracle(o: Oracle, m: Model, taskDir: string): OracleResult {
         // 規範の5引数 (m, zoneAreaM2, daylight, doorsBetween, siteReport) が先頭に来る。
         // 後ろの補助は測定で必要になったもの — 例えば /L5/B〜F は space なので
         // zoneAreaM2 では 0 になり、areaM2 / areaOf が無いと式が書けない。
+        //
+        // `daylight` is bound to `daylightInputs`. The judgement that used to live behind that name
+        // moved to the validation face (`daylight.ratio`) when core and validation were split; the
+        // **population is unchanged** — one record per `daylight:1` space with a region — so an
+        // existing expression asking `daylight(m).length` still asks exactly what it asked before.
         const fn = new Function(
           "m",
           "zoneAreaM2",
@@ -419,7 +454,7 @@ function runOracle(o: Oracle, m: Model, taskDir: string): OracleResult {
         const value: unknown = fn(
           m,
           zoneAreaM2,
-          daylight,
+          daylightInputs,
           doorsBetween,
           siteReport,
           ...EXTRA_HELPER_VALUES,
