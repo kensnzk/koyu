@@ -114,6 +114,9 @@ pieces. `loadTask` rejects an assertion that reads `.areaM2`.
 
 ## Running it
 
+The full protocol — how to sanitise the sandbox so the subject cannot read the answers, what counts
+as a run, and what must never enter the records — is in [PROTOCOL.md](PROTOCOL.md). The short version:
+
 ```sh
 # muro condition
 WORK=$(npx tsx eval/run.ts prepare T01-floor-material)
@@ -181,6 +184,16 @@ Size of the same building, exported:
 The ratio grows with repetition, which is where level ranges pay off. **`complex` does not fit a
 200K context in the control condition at all** — that is a finding, not a bug, but it is why the
 experiment runs on `tower`.
+
+## Status of the measurement
+
+The apparatus is complete: all six tasks have reference solutions that pass in both conditions, and
+the whole path (prepare → a real agent → score) has been exercised end to end.
+
+**The 36 runs have not been executed.** Opus 5 was unavailable for subagents when the apparatus
+landed — `529 Overloaded` on every attempt, sequential and parallel alike — and a run killed by
+capacity is not a run. Nothing about the outcome is known yet, and the numbers below are the *cost of
+the reference solutions*, not measured success rates.
 
 ## Honesty about what a bespoke checker would change
 
