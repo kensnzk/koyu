@@ -89,9 +89,15 @@ export interface Task {
    * number (`areaOf(room(id))`, not `room(id).areaM2`) — otherwise the assertion would pass on a
    * document whose stored values are stale, which is the very failure being measured.
    *
+   * `instruction` is required, not optional. Every muro instruction tells the agent to finish with
+   * `koyu check --strict`, and the control has no such command — leaving the instruction unchanged
+   * would deny the control any way to verify its own work, which is an asymmetry that has nothing to
+   * do with derivation. The control is told to run the schema validator instead. That is exactly the
+   * control the plan specifies: naive JSON + JSON Schema + a validator.
+   *
    * A task without this section can only be run in the muro condition.
    */
-  control?: { asserts: Array<{ expr: string; label?: string }> };
+  control?: { instruction: string; asserts: Array<{ expr: string; label?: string }> };
   /** なぜこのオラクルの組か / どの報酬ハックをどれが塞ぐか */
   notes?: string;
 }
@@ -194,9 +200,23 @@ export function siteMetrics(model: Model): {
   };
 }
 
+/**
+ * The paths that fail the daylight question.
+ *
+ * `daylightInputs` derives the inputs; the judgement is `daylight.ratio` on the validation face. An
+ * expression that wants "which rooms fail" must ask validation — the input records carry no verdict,
+ * by design (core derives, validation judges).
+ */
+const daylightFailures = (m: Model): string[] =>
+  validate(m)
+    .filter((f) => f.rule === "daylight.ratio")
+    .flatMap((f) => f.path ?? [])
+    .sort();
+
 /** assert 式に渡す補助のうち、規範の5つ (m, zoneAreaM2, daylight, doorsBetween, siteReport) の後ろに足すもの */
 const EXTRA_HELPERS = {
   areaM2,
+  daylightFailures,
   areaOf,
   unionAreaM2,
   checkDiagnostics,
@@ -256,6 +276,9 @@ export function validateTask(t: Task, where = "task"): void {
     );
   }
   if (t.control !== undefined) {
+    if (typeof t.control.instruction !== "string" || t.control.instruction === "") {
+      bad("control には instruction が要ります (muro の指示は koyu check を前提にしているので流用できない)");
+    }
     if (!Array.isArray(t.control.asserts) || t.control.asserts.length === 0) {
       bad("control には asserts が最低1つ要ります (無ければ control を書かない)");
     }

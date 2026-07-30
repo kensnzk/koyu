@@ -65,6 +65,34 @@ test("harness: the tower fixture matches the invariants the tasks assert", () =>
   );
 });
 
+/**
+ * `eval/fixtures/tower-uid` is a **frozen copy**, not a link to `examples/tower`.
+ *
+ * The two drifted apart: the bundled example gained a boundary and a window, the frozen copy did
+ * not. So the invariants a task asserts depend on **which fixture it uses**, and a blanket edit
+ * across the task files corrupts the ones pointing at the frozen copy. That happened once already.
+ */
+test("harness: the frozen tower-uid fixture keeps its own invariants, distinct from examples/tower", () => {
+  const uid = parseFile(join(root, "eval/fixtures/tower-uid/main.muro"));
+  const bundled = parseFile(join(TOWER, "main.muro"));
+  const count = (m: typeof uid) => ({
+    spaces: m.spaces.size,
+    zones: m.zones.size,
+    boundaries: m.boundaries.length,
+    openings: m.boundaries.reduce((n, b) => n + b.openings.length, 0),
+  });
+  assert.deepEqual(
+    count(uid),
+    { spaces: 178, zones: 9, boundaries: 542, openings: 286 },
+    "the frozen fixture drifted — T05's oracles assert these exact numbers",
+  );
+  assert.notDeepEqual(
+    count(uid),
+    count(bundled),
+    "the two fixtures are meant to differ; if they ever agree, the distinction above is no longer load-bearing",
+  );
+});
+
 /** Copy the fixture into a fresh directory outside the repository, the way `prepare` does */
 function work(): string {
   const dir = join(mkdtempSync(join(tmpdir(), "koyu-eval-test-")), "work");
@@ -103,6 +131,34 @@ test("harness: T01 is not already satisfied by the untouched fixture", () => {
   assert.equal(r.checkGreen, true, "the untouched fixture must be green — the task is not about fixing errors");
   const failed = r.oracles.filter((o) => !o.pass);
   assert.equal(failed.length, 2, `only the two change-asking oracles may fail, but ${failed.length} did`);
+});
+
+test("harness: every task that carries a control section is runnable in the control condition", () => {
+  // A control section that reads a stored number, or that returns something other than `true`, is a
+  // section that cannot measure what it claims to. `loadTask` rejects the first; this catches the
+  // second by evaluating every assertion against the untouched export — each must return a boolean.
+  const model = parseFile(join(TOWER, "main.muro"));
+  const doc = JSON.stringify(exportBuilding(model, derive(model)));
+  const withControl = readdirSync(TASKS)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => loadTask(join(TASKS, f)))
+    .filter((t) => t.control !== undefined);
+  assert.ok(withControl.length >= 3, `only ${withControl.length} tasks carry a control section`);
+  for (const t of withControl) {
+    if (t.fixture !== "examples/tower") continue; // a different fixture needs its own export
+    const s = scoreControl(doc, t.control!.asserts);
+    for (const o of s.oracles.filter((x) => x.kind === "assert")) {
+      assert.ok(
+        o.detail === "true" || o.detail === "evaluated to false",
+        `${t.id} / ${o.label}: an assertion must evaluate to a boolean, got ${o.detail}`,
+      );
+    }
+    // The untouched export must fail at least one assertion, or the task is already satisfied
+    assert.ok(
+      s.oracles.some((o) => o.kind === "assert" && !o.pass),
+      `${t.id}: the untouched export already satisfies every assertion`,
+    );
+  }
 });
 
 test("harness: the control reference solution for T01 passes every oracle", () => {

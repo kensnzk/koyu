@@ -303,7 +303,10 @@ function cmdPrepare(argv: string[]): number {
       }
     }
   } else if (condition === "json") {
-    die("fixture の無い課題は対照群では走らせられません (書き出す元が無い)");
+    // A task with no fixture is written from nothing. The control still needs its contract, so the
+    // schema goes in and `building.json` is what the agent must produce.
+    const schema = readFileSync(join(EVAL_DIR, "control", CONTROL_SCHEMA), "utf8");
+    for (const dir of [work, base]) writeFileSync(join(dir, CONTROL_SCHEMA), schema, "utf8");
   }
 
   const meta: WorkMeta = {
@@ -324,7 +327,7 @@ function cmdPrepare(argv: string[]): number {
     `課題 ${task.id} [${task.class.op}/${task.class.kind}] 条件 ${condition} ` +
       `入口 ${condition === "json" ? CONTROL_ENTRY : task.entry}`,
   );
-  console.error(`指示: ${task.instruction}`);
+  console.error(`指示: ${condition === "json" ? task.control!.instruction : task.instruction}`);
   return 0;
 }
 
@@ -515,7 +518,25 @@ function scoreControlRun(
   condition: Condition,
 ): number {
   const file = join(workdir, CONTROL_ENTRY);
-  if (!existsSync(file)) die(`対照群の入口がありません: ${file}`);
+  if (!existsSync(file)) {
+    // Writing nothing is a failure of the run, not of the harness — a from-scratch task can end
+    // this way and the record must say so rather than aborting the measurement.
+    console.log(`✖ ${CONTROL_ENTRY} がありません`);
+    if (!flags["dry-run"]) {
+      mkdirSync(RESULTS_DIR, { recursive: true });
+      appendFileSync(
+        RECORDS,
+        JSON.stringify({
+          ts: new Date().toISOString(), taskId: task.id, class: task.class, condition, workdir,
+          success: false, failureClass: "incomplete" as FailureClass, oracles: [], passed: 0, total: 0,
+          checkGreen: null, checkGreenMeaningWrong: false, silentlyWrong: false, diffLines: null,
+          textDiffLines: null, toolCalls: null, tokens: null, turns: null, agent: null, notes: null,
+        } satisfies RunRecord) + "\n",
+        "utf8",
+      );
+    }
+    return 1;
+  }
   if (task.control === undefined) die(`課題 ${task.id} には control が無いので採点できません`);
 
   const s: ControlScore = scoreControl(readFileSync(file, "utf8"), task.control.asserts);

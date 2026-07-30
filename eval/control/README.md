@@ -91,6 +91,21 @@ four of the six bundled examples failed on an **untouched** export, because wall
 What remains are three questions about the document's agreement with itself: room area against its
 pieces, group total against its members, storey height against the gap to the level above.
 
+## The instruction differs by condition, and it has to
+
+Every muro instruction ends with "finish by passing `koyu check --strict`". The control has no such
+command, so leaving the instruction unchanged would deny the control any way to check its own work —
+an asymmetry with nothing to do with derivation. `control.instruction` is therefore **required**, not
+optional: it repeats the same architectural task, drops the `koyu check` line, adds a sentence naming
+where the relevant things live in the JSON, and ends with
+
+```sh
+npx tsx eval/control/validate.ts building.json
+```
+
+That is exactly the control the plan specifies — naive JSON, a JSON Schema, and a validator. The
+control is not given a consistency checker, because that is the labour under measurement.
+
 ## An assertion must ask the geometry, not the stored number
 
 A `control.asserts` entry that reads `room(id).areaM2` would pass on a document whose stored areas
@@ -117,6 +132,30 @@ only be run in the muro condition.
 Both conditions write to `eval/results/records.jsonl` with a `condition` field. Records written
 before the control existed carry none; a missing value reads as `muro`, which is what those runs
 were.
+
+## Which tasks run in both conditions
+
+| Task | op / kind | fixture | muro oracles | control oracles |
+|---|---|---|---|---|
+| T01-floor-material | update / direct | tower | 6 | 10 |
+| T02-widen-bed1 | update / spatial | tower | 7 | 9 |
+| T03-split-B | create / topological | tower | 10 | — |
+| T04-remove-balcony | delete / direct | tower | 6 | 9 |
+| T05-rename-A | update / direct | tower-uid | 8 | 10 |
+| T06-generate-two-rooms | create / direct | (none) | 5 | 8 |
+
+Five of six, so the experiment is 5 tasks × 2 conditions × 3 attempts = **30 runs**.
+
+**T03 is not yet runnable in the control, and the reason is on the muro side.** It has no verified
+reference solution: splitting a 64 m2 dwelling into two, reassigning three existing windows without
+adding any, and keeping egress within four doors across eight levels is real design work, and the
+notes record only a probe that *failed*. A control section cannot be trusted for a task whose
+achievability has not been demonstrated, so T03 waits for its muro reference solution first.
+
+**T06 is where the control is strongest.** Written from nothing, there is no existing fact to
+propagate, so no stored derived value can go stale. muro's only advantage there is concision. The
+task is kept in the set precisely so the result can say *where* muro wins rather than asserting that
+it always does.
 
 ## What is already measured
 
