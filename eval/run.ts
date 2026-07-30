@@ -43,10 +43,28 @@ import {
   type TaskClass,
 } from "./score.js";
 import { renderDiff, semanticDiff } from "../src/index.js";
+import { compact, exportBuilding } from "./control/export.js";
+import { scoreControl, type ControlScore } from "./control/oracle.js";
+import { derive } from "../src/core/derive.js";
+import { parseFile } from "../src/parse-file.js";
 
 const TASKS_DIR = join(EVAL_DIR, "tasks");
 const RESULTS_DIR = join(EVAL_DIR, "results");
 const RECORDS = join(RESULTS_DIR, "records.jsonl");
+
+/**
+ * The two conditions of the W3 null-hypothesis experiment.
+ *
+ * `muro` writes the building in the notation; `json` writes the same building as a naive JSON
+ * model that stores everything muro derives. Everything else about a run is held equal — the same
+ * task, the same instruction, the same model, the same number of attempts.
+ */
+export type Condition = "muro" | "json";
+const CONDITIONS: readonly Condition[] = ["muro", "json"];
+
+/** The file the control condition hands the agent, and the contract that sits beside it */
+const CONTROL_ENTRY = "building.json";
+const CONTROL_SCHEMA = "schema.json";
 
 const FAILURE_CLASSES: readonly FailureClass[] = [
   "syntax",
@@ -62,6 +80,11 @@ export interface RunRecord {
   ts: string;
   taskId: string;
   class: TaskClass;
+  /**
+   * Which condition this run belongs to. Records written before the control existed carry no
+   * `condition`; a missing value reads as `muro`, which is what those runs were.
+   */
+  condition?: Condition;
   /** 言語版 — 0.3 との before/after 比較の軸。合成できなかった走行では undefined */
   languageVersion?: string;
   workdir: string;
@@ -74,8 +97,20 @@ export interface RunRecord {
   checkGreen: boolean | null;
   /** 見出しの数字 — check は緑だが意味が誤り */
   checkGreenMeaningWrong: boolean;
+  /**
+   * The control condition's headline number: the document validates, every reference resolves and
+   * the geometry is consistent, yet a stored derived value disagrees with it. Always false in the
+   * muro condition, where nothing derived is stored.
+   */
+  silentlyWrong?: boolean;
   /** 出発状態に対する koyu diff の行数 (renderDiff の行数)。測れなければ null */
   diffLines: number | null;
+  /**
+   * Lines of raw text that changed against the starting state. Unlike `diffLines` (which is
+   * semantic and muro-only) this is comparable across the two conditions, so it is what answers
+   * "how many places had to be edited".
+   */
+  textDiffLines?: number | null;
   /** 人・エージェントしか知らない値 */
   toolCalls: number | null;
   tokens: number | null;
@@ -200,6 +235,8 @@ function str(v: string | true | undefined): string | null {
 interface WorkMeta {
   taskId: string;
   fixture: string;
+  /** Missing on work directories prepared before the control existed — those were all `muro` */
+  condition?: Condition;
   entry: string;
   preparedAt: string;
   root: string;
@@ -220,9 +257,11 @@ function metaFor(workdir: string): WorkMeta | undefined {
 // ---- prepare ----
 
 function cmdPrepare(argv: string[]): number {
-  const { positional } = parseFlags(argv);
+  const { positional, flags } = parseFlags(argv);
   const id = positional[0];
-  if (!id) die("使い方: npx tsx eval/run.ts prepare <task-id>");
+  if (!id) die("使い方: npx tsx eval/run.ts prepare <task-id> [--condition muro|json]");
+  const condition = (str(flags["condition"]) ?? "muro") as Condition;
+  if (!CONDITIONS.includes(condition)) die(`--condition は ${CONDITIONS.join("|")} です: ${condition}`);
   const taskPath = resolveTaskPath(id);
   let task: Task;
   try {
@@ -238,20 +277,40 @@ function cmdPrepare(argv: string[]): number {
   mkdirSync(work, { recursive: true });
   mkdirSync(base, { recursive: true });
 
+  if (condition === "json" && task.control === undefined) {
+    die(`課題 ${task.id} には control が無いので、対照群では走らせられません`);
+  }
+
   if (task.fixture !== "") {
     const src = isAbsolute(task.fixture) ? task.fixture : join(REPO_ROOT, task.fixture);
     if (!existsSync(src) || !statSync(src).isDirectory()) {
       die(`fixture がディレクトリとして見つかりません: ${src}`);
     }
-    // 読むだけ。cpSync の向きは常に fixture → 一時ディレクトリである
-    cpSync(src, work, { recursive: true });
-    cpSync(src, base, { recursive: true });
+    if (condition === "muro") {
+      // 読むだけ。cpSync の向きは常に fixture → 一時ディレクトリである
+      cpSync(src, work, { recursive: true });
+      cpSync(src, base, { recursive: true });
+    } else {
+      // The control gets the same building as one JSON document, plus the schema that is its
+      // contract. **The .muro sources are deliberately absent** — leaving them would let the agent
+      // read the notation and defeat the comparison.
+      const model = parseFile(join(src, task.entry));
+      const doc = compact(JSON.stringify(exportBuilding(model, derive(model)), null, 2)) + "\n";
+      const schema = readFileSync(join(EVAL_DIR, "control", CONTROL_SCHEMA), "utf8");
+      for (const dir of [work, base]) {
+        writeFileSync(join(dir, CONTROL_ENTRY), doc, "utf8");
+        writeFileSync(join(dir, CONTROL_SCHEMA), schema, "utf8");
+      }
+    }
+  } else if (condition === "json") {
+    die("fixture の無い課題は対照群では走らせられません (書き出す元が無い)");
   }
 
   const meta: WorkMeta = {
     taskId: task.id,
     fixture: task.fixture,
-    entry: task.entry,
+    condition,
+    entry: condition === "json" ? CONTROL_ENTRY : task.entry,
     preparedAt: new Date().toISOString(),
     root,
     work,
@@ -261,7 +320,10 @@ function cmdPrepare(argv: string[]): number {
 
   // 標準出力はパス一行だけ。WORK=$(npx tsx eval/run.ts prepare T01) が成り立つようにする
   console.log(work);
-  console.error(`課題 ${task.id} [${task.class.op}/${task.class.kind}] 入口 ${task.entry}`);
+  console.error(
+    `課題 ${task.id} [${task.class.op}/${task.class.kind}] 条件 ${condition} ` +
+      `入口 ${condition === "json" ? CONTROL_ENTRY : task.entry}`,
+  );
   console.error(`指示: ${task.instruction}`);
   return 0;
 }
@@ -270,6 +332,7 @@ function cmdPrepare(argv: string[]): number {
 
 const SCORE_USAGE = [
   "使い方: npx tsx eval/run.ts score <task-id> <workdir> [オプション]",
+  "    --condition <c>    muro|json — 既定は作業ディレクトリの meta.json から読む",
   "  人が渡す値 (harness からは見えないもの):",
   "    --tool-calls <n>   エージェントの道具呼び出し回数",
   "    --tokens <n>       消費トークン (分かる範囲で)",
@@ -304,6 +367,14 @@ function cmdScore(argv: string[]): number {
   }
   assertOutsideRepo(workdir);
 
+  // The condition is normally recorded by `prepare`; a flag overrides it for a directory prepared
+  // by hand. Absent both, it is `muro` — which is what every run before the control existed was.
+  const meta0 = metaFor(workdir);
+  const condition = (str(flags["condition"]) ?? meta0?.condition ?? "muro") as Condition;
+  if (!CONDITIONS.includes(condition)) die(`--condition は ${CONDITIONS.join("|")} です: ${condition}`);
+
+  if (condition === "json") return scoreControlRun(task, workdir, flags, condition);
+
   const result: ScoreResult = scoreTask(task, workdir, { taskDir: dirname(taskPath) });
 
   // 人が渡す値: --meta のJSONを下敷きに、個別フラグで上書きする
@@ -337,6 +408,7 @@ function cmdScore(argv: string[]): number {
     ts: new Date().toISOString(),
     taskId: task.id,
     class: task.class,
+    condition,
     ...(result.languageVersion ? { languageVersion: result.languageVersion } : {}),
     workdir,
     success: result.success,
@@ -350,6 +422,7 @@ function cmdScore(argv: string[]): number {
     checkGreen: result.checkGreen ?? null,
     checkGreenMeaningWrong: result.checkGreenMeaningWrong,
     diffLines,
+    textDiffLines: textDiffAgainstBase(workdir),
     toolCalls: num(flags["tool-calls"]) ?? fromSidecar("toolCalls"),
     tokens: num(flags["tokens"]) ?? fromSidecar("tokens"),
     turns: num(flags["turns"]) ?? fromSidecar("turns"),
@@ -361,7 +434,7 @@ function cmdScore(argv: string[]): number {
     console.log(JSON.stringify(record, null, 1));
   } else {
     for (const l of renderScore(result)) console.log(l);
-    console.log(`出発状態からの diff 行数 ${diffLines ?? "—"}`);
+    console.log(`出発状態からの diff 行数 ${diffLines ?? "—"} / 変更行数 ${record.textDiffLines ?? "—"}`);
   }
 
   if (!flags["dry-run"]) {
@@ -388,6 +461,107 @@ function diffAgainstBase(workdir: string, task: Task, result: ScoreResult): numb
   const afterBuilt = build(workdir, task.entry);
   if (!baseBuilt.model || !afterBuilt.model) return null;
   return renderDiff(semanticDiff(baseBuilt.model, afterBuilt.model)).length;
+}
+
+/** Every file under a directory, as paths relative to it */
+function filesUnder(dir: string, prefix = ""): string[] {
+  const out: string[] = [];
+  for (const e of readdirSync(join(dir, prefix), { withFileTypes: true })) {
+    const rel = prefix === "" ? e.name : join(prefix, e.name);
+    if (e.isDirectory()) out.push(...filesUnder(dir, rel));
+    else out.push(rel);
+  }
+  return out.sort();
+}
+
+/**
+ * Lines of raw text that changed against the starting state.
+ *
+ * `diffAgainstBase` above is semantic and muro-only. This one counts text, so the same number can
+ * be read in both conditions — which is what "how many places had to be edited" needs.
+ *
+ * **Every file is compared, not just the entry.** A muro fixture is a set of layers and the edit
+ * usually lands in one of the imported ones; comparing only the entry would report zero.
+ *
+ * The count is a symmetric line multiset difference, so **changing one line counts as two** (the
+ * old line is gone and a new one is present). It needs no diff algorithm and moving a line
+ * unchanged costs nothing, which is what a line-based diff would wrongly charge for.
+ */
+function textDiffAgainstBase(workdir: string): number | null {
+  const meta = metaFor(workdir);
+  if (!meta || !existsSync(meta.base)) return null;
+  const bag = new Map<string, number>();
+  const add = (lines: string[], sign: number): void => {
+    for (const l of lines) bag.set(l, (bag.get(l) ?? 0) + sign);
+  };
+  for (const f of filesUnder(meta.base)) add(readFileSync(join(meta.base, f), "utf8").split("\n"), 1);
+  for (const f of filesUnder(workdir)) add(readFileSync(join(workdir, f), "utf8").split("\n"), -1);
+  let changed = 0;
+  for (const n of bag.values()) changed += Math.abs(n);
+  return changed;
+}
+
+/**
+ * Score a run in the control condition.
+ *
+ * The record has the same shape as the muro side so `report` can read both, with two differences:
+ * `checkGreen` is null (there is no `check` in this condition) and `silentlyWrong` carries the
+ * headline number.
+ */
+function scoreControlRun(
+  task: Task,
+  workdir: string,
+  flags: Record<string, string | true>,
+  condition: Condition,
+): number {
+  const file = join(workdir, CONTROL_ENTRY);
+  if (!existsSync(file)) die(`対照群の入口がありません: ${file}`);
+  if (task.control === undefined) die(`課題 ${task.id} には control が無いので採点できません`);
+
+  const s: ControlScore = scoreControl(readFileSync(file, "utf8"), task.control.asserts);
+  const record: RunRecord = {
+    ts: new Date().toISOString(),
+    taskId: task.id,
+    class: task.class,
+    condition,
+    workdir,
+    success: s.success,
+    // The automatic classes reach only as far as the muro side's do. `syntax` is the right name for
+    // "it is not JSON any more"; a document that parses but breaks an oracle is `semantic`.
+    failureClass: s.success ? null : !s.parsed ? "syntax" : ((str(flags["fail-class"]) as FailureClass) ?? "semantic"),
+    oracles: s.oracles.map((o) => ({ kind: o.kind, label: o.label, pass: o.pass, detail: o.detail })),
+    passed: s.passed,
+    total: s.total,
+    checkGreen: null,
+    checkGreenMeaningWrong: false,
+    silentlyWrong: s.silentlyWrong,
+    diffLines: null,
+    textDiffLines: textDiffAgainstBase(workdir),
+    toolCalls: num(flags["tool-calls"]),
+    tokens: num(flags["tokens"]),
+    turns: num(flags["turns"]),
+    agent: str(flags["agent"]),
+    notes: str(flags["notes"]),
+  };
+
+  if (flags["json"]) {
+    console.log(JSON.stringify(record, null, 1));
+  } else {
+    if (!s.parsed) console.log(`✖ JSON として読めません: ${s.parseError ?? ""}`);
+    for (const o of s.oracles) {
+      console.log(`${o.pass ? "✔" : "✖"} ${o.kind.padEnd(9)} ${o.label}`);
+      console.log(`    ${o.detail}`);
+    }
+    console.log(`${s.passed}/${s.total} 合格${s.silentlyWrong ? "  ← 無音で誤り (見た目は正常)" : ""}`);
+    console.log(`出発状態からの変更行数 ${record.textDiffLines ?? "—"}`);
+  }
+
+  if (!flags["dry-run"]) {
+    mkdirSync(RESULTS_DIR, { recursive: true });
+    appendFileSync(RECORDS, JSON.stringify(record) + "\n", "utf8");
+    if (!flags["json"]) console.log(`記録 → ${RECORDS}`);
+  }
+  return s.success ? 0 : 1;
 }
 
 // ---- report ----
