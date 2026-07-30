@@ -108,12 +108,21 @@ left it broken, broken is the measurement.
 **A different model is not the measurement.** Running a cheaper model to check that the apparatus
 works end to end is useful, and it must be scored with `--dry-run` so it never reaches the records.
 
+## Discarded runs are counted
+
+`eval/results/discarded.log` records every attempt thrown away before scoring, with its cause. A
+measurement that quietly drops attempts is not reproducible: without the count, a reader cannot tell
+whether the recorded runs are all of them or the survivors of a selection.
+
 ## Status
 
 The apparatus is complete and verified: every task has a reference solution that passes in both
 conditions, and the whole path (prepare → a real agent → score) has been exercised end to end.
 
-**The 36 runs have not been executed.** Opus 5 was unavailable for subagents at the time
-(`529 Overloaded` on every attempt, sequential and parallel alike), and a run killed by capacity is
-not a run. `eval/results/records.jsonl` therefore holds only the 2026-07-26 baseline, which predates
-the control and reads as condition `muro`.
+**1 of the 36 runs is recorded** — T01, condition `muro`: 6/6 oracles, 2 changed lines, 12 tool
+calls. Opus 5 capacity for subagents is intermittent: parallel attempts fail reliably and sequential
+ones fail often, and 4 attempts have been discarded to `529 Overloaded`. **Nothing about the
+comparison can be said from one run.** The runs resume when capacity does.
+
+`eval/results/records.jsonl` also holds the 2026-07-26 baseline, which predates the control and reads
+as condition `muro`. Filter on `agent` to separate the two measurements.
