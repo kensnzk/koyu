@@ -39,6 +39,27 @@ The package root does not use `export *`. The moment a module gains an export, a
 
 So **this surface is exactly the set of names spelled out one by one in `src/index.ts`** — **59** runtime values and **77** types. A name that is not there is not a promise, however visible it is in the source.
 
+**The whole promise is this table.** A test binds this table and the set in `src/index.ts` to each other, so adding an export without writing it here fails. Names go in collation order, and the grouping follows which module each name is exported from.
+
+<!-- api-surface -->
+
+| Surface | Values | Types |
+|---|---|---|
+| [Parsing and composition](parsing.md) | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
+| [The model and its questions](model.md) | `areaM2` `canonicalBoundaryOrder` `columnsFor` `DEFAULT_LANGUAGE_VERSION` `displayName` `effectiveUse` `heff` `isCoveredAbove` `isIndoor` `isSemiOutdoor` `levelsSorted` `newUids` `pointInPolygon` `polyBounds` `polygonAreaM2` `rectToPoly` `SourceError` `srcRef` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` `unionAreaM2` `zoneAreaM2` | `Area` `Asset` `Attrs` `AttrValue` `Boundary` `BoundaryKind` `Column` `ColumnDecl` `DrawnLine` `Edge` `GridAxis` `GridRef` `Level` `Model` `Opening` `Pt` `Rect` `Seg` `SitePolygon` `Space` `Zone` |
+| [Diagnostics](diagnostics.md) | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `CheckResult` `Diagnostic` `DiagnosticCode` |
+| [Graph and segments](queries.md) | `deriveDefaultBoundaries` `doorsBetween` `envelopeGaps` `neighbors` `passable` `placeBand` `placeOpening` `segmentsFor` | `Band` `BandCode` `BandError` `NeighborInfo` `PlacedBand` `Route` `Segment` |
+| [Derivation (Form)](derive.md) | `band` `bandLine` `columnRect` `derive` `DERIVATION_CONSTANTS` `levelPitch` `runPrism` `thicken` | `DeriveOptions` `Form` `FormBoundary` `FormColumn` `FormInput` `FormLevel` `FormOpening` `FormPanel` `FormPlan` `FormPrism` `FormRun` `FormSeg` `FormSite` `FormSpace` `FormSwing` `PlanClass` `PlanEntity` `PlanRole` `PlanSubject` |
+| [Tolerances](../form/constants.md) | `TOLERANCES` | — |
+| [Slabs — floors, ceilings, roofs](solids.md) | `slabs` | `Slab` `SlabKind` |
+| [Daylight inputs](queries.md) | `daylightInputs` | `DaylightInput` |
+| [Vertical circulation](solids.md) | `runDrawsForLevel` `runSolids` `slopeText` `verticalRuns` | `RunArrow` `RunDevice` `RunDraw` `RunForm` `RunPart` `RunSolid` `Seg2` `VerticalRun` |
+| [Site](queries.md) | `siteReport` | `RoadFrontage` `SiteReport` |
+| [Diff](diff.md) | `renderDiff` `semanticDiff` | `BoundaryChange` `BoundaryItem` `ChangedItem` `ColumnItem` `FieldChange` `GridChange` `ModelDiff` `RenamedItem` `SpaceItem` |
+| [Drawing the plan](draw.md) | `svgPlan` | `PlanOptions` |
+| [Drawing the solid](draw.md) | `svgAxo` | `AxoOptions` |
+| [Architectural verdicts](validate.md) | `validate` `VALIDATION_RULES` | `Finding` `ValidationRule` |
+
 Four things put a name on the surface.
 
 1. Something outside the package (the viewer, the eval harness, scripts, the editor extension) actually calls it.

@@ -46,8 +46,8 @@ function declaredSurface(): { values: string[]; types: string[] } {
   return { values, types };
 }
 
-/** spec/tools.md の `<!-- api-surface -->` 直後の表から、値と型の名を採る */
-function specSurface(path: string): string[] {
+/** The names in the table right after `<!-- api-surface -->` — values and types alike */
+function surfaceTable(path: string): string[] {
   const md = read(path);
   const at = md.indexOf("<!-- api-surface -->");
   assert.ok(at >= 0, `${path}: the <!-- api-surface --> marker is missing`);
@@ -78,17 +78,10 @@ function cliSubcommands(): string[] {
   return [...subs].sort();
 }
 
-/** spec/tools.md の CLI の節 (## CLI から次の ## まで) */
-function cliSection(path: string): string {
-  const md = read(path);
-  const at = md.indexOf("\n## CLI");
-  assert.ok(at >= 0, `${path}: there is no "## CLI" section`);
-  const rest = md.slice(at + 1);
-  const end = rest.indexOf("\n## ");
-  return end >= 0 ? rest.slice(0, end) : rest;
-}
-
-const SPEC_PAGES = ["spec/tools.md", "spec/en/tools.md"];
+// The pages checked are the **published documentation**. `spec/` is an internal tree on its way
+// out; while two trees both claim to be normative, the machine must bind the canonical one.
+const SURFACE_PAGES = ["docs/reference/api/index.md", "docs/en/reference/api/index.md"];
+const CLI_PAGES = ["docs/reference/cli/index.md", "docs/en/reference/cli/index.md"];
 
 // ---- 1. 面が書き下されている ----
 
@@ -123,12 +116,12 @@ test("public API: no name is written down twice", () => {
   assert.deepEqual(dup, [], `written down twice: ${dup.join(", ")}`);
 });
 
-// ---- 3. 面と spec/tools.md の一致 ----
+// ---- 3. 面と公開ドキュメントの一致 ----
 
-for (const page of SPEC_PAGES) {
+for (const page of SURFACE_PAGES) {
   test(`public API: the face and the table in ${page} agree as sets`, () => {
     const { values, types } = declaredSurface();
-    const inSpec = specSurface(page);
+    const inSpec = surfaceTable(page);
     const dup = inSpec.filter((n, i) => inSpec.indexOf(n) !== i);
     assert.deepEqual(dup, [], `${page}: listed twice: ${dup.join(", ")}`);
     assert.deepEqual(
@@ -141,21 +134,22 @@ for (const page of SPEC_PAGES) {
 
 // ---- 4. CLI の面 ----
 
-for (const page of SPEC_PAGES) {
+for (const page of CLI_PAGES) {
   test(`public API: the CLI table in ${page} lists exactly the subcommands that exist`, () => {
-    const section = cliSection(page);
+    const section = read(page);
     const rows: string[] = [];
     for (const line of section.split("\n")) {
       if (!line.startsWith("|")) continue;
       const first = line.split("|")[1] ?? "";
-      const m = /^\s*`([a-z][a-z0-9-]*)`\s*$/.exec(first);
+      // The docs spell the first cell as a link: `| [`check`](check.md) |`
+      const m = /^\s*\[?`([a-z][a-z0-9-]*)`\]?(?:\([^)]*\))?\s*$/.exec(first);
       if (m) rows.push(m[1]!);
     }
     assert.deepEqual(rows.sort(), cliSubcommands(), `${page}: the CLI table and src/cli.ts disagree`);
   });
 
   test(`public API: the usage line in ${page} lists exactly the subcommands that exist`, () => {
-    const m = /koyu <([a-z|]+)>/.exec(cliSection(page));
+    const m = /koyu <([a-z|]+)>/.exec(read(page));
     assert.ok(m, `${page}: there is no usage line`);
     assert.deepEqual(m[1]!.split("|").sort(), cliSubcommands(), `${page}: the usage line is stale`);
   });
