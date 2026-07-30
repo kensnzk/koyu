@@ -54,7 +54,9 @@ function check(root: Schema, schema: Schema, value: unknown, path: string, out: 
     check(root, resolve(root, schema["$ref"]), value, path, out);
     return;
   }
-  const push = (message: string): void => out.push({ path: path === "" ? "(root)" : path, message });
+  const push = (message: string): void => {
+    out.push({ path: path === "" ? "(root)" : path, message });
+  };
 
   if (schema["const"] !== undefined && value !== schema["const"]) {
     push(`must be ${JSON.stringify(schema["const"])}, got ${JSON.stringify(value)}`);

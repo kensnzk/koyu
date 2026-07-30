@@ -63,6 +63,8 @@ export interface JsonWall {
   end: [number, number];
   /** Thickness in mm. An `open` relation carries no material, so no thickness. */
   thickness?: number;
+  /** True when the wall does not block air or light (a handrail, a railing) */
+  air: boolean;
   baseZ?: number;
   topZ?: number;
   kind: string;
@@ -158,6 +160,7 @@ function wallOf(b: FormBoundary, i: number, model: Model): JsonWall {
       ? {}
       : { thickness: b.material.t, baseZ: b.material.z0, topZ: b.material.z1 }),
     kind: b.kind,
+    air: b.air,
     ...(decl === undefined || attrsOf(decl.attrs) === undefined ? {} : { attrs: attrsOf(decl.attrs) }),
   };
 }
