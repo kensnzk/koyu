@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { check } from "../src/core/diagnose.js";
 import { deriveDefaultBoundaries, doorsBetween, neighbors } from "../src/core/graph.js";
-import { toCanonical } from "../src/core/model.js";
+import { SourceError, toCanonical } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
 import { svgPlan } from "../src/draw/plan.js";
 
@@ -128,4 +128,50 @@ space /L1..L2/a room X1..X2 Y1..Y2 uid:sp-dup`;
 test("uid: a duplicate across space and zone is an error too", () => {
   const r = check(parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2 uid:x1\nzone /L1 uid:x1`));
   assert.match(r.errors.join("\n"), /Duplicate uid: x1/);
+});
+
+// ---- 値域は宣言の経路でも効く ----
+//
+// The ledger requires a positive number of the keys that stay in the attribute bag, and ATT01 says
+// so. A key lifted into a typed field never reaches ATT01, so the same promise held on the `over`
+// path and not on the declaration: `level L1 0 h:-2400` went green and put a negative ceiling
+// height into the canonical JSON, inverting floor and ceiling.
+
+const POSITIVE_ON_DECLARATION: Array<[string, string]> = [
+  ["level h", "level L1 0 h:-2400 slab:150"],
+  ["level slab", "level L1 0 h:2400 slab:-150"],
+  ["level slab zero", "level L1 0 h:2400 slab:0"],
+];
+
+for (const [what, decl] of POSITIVE_ON_DECLARATION) {
+  test(`value range: ${what} is refused on the declaration, not only through over`, () => {
+    assert.throws(
+      () => parse(["koyu 1.0", "grid X 0 3000", "grid Y 0 3000", decl, "space /L1/a room X1..X2 Y1..Y2"].join("\n")),
+      (e: unknown) => e instanceof SourceError && /is written as a positive number/.test(e.message),
+      what,
+    );
+  });
+}
+
+test("value range: a negative wall thickness and a negative opening height are refused on the declaration", () => {
+  const base = [
+    "koyu 1.0",
+    "grid X 0 3000 6000",
+    "grid Y 0 3000",
+    "level L1 0 h:2400 slab:150",
+    "space /L1/a room X1..X2 Y1..Y2",
+    "space /L1/b room X2..X3 Y1..Y2",
+  ];
+  assert.throws(
+    () => parse([...base, "boundary /L1/a /L1/b t:-100"].join("\n")),
+    (e: unknown) => e instanceof SourceError && /t is written as a positive number/.test(e.message),
+    "boundary t",
+  );
+  assert.throws(
+    () => parse([...base, "boundary /L1/a /L1/b", "  window w:900 h:-2100"].join("\n")),
+    (e: unknown) => e instanceof SourceError && /h is written as a positive number/.test(e.message),
+    "opening h",
+  );
+  // A positive value still passes — the check is not simply refusing the key
+  assert.deepEqual(check(parse([...base, "boundary /L1/a /L1/b t:120"].join("\n"))).errors, []);
 });

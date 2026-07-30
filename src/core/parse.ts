@@ -423,9 +423,9 @@ function ingest(
         if (!name) throw new SourceError(ln, "level requires a name");
         const z = toNumber(rest[1] ?? "", ln, "The level height (z)");
         const attrs = parseAttrs(rest.slice(2), ln);
-        const h = takeNumber(attrs, "h", ln);
-        const slab = takeNumber(attrs, "slab", ln);
-        const pitch = takeNumber(attrs, "pitch", ln);
+        const h = takeNumber(attrs, "h", ln, { positive: true });
+        const slab = takeNumber(attrs, "slab", ln, { positive: true });
+        const pitch = takeNumber(attrs, "pitch", ln, { positive: true });
         const under = takeNumber(attrs, "underground", ln);
         // **level は attrs を持たない。**残ったキーは正準JSONにも痕跡を残さず消えるので、
         // ここで拒まないと `undergound:1` が黙って地上階になる (ADR-0033)
@@ -495,7 +495,7 @@ function ingest(
               return [span];
             })();
         const attrs = parseAttrs(rest.slice(2), ln);
-        const depth = takeNumber(attrs, "d", ln);
+        const depth = takeNumber(attrs, "d", ln, { positive: true });
         const names = (key: "x" | "y"): string[] | undefined => {
           const v = takeString(attrs, key);
           if (v === undefined) return undefined;
@@ -1067,7 +1067,7 @@ function parseBoundary(rest: string[], ln: number): Boundary {
     throw new SourceError(ln, "boundary takes the form boundary /pathA /pathB [attributes...]");
   }
   const attrs = parseAttrs(rest.slice(2), ln);
-  const t = takeNumber(attrs, "t", ln);
+  const t = takeNumber(attrs, "t", ln, { positive: true });
   const kindRaw = takeString(attrs, "type") ?? "wall";
   if (!BOUNDARY_KINDS.has(kindRaw)) {
     throw new SourceError(
@@ -1123,7 +1123,7 @@ function parseOpening(
   if (w === undefined || w <= 0) {
     throw new SourceError(ln, `${kind} requires a width w:(mm) (the asset may supply it)`);
   }
-  const h = takeNumber(attrs, "h", ln);
+  const h = takeNumber(attrs, "h", ln, { positive: true });
   const at = parseAt(attrs, ln, model);
   const edge = takeEdge(attrs, ln);
   const hingeRaw = takeString(attrs, "hinge");
@@ -1635,13 +1635,29 @@ function toNumber(v: string, ln: number, what: string): number {
   return Number(v);
 }
 
-function takeNumber(attrs: Attrs, key: string, ln: number): number | undefined {
+/**
+ * Takes a typed field out of the attribute bag.
+ *
+ * `positive` mirrors what the ledger already requires of the keys that stay in the bag — ATT01
+ * says "is written as a positive number". A key lifted into a typed field never reaches ATT01, so
+ * without this the same promise held on one path and not the other: `level L1 0 h:-2400 slab:-150`
+ * went green and put negative values into the canonical JSON, inverting floor and ceiling.
+ */
+function takeNumber(
+  attrs: Attrs,
+  key: string,
+  ln: number,
+  opts: { positive?: boolean } = {},
+): number | undefined {
   const v = attrs[key];
   if (v === undefined) return undefined;
   delete attrs[key];
   if (typeof v !== "number") {
     // NaNの黙認はcheck緑のまま導出を壊す (typo h:24O0 など) — その場のエラーにする
     throw new SourceError(ln, `The attribute ${key} is written as a number: ${v}`);
+  }
+  if (opts.positive && !(v > 0)) {
+    throw new SourceError(ln, `${key} is written as a positive number: ${key}:${v}`);
   }
   return v;
 }
