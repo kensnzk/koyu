@@ -4,15 +4,20 @@
 //   1. **同じ構成なら同じバイト** — 宣言の並べ替えでバイトが変わらない
 //   2. **違う構成なら違うバイト** (単射性) — 意味のある一箇所の変更で必ずバイトが変わる
 //
-// 母集団は**記法の全構文**である。柱・描かれた線・area・seg・アセット・polygon・帯・
-// レベル範囲・メゾネット・地下・名前空間つき属性を、生成器が毎回書く (COVERAGE が空でないことを縛る) —
-// 狭い母集団の緑は、触っていない構文について何も言わない。乱数は種つきLCG (再現可能)。
+// 母集団は**記法の全構文**である。柱・描かれた線・area・seg・アセット・polygon・帯・`+` の合併・
+// レベル範囲・メゾネット・地下・縦動線 (階段・斜路・シャフトと stack)・境界の型・名前空間つき属性を、
+// 生成器が毎回書く (COVERAGE が空でないことを縛る) — 狭い母集団の緑は、触っていない構文について
+// 何も言わない。乱数は種つきLCG (再現可能)。
+//
+// **「全構文」は主張であって、放っておけば偽になる。**実際に二度偽だった — `+` の合併が一つも
+// 入っておらず、縦動線 (`vertical.ts`、core 最大の部分系) が丸ごと母集団の外にあった。
+// COVERAGE の行と、下の `runs` の件数の検査が、その主張の値段である。
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { derive } from "../src/core/derive.js";
 import { checkDiagnostics } from "../src/core/diagnose.js";
-import { toCanonical } from "../src/core/model.js";
+import { compareCanonical, toCanonical } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
 
 function lcg(seed: number): () => number {
@@ -61,6 +66,17 @@ const COVERAGE: Array<[string, RegExp]> = [
   ["band (expanded into spaces)", /"\/L2\/A\/wet"/],
   // 合併は `at` が二枚になることが要点 — 一枚に縮めば母集団から `+` が消える
   ["region union (two rects in one space)", /"\/L2\/hall":\{"type":"corridor","at":\[\["X4","Y2","X5","Y3"\],\["X4","Y3","X5","Y4"\]\]/],
+  // 縦動線 — core 最大の部分系 (vertical.ts)。層範囲の空間はレベルごとに展開される
+  ["stair (level-range space)", /"\/L1\/st":\{"type":"stair"/],
+  ["ramp with a declared slope", /"\/B1\/rmp":\{"type":"ramp"/],
+  ["slope", /"slope":\d/],
+  ["lift", /"lift":1/],
+  // stack は縦の境界として出る (`stack` という鍵は正準形に無い)
+  ["stack (vertical boundary)", /"between":\["\/L1\/st","\/L2\/st"\],"a":"\/L1\/st","kind":"stair"/],
+  ["boundary type", /"kind":"open"/],
+  ["ceiling", /"ceiling":0/],
+  ["daylight", /"daylight":1/],
+  ["hinge", /"hinge":"E"/],
 ];
 
 /**
@@ -74,7 +90,7 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
     { lines: ["name 生成された模型"] },
     { lines: ["unit mm"] },
     { lines: ["grid X 0 3000 6000 9000 12000"] },
-    { lines: ["grid Y 0 3000 6000 9000"] },
+    { lines: ["grid Y 0 3000 6000 9000 12000"] },
     { lines: ["level B1 -3200 h:2700 slab:200 underground:1"] },
     { lines: [`level L1 0 h:${pick(rnd, [2400, 2700, 3000])} slab:150`] },
     { lines: ["level L2..L4 3000 pitch:3000 h:2500 slab:150"] },
@@ -99,7 +115,9 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
     const [i, j] = c;
     const lines = [
       `space ${path(c)} ${pick(rnd, ["room", "office", "厨房"])} X${i}..X${i + 1} Y${j}..Y${j + 1}` +
-        `${rnd() < 0.4 ? ` uid:sp-${i}${j}` : ""}${rnd() < 0.4 ? ` acme.sensor:2${i}` : ""} name:室${i}${j}`,
+        `${rnd() < 0.4 ? ` uid:sp-${i}${j}` : ""}${rnd() < 0.4 ? ` acme.sensor:2${i}` : ""}` +
+        // 採光の問いの対象は決まった一室に書く (乱数に任せると母集団から消える回がある)
+        `${i === 1 && j === 1 ? " daylight:1" : ""} name:室${i}${j}`,
     ];
     // area (数えない分節) — 親の領域の内側に置く (描かれた線が割付を動かすので400mm控える)
     if (rnd() < 0.5) {
@@ -116,7 +134,7 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
   });
   // + による領域の合併 — 書き順に意味は無い (正準形は綴りの正準順に並べる)
   body.push({
-    lines: [`space /L2/hall corridor X4..X5 Y2..Y3 + X4..X5 Y3..Y4 name:廊下`],
+    lines: [`space /L2/hall corridor X4..X5 Y2..Y3 + X4..X5 Y3..Y4 ceiling:0 name:廊下`],
   });
 
   // ---- 帯 (band) — 位置ではなく寸法と並びで割る。展開後は通常の空間になる ----
@@ -133,13 +151,37 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
     ],
   });
 
+  // ---- 縦動線 — core 最大の部分系 (vertical.ts) が母集団の外にあった ----
+  //
+  // 階段・斜路・シャフトはどれも**層範囲の空間**であり (`/L1..L2/st`)、parse がレベルごとの
+  // 空間へ展開する。`stack` は展開された空間どもを縦に結ぶ関係で、正準形では縦の境界として出る。
+  // 段数・踏面・勾配は書かれない — 導出が出す (だから形の側でしか確かめられない)。
+  body.push({
+    lines: [
+      `space /L1..L2/st stair X1..X2 Y4..Y5 name:階段 use:common stair:${pick(rnd, ["N", "S"])} form:return`,
+    ],
+  });
+  body.push({ lines: ["space /L1..L2/ev shaft X2..X3 Y4..Y5 name:EV use:common lift:1"] });
+  body.push({
+    lines: [
+      `space /B1..L1/rmp ramp X3..X4 Y4..Y5 name:車路 use:parking ramp:E form:return slope:${pick(rnd, [6, 8])}`,
+    ],
+  });
+  // 境界の型 — 物の名 (spec) ではなく関係の型。`shaft` は縦の関係なので同一レベル間では VRT02 になる
+  body.push({ lines: ["boundary /L1..L2/st /L1..L2/ev type:open"] });
+  body.push({ lines: ["stack st L1..L2 type:stair"] });
+  body.push({ lines: ["stack ev L1..L2 type:shaft"] });
+  body.push({ lines: ["stack rmp B1..L1 type:stair"] });
+
   // ---- 境界: 接する組の一部に宣言する (残りは既定壁 — ADR-0014) ----
   const drawn: Array<{ block: Block; line: string }> = [];
   for (const a of cells) {
     for (const b of cells) {
       const alongX = a[1] === b[1] && b[0] === a[0] + 1;
       const alongY = a[0] === b[0] && b[1] === a[1] + 1;
-      if ((!alongX && !alongY) || rnd() < 0.3) continue;
+      if (!alongX && !alongY) continue;
+      // 最初の隣接組は必ず宣言する — 全て飛ばすと描かれた線を置く先が無くなる
+      if (drawn.length > 0 && rnd() < 0.3) continue;
       const attrs = rnd() < 0.6 ? ` t:${100 + Math.floor(rnd() * 3) * 40} spec:W${Math.floor(rnd() * 3)}` : "";
       const lines = [`boundary ${path(a)} ${path(b)}${attrs}${rnd() < 0.2 ? " air:1" : ""}`];
       const openings = Math.floor(rnd() * 3); // 0..2 — 同じ線分上で重ならない位置に置く
@@ -170,7 +212,7 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
   body.push({
     lines: [
       `boundary /L1/r11 /out edge:S t:200 spec:RC`,
-      `  door w:900 at:X1+900 name:玄関`,
+      `  door w:900 at:X1+900 hinge:E name:玄関`,
       `  window w:1200 h:1400 at:X1+2000 name:地窓`,
       `  seg w:900 at:X1+600 spec:タイル`,
     ],
@@ -189,7 +231,7 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
 
   // ---- 敷地 (所与の幾何) と集約 ----
   const jitter = Math.floor(rnd() * 3) * 100;
-  body.push({ lines: [`polygon /site -1000,-1000 13000,-1000 ${13000 + jitter},10000 -1000,10000`] });
+  body.push({ lines: [`polygon /site -1000,-1000 13000,-1000 ${13000 + jitter},13000 -1000,13000`] });
   body.push({ lines: ["zone /site name:敷地 site:1"] });
   body.push({ lines: ["space /site/yard yard X4..X5 Y2..Y3 level:L1 name:外構"] });
   body.push({ lines: ["zone /L1 name:一階"] });
@@ -198,6 +240,25 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
 }
 
 const render = (bs: Block[]) => bs.flatMap((b) => b.lines).join("\n") + "\n";
+
+/**
+ * **描かれた線の端点の書き順を入れ替える意味保存変形。**
+ *
+ * 描かれた線は向きを持たない ([凸片](../docs/reference/form/regions.md))。端点をどちらから
+ * 書いても同じ線であり、同じ正準形と同じ形を与えなければならない。
+ *
+ * 手で書いた witness は [uniqueness.test.ts](uniqueness.test.ts) にあるが、母集団の上では
+ * 試されていなかった — 生成器は毎回線を引くのに、その向きを一度も反転していなかった。
+ */
+function swapLineEndpoints(body: Block[]): Block[] {
+  return body.map((b) => ({
+    ...b,
+    lines: b.lines.map((l) => {
+      const m = /^( {2}line )(\S+) (\S+)$/.exec(l);
+      return m ? `${m[1]}${m[3]} ${m[2]}` : l;
+    }),
+  }));
+}
 
 /**
  * **`+` の合併の書き順を入れ替える意味保存変形。**
@@ -287,7 +348,10 @@ function liftAttrsToOver(header: Block[], body: Block[]): Record<string, string>
    * parse が型のついたフィールドへ持ち上げる鍵なので、`over` の側が持ち上げを忘れていれば
    * 死んだ属性が残って別の建物になる。実際にそういう破れがあった。
    *
-   * `w` は括り出さない — 帯の要素の語であり、`space` にも `over` にも書けない。
+   * `w` は括り出さない — 帯の要素の語であり、`space` にも `over` にも書けない。   *
+   * **層範囲の空間 (`/L1..L2/st`) は括り出せない。**parse がレベルごとの空間へ展開するので、
+   * モデルには `/L1/st` と `/L2/st` しか無く、書かれた綴りを `over` の的にはできない。
+   * 展開後の綴りを当てにいくのは変形ではなく別の建物を書くことなので、ここでは飛ばす。
    */
   const SPACE_KEYS = ["name", "level", "use"];
   const BOUNDARY_KEYS = ["t", "type"];
@@ -305,9 +369,12 @@ function liftAttrsToOver(header: Block[], body: Block[]): Record<string, string>
     ...b,
     lines: b.lines.map((l) => {
       const sp = /^space (\/\S+) /.exec(l);
-      if (sp) return lift(l, sp[1]!, SPACE_KEYS);
+      if (sp) return sp[1]!.includes("..") ? l : lift(l, sp[1]!, SPACE_KEYS);
       const bd = /^boundary (\/\S+) (\/\S+) /.exec(l);
-      if (bd) return lift(l, `${bd[1]} ${bd[2]}`, BOUNDARY_KEYS);
+      if (bd) {
+        if (bd[1]!.includes("..") || bd[2]!.includes("..")) return l;
+        return lift(l, `${bd[1]} ${bd[2]}`, BOUNDARY_KEYS);
+      }
       return l;
     }),
   }));
@@ -317,6 +384,144 @@ function liftAttrsToOver(header: Block[], body: Block[]): Record<string, string>
     "base.muro": render([...rest, ...stripped]),
     "over.muro": overs.join("\n") + "\n",
   };
+}
+
+/**
+ * **強度を争わせる変形。**弱い層が A と言い、強い層が B と言う版を作る。
+ *
+ * `liftAttrsToOver` は括り出した鍵を base から**消す**ので、`over` がその属性の唯一の意見になる。
+ * つまり**強度が一度も争われない** — 強度の添字が逆の実装でも全種を通ってしまう。
+ * ここでは base に元の値を残したまま `over` が別の値を書き、**強い層が勝った版**と突き合わせる。
+ *
+ * 併せて縛るのは三つ。**層の列** (`model.layers` は正準JSONに出ないので、これしか見る道が無い)、
+ * **入れ子と二重取り込み** (規則1の平坦化は深さ優先で、同じ層は一度しか現れない)、そして
+ * **import の順は意味である** (`over` を定義より前に置けば、通らずに言葉になる)。
+ */
+function contestStrength(
+  header: Block[],
+  body: Block[],
+): { flat: Record<string, string>; nested: Record<string, string>; doubled: Record<string, string>; swapped: Record<string, string>; one: string; contested: number } {
+  const overs: string[] = [];
+  const contest = (line: string): string => {
+    const sp = /^(\s*)space (\/\S+) /.exec(line);
+    if (sp && !sp[2]!.includes("..")) {
+      const m = / name:(\S+)/.exec(line);
+      if (!m) return line;
+      overs.push(`over ${sp[2]} name:${m[1]}改`);
+      return line.replace(` name:${m[1]}`, ` name:${m[1]}改`);
+    }
+    const bd = /^boundary (\/\S+) (\/\S+) /.exec(line);
+    if (bd && !bd[1]!.includes("..") && !bd[2]!.includes("..")) {
+      const m = / t:(\d+)/.exec(line);
+      if (!m) return line;
+      overs.push(`over ${bd[1]} ${bd[2]} t:${Number(m[1]) + 40}`);
+      return line.replace(` t:${m[1]}`, ` t:${Number(m[1]) + 40}`);
+    }
+    return line;
+  };
+  const substituted = body.map((b) => ({ ...b, lines: b.lines.map(contest) }));
+  const [version, ...rest] = header;
+  const v = version!.lines[0]!;
+  const base = render([...rest, ...body]); // 元の値を残す — ここが争いの弱い側
+  const over = overs.join("\n") + "\n";
+  return {
+    flat: { "main.muro": `${v}\nimport ./base.muro\nimport ./over.muro\n`, "base.muro": base, "over.muro": over },
+    nested: {
+      "main.muro": `${v}\nimport ./mid.muro\nimport ./over.muro\n`,
+      "mid.muro": "import ./base.muro\n",
+      "base.muro": base,
+      "over.muro": over,
+    },
+    doubled: {
+      "main.muro": `${v}\nimport ./mid.muro\nimport ./base.muro\nimport ./over.muro\n`,
+      "mid.muro": "import ./base.muro\n",
+      "base.muro": base,
+      "over.muro": over,
+    },
+    swapped: { "main.muro": `${v}\nimport ./over.muro\nimport ./base.muro\n`, "base.muro": base, "over.muro": over },
+    one: render([...header, ...substituted]),
+    contested: overs.length,
+  };
+}
+
+/**
+ * **ヘッダの中を並べ替える意味保存変形。**
+ *
+ * 四つの変形はどれも `[...header, ...body]` で組むので、**基盤の十宣言は一度も動いていなかった。**
+ * ヘッダを本体より**前**に置く理由 (`grid` と `level` は使用より前、アセットは参照より前) は
+ * ヘッダの**中**の順を凍らせる理由にはならない。
+ *
+ * 動かせるのは族の中だけである — `koyu` の行は必ず先頭、`unit` は `grid` の数値の読み方を決めるので
+ * `grid` より前に留める。族の並び (メタ → 通り芯 → レベル → アセット) も保つ。
+ */
+function permuteHeader(header: Block[], rnd: () => number): Block[] {
+  const family = (b: Block): number => {
+    const l = b.lines[0]!;
+    if (l.startsWith("name ")) return 1;
+    if (l.startsWith("unit ")) return 1;
+    if (l.startsWith("grid ")) return 2;
+    if (l.startsWith("level ")) return 3;
+    if (l.startsWith("asset ")) return 4;
+    return 0; // koyu 1.0 — 動かさない
+  };
+  const out: Block[] = [];
+  for (const f of [0, 1, 2, 3, 4]) {
+    const members = header.filter((b) => family(b) === f);
+    out.push(...(f === 0 ? members : shuffle(members, rnd)));
+  }
+  assert.equal(out.length, header.length, "並べ替えでヘッダの行が落ちた");
+  return out;
+}
+
+/**
+ * **境界の a/b を入れ替える変形。これは正準形の等値ではない。**
+ *
+ * a/b の向きは正準JSONに `a` として残る (`edge` と `swing` をそこから読むため) ので、
+ * 入れ替えればバイトは変わる — 約束1の含意の話ではない。縛るのは**何に効いてよいか**である。
+ * [境界](../docs/reference/muro/boundary.md)が言うのは「書き順が意味を持つのは `edge` と
+ * [扉の開く先](../docs/reference/muro/door.md) の二つだけ」であり、**幾何は効いてはならない。**
+ *
+ * だから比べるのは形の**幾何の射影**である — 空間の面積と輪郭、壁の線分と壁パネル、開口の位置。
+ * `a` `b` `ref` `edgeOfA` `swing` は落とす (それらは a/b から読むと規範が言っている)。
+ *
+ * 手で書いた witness は [uniqueness.test.ts](uniqueness.test.ts) にあり、実際に破れを捕まえた
+ * (線が隅を落とす側が反転して 26.00㎡ ↔ 34.00㎡ になった)。母集団の上では試されていなかった。
+ */
+function swapBoundaryEnds(body: Block[]): { body: Block[]; swapped: number } {
+  let swapped = 0;
+  const out = body.map((b) => ({
+    ...b,
+    lines: b.lines.map((l) => {
+      const m = /^boundary (\/\S+) (\/\S+)(.*)$/.exec(l);
+      // `edge` は「a 側の形から見た辺」なので、入れ替えれば方位が裏返る — 規範が名指しする非対称
+      if (!m || / edge:/.test(l)) return l;
+      swapped++;
+      return `boundary ${m[2]} ${m[1]}${m[3]}`;
+    }),
+  }));
+  return { body: out, swapped };
+}
+
+/**
+ * 形の幾何だけを採る射影 — a/b から読んでよいものを落とす。
+ *
+ * 落とすのは二種類ある。**a/b から読むと規範が言うもの** (`a` `b` `ref` `edgeOfA` `swing`) と、
+ * **正準の境界順に従うもの**である。後者は[凸片](../docs/reference/form/regions.md)が
+ * 「切り分けは正準の境界順に効く」と定めており、a/b を入れ替えれば境界の綴りが変わるので
+ * **凸片と slab の並びは変わってよい。**変わってはならないのは面積と、幾何の集合そのものである。
+ */
+function geometryOf(src: string): string {
+  const f = derive(parse(src));
+  const sorted = (xs: unknown[]): string[] => xs.map((x) => JSON.stringify(x)).sort(compareCanonical);
+  const spaces = f.spaces
+    .map((s) => JSON.stringify([s.path, s.areaM2, sorted(s.outline)]))
+    .sort(compareCanonical);
+  // `edgeOfA` は「a 側の形から見た辺」なので a/b から読む — 落とす。線分そのものは残す
+  const seg = (g: { x1: number; y1: number; x2: number; y2: number; horizontal: boolean }) =>
+    [g.x1, g.y1, g.x2, g.y2, g.horizontal];
+  const walls = sorted(f.boundaries.map((b) => [seg(b.segment), b.material, b.kind, b.air, b.level]));
+  const openings = sorted(f.openings.map((o) => [o.kind, o.cx, o.cy, o.w, o.z0, o.z1, o.t, o.sliding]));
+  return JSON.stringify({ spaces, walls, openings, levels: f.levels, slabs: sorted(f.slabs) });
 }
 
 /** 順序が意味である位置を保ったまま並べ替える — 動かせるブロックだけを入れ替える */
@@ -363,6 +568,21 @@ test("property: the population covers the whole notation and every model is cons
     for (const [label, re] of COVERAGE) {
       assert.ok(re.test(json) || re.test(flat), `seed=${seed}: the generated model carries no ${label}`);
     }
+    // **導出の側も痩せていてはならない。**正準形に縦動線の宣言があっても、形が一本も出なければ
+    // vertical.ts は依然として性質の外にある。段数と踏面はここでしか現れない (原本には書かれない)。
+    const f = derive(model);
+    assert.ok(f.runs.length >= 3, `seed=${seed}: 縦動線の形が ${f.runs.length} 本しか出ていない`);
+    // 蹴上げの数・踏面・勾配はどれも原本に書かれていない — 導出だけが出す量である
+    assert.ok(
+      f.runs.some((r) => r.device === "stair" && r.risers > 0 && r.tread > 0),
+      `seed=${seed}: 蹴上げと踏面を持つ階段が一つも無い — 導出が働いていない`,
+    );
+    assert.ok(
+      f.runs.some((r) => r.device === "ramp" && r.slope > 0),
+      `seed=${seed}: 勾配を持つ斜路が無い`,
+    );
+    // 二度導いて同じバイト — 決定性を単一ファイルの経路でも見る
+    assert.equal(JSON.stringify(derive(model)), JSON.stringify(f), `seed=${seed}: 二度導いて形が違う`);
   }
 });
 
@@ -373,6 +593,7 @@ test("property: reordering declarations does not change the bytes (30 seeds, who
     const shuffled = render([...header, ...reorder(body, lcg(seed * 7))]);
     const reversed = render([...header, ...reverse(body)]);
     assert.notEqual(shuffled, original, `seed=${seed}: the shuffle changed nothing (the test is idle)`);
+    assert.notEqual(reversed, original, `seed=${seed}: the reverse changed nothing (the test is idle)`);
     const j0 = toCanonical(parse(original));
     assert.equal(toCanonical(parse(shuffled)), j0, `seed=${seed} shuffle`);
     assert.equal(toCanonical(parse(reversed)), j0, `seed=${seed} reverse`);
@@ -408,6 +629,66 @@ test("property: what the canonical form calls one building has one shape (30 see
     const f0 = form(original);
     assert.equal(form(shuffled), f0, `seed=${seed}: canonically equal but the shape differs (shuffle)`);
     assert.equal(form(reversed), f0, `seed=${seed}: canonically equal but the shape differs (reverse)`);
+  }
+});
+
+test("property: reversing the endpoints of a drawn line gives the same building (30 seeds, whole notation)", () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const { header, body } = generate(lcg(seed));
+    const original = render([...header, ...body]);
+    const flipped = render([...header, ...swapLineEndpoints(body)]);
+    assert.notEqual(flipped, original, `seed=${seed}: 反転が空振りしている — 母集団に線が無い`);
+    assert.equal(
+      toCanonical(parse(flipped)),
+      toCanonical(parse(original)),
+      `seed=${seed}: 線の端点の書き順がバイトに漏れている`,
+    );
+    assert.equal(
+      JSON.stringify(derive(parse(flipped))),
+      JSON.stringify(derive(parse(original))),
+      `seed=${seed}: 正準形は同じなのに形が違う (線の端点の書き順)`,
+    );
+  }
+});
+
+test("property: permuting the header within its families gives the same building (30 seeds)", () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const { header, body } = generate(lcg(seed));
+    const original = render([...header, ...body]);
+    const permuted = render([...permuteHeader(header, lcg(seed * 13)), ...body]);
+    assert.notEqual(permuted, original, `seed=${seed}: ヘッダの並べ替えが空振りしている`);
+    assert.equal(
+      toCanonical(parse(permuted)),
+      toCanonical(parse(original)),
+      `seed=${seed}: 基盤宣言の書き順がバイトに漏れている`,
+    );
+    assert.equal(
+      JSON.stringify(derive(parse(permuted))),
+      JSON.stringify(derive(parse(original))),
+      `seed=${seed}: 正準形は同じなのに形が違う (ヘッダの並べ替え)`,
+    );
+  }
+});
+
+test("property: swapping a boundary's a and b moves no geometry (30 seeds, whole notation)", () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const { header, body } = generate(lcg(seed));
+    const original = render([...header, ...body]);
+    const sw = swapBoundaryEnds(body);
+    const swapped = render([...header, ...sw.body]);
+    assert.ok(sw.swapped >= 1, `seed=${seed}: 入れ替えられる境界が無い`);
+    assert.notEqual(swapped, original, `seed=${seed}: 入れ替えが空振りしている`);
+    // バイトは変わってよい — a/b は正準形に残る。変わってはならないのは幾何である
+    assert.notEqual(
+      toCanonical(parse(swapped)),
+      toCanonical(parse(original)),
+      `seed=${seed}: a/b が正準形に残っていない (edge と swing を読む出所が消えている)`,
+    );
+    assert.equal(
+      geometryOf(swapped),
+      geometryOf(original),
+      `seed=${seed}: a/b の向きが幾何に効いている`,
+    );
   }
 });
 
@@ -474,6 +755,105 @@ test("property: lifting attributes into over gives the same building (30 seeds, 
     );
   }
   assert.ok(lifted >= 25, `括り出しが起きた種が少なすぎる: ${lifted}/30 — 変形が空振りしている`);
+});
+
+/**
+ * **P5 — 同じ entry からは常に同じ層の列・同じモデル。**
+ *
+ * [規則1](../docs/reference/muro/composition.md)は「強度は import の順が宣言する」と言い、
+ * **走査の順ではない**と名指しで否定する。`parseFiles` はファイルを `Record` で受けるので、
+ * **その鍵の並びは入力の偶然**である (ファイルシステムの列挙順・オブジェクトリテラルの書き順)。
+ * 偶然が結果に効けば規則1が破れる。
+ *
+ * だから縛るのは二つ。**二度読んで同じバイト** (決定性そのもの) と、**鍵の並びを変えても同じバイト**
+ * (走査の順が結果に残らない)。手で書いた witness は [composition.test.ts](composition.test.ts) に
+ * あるが、母集団の上では試されていなかった。
+ */
+test("property: the same entry always gives the same model, whatever order the files arrive in (30 seeds)", () => {
+  let layered = 0;
+  for (let seed = 1; seed <= 30; seed++) {
+    const { header, body } = generate(lcg(seed));
+    const layers = liftAttrsToOver(header, body);
+    if (layers["over.muro"]!.trim() === "") continue;
+    layered++;
+    const j0 = toCanonical(parseFiles(layers, "main.muro"));
+
+    // 決定性 — 同じ入力を二度読む
+    assert.equal(toCanonical(parseFiles(layers, "main.muro")), j0, `seed=${seed}: 二度読んで結果が違う`);
+
+    // 鍵の並びを変える — 中身は一字も変えない
+    const keys = Object.keys(layers);
+    assert.equal(keys.length, 3, `seed=${seed}: 層が ${keys.length} 枚 — 3枚のはず`);
+    // 恒等置換を掴まないよう、実際に並びが変わったものだけを試す (3枚なので 1/6 で恒等になる)
+    const orders: string[][] = [[...keys].reverse()];
+    for (let k = 0; orders.length < 2 && k < 20; k++) {
+      const cand = shuffle(keys, lcg(seed + 1000 + k));
+      if (cand.join(" ") !== keys.join(" ") && cand.join(" ") !== orders[0]!.join(" ")) orders.push(cand);
+    }
+    assert.equal(orders.length, 2, `seed=${seed}: 並べ替えが二通り作れなかった`);
+    for (const order of orders) {
+      assert.notEqual(order.join(" "), keys.join(" "), `seed=${seed}: 並べ替えが恒等だった`);
+      const permuted: Record<string, string> = {};
+      for (const k of order) permuted[k] = layers[k]!;
+      assert.deepEqual(
+        Object.keys(permuted).sort(),
+        keys.slice().sort(),
+        `seed=${seed}: 並べ替えで層が落ちた`,
+      );
+      assert.equal(
+        toCanonical(parseFiles(permuted, "main.muro")),
+        j0,
+        `seed=${seed}: ファイルが届く順が結果に漏れている (${order.join(" ")}) — 規則1が破れている`,
+      );
+    }
+  }
+  assert.ok(layered >= 25, `層に割れた種が少なすぎる: ${layered}/30`);
+});
+
+/**
+ * **P5 の本体 — 強い層が勝つこと、層の列、入れ子、そして import の順が意味であること。**
+ *
+ * ここが縛るのは、上の `liftAttrsToOver` では**構造上縛れない**四つである。
+ */
+test("property: the stronger layer wins, the layer sequence is the depth-first import order (30 seeds)", () => {
+  let contested = 0;
+  for (let seed = 1; seed <= 30; seed++) {
+    const { header, body } = generate(lcg(seed));
+    const c = contestStrength(header, body);
+    assert.ok(c.contested >= 5, `seed=${seed}: 争っている属性が ${c.contested} 件しかない`);
+    contested += c.contested;
+    assert.notEqual(c.one, render([...header, ...body]), `seed=${seed}: 置換が空振りしている`);
+
+    // 強い層 (後の import) が勝つ — 弱い層は元の値を主張し続けている
+    const j1 = toCanonical(parse(c.one));
+    for (const [label, files, layers] of [
+      ["flat", c.flat, ["main.muro", "base.muro", "over.muro"]],
+      ["nested", c.nested, ["main.muro", "mid.muro", "base.muro", "over.muro"]],
+      ["doubled", c.doubled, ["main.muro", "mid.muro", "base.muro", "over.muro"]],
+    ] as const) {
+      const m = parseFiles(files, "main.muro");
+      assert.equal(
+        toCanonical(m),
+        j1,
+        `seed=${seed}/${label}: 強い層が勝っていない (強度の向きが逆か、平坦化が違う)`,
+      );
+      assert.equal(
+        JSON.stringify(derive(m)),
+        JSON.stringify(derive(parse(c.one))),
+        `seed=${seed}/${label}: 正準形は同じなのに形が違う`,
+      );
+      // 層の列は正準JSONに出ないので、ここでしか見られない。二重に取り込んだ層は一度だけ現れる
+      assert.deepEqual(m.layers, layers, `seed=${seed}/${label}: 層の列が違う`);
+    }
+
+    // import の順は意味である — over を定義より前に置けば、黙って別の答えを出さずに言葉になる
+    assert.throws(
+      () => parseFiles(c.swapped, "main.muro"),
+      /No such target for over/,
+      `seed=${seed}: import を入れ替えても通った — 強度が import の順で決まっていない`,
+    );
+  }
+  assert.ok(contested >= 150, `争った属性の総数が少なすぎる: ${contested}`);
 });
 
 // ---- 単射性: 違う構成なら違うバイト ----
