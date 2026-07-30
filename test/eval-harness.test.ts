@@ -143,7 +143,7 @@ test("harness: every task that carries a control section is runnable in the cont
     .filter((f) => f.endsWith(".json"))
     .map((f) => loadTask(join(TASKS, f)))
     .filter((t) => t.control !== undefined);
-  assert.ok(withControl.length >= 3, `only ${withControl.length} tasks carry a control section`);
+  assert.equal(withControl.length, 6, "every task must be runnable in the control condition");
   for (const t of withControl) {
     if (t.fixture !== "examples/tower") continue; // a different fixture needs its own export
     const s = scoreControl(doc, t.control!.asserts);

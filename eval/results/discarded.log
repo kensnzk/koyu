@@ -1,0 +1,13 @@
+# Runs discarded before scoring — infrastructure failures, not task failures.
+#
+# PROTOCOL.md: "A run killed by infrastructure is not a run. Discard the work directory, prepare a
+# fresh one, and run again. Never score a directory an interrupted agent touched: it holds a
+# half-finished edit that no subject actually chose to leave there."
+#
+# Kept so the count is auditable: a measurement that quietly drops attempts is not reproducible.
+#
+# date                 task                     condition  cause
+2026-07-30T06:16:44Z  T01-floor-material  muro  529-overloaded
+2026-07-30T06:17:02Z  T01-floor-material  json  529-overloaded
+2026-07-30T06:17:02Z  T01-floor-material  json  529-overloaded
+2026-07-30T06:21:04Z  T01-floor-material  muro  529-overloaded

@@ -114,6 +114,9 @@ pieces. `loadTask` rejects an assertion that reads `.areaM2`.
 
 ## Running it
 
+The full protocol — how to sanitise the sandbox so the subject cannot read the answers, what counts
+as a run, and what must never enter the records — is in [PROTOCOL.md](PROTOCOL.md). The short version:
+
 ```sh
 # muro condition
 WORK=$(npx tsx eval/run.ts prepare T01-floor-material)
@@ -139,18 +142,20 @@ were.
 |---|---|---|---|---|
 | T01-floor-material | update / direct | tower | 6 | 10 |
 | T02-widen-bed1 | update / spatial | tower | 7 | 9 |
-| T03-split-B | create / topological | tower | 10 | — |
+| T03-split-B | create / topological | tower | 10 | 10 |
 | T04-remove-balcony | delete / direct | tower | 6 | 9 |
 | T05-rename-A | update / direct | tower-uid | 8 | 10 |
 | T06-generate-two-rooms | create / direct | (none) | 5 | 8 |
 
-Five of six, so the experiment is 5 tasks × 2 conditions × 3 attempts = **30 runs**.
+All six, so the experiment is 6 tasks × 2 conditions × 3 attempts = **36 runs**. Every control
+section was verified against a reference solution: the untouched export fails exactly the assertions
+that ask for the change, and the reference passes all of them.
 
-**T03 is not yet runnable in the control, and the reason is on the muro side.** It has no verified
-reference solution: splitting a 64 m2 dwelling into two, reassigning three existing windows without
-adding any, and keeping egress within four doors across eight levels is real design work, and the
-notes record only a probe that *failed*. A control section cannot be trusted for a task whose
-achievability has not been demonstrated, so T03 waits for its muro reference solution first.
+**T03 is the heaviest task in the control by a wide margin.** Splitting one dwelling into two adds 40
+rooms, 16 groupings and **104 walls**, and moves three windows and a balcony door onto new walls —
+each needing a fresh identifier. On the muro side the same change is 15 declarations. Its reference
+solution had to be designed and verified first (it did not exist); it is recorded in the task's
+`notes`.
 
 **T06 is where the control is strongest.** Written from nothing, there is no existing fact to
 propagate, so no stored derived value can go stale. muro's only advantage there is concision. The
@@ -179,6 +184,16 @@ Size of the same building, exported:
 The ratio grows with repetition, which is where level ranges pay off. **`complex` does not fit a
 200K context in the control condition at all** — that is a finding, not a bug, but it is why the
 experiment runs on `tower`.
+
+## Status of the measurement
+
+The apparatus is complete: all six tasks have reference solutions that pass in both conditions, and
+the whole path (prepare → a real agent → score) has been exercised end to end.
+
+**The 36 runs have not been executed.** Opus 5 was unavailable for subagents when the apparatus
+landed — `529 Overloaded` on every attempt, sequential and parallel alike — and a run killed by
+capacity is not a run. Nothing about the outcome is known yet, and the numbers below are the *cost of
+the reference solutions*, not measured success rates.
 
 ## Honesty about what a bespoke checker would change
 

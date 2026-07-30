@@ -587,9 +587,9 @@ function scoreControlRun(
 
 // ---- report ----
 
-function readRecords(): RunRecord[] {
-  if (!existsSync(RECORDS)) return [];
-  return readFileSync(RECORDS, "utf8")
+function readRecords(file: string = RECORDS): RunRecord[] {
+  if (!existsSync(file)) return [];
+  return readFileSync(file, "utf8")
     .split("\n")
     .filter((l) => l.trim() !== "")
     .map((l) => JSON.parse(l) as RunRecord);
@@ -610,15 +610,18 @@ function stats(xs: Array<number | null>): { known: number; mean: string; median:
 function cmdReport(argv: string[]): number {
   const { positional, flags } = parseFlags(argv);
   const label = positional[0];
-  if (!label) die("使い方: npx tsx eval/run.ts report <label> [--latest]");
+  if (!label) die("使い方: npx tsx eval/run.ts report <label> [--latest] [--records <file>]");
   if (!/^[A-Za-z0-9._-]+$/.test(label)) die(`label に使えるのは英数字と . _ - だけです: ${label}`);
 
-  let records = readRecords();
-  if (records.length === 0) die(`記録がありません: ${RECORDS} — 先に score を回してください`);
+  // A third party reports from their own records, and the generator itself can be tested this way
+  const src = str(flags["records"]) ?? RECORDS;
+  let records = readRecords(src);
+  if (records.length === 0) die(`記録がありません: ${src} — 先に score を回してください`);
   if (flags["latest"]) {
     // 課題ごとに最後の走行だけを残す (再走行を重ねた後に基準を一枚に畳むため)
+    // The key needs the condition too — otherwise a muro run erases the control run of the same task
     const byId = new Map<string, RunRecord>();
-    for (const r of records) byId.set(r.taskId, r);
+    for (const r of records) byId.set(`${r.taskId}\u0000${r.condition ?? "muro"}`, r);
     records = [...byId.values()];
   }
 
@@ -643,6 +646,32 @@ function cmdReport(argv: string[]): number {
   for (const r of records) {
     if (r.failureClass) byFail.set(r.failureClass, (byFail.get(r.failureClass) ?? 0) + 1);
   }
+
+  /**
+   * The W3 comparison, broken down by condition.
+   *
+   * A record written before the control existed carries no `condition`; it reads as `muro`, which is
+   * what those runs were. `silentlyWrong` can only be true in the control — muro stores nothing
+   * derived, so it has nothing that can fall out of step.
+   */
+  const CONDITION_ORDER: readonly Condition[] = ["muro", "json"];
+  const byCondition = new Map<Condition, RunRecord[]>();
+  for (const r of records) {
+    const c = r.condition ?? "muro";
+    byCondition.set(c, [...(byCondition.get(c) ?? []), r]);
+  }
+  const comparison = CONDITION_ORDER.filter((c) => byCondition.has(c)).map((c) => {
+    const rs = byCondition.get(c)!;
+    return {
+      condition: c,
+      runs: rs.length,
+      success: rs.filter((r) => r.success).length,
+      oracles: `${rs.reduce((a, r) => a + r.passed, 0)}/${rs.reduce((a, r) => a + r.total, 0)}`,
+      silentlyWrong: rs.filter((r) => r.silentlyWrong === true).length,
+      textDiff: stats(rs.map((r) => r.textDiffLines ?? null)),
+      tools: stats(rs.map((r) => r.toolCalls)),
+    };
+  });
 
   const tools = stats(records.map((r) => r.toolCalls));
   const toks = stats(records.map((r) => r.tokens));
@@ -676,6 +705,25 @@ function cmdReport(argv: string[]): number {
       "報酬ハック率の見積りでもある。",
   );
   md.push("");
+  if (comparison.length > 1) {
+    md.push("");
+    md.push("## 条件ごとの比較 (W3)");
+    md.push("");
+    md.push("**同じ課題・同じ指示・同じモデル・同じ試行回数で、建物の持ち方だけを変えた結果である。**");
+    md.push("`無音で誤り` は「schema も参照整合も幾何も通るのに、保存された導出量が幾何と食い違う」走行の数で、");
+    md.push("muro では構造上ゼロになる — 導出量を保存しないので、歩調が崩れる先が無い。");
+    md.push("");
+    md.push("| 条件 | 走行 | 完全合格 | オラクル | 無音で誤り | 変更行数 中央値 | 道具呼び出し 中央値 |");
+    md.push("|---|---|---|---|---|---|---|");
+    for (const c of comparison) {
+      md.push(
+        `| ${c.condition} | ${c.runs} | ${c.success} (${pct(c.success, c.runs)}) | ${c.oracles} | ` +
+          `${c.condition === "muro" ? "— (構造上ゼロ)" : String(c.silentlyWrong)} | ` +
+          `${c.textDiff.median} | ${c.tools.median} |`,
+      );
+    }
+    md.push("");
+  }
   md.push("## BIM-Edit 比較 (arXiv 2606.20146)");
   md.push("");
   md.push("| 系 | 部分点 | 完全正解 |");
