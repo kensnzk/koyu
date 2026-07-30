@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/form/bodies.md", "docs/reference/form/constants.md"],
+  "why": "開口の z は種類で決まる。扉は床から立ち上がってまぐさ高 2000mm に達し、それ以外はまぐさ高から高さのぶん下がる (h: が無ければ 1200mm なので 800..2000)。頭を揃えた結果として窓台が決まるので、sill は運搬層のままで core が見なくてよい"
+}

@@ -56,7 +56,28 @@ interface Case {
     diagnostics?: string;
     form?: string;
     parseError?: string;
+    values?: string;
   };
+}
+
+/**
+ * Resolves a [JSON Pointer](https://www.rfc-editor.org/rfc/rfc6901) against a value.
+ *
+ * A whole `Form` runs past 300 lines even for two rooms, so pinning "a wall with no `t:` is 100mm
+ * thick" with a full golden buries the claim. A pointer names the one place the rule shows up, and
+ * the case stays readable. The pointer syntax is a standard, so another implementation does not have
+ * to learn an invention of ours.
+ */
+function pointer(doc: unknown, ptr: string): unknown {
+  if (ptr === "") return doc;
+  assert.ok(ptr.startsWith("/"), `a JSON Pointer starts with "/": ${ptr}`);
+  let cur: unknown = doc;
+  for (const raw of ptr.slice(1).split("/")) {
+    const key = raw.replace(/~1/g, "/").replace(/~0/g, "~");
+    assert.ok(cur !== null && typeof cur === "object", `${ptr}: the path runs out at ${key}`);
+    cur = Array.isArray(cur) ? cur[Number(key)] : (cur as Record<string, unknown>)[key];
+  }
+  return cur;
 }
 
 function load(): Case[] {
@@ -81,6 +102,7 @@ function load(): Case[] {
         diagnostics: read("diagnostics.json"),
         form: read("form.json"),
         parseError: read("parse-error.txt"),
+        values: read("values.json"),
       },
     });
   }
@@ -162,6 +184,7 @@ for (const c of cases) {
       // A case that must not parse has nothing else to check — no model exists
       assert.equal(c.expects.canonical, undefined, `${c.name}: a parse-error case cannot also expect a canonical form`);
       assert.equal(c.expects.form, undefined, `${c.name}: a parse-error case cannot also expect a form`);
+      assert.equal(c.expects.values, undefined, `${c.name}: a parse-error case cannot also expect values`);
       return;
     }
 
@@ -178,6 +201,14 @@ for (const c of cases) {
       // happens to sit on disk.
       const got = checkDiagnostics(model).map((d) => portable(d as unknown as WithSource));
       assert.deepEqual(got, JSON.parse(c.expects.diagnostics), `${c.name}: the diagnostics differ`);
+    }
+
+    if (c.expects.values !== undefined) {
+      // Named places in the Form rather than the whole of it — the rule, not a snapshot
+      const form = JSON.parse(JSON.stringify(derive(model)));
+      for (const [ptr, want] of Object.entries(JSON.parse(c.expects.values) as Record<string, unknown>)) {
+        assert.deepEqual(pointer(form, ptr), want, `${c.name}: ${ptr}`);
+      }
     }
 
     if (c.expects.form !== undefined) {
