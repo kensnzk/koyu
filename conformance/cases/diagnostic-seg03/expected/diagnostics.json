@@ -1,8 +1,8 @@
 [
  {
-  "code": "BND04",
-  "severity": "error",
-  "line": 8,
+  "code": "SEG03",
+  "severity": "warning",
+  "line": 7,
   "file": "main.muro",
   "path": [
    "/L1/a",

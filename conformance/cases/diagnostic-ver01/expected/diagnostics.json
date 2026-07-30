@@ -1,9 +1,7 @@
 [
  {
-  "code": "BND04",
+  "code": "VER01",
   "severity": "error",
-  "line": 8,
-  "file": "main.muro",
   "path": [
    "/L1/a",
    "/L1/b"

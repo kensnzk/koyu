@@ -1,8 +1,8 @@
 [
  {
-  "code": "BND04",
+  "code": "OPN04",
   "severity": "error",
-  "line": 8,
+  "line": 7,
   "file": "main.muro",
   "path": [
    "/L1/a",

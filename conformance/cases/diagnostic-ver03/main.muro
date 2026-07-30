@@ -1,0 +1,8 @@
+koyu 0.4
+grid X 0 3000
+grid Y 0 8000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L2/s stair X1..X2 Y1..Y1+7000
+stack s L1..L2 type:stair

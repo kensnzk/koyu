@@ -1,0 +1,27 @@
+[
+ {
+  "code": "VER04",
+  "severity": "error",
+  "line": 10,
+  "file": "main.muro",
+  "path": [
+   "/L1/b"
+  ]
+ },
+ {
+  "code": "VER04",
+  "severity": "error",
+  "line": 11,
+  "file": "main.muro",
+  "path": [
+   "/L1/a",
+   "/out"
+  ]
+ },
+ {
+  "code": "VER04",
+  "severity": "error",
+  "line": 12,
+  "file": "main.muro"
+ }
+]

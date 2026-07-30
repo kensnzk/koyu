@@ -1,0 +1,6 @@
+grid X 0 5000
+grid Y 0 5000
+level L1 0 h:2400 slab:150
+zone /site name:敷地 site:yes
+polygon /site 0,0 5000,0 5000,5000 0,5000
+space /site/a room X1..X2 Y1..Y2 level:L1

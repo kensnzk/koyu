@@ -1,0 +1,5 @@
+grid X 0 10000
+grid Y 0 10000
+level L1 0 h:2400 slab:150
+polygon /site 0,0 10000,0 10000,10000 0,10000
+space /L1/a room X1..X2 Y1..Y2

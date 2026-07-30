@@ -11,7 +11,7 @@
 | 期待 | ファイル | 比べ方 | なぜその比べ方か |
 |---|---|---|---|
 | **正準 JSON** | `expected/canonical.json` | **バイト一致** | [機械形式](../docs/reference/json/index.md)は「同じ構成からは同じバイト列が出る」ことを約束し、照合順・正規化・数の綴りまで定めている。バイトで比べなければその約束を試験していない |
-| **診断** | `expected/diagnostics.json` | 構造の一致 (並びを含む) | [診断契約](../docs/reference/diagnostics/index.md)が縛るのは `code` と `severity` と出所であり、本文の字面は凍らない。並びは走査の順で、これも契約である |
+| **診断** | `expected/diagnostics.json` | 構造の一致 (並びを含む)。**`message` は含めない** | [診断契約](../docs/reference/diagnostics/index.md)が縛るのは `code`・`severity`・出所 (`line` `file`)・責める対象 (`path` `related`) であり、**本文の字面は凍らない。**縛れば、同じ事実を別の言葉で書いた正しい実装が不適合になる。並びは走査の順で、これも契約である |
 | **形** | `expected/form.json` | 構造の一致 | [導出規則](../docs/reference/form/index.md)が凍るのは `Form` の中身であって、その JSON の綴りではない |
 
 **`koyu validate` の判定は試験しない。**[建築的な判定](../docs/reference/validate/index.md)は「凍らない面、追加的に増える面」である。規則が一つ増えるたびに他実装が不適合になる試験は、適合の定義として成り立たない。判定の回帰は `test/` が持つ。

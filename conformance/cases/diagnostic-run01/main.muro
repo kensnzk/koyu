@@ -1,0 +1,6 @@
+grid X 0 3000 6000
+grid Y 0 6000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/s stair X1..X2 Y1..Y2 stair:N ramp:N
+space /L2/s stair X1..X2 Y1..Y2

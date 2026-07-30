@@ -1,12 +1,11 @@
 [
  {
-  "code": "BND04",
+  "code": "SEG01",
   "severity": "error",
-  "line": 8,
+  "line": 6,
   "file": "main.muro",
   "path": [
-   "/L1/a",
-   "/L1/b"
+   "/out"
   ]
  }
 ]

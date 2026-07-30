@@ -1,0 +1,18 @@
+[
+ {
+  "code": "UID04",
+  "severity": "error",
+  "line": 8,
+  "file": "main.muro",
+  "path": [
+   "/L1/a",
+   "/out"
+  ],
+  "related": [
+   {
+    "line": 7,
+    "file": "main.muro"
+   }
+  ]
+ }
+]

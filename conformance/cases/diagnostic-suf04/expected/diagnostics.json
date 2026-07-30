@@ -1,0 +1,11 @@
+[
+ {
+  "code": "SUF04",
+  "severity": "warning",
+  "line": 6,
+  "file": "main.muro",
+  "path": [
+   "/L2/s"
+  ]
+ }
+]

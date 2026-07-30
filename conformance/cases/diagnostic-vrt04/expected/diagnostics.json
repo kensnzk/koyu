@@ -1,0 +1,12 @@
+[
+ {
+  "code": "VRT04",
+  "severity": "warning",
+  "line": 7,
+  "file": "main.muro",
+  "path": [
+   "/L1/a",
+   "/L2/a"
+  ]
+ }
+]
