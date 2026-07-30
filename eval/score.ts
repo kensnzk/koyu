@@ -194,9 +194,23 @@ export function siteMetrics(model: Model): {
   };
 }
 
+/**
+ * The paths that fail the daylight question.
+ *
+ * `daylightInputs` derives the inputs; the judgement is `daylight.ratio` on the validation face. An
+ * expression that wants "which rooms fail" must ask validation — the input records carry no verdict,
+ * by design (core derives, validation judges).
+ */
+const daylightFailures = (m: Model): string[] =>
+  validate(m)
+    .filter((f) => f.rule === "daylight.ratio")
+    .flatMap((f) => f.path ?? [])
+    .sort();
+
 /** assert 式に渡す補助のうち、規範の5つ (m, zoneAreaM2, daylight, doorsBetween, siteReport) の後ろに足すもの */
 const EXTRA_HELPERS = {
   areaM2,
+  daylightFailures,
   areaOf,
   unionAreaM2,
   checkDiagnostics,

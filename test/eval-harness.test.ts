@@ -105,6 +105,34 @@ test("harness: T01 is not already satisfied by the untouched fixture", () => {
   assert.equal(failed.length, 2, `only the two change-asking oracles may fail, but ${failed.length} did`);
 });
 
+test("harness: every task that carries a control section is runnable in the control condition", () => {
+  // A control section that reads a stored number, or that returns something other than `true`, is a
+  // section that cannot measure what it claims to. `loadTask` rejects the first; this catches the
+  // second by evaluating every assertion against the untouched export — each must return a boolean.
+  const model = parseFile(join(TOWER, "main.muro"));
+  const doc = JSON.stringify(exportBuilding(model, derive(model)));
+  const withControl = readdirSync(TASKS)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => loadTask(join(TASKS, f)))
+    .filter((t) => t.control !== undefined);
+  assert.ok(withControl.length >= 3, `only ${withControl.length} tasks carry a control section`);
+  for (const t of withControl) {
+    if (t.fixture !== "examples/tower") continue; // a different fixture needs its own export
+    const s = scoreControl(doc, t.control!.asserts);
+    for (const o of s.oracles.filter((x) => x.kind === "assert")) {
+      assert.ok(
+        o.detail === "true" || o.detail === "evaluated to false",
+        `${t.id} / ${o.label}: an assertion must evaluate to a boolean, got ${o.detail}`,
+      );
+    }
+    // The untouched export must fail at least one assertion, or the task is already satisfied
+    assert.ok(
+      s.oracles.some((o) => o.kind === "assert" && !o.pass),
+      `${t.id}: the untouched export already satisfies every assertion`,
+    );
+  }
+});
+
 test("harness: the control reference solution for T01 passes every oracle", () => {
   const task = loadTask(join(TASKS, "T01-floor-material.json"));
   assert.ok(task.control, "T01 must carry a control section to run in the control condition");

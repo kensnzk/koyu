@@ -252,6 +252,17 @@ export interface AssertContext {
   openingsOf: (wallId: string) => JsonBuilding["openings"];
   /** Area measured from the pieces, not the stored number — an assertion must ask the geometry */
   areaOf: (r: JsonRoom | undefined) => number | undefined;
+  /**
+   * The area of a grouping, summed from the geometry of its indoor members.
+   *
+   * The stored `group.areaM2` is exactly the number an edit can leave stale, so an assertion about
+   * a conserved area must not read it. This counts the pieces instead.
+   */
+  groupAreaOf: (id: string) => number;
+  /** The x and y extent of a room's pieces — what "its east edge moved to 3800" asks */
+  extentOf: (r: JsonRoom | undefined) => { x1: number; y1: number; x2: number; y2: number } | undefined;
+  /** Rooms that are subject to the daylight question (`daylight:1` and holding a region) */
+  daylightRooms: () => JsonRoom[];
 }
 
 export function assertContext(b: JsonBuilding): AssertContext {
@@ -263,6 +274,21 @@ export function assertContext(b: JsonBuilding): AssertContext {
     wall: (id) => b.walls.find((w) => w.id === id),
     openingsOf: (wallId) => b.openings.filter((o) => o.wall === wallId),
     areaOf: (r) => (r === undefined ? undefined : m2(piecesOf(r))),
+    groupAreaOf: (id) => {
+      const members = b.rooms.filter((r) => r.id.startsWith(`${id}/`) && r.indoor);
+      return Math.round(members.reduce((a, r) => a + m2(piecesOf(r)), 0) * 100) / 100;
+    },
+    extentOf: (r) => {
+      if (r === undefined || r.pieces.length === 0) return undefined;
+      const pts = r.pieces.flat();
+      return {
+        x1: Math.min(...pts.map((p) => p[0])),
+        y1: Math.min(...pts.map((p) => p[1])),
+        x2: Math.max(...pts.map((p) => p[0])),
+        y2: Math.max(...pts.map((p) => p[1])),
+      };
+    },
+    daylightRooms: () => b.rooms.filter((r) => r.attrs?.["daylight"] === 1 && r.pieces.length > 0),
   };
 }
 
