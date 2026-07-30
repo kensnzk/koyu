@@ -65,6 +65,34 @@ test("harness: the tower fixture matches the invariants the tasks assert", () =>
   );
 });
 
+/**
+ * `eval/fixtures/tower-uid` is a **frozen copy**, not a link to `examples/tower`.
+ *
+ * The two drifted apart: the bundled example gained a boundary and a window, the frozen copy did
+ * not. So the invariants a task asserts depend on **which fixture it uses**, and a blanket edit
+ * across the task files corrupts the ones pointing at the frozen copy. That happened once already.
+ */
+test("harness: the frozen tower-uid fixture keeps its own invariants, distinct from examples/tower", () => {
+  const uid = parseFile(join(root, "eval/fixtures/tower-uid/main.muro"));
+  const bundled = parseFile(join(TOWER, "main.muro"));
+  const count = (m: typeof uid) => ({
+    spaces: m.spaces.size,
+    zones: m.zones.size,
+    boundaries: m.boundaries.length,
+    openings: m.boundaries.reduce((n, b) => n + b.openings.length, 0),
+  });
+  assert.deepEqual(
+    count(uid),
+    { spaces: 178, zones: 9, boundaries: 542, openings: 286 },
+    "the frozen fixture drifted — T05's oracles assert these exact numbers",
+  );
+  assert.notDeepEqual(
+    count(uid),
+    count(bundled),
+    "the two fixtures are meant to differ; if they ever agree, the distinction above is no longer load-bearing",
+  );
+});
+
 /** Copy the fixture into a fresh directory outside the repository, the way `prepare` does */
 function work(): string {
   const dir = join(mkdtempSync(join(tmpdir(), "koyu-eval-test-")), "work");
