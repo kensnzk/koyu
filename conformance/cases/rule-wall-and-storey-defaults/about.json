@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/form/constants.md", "docs/reference/form/bodies.md", "docs/reference/form/plan.md"],
+  "why": "書かれていない三つを導出が与える。t: の無い壁は 100mm 厚で芯振り分け。最上のレベルの階高は「その階の最大天井高 + 屋根版の厚さ」で屋根の頂点に揃う (2400+200)。平面の切断面は FL から 1200mm。いずれも仕様が定めた規則であって捏造ではない"
+}

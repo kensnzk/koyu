@@ -66,7 +66,7 @@ space /L1/a room X1..X2 Y1..Y2
 |---|---|
 | a `boundary` for a touching pair on one level | **a `wall` boundary is derived.** It carries no door, so it cannot be passed. It does not appear in the machine format |
 | a vertical boundary between stacked spaces | **it is a floor.** It cannot be passed. `stair` / `shaft` / `void` are the exceptions, and they are declared |
-| a `boundary` with a space that has no region (an exterior) | **nothing is derived.** There is no wall there, and the envelope has a hole — `koyu validate` says so as `envelope.gap` |
+| a `boundary` with a space that has no region (an exterior) | **nothing is derived.** There is no wall there, and the envelope has a hole — on a level where you have started writing them, `koyu validate` reports the faces left over as `envelope.gap`; on a level with none at all it says nothing |
 | `type:` | `wall` |
 | `t:` | 100 mm for drawing and for solids. An `air:1` boundary defaults to 60 mm, capped at 80 mm |
 | `air:` | treated as a thing that blocks |
@@ -97,7 +97,7 @@ A sill height follows without writing `sill:` — it falls out of aligning the h
 | Written nothing | What happens |
 |---|---|
 | `d:` | the same as the size (a square column) |
-| `x:` / `y:` | **every grid line.** One stands at every intersection with floor on that level |
+| `x:` / `y:` | **every grid line.** One stands at every intersection that falls inside a space on that level (a void or an exterior does not count) |
 | `name:` | `drop column` can no longer point at it |
 
 Two columns never stand at one intersection — **the earlier declaration wins.**

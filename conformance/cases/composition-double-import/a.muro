@@ -1,0 +1,2 @@
+import ./base.muro
+space /L1/a room X1..X2 Y1..Y2

@@ -2,7 +2,7 @@
 // パーサ本体 (parse.ts) は純粋で、fsはこの薄い層だけが知る。
 // ブラウザ (ugatsu等) は parseFiles (仮想ファイル群) を使う。
 
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import type { Model } from "./core/model.js";
 import { parseWith } from "./core/parse.js";
@@ -21,8 +21,22 @@ export function parseFileWith(
   overlay?: (absPath: string) => string | undefined,
 ): Model {
   return parseWith((from, ref) => {
-    const key = from === undefined ? resolve(ref) : resolve(dirname(from), ref);
-    const src = overlay?.(key) ?? readFileSync(key, "utf8");
+    const spelled = from === undefined ? resolve(ref) : resolve(dirname(from), ref);
+    // **Layer identity is filesystem identity, not spelling.** Deciding it by spelling composes
+    // one file twice when it arrives through a symlink or in different letter case, breaking the
+    // promise that a layer imported twice is still composed once (rule 1) — in practice it failed
+    // with `grid X is declared once`. A path that does not exist yet (the overlay holds its
+    // content) has no realpath, so the spelling stands as its identity.
+    // `.native` asks the OS: on a case-insensitive filesystem (the macOS default) the JS
+    // implementation returns the spelling as given, so `B.muro` and `b.muro` become two layers
+    let key = spelled;
+    try {
+      key = realpathSync.native(spelled);
+    } catch {
+      /* not on disk yet — the spelling is the identity */
+    }
+    // The overlay answers to either spelling — the MCP gatekeeper matches on the resolved one
+    const src = overlay?.(spelled) ?? overlay?.(key) ?? readFileSync(key, "utf8");
     return { key, src };
   }, filePath);
 }

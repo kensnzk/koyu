@@ -283,6 +283,38 @@ test("canonical JSON: the collation is the UTF-8 byte order of the emitted docum
   assert.ok(json.indexOf(compat) < json.indexOf(astral));
 });
 
+test("canonical JSON: a numeric-looking level or asset name still lands in collation order", () => {
+  // A plain JavaScript object keeps integer-like keys ahead of the rest, in ascending numeric
+  // order, whatever order they were inserted in. So `Object.fromEntries` silently undid a correct
+  // sort and a level named `2` came out before one named `10`, while collation order — which this
+  // format promises — puts `10` first. `check` stayed green throughout.
+  const m = parse(
+    [
+      "koyu 1.0",
+      "unit mm",
+      "grid X 0 4000",
+      "grid Y 0 4000",
+      "level 10 3000 h:2700 slab:150",
+      "level 2 0 h:2700 slab:150",
+      "asset 10 door w:800",
+      "asset 2 door w:900",
+      "space /2/a room X1..X2 Y1..Y2",
+    ].join("\n"),
+  );
+  // **The order has to be read off the text.** `JSON.parse` hands back a plain object, so
+  // `Object.keys` on it re-applies the very rule this test is about — the parsed view says
+  // `["2", "10"]` however the bytes are ordered.
+  const json = toCanonical(m);
+  const keysUnder = (section: string): string[] => {
+    const at = json.indexOf(`"${section}": {`);
+    assert.ok(at >= 0, `${section} is missing`);
+    const body = json.slice(at, json.indexOf("\n  },", at));
+    return [...body.matchAll(/^    "([^"]+)": /gm)].map((mm) => mm[1]!);
+  };
+  assert.deepEqual(keysUnder("levels"), ["10", "2"], "levels");
+  assert.deepEqual(keysUnder("assets"), ["10", "2"], "assets");
+});
+
 test("canonical JSON: compareCanonical agrees with comparing the UTF-8 bytes (the reference for another implementation)", () => {
   const corpus = [
     "",

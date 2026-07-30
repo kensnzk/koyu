@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/bnd.md#bnd01",
+  "docs/reference/diagnostics/reading.md"
+ ],
+ "why": "BND01 — 同じ空間同士の境界は書けません。この入力はそのコードちょうど一件を出し、診断は code と severity のほかに出所 (line と file) と責める対象 (path) を持つ。母集団は書かれた宣言であり、並びは走査の順である"
+}

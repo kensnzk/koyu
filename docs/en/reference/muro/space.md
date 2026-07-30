@@ -35,8 +35,10 @@ Paths change when things are renamed. To join against an external register acros
 The second positional is the type, and it is **required**. Omit it and the first region is read as the type, which surfaces as a complaint about the region instead.
 
 ```text
-✖ t1.muro:line 4: space /L1/a requires a type (a word from the vocabulary)
+✖ t1.muro:line 4: A region is given as two ranges, X?..X? and Y?..Y?
 ```
+
+A line with neither a type nor a region (`space /L1/a` alone) is stopped more directly, by `space /L1/a requires a type (a word from the vocabulary)`.
 
 The vocabulary of types is open: `room`, `ldk`, `厨房`, `tenant` are all fine. **Exactly two words are interpreted structurally.**
 

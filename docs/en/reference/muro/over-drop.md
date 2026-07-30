@@ -48,7 +48,15 @@ over asset SD1 w:900 style:hinged    # an asset
 
 Adding an opinion to something that does not exist is usually a misspelling, or a mistaken idea of the layer order.
 
-`over` reaches the typed fields the parser lifts out of the attributes as well as the free ones — a boundary's `type`, `t`, `air` and `edge`, and a level's `h`, `slab` and `underground` can all be overridden.
+`over` reaches the typed fields the parser lifts out of the attributes as well as the free ones — a boundary's `type`, `t`, `air` and `edge`, a level's `h`, `slab` and `underground`, and a space's `level` can all be overridden.
+
+**What `over` may write is exactly what its declaration may write.** A space's `level` really does move where it belongs ([space](space.md)), and an undeclared level is refused in the same words the declaration uses. Conversely, a word the declaration refuses `over` refuses too — `w:` belongs to the members of a band, so it cannot be written on a space through `over` either ([band](band.md)).
+
+```text
+✖ p.muro:line 1: w: may not be written on space (a space written by width sits indented under band)
+```
+
+**The same word must not mean different things depending on how it was written** — otherwise [rule 5](composition.md), that an overridden model and one written that way from the start give the same canonical form, is broken.
 
 **Only three words may be overridden on a level.**
 

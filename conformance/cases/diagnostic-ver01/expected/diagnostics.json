@@ -1,0 +1,10 @@
+[
+ {
+  "code": "VER01",
+  "severity": "error",
+  "path": [
+   "/L1/a",
+   "/L1/b"
+  ]
+ }
+]

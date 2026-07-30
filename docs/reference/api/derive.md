@@ -178,13 +178,13 @@ console.log(form.spaces[0]);
 
 ```text
 {
-  path: '/B2/park',
-  type: 'parking',
-  level: 'B2',
+  path: '/B1/ev',
+  type: 'shaft',
+  level: 'B1',
   outline: [ [ [Object], [Object], [Object], [Object] ] ],
-  areaM2: 256,
-  z0: -7400,
-  z1: -4800,
+  areaM2: 14.04,
+  z0: -3700,
+  z1: -1100,
   indoor: true,
   semiOutdoor: false,
   covered: true
@@ -525,6 +525,8 @@ function deriveDefaultBoundaries(model: Model): void
 
 同一レベルで平面が接する領域つき空間の組に、宣言境界が一つも無ければ `kind:"wall"` の境界を導いて `model.boundaries` に加える (`derived: true` の印が付く)。接触は**導出された形**で見るので、線で接触が消えた組には作られない。
 
+**`a`/`b` の向きは正準順である。**宣言境界の `a` は書かれた向きで、正準JSONが `a` キーとして保存するから形に持ち込んでよい。既定境界は正準JSONに出ないので**書かれた向きが無く**、空間の宣言順を拾えば正準形が捨てた情報が形を変えてしまう ([約束1](../form/index.md))。だからパスの照合順で決める — `edgeOfA` の方位と関係の同一性 `a|b@i` がこれに従う。
+
 **領域を持たない空間 (`exterior` 等) との間には導かない。**相手を名指しすること自体が情報なので、そこは宣言してもらう。
 
 **[`parse` 系](parsing.md)はすべて出口でこれを適用済みである。**冪等なので何度呼んでもよい。
@@ -642,6 +644,7 @@ console.log(DERIVATION_CONSTANTS);
   CUT_HEIGHT: 1200,
   DEFAULT_RISER_MAX: 180,
   TREAD_TARGET: 300,
+  ARROW_SPAN_MIN: 900,
   LANDING_MIN: 1100,
   ENTRY_LANDING: 1100,
   LANE_ESCALATOR: 1200,
@@ -664,6 +667,7 @@ console.log(DERIVATION_CONSTANTS);
 | `CUT_HEIGHT` | 平面の切断面の高さ mm (FL から) | `derive` の `cut` |
 | `DEFAULT_RISER_MAX` | 蹴上げの上限 mm | `riser:` |
 | `TREAD_TARGET` | 折返し階段の踊り場を導くときの目標踏面 mm | `tread:` |
+| `ARROW_SPAN_MIN` | 平面に進む向きの矢印が出る可視区間の下限 mm。**厳密な超過**なので、ちょうど 900mm の区間には矢印が出ない | — |
 | `LANDING_MIN` | 踊り場の最小奥行 mm | — |
 | `ENTRY_LANDING` | 乗り込みの床の奥行 mm | `entry:` |
 | `LANE_ESCALATOR` | エスカレーター一台の呼び幅 mm | `lane:` |

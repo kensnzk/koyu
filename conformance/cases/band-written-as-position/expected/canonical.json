@@ -1,0 +1,50 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      6400,
+      12800
+    ],
+    "Y": [
+      0,
+      4000
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2700,
+      "slab": 150
+    }
+  },
+  "spaces": {
+    "/L1/hall": {
+      "type": "hall",
+      "at": [
+        "X1+4800",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "玄関"
+      }
+    },
+    "/L1/wet": {
+      "type": "wet",
+      "at": [
+        "X1",
+        "Y1",
+        "X1+4800",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "水回り"
+      }
+    }
+  },
+  "boundaries": []
+}

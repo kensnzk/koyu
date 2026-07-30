@@ -11,7 +11,7 @@ mode: reference
 | [`run.slope`](#run-slope) | caution |
 | [`run.disconnected`](#run-disconnected) | caution |
 
-**段数も踏面も踊り場も勾配も書かない。**書くのは装置と上る向きだけ (`stair:N` `ramp:E` `escalator:S` `lift:N`) で、あとは領域と階高から導かれる。[`koyu check`](../cli/check.md) が保証するのは「宣言から形が一意に決まる」までである — **決まった形が登りやすいかは、この巻が言う。**
+**段数も踏面も踊り場も勾配も書かない。**書くのは装置と上る向きだけ (`stair:N` `ramp:E` `escalator:S`。`lift` は上る向きを持たないので値は `1` で、`lift:1` と書く) で、あとは領域と階高から導かれる。[`koyu check`](../cli/check.md) が保証するのは「宣言から形が一意に決まる」までである — **決まった形が登りやすいかは、この巻が言う。**
 
 書かないものを検査する、という構えなので、検査の対象は「書かれた値」ではない。**導出された値である。**
 
@@ -31,7 +31,7 @@ L1→L2	stair	s	rise 3000mm	straight	17 risers of 176mm, tread 150mm	going 2400m
 
 導出された踏面が 240mm 未満か、`2×蹴上 + 踏面` が 550〜700mm の外に出た。後者は歩幅則である。
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 3000
 grid Y 0 4600
@@ -101,7 +101,7 @@ stack s L1..L2 type:stair
 
 `slope:` は**書く勾配ではない。許容する勾配の上限**であり、この検査のためだけに存在する。`slope:12` は「1/12 より急にはしない」という宣言である。
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 3000
 grid Y 0 6000
@@ -127,7 +127,7 @@ Validation — 0 violations / 1 caution
 
 エスカレーターには `slope:` を書かなくても、導出された勾配が 1/2.3 〜 1/1.4 (約1/1.7 = 30度を中心とした幅) から外れれば同じ規則が出る。
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 1200
 grid Y 0 12000
@@ -151,7 +151,7 @@ Validation — 0 violations / 1 caution
 
 **形とトポロジーは別々に書かれる。**`stair:N` は段の形を作るが、階と階が繋がっているとは言っていない。繋ぐのは `stack` か `boundary type:stair` である。
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 3000
 grid Y 0 7000

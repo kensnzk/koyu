@@ -281,7 +281,7 @@ console.log(renderDiff(d));
 function renderDiff(d: ModelDiff): string[]
 ```
 
-日本語の差分行を返す。**並びは `semanticDiff` が決めた正準順のまま**で、空なら空配列である。
+差分を読める行にして返す。**語は英語である** — 日本語が出るのは模型に書かれた値 (室名など) のときだけである。**並びは `semanticDiff` が決めた正準順のまま**で、空なら空配列である。
 
 記号は三つ。
 

@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/json/schema.md"],
+  "why": "空間の level キーは、パス先頭のセグメントと所属レベルが違うときにだけ出る。/L1/a は L1 に属し先頭も L1 なので出ない。/L1/loft は level:L2 でメゾネットなので出る — これが無いと JSON だけでは所属を復元できない"
+}

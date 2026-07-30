@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/form/bodies.md", "docs/reference/form/constants.md"],
+  "why": "床は FL から下へ slab: の厚さで生成される (-150..0)。天井は天井高の位置に張られ、そこから下へ 30mm の見付け厚を持つ (2370..2400) — 天井は床と違い、その階の空間の天井高から決まる"
+}

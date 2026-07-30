@@ -40,10 +40,12 @@ import {
   type Pt,
   type Space,
   canonicalBoundaryOrder,
+  canonicalSpaceOrder,
 } from "./model.js";
 import { EPS, SPAN_EPS } from "./tolerance.js";
 import {
   CUT_HEIGHT,
+  ARROW_SPAN_MIN,
   DEFAULT_RISER_MAX,
   ENTRY_LANDING,
   LANDING_MIN,
@@ -94,6 +96,7 @@ export const DERIVATION_CONSTANTS: Readonly<Record<string, number>> = {
   CUT_HEIGHT,
   DEFAULT_RISER_MAX,
   TREAD_TARGET,
+  ARROW_SPAN_MIN,
   LANDING_MIN,
   ENTRY_LANDING,
   LANE_ESCALATOR,
@@ -546,8 +549,10 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
   const zOf = new Map(levels.map((l) => [l.name, l.z]));
 
   // ---- 空間 ----
+  // Canonical order, not declaration order. The canonical form discards declaration order,
+  // so a shape that reads it yields two different `Form`s for one building (promise 1)
   const spaces: FormSpace[] = [];
-  for (const s of model.spaces.values()) {
+  for (const s of canonicalSpaceOrder(model)) {
     if (s.rects.length === 0) continue;
     const h = heff(model, s);
     const z = s.level !== undefined ? zOf.get(s.level) : undefined;

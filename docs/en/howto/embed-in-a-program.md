@@ -173,7 +173,7 @@ Canonical JSON carries **only what was written.** Derived default walls are not 
 
 ## Related
 
-- [TypeScript API](../reference/api/index.md) — the four entrances and every name on the surface
+- [TypeScript API](../reference/api/index.md) — the entrances and every name on the surface
 - [The scope of the promise](../reference/scope.md) — what a green `check` means
 - [Judgement — koyu validate](../reference/validate/index.md) — the fifteen rules
 - [Form](../reference/form/index.md) — the entrance to derived form

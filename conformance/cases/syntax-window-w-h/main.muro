@@ -1,0 +1,18 @@
+koyu 1.0
+name 窓の書き方
+unit mm
+
+grid X 0 6000
+grid Y 0 4000
+level L1 0 h:2700 slab:200
+
+space /L1/a room X1..X2 Y1..Y2 name:居室 daylight:1
+space /out exterior name:外部
+
+boundary /L1/a /out t:150 edge:S
+  window w:1650 h:1100 sill:900 name:腰窓
+boundary /L1/a /out t:150 edge:N
+  window w:2600 h:2200 name:掃き出し窓
+boundary /L1/a /out t:150 edge:E
+  door w:900 h:2100 name:出口
+boundary /L1/a /out t:150 edge:W

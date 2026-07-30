@@ -102,6 +102,11 @@ space /out exterior
 boundary /L1/bath /out edge:S t:150
 ```
 
+```text
+✖ /L1/bath	浴室	window 0.00 m2 / floor 4.00 m2 = no window (needs 1/7 ≈ 0.57 m2)
+✖ Short of 1/7: 1 of 1 room (this is a validation judgement)
+```
+
 型を `wet` から `bedroom` に替えても判定は一切動かない。**判定を掛けるかどうかは書き手が宣言することであり、室の名前から推し量るものではない。**
 
 これは建築の実態にも合っている — 日本の建築基準法の居室も「継続的に使用する室」という実態の判断であって、室名では決まらない。ただし属性が名指しているのは**ツールの判定**であって法概念そのものではない。両者は同じ集合ではない。

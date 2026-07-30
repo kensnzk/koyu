@@ -1,0 +1,6 @@
+grid X 0 3600
+grid Y 0 4000
+level B1 -3000 h:2400 slab:150
+level L1 0 h:2400 slab:150
+level M2 3000 h:2400 slab:150
+space /B1..M2/a room X1..X2 Y1..Y2

@@ -48,7 +48,15 @@ over asset SD1 w:900 style:hinged    # アセット
 
 存在しないものに意見だけを足すのは、たいてい綴り違いか、層の順序の思い違いである。
 
-`over` は自由属性だけでなく、parse が持ち上げる典型化された値にも届く — 境界の `type` `t` `air` `edge`、レベルの `h` `slab` `underground` はいずれも上書きできる。
+`over` は自由属性だけでなく、parse が持ち上げる典型化された値にも届く — 境界の `type` `t` `air` `edge`、レベルの `h` `slab` `underground`、空間の `level` はいずれも上書きできる。
+
+**`over` が書ける語は、その宣言に書ける語と同じである。**空間の `level` は所属を実際に動かし ([space](space.md))、宣言されていないレベルなら宣言行と同じ言葉で断られる。逆に、宣言が拒む語は `over` でも拒まれる — `w:` は帯の要素の語なので、`over` で空間に書くこともできない ([band](band.md))。
+
+```text
+✖ p.muro:line 1: w: may not be written on space (a space written by width sits indented under band)
+```
+
+**同じ語が書き方によって別の意味になってはならない** — でなければ `over` で直した版と最初からそう書いた版が同じ正準形を与えるという[規則5](composition.md)が破れる。
 
 **レベルに書けるのは三語だけである。**
 

@@ -36,7 +36,7 @@ grid Y 0 5600 7600 13200
 
 - Out of order is an error (`grid coordinates are written in ascending order`)
 - Fewer than two is an error
-- Declaring an axis twice is an error — when layers are composed, only the entry declares it
+- Declaring an axis twice is an error — when layers are composed, any layer may declare it, but only once across all of them
 - **It must come before any line that uses it.** A grid name referenced above its `grid` line gives `Undefined grid line name`
 
 X is positive east, Y is positive north, z is positive up. Lengths are millimetres, a ratio along a segment is `0..1`, and areas are reported in m² measured to wall centrelines.

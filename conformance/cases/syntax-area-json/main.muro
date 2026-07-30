@@ -1,0 +1,5 @@
+grid X 0 3600
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/hall hall X1..X2 Y1..Y2 name:エントランスホール floor:オーク
+  area X1..X1+1800 Y1..Y2 name:土間 floor:モルタル

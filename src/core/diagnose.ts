@@ -35,9 +35,9 @@ export interface CheckResult {
   warnings: string[];
 }
 
-/** 構造化診断 (ADR-0016)。message は本文のみ — 位置接頭辞「file:N行目: 」を含まない */
+/** 構造化診断 (ADR-0016)。message は本文のみ — 位置接頭辞「file:line N: 」を含まない */
 export interface Diagnostic {
-  /** 台帳 DIAGNOSTIC_CODES のコード (領域2-3字 + 2桁連番) */
+  /** 台帳 DIAGNOSTIC_CODES のコード (領域3字 + 2桁連番) */
   code: DiagnosticCode;
   severity: "error" | "warning";
   /** 本文 (位置接頭辞なし) */
@@ -149,7 +149,7 @@ const LEGACY_DAYLIT = new Set(["unit", "room", "ldk", "bedroom", "living"]);
 const olderThan = (version: string, ref: string): boolean =>
   SUPPORTED_LANGUAGE_VERSIONS.indexOf(version) < SUPPORTED_LANGUAGE_VERSIONS.indexOf(ref);
 
-/** 互換層 — 従来の文字列形式。位置を持つ診断は「file:N行目: 本文」に組み立てる */
+/** 互換層 — 従来の文字列形式。位置を持つ診断は「file:line N: 本文」に組み立てる */
 interface AttrSubject {
   /** 台帳を引く要素名 */
   elem: string;

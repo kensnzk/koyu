@@ -1,0 +1,11 @@
+[
+ {
+  "code": "SUF02",
+  "severity": "error",
+  "line": 4,
+  "file": "main.muro",
+  "path": [
+   "/house/a"
+  ]
+ }
+]

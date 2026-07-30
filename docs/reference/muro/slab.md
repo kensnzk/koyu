@@ -5,7 +5,7 @@ mode: reference
 
 # slab — 床組み
 
-```
+```text
 level <名> <z> [h:天井高] [slab:床組み厚] [underground:1]
 ```
 

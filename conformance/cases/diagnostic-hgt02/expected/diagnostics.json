@@ -1,0 +1,11 @@
+[
+ {
+  "code": "HGT02",
+  "severity": "error",
+  "line": 5,
+  "file": "main.muro",
+  "path": [
+   "/L1/a"
+  ]
+ }
+]

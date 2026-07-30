@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/composition.md", "docs/reference/muro/import.md"],
+  "why": "合成の規則4 — space は定義である。二つの層が同じパスを定義すればエラーで、両者の出所をファイル:行で言う。パスは同一性そのものなので、別の空間には別のパスを与える"
+}

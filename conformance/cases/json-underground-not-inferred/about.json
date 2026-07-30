@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/json/schema.md", "docs/reference/muro/level.md"],
+  "why": "underground は書かれたときだけ 1 として出る。B1 は z が負でも書いていないので出ない — 地盤面は敷地の事実であって座標系の原点の事実ではないので、z の負値から推定しない。B2 は書いたので出る"
+}

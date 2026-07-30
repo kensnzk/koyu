@@ -174,6 +174,37 @@ test("rule 5: the composed result matches the same configuration written in a si
   assert.equal(toCanonical(composed), toCanonical(flat), "no trace of the override remains in the machine format");
 });
 
+// A word `over` writes on a space must be treated exactly as the `space` declaration treats it.
+// Handing it to the generic attribute path looked at no key at all and dropped it into `attrs` —
+// **in both cases check stayed green while the written value died uninterpreted.**
+
+test("rule 5: over moves a typed field, so it matches the same value written on the declaration", () => {
+  const composed = build("over /L1/a level:L1\n");
+  const flat = parseFiles(
+    { "main.muro": BASE + PLAN.replace("room X1..X2 Y1..Y2 h:2500", "room X1..X2 Y1..Y2 level:L1 h:2500") },
+    "main.muro",
+  );
+  assert.equal(composed.spaces.get("/L1/a")!.level, "L1");
+  // No dead attribute left behind — level is a typed field, not a resident of attrs
+  assert.equal(composed.spaces.get("/L1/a")!.attrs["level"], undefined);
+  assert.equal(toCanonical(composed), toCanonical(flat));
+});
+
+test("over: an undeclared level is refused, exactly as it is on the declaration", () => {
+  assert.throws(
+    () => build("over /L1/a level:L9\n"),
+    (e: unknown) => e instanceof SourceError && /Undeclared level: level:L9/.test(e.message),
+  );
+});
+
+test("over: w: is refused on a space, exactly as it is on the declaration", () => {
+  // A write meant to change a band member's width used to land in attrs without moving the width
+  assert.throws(
+    () => build("over /L1/a w:1000\n"),
+    (e: unknown) => e instanceof SourceError && /w: may not be written on space/.test(e.message),
+  );
+});
+
 // ---- 規則6: 出所 ----
 
 test("rule 6: which layer gave the final value can be told", () => {

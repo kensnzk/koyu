@@ -1,0 +1,5 @@
+{
+  "pins": ["docs/reference/muro/import.md"],
+  "why": "base.muro を a.muro と c.muro の両方が import している。同じ層は一度だけ合成されるので grid の二重宣言にはならず、一枚に書いた版と同じ正準形になる。綴りで数えていれば衝突する",
+  "sameBuildingAs": "composition-single-import"
+}

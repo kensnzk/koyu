@@ -4,7 +4,13 @@
 // 空間の領域は矩形の合併 (L字など)。壁は合併の外周と共有辺から導出される。
 
 import type { Boundary, Edge, Model, Opening, Pt, Rect, Space } from "./model.js";
-import { canonicalBoundaryOrder, canonicalizeDrawn, rectToPoly, srcRef } from "./model.js";
+import {
+  canonicalBoundaryOrder,
+  canonicalizeDrawn,
+  compareCanonical,
+  rectToPoly,
+  srcRef,
+} from "./model.js";
 import * as poly from "./poly.js";
 import { EPS, PARALLEL_EPS, PROBE, SPAN_EPS } from "./tolerance.js";
 
@@ -164,9 +170,17 @@ export function deriveDefaultBoundaries(model: Model): void {
       if (declared.has(key)) continue;
       // 接触は**導出された形**で見る — 線で接触が消えた組に既定の壁を作らない
       if (sharedFromPieces(piecesOf(a), piecesOf(b)).length === 0) continue;
+      // The a/b orientation is decided in **canonical order**. On a declared boundary, `a` is
+      // the side as written and the canonical form preserves it as the `a` key, so the shape
+      // may read it. A derived boundary never appears in the canonical form, so it has no
+      // written orientation; taking the declaration order of the spaces would let discarded
+      // information change the shape — the relation identity (`a|b@i`) and the `edgeOfA`
+      // bearing would flip with it, against promise 1
+      const [pa, pb] =
+        compareCanonical(a.path, b.path) <= 0 ? [a.path, b.path] : [b.path, a.path];
       model.boundaries.push({
-        a: a.path,
-        b: b.path,
+        a: pa,
+        b: pb,
         kind: "wall",
         derived: true,
         attrs: {},

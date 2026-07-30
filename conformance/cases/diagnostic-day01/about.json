@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/day.md#day01",
+  "docs/reference/diagnostics/reading.md"
+ ],
+ "why": "DAY01 — daylight は 1 か 0 です。この入力はそのコードちょうど一件を出す。診断は code と severity のほかに出所 (line と file) と責める対象 (path) を持ち、本文の字面は凍らないので期待値に含めない"
+}

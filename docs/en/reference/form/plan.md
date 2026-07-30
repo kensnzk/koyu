@@ -12,7 +12,7 @@ mode: reference
 - **The break line itself** — the position of the fact that something was cut
 - **The descending run** — what is visible below the cut
 
-Tell consumers to "slice the solid" and each of them will invent those four. The projection of an upper void really did fall out this way: eleven of them exist in the bundled examples, and a viewer's plans showed none.
+Tell consumers to "slice the solid" and each of them will invent those four. The projection of an upper void really did fall out this way: the bundled examples are full of them, and a viewer's plans showed none.
 
 So `Form` holds the plan as a **classified set of 2D entities**.
 
@@ -86,7 +86,7 @@ Ascending runs land in `cut`, descending runs in `below`.
 
 Nosings are laid out from the part's t0 at the going interval, and anything outside the visible interval is dropped. Escalator step marks are laid out from **the start of the visible interval** at a constant `STEP_MARK` (400mm) pitch.
 
-Arrows are drawn per unit for an escalator, and for a stair or ramp one per departing flight (on the ascending face) or arriving flight (on the descending face). **The direction is decided by the way people travel and nothing else.** An escalator points the same way on both faces; a stair or ramp reverses on the descending face — the machine's direction is fixed, a person's changes with the face. A visible interval shorter than 900mm gets no arrow.
+Arrows are drawn per unit for an escalator, and for a stair or ramp one per departing flight (on the ascending face) or arriving flight (on the descending face). **The direction is decided by the way people travel and nothing else.** An escalator points the same way on both faces; a stair or ramp reverses on the descending face — the machine's direction is fixed, a person's changes with the face. A visible interval that does not **exceed** `ARROW_SPAN_MIN` (900mm) gets no arrow — an interval of exactly 900mm gets none either ([derivation constants](constants.md)).
 
 `anchor` returns only the seat for the annotation. The riser count and the slope live on the [vertical run](vertical-runs.md); turning them into words is the drawing side's job.
 
@@ -100,7 +100,7 @@ For the two spaces joined by a `void` boundary, **the derived shape of the upper
 
 `Form.site` carries the given site polygon regardless of level.
 
-**`koyu plan` treats the lowest storey's plan as a site plan too, and draws the site boundary there — and only there — as a dash-dot line.** That is a judgement about the composition of the sheet, not shape. Neither which level it lands on nor the dash-dot line style is inside [what freezes](../stability.md).
+**`koyu plan` treats the lowest storey's plan as a site plan too, and draws the site boundary there — and only there — as a dash-double-dot line** (grid lines are dash-dot, so the two are told apart by style). That is a judgement about the composition of the sheet, not shape. Neither which level it lands on nor the line style is inside [what freezes](../stability.md).
 
 ## Neighbouring pages
 

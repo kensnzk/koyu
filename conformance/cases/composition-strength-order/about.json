@@ -1,0 +1,5 @@
+{
+  "pins": ["docs/reference/muro/composition.md", "docs/reference/muro/import.md"],
+  "why": "合成の規則1と2 — import 行の並びが強度の宣言であり、後の層ほど強い。同じ三枚を並べ替えた composition-strength-order-swapped とは違う建物になる。ここでは strong.muro が後なので h:2600 が勝つ",
+  "differentBuildingFrom": "composition-strength-order-swapped"
+}

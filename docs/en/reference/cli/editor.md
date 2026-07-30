@@ -104,10 +104,10 @@ The colour assignment traces the structure of the notation.
 | `/L1/a` `/out` `/L2..L9/A` | Space and zone paths (identity) |
 | `X2+600` `Y1..Y2` `L14..L19` | Grid-line and level references |
 | `room` `shop` `exterior` | The type of a space (an open vocabulary) |
-| `daylight:` `t:` `edge:` `slope:` `road:` … | **Attributes core reads for form and derivation.** They have their own colour |
-| `spec:` `fire:` `name:` `acme.sensor:` | Every other attribute. One shared colour |
+| `daylight:` `t:` `edge:` `slope:` `road:` `name:` … | **Attributes core reads for form and derivation.** They have their own colour |
+| `spec:` `fire:` `floor:` `acme.sensor:` | Every other attribute. One shared colour |
 
-That last split is the point. The 37 words with their own colour are `underground`, `escalator`, `daylight`, `ceiling`, `landing`, `hinge`, `level`, `riser`, `slope`, `stair`, `style`, `swing`, `tread`, `pitch`, `entry`, `lane`, `lift`, `form`, `road`, `slab`, `site`, `area`, `turn`, `type`, `edge`, `kind`, `ramp`, `uid`, `air`, `use`, `at`, `h`, `w`, `t`, `d`, `x` and `y` — so the difference between `daylight:1` and `dayligth:1` is visible in colour as you type.
+That last split is the point. The 37 words with their own colour are `underground`, `escalator`, `daylight`, `ceiling`, `landing`, `hinge`, `level`, `riser`, `slope`, `stair`, `style`, `swing`, `tread`, `pitch`, `entry`, `lane`, `lift`, `form`, `road`, `slab`, `site`, `area`, `turn`, `type`, `edge`, `name`, `ramp`, `uid`, `air`, `use`, `at`, `h`, `w`, `t`, `d`, `x` and `y` — so the difference between `daylight:1` and `dayligth:1` is visible in colour as you type.
 
 **A misspelled attribute does not merely lose its colour; `check` stops on it as an error.** A key not in the ledger cannot be written at all unless it carries a dotted namespace (`acme.sensor`). Conversely, once namespaced, anything goes: core assigns no meaning to what is inside it.
 

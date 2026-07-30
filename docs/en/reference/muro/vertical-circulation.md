@@ -52,7 +52,7 @@ SUF04  No level sits above L3, so no form is generated for /L3/st
 
 ## form — straight and turning back
 
-```
+```text
 form:straight   straight (the default)
 form:return     turning back
 ```
@@ -70,7 +70,7 @@ RUN05  form:return may not be written on escalator (only a stair and a ramp turn
 
 A flight does not begin at the edge of the region. **A boarding band is left at the near end, and that is where the door opens.** Starting at the edge would drive the stair enclosure's door straight into the treads. A straight run leaves the same band at the far end.
 
-```
+```text
 form:straight   usable length = full length − entry × 2
 form:return     usable length = full length − entry
 ```
@@ -83,12 +83,14 @@ RUN05  The form of the vertical circulation is undetermined: /L1/s (check that t
 
 ## Dividing the steps
 
-The riser count is the rise divided by the riser limit, rounded up, with a floor of two. The tread is the usable length divided by the number of gaps between steps.
+The riser count is the rise divided by the riser limit, rounded up, with a floor of two. The tread is the length of **one flight** divided by the number of gaps between that flight's steps. A turning run has two flights and therefore two treads, and the more cramped one represents it (see [aggregate values](#aggregate-values) below).
 
-```
+```text
 risers = max(2, ceil(rise ÷ riser))
 riser  = rise ÷ risers
-tread  = usable length ÷ max(1, risers − 1)
+tread  = the length of one flight ÷ max(1, that flight's risers − 1)
+  form:straight   one flight = the usable length, and its risers are all of them
+  form:return     one flight = full length − entry − landing; k risers below, risers − k above
 ```
 
 `riser:` is the **upper limit** on a riser in mm, defaulting to **180**. Writing it changes the riser count.
@@ -192,7 +194,7 @@ A plan is the section cut at 1200mm above FL on that level. An ascending run's v
 
 Arrows go one per unit on an escalator, and one each on the departing and the arriving run for a stair or a ramp. Their direction comes from the direction people travel, so **an escalator points the same way on both floors while a stair and a ramp reverse on the upper one** — the machine's direction is fixed and the person's changes with the floor.
 
-In three dimensions a stair flight of k risers carries **k−1 treads** (the top step is received by the floor above), a ramp and an escalator are one inclined slab, and a lift car is a box of **constant height regardless of the storey height**.
+In three dimensions a stair flight of k risers carries **k−1 treads** (the top step is received by the floor above), a ramp is one inclined slab, an escalator is **one slab plus two balustrades per unit**, and a lift car is a box of **constant height regardless of the storey height**. The balustrade dimensions are in [form/constants.md](../form/constants.md).
 
 ## A complete example
 

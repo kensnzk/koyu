@@ -1,0 +1,18 @@
+koyu 1.0
+name 敷地の最小例
+unit mm
+grid X 0 8000
+grid Y 0 6000
+level L1 0 h:2700 slab:200
+
+zone /site name:敷地 site:1 area:154.00
+space /site/house room X1..X2 Y1..Y2 level:L1 name:建物
+space /out/road exterior name:前面道路 road:6000
+
+polygon /site -2000,-2000 12000,-2000 12000,9000 -2000,9000
+
+boundary /site/house /out/road edge:S t:150
+  door w:900 name:玄関
+boundary /site/house /out/road edge:N t:150
+boundary /site/house /out/road edge:E t:150
+boundary /site/house /out/road edge:W t:150

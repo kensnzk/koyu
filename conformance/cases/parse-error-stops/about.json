@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/band.md", "docs/reference/diagnostics/syn.md"],
+  "why": "w: は帯の要素の語である。字下げを落とした要素が「領域なしの空間」として黙って通るのを防ぐため、space の行に書けば parse が止まる。parse が止まったら意味の検査は一件も走らず、--json では SYN01 の一件に写る"
+}

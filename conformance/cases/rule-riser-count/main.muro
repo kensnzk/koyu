@@ -1,0 +1,9 @@
+koyu 1.0
+unit mm
+grid X 0 2000
+grid Y 0 5000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+space /L1/st stair X1..X2 Y1..Y2 stair:N
+space /L2/st room X1..X2 Y1..Y2
+boundary /L1/st /L2/st type:stair

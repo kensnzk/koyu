@@ -5,7 +5,7 @@ mode: reference
 
 # line — 描かれた線
 
-```
+```text
 boundary /pathA /pathB …
   line <始点> <終点>
 ```

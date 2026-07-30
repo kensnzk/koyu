@@ -178,13 +178,13 @@ console.log(form.spaces[0]);
 
 ```text
 {
-  path: '/B2/park',
-  type: 'parking',
-  level: 'B2',
+  path: '/B1/ev',
+  type: 'shaft',
+  level: 'B1',
   outline: [ [ [Object], [Object], [Object], [Object] ] ],
-  areaM2: 256,
-  z0: -7400,
-  z1: -4800,
+  areaM2: 14.04,
+  z0: -3700,
+  z1: -1100,
   indoor: true,
   semiOutdoor: false,
   covered: true
@@ -525,6 +525,8 @@ function deriveDefaultBoundaries(model: Model): void
 
 For every pair of region-bearing spaces on the same level that touch in plan and have no declared boundary at all, adds a `kind:"wall"` boundary to `model.boundaries`, marked `derived: true`. Contact is judged on the **derived shapes**, so a pair whose contact a line removed gets nothing.
 
+**The orientation of `a`/`b` is canonical.** On a declared boundary, `a` is the side as written, and canonical JSON preserves it as the `a` key, so the shape may read it. A derived boundary does not appear in canonical JSON, so it **has no written orientation**; taking the declaration order of the spaces would let information the canonical form discards change the shape ([promise 1](../form/index.md)). Path collation order decides it instead — the `edgeOfA` bearing and the relation identity `a|b@i` follow from that.
+
 **Nothing is derived against a space with no region** (an `exterior`). Naming that counterpart is itself information, so it is left to be declared.
 
 **Every [parse function](parsing.md) has already applied this on the way out.** It is idempotent, so calling it again is harmless.
@@ -642,6 +644,7 @@ console.log(DERIVATION_CONSTANTS);
   CUT_HEIGHT: 1200,
   DEFAULT_RISER_MAX: 180,
   TREAD_TARGET: 300,
+  ARROW_SPAN_MIN: 900,
   LANDING_MIN: 1100,
   ENTRY_LANDING: 1100,
   LANE_ESCALATOR: 1200,
@@ -664,6 +667,7 @@ console.log(DERIVATION_CONSTANTS);
 | `CUT_HEIGHT` | plan cut height above FL, mm | the `cut` option of `derive` |
 | `DEFAULT_RISER_MAX` | maximum riser, mm | `riser:` |
 | `TREAD_TARGET` | target tread when deriving a landing on a return stair, mm | `tread:` |
+| `ARROW_SPAN_MIN` | shortest visible run interval in plan that still carries a direction arrow, mm. The comparison is **strict**, so an interval of exactly 900mm carries none | — |
 | `LANDING_MIN` | minimum landing depth, mm | — |
 | `ENTRY_LANDING` | depth of the boarding floor, mm | `entry:` |
 | `LANE_ESCALATOR` | nominal width of one escalator, mm | `lane:` |

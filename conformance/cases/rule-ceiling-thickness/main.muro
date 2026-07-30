@@ -1,0 +1,6 @@
+koyu 1.0
+unit mm
+grid X 0 3000
+grid Y 0 3000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2 ceiling:1

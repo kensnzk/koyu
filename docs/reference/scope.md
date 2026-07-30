@@ -50,7 +50,7 @@ koyu は三つの領域からなる。**求められる品質が違うので、�
 | 合成の解決が定まること | 合成エラー |
 | **形を作るのに必要な情報の充足** | [SUF01–04](diagnostics/suf.md) |
 | 関係の健全性 | [BND01–06](diagnostics/bnd.md) / [VRT01–06](diagnostics/vrt.md) |
-| 導出の一意性(開口・`seg`・線・柱・縦動線の形) | [OPN01–08](diagnostics/opn.md) / [SEG01–08](diagnostics/seg.md) / [LIN01–03](diagnostics/lin.md) / [COL01–02](diagnostics/col.md) / [RUN01–05](diagnostics/run.md) |
+| 導出の一意性(開口・`seg`・線・柱・縦動線の形) | [OPN01–08](diagnostics/opn.md) / [SEG01–08](diagnostics/seg.md) / [LIN01–03](diagnostics/lin.md) / [COL01–02](diagnostics/col.md) / [RUN01–03 / RUN05](diagnostics/run.md) |
 | 解釈される属性の値域 | [ATT01–03](diagnostics/att.md) / [DAY01](diagnostics/day.md) |
 | 与件の健全性 | [SIT01 / SIT02](diagnostics/sit.md) |
 
@@ -100,7 +100,7 @@ npx tsx src/cli.ts validate examples/two-rooms.muro
 | 層 | 例 | core の態度 |
 |---|---|---|
 | **構造層** | パス・型・区画・レベル・関係の相手・`kind` | **必ず見る。**壊れていれば読まない |
-| **解釈層** | `h` `w` `at` `daylight` `road` `site` `style` … | 台帳が値域を定義し、**見る** |
+| **解釈層** | `h` `use` `daylight` `road` `site` `style` … | 台帳が値域を定義し、**見る** |
 | **運搬層** | `acme.sensor` `bems.temp` `survey.measured` … | **見ない。**名前空間つきで開いている |
 
 **運搬層は名前空間(ドット区切り)を持つ。**名前空間を持たない未知のキーは**エラー**([ATT03](diagnostics/att.md))である — `heigh:2400` のような一字違いが黙って効かないことを防ぐためで、これが「見ていないこと」と「見て問題がないこと」を区別できる唯一の形である。

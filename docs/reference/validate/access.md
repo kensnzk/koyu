@@ -33,7 +33,7 @@ mode: reference
 
 領域を持つ空間から、通れる境界を辿って `type:exterior` の空間へ出られない。
 
-```muro-bad
+```muro-fail
 koyu 1.0
 grid X 0 4000
 grid Y 0 5000
@@ -75,7 +75,7 @@ boundary /L1/a /out t:150
 
 通れる境界を持っているのに、その行き先が全部 `type:void` である。
 
-```muro-bad
+```muro-fail
 koyu 1.0
 grid X 0 4000 8000
 grid Y 0 5000
@@ -112,7 +112,7 @@ boundary /L1/a /L1/v air:1 h:1100
 
 `type:stair` の空間から外部へ出るどの経路も、`use:rentable` の空間を通る。
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 3000 9000
 grid Y 0 6000
@@ -144,7 +144,7 @@ Validation — 0 violations / 1 caution
 
 `use:parking` の空間から、車が通れる境界だけを辿って外部へ出られない。
 
-```muro-bad
+```muro-fail
 koyu 1.0
 grid X 0 6000
 grid Y 0 6000
@@ -181,7 +181,7 @@ boundary /L1/p /out
 
 縦動線の宣言 (`stair:` / `escalator:`) を持つ `use:common` の空間へ、共用廊下から `type:backyard` を通らずに届かない。
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 3000 6000 9000
 grid Y 0 8000

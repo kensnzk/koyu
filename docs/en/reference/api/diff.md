@@ -281,7 +281,7 @@ Polygons are compared after **cyclic normalisation**: the smallest serialisation
 function renderDiff(d: ModelDiff): string[]
 ```
 
-Returns the difference as lines of Japanese. **The order is the canonical order `semanticDiff` fixed**, and an empty diff gives an empty array.
+Returns the difference as readable lines. **The wording is English** — the only text that is not is a value written in the model, such as a room name. **The order is the canonical order `semanticDiff` fixed**, and an empty diff gives an empty array.
 
 Three signs:
 

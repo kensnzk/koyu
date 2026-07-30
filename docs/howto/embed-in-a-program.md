@@ -173,7 +173,7 @@ console.log(DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS);
 
 ## 関連
 
-- [TypeScript API](../reference/api/index.md) — 四つの入口と、面に載っている名の全部
+- [TypeScript API](../reference/api/index.md) — 入口と、面に載っている名の全部
 - [約束の範囲](../reference/scope.md) — `check` が緑であることの意味
 - [判定 — koyu validate](../reference/validate/index.md) — 15 の規則
 - [形](../reference/form/index.md) — 導出された形の入口

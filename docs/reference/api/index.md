@@ -13,7 +13,7 @@ npm install @kensnzk/koyu
 
 実行時依存はゼロである。パッケージが引くのは Node 標準モジュールだけで、それも `@kensnzk/koyu/node` の中だけに閉じている。動作環境は **Node 22 以上** (`engines.node` が `>=22`)。
 
-## 四つの入口
+## 入口
 
 ```ts
 import { parse, checkDiagnostics, derive } from "@kensnzk/koyu";
@@ -28,6 +28,10 @@ import { svgPlan, svgAxo } from "@kensnzk/koyu/draw";
 | `@kensnzk/koyu/node` | `parseFile` `parseFileWith` の二つだけ | 引く |
 | `@kensnzk/koyu/validate` | `validate` `VALIDATION_RULES` と型 `Finding` `ValidationRule` | 引かない |
 | `@kensnzk/koyu/draw` | `svgPlan` `svgAxo` と型 `PlanOptions` `AxoOptions` | 引かない |
+| `@kensnzk/koyu/examples/*` | 同梱の建物の原本 (`examples/two-rooms.muro` など)。テストや評価から読む | — |
+| `@kensnzk/koyu/syntax` | エディタの文法 (TextMate 文法の JSON)。VS Code と Shiki が共有する | — |
+
+上の四つが JS モジュールの入口で、`import` して名を引く。下の二つはデータ (同梱の建物の原本と文法ファイル) なので、`node:fs` の欄を持たない。**パッケージが公開しているサブパスはこの表で尽きている** — 宣言されたサブパスがこの頁に書かれていることはテストが縛るので、入口を足して書かなければ落ちる。
 
 **ルートは `node:fs` も `node:path` も引かない。**ブラウザ・Web Worker・エッジランタイムでそのまま動く。ファイルシステムを触る入口だけが `/node` に分離してある。分けてあるのはパーサ本体を純粋に保つためで、合成 (`import` の解決) は「レイヤーをどう読むか」という関数を外から受け取る形になっており、fs はその実装の一つでしかない。ブラウザは仮想ファイル群 (`parseFiles`) か独自ローダー (`parseWith`) を渡す — [解析と合成](parsing.md)。
 
@@ -38,6 +42,27 @@ import { svgPlan, svgAxo } from "@kensnzk/koyu/draw";
 パッケージのルートは **`export *` を使わない。**モジュールに export を足した瞬間に、誰も宣言していない約束が凍る面に増えてしまうからである。約束は書き下されていなければならない。
 
 したがって**この面の全部は、`src/index.ts` に一つずつ書かれた名の集合である** — 実行時の値が **59**、型が **77**。ここに無い名は、ソースの中にあっても約束ではない。
+
+**約束の全部がこの表である。**この表と `src/index.ts` の集合の一致はテストが縛るので、export を足して表に書かなければ落ちる。名の並びは照合順で、面の分け方は名がどのモジュールから出ているかである。
+
+<!-- api-surface -->
+
+| 面 | 値 | 型 |
+|---|---|---|
+| [解析と合成](parsing.md) | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
+| [モデルと問い](model.md) | `areaM2` `canonicalBoundaryOrder` `columnsFor` `DEFAULT_LANGUAGE_VERSION` `displayName` `effectiveUse` `heff` `isCoveredAbove` `isIndoor` `isSemiOutdoor` `levelsSorted` `newUids` `pointInPolygon` `polyBounds` `polygonAreaM2` `rectToPoly` `SourceError` `srcRef` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` `unionAreaM2` `zoneAreaM2` | `Area` `Asset` `Attrs` `AttrValue` `Boundary` `BoundaryKind` `Column` `ColumnDecl` `DrawnLine` `Edge` `GridAxis` `GridRef` `Level` `Model` `Opening` `Pt` `Rect` `Seg` `SitePolygon` `Space` `Zone` |
+| [診断](diagnostics.md) | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `CheckResult` `Diagnostic` `DiagnosticCode` |
+| [グラフと線分](queries.md) | `deriveDefaultBoundaries` `doorsBetween` `envelopeGaps` `neighbors` `passable` `placeBand` `placeOpening` `segmentsFor` | `Band` `BandCode` `BandError` `NeighborInfo` `PlacedBand` `Route` `Segment` |
+| [導出 (Form)](derive.md) | `band` `bandLine` `columnRect` `derive` `DERIVATION_CONSTANTS` `levelPitch` `runPrism` `thicken` | `DeriveOptions` `Form` `FormBoundary` `FormColumn` `FormInput` `FormLevel` `FormOpening` `FormPanel` `FormPlan` `FormPrism` `FormRun` `FormSeg` `FormSite` `FormSpace` `FormSwing` `PlanClass` `PlanEntity` `PlanRole` `PlanSubject` |
+| [公差](../form/constants.md) | `TOLERANCES` | — |
+| [面 — 床・天井・屋根](solids.md) | `slabs` | `Slab` `SlabKind` |
+| [採光の入力](queries.md) | `daylightInputs` | `DaylightInput` |
+| [縦動線](solids.md) | `runDrawsForLevel` `runSolids` `slopeText` `verticalRuns` | `RunArrow` `RunDevice` `RunDraw` `RunForm` `RunPart` `RunSolid` `Seg2` `VerticalRun` |
+| [敷地](queries.md) | `siteReport` | `RoadFrontage` `SiteReport` |
+| [差分](diff.md) | `renderDiff` `semanticDiff` | `BoundaryChange` `BoundaryItem` `ChangedItem` `ColumnItem` `FieldChange` `GridChange` `ModelDiff` `RenamedItem` `SpaceItem` |
+| [平面の描画](draw.md) | `svgPlan` | `PlanOptions` |
+| [立体の描画](draw.md) | `svgAxo` | `AxoOptions` |
+| [建築的な判定](validate.md) | `validate` `VALIDATION_RULES` | `Finding` `ValidationRule` |
 
 面に載る基準は四つある。
 

@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/diagnostics/bnd.md#bnd04", "docs/reference/diagnostics/reading.md"],
+  "why": "東西に並ぶ二室の共有辺は E/W である。edge:N を書いた境界は線分を持てないので BND04 が出る。診断は書かれた宣言ごとに一件で、必ず出所 (line と file) を持ち、本文は事実に反する誘導をしない (「接していない」ではなく「その辺には共有辺が無い」と言う)"
+}

@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/form/constants.md", "docs/reference/muro/boundary.md"],
+  "why": "遮蔽しない境界 (air:1 — 手すり・柵) は壁とは別の既定を持つ。厚みの既定は 60mm で、t: に何を書いても 80mm で頭打ちになる (500 と書いても 80)。天端は床から 1100mm で、壁のように階高まで立ち上がらない"
+}

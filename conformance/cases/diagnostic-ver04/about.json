@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/ver.md#ver04",
+  "docs/reference/diagnostics/reading.md"
+ ],
+ "why": "VER04 — 0.5 以前に 1.0 の語がある。この入力はそのコードちょうど一件を出す。診断は code と severity のほかに出所 (line と file) と責める対象 (path) を持ち、本文の字面は凍らないので期待値に含めない"
+}

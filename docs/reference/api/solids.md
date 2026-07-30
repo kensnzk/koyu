@@ -166,14 +166,13 @@ import { slabs } from "@kensnzk/koyu";
 
 const sl = slabs(b);
 console.log(sl.length, "slabs;", ["floor","ceiling","roof"].map((k) => `${k}=${sl.filter((s) => s.kind === k).length}`).join(" "));
-for (const s of sl.slice(0, 3)) console.log(s.kind, s.space, s.level, `z ${s.z0}→${s.z1}`, s.outline.length + " pts");
+for (const s of sl.filter((x) => x.space === "/B2/park")) console.log(s.kind, s.space, s.level, `z ${s.z0}→${s.z1}`, s.outline.length + " pts");
 ```
 
 ```text
 29 slabs; floor=15 ceiling=8 roof=6
 floor /B2/park B2 z -8200→-7400 4 pts
 ceiling /B2/park B2 z -4830→-4800 4 pts
-floor /B2/ramp B2 z -8200→-7400 4 pts
 ```
 
 床は階の FL の下に床組みのぶん下がる (B2 の FL は −7400、`slab` が 800 なので −8200 から)。天井は FL + 天井高 の面に、見付け厚のぶん下がって張られる。

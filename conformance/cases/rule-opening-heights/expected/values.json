@@ -1,0 +1,8 @@
+{
+  "/openings/0/kind": "door",
+  "/openings/0/z0": 0,
+  "/openings/0/z1": 2000,
+  "/openings/1/kind": "window",
+  "/openings/1/z0": 800,
+  "/openings/1/z1": 2000
+}

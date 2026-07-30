@@ -1,0 +1,18 @@
+[
+ {
+  "code": "OPN02",
+  "severity": "error",
+  "line": 8,
+  "file": "main.muro",
+  "path": [
+   "/L1/a",
+   "/L1/b"
+  ],
+  "related": [
+   {
+    "line": 7,
+    "file": "main.muro"
+   }
+  ]
+ }
+]

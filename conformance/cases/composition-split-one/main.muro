@@ -1,0 +1,12 @@
+koyu 1.0
+unit mm
+grid X 0 4000 8000
+grid Y 0 5000
+level L1 0 h:2700 slab:300
+asset SD1 door w:800 style:sliding name:片引き戸
+space /L1/a room X1..X2 Y1..Y2 name:居室
+space /L1/b room X2..X3 Y1..Y2 name:廊下
+boundary /L1/a /L1/b t:120
+  door SD1
+space /out exterior name:外部
+boundary /L1/a /out edge:W t:200

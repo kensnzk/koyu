@@ -70,7 +70,7 @@ interface Diagnostic {
 
 | フィールド | 必ずあるか | 中身 |
 |---|---|---|
-| `code` | 必ず | 台帳の 65 コードのいずれか。領域2〜3字 + 2桁の連番 |
+| `code` | 必ず | 台帳の 65 コードのいずれか。領域3字 + 2桁の連番 |
 | `severity` | 必ず | `"error"` か `"warning"`。**コードの不変属性**であって、場合によって変わらない |
 | `message` | 必ず | **本文だけ。**位置接頭辞 (`ファイル:line N: `) を含まない |
 | `line` | 位置を持つ診断のみ | 出所の行番号 (1始まり)。既定境界の導出のように、書かれた行を持たない診断では省略される |
@@ -104,7 +104,12 @@ interface Diagnostic {
 ]
 ```
 
-**出所を持たない診断は無い。**集合に対する診断 (「同じ空間対に二種類の境界が併存している」) でも、その集合を作った宣言のうち一本を `line` が指し、残りが `related` に入る。「どこかで矛盾している」とだけ言われても直す場所が無いからである。
+**集合に対する診断も、集合を作った宣言の位置を返す。**「どこかで矛盾している」とだけ言われても直す場所が無いからである。持ち方は二つある。
+
+- **一本を `line` が指し、残りが `related` に入る** — BND02 (境界の重複)、BND05 (`edge` の併存)、GEO02 (領域の重なり)、COL02 (先の宣言の影に入った柱)、UID04 (容器の中の名の重複)。
+- **すべてが `related` に入り、`line` を持たない** — UID03 (`uid` の重複)。どちらが先とも言えない対称な衝突なので一本を選ばない。出所は本文にも綴られる。
+
+**位置を一つも持たない診断もある。**既定境界 (導出された壁) は書かれた行を持たないので、それについての診断は `line` も `file` も `related` も返さない — `koyu 0.1` のファイルで既定境界が導出されたことを言う VER01 がそれである。人向けの出力にも `<file>:line N: ` の接頭辞は付かず、直す先は `path` が名指す二つの空間から辿る。
 
 ## severity と終了コード
 
@@ -202,7 +207,7 @@ koyu check broken.muro --json
 
 `checkDiagnostics(model)` が `Diagnostic[]` を返す。`check(model)` は互換層で、`{ errors, warnings }` の**文字列**の組を返す — こちらの文字列には位置接頭辞が付いている。コードが要るなら `checkDiagnostics` を使う。
 
-`DIAGNOSTIC_CODES` は台帳そのもので、コードから規範の severity を引ける。欠番の綴りを引くと `undefined` が返る。
+`DIAGNOSTIC_CODES` は台帳そのもので、コードから規範の severity を引ける。
 
 ```ts
 import { checkDiagnostics, DIAGNOSTIC_CODES } from "koyu";
@@ -212,7 +217,13 @@ for (const d of checkDiagnostics(model)) {
 }
 
 DIAGNOSTIC_CODES["BND04"]; // "error"
-DIAGNOSTIC_CODES["BND07"]; // undefined — 欠番
+```
+
+**欠番の綴りは型が拒む。**台帳は `as const` なので、台帳に無いキーで引くと型検査が止まる — `DIAGNOSTIC_CODES["BND07"]` は TS2551 になる。登録していないコードを扱えないことが契約である。実行時の値として欠番を確かめたいなら、型を広げてから引く。
+
+```ts
+const ledger = DIAGNOSTIC_CODES as Record<string, "error" | "warning" | undefined>;
+ledger["BND07"]; // undefined — 欠番
 ```
 
 欠番の一覧は[欠番の診断コード](retired.md)にある。

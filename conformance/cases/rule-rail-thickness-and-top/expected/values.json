@@ -1,0 +1,6 @@
+{
+  "/boundaries/0/air": true,
+  "/boundaries/0/material/t": 60,
+  "/boundaries/0/material/z1": 1100,
+  "/boundaries/1/material/t": 80
+}

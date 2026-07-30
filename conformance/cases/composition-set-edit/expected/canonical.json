@@ -1,0 +1,73 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      4000,
+      8000
+    ],
+    "Y": [
+      0,
+      5000
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2700,
+      "slab": 300
+    }
+  },
+  "spaces": {
+    "/L1/a": {
+      "type": "room",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ]
+    },
+    "/L1/b": {
+      "type": "room",
+      "at": [
+        "X2",
+        "Y1",
+        "X3",
+        "Y2"
+      ]
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/L1/a",
+        "/L1/b"
+      ],
+      "a": "/L1/a",
+      "kind": "wall",
+      "t": 120,
+      "openings": [
+        {
+          "kind": "door",
+          "w": 1000,
+          "at": 0.5,
+          "attrs": {
+            "name": "D1"
+          }
+        },
+        {
+          "kind": "window",
+          "w": 600,
+          "h": 1200,
+          "at": 0.9,
+          "attrs": {
+            "name": "W1"
+          }
+        }
+      ]
+    }
+  ]
+}

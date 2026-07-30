@@ -1,0 +1,78 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "name": "位置の例",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      6400,
+      12800
+    ],
+    "Y": [
+      0,
+      5600,
+      11200
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2700,
+      "slab": 200
+    }
+  },
+  "spaces": {
+    "/L1/hall": {
+      "type": "hall",
+      "at": [
+        "X2",
+        "Y1+2800",
+        "X3",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "廊下"
+      }
+    },
+    "/L1/ldk": {
+      "type": "ldk",
+      "at": [
+        [
+          "X1",
+          "Y1",
+          "X2",
+          "Y2"
+        ],
+        [
+          "X2",
+          "Y1",
+          "X3",
+          "Y1+2800"
+        ]
+      ],
+      "attrs": {
+        "name": "LDK"
+      }
+    },
+    "/L1/room": {
+      "type": "room",
+      "at": [
+        "X1",
+        "Y2",
+        "X3",
+        "Y3"
+      ],
+      "attrs": {
+        "name": "寝室"
+      }
+    },
+    "/out": {
+      "type": "exterior",
+      "attrs": {
+        "name": "外部"
+      }
+    }
+  },
+  "boundaries": []
+}

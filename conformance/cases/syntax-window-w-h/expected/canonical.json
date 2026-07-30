@@ -1,0 +1,120 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "name": "窓の書き方",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      6000
+    ],
+    "Y": [
+      0,
+      4000
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2700,
+      "slab": 200
+    }
+  },
+  "spaces": {
+    "/L1/a": {
+      "type": "room",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "daylight": 1,
+        "name": "居室"
+      }
+    },
+    "/out": {
+      "type": "exterior",
+      "attrs": {
+        "name": "外部"
+      }
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/L1/a",
+        "/out"
+      ],
+      "a": "/L1/a",
+      "kind": "wall",
+      "t": 150,
+      "edge": "E",
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "h": 2100,
+          "at": 0.5,
+          "attrs": {
+            "name": "出口"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L1/a",
+        "/out"
+      ],
+      "a": "/L1/a",
+      "kind": "wall",
+      "t": 150,
+      "edge": "N",
+      "openings": [
+        {
+          "kind": "window",
+          "w": 2600,
+          "h": 2200,
+          "at": 0.5,
+          "attrs": {
+            "name": "掃き出し窓"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L1/a",
+        "/out"
+      ],
+      "a": "/L1/a",
+      "kind": "wall",
+      "t": 150,
+      "edge": "S",
+      "openings": [
+        {
+          "kind": "window",
+          "w": 1650,
+          "h": 1100,
+          "at": 0.5,
+          "attrs": {
+            "name": "腰窓",
+            "sill": 900
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L1/a",
+        "/out"
+      ],
+      "a": "/L1/a",
+      "kind": "wall",
+      "t": 150,
+      "edge": "W"
+    }
+  ]
+}

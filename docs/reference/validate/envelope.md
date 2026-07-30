@@ -17,7 +17,7 @@ mode: reference
 
 `caution`
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 4000 8000
 grid Y 0 5000

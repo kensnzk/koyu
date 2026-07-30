@@ -5,7 +5,7 @@ mode: reference
 
 # polygon — the shape of the site
 
-```
+```text
 polygon /zone-path x,y x,y x,y …
 ```
 
@@ -63,7 +63,7 @@ Site /site (敷地)
 |---|---|
 | area (shoelace) | site area, reconciled against the zone's `area:` (the surveyed figure in m2) |
 | the outline | the check for a building escaping the site |
-| the site boundary line | the site plan — drawn on the lowest storey's plan as a chain line |
+| the site boundary line | the site plan — drawn on the lowest storey's plan as a dash-double-dot line (grid lines are dash-dot) |
 
 The `site` question still answers without a `polygon` — the site area is then derived from the union of the spaces inside the site and the indoor footprint. A `polygon` replaces that with the surveyed shape.
 

@@ -1,0 +1,86 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      7200
+    ],
+    "Y": [
+      0,
+      4500
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2400,
+      "slab": 150
+    }
+  },
+  "assets": {
+    "D1": {
+      "kind": "door",
+      "attrs": {
+        "h": 2100,
+        "name": "片開き戸",
+        "w": 900
+      }
+    }
+  },
+  "spaces": {
+    "/L1/a": {
+      "type": "room",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "室"
+      }
+    },
+    "/out": {
+      "type": "exterior",
+      "attrs": {
+        "name": "外部"
+      }
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/L1/a",
+        "/out"
+      ],
+      "a": "/L1/a",
+      "kind": "wall",
+      "t": 150,
+      "edge": "S",
+      "openings": [
+        {
+          "kind": "door",
+          "ref": "D1",
+          "w": 900,
+          "h": 2100,
+          "at": 0.25,
+          "attrs": {
+            "name": "片開き戸"
+          }
+        },
+        {
+          "kind": "door",
+          "ref": "D1",
+          "w": 900,
+          "h": 2100,
+          "at": 0.75,
+          "attrs": {
+            "name": "片開き戸"
+          }
+        }
+      ]
+    }
+  ]
+}

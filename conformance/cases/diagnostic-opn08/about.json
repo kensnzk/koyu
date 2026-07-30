@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/opn.md#opn08",
+  "docs/reference/diagnostics/reading.md"
+ ],
+ "why": "OPN08 — 開口の明示位置が線分からはみ出します。この入力はそのコードちょうど一件を出す。診断は code と severity のほかに出所 (line と file) と責める対象 (path) を持ち、本文の字面は凍らないので期待値に含めない"
+}

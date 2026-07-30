@@ -33,7 +33,7 @@ Every rule here stands on one definition.
 
 A space with a region cannot reach a `type:exterior` space along passable boundaries.
 
-```muro-bad
+```muro-fail
 koyu 1.0
 grid X 0 4000
 grid Y 0 5000
@@ -75,7 +75,7 @@ To find where the chain breaks, [`koyu doors`](../cli/doors.md) answers with the
 
 The space has passable boundaries, and every one of them leads to a `type:void`.
 
-```muro-bad
+```muro-fail
 koyu 1.0
 grid X 0 4000 8000
 grid Y 0 5000
@@ -112,7 +112,7 @@ boundary /L1/a /L1/v air:1 h:1100
 
 Every route out of a `type:stair` space passes through a `use:rentable` space.
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 3000 9000
 grid Y 0 6000
@@ -144,7 +144,7 @@ Validation — 0 violations / 1 caution
 
 A `use:parking` space cannot reach the outside along car-passable boundaries.
 
-```muro-bad
+```muro-fail
 koyu 1.0
 grid X 0 6000
 grid Y 0 6000
@@ -181,7 +181,7 @@ boundary /L1/p /out
 
 A `use:common` space declaring a vertical run (`stair:` / `escalator:`) cannot be reached from a common corridor without crossing a `type:backyard`.
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 3000 6000 9000
 grid Y 0 8000

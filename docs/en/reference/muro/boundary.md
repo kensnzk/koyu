@@ -5,7 +5,7 @@ mode: reference
 
 # boundary — the boundary between two spaces
 
-```
+```text
 boundary /pathA /pathB [key:value...]
   door … / window … / seg … / line …      # one level of indentation
 ```
@@ -126,8 +126,8 @@ Declarations exist for the exceptions: to make it `open`, to make it `air:1`, to
 | Attribute | Tier | Meaning |
 |---|---|---|
 | `type` | structure | one of the five words above. Default `wall` |
-| `t` | structure | wall thickness in mm, split evenly either side of the centerline. Left out, drawing uses 100mm |
-| `air` | structure | `1` = there is something there, but it blocks neither air nor light (a railing, a fence). **Not a statement about passage** — a parapet wall is still not passable |
+| `t` | structure | wall thickness in mm, split evenly either side of the centerline. Left out, drawing uses 100mm — or 60mm on an `air:1` boundary |
+| `air` | structure | `1` = there is something there, but it blocks neither air nor light (a railing, a fence). **Not a statement about passage** — a parapet wall is still not passable. The thickness is capped at 80mm |
 | `edge` | structure | restrict the segments to one compass side N/E/S/W as seen from the a side |
 | `h` | interpreted | top height in mm of an `air:1` boundary. Default 1100. Anything other than a positive number is ATT01 |
 | `name` | interpreted | display name |

@@ -16,6 +16,7 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { ATTR_LEDGER } from "../src/core/vocabulary.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p: string) => readFileSync(join(root, p), "utf8");
@@ -68,24 +69,22 @@ test("words that can be written indented: grammar = the indented branch in src/c
   );
 });
 
-test("attribute keys that take their own color: grammar = the ★ rows of spec/vocabulary.md", () => {
-  // 表の★行の第1列。`stair / ramp / escalator` は分け、`level:` は綴りを落とし、
-  // 日本語の見出し (領域・軸・先頭トークン) は属性キーではないので採らない
-  const starred = new Set<string>();
-  for (const line of read("spec/vocabulary.md").split("\n")) {
-    if (!line.startsWith("|") || !line.includes("★")) continue;
-    for (const raw of line.split("|")[1]!.split("/")) {
-      const key = raw.trim().replace(/:$/, "");
-      if (/^[a-z][a-z0-9]*$/.test(key)) starred.add(key);
+test("attribute keys that take their own color: grammar = the non-carrier keys of ATTR_LEDGER", () => {
+  // The single source is the implementation ledger (law 7), not a prose table — a table cannot say
+  // which tier a key is in, and the previous version had to hard-code five keys the table missed.
+  //
+  // Carrier-tier keys are deliberately not coloured: core does not act on them, and the colour is
+  // what tells a writer "a tool reads this". Everything else in the ledger gets it.
+  const coloured = new Set<string>();
+  for (const keys of Object.values(ATTR_LEDGER)) {
+    for (const [key, spec] of Object.entries(keys)) {
+      if (spec.tier !== "carry") coloured.add(key);
     }
   }
-  // 表を持たない節で★が宣言されている属性 (level / zone) — 台帳の本文がその出所である
-  for (const key of ["slab", "pitch", "underground", "site", "area"]) starred.add(key);
-
   assert.deepEqual(
     [...alternatives("attr-ledger")].sort(),
-    [...starred].sort(),
-    "when a ★ is added to spec/vocabulary.md, fix attr-ledger too (law 7)",
+    [...coloured].sort(),
+    "when a key is added to ATTR_LEDGER, fix attr-ledger in the grammar too (law 7)",
   );
 });
 

@@ -772,15 +772,51 @@ export function canonicalBoundaryEntry(b: Boundary): Record<string, unknown> {
 export function canonicalBoundaryOrder(model: Model): Boundary[] {
   return [...model.boundaries]
     .map((b, i) => ({ b, key: JSON.stringify(canonicalBoundaryEntry(b)), i }))
-    .sort((p, q) => (p.key < q.key ? -1 : p.key > q.key ? 1 : p.i - q.i))
+    .sort((p, q) => compareCanonical(p.key, q.key) || p.i - q.i)
     .map((x) => x.b);
+}
+
+/**
+ * Spaces in canonical order (path collation).
+ *
+ * **Declaration order is information the canonical form discards** — `toCanonical` sorts the
+ * `spaces` keys by collation. So every derivation that reads spaces in order, such as the
+ * ordering of `Form.spaces`, uses this. The `Map` insertion order itself is left alone:
+ * diagnostics are contractually in **scan order** (ADR-0028), so another reader needs
+ * declaration order.
+ */
+export function canonicalSpaceOrder(model: Model): Space[] {
+  return [...model.spaces.keys()].sort(compareCanonical).map((p) => model.spaces.get(p)!);
+}
+
+/**
+ * Puts the spelling of every region into canonical order.
+ *
+ * **The order the parts of a `+` union were written in is information the canonical form
+ * discards** — `canonicalSpaceEntry` runs `at` through `sortBySerial`. Discarded information
+ * must not change the shape, so everything that reads `rects` — convex pieces, boundary
+ * segments, slabs, plan entities, and the anchor of a room label when two pieces have equal
+ * area — is kept off the written order by sorting the spelling. `grids` and `rects` stay
+ * parallel.
+ */
+export function normalizeRegionOrder(model: Model): void {
+  for (const s of model.spaces.values()) {
+    if (s.grids.length < 2 || s.grids.length !== s.rects.length) continue;
+    const order = s.grids
+      .map((g, i) => [JSON.stringify([g.xa, g.ya, g.xb, g.yb]), i] as const)
+      .sort(([x], [y]) => compareCanonical(x, y))
+      .map(([, i]) => i);
+    s.grids = order.map((i) => s.grids[i]!);
+    s.rects = order.map((i) => s.rects[i]!);
+  }
 }
 
 /** 正準JSON — 機械形式。差分とレイヤー合成の土台 (キーは安定順) */
 export function toCanonical(model: Model): string {
-  const spaces: Record<string, unknown> = {};
+  // Keys taken from the source go in a Map so the collation order survives serialisation
+  const spaces = new Map<string, unknown>();
   for (const p of [...model.spaces.keys()].sort(compareCanonical)) {
-    spaces[p] = canonicalSpaceEntry(model.spaces.get(p)!);
+    spaces.set(p, canonicalSpaceEntry(model.spaces.get(p)!));
   }
   // 境界: 宣言順は意味を持たないため、並びは内容の正準順 (betweenの辞書順、同一betweenは直列化順)。
   // 既定境界 (derived — ADR-0014) は出さない: 正準JSONは書かれた構成のみで、意味は導出後のModelが持つ
@@ -788,19 +824,19 @@ export function toCanonical(model: Model): string {
     [...model.boundaries].filter((b) => !b.derived).map(canonicalBoundaryEntry),
   );
 
-  const zones: Record<string, unknown> = {};
+  const zones = new Map<string, unknown>();
   for (const p of [...model.zones.keys()].sort(compareCanonical)) {
     const z = model.zones.get(p)!;
-    zones[p] = Object.keys(z.attrs).length ? { attrs: sortObj(z.attrs) } : {};
+    zones.set(p, Object.keys(z.attrs).length ? { attrs: sortObj(z.attrs) } : {});
   }
-  const assets: Record<string, unknown> = {};
+  const assets = new Map<string, unknown>();
   for (const n of [...model.assets.keys()].sort(compareCanonical)) {
     const a = model.assets.get(n)!;
-    assets[n] = { kind: a.kind, ...(Object.keys(a.attrs).length ? { attrs: sortObj(a.attrs) } : {}) };
+    assets.set(n, { kind: a.kind, ...(Object.keys(a.attrs).length ? { attrs: sortObj(a.attrs) } : {}) });
   }
-  const polygons: Record<string, number[][]> = {};
+  const polygons = new Map<string, number[][]>();
   for (const p of [...model.polygons.keys()].sort(compareCanonical)) {
-    polygons[p] = model.polygons.get(p)!.points.map((pt) => [pt.x, pt.y]);
+    polygons.set(p, model.polygons.get(p)!.points.map((pt) => [pt.x, pt.y]));
   }
 
   const doc = {
@@ -826,8 +862,8 @@ export function toCanonical(model: Model): string {
         ]),
       ),
     ),
-    ...(Object.keys(assets).length ? { assets } : {}),
-    ...(Object.keys(polygons).length ? { polygons } : {}),
+    ...(assets.size ? { assets } : {}),
+    ...(polygons.size ? { polygons } : {}),
     // **柱の宣言順は意味である。**同じ交点に二本は立たず、先の宣言が勝つ (ADR-0023) ので、
     // 並べ替えると別の建物が同一のJSONになる。並べ替えてよいのは宣言の**中**の、
     // 順序に意味の無い通り名の列だけである (ADR-0029)
@@ -843,11 +879,11 @@ export function toCanonical(model: Model): string {
           })),
         }
       : {}),
-    ...(Object.keys(zones).length ? { zones } : {}),
+    ...(zones.size ? { zones } : {}),
     spaces,
     boundaries,
   };
-  return JSON.stringify(doc, null, 2) + "\n";
+  return canonicalStringify(doc) + "\n";
 }
 
 /**
@@ -927,8 +963,35 @@ function utf8Order(u: number): number {
   return u;
 }
 
-function sortObj<T>(o: Record<string, T>): Record<string, T> {
-  return Object.fromEntries(Object.entries(o).sort(([a], [b]) => compareCanonical(a, b)));
+function sortObj<T>(o: Record<string, T>): Map<string, T> {
+  return new Map(Object.entries(o).sort(([a], [b]) => compareCanonical(a, b)));
+}
+
+/**
+ * Serialises a canonical document, with the same bytes `JSON.stringify(value, null, 2)` produces —
+ * plus `Map`, whose entries are emitted **in insertion order**.
+ *
+ * A plain object cannot carry the collation order: JavaScript keeps integer-like keys
+ * (`"2"`, `"10"`) ahead of the rest, in ascending numeric order, whatever order they were inserted
+ * in. So a level or asset named `2` came out before one named `10`, while collation order — which
+ * this format promises — puts `10` first. `Object.fromEntries` silently undid a correct sort.
+ * A `Map` has no such rule, so keys taken from the source are carried in one.
+ */
+function canonicalStringify(value: unknown, depth = 0): string {
+  const pad = "  ".repeat(depth + 1);
+  const close = "  ".repeat(depth);
+  if (value === null || typeof value !== "object") return JSON.stringify(value) ?? "null";
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "[]";
+    const items = value.map((v) => pad + canonicalStringify(v, depth + 1));
+    return `[\n${items.join(",\n")}\n${close}]`;
+  }
+  const entries: Array<[string, unknown]> =
+    value instanceof Map ? [...value.entries()] : Object.entries(value);
+  const kept = entries.filter(([, v]) => v !== undefined);
+  if (kept.length === 0) return "{}";
+  const items = kept.map(([k, v]) => `${pad}${JSON.stringify(k)}: ${canonicalStringify(v, depth + 1)}`);
+  return `{\n${items.join(",\n")}\n${close}}`;
 }
 
 /**

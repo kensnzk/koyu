@@ -50,7 +50,7 @@ That `at:0.5` was never written. An opening with no position given sits at the m
 
 ## The shape of --json
 
-A `ModelDiff` has seven sections. `grid` is a list of changes; the rest carry `added` / `removed` / `changed`, and `zones` and `spaces` additionally carry `renamed`.
+A `ModelDiff` has eight sections. `grid` is a list of changes; the rest carry `added` / `removed` / `changed`, and `zones` and `spaces` additionally carry `renamed`.
 
 ```sh
 npx tsx src/cli.ts diff before.muro after.muro --json

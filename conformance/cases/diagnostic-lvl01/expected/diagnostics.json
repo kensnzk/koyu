@@ -1,0 +1,14 @@
+[
+ {
+  "code": "LVL01",
+  "severity": "error",
+  "line": 4,
+  "file": "main.muro",
+  "related": [
+   {
+    "line": 3,
+    "file": "main.muro"
+   }
+  ]
+ }
+]

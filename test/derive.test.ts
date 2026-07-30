@@ -44,11 +44,11 @@ const digest = (file: string): string =>
  */
 const GOLDEN: Record<string, string> = {
   "examples/two-rooms.muro": "ae6e08bb1ea7579c",
-  "examples/office.muro": "2848970924f67cf6",
-  "examples/house/main.muro": "3b06def277c72721",
-  "examples/basement/main.muro": "57dd17fc4a3598d5",
-  "examples/tower/main.muro": "bbe79ad46b6afdd6",
-  "examples/complex/main.muro": "aced50916d6bbecb",
+  "examples/office.muro": "a1780282676e79fa",
+  "examples/house/main.muro": "f614e9ffa04c13ad",
+  "examples/basement/main.muro": "bc1432e735bdf727",
+  "examples/tower/main.muro": "aa2ed2ed71a37e86",
+  "examples/complex/main.muro": "d95287b9b468a12a",
 };
 
 test("derive: the Form of every bundled example matches its golden", () => {
@@ -124,7 +124,10 @@ function tableAfter(page: string, marker: string): Record<string, number> {
   return out;
 }
 
-for (const page of ["spec/derivation.md", "spec/en/derivation.md"]) {
+// The ledger is checked against the **published documentation**. `spec/` is an internal tree on
+// its way out and has in fact gone stale — while two trees both claim to be normative, the machine
+// must bind the one that is canonical.
+for (const page of ["docs/reference/form/constants.md", "docs/en/reference/form/constants.md"]) {
   test(`derive: the constants table in ${page} and DERIVATION_CONSTANTS agree`, () => {
     assert.deepEqual(tableAfter(page, "<!-- derivation-constants -->"), { ...DERIVATION_CONSTANTS });
   });

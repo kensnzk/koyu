@@ -41,7 +41,7 @@ mode: reference
 | `spaces` | 合成後の空間数 |
 | `boundaries` | **導出後**の境界の本数 |
 | `errors` `warnings` | 出所つきの文字列の配列 |
-| `diagnostics` | 構造化診断の配列。**`errors` と `warnings` を足したものと同件・同順** |
+| `diagnostics` | 構造化診断の配列。**`errors` と `warnings` を足したものと同件。**並びは走査の順で、`errors` / `warnings` はそれを severity で二本に割ったものなので、**連結して添字で対応させてはならない** |
 
 **警告で止めたいなら自分で見る。**CLI の `--strict` に当たる旗はここに無い。`warnings.length` を読んで判断する。
 
@@ -129,7 +129,7 @@ boundary /L1/a /L1/b t:150
 }
 ```
 
-**`errors` の文字列と `diagnostics` は同じものである。**前者は位置を本文の頭に貼り付けた人向けの形、後者は機械が読む形で、件数も並びも一致する。**エージェントは `diagnostics` を読む。**
+**`errors` の文字列と `diagnostics` の項は同じものを指す。**前者は位置を本文の頭に貼り付けた人向けの形、後者は機械が読む形である。`errors` と `warnings` を合わせたものが `diagnostics` と同件で、`diagnostics` は走査の順に並ぶ — この例のように警告が無いときだけ、`errors` の並びが `diagnostics` の並びと一致する。**エージェントは `diagnostics` を読む。**
 
 ### 診断の形
 

@@ -19,7 +19,7 @@ import { parseFile, parseFileWith } from "@kensnzk/koyu/node";
 
 順序はこの通りである。逆にすると、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に出所の無い診断が出てしまう — 書いていない関係を責めることになる。
 
-**投げるのはこの五つだけである。**構文と合成の失敗は [`SourceError`](errors.md) として飛ぶ。検査 (`checkDiagnostics` / `check`) は投げず、必ず配列を返す。
+**投げるのはこの五つと `tokenize` だけである。**構文と合成の失敗は [`SourceError`](errors.md) として飛ぶ。検査 (`checkDiagnostics` / `check`) は投げず、必ず配列を返す。
 
 ## parse
 

@@ -1,0 +1,11 @@
+[
+ {
+  "code": "SIT02",
+  "severity": "error",
+  "line": 5,
+  "file": "main.muro",
+  "path": [
+   "/site"
+  ]
+ }
+]

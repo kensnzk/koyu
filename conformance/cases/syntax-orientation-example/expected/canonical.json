@@ -1,0 +1,87 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "name": "方位の例",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      6400
+    ],
+    "Y": [
+      0,
+      5600
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2700,
+      "slab": 200
+    }
+  },
+  "spaces": {
+    "/L1/room": {
+      "type": "room",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "daylight": 1,
+        "name": "居室"
+      }
+    },
+    "/out": {
+      "type": "exterior",
+      "attrs": {
+        "name": "外部"
+      }
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/L1/room",
+        "/out"
+      ],
+      "a": "/L1/room",
+      "kind": "wall",
+      "t": 150,
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "h": 2100,
+          "at": 0.5,
+          "edge": "N",
+          "attrs": {
+            "name": "勝手口"
+          }
+        },
+        {
+          "kind": "window",
+          "w": 1200,
+          "h": 1500,
+          "at": 0.5,
+          "edge": "E",
+          "attrs": {
+            "name": "東窓"
+          }
+        },
+        {
+          "kind": "window",
+          "w": 2400,
+          "h": 1500,
+          "at": 0.5,
+          "edge": "S",
+          "attrs": {
+            "name": "南窓"
+          }
+        }
+      ]
+    }
+  ]
+}

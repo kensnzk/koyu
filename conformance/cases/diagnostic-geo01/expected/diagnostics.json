@@ -1,0 +1,11 @@
+[
+ {
+  "code": "GEO01",
+  "severity": "error",
+  "line": 4,
+  "file": "main.muro",
+  "path": [
+   "/L1/a"
+  ]
+ }
+]

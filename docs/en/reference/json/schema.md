@@ -34,7 +34,7 @@ The key order is fixed.
 
 ## grid
 
-```json
+```json-part
 "grid": { "X": [0, 3600, 7200], "Y": [0, 4500] }
 ```
 
@@ -42,7 +42,7 @@ Only the coordinate arrays. Grid names are implicitly `X1`, `X2`, … from the f
 
 ## levels
 
-```json
+```json-part
 "levels": {
   "B1": { "z": -5100, "h": 4200, "slab": 900, "underground": 1 },
   "L1": { "z": 0, "h": 3600, "slab": 600 }
@@ -58,7 +58,7 @@ Only the coordinate arrays. Grid names are implicitly `X1`, `X2`, … from the f
 
 ## assets
 
-```json
+```json-part
 "assets": {
   "AD1": { "kind": "door", "attrs": { "h": 2400, "name": "自動ドア", "style": "auto", "w": 1800 } }
 }
@@ -68,7 +68,7 @@ A type of joinery. `kind` is `door` or `window`. Openings reach it through `ref`
 
 ## polygons
 
-```json
+```json-part
 "polygons": { "/site": [[-2600, -7000], [38000, -7000], [38000, 19600], [2000, 21000], [-2600, 15000]] }
 ```
 
@@ -76,7 +76,7 @@ A type of joinery. `kind` is `door` or `window`. Openings reach it through `ref`
 
 ## columns
 
-```json
+```json-part
 "columns": [
   { "size": 900, "levels": ["B2", "B1", "L1", "L2", "L3", "L4", "L5", "L6"] },
   { "size": 800, "levels": ["L7", "L8", "L9", "L10", "L11", "L12", "L13"] }
@@ -95,7 +95,7 @@ A type of joinery. `kind` is `door` or `window`. Openings reach it through `ref`
 
 ## zones
 
-```json
+```json-part
 "zones": { "/L3/A": { "attrs": { "name": "Aタイプ", "use": "exclusive" } } }
 ```
 
@@ -103,7 +103,7 @@ A zone carries attributes only. No region, no type.
 
 ## spaces
 
-```json
+```json-part
 "/L1/s1": {
   "type": "shop",
   "at": [
@@ -202,7 +202,7 @@ A boundary with a drawn line.
 
 ## segs
 
-```json
+```json-part
 "segs": [
   { "w": 3600, "at": 0.75, "attrs": { "spec": "ガラスパーティション" } }
 ]

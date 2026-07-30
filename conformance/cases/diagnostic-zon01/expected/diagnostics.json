@@ -1,0 +1,11 @@
+[
+ {
+  "code": "ZON01",
+  "severity": "warning",
+  "line": 5,
+  "file": "main.muro",
+  "path": [
+   "/wing"
+  ]
+ }
+]

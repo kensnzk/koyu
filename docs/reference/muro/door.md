@@ -5,7 +5,7 @@ mode: reference
 
 # door — 通行する開口
 
-```
+```text
 boundary /pathA /pathB …
   door [アセット名] w:900 [h:2100] [at:…] [edge:…] [hinge:…] [swing:…] [style:…] [name:…]
 ```

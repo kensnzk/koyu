@@ -233,15 +233,15 @@ What `validate` says about the site is three things: whether the building escape
 ```text
 <svg xmlns="http://www.w3.org/2000/svg" width="682" height="782" viewBox="0 0 682 782" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
 <rect width="682" height="782" fill="#faf8f4"/>
-<path d="M 84 698 L 598 698 L 598 498 L 84 498 Z" fill="#f8f5ec"/>
-<path d="M 84 498 L 159 498 L 159 84 L 84 84 Z" fill="#f8f5ec"/>
-<path d="M 523 498 L 598 498 L 598 84 L 523 84 Z" fill="#f8f5ec"/>
-<path d="M 159 134 L 523 134 L 523 84 L 159 84 Z" fill="#f8f5ec"/>
+<path d="M 341 316 L 523 316 L 523 134 L 341 134 Z" fill="#f1ebdd"/>
 <path d="M 159 498 L 341 498 L 341 134 L 159 134 Z" fill="#f1ebdd"/>
 <path d="M 341 498 L 523 498 L 523 316 L 341 316 Z" fill="#f1ebdd"/>
+<path d="M 523 498 L 598 498 L 598 84 L 523 84 Z" fill="#f8f5ec"/>
+<path d="M 84 698 L 598 698 L 598 498 L 84 498 Z" fill="#f8f5ec"/>
+<path d="M 159 134 L 523 134 L 523 84 L 159 84 Z" fill="#f8f5ec"/>
 ```
 
-(The first eight lines of `L1` from `examples/house/main.muro`. The whole thing is 7,311 bytes and ends with these two lines.)
+(The first eight lines of `L1` from `examples/house/main.muro`. The whole thing is 7,310 bytes and ends with these two lines.)
 
 ```text
 <text x="660" y="764" text-anchor="end" font-size="9" fill="#a49b8a">koyu — generated from spaces (wall centrelines, mm)</text>

@@ -36,9 +36,30 @@ function load(file: string): Model {
   return parseFile(resolve(file));
 }
 
-/** 合成に参加した全レイヤー — 要素の有無によらずModelが記録する (grid/levelだけの層も落ちない) */
-function layerFiles(model: Model, entry: string): string[] {
-  return [...new Set([resolve(entry), ...model.layers])].sort();
+/**
+ * Every layer that took part in the composition — the Model records them all, whether or not
+ * they carry elements (a layer holding only `grid`/`level` is not dropped).
+ *
+ * The entry is always index 0 (`ingestLayer` pushes every layer). **Do not add the spelled
+ * `resolve(entry)`** — layer identity is filesystem identity, so adding a different spelling
+ * (a symlink, another letter case) counts one layer twice.
+ *
+ * **The order is strength order, which is what `model.layers` already is** — never sorted. The
+ * tool says "in strength order" and `koyu layers` prints the same order; sorting by path here made
+ * the two disagree about the same question, and strength is the answer an agent needs (it decides
+ * which layer's opinion wins).
+ */
+function layerFiles(model: Model): string[] {
+  return [...model.layers];
+}
+
+/** A path as the filesystem sees it; the spelling if it cannot be resolved — the same rule as layer identity (`parse-file.ts`) */
+function real(path: string): string {
+  try {
+    return realpathSync.native(path);
+  } catch {
+    return path;
+  }
 }
 
 /** entryディレクトリ境界の検査 — 文字列prefixではなく相対パスで判定する (ADR-0013) */
@@ -71,7 +92,7 @@ function summarize(model: Model, file: string): unknown {
   return {
     name: model.name,
     unit: model.unit,
-    layers: layerFiles(model, file),
+    layers: layerFiles(model),
     levels: levelsSorted(model).map((l) => ({
       name: l.name,
       z: l.z,
@@ -155,7 +176,9 @@ const TOOLS: Record<string, Tool> = {
         spaces: m.spaces.size,
         boundaries: m.boundaries.length,
         ...r,
-        // 構造化診断 (ADR-0016) — errors/warningsの文字列と同件・同順。code/severity/path/relatedつき
+        // 構造化診断 (ADR-0016) — errors と warnings を足したものと同件。並びは走査の順で、
+        // errors/warnings はそれを severity で二本に割ったものなので、連結して添字で対応させてはならない。
+        // code/severity/path/relatedつき
         diagnostics: checkDiagnostics(m),
       };
     },
@@ -166,7 +189,7 @@ const TOOLS: Record<string, Tool> = {
     run: (a) => {
       const file = str(a.file, "file");
       const m = load(file);
-      return layerFiles(m, file).map((f) => ({ file: f, source: readFileSync(f, "utf8") }));
+      return layerFiles(m).map((f) => ({ file: f, source: readFileSync(f, "utf8") }));
     },
   },
   write_layer: {
@@ -184,10 +207,13 @@ const TOOLS: Record<string, Tool> = {
     run: (a) => {
       const file = str(a.file, "file");
       const content = str(a.content, "content");
-      const entryDir = resolve(dirname(resolve(file)));
+      // Resolve to the real path: it stops a spelling that goes through a symlink from slipping
+      // past the boundary check, and it matches the identity the composition counts layers by
+      // (mismatch would make the gatekeeper validate stale content)
+      const entryDir = real(resolve(dirname(resolve(file))));
       const target = resolve(entryDir, str(a.layer, "layer"));
       if (!target.endsWith(".muro")) throw new Error("Only .muro files can be written");
-      assertInside(entryDir, dirname(target));
+      assertInside(entryDir, real(dirname(target)));
       // 門番は書き込みの前 — 差し替え内容で仮想合成し、parse不能なら原本に触れない (ADR-0013)。
       // 合成に参加しないファイルの内容は検証されない (importされた時のcheckが捕まえる)
       let m: Model;

@@ -106,10 +106,10 @@ npx --yes @vscode/vsce package     # editors/vscode で実行
 | `/L1/a` `/out` `/L2..L9/A` | 空間・ゾーンのパス (同一性) |
 | `X2+600` `Y1..Y2` `L14..L19` | 通り芯とレベルの参照 |
 | `room` `shop` `exterior` | 空間の型 (開かれた語彙) |
-| `daylight:` `t:` `edge:` `slope:` `road:` … | **形と導出のために core が読む属性**。専用の色を持つ |
-| `spec:` `fire:` `name:` `acme.sensor:` | それ以外の属性。まとめて一つの色 |
+| `daylight:` `t:` `edge:` `slope:` `road:` `name:` … | **形と導出のために core が読む属性**。専用の色を持つ |
+| `spec:` `fire:` `floor:` `acme.sensor:` | それ以外の属性。まとめて一つの色 |
 
-最後の二行が分かれているのが要点である。専用の色を持つのは `underground` `escalator` `daylight` `ceiling` `landing` `hinge` `level` `riser` `slope` `stair` `style` `swing` `tread` `pitch` `entry` `lane` `lift` `form` `road` `slab` `site` `area` `turn` `type` `edge` `kind` `ramp` `uid` `air` `use` `at` `h` `w` `t` `d` `x` `y` の 37 語で、`daylight:1` と `dayligth:1` の違いが、書いている最中に色で見える。
+最後の二行が分かれているのが要点である。専用の色を持つのは `underground` `escalator` `daylight` `ceiling` `landing` `hinge` `level` `riser` `slope` `stair` `style` `swing` `tread` `pitch` `entry` `lane` `lift` `form` `road` `slab` `site` `area` `turn` `type` `edge` `name` `ramp` `uid` `air` `use` `at` `h` `w` `t` `d` `x` `y` の 37 語で、`daylight:1` と `dayligth:1` の違いが、書いている最中に色で見える。
 
 **綴りを間違えた属性は色が付かないだけでなく、`check` がエラーで止める。**台帳に無いキーは、ドットを含む名前空間 (`acme.sensor`) を持たないかぎり書けない。逆に、名前空間さえ付けば何を書いてもよく、core はその中身に一切の意味を与えない。
 

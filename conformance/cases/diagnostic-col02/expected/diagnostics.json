@@ -1,0 +1,14 @@
+[
+ {
+  "code": "COL02",
+  "severity": "warning",
+  "line": 6,
+  "file": "main.muro",
+  "related": [
+   {
+    "line": 5,
+    "file": "main.muro"
+   }
+  ]
+ }
+]

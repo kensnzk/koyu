@@ -1,0 +1,11 @@
+[
+ {
+  "code": "SEG01",
+  "severity": "error",
+  "line": 6,
+  "file": "main.muro",
+  "path": [
+   "/out"
+  ]
+ }
+]

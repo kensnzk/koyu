@@ -30,10 +30,7 @@ const root = fileURLToPath(new URL("..", import.meta.url));
  * 同時に一頁ずつ訳を足していけるようにするためでもある。訳し終えたら true に倒す。
  * 一度 true にしたものを false へ戻すのは、訳を捨てるということなので ADR の対象になる。
  */
-const TREES = [
-  { ja: join(root, "spec"), en: join(root, "spec", "en"), label: "spec", complete: true },
-  { ja: join(root, "guide"), en: join(root, "guide", "en"), label: "guide", complete: true },
-];
+const TREES = [{ ja: join(root, "docs"), en: join(root, "docs", "en"), label: "docs", complete: true }];
 
 /** 対応を要求しないもの (訳す対象でない、あるいは本質的に二言語のもの) */
 const EXEMPT = new Set<string>([]);
@@ -44,7 +41,7 @@ const EXEMPT = new Set<string>([]);
  * (それぞれ ADR に置き換わっているため) 表へ畳んでいる。この編集判断は英語版の冒頭に明記してある。
  * 免除するのは見出し構造だけで、存在・コード・切替リンクの検査は通常どおりかかる。
  */
-const HEADING_EXEMPT = new Set<string>(["spec/notation-v0.md"]);
+const HEADING_EXEMPT = new Set<string>([]);
 
 function markdownFiles(dir: string, out: string[] = []): string[] {
   if (!existsSync(dir)) return out;
@@ -56,9 +53,33 @@ function markdownFiles(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-/** 既定ロケール側のページ (en/ 配下を除く) */
+/**
+ * The parts of `docs/` that are **not published**, and so are not translated: the ADRs (records of a
+ * point in time, never amended), the work logs and design reviews, the images, and the loose
+ * material the site does not carry. `npm run gate:docs` draws the same line.
+ */
+const UNPUBLISHED = [
+  "decisions",
+  "log",
+  "reviews",
+  "img",
+  "horizon.md",
+  "ifc-coverage.md",
+  "ifcx-notes.md",
+  "modules.md",
+  "policy.md",
+  "terminology.md",
+  "writing-architecture.md",
+];
+
+/** Pages of the default locale (excluding `en/` and everything unpublished) */
 function jaPages(t: (typeof TREES)[number]): string[] {
-  return markdownFiles(t.ja).filter((p) => !p.startsWith(t.en + "/") && p !== t.en);
+  return markdownFiles(t.ja)
+    .filter((p) => !p.startsWith(t.en + "/") && p !== t.en)
+    .filter((p) => {
+      const rel = p.slice(t.ja.length + 1);
+      return !UNPUBLISHED.some((u) => rel === u || rel.startsWith(u + "/"));
+    });
 }
 
 // ---- コードブロックの採取 ----
@@ -148,27 +169,38 @@ test("i18n: every English page has a matching default-locale page (no orphans)",
   assert.deepEqual(orphans, [], `orphan English pages:\n  ${orphans.join("\n  ")}`);
 });
 
-test("i18n: a translated page carries the locale switch on its first line", () => {
+test("i18n: both locales declare the same page contract in their frontmatter", () => {
+  // The hand-written switch line (`[English](…) · **日本語**`) belonged to the two-book layout, where
+  // the site published raw files. The canonical tree is served by Docusaurus i18n, which builds the
+  // switch itself, and `npm run gate:docs` checks that both locales are reachable. What still has to
+  // agree page by page is the **contract in the frontmatter** — every page names itself and says
+  // which mode it is (reference / tutorial / explanation / how-to).
+  const field = (src: string, key: string): string | undefined =>
+    new RegExp(`^${key}:\\s*(.+)$`, "m").exec(src.split("---")[1] ?? "")?.[1]?.trim();
   const bad: string[] = [];
   for (const t of TREES) {
-    // 訳の無いページにはまだ切替リンクを張れないので、訳のあるものだけを見る
-    for (const p of jaPages(t).filter((p) => existsSync(join(t.en, relative(t.ja, p))))) {
-      const first = readFileSync(p, "utf8").split("\n")[0] ?? "";
-      if (!/^\[English\]\(.*\) · \*\*日本語\*\*$/.test(first)) {
-        bad.push(`${relative(root, p)}: line 1 is not "[English](…) · **日本語**"`);
+    for (const p of jaPages(t)) {
+      const en = join(t.en, relative(t.ja, p));
+      if (!existsSync(en)) continue;
+      const ja = readFileSync(p, "utf8");
+      const eng = readFileSync(en, "utf8");
+      for (const [side, src] of [
+        [relative(root, p), ja],
+        [relative(root, en), eng],
+      ] as const) {
+        if (!field(src, "title")) bad.push(`${side}: no title in the frontmatter`);
       }
-    }
-    for (const p of markdownFiles(t.en)) {
-      const first = readFileSync(p, "utf8").split("\n")[0] ?? "";
-      if (!/^\*\*English\*\* · \[日本語\]\(.*\)$/.test(first)) {
-        bad.push(`${relative(root, p)}: line 1 is not "**English** · [日本語](…)"`);
+      const jaMode = field(ja, "mode");
+      const enMode = field(eng, "mode");
+      if (jaMode !== enMode) {
+        bad.push(`${relative(root, p)}: mode is ${jaMode ?? "(none)"} but ${enMode ?? "(none)"} in English`);
       }
     }
   }
-  assert.deepEqual(bad, [], `missing locale switches:\n  ${bad.join("\n  ")}`);
+  assert.deepEqual(bad, [], `frontmatter disagrees:\n  ${bad.join("\n  ")}`);
 });
 
-test("i18n: code blocks agree in order and in body (comments may be translated)", () => {
+test("i18n: code blocks agree in count, order, fence tag and line count", () => {
   const bad: string[] = [];
   for (const t of TREES) {
     for (const p of jaPages(t)) {
@@ -188,16 +220,24 @@ test("i18n: code blocks agree in order and in body (comments may be translated)"
           bad.push(`${relative(root, p)}:${x.line}: block ${i + 1} carries a different tag (ja \`${x.tag}\` / en \`${y.tag}\`)`);
           continue;
         }
-        const verbatim = VERBATIM_TAGS.has(x.tag);
-        const xs = verbatim ? x.body : stripComments(x.tag, x.body);
-        const ys = verbatim ? y.body : stripComments(y.tag, y.body);
-        if (xs !== ys) {
+        // **Bodies are not compared word for word.** The canonical tree translates what a reader
+        // reads: display names inside examples (`name:主寝室` / `name:Main-bedroom`), and the labels
+        // of the hand-drawn diagrams that also use ```text (`──エラー──` / `──errors──`). The old
+        // two-book tree used ```text only for tool output, so byte-identity held there; it does not
+        // hold here.
+        //
+        // **What this leaves unchecked:** whether a pasted output is what the tool actually prints.
+        // Comparing the two locales cannot answer that — only running the tool can. No test does
+        // that today.
+        //
+        // What still has to agree is the shape: the same number of lines, so a line cannot be
+        // dropped from one locale alone, and no example can be silently reclassified (the fence tag
+        // is compared above, and it decides whether an example must pass or fail `check`).
+        const lines = (b0: string) => stripComments(x.tag, b0).split("\n").filter((l) => l.trim() !== "").length;
+        if (lines(x.body) !== lines(y.body)) {
           bad.push(
-            `${relative(root, p)}:${x.line}: the body of block ${i + 1} (\`${x.tag}\`) disagrees` +
-              (verbatim
-                ? " — ```text is what the tool actually prints, so it must be byte-identical"
-                : " (compared with comments stripped)") +
-              `\n      ja: ${JSON.stringify(xs.slice(0, 120))}\n      en: ${JSON.stringify(ys.slice(0, 120))}`,
+            `${relative(root, p)}:${x.line}: block ${i + 1} (\`${x.tag}\`) has a different number of lines ` +
+              `(ja ${lines(x.body)} / en ${lines(y.body)})`,
           );
         }
       }

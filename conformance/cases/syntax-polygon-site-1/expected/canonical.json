@@ -1,0 +1,126 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "name": "敷地の最小例",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      8000
+    ],
+    "Y": [
+      0,
+      6000
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2700,
+      "slab": 200
+    }
+  },
+  "polygons": {
+    "/site": [
+      [
+        -2000,
+        -2000
+      ],
+      [
+        12000,
+        -2000
+      ],
+      [
+        12000,
+        9000
+      ],
+      [
+        -2000,
+        9000
+      ]
+    ]
+  },
+  "zones": {
+    "/site": {
+      "attrs": {
+        "area": 154,
+        "name": "敷地",
+        "site": 1
+      }
+    }
+  },
+  "spaces": {
+    "/out/road": {
+      "type": "exterior",
+      "attrs": {
+        "name": "前面道路",
+        "road": 6000
+      }
+    },
+    "/site/house": {
+      "type": "room",
+      "level": "L1",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "建物"
+      }
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/out/road",
+        "/site/house"
+      ],
+      "a": "/site/house",
+      "kind": "wall",
+      "t": 150,
+      "edge": "E"
+    },
+    {
+      "between": [
+        "/out/road",
+        "/site/house"
+      ],
+      "a": "/site/house",
+      "kind": "wall",
+      "t": 150,
+      "edge": "N"
+    },
+    {
+      "between": [
+        "/out/road",
+        "/site/house"
+      ],
+      "a": "/site/house",
+      "kind": "wall",
+      "t": 150,
+      "edge": "S",
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "at": 0.5,
+          "attrs": {
+            "name": "玄関"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/out/road",
+        "/site/house"
+      ],
+      "a": "/site/house",
+      "kind": "wall",
+      "t": 150,
+      "edge": "W"
+    }
+  ]
+}

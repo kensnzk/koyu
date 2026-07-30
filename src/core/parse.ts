@@ -13,6 +13,7 @@ import {
   type Edge,
   type Level,
   type Model,
+  normalizeRegionOrder,
   type Opening,
   type Pt,
   type Rect,
@@ -85,6 +86,9 @@ export type LayerLoader = (
 export function parse(source: string): Model {
   const model = emptyModel();
   ingest(model, source, undefined, new Set(), undefined);
+  // Put the region spellings into canonical order before cutting — both the cutting and the
+  // default boundaries read `rects`, so without this the written order of `+` stays in the shape
+  normalizeRegionOrder(model);
   // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / spec/derivation.md §1)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
   // 出所の無い BND04 が出る — 書いていない関係を責めることになる
@@ -103,6 +107,9 @@ export function parseWith(loader: LayerLoader, entry: string): Model {
     throw new SourceError(0, `Cannot read file: ${entry}`);
   }
   ingestLayer(model, layer.key, layer.src, new Set(), loader);
+  // Put the region spellings into canonical order before cutting — both the cutting and the
+  // default boundaries read `rects`, so without this the written order of `+` stays in the shape
+  normalizeRegionOrder(model);
   // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / spec/derivation.md §1)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
   // 出所の無い BND04 が出る — 書いていない関係を責めることになる
@@ -297,7 +304,7 @@ function ingest(
         for (const [key, v] of Object.entries(attrs)) {
           switch (over.kind) {
             case "space":
-              applyAttr(model, "space", subject, over.space.attrs, key, v, layer, ln, layerOf(model, over.space.file));
+              applySpaceAttr(model, over.space, key, v, layer, ln);
               break;
             case "zone":
               applyAttr(model, "zone", subject, over.zone.attrs, key, v, layer, ln, layerOf(model, over.zone.file));
@@ -416,9 +423,9 @@ function ingest(
         if (!name) throw new SourceError(ln, "level requires a name");
         const z = toNumber(rest[1] ?? "", ln, "The level height (z)");
         const attrs = parseAttrs(rest.slice(2), ln);
-        const h = takeNumber(attrs, "h", ln);
-        const slab = takeNumber(attrs, "slab", ln);
-        const pitch = takeNumber(attrs, "pitch", ln);
+        const h = takeNumber(attrs, "h", ln, { positive: true });
+        const slab = takeNumber(attrs, "slab", ln, { positive: true });
+        const pitch = takeNumber(attrs, "pitch", ln, { positive: true });
         const under = takeNumber(attrs, "underground", ln);
         // **level は attrs を持たない。**残ったキーは正準JSONにも痕跡を残さず消えるので、
         // ここで拒まないと `undergound:1` が黙って地上階になる (ADR-0033)
@@ -488,7 +495,7 @@ function ingest(
               return [span];
             })();
         const attrs = parseAttrs(rest.slice(2), ln);
-        const depth = takeNumber(attrs, "d", ln);
+        const depth = takeNumber(attrs, "d", ln, { positive: true });
         const names = (key: "x" | "y"): string[] | undefined => {
           const v = takeString(attrs, key);
           if (v === undefined) return undefined;
@@ -525,10 +532,7 @@ function ingest(
         if (!path) throw new SourceError(ln, "space requires a path");
         // w: は帯の要素の語 — 字下げを落とした要素が「領域なしの空間」として黙って通るのを防ぐ
         if (rest.some((t) => t === "w:" || t.startsWith("w:"))) {
-          throw new SourceError(
-            ln,
-            "w: may not be written on space (a space written by width sits indented under band)",
-          );
+          throw new SourceError(ln, W_ON_SPACE);
         }
         for (const [p] of expandSpan(model, [path], ln)) {
           const space = parseSpace([p!, ...rest.slice(1)], ln, model);
@@ -1063,7 +1067,7 @@ function parseBoundary(rest: string[], ln: number): Boundary {
     throw new SourceError(ln, "boundary takes the form boundary /pathA /pathB [attributes...]");
   }
   const attrs = parseAttrs(rest.slice(2), ln);
-  const t = takeNumber(attrs, "t", ln);
+  const t = takeNumber(attrs, "t", ln, { positive: true });
   const kindRaw = takeString(attrs, "type") ?? "wall";
   if (!BOUNDARY_KINDS.has(kindRaw)) {
     throw new SourceError(
@@ -1119,7 +1123,7 @@ function parseOpening(
   if (w === undefined || w <= 0) {
     throw new SourceError(ln, `${kind} requires a width w:(mm) (the asset may supply it)`);
   }
-  const h = takeNumber(attrs, "h", ln);
+  const h = takeNumber(attrs, "h", ln, { positive: true });
   const at = parseAt(attrs, ln, model);
   const edge = takeEdge(attrs, ln);
   const hingeRaw = takeString(attrs, "hinge");
@@ -1390,6 +1394,46 @@ function applyLevelAttr(
 }
 
 /** 境界の上書き — typed field (type/t/air/edge) と自由属性の両方を受ける */
+/** The words for a band-member key written on `space`. Declaration and `over` refuse it alike */
+const W_ON_SPACE = "w: may not be written on space (a space written by width sits indented under band)";
+
+/**
+ * Applies an attribute an `over` wrote on a space.
+ *
+ * **A word the `space` declaration refuses, `over` refuses too; a word the declaration takes as
+ * a typed field, `over` sets as a typed field.** Otherwise one word means different things
+ * depending on how it was written, and composition rule 5 — an overridden model and one written
+ * that way from the start give the same canonical form — breaks. Handing this to the generic
+ * `applyAttr` looked at no key at all: `w:` let a write meant as "make it this wide" land
+ * silently in `attrs`, and `level:` left a dead attribute behind without moving the space.
+ * Both kept `check` green.
+ */
+function applySpaceAttr(
+  model: Model,
+  s: Space,
+  key: string,
+  v: AttrValue,
+  layer: number,
+  ln: number,
+): void {
+  if (key === "w") throw new SourceError(ln, W_ON_SPACE);
+  if (key !== "level") {
+    applyAttr(model, "space", s.path, s.attrs, key, v, layer, ln, layerOf(model, s.file));
+    return;
+  }
+  // level is a typed field, so it carries its own strength check (same shape as applyBoundaryAttr)
+  const k = srcKey("space", s.path, key);
+  const prev = model.attrSrc.get(k) ?? layerOf(model, s.file);
+  if (prev > layer) return;
+  if (prev === layer) {
+    throw new SourceError(ln, `One layer holds two opinions about level on space ${s.path}`);
+  }
+  const name = String(v);
+  if (!model.levels[name]) throw new SourceError(ln, `Undeclared level: level:${name}`);
+  s.level = name;
+  model.attrSrc.set(k, layer);
+}
+
 function applyBoundaryAttr(
   model: Model,
   b: Boundary,
@@ -1591,13 +1635,29 @@ function toNumber(v: string, ln: number, what: string): number {
   return Number(v);
 }
 
-function takeNumber(attrs: Attrs, key: string, ln: number): number | undefined {
+/**
+ * Takes a typed field out of the attribute bag.
+ *
+ * `positive` mirrors what the ledger already requires of the keys that stay in the bag — ATT01
+ * says "is written as a positive number". A key lifted into a typed field never reaches ATT01, so
+ * without this the same promise held on one path and not the other: `level L1 0 h:-2400 slab:-150`
+ * went green and put negative values into the canonical JSON, inverting floor and ceiling.
+ */
+function takeNumber(
+  attrs: Attrs,
+  key: string,
+  ln: number,
+  opts: { positive?: boolean } = {},
+): number | undefined {
   const v = attrs[key];
   if (v === undefined) return undefined;
   delete attrs[key];
   if (typeof v !== "number") {
     // NaNの黙認はcheck緑のまま導出を壊す (typo h:24O0 など) — その場のエラーにする
     throw new SourceError(ln, `The attribute ${key} is written as a number: ${v}`);
+  }
+  if (opts.positive && !(v > 0)) {
+    throw new SourceError(ln, `${key} is written as a positive number: ${key}:${v}`);
   }
   return v;
 }

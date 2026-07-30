@@ -80,7 +80,7 @@ Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|l
   diff:  koyu diff <a.muro> <b.muro> [--json] — the difference in the language of composition (0=no difference / 1=differences / 2=the input is broken)
 ```
 
-**That usage text is not exhaustive.** It mentions four subcommands only. [`plan`](plan.md)'s `-l` / `-o`, [`axo`](axo.md)'s five flags, and [`doors`](doors.md)'s two path arguments are all absent from it. Each command's page below writes out every flag it has.
+**That usage text is not exhaustive.** It mentions four subcommands only. [`plan`](plan.md)'s `-l` / `-o`, [`axo`](axo.md)'s six flags, and [`doors`](doors.md)'s two path arguments are all absent from it. Each command's page below writes out every flag it has.
 
 An unknown subcommand is also exit 2.
 
@@ -98,18 +98,18 @@ Unknown command: frobnicate
 |---|---|---|---|
 | [`check`](check.md) | Does what is written hold together as data | `--json` `--strict` | 0 / 1 |
 | [`validate`](validate.md) | Is it sound as architecture (not what check guarantees) | `--json` | 0 / 1 |
-| [`layers`](layers.md) | Which layers composed, and which layer gave which value | `--attrs` | 0 |
+| [`layers`](layers.md) | Which layers composed, and which layer gave which value | `--attrs` | 0 / 1 |
 | [`diff`](diff.md) | What did this edit change about the composition | `--json` | 0 / 1 / 2 |
 | [`plan`](plan.md) | The plan drawing (SVG) | `-l` `-o` | 0 / 1 / 2 |
 | [`axo`](axo.md) | The axonometric (SVG) | `-o` `-d` `-l` `-s` `--no-walls` `--ceilings` | 0 / 1 / 2 |
 | [`doors`](doors.md) | How many doors from here to there | — | 0 / 1 / 2 |
-| [`graph`](graph.md) | What is this space next to, and how | — | 0 |
-| [`stats`](stats.md) | What are the areas | — | 0 |
+| [`graph`](graph.md) | What is this space next to, and how | — | 0 / 1 |
+| [`stats`](stats.md) | What are the areas | — | 0 / 1 |
 | [`levels`](levels.md) | How do the heights stack up | — | 0 / 1 |
-| [`runs`](runs.md) | How was the vertical circulation derived | — | 0 |
+| [`runs`](runs.md) | How was the vertical circulation derived | — | 0 / 1 |
 | [`light`](light.md) | Do the rooms in daylight scope meet 1/7 | — | 0 / 1 |
 | [`site`](site.md) | Site area, frontage, coverage, floor area ratio | — | 0 / 1 |
-| [`json`](json.md) | The canonical JSON a machine reads | — | 0 |
+| [`json`](json.md) | The canonical JSON a machine reads | — | 0 / 1 |
 
 Every command prints usage and returns exit 2 if the subcommand name or the file path is missing. The table above omits that shared 2.
 

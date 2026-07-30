@@ -69,14 +69,15 @@ To keep a `#` as part of a value, quote it. The value of `acme.note:"#3 と #4"`
 
 | Parent | Indented lines it takes |
 |---|---|
-| `boundary` / `stack` | `door` `window` `seg` `line` |
+| `boundary` | `door` `window` `seg` `line` |
+| `stack` | `door` `window` `seg` — a `line` cannot be drawn on a vertical boundary, so it gives `LIN02` |
 | `space` | `area` |
 | `band` | `space` (a band member — it carries `w:` instead of a region) |
 | `over` | `+` `-` `=` |
 
 Indenting under a line that is not a parent is an error, and so is a word the parent does not take. Only `+`, `-` and `=` may sit directly under `over`; an indented `door` there does not pass.
 
-**When the parent expands to several targets, the indented line reaches all of them.** A `door` under `boundary /L3..L10/a /L3..L10/b` hangs one leaf on each of eight storeys, and an indented line under `stack` reaches every vertical boundary in the stack — where openings are not interpreted, so `check` says so as a warning.
+**When the parent expands to several targets, the indented line reaches all of them.** A `door` under `boundary /L3..L10/a /L3..L10/b` hangs one leaf on each of eight storeys, and an opening or a `seg` under `stack` reaches every vertical boundary in the stack — where openings are not interpreted, so `check` says so as a warning.
 
 ## key:value
 

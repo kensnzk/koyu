@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/ver.md#ver01",
+  "docs/reference/diagnostics/reading.md"
+ ],
+ "why": "VER01 — 0.1 に既定境界が導出される。この入力はそのコードちょうど一件を出す。診断は code と severity のほかに出所 (line と file) と責める対象 (path) を持ち、本文の字面は凍らないので期待値に含めない"
+}

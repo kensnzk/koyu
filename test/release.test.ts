@@ -12,7 +12,7 @@ import { parseFile } from "../src/parse-file.js";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p: string) => readFileSync(root + p, "utf8");
 
-test("version sync: package / lockfile / CITATION / spec / MCP", () => {
+test("version sync: package / lockfile / CITATION / MCP", () => {
   const pkg = JSON.parse(read("package.json")) as { name: string; version: string };
   const lock = JSON.parse(read("package-lock.json")) as {
     name: string;
@@ -23,16 +23,9 @@ test("version sync: package / lockfile / CITATION / spec / MCP", () => {
   assert.equal(lock.version, pkg.version, "lockfile version");
   assert.equal(lock.packages[""]!.version, pkg.version, "lockfile root package version");
   assert.match(read("CITATION.cff"), new RegExp(`version: "${pkg.version.replace(/\./g, "\\.")}"`), "CITATION.cff");
-  const vTag = new RegExp(`koyu v${pkg.version.replace(/\./g, "\\.")}`);
-  for (const f of [
-    "spec/README.md",
-    "spec/language.md",
-    "spec/semantics.md",
-    "spec/tools.md",
-    "spec/canonical-json.md",
-  ]) {
-    assert.match(read(f), vTag, f);
-  }
+  // The published documentation does not carry the version in its prose — the version belongs to
+  // git, not to the body of a page that is always in the present tense. `spec/` used to name it on
+  // five pages and this test kept them in step; the pages are gone (ADR-0046)
   assert.match(
     read("src/mcp.ts"),
     new RegExp(`version: "${pkg.version.replace(/\./g, "\\.")}"`),
@@ -40,14 +33,16 @@ test("version sync: package / lockfile / CITATION / spec / MCP", () => {
   );
 });
 
-test("language version sync: the spec norm, the examples and the canonical JSON fixture (ADR-0017)", () => {
-  // spec/language.md の版規範が実装の台帳と一致する
-  const lang = read("spec/language.md");
-  assert.ok(
-    lang.includes(`対応する言語版は \`${SUPPORTED_LANGUAGE_VERSIONS.join(", ")}\``),
-    "supported versions in language.md",
-  );
-  assert.ok(lang.includes(`最新版 \`${DEFAULT_LANGUAGE_VERSION}\``), "the default when omitted, in language.md");
+test("language version sync: the published norm, the examples and the canonical JSON fixture (ADR-0017)", () => {
+  // The version norm of the published documentation agrees with the implementation ledger.
+  // The page lists the accepted versions on one line, oldest first — the order is the norm,
+  // because the newest is decided by index and not by how the string sorts.
+  const inOrder = new RegExp(SUPPORTED_LANGUAGE_VERSIONS.map((v) => v.replace(".", "\\.")).join("\\s+"));
+  for (const page of ["docs/reference/muro/version.md", "docs/en/reference/muro/version.md"]) {
+    const md = read(page);
+    assert.match(md, inOrder, `the accepted versions, in order, in ${page}`);
+    assert.ok(md.includes(`\`${DEFAULT_LANGUAGE_VERSION}\``), `the default when omitted, in ${page}`);
+  }
   // examplesは常に最新版で書く
   for (const f of [
     "examples/two-rooms.muro",

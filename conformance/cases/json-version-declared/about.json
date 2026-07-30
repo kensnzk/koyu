@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/json/schema.md", "docs/reference/json/index.md"],
+  "why": "koyu キーは書かれた版宣言の素通しである。宣言があるので出る。対になる json-version-omitted では出ない — 出せば著者が書いていない版を書いたことになり、しかもツールの既定が動いた日に同じ入力のバイトが変わる"
+}

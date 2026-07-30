@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/vrt.md#vrt05",
+  "docs/reference/diagnostics/reading.md"
+ ],
+ "why": "VRT05 — 垂直境界の開口は解釈されません。この入力はそのコードちょうど一件を出す。診断は code と severity のほかに出所 (line と file) と責める対象 (path) を持ち、本文の字面は凍らないので期待値に含めない"
+}

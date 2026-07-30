@@ -166,14 +166,13 @@ import { slabs } from "@kensnzk/koyu";
 
 const sl = slabs(b);
 console.log(sl.length, "slabs;", ["floor","ceiling","roof"].map((k) => `${k}=${sl.filter((s) => s.kind === k).length}`).join(" "));
-for (const s of sl.slice(0, 3)) console.log(s.kind, s.space, s.level, `z ${s.z0}→${s.z1}`, s.outline.length + " pts");
+for (const s of sl.filter((x) => x.space === "/B2/park")) console.log(s.kind, s.space, s.level, `z ${s.z0}→${s.z1}`, s.outline.length + " pts");
 ```
 
 ```text
 29 slabs; floor=15 ceiling=8 roof=6
 floor /B2/park B2 z -8200→-7400 4 pts
 ceiling /B2/park B2 z -4830→-4800 4 pts
-floor /B2/ramp B2 z -8200→-7400 4 pts
 ```
 
 A floor hangs below the storey's FL by the build-up (B2's FL is −7400 and `slab` is 800, so it starts at −8200). A ceiling sits at FL plus ceiling height, dropped by its face thickness.

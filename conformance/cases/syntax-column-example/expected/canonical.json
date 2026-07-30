@@ -1,0 +1,90 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      6000,
+      12000
+    ],
+    "Y": [
+      0,
+      6000
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 3000,
+      "slab": 200
+    },
+    "L2": {
+      "z": 3200,
+      "h": 3000,
+      "slab": 200
+    }
+  },
+  "columns": [
+    {
+      "size": 800,
+      "levels": [
+        "L1"
+      ]
+    }
+  ],
+  "spaces": {
+    "/L1/room": {
+      "type": "room",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "室"
+      }
+    },
+    "/L1/terrace": {
+      "type": "terrace",
+      "at": [
+        "X2",
+        "Y1",
+        "X3",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "テラス"
+      }
+    },
+    "/L2/room": {
+      "type": "room",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "上階の室"
+      }
+    },
+    "/out": {
+      "type": "exterior",
+      "attrs": {
+        "name": "外部"
+      }
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/L1/terrace",
+        "/out"
+      ],
+      "a": "/L1/terrace",
+      "kind": "open"
+    }
+  ]
+}

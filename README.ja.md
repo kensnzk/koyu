@@ -8,10 +8,12 @@
 
 ## ドキュメント
 
-文書は二冊に分かれている。**[guide/](guide/README.md) が最初の扉**で、[spec/](spec/README.md) が規範である。
+**[docs/](docs/index.md) が文書であり、これが正である。**167頁 ×2言語、目的から引ける形に並べてある。
 
-- **[guide/](guide/README.md)** — 学ぶ本。チュートリアル・六つの考え・how-to・診断コード事典・CLI/APIリファレンス。**koyu を初めて書くなら [guide/start.md](guide/start.md) から** (30〜45分で二階建て一棟と平面図まで届く)
-- **[spec/](spec/README.md)** — 規範リファレンス。文法・意味論・語彙の台帳・正準JSON・ツール契約を現在形で
+- **[docs/start/](docs/start/index.md)** — チュートリアル。一室から二階建てまで30〜45分。**koyu を初めて書くならここから**
+- **[docs/why/](docs/why/index.md)** — 解説。なぜ空間が一次要素か、なぜ壁は関係か、なぜ形は一意でなければならないか
+- **[docs/howto/](docs/howto/index.md)** — 手順。目的から引くものと、症状から引くもの
+- **[docs/reference/](docs/reference/index.md)** — 規範。[.muro の全構文](docs/reference/muro/index.md)・[診断65コード](docs/reference/diagnostics/index.md)・[判定15規則](docs/reference/validate/index.md)・[CLI](docs/reference/cli/index.md)・[MCP](docs/reference/mcp/index.md)・[API](docs/reference/api/index.md)・[導出される形](docs/reference/form/index.md)・[正準JSON](docs/reference/json/index.md)
 - **[docs/decisions/](docs/decisions/)** — ADR。なぜそう決めたか、何を棄却したか
 - **[AGENTS.md](AGENTS.md)** — このリポジトリで作業するLLMエージェントの入口
 
@@ -26,7 +28,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 `koyu plan` が平面図を出す。壁は一本も描かれていない — 空間はあるが、境界が一つも無いからである。
 
-![一室の平面図](guide/img/start-01-one-room.svg)
+![一室の平面図](docs/img/start-01-one-room.svg)
 
 `space` をもう一行足す。他は何も変えない。
 
@@ -38,7 +40,7 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 ```
 
-![二室の平面図。中央に壁が一枚立っている](guide/img/start-02-two-rooms.svg)
+![二室の平面図。中央に壁が一枚立っている](docs/img/start-02-two-rooms.svg)
 
 **壁が一枚現れる。壁を描く操作はどこにも無い。** 壁は二つの空間の境界という関係であり、空間の割付から導出される。接する空間の組に宣言が無ければ、それは「未定義」ではなく「壁」を意味する。
 
@@ -82,11 +84,11 @@ npm run koyu -- site   examples/tower/main.muro      # ショーケース: polyg
 
 `koyu-mcp` は依存ゼロのMCPサーバー (stdio、ADR-0012)。LLMエージェントが建物を読み (`layers`)、編集し (`write_layer`)、`check` がビルドの門番になる — エラーは出所レイヤー:行つき。`doors` / `light` / `site` は同じ記述への異なる問い。延床4,786㎡のショーケース一棟が原本8,099トークン (実測 — IFC4は14倍、IFCXは25倍: [examples/comparison/](examples/comparison/README.md)) なので、一棟がコンテキストに余裕で載る。エージェントが正しく*編集*できるかは次の分水嶺 — 編集evalは計画段階でまだ実施していない ([docs/horizon.md](docs/horizon.md))。三軸の構想 (デジタルツイン・W3C BOTへのオントロジー整列・都市接続) も同文書。
 
-登録は一行 (`claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp`)。Claude Code・Claude Desktop・その他クライアントでの設定と標準ループは [guide/howto/agent-mcp.md](guide/howto/agent-mcp.md)。
+登録は一行 (`claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp`)。Claude Code・Claude Desktop・その他クライアントでの設定と標準ループは [docs/howto/install-mcp.md](docs/howto/install-mcp.md)、ループの実例は [agent-loop.md](docs/howto/agent-loop.md)。
 
 ## 構成
 
-現在の仕様は [spec/](spec/README.md) に体系化した — 言語リファレンス ([language.md](spec/language.md))・意味論 ([semantics.md](spec/semantics.md))・語彙の台帳 ([vocabulary.md](spec/vocabulary.md))・正準JSON・ツールリファレンス (CLI/MCP/API)。ADRは「なぜ」を、specは「いま何が真か」を持つ。記法の成立記録 (DSL/YAML/JSON書き比べ) は [spec/notation-v0.md](spec/notation-v0.md)、IFC4とのカバレッジ照合は [docs/ifc-coverage.md](docs/ifc-coverage.md)、設計判断の記録は [docs/decisions/](docs/decisions/)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [koyu](https://linear.app/munipersonal/project/koyu-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。実装は src/ に約7,500行 (パーサ・グラフ・チェック・平面図生成・CLI・MCPサーバー)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。
+規範は [docs/reference/](docs/reference/index.md) に体系化してある — 記法・診断・判定・CLI・MCP・API・導出される形・正準JSON。**この木が正である。**ADR ([docs/decisions/](docs/decisions/)) は「なぜ」を持つが後から直さないので、現在の真ではなく履歴である。IFC4とのカバレッジ照合は [docs/ifc-coverage.md](docs/ifc-coverage.md)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [koyu](https://linear.app/munipersonal/project/koyu-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。実装は src/ に約7,500行 (パーサ・グラフ・チェック・平面図生成・CLI・MCPサーバー)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。
 
 ## 技術方針
 
@@ -102,4 +104,4 @@ TypeScriptで書き、実行時依存はゼロに保つ。BIM/IFC系のツール
 
 ## ライセンス
 
-コード (src/, test/, examples/ ほか) は [Apache License 2.0](LICENSE)。文書 (docs/, spec/, 原稿「[建築を書く](docs/writing-architecture.md)」) は [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja)。引用情報は [CITATION.cff](CITATION.cff)。
+コード (src/, test/, examples/ ほか) は [Apache License 2.0](LICENSE)。文書 (docs/, 原稿「[建築を書く](docs/writing-architecture.md)」) は [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja)。引用情報は [CITATION.cff](CITATION.cff)。

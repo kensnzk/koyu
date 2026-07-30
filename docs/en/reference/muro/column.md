@@ -5,7 +5,7 @@ mode: reference
 
 # column — the element whose position is not written
 
-```
+```text
 column <size mm> <level range|level name> [d:depth] [x:grid,…] [y:grid,…] [attributes…]
 ```
 
@@ -83,7 +83,7 @@ The floor test reads the **derived form** too. Where an intersection falls on th
 
 | Attribute | Tier | Meaning |
 |---|---|---|
-| `d` | structure | depth in mm of a rectangular section. Defaults to the side (a square column) |
+| `d` | structure | a positive number, mm — the depth of a rectangular section. Defaults to the side (a square column) |
 | `x` / `y` | structure | restrict which grid lines to stand on, comma separated. Unwritten means all of them |
 | `name` | interpreted | display name, and what `drop column` points at |
 | `spec` | carried | the name of the thing — carried and nothing more |
