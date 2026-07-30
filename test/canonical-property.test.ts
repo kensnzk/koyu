@@ -13,7 +13,7 @@ import { test } from "node:test";
 import { derive } from "../src/core/derive.js";
 import { checkDiagnostics } from "../src/core/diagnose.js";
 import { toCanonical } from "../src/core/model.js";
-import { parse } from "../src/core/parse.js";
+import { parse, parseFiles } from "../src/core/parse.js";
 
 function lcg(seed: number): () => number {
   let s = seed >>> 0;
@@ -193,6 +193,60 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
 
 const render = (bs: Block[]) => bs.flatMap((b) => b.lines).join("\n") + "\n";
 
+/**
+ * **層に割って書いた版** — 属性を `over` へ括り出す意味保存変形。
+ *
+ * 合成の規則5 は「`over` で直した模型と最初からそう書いた模型は同じ正準形を与える」と言う。
+ * 手で書いた対は一つ置いたが、**母集団の上では一度も試していない。**
+ *
+ * `space` の行から `name:` を剥がし、より強い層の `over` に置き直す。`over` は定義より強い層に
+ * 無ければ通らない (規則1 — entry は添字0で最も弱い) ので、entry は `import` だけを持ち、
+ * 定義は base 層、`over` はその後の層に入る。
+ *
+ * `koyu` の版宣言は entry でのみ書ける。それ以外の基盤の宣言はどの層でもよい。
+ */
+function liftAttrsToOver(header: Block[], body: Block[]): Record<string, string> {
+  const overs: string[] = [];
+  /**
+   * 括り出す鍵。**typed field を混ぜることが要点である。**
+   *
+   * `name` は宣言でも `over` でも属性の袋に入るので、括り出しても両方の経路が同じ道を通る —
+   * それだけでは経路の違いを一つも試していない。`level` (空間) と `t` `type` (境界) は
+   * parse が型のついたフィールドへ持ち上げる鍵なので、`over` の側が持ち上げを忘れていれば
+   * 死んだ属性が残って別の建物になる。実際にそういう破れがあった。
+   *
+   * `w` は括り出さない — 帯の要素の語であり、`space` にも `over` にも書けない。
+   */
+  const SPACE_KEYS = ["name", "level", "use"];
+  const BOUNDARY_KEYS = ["t", "type"];
+  const lift = (line: string, target: string, keys: string[]): string => {
+    let out = line;
+    for (const k of keys) {
+      const m = new RegExp(`(?:^| )${k}:(\\S+)`).exec(out);
+      if (!m) continue;
+      overs.push(`over ${target} ${k}:${m[1]}`);
+      out = out.replace(new RegExp(` ${k}:\\S+`), "");
+    }
+    return out;
+  };
+  const stripped = body.map((b) => ({
+    ...b,
+    lines: b.lines.map((l) => {
+      const sp = /^space (\/\S+) /.exec(l);
+      if (sp) return lift(l, sp[1]!, SPACE_KEYS);
+      const bd = /^boundary (\/\S+) (\/\S+) /.exec(l);
+      if (bd) return lift(l, `${bd[1]} ${bd[2]}`, BOUNDARY_KEYS);
+      return l;
+    }),
+  }));
+  const [version, ...rest] = header;
+  return {
+    "main.muro": [version!.lines[0], "import ./base.muro", "import ./over.muro"].join("\n") + "\n",
+    "base.muro": render([...rest, ...stripped]),
+    "over.muro": overs.join("\n") + "\n",
+  };
+}
+
 /** 順序が意味である位置を保ったまま並べ替える — 動かせるブロックだけを入れ替える */
 function reorder(body: Block[], rnd: () => number): Block[] {
   const free = shuffle(
@@ -281,6 +335,30 @@ test("property: what the canonical form calls one building has one shape (30 see
     assert.equal(form(shuffled), f0, `seed=${seed}: canonically equal but the shape differs (shuffle)`);
     assert.equal(form(reversed), f0, `seed=${seed}: canonically equal but the shape differs (reverse)`);
   }
+});
+
+test("property: lifting attributes into over gives the same building (30 seeds, whole notation)", () => {
+  let lifted = 0;
+  for (let seed = 1; seed <= 30; seed++) {
+    const { header, body } = generate(lcg(seed));
+    const one = render([...header, ...body]);
+    const layers = liftAttrsToOver(header, body);
+    const overs = layers["over.muro"]!.trim().split("\n").filter((l) => l !== "");
+    if (overs.length === 0) continue; // 括り出すものが無い種は飛ばす (下で件数を縛る)
+    lifted++;
+    const j0 = toCanonical(parse(one));
+    assert.equal(
+      toCanonical(parseFiles(layers, "main.muro")),
+      j0,
+      `seed=${seed}: ${overs.length} 件を over へ括り出したら別の建物になった`,
+    );
+    assert.equal(
+      JSON.stringify(derive(parseFiles(layers, "main.muro"))),
+      JSON.stringify(derive(parse(one))),
+      `seed=${seed}: 正準形は同じなのに形が違う (over へ括り出した版)`,
+    );
+  }
+  assert.ok(lifted >= 25, `括り出しが起きた種が少なすぎる: ${lifted}/30 — 変形が空振りしている`);
 });
 
 // ---- 単射性: 違う構成なら違うバイト ----
