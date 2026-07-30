@@ -137,6 +137,8 @@ The interior split positions a band derives have no written spelling, so they ar
 
 Under `<`, 𠮟 sorts before 﨑; in UTF-8, 﨑 comes first. Both are real Japanese characters, so the difference is not theoretical. The reference is placed on **this format's own bytes** because that is the side an implementation written plainly in another language will agree with. The implementation is `compareCanonical`.
 
+**JavaScript has a second trap.** An object keeps integer-like keys (`"2"`, `"10"`) ahead of all others, in ascending numeric order, whatever order they were inserted in. So levels named `2` and `10` come out with `2` first even after a correct collation sort — collation order puts `10` first. **A container that preserves collation order must be one with no rule of its own about key order** (the implementation uses a `Map` and the serialiser follows its order). This format is meant to be implemented in other languages, and the traps differ by language. **Read the rule as "ascending code point", never as "whatever the language does by default".**
+
 ### Normalisation
 
 **Text is NFC.** Sources are normalised to NFC on read, and **identity — paths, uids, names — is decided there**: a space spelled `が` as "か + dakuten" is the same space as one spelled with the composed `が`, and writing both is a duplicate-path error. Without normalisation, documents would carry two indistinguishable keys side by side.
