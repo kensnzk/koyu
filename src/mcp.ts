@@ -43,9 +43,14 @@ function load(file: string): Model {
  * The entry is always index 0 (`ingestLayer` pushes every layer). **Do not add the spelled
  * `resolve(entry)`** — layer identity is filesystem identity, so adding a different spelling
  * (a symlink, another letter case) counts one layer twice.
+ *
+ * **The order is strength order, which is what `model.layers` already is** — never sorted. The
+ * tool says "in strength order" and `koyu layers` prints the same order; sorting by path here made
+ * the two disagree about the same question, and strength is the answer an agent needs (it decides
+ * which layer's opinion wins).
  */
 function layerFiles(model: Model): string[] {
-  return [...model.layers].sort();
+  return [...model.layers];
 }
 
 /** A path as the filesystem sees it; the spelling if it cannot be resolved — the same rule as layer identity (`parse-file.ts`) */

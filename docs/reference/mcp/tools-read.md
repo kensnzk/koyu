@@ -71,7 +71,7 @@ mode: reference
 | フィールド | 中身 |
 |---|---|
 | `name` `unit` | 書かれた建物名と単位 |
-| `layers` | 合成に参加した全レイヤーの絶対パス。**辞書順**である ([`layers`](#layers) と同じ並び) |
+| `layers` | 合成に参加した全レイヤーの絶対パス。**強度順序**である — 添字 0 が entry ([`layers`](#layers) と同じ並び) |
 | `levels` | 宣言順ではなく `z` の昇順。`h` と `slab` は**書かれたときだけ**出る |
 | `spaces` | 空間の数 (領域を持たない空間・`exterior`・`void` も含む) |
 | `boundaries` | **導出後**の境界の本数 |
@@ -173,21 +173,21 @@ boundary /L1/b /out t:150
 ```text
 [
  {
-  "file": "<abs>/tiny/L1.muro",
-  "source": "# L1.muro\nspace /L1/a room X1..X2 Y1..Y2 name:居室A\nspace /L1/b room X2..X3 Y1..Y2 name:居室B\nspace /out exterior name:外部\n\nboundary /L1/b /out t:150\n  door w:900 h:2100 edge:S name:玄関\n"
- },
- {
   "file": "<abs>/tiny/main.muro",
   "source": "# main.muro — entry\nkoyu 1.0\nname 二層\nunit mm\n\ngrid X 0 3600 7200\ngrid Y 0 4500\nlevel L1 0 h:2400 slab:150\n\nimport ./L1.muro\n"
+ },
+ {
+  "file": "<abs>/tiny/L1.muro",
+  "source": "# L1.muro\nspace /L1/a room X1..X2 Y1..Y2 name:居室A\nspace /L1/b room X2..X3 Y1..Y2 name:居室B\nspace /out exterior name:外部\n\nboundary /L1/b /out t:150\n  door w:900 h:2100 edge:S name:玄関\n"
  }
 ]
 ```
 
-### 並びは辞書順である — 強度順序ではない
+### 並びは強度順序である
 
-**返る配列は絶対パスの辞書順に並ぶ。**合成の強度順序ではない。上の例がそれを見せている — 強度では `main.muro` が最も弱い base 層で `L1.muro` がその上に載るが、`L1` は `main` より辞書順で前に来るので、`layers` は逆に並べて返す。
+**返る配列は合成の強度順序に並ぶ** — 添字 0 が entry で最も弱く、後の層ほど強い。並べ替えはしない。上の例で `main.muro` が先に来るのはそれが entry だからで、絶対パスの辞書順なら `L1.muro` が先になる。
 
-強度順序を見たいときは [`koyu layers`](../cli/layers.md) を使う。同じ二枚に対してこう出る。
+**どの層の意見が勝つかを決めるのはこの並びである**ので、エージェントが必要とするのはこちらである ([合成の六規則](../muro/composition.md))。同じ並びを人向けに印字するのが [`koyu layers`](../cli/layers.md) で、同じ二枚に対してこう出る。
 
 ```text
 Layers (weakest first — later layers are stronger):

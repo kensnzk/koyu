@@ -71,7 +71,7 @@ Every piece of output on this page was obtained by actually running it. Absolute
 | Field | Contents |
 |---|---|
 | `name` `unit` | The building name and unit as written |
-| `layers` | Absolute paths of every composed layer, **in lexicographic order** (same order as [`layers`](#layers)) |
+| `layers` | Absolute paths of every composed layer, **in strength order** — index 0 is the entry (same order as [`layers`](#layers)) |
 | `levels` | Ascending by `z`, not declaration order. `h` and `slab` appear **only when written** |
 | `spaces` | How many spaces (including region-less spaces, `exterior` and `void`) |
 | `boundaries` | How many boundaries **after derivation** |
@@ -173,21 +173,21 @@ Calling it with `main.muro` as the entry gives this.
 ```text
 [
  {
-  "file": "<abs>/tiny/L1.muro",
-  "source": "# L1.muro\nspace /L1/a room X1..X2 Y1..Y2 name:居室A\nspace /L1/b room X2..X3 Y1..Y2 name:居室B\nspace /out exterior name:外部\n\nboundary /L1/b /out t:150\n  door w:900 h:2100 edge:S name:玄関\n"
- },
- {
   "file": "<abs>/tiny/main.muro",
   "source": "# main.muro — entry\nkoyu 1.0\nname 二層\nunit mm\n\ngrid X 0 3600 7200\ngrid Y 0 4500\nlevel L1 0 h:2400 slab:150\n\nimport ./L1.muro\n"
+ },
+ {
+  "file": "<abs>/tiny/L1.muro",
+  "source": "# L1.muro\nspace /L1/a room X1..X2 Y1..Y2 name:居室A\nspace /L1/b room X2..X3 Y1..Y2 name:居室B\nspace /out exterior name:外部\n\nboundary /L1/b /out t:150\n  door w:900 h:2100 edge:S name:玄関\n"
  }
 ]
 ```
 
-### The order is lexicographic, not strength order
+### The order is strength order
 
-**The array is sorted by absolute path.** It is not in composition strength order. The example above shows the difference: by strength `main.muro` is the weakest base layer and `L1.muro` sits on top of it, but `L1` sorts before `main`, so `layers` returns them the other way round.
+**The array is in composition strength order** — index 0 is the entry and the weakest; later layers are stronger. Nothing is sorted. `main.muro` comes first above because it is the entry; by absolute path `L1.muro` would come first.
 
-For strength order, use [`koyu layers`](../cli/layers.md). On the same two files it prints:
+**This order is what decides whose opinion wins**, so it is the one an agent needs ([the rules of composition](../muro/composition.md)). [`koyu layers`](../cli/layers.md) prints the same order for a human, and on the same two files it says:
 
 ```text
 Layers (weakest first — later layers are stronger):

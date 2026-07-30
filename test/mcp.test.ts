@@ -92,6 +92,14 @@ test("MCP: initialize → tools/list → questions about tower → the write_lay
     const sum = JSON.parse((await c.call("model_summary", { file: entry })).text);
     assert.equal(sum.spaces, 178);
     assert.equal(sum.layers.length, 9);
+    // **The order is strength order, the same as `koyu layers` prints.** The tool's own description
+    // says so, and the order decides whose opinion wins — sorting by path made the two surfaces
+    // disagree about one question (ADR-0046 の帰結)
+    // The layer key is the path as the filesystem sees it, which on macOS resolves /var → /private/var,
+    // so compare the file rather than the spelling
+    assert.match(String(sum.layers[0]), /\/main\.muro$/, "index 0 is the entry — the weakest layer");
+    const sorted = [...sum.layers].sort();
+    assert.notDeepEqual(sum.layers, sorted, "the example is one where strength order differs from path order");
     const chk = JSON.parse((await c.call("check", { file: entry })).text);
     assert.equal(chk.ok, true);
 
