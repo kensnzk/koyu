@@ -44,7 +44,7 @@ const digest = (file: string): string =>
  */
 const GOLDEN: Record<string, string> = {
   "examples/two-rooms.muro": "ae6e08bb1ea7579c",
-  "examples/office.muro": "a1780282676e79fa",
+  "examples/office.muro": "f9825aea2aade757",
   "examples/house/main.muro": "f614e9ffa04c13ad",
   "examples/basement/main.muro": "bc1432e735bdf727",
   "examples/tower/main.muro": "aa2ed2ed71a37e86",

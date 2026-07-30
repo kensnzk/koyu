@@ -40,6 +40,8 @@ import {
   type Pt,
   type Space,
   canonicalBoundaryOrder,
+  canonicalOpeningOrder,
+  canonicalSegOrder,
   canonicalSpaceOrder,
 } from "./model.js";
 import { EPS, SPAN_EPS } from "./tolerance.js";
@@ -586,7 +588,8 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
 
     // この境界の開口を、載っている線分ごとに集める
     const placed: Array<{ o: Opening; index: number; seg: Segment; cx: number; cy: number }> = [];
-    for (const [oi, o] of b.openings.entries()) {
+    // Canonical order, not declaration order — the index is part of the identity spelling
+    for (const [oi, o] of canonicalOpeningOrder(b).entries()) {
       const p = placeOpening(model, b, o);
       if ("error" in p) continue;
       placed.push({ o, index: oi, seg: p.segment, cx: p.cx, cy: p.cy });
@@ -653,7 +656,7 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
           sliding,
         });
       }
-      for (const [gi, g] of b.segs.entries()) {
+      for (const [gi, g] of canonicalSegOrder(b).entries()) {
         const p = placeBand(model, b, g, "seg");
         if ("error" in p || !sameSegment(p.segment, seg)) continue;
         segs.push({
