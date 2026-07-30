@@ -7,7 +7,7 @@ mode: reference
 
 A space that runs vertically through a building — a stair enclosure, a lift shaft, a void — otherwise forces the same relation to be written once per storey. `stack` **writes it once and carries it across every storey**.
 
-```
+```text
 stack <name> <level range> type:stair|shaft|void [attributes...]
 ```
 

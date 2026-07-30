@@ -12,7 +12,7 @@ import { parseFile } from "../src/parse-file.js";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p: string) => readFileSync(root + p, "utf8");
 
-test("version sync: package / lockfile / CITATION / spec / MCP", () => {
+test("version sync: package / lockfile / CITATION / MCP", () => {
   const pkg = JSON.parse(read("package.json")) as { name: string; version: string };
   const lock = JSON.parse(read("package-lock.json")) as {
     name: string;
@@ -23,16 +23,9 @@ test("version sync: package / lockfile / CITATION / spec / MCP", () => {
   assert.equal(lock.version, pkg.version, "lockfile version");
   assert.equal(lock.packages[""]!.version, pkg.version, "lockfile root package version");
   assert.match(read("CITATION.cff"), new RegExp(`version: "${pkg.version.replace(/\./g, "\\.")}"`), "CITATION.cff");
-  const vTag = new RegExp(`koyu v${pkg.version.replace(/\./g, "\\.")}`);
-  for (const f of [
-    "spec/README.md",
-    "spec/language.md",
-    "spec/semantics.md",
-    "spec/tools.md",
-    "spec/canonical-json.md",
-  ]) {
-    assert.match(read(f), vTag, f);
-  }
+  // The published documentation does not carry the version in its prose — the version belongs to
+  // git, not to the body of a page that is always in the present tense. `spec/` used to name it on
+  // five pages and this test kept them in step; the pages are gone (ADR-0046)
   assert.match(
     read("src/mcp.ts"),
     new RegExp(`version: "${pkg.version.replace(/\./g, "\\.")}"`),

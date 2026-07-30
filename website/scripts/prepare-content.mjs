@@ -95,20 +95,7 @@ function outputDocumentPath(sourceAbsolute, locale) {
   }
 
   if (locale === 'en') {
-    if (relative.startsWith('guide/en/')) {
-      return `guide/${relative.slice('guide/en/'.length)}`;
-    }
-    if (relative.startsWith('spec/en/')) {
-      return `spec/${relative.slice('spec/en/'.length)}`;
-    }
     return null;
-  }
-
-  if (
-    (relative.startsWith('guide/') && !relative.startsWith('guide/en/')) ||
-    (relative.startsWith('spec/') && !relative.startsWith('spec/en/'))
-  ) {
-    return relative;
   }
 
   return null;
@@ -116,7 +103,6 @@ function outputDocumentPath(sourceAbsolute, locale) {
 
 function outputAssetPath(sourceAbsolute) {
   const relative = toPosix(path.relative(repositoryDir, sourceAbsolute));
-  if (relative.startsWith('guide/img/')) return relative;
   if (relative.startsWith('docs/img/')) return relative;
   return null;
 }
@@ -271,7 +257,7 @@ async function transformMarkdown(
       '',
     );
     const slug =
-      documentDirectory === '' || outputRelative.toLowerCase() === 'guide/readme.md'
+      documentDirectory === ''
         ? '/'
         : `/${documentDirectory}`;
     // Pages the authors gave front matter of their own keep it; the slug is
@@ -306,7 +292,7 @@ async function writeLocale(locale, sourceRoots, outputRoot) {
 }
 
 async function copyContentAssets(outputRoot) {
-  const assetRoots = ['guide/img', 'docs/img'];
+  const assetRoots = ['docs/img'];
   for (const relative of assetRoots) {
     const source = path.join(repositoryDir, relative);
     if (!existsSync(source)) continue;
@@ -318,31 +304,16 @@ await rm(jaContentDir, {recursive: true, force: true});
 await rm(enContentDir, {recursive: true, force: true});
 await rm(generatedStaticDir, {recursive: true, force: true});
 
-// docs/reference/ existing is the signal that the canonical tree has landed.
-// Until then keep publishing the two-book layout so the site never goes dark
-// mid-migration. Delete this branch, and the guide/spec roots, with the switch.
-const canonical = existsSync(path.join(repositoryDir, 'docs', 'reference'));
-
-const roots = canonical
-  ? {
-      ja: [path.join(repositoryDir, 'docs')],
-      en: [path.join(repositoryDir, 'docs', 'en')],
-    }
-  : {
-      ja: [path.join(repositoryDir, 'guide'), path.join(repositoryDir, 'spec')],
-      en: [
-        path.join(repositoryDir, 'guide', 'en'),
-        path.join(repositoryDir, 'spec', 'en'),
-      ],
-    };
+// The canonical tree is the only one published. The two-book layout (guide/ + spec/) it grew out
+// of has been withdrawn (ADR-0046), so there is no branch to choose any more.
+const roots = {
+  ja: [path.join(repositoryDir, 'docs')],
+  en: [path.join(repositoryDir, 'docs', 'en')],
+};
 
 await writeLocale('ja', roots.ja, jaContentDir);
 await writeLocale('en', roots.en, enContentDir);
 await copyContentAssets(jaContentDir);
 await copyContentAssets(enContentDir);
 
-console.log(
-  canonical
-    ? 'Prepared the canonical documentation (docs/), Japanese and English.'
-    : 'Prepared the legacy guide/ and spec/ content, Japanese and English.',
-);
+console.log('Prepared the canonical documentation (docs/), Japanese and English.');

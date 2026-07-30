@@ -28,6 +28,8 @@ import { svgPlan, svgAxo } from "@kensnzk/koyu/draw";
 | `@kensnzk/koyu/node` | `parseFile` `parseFileWith` の二つだけ | 引く |
 | `@kensnzk/koyu/validate` | `validate` `VALIDATION_RULES` と型 `Finding` `ValidationRule` | 引かない |
 | `@kensnzk/koyu/draw` | `svgPlan` `svgAxo` と型 `PlanOptions` `AxoOptions` | 引かない |
+| `@kensnzk/koyu/examples/*` | 同梱の建物の原本 (`examples/two-rooms.muro` など)。テストや評価から読む | — |
+| `@kensnzk/koyu/syntax` | エディタの文法 (TextMate 文法の JSON)。VS Code と Shiki が共有する | — |
 
 **ルートは `node:fs` も `node:path` も引かない。**ブラウザ・Web Worker・エッジランタイムでそのまま動く。ファイルシステムを触る入口だけが `/node` に分離してある。分けてあるのはパーサ本体を純粋に保つためで、合成 (`import` の解決) は「レイヤーをどう読むか」という関数を外から受け取る形になっており、fs はその実装の一つでしかない。ブラウザは仮想ファイル群 (`parseFiles`) か独自ローダー (`parseWith`) を渡す — [解析と合成](parsing.md)。
 

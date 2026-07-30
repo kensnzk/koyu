@@ -28,6 +28,8 @@ import { svgPlan, svgAxo } from "@kensnzk/koyu/draw";
 | `@kensnzk/koyu/node` | `parseFile` and `parseFileWith`, nothing else | pulled |
 | `@kensnzk/koyu/validate` | `validate`, `VALIDATION_RULES`, and the types `Finding` and `ValidationRule` | not pulled |
 | `@kensnzk/koyu/draw` | `svgPlan`, `svgAxo`, and the types `PlanOptions` and `AxoOptions` | not pulled |
+| `@kensnzk/koyu/examples/*` | the source of a bundled building (`examples/two-rooms.muro` and friends), for tests and evaluation | — |
+| `@kensnzk/koyu/syntax` | the editor grammar (TextMate grammar as JSON), shared by VS Code and Shiki | — |
 
 **The root pulls neither `node:fs` nor `node:path`.** It runs unchanged in a browser, a web worker, or an edge runtime. Only the entrance that touches the filesystem lives under `/node`. The split exists to keep the parser itself pure: composition (resolving `import`) takes a "how do I read a layer" function from outside, and the filesystem is only one implementation of it. A browser passes a virtual file set (`parseFiles`) or its own loader (`parseWith`) — see [Parsing and composition](parsing.md).
 

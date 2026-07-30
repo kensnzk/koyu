@@ -52,7 +52,7 @@ SUF04  No level sits above L3, so no form is generated for /L3/st
 
 ## form — 直と折返し
 
-```
+```text
 form:straight   直進 (既定)
 form:return     折返し
 ```
@@ -70,7 +70,7 @@ RUN05  form:return may not be written on escalator (only a stair and a ramp turn
 
 走りは領域の縁からは始まらない。**近端に乗り込みの帯が残り、そこが扉の開く場所になる。**縁から始めると階段室の扉が段板に直接ぶつかる。直進では遠端にも同じ帯が残る。
 
-```
+```text
 form:straight   走りに使える長さ = 全長 − entry × 2
 form:return     走りに使える長さ = 全長 − entry
 ```
@@ -85,7 +85,7 @@ RUN05  The form of the vertical circulation is undetermined: /L1/s (check that t
 
 蹴上げの数は、階高を蹴上げの上限で割った切り上げ (最低2段)。踏面は、走りに使える長さを段の隙間の数で割った残りである。
 
-```
+```text
 段数   = max(2, ceil(上る高さ ÷ riser))
 蹴上げ = 上る高さ ÷ 段数
 踏面   = 走りに使える長さ ÷ max(1, 段数 − 1)

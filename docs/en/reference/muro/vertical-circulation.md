@@ -52,7 +52,7 @@ SUF04  No level sits above L3, so no form is generated for /L3/st
 
 ## form — straight and turning back
 
-```
+```text
 form:straight   straight (the default)
 form:return     turning back
 ```
@@ -70,7 +70,7 @@ RUN05  form:return may not be written on escalator (only a stair and a ramp turn
 
 A flight does not begin at the edge of the region. **A boarding band is left at the near end, and that is where the door opens.** Starting at the edge would drive the stair enclosure's door straight into the treads. A straight run leaves the same band at the far end.
 
-```
+```text
 form:straight   usable length = full length − entry × 2
 form:return     usable length = full length − entry
 ```
@@ -85,7 +85,7 @@ RUN05  The form of the vertical circulation is undetermined: /L1/s (check that t
 
 The riser count is the rise divided by the riser limit, rounded up, with a floor of two. The tread is the usable length divided by the number of gaps between steps.
 
-```
+```text
 risers = max(2, ceil(rise ÷ riser))
 riser  = rise ÷ risers
 tread  = usable length ÷ max(1, risers − 1)

@@ -5,7 +5,7 @@ mode: reference
 
 # boundary — the boundary between two spaces
 
-```
+```text
 boundary /pathA /pathB [key:value...]
   door … / window … / seg … / line …      # one level of indentation
 ```

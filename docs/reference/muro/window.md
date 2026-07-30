@@ -5,7 +5,7 @@ mode: reference
 
 # window — 採光する開口
 
-```
+```text
 boundary /pathA /pathB …
   window [アセット名] w:1650 h:1100 [at:…] [edge:…] [name:…] [sill:…]
 ```

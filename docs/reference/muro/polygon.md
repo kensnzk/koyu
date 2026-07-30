@@ -5,7 +5,7 @@ mode: reference
 
 # polygon — 敷地形状
 
-```
+```text
 polygon /ゾーンパス x,y x,y x,y …
 ```
 

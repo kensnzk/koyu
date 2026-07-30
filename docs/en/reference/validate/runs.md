@@ -31,7 +31,7 @@ A `lift` has neither steps nor a pitch, so none of the rules in this chapter app
 
 The derived going is under 240mm, or `2×riser + going` falls outside 550–700mm. The second is the pace rule.
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 3000
 grid Y 0 4600
@@ -101,7 +101,7 @@ It means different things for a ramp and for an escalator. They share a rule nam
 
 `slope:` is **not the slope. It is the limit you will accept**, and it exists only so this check can be made. `slope:12` means "no steeper than 1/12".
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 3000
 grid Y 0 6000
@@ -127,7 +127,7 @@ A ramp with no `slope:` is not checked. **koyu does not invent a limit for a ram
 
 An escalator needs no `slope:`. If the derived pitch falls outside 1/2.3 – 1/1.4 — a band around the usual 1/1.7, i.e. 30° — the same rule fires.
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 1200
 grid Y 0 12000
@@ -151,7 +151,7 @@ This is the **too shallow** side. The region is so long that the derivation prod
 
 **Shape and topology are written separately.** `stair:N` builds treads; it does not claim that the two levels are connected. What connects them is a `stack`, or a `boundary type:stair`.
 
-```muro-warn
+```muro-caution
 koyu 1.0
 grid X 0 3000
 grid Y 0 7000

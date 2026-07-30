@@ -56,8 +56,6 @@ function sourceFor(id, locale) {
     locale === 'en'
       ? [
           `docs/en/${id}.md`,
-          `guide/en/${id.replace(/^guide\//, '')}.md`,
-          `spec/en/${id.replace(/^spec\//, '')}.md`,
         ]
       : [`docs/${id}.md`, `${id}.md`];
   for (const candidate of candidates) {

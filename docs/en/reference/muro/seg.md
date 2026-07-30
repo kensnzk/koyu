@@ -5,7 +5,7 @@ mode: reference
 
 # seg — an uncounted segmentation along a boundary
 
-```
+```text
 boundary /pathA /pathB …
   seg w:3000 [at:…] [edge:…] [attributes…]
 ```

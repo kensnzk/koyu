@@ -9,11 +9,12 @@ An exploration of text-native architectural description with **space as the prim
 
 ## Documentation
 
-The prose is split into two books, in Japanese. Start at the guide; consult the reference.
+**[docs/](docs/index.md) is the documentation, and it is authoritative.** 167 pages in Japanese and English, laid out by what you came to do.
 
-- **[guide/](guide/README.md)** — the guide: a tutorial that goes from one room to a two-storey house in 30–45 minutes, the six concepts, how-to recipes, the diagnostic-code handbook, and the CLI and API references. **If you are learning koyu, start at [guide/start.md](guide/start.md).**
-- **[spec/](spec/README.md)** — the normative reference: grammar, semantics, the attribute ledger, canonical JSON, tool contracts. Present tense, no history.
-- **[docs/decisions/](docs/decisions/)** — the ADRs: why each decision was made and what was rejected.
+- **[docs/start/](docs/start/index.md)** — the tutorial: one room to a two-storey house in 30–45 minutes. **If you are learning koyu, start here.**
+- **[docs/why/](docs/why/index.md)** — the explanations: why space is primary, why a boundary is a relation, why the form must be unique.
+- **[docs/howto/](docs/howto/index.md)** — recipes, by goal and by symptom.
+- **[docs/reference/](docs/reference/index.md)** — the normative reference: [every `.muro` word](docs/reference/muro/index.md), [all 65 diagnostics](docs/reference/diagnostics/index.md), [the 15 verdicts](docs/reference/validate/index.md), [the CLI](docs/reference/cli/index.md), [the MCP server](docs/reference/mcp/index.md), [the API](docs/reference/api/index.md), [the derived form](docs/reference/form/index.md), [canonical JSON](docs/reference/json/index.md).
 - **[AGENTS.md](AGENTS.md)** — the entry point for LLM agents working in this repository.
 
 One room is written like this. Four lines, and it is a complete file.
@@ -27,7 +28,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 `koyu plan` produces the floor plan. Not one wall is drawn — there is a space, but not one boundary.
 
-![Plan of a single room](guide/img/start-01-one-room.svg)
+![Plan of a single room](docs/img/start-01-one-room.svg)
 
 Add one more `space` line. Change nothing else.
 
@@ -39,7 +40,7 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 ```
 
-![Plan of two rooms, with a wall standing between them](guide/img/start-02-two-rooms.svg)
+![Plan of two rooms, with a wall standing between them](docs/img/start-02-two-rooms.svg)
 
 **A wall appears. There is no operation anywhere that draws a wall.** A wall is the boundary relation between two spaces, derived from the layout of those spaces. Where a pair of touching spaces has no declaration, that means "wall" rather than "undefined".
 
@@ -61,7 +62,7 @@ A building can also be written as a set of files and composed — additive layer
 2. **Write the four lines above** into `first.muro`, then run `npx tsx src/cli.ts check first.muro` and `npx tsx src/cli.ts plan first.muro -o out/first.svg`.
 3. **Read a bundled example.** `npx tsx src/cli.ts check examples/two-rooms.muro` prints `✔ Consistent — 3 spaces / 3 boundaries`; `stats`, `graph`, and `doors` answer about the same file.
 
-`grid` and `level` must be declared before anything that refers to them, and the type (`room`, the second positional word) is required; everything else — the `koyu` version line, `unit`, `name`, heights — is optional. From here, [guide/start.md](guide/start.md) (Japanese) is a managed path from this one room to a two-storey house with per-floor plans, a circulation check, and a daylight check.
+`grid` and `level` must be declared before anything that refers to them, and the type (`room`, the second positional word) is required; everything else — the `koyu` version line, `unit`, `name`, heights — is optional. From here, [docs/start/](docs/start/index.md) is a managed path from this one room to a two-storey house with per-floor plans, a circulation check, and a daylight check.
 
 ## Usage
 
@@ -91,11 +92,11 @@ npm run koyu -- site   examples/tower/main.muro      # showcase: polygon site, t
 
 `koyu-mcp` is a zero-dependency MCP server over stdio (ADR-0012): an LLM agent reads the building (`layers`), edits it (`write_layer`), and `check` acts as the build gate — errors come back with layer:line provenance. `doors` / `light` / `site` / `stats` are the same description read different ways. The whole 4,786m² showcase is 8,099 tokens as source (measured; IFC4 is 14x, IFCX 25x — see [examples/comparison/](examples/comparison/README.md)), so a whole building fits in one context with room to work. Whether an agent can *edit* it correctly is the next watershed — an edit eval is planned, not yet run ([docs/horizon.md](docs/horizon.md)). The horizon design (digital twin, ontology alignment via W3C BOT, city connection) is in the same document.
 
-Registering it is one line (`claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp`). Setup for Claude Code, Claude Desktop, and other clients, plus the standard loop, is in [guide/en/howto/agent-mcp.md](guide/en/howto/agent-mcp.md).
+Registering it is one line (`claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp`). Setup for Claude Code, Claude Desktop, and other clients, plus the standard loop, is in [docs/en/howto/install-mcp.md](docs/en/howto/install-mcp.md).
 
 ## Layout
 
-The learning material lives in [guide/](guide/README.md) — tutorial, concepts, how-to, diagnostics, CLI/API. The current specification lives in [spec/](spec/README.md) — language reference, semantics (derivations, checks, queries), the attribute ledger, the canonical JSON format, and the tool reference (CLI / MCP / API). ADRs record why decisions were made; spec/ states what is true now. The historical record of how the notation was chosen (with the DSL/YAML/JSON comparison) is [spec/notation-v0.md](spec/notation-v0.md); coverage against the IFC4 architectural core is [docs/ifc-coverage.md](docs/ifc-coverage.md); design decisions are recorded in [docs/decisions/](docs/decisions/); the roadmap is [docs/roadmap.md](docs/roadmap.md); daily logs are in [docs/log/](docs/log/). The implementation is ~7,500 lines in src/ (parser, graph, checks, plan generation, CLI, MCP server), tests in test/. Reading notes on IFCX are in [docs/ifcx-notes.md](docs/ifcx-notes.md); the same two rooms written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).
+The documentation lives in [docs/](docs/index.md) — tutorial, explanations, how-to, and the normative reference (the notation, diagnostics, verdicts, CLI, MCP, API, the derived form, canonical JSON). **That tree is authoritative**; ADRs in [docs/decisions/](docs/decisions/) record why each decision was made and are never amended, so they are history rather than current truth. Coverage against the IFC4 architectural core is [docs/ifc-coverage.md](docs/ifc-coverage.md); the roadmap is [docs/roadmap.md](docs/roadmap.md); daily logs are in [docs/log/](docs/log/). The implementation is ~7,500 lines in src/ (parser, graph, checks, plan generation, CLI, MCP server), tests in test/. Reading notes on IFCX are in [docs/ifcx-notes.md](docs/ifcx-notes.md); the same two rooms written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).
 
 ## Technical stance
 
@@ -111,4 +112,4 @@ The file extension is `.muro` (室, *muro* — room). The unit a file holds is n
 
 ## License
 
-Code (src/, test/, examples/, …) is under the [Apache License 2.0](LICENSE). Documents (docs/, spec/, and the essay "[建築を書く / Writing Architecture](docs/writing-architecture.md)") are under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Citation metadata is in [CITATION.cff](CITATION.cff).
+Code (src/, test/, examples/, …) is under the [Apache License 2.0](LICENSE). Documents (docs/, and the essay "[建築を書く / Writing Architecture](docs/writing-architecture.md)") are under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Citation metadata is in [CITATION.cff](CITATION.cff).

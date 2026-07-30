@@ -5,7 +5,7 @@ mode: reference
 
 # boundary — 二つの空間の境界
 
-```
+```text
 boundary /pathA /pathB [key:value...]
   door … / window … / seg … / line …      # 字下げ一段
 ```

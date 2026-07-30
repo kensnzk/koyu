@@ -5,7 +5,7 @@ mode: reference
 
 # polygon — the shape of the site
 
-```
+```text
 polygon /zone-path x,y x,y x,y …
 ```
 

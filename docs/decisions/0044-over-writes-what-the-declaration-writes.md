@@ -24,7 +24,7 @@
 
 `level:` は空間の所属を決める typed field で、宣言では `takeString(attrs, "level")` が取り出して検証する ([ADR-0008](0008-vocabulary-and-level-attr.md))。`over` では汎用の道を通るので、`s.level` は動かず `attrs` に文字列が残った。
 
-```json
+```json-part
 {"type": "room", "level": "L2", "at": [...], "attrs": {"level": "L3"}}
 ```
 

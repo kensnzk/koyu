@@ -14,8 +14,6 @@ import {spawnSync} from 'node:child_process';
 // So: fetch the comparison commit into the clone before deciding.
 const watchedPaths = [
   '.',
-  '../guide',
-  '../spec',
   '../docs/img',
   '../editors/vscode/syntaxes/koyu.tmLanguage.json',
 ];

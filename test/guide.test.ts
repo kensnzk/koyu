@@ -1,22 +1,24 @@
-// guide/ の非乖離保証 — 学びの本 (guide) が規範の本 (spec) から黙って離れないための門番。
+// The non-divergence gatekeeper for the published documentation — so the pages cannot silently
+// drift from what the implementation does.
 //
-// リポジトリの規律は「ADR (なぜ) + テスト (保証) + spec (現在形)」であり、guide/ は
-// 事実が乖離する四つめの置き場になってはならない。ここが守るのは六つ。
-//   (1) ```muro      は本当に通る完全なファイルである (エラー0件)
-//   (2) ```muro-bad  は本当に落ちる (SourceError か error診断1件以上)
-//   (3) ```muro-warn は本当に警告だけを出す (エラー0件・警告1件以上)
-//       ```muro-part は断片なので検証しない。印の綴り間違いで検証がすり抜けないよう、
-//       使われている情報文字列の集合そのものを台帳と突き合わせる。
-//   (3b) ```muro-fail / ```muro-caution は検証の面 (validate) の判定を出す。**core の診断ではない** —
-//       core のエラーは0件で、指定の level の Finding が1件以上出ることを見る
-//   (4) guide/diagnostics.md のコード集合と severity が DIAGNOSTIC_CODES と一致し、
-//       guide/validation.md の規則集合と level が VALIDATION_RULES と一致し、
-//       各節の例がその規則ちょうど1件を出す (頁が自分で宣言している約束)
-//   (5) guide/ からの相対リンクの先が実在する
-//   (6) guide/ が見せる CLI の呼び出しが実在するサブコマンドである (一覧は src/cli.ts から採る)
+// The discipline of this repository is "ADR (why) + test (guarantee) + published documentation
+// (present tense)", and the documentation must not become a fourth place where facts diverge.
+// Six things are held here.
+//   (1) ```muro      really passes as a complete file (zero errors)
+//   (2) ```muro-bad  really fails (a SourceError, or at least one error diagnostic)
+//   (3) ```muro-warn really warns and nothing more (zero errors, at least one warning)
+//       ```muro-part is a fragment and is not checked. So that a misspelled tag cannot let an
+//       example slip past unchecked, the set of info strings in use is itself compared to a ledger.
+//   (3b) ```muro-fail / ```muro-caution produce a verdict from the validation surface. **Not a core
+//       diagnostic** — core errors must be zero, and at least one Finding of the named level appears
+//   (4) every diagnostic family page carries an example producing exactly its own code, and every
+//       validation rule page an example producing exactly its own rule (each page promises this)
+//   (5) relative links resolve
+//   (6) the CLI invocations shown are real subcommands (the list comes from src/cli.ts)
 //
-// 走査の対象は guide/**/*.md と、入口の README.md / README.ja.md である
-// (READMEの冒頭スニペットが「抜粋なのに抜粋と書かれていない」ことが最初の躓きだった)。
+// The corpus is docs/**/*.md over the published tree, plus the entry READMEs (README.md /
+// README.ja.md — the opening snippet being "an excerpt without saying so" was the first stumble).
+// It used to be guide/**, which has been withdrawn (ADR-0046).
 
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -29,10 +31,12 @@ import { parse } from "../src/core/parse.js";
 import { validate, VALIDATION_RULES, type Finding } from "../src/validate/index.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const GUIDE = join(root, "guide");
+/** The published tree. The unpublished parts of docs/ (ADRs, logs, reviews, loose material) are out */
+const DOCS = join(root, "docs");
+const PUBLISHED = ["start", "why", "howto", "reference", "examples", "glossary", "index.md", "glossary.md", "roadmap.md"];
 
 /**
- * guide/ で使ってよい情報文字列の台帳。
+ * The ledger of info strings the documentation may use.
  * ここに無い綴りは落ちる — `muro` を `mruo` と書いて検証がすり抜けるのを防ぐのが目的なので、
  * 未知の言語を足すときは「検証しなくてよい」と決めたうえでここに足す。
  * 情報文字列なしの裸のフェンスも禁じる (印を落とすのが最も起きやすい検証の抜けかたである)。
@@ -48,6 +52,12 @@ const FENCE_TAGS = new Set([
   "text",
   "ts",
   "json",
+  /** A JSON excerpt of a few keys rather than a whole document — the shape mirrors `muro-part` */
+  "json-part",
+  /** A CI workflow example */
+  "yaml",
+  /** The page about writing the documentation quotes markdown itself */
+  "markdown",
 ]);
 
 // ---- markdown の走査 ----
@@ -113,7 +123,14 @@ function scan(path: string): { file: string; blocks: Block[]; prose: Array<{ lin
  */
 const ROOT_PAGES = ["README.md", "README.ja.md"].map((f) => join(root, f)).filter((p) => existsSync(p));
 
-const FILES = [...markdownFiles(GUIDE), ...ROOT_PAGES];
+const FILES = [
+  ...PUBLISHED.flatMap((entry) => {
+    const p = join(DOCS, entry);
+    if (!existsSync(p)) return [];
+    return statSync(p).isDirectory() ? markdownFiles(p) : [p];
+  }),
+  ...ROOT_PAGES,
+];
 const SCANNED = FILES.map(scan);
 const BLOCKS = SCANNED.flatMap((s) => s.blocks);
 
@@ -141,7 +158,7 @@ function run(source: string): Outcome {
 }
 
 test("guide: the scan is not empty (scaffolding so this test cannot pass in silence)", () => {
-  assert.ok(FILES.length >= 10, `too few .md files under guide/: ${FILES.length}`);
+  assert.ok(FILES.length >= 10, `too few .md files under docs/: ${FILES.length}`);
   assert.ok(
     BLOCKS.filter((b) => b.tag === "muro").length >= 10,
     "no ```muro block was found — the scanner is broken",
@@ -278,14 +295,26 @@ for (const [tag, level] of [
 
 // ---- (4) 診断コード事典と台帳の一致 ----
 
-/** guide/diagnostics.md の `### CODE — 概要` と、その直後に印字される severity を採る */
-function guideDiagnosticSections(): Array<{ code: string; severity: string; line: number; block?: Block }> {
-  const path = join(GUIDE, "diagnostics.md");
+/**
+ * Every `## CODE — …` section of the diagnostics reference, with the severity printed under it and
+ * the first failing example in the section. One page per family, so the pages are walked (ADR-0046).
+ */
+function diagnosticSections(): Array<{ code: string; severity: string; line: number; block?: Block }> {
+  const dir = join(DOCS, "reference", "diagnostics");
+  const out: Array<{ code: string; severity: string; line: number; block?: Block }> = [];
+  for (const file of readdirSync(dir).sort()) {
+    if (!file.endsWith(".md") || file === "index.md" || file === "reading.md" || file === "retired.md") continue;
+    out.push(...sectionsOf(join(dir, file)));
+  }
+  return out;
+}
+
+function sectionsOf(path: string): Array<{ code: string; severity: string; line: number; block?: Block }> {
   const { blocks } = scan(path);
   const lines = readFileSync(path, "utf8").split("\n");
   const out: Array<{ code: string; severity: string; line: number; block?: Block }> = [];
   for (let i = 0; i < lines.length; i++) {
-    const h = /^###\s+([A-Z]{3}\d{2})\s+—\s+\S/.exec(lines[i]!);
+    const h = /^##\s+([A-Z]{3}\d{2})\s+—\s+\S/.exec(lines[i]!);
     if (!h) continue;
     let severity = "";
     for (let j = i + 1; j < lines.length && !/^###\s/.test(lines[j]!); j++) {
@@ -307,25 +336,40 @@ function guideDiagnosticSections(): Array<{ code: string; severity: string; line
   return out;
 }
 
-test("ledger: the code set and the severity in guide/diagnostics.md match DIAGNOSTIC_CODES", () => {
-  const sections = guideDiagnosticSections();
+/**
+ * Codes with no section of their own, and why.
+ *
+ * `SYN01` is not a code in the same sense as the others — it is where a parser exception is mapped,
+ * so there is no declaration to point at and no severity to choose. Its page says as much in prose
+ * and gives it no `## SYN01 — …` heading. The set equality below is taken against the rest.
+ */
+const NO_SECTION = new Set(["SYN01"]);
+
+test("ledger: the code set and the severity in the diagnostics reference match DIAGNOSTIC_CODES", () => {
+  const sections = diagnosticSections();
+  const expected = Object.fromEntries(
+    Object.entries(DIAGNOSTIC_CODES).filter(([code]) => !NO_SECTION.has(code)),
+  );
+  for (const code of NO_SECTION) {
+    assert.ok(code in DIAGNOSTIC_CODES, `${code} is exempt from having a section but is not in the ledger`);
+  }
   const table: Record<string, string> = {};
   for (const s of sections) {
-    assert.equal(s.code in table, false, `guide/diagnostics.md:${s.line}: there are two sections for ${s.code}`);
+    assert.equal(s.code in table, false, `the diagnostics reference:${s.line}: there are two sections for ${s.code}`);
     assert.notEqual(
       s.severity,
       "",
-      `guide/diagnostics.md:${s.line}: the ${s.code} section has no severity line (\`error\` / \`warning\`)`,
+      `the diagnostics reference:${s.line}: the ${s.code} section has no severity line (\`error\` / \`warning\`)`,
     );
     table[s.code] = s.severity;
   }
-  assert.deepEqual(table, DIAGNOSTIC_CODES);
+  assert.deepEqual(table, expected);
 });
 
-test("ledger: each section of guide/diagnostics.md carries an example that produces exactly one diagnostic — its own code", () => {
-  for (const s of guideDiagnosticSections()) {
+test("ledger: each section of the diagnostics reference carries an example that produces exactly one diagnostic — its own code", () => {
+  for (const s of diagnosticSections()) {
     const b = s.block;
-    assert.ok(b, `guide/diagnostics.md:${s.line}: the ${s.code} section has no bad-example block`);
+    assert.ok(b, `the diagnostics reference:${s.line}: the ${s.code} section has no bad-example block`);
     const r = run(b.body);
     if (r.thrown) {
       // SourceError は診断に写すと SYN01 ちょうど1件になる (ADR-0016 / CLIの check --json)
@@ -338,8 +382,13 @@ test("ledger: each section of guide/diagnostics.md carries an example that produ
       continue;
     }
     const diags = [...r.errors, ...r.warnings];
+    // **Its own code and nothing else.** Not "exactly one diagnostic": a code whose population is
+    // the written declarations fires once per declaration (ADR-0028), and an example that shows all
+    // three 1.0 words correctly raises three VER04. What must not happen is a foreign code coming
+    // out — that would mean the example demonstrates something other than what the section is about.
+    assert.ok(diags.length > 0, `${where(b)}: not one diagnostic comes out\n${b.body}`);
     assert.deepEqual(
-      diags.map((d) => d.code),
+      [...new Set(diags.map((d) => d.code))],
       [s.code],
       `${where(b)}: the diagnostics from the ${s.code} section's example do not agree — actually [${diags.map(render).join(" / ")}]\n${b.body}`,
     );
@@ -347,14 +396,26 @@ test("ledger: each section of guide/diagnostics.md carries an example that produ
   }
 });
 
-/** guide/validation.md の `### \`rule\` — 概要` と、その節の最初の判定例ブロックを採る */
-function guideValidationSections(): Array<{ rule: string; line: number; block?: Block }> {
-  const path = join(GUIDE, "validation.md");
+/**
+ * Every `## \`rule\` — …` section of the validation reference, with the first verdict example in it.
+ * One page per family, so the pages are walked (ADR-0046).
+ */
+function validationSections(): Array<{ rule: string; line: number; block?: Block }> {
+  const dir = join(DOCS, "reference", "validate");
+  const out: Array<{ rule: string; line: number; block?: Block }> = [];
+  for (const file of readdirSync(dir).sort()) {
+    if (!file.endsWith(".md") || file === "index.md") continue;
+    out.push(...ruleSectionsOf(join(dir, file)));
+  }
+  return out;
+}
+
+function ruleSectionsOf(path: string): Array<{ rule: string; line: number; block?: Block }> {
   const { blocks } = scan(path);
   const lines = readFileSync(path, "utf8").split("\n");
   const out: Array<{ rule: string; line: number; block?: Block }> = [];
   for (let i = 0; i < lines.length; i++) {
-    const h = /^###\s+`([a-z.]+)`\s+—\s+\S/.exec(lines[i]!);
+    const h = /^##\s+`([a-z.]+)`\s+—\s+\S/.exec(lines[i]!);
     if (h) out.push({ rule: h[1]!, line: i + 1 });
   }
   for (const s of out) {
@@ -366,8 +427,8 @@ function guideValidationSections(): Array<{ rule: string; line: number; block?: 
   return out;
 }
 
-test("ledger: each section of guide/validation.md carries an example that produces exactly one finding — its own rule", () => {
-  const sections = guideValidationSections();
+test("ledger: each section of the validation reference carries an example that produces exactly one finding — its own rule", () => {
+  const sections = validationSections();
   assert.equal(
     sections.length,
     Object.keys(VALIDATION_RULES).length,
@@ -375,7 +436,7 @@ test("ledger: each section of guide/validation.md carries an example that produc
   );
   for (const s of sections) {
     const b = s.block;
-    assert.ok(b, `guide/validation.md:${s.line}: the ${s.rule} section has no validation-example block`);
+    assert.ok(b, `the validation reference:${s.line}: the ${s.rule} section has no validation-example block`);
     const r = runValidate(b.body);
     assert.equal(r.thrown, undefined, `${where(b)}: failed to parse — ${r.thrown?.message}\n${b.body}`);
     // 判定の例は構成としては正しい — core が落とす例をここに置かない
@@ -497,6 +558,12 @@ function cliSubcommands(): Set<string> {
   return subs;
 }
 
+/**
+ * Subcommands that deliberately do not exist. The CLI reference demonstrates the exit code for an
+ * unknown command, so one invocation there must name something the CLI rejects.
+ */
+const DELIBERATELY_UNKNOWN = new Set(["frobnicate"]);
+
 test("guide: every CLI invocation it shows names a subcommand that exists", () => {
   const subs = cliSubcommands();
   assert.ok(subs.size >= 8, `no subcommand was collected from src/cli.ts: ${[...subs].join(",")}`);
@@ -511,7 +578,11 @@ test("guide: every CLI invocation it shows names a subcommand that exists", () =
     }
     for (const p of prose) {
       for (const m of p.text.matchAll(/`([^`\n]+)`/g)) {
-        cands.push({ file, line: p.line, text: m[1]!.trim() });
+        const text = m[1]!.trim();
+        // A quoted **message** is not an invocation. `koyu takes a version: koyu 1.0` is what the
+        // tool prints, and no real command line carries a colon followed by a space
+        if (text.includes(": ")) continue;
+        cands.push({ file, line: p.line, text });
       }
     }
     for (const c of cands) {
@@ -520,6 +591,7 @@ test("guide: every CLI invocation it shows names a subcommand that exists", () =
       const token = m[1]!;
       // サブコマンドではないもの: 旗 (--help)、プレースホルダ (…, <…>)、版宣言の `koyu 0.2`
       if (!/^[a-z][a-z0-9-]*$/.test(token)) continue;
+      if (DELIBERATELY_UNKNOWN.has(token)) continue;
       checked++;
       assert.ok(
         subs.has(token),

@@ -7,7 +7,7 @@ mode: reference
 
 `import` is the one word for writing a single building across several files. Each line reads one layer, and the layers it reads are composed into a single model.
 
-```
+```text
 import <relative path>
 ```
 

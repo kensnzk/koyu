@@ -5,7 +5,7 @@ mode: reference
 
 # asset — 建具アセット
 
-```
+```text
 asset <名> door|window [key:value...]
 ```
 

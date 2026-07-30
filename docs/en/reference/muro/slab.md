@@ -5,7 +5,7 @@ mode: reference
 
 # slab — the floor build-up
 
-```
+```text
 level <name> <z> [h:ceiling height] [slab:floor build-up] [underground:1]
 ```
 

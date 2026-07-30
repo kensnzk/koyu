@@ -4,7 +4,7 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -37,9 +37,16 @@ const fmt = (d: Diagnostic): string =>
 const NO_SOURCE = new Set(["UID03", "VER01"]);
 
 test("source: a diagnostic against a written declaration always carries line/file (the only exceptions are the two in the ledger)", () => {
-  // guide/diagnostics.md の全例を走らせ、出所の無い診断を洗う。
-  // かつては error 5件を含む8コードが位置を持たず、人向け出力から接頭辞が消えていた
-  const md = readFileSync(join(root, "guide/diagnostics.md"), "utf8");
+  // Runs every failing example in the diagnostics reference and sweeps for a diagnostic with no
+  // provenance. Eight codes, five of them errors, once carried no position, and the prefix vanished
+  // from the human-facing output. The corpus is the **published documentation**, family page by
+  // family page — the single guide page it used to read has been withdrawn (ADR-0046)
+  const dir = join(root, "docs/reference/diagnostics");
+  const md = readdirSync(dir)
+    .filter((f) => f.endsWith(".md"))
+    .sort()
+    .map((f) => readFileSync(join(dir, f), "utf8"))
+    .join("\n");
   const blocks = [...md.matchAll(/```muro-(?:bad|warn)\n([\s\S]*?)```/g)].map((m) => m[1]!);
   assert.ok(blocks.length > 40, `too few examples: ${blocks.length}`);
   const missing = new Map<string, string>();

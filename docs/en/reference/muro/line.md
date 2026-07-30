@@ -5,7 +5,7 @@ mode: reference
 
 # line — a drawn line
 
-```
+```text
 boundary /pathA /pathB …
   line <start> <end>
 ```

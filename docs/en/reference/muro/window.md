@@ -5,7 +5,7 @@ mode: reference
 
 # window — the opening that brings in light
 
-```
+```text
 boundary /pathA /pathB …
   window [AssetName] w:1650 h:1100 [at:…] [edge:…] [name:…] [sill:…]
 ```

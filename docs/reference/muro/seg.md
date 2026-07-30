@@ -5,7 +5,7 @@ mode: reference
 
 # seg — 境界上の数えない分節
 
-```
+```text
 boundary /pathA /pathB …
   seg w:3000 [at:…] [edge:…] [属性…]
 ```

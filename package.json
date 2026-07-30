@@ -19,7 +19,6 @@
       "default": "./dist/draw/index.js"
     },
     "./examples/*": "./examples/*",
-    "./spec/*": "./spec/*",
     "./syntax": "./editors/vscode/syntaxes/koyu.tmLanguage.json",
     "./package.json": "./package.json",
     "./node": {
@@ -34,7 +33,6 @@
   "files": [
     "dist",
     "src",
-    "spec",
     "examples",
     "editors",
     "NOTICE"

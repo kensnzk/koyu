@@ -5,7 +5,7 @@ mode: reference
 
 # column — the element whose position is not written
 
-```
+```text
 column <size mm> <level range|level name> [d:depth] [x:grid,…] [y:grid,…] [attributes…]
 ```
 

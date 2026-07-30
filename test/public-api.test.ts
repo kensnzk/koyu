@@ -177,8 +177,14 @@ test("package: every subpath in exports points at something the build produces",
       assert.doesNotThrow(() => read(src.startsWith("./") ? src.slice(2) : src), `${sub} → ${p}`);
     }
   }
-  // 仕様を同梱する — 契約は配布物の中にある
-  assert.ok(pkg.files.includes("spec"), "the package does not ship spec/");
-  assert.ok(pkg.exports["./spec/*"], "spec/ is shipped but not reachable as a subpath");
+  // Every declared subpath is documented, and nothing is shipped that nobody declared.
+  // `spec/` used to be both shipped and exported while the documentation never mentioned it —
+  // the stale tree was the copy a package consumer received (ADR-0046)
+  const subpaths = Object.keys(pkg.exports).filter((k) => k !== "." && k !== "./package.json");
+  const documented = read("docs/reference/api/index.md");
+  for (const sub of subpaths) {
+    const spelled = `@kensnzk/koyu${sub.replace(/^\./, "").replace("/*", "")}`;
+    assert.ok(documented.includes(spelled), `${sub} is exported but ${spelled} is nowhere in the API reference`);
+  }
   assert.ok(pkg.engines?.["node"], "the runtime is not declared (engines.node)");
 });

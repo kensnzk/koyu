@@ -5,7 +5,7 @@ mode: reference
 
 # door — the opening you pass through
 
-```
+```text
 boundary /pathA /pathB …
   door [AssetName] w:900 [h:2100] [at:…] [edge:…] [hinge:…] [swing:…] [style:…] [name:…]
 ```

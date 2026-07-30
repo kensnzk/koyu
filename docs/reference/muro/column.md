@@ -5,7 +5,7 @@ mode: reference
 
 # column — 位置を書かない柱
 
-```
+```text
 column <一辺mm> <レベル範囲|レベル名> [d:奥行] [x:通り,…] [y:通り,…] [属性…]
 ```
 
