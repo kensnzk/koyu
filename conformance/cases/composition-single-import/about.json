@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/import.md"],
+  "why": "二重 import の対。層を一枚にまとめた版で、二度読まれても一度だけ合成されることをこの二つが並んで示す"
+}

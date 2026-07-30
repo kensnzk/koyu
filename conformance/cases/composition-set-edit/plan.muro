@@ -1,0 +1,9 @@
+unit mm
+grid X 0 4000 8000
+grid Y 0 5000
+level L1 0 h:2700 slab:300
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+boundary /L1/a /L1/b t:120
+  door w:900 name:D1
+  door w:800 at:0.8 name:D2

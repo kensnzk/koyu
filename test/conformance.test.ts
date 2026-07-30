@@ -39,6 +39,12 @@ interface About {
    * implementation does; only the pair says the two spellings mean one building.
    */
   sameBuildingAs?: string;
+  /**
+   * The case this one must **differ** from. Some rules are only pinned by a difference: the order of
+   * `import` lines is the declaration of strength, so the same layers in another order are a
+   * different building. A pair that came out equal would mean the order carried no meaning.
+   */
+  differentBuildingFrom?: string;
 }
 
 interface Case {
@@ -251,6 +257,40 @@ test("conformance: a case naming a partner describes the same building", () => {
     checked++;
   }
   assert.ok(checked >= 3, `too few equivalence pairs: ${checked}`);
+});
+
+test("conformance: a case naming a rival differs from it, on the same layers", () => {
+  const byName = new Map(cases.map((c) => [c.name, c]));
+  let checked = 0;
+  for (const c of cases) {
+    const rivalName = c.about.differentBuildingFrom;
+    if (rivalName === undefined) continue;
+    const rival = byName.get(rivalName);
+    assert.ok(rival, `${c.name}: differentBuildingFrom names a case that does not exist — ${rivalName}`);
+    assert.ok(
+      c.expects.canonical !== undefined && rival.expects.canonical !== undefined,
+      `${c.name} and ${rivalName}: both must expect a canonical form for the difference to mean anything`,
+    );
+    assert.notEqual(
+      c.expects.canonical,
+      rival.expects.canonical,
+      `${c.name} and ${rivalName} are declared to differ, yet their expected canonical forms are identical`,
+    );
+    // **And the layers must be the same content**, or the difference proves nothing about ordering
+    const layers = (x: Case) =>
+      readdirSync(x.dir)
+        .filter((f) => f.endsWith(".muro") && f !== "main.muro")
+        .sort()
+        .map((f) => readFileSync(join(x.dir, f), "utf8"))
+        .join("\u0000");
+    assert.equal(
+      layers(c),
+      layers(rival),
+      `${c.name} and ${rivalName} must carry the same layers — only the order of the import lines may differ`,
+    );
+    checked++;
+  }
+  assert.ok(checked >= 1, "no case pins a rule by a difference");
 });
 
 // ---- The ledger: which normative statements are pinned ----

@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/over-drop.md", "docs/reference/muro/composition.md"],
+  "why": "合成の規則4 — over は上書きであって定義ではない。対象が無ければエラーであり、決して定義に化けない。存在しないものに意見だけを足すのは、たいてい綴り違いか層の順序の思い違いである"
+}

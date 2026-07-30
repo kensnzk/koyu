@@ -1,0 +1,4 @@
+over /L1/a /L1/b
+  - door D2
+  = door D1 w:1000
+  + window w:600 h:1200 at:0.9 name:W1

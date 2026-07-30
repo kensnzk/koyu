@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/over-drop.md", "docs/reference/muro/composition.md"],
+  "why": "合成の規則3 — 集合は明示された編集で合成する。暗黙のマージは無い。- が消し、= が名を残して属性を差し替え、+ が足す。同一性は「含む対象 + その中で一意な名」なので、編集の対象は name を持つものに限る"
+}

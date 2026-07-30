@@ -1,0 +1,5 @@
+{
+  "pins": ["docs/reference/muro/import.md", "docs/reference/muro/composition.md"],
+  "why": "合成の規則5 — 五枚に割って書いた建物と、同じ内容を一枚に書いた建物は同じ正準形を与える。import の跡は残らない。層の分け方は書き手の都合であって建物の性質ではない",
+  "sameBuildingAs": "composition-split-one"
+}
