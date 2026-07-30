@@ -10,6 +10,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { derive } from "../src/core/derive.js";
 import { checkDiagnostics } from "../src/core/diagnose.js";
 import { toCanonical } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
@@ -67,7 +68,7 @@ const COVERAGE: Array<[string, RegExp]> = [
  */
 function generate(rnd: () => number): { header: Block[]; body: Block[] } {
   const header: Block[] = [
-    { lines: ["koyu 0.5"] },
+    { lines: ["koyu 1.0"] },
     { lines: ["name 生成された模型"] },
     { lines: ["unit mm"] },
     { lines: ["grid X 0 3000 6000 9000 12000"] },
@@ -247,6 +248,38 @@ test("property: reordering declarations does not change the bytes (30 seeds, who
     const j0 = toCanonical(parse(original));
     assert.equal(toCanonical(parse(shuffled)), j0, `seed=${seed} shuffle`);
     assert.equal(toCanonical(parse(reversed)), j0, `seed=${seed} reverse`);
+  }
+});
+
+/**
+ * **形は正準形の関数である** — 導出の約束1。
+ *
+ * 上の性質は、並べ替えても**バイト**が変わらないことだけを見ていた。だが約束はもう一段強い。
+ *
+ *     toCanonical(a) === toCanonical(b)  ⟹  derive(a) ≡ derive(b)
+ *
+ * 生成器は毎回、正準形が等しい対 (原本とその並べ替え) を作っている。**その対を形の側でも
+ * 突き合わせなければ、約束の後半を一度も試していない。**
+ *
+ * 手で書いた witness では、破れは実際に見落とされていた — 既定境界の `a`/`b` が空間の宣言順を
+ * 拾い、`Form.spaces` と `slabs` の並びが Map の挿入順だった。生成器は空間を毎回並べ替えるので、
+ * この性質があればどれも一巡目で落ちていた。
+ */
+const form = (src: string): string => JSON.stringify(derive(parse(src)));
+
+test("property: what the canonical form calls one building has one shape (30 seeds, whole notation)", () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const { header, body } = generate(lcg(seed));
+    const original = render([...header, ...body]);
+    const shuffled = render([...header, ...reorder(body, lcg(seed * 7))]);
+    const reversed = render([...header, ...reverse(body)]);
+    // 前提を先に確かめる — 正準形が違えば、この対は形について何も言っていない
+    const j0 = toCanonical(parse(original));
+    assert.equal(toCanonical(parse(shuffled)), j0, `seed=${seed}: the premise fails (shuffle)`);
+    assert.equal(toCanonical(parse(reversed)), j0, `seed=${seed}: the premise fails (reverse)`);
+    const f0 = form(original);
+    assert.equal(form(shuffled), f0, `seed=${seed}: canonically equal but the shape differs (shuffle)`);
+    assert.equal(form(reversed), f0, `seed=${seed}: canonically equal but the shape differs (reverse)`);
   }
 });
 

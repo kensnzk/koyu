@@ -777,6 +777,32 @@ export function canonicalBoundaryOrder(model: Model): Boundary[] {
 }
 
 /**
+ * The openings of one boundary in canonical order, and its `seg`s likewise.
+ *
+ * **The same disease as `canonicalBoundaryOrder`, one level down.** The identity of an opening is
+ * `<the boundary's ref>/<index within the boundary>`, and that index used to be the declaration
+ * order — which the canonical form discards, since it sorts openings by content
+ * (`canonicalBoundaryEntry`). So two sources with byte-identical canonical JSON gave the same
+ * spelling to *different* openings: `…@4/0` was the door in one and the window in the other.
+ *
+ * A generated pair found this — the hand-written witnesses never swapped two openings on one
+ * boundary, and neither did any conformance case.
+ */
+export function canonicalOpeningOrder(b: Boundary): Opening[] {
+  return [...b.openings]
+    .map((o, i) => ({ o, key: JSON.stringify(canonicalOpeningEntry(o)), i }))
+    .sort((p, q) => compareCanonical(p.key, q.key) || p.i - q.i)
+    .map((x) => x.o);
+}
+
+export function canonicalSegOrder(b: Boundary): Seg[] {
+  return [...b.segs]
+    .map((g, i) => ({ g, key: JSON.stringify(canonicalSegEntry(g)), i }))
+    .sort((p, q) => compareCanonical(p.key, q.key) || p.i - q.i)
+    .map((x) => x.g);
+}
+
+/**
  * Spaces in canonical order (path collation).
  *
  * **Declaration order is information the canonical form discards** — `toCanonical` sorts the
