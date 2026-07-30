@@ -1,0 +1,83 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "name": "街角 の 複合ビル",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      6400,
+      12800
+    ],
+    "Y": [
+      0,
+      5600
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2700,
+      "slab": 200
+    }
+  },
+  "spaces": {
+    "/L1/hall": {
+      "type": "hall",
+      "at": [
+        "X2",
+        "Y1",
+        "X3",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "玄関"
+      }
+    },
+    "/L1/ldk": {
+      "type": "ldk",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "acme.note": "#3 と #4",
+        "name": "居間 と 食堂"
+      }
+    },
+    "/out": {
+      "type": "exterior",
+      "attrs": {
+        "name": "外部"
+      }
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/L1/hall",
+        "/out"
+      ],
+      "a": "/L1/hall",
+      "kind": "wall",
+      "t": 150,
+      "attrs": {
+        "spec": "EW1"
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "h": 2100,
+          "at": 0.5,
+          "edge": "S",
+          "attrs": {
+            "name": "玄関戸"
+          }
+        }
+      ]
+    }
+  ]
+}

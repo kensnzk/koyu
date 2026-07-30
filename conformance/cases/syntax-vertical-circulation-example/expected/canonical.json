@@ -1,0 +1,475 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "name": "階段室のある小さなコア",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      2800,
+      5600,
+      12000
+    ],
+    "Y": [
+      0,
+      2000,
+      8600
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 3600,
+      "slab": 600
+    },
+    "L2": {
+      "z": 4200,
+      "h": 3600,
+      "slab": 600
+    },
+    "R": {
+      "z": 8400,
+      "slab": 500
+    }
+  },
+  "spaces": {
+    "/L1/ev": {
+      "type": "shaft",
+      "at": [
+        "X2",
+        "Y2",
+        "X3",
+        "Y3"
+      ],
+      "attrs": {
+        "lift": 1,
+        "name": "昇降機",
+        "use": "common"
+      }
+    },
+    "/L1/hall": {
+      "type": "hall",
+      "at": [
+        "X1",
+        "Y1",
+        "X4",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "ホール",
+        "use": "common"
+      }
+    },
+    "/L1/office": {
+      "type": "office",
+      "at": [
+        "X3",
+        "Y2",
+        "X4",
+        "Y3"
+      ],
+      "attrs": {
+        "name": "事務室",
+        "use": "exclusive"
+      }
+    },
+    "/L1/st": {
+      "type": "stair",
+      "at": [
+        "X1",
+        "Y2",
+        "X2",
+        "Y3"
+      ],
+      "attrs": {
+        "form": "return",
+        "name": "階段",
+        "stair": "N",
+        "turn": "R",
+        "use": "common"
+      }
+    },
+    "/L2/ev": {
+      "type": "shaft",
+      "at": [
+        "X2",
+        "Y2",
+        "X3",
+        "Y3"
+      ],
+      "attrs": {
+        "lift": 1,
+        "name": "昇降機",
+        "use": "common"
+      }
+    },
+    "/L2/hall": {
+      "type": "hall",
+      "at": [
+        "X1",
+        "Y1",
+        "X4",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "ホール",
+        "use": "common"
+      }
+    },
+    "/L2/office": {
+      "type": "office",
+      "at": [
+        "X3",
+        "Y2",
+        "X4",
+        "Y3"
+      ],
+      "attrs": {
+        "name": "事務室",
+        "use": "exclusive"
+      }
+    },
+    "/L2/st": {
+      "type": "stair",
+      "at": [
+        "X1",
+        "Y2",
+        "X2",
+        "Y3"
+      ],
+      "attrs": {
+        "form": "return",
+        "name": "階段",
+        "stair": "N",
+        "turn": "R",
+        "use": "common"
+      }
+    },
+    "/out": {
+      "type": "exterior",
+      "attrs": {
+        "name": "外部"
+      }
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/L1/ev",
+        "/L1/hall"
+      ],
+      "a": "/L1/ev",
+      "kind": "wall",
+      "t": 180,
+      "attrs": {
+        "spec": "RC"
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "w": 1100,
+          "at": 0.5,
+          "attrs": {
+            "name": "D2"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L1/ev",
+        "/L2/ev"
+      ],
+      "a": "/L1/ev",
+      "kind": "shaft"
+    },
+    {
+      "between": [
+        "/L1/ev",
+        "/out"
+      ],
+      "a": "/L1/ev",
+      "kind": "wall",
+      "t": 200,
+      "edge": "N"
+    },
+    {
+      "between": [
+        "/L1/hall",
+        "/L1/office"
+      ],
+      "a": "/L1/office",
+      "kind": "wall",
+      "t": 100,
+      "attrs": {
+        "spec": "LGS"
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "at": 0.5,
+          "attrs": {
+            "name": "D3"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L1/hall",
+        "/L1/st"
+      ],
+      "a": "/L1/st",
+      "kind": "wall",
+      "t": 180,
+      "attrs": {
+        "spec": "RC"
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "at": 0.5,
+          "attrs": {
+            "name": "D1"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L1/hall",
+        "/out"
+      ],
+      "a": "/L1/hall",
+      "kind": "wall",
+      "t": 200,
+      "edge": "E"
+    },
+    {
+      "between": [
+        "/L1/hall",
+        "/out"
+      ],
+      "a": "/L1/hall",
+      "kind": "wall",
+      "t": 200,
+      "edge": "S",
+      "openings": [
+        {
+          "kind": "door",
+          "w": 1800,
+          "at": 0.5,
+          "attrs": {
+            "name": "E1"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L1/hall",
+        "/out"
+      ],
+      "a": "/L1/hall",
+      "kind": "wall",
+      "t": 200,
+      "edge": "W"
+    },
+    {
+      "between": [
+        "/L1/office",
+        "/out"
+      ],
+      "a": "/L1/office",
+      "kind": "wall",
+      "t": 200,
+      "edge": "E"
+    },
+    {
+      "between": [
+        "/L1/office",
+        "/out"
+      ],
+      "a": "/L1/office",
+      "kind": "wall",
+      "t": 200,
+      "edge": "N"
+    },
+    {
+      "between": [
+        "/L1/st",
+        "/L2/st"
+      ],
+      "a": "/L1/st",
+      "kind": "stair"
+    },
+    {
+      "between": [
+        "/L1/st",
+        "/out"
+      ],
+      "a": "/L1/st",
+      "kind": "wall",
+      "t": 200,
+      "edge": "N"
+    },
+    {
+      "between": [
+        "/L1/st",
+        "/out"
+      ],
+      "a": "/L1/st",
+      "kind": "wall",
+      "t": 200,
+      "edge": "W"
+    },
+    {
+      "between": [
+        "/L2/ev",
+        "/L2/hall"
+      ],
+      "a": "/L2/ev",
+      "kind": "wall",
+      "t": 180,
+      "attrs": {
+        "spec": "RC"
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "w": 1100,
+          "at": 0.5,
+          "attrs": {
+            "name": "D2"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L2/ev",
+        "/out"
+      ],
+      "a": "/L2/ev",
+      "kind": "wall",
+      "t": 200,
+      "edge": "N"
+    },
+    {
+      "between": [
+        "/L2/hall",
+        "/L2/office"
+      ],
+      "a": "/L2/office",
+      "kind": "wall",
+      "t": 100,
+      "attrs": {
+        "spec": "LGS"
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "at": 0.5,
+          "attrs": {
+            "name": "D3"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L2/hall",
+        "/L2/st"
+      ],
+      "a": "/L2/st",
+      "kind": "wall",
+      "t": 180,
+      "attrs": {
+        "spec": "RC"
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "at": 0.5,
+          "attrs": {
+            "name": "D1"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L2/hall",
+        "/out"
+      ],
+      "a": "/L2/hall",
+      "kind": "wall",
+      "t": 200,
+      "edge": "E"
+    },
+    {
+      "between": [
+        "/L2/hall",
+        "/out"
+      ],
+      "a": "/L2/hall",
+      "kind": "wall",
+      "t": 200,
+      "edge": "S"
+    },
+    {
+      "between": [
+        "/L2/hall",
+        "/out"
+      ],
+      "a": "/L2/hall",
+      "kind": "wall",
+      "t": 200,
+      "edge": "W"
+    },
+    {
+      "between": [
+        "/L2/office",
+        "/out"
+      ],
+      "a": "/L2/office",
+      "kind": "wall",
+      "t": 200,
+      "edge": "E"
+    },
+    {
+      "between": [
+        "/L2/office",
+        "/out"
+      ],
+      "a": "/L2/office",
+      "kind": "wall",
+      "t": 200,
+      "edge": "N"
+    },
+    {
+      "between": [
+        "/L2/st",
+        "/out"
+      ],
+      "a": "/L2/st",
+      "kind": "wall",
+      "t": 200,
+      "edge": "N"
+    },
+    {
+      "between": [
+        "/L2/st",
+        "/out"
+      ],
+      "a": "/L2/st",
+      "kind": "wall",
+      "t": 200,
+      "edge": "W"
+    }
+  ]
+}

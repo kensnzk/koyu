@@ -1,0 +1,19 @@
+koyu 1.0
+name 分節の書き方
+unit mm
+
+grid X 0 8000
+grid Y 0 5000
+level L1 0 h:2700 slab:200
+
+space /L1/office office X1..X2 Y1..Y2 name:事務室
+  area X1..X1+2000 Y1..Y2 name:土間 floor:モルタル
+space /out exterior name:外部
+
+boundary /L1/office /out t:180 spec:RC edge:S
+  seg w:3000 at:X1+4000 spec:カーテンウォール fire:60
+  window w:2400 h:2000 at:X1+4000 name:嵌め殺し
+boundary /L1/office /out t:180 spec:RC edge:N
+boundary /L1/office /out t:180 spec:RC edge:E
+boundary /L1/office /out t:180 spec:RC edge:W
+  door w:900 h:2100 name:出入口

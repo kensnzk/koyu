@@ -1,0 +1,60 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      6000
+    ],
+    "Y": [
+      0,
+      6000
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2700,
+      "slab": 200
+    }
+  },
+  "spaces": {
+    "/L1/a": {
+      "type": "room",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "隅切りの室"
+      }
+    },
+    "/out": {
+      "type": "exterior",
+      "attrs": {
+        "name": "外部"
+      }
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/L1/a",
+        "/out"
+      ],
+      "a": "/out",
+      "kind": "wall",
+      "t": 150,
+      "line": [
+        "X1,Y2-3000",
+        "X1+3000,Y2"
+      ],
+      "attrs": {
+        "spec": "RC"
+      }
+    }
+  ]
+}

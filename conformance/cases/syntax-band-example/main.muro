@@ -1,0 +1,6 @@
+grid X 0 3600 5400
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+band X X1..X3 Y1..Y2
+  space /L1/ldk ldk w:3600 name:LDK
+  space /L1/hall hall w:1800 name:玄関

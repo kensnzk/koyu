@@ -1,0 +1,16 @@
+koyu 1.0
+name 方位の例
+unit mm
+
+grid X 0 6400
+grid Y 0 5600
+
+level L1 0 h:2700 slab:200
+
+space /L1/room room X1..X2 Y1..Y2 name:居室 daylight:1
+space /out exterior name:外部
+
+boundary /L1/room /out t:150
+  window w:2400 h:1500 edge:S name:南窓
+  window w:1200 h:1500 edge:E name:東窓
+  door   w:900  h:2100 edge:N name:勝手口

@@ -1,0 +1,11 @@
+koyu 1.0
+name 床組みの例
+unit mm
+grid X 0 6000
+grid Y 0 4000
+level L1 0 h:2700 slab:200
+level L2 3200 h:2700 slab:250
+level R 6400 slab:250
+
+space /L1/a room X1..X2 Y1..Y2 name:1階
+space /L2/a room X1..X2 Y1..Y2 name:2階

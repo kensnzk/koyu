@@ -1,0 +1,143 @@
+{
+  "format": "koyu-canonical/1.0",
+  "koyu": "1.0",
+  "name": "分節の書き方",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      8000
+    ],
+    "Y": [
+      0,
+      5000
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2700,
+      "slab": 200
+    }
+  },
+  "spaces": {
+    "/L1/office": {
+      "type": "office",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "事務室"
+      },
+      "areas": [
+        {
+          "at": [
+            "X1",
+            "Y1",
+            "X1+2000",
+            "Y2"
+          ],
+          "attrs": {
+            "floor": "モルタル",
+            "name": "土間"
+          }
+        }
+      ]
+    },
+    "/out": {
+      "type": "exterior",
+      "attrs": {
+        "name": "外部"
+      }
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/L1/office",
+        "/out"
+      ],
+      "a": "/L1/office",
+      "kind": "wall",
+      "t": 180,
+      "edge": "E",
+      "attrs": {
+        "spec": "RC"
+      }
+    },
+    {
+      "between": [
+        "/L1/office",
+        "/out"
+      ],
+      "a": "/L1/office",
+      "kind": "wall",
+      "t": 180,
+      "edge": "N",
+      "attrs": {
+        "spec": "RC"
+      }
+    },
+    {
+      "between": [
+        "/L1/office",
+        "/out"
+      ],
+      "a": "/L1/office",
+      "kind": "wall",
+      "t": 180,
+      "edge": "S",
+      "attrs": {
+        "spec": "RC"
+      },
+      "openings": [
+        {
+          "kind": "window",
+          "w": 2400,
+          "h": 2000,
+          "at": "X1+4000",
+          "attrs": {
+            "name": "嵌め殺し"
+          }
+        }
+      ],
+      "segs": [
+        {
+          "w": 3000,
+          "at": "X1+4000",
+          "attrs": {
+            "fire": 60,
+            "spec": "カーテンウォール"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L1/office",
+        "/out"
+      ],
+      "a": "/L1/office",
+      "kind": "wall",
+      "t": 180,
+      "edge": "W",
+      "attrs": {
+        "spec": "RC"
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "h": 2100,
+          "at": 0.5,
+          "attrs": {
+            "name": "出入口"
+          }
+        }
+      ]
+    }
+  ]
+}

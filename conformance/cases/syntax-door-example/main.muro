@@ -1,0 +1,21 @@
+koyu 1.0
+name 扉の書き方
+unit mm
+
+grid X 0 3600 7200
+grid Y 0 4500
+level L1 0 h:2400 slab:150
+
+asset SD1 door w:800 h:2000 style:sliding name:片引き戸
+
+space /L1/a room X1..X2 Y1..Y2 name:居室A
+space /L1/b room X2..X3 Y1..Y2 name:居室B
+space /out exterior name:外部
+
+boundary /L1/a /L1/b t:120 spec:LGS
+  door SD1 hinge:N swing:b
+
+boundary /L1/a /out t:150 spec:EW
+  door w:900 h:2100 edge:S at:X1+1200 name:勝手口 hinge:W
+boundary /L1/b /out t:150 spec:EW
+  door w:1200 h:2100 edge:S at:0.4 style:auto name:玄関
