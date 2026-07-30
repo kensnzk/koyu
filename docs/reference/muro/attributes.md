@@ -26,7 +26,7 @@ the value is only carried — e.g. acme.nmae:居室)
 | **解釈層** | `h` `use` `road` `daylight` `site` `area` `style` `ceiling` `uid` `name` `stair` `riser` … | **見る。**台帳が値域を定め、外れれば診断が出る |
 | **運搬層** | `spec` `fire` `sound` `floor` `sill` と、名前空間つきの任意の鍵 | **見ない。**運ぶだけ |
 
-**構造層の鍵は属性として残らない。**`type:` `t:` `air:` `edge:` `w:` `at:` `hinge:` `swing:` `d:` `x:` `y:` は読み込みの時点で要素の項目へ持ち上げられ、値の検査もその場で行われる。したがってこれらが `ATT01` / `ATT02` として現れることはない — 数値でない `t:` はもっと早く `t is written as a positive number` で止まる。
+**構造層の鍵は属性として残らない。**`type:` `t:` `air:` `edge:` `w:` `at:` `hinge:` `swing:` `d:` `x:` `y:` は読み込みの時点で要素の項目へ持ち上げられ、値の検査もその場で行われる。したがってこれらが `ATT01` / `ATT02` として現れることはない — 数値でない `t:` はもっと早く `The attribute t is written as a number` で止まる。
 
 **運搬層は値を見られない。**`spec:RC` も `fire:60` も `sill:800` も、koyu は運ぶだけで意味を与えない。壁が何でできているかは物の名 (`spec`) の値であり、境界の型を増やす理由にはならない。
 

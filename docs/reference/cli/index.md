@@ -80,7 +80,7 @@ Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|l
   diff:  koyu diff <a.muro> <b.muro> [--json] — the difference in the language of composition (0=no difference / 1=differences / 2=the input is broken)
 ```
 
-**この使い方の表示は網羅していない。**四つのサブコマンドしか触れておらず、[`plan`](plan.md) の `-l` / `-o` も、[`axo`](axo.md) の五つの旗も、[`doors`](doors.md) の二つのパス引数も書かれていない。各コマンドの旗は、それぞれの頁が全部を書き下している。
+**この使い方の表示は網羅していない。**四つのサブコマンドしか触れておらず、[`plan`](plan.md) の `-l` / `-o` も、[`axo`](axo.md) の六つの旗も、[`doors`](doors.md) の二つのパス引数も書かれていない。各コマンドの旗は、それぞれの頁が全部を書き下している。
 
 未知のサブコマンドも終了コード 2 である。
 
@@ -98,18 +98,18 @@ Unknown command: frobnicate
 |---|---|---|---|
 | [`check`](check.md) | 書かれたものはデータとして矛盾していないか | `--json` `--strict` | 0 / 1 |
 | [`validate`](validate.md) | 建築として妥当か (check の保証ではない) | `--json` | 0 / 1 |
-| [`layers`](layers.md) | どの層が合成に参加し、どの値をどこが与えたか | `--attrs` | 0 |
+| [`layers`](layers.md) | どの層が合成に参加し、どの値をどこが与えたか | `--attrs` | 0 / 1 |
 | [`diff`](diff.md) | この編集で構成の何が変わったか | `--json` | 0 / 1 / 2 |
 | [`plan`](plan.md) | 平面図 (SVG) | `-l` `-o` | 0 / 1 / 2 |
 | [`axo`](axo.md) | 軸測図 (SVG) | `-o` `-d` `-l` `-s` `--no-walls` `--ceilings` | 0 / 1 / 2 |
 | [`doors`](doors.md) | そこからそこへ、扉を何枚通るか | — | 0 / 1 / 2 |
-| [`graph`](graph.md) | この空間は何と、どう繋がっているか | — | 0 |
-| [`stats`](stats.md) | 面積はいくつか | — | 0 |
+| [`graph`](graph.md) | この空間は何と、どう繋がっているか | — | 0 / 1 |
+| [`stats`](stats.md) | 面積はいくつか | — | 0 / 1 |
 | [`levels`](levels.md) | 高さはどう積み上がっているか | — | 0 / 1 |
-| [`runs`](runs.md) | 縦動線はどう導かれたか | — | 0 |
+| [`runs`](runs.md) | 縦動線はどう導かれたか | — | 0 / 1 |
 | [`light`](light.md) | 採光の対象は 1/7 を満たすか | — | 0 / 1 |
 | [`site`](site.md) | 敷地面積・接道・建蔽率・容積率 | — | 0 / 1 |
-| [`json`](json.md) | 機械が読む正準 JSON | — | 0 |
+| [`json`](json.md) | 機械が読む正準 JSON | — | 0 / 1 |
 
 どのコマンドも、サブコマンド名かファイルパスを欠いて呼べば使い方を印字して終了コード 2 を返す。上の表はその共通の 2 を省いてある。
 

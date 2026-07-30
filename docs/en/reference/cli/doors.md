@@ -57,7 +57,7 @@ Cannot reach /site/garden from /home/bed9
 
 | Boundary | Passable |
 |---|---|
-| A wall with doors | Yes (the doors are counted) |
+| A wall with doors | Yes (each boundary crossed counts as one door, however many are written on it) |
 | A wall with no doors | No |
 | `open` | Yes (no door counted) |
 | A wall with `air:1` (railings, fences, garden walls) | **No** — `air` is about enclosure, not about passage |

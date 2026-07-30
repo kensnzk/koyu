@@ -11,7 +11,7 @@ mode: reference
 | [`run.slope`](#run-slope) | caution |
 | [`run.disconnected`](#run-disconnected) | caution |
 
-**Riser counts, goings, landings and slopes are never written.** You write the device and the direction of ascent (`stair:N`, `ramp:E`, `escalator:S`, `lift:N`); everything else falls out of the region and the storey height. [`koyu check`](../cli/check.md) guarantees that the declaration determines one shape — **whether that shape can be climbed is what this volume says.**
+**Riser counts, goings, landings and slopes are never written.** You write the device and the direction of ascent (`stair:N`, `ramp:E`, `escalator:S` — a `lift` has no direction of ascent, so its value is `1`: `lift:1`); everything else falls out of the region and the storey height. [`koyu check`](../cli/check.md) guarantees that the declaration determines one shape — **whether that shape can be climbed is what this volume says.**
 
 Because the stance is "write nothing, check everything", what is checked is not a written value. **It is a derived one.**
 

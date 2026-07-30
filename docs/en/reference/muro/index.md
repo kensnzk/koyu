@@ -79,7 +79,7 @@ By contrast, **a boundary may refer to its spaces before they are written.** `bo
 
 ## Declared once
 
-`koyu`, `name`, `grid X` and `grid Y` are written **in the base layer, once**. Writing the same value twice is still an error — it forbids a silent override decided by composition order — except that `name` accepts a re-declaration of the identical string.
+`koyu` is written **in the base layer (the entry), once** — the version alone cannot be moved by another layer. `name`, `grid X` and `grid Y` are written **once across all layers**, and may sit in the entry or in an imported layer. Writing the same value twice is still an error — it forbids a silent override decided by composition order — except that `name` accepts a re-declaration of the identical string.
 
 Duplicate space paths, zone paths, asset names, site shapes and level names are errors too, and both provenances are reported.
 

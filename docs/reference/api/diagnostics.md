@@ -131,7 +131,7 @@ interface CheckResult {
 }
 ```
 
-互換の文字列形式である。`checkDiagnostics` と**同件・同順**で、位置接頭辞 (`ファイル:N行目: `) を組み立てた文字列を返す。人にそのまま見せる用途向け。
+互換の文字列形式である。`checkDiagnostics` と**同件・同順**で、位置接頭辞 (`ファイル:line N: `) を組み立てた文字列を返す。人にそのまま見せる用途向け。
 
 ```ts
 import { check } from "@kensnzk/koyu";
@@ -147,7 +147,7 @@ console.log(errors, warnings);
 ]
 ```
 
-この例は `parse` で読んだので出所ファイルが無く、接頭辞が行番号だけになっている。`parseFile` で読めば `<絶対パス>:6行目: ` が付く。
+この例は `parse` で読んだので出所ファイルが無く、接頭辞が行番号だけになっている。`parseFile` で読めば `<絶対パス>:line 6: ` が付く。
 
 **コードは文字列に出ない。**コードで分岐したいなら `checkDiagnostics` を使う。
 

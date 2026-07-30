@@ -13,7 +13,7 @@ npm install @kensnzk/koyu
 
 実行時依存はゼロである。パッケージが引くのは Node 標準モジュールだけで、それも `@kensnzk/koyu/node` の中だけに閉じている。動作環境は **Node 22 以上** (`engines.node` が `>=22`)。
 
-## 四つの入口
+## 入口
 
 ```ts
 import { parse, checkDiagnostics, derive } from "@kensnzk/koyu";
@@ -30,6 +30,8 @@ import { svgPlan, svgAxo } from "@kensnzk/koyu/draw";
 | `@kensnzk/koyu/draw` | `svgPlan` `svgAxo` と型 `PlanOptions` `AxoOptions` | 引かない |
 | `@kensnzk/koyu/examples/*` | 同梱の建物の原本 (`examples/two-rooms.muro` など)。テストや評価から読む | — |
 | `@kensnzk/koyu/syntax` | エディタの文法 (TextMate 文法の JSON)。VS Code と Shiki が共有する | — |
+
+上の四つが JS モジュールの入口で、`import` して名を引く。下の二つはデータ (同梱の建物の原本と文法ファイル) なので、`node:fs` の欄を持たない。**パッケージが公開しているサブパスはこの表で尽きている** — 宣言されたサブパスがこの頁に書かれていることはテストが縛るので、入口を足して書かなければ落ちる。
 
 **ルートは `node:fs` も `node:path` も引かない。**ブラウザ・Web Worker・エッジランタイムでそのまま動く。ファイルシステムを触る入口だけが `/node` に分離してある。分けてあるのはパーサ本体を純粋に保つためで、合成 (`import` の解決) は「レイヤーをどう読むか」という関数を外から受け取る形になっており、fs はその実装の一つでしかない。ブラウザは仮想ファイル群 (`parseFiles`) か独自ローダー (`parseWith`) を渡す — [解析と合成](parsing.md)。
 

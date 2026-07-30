@@ -30,7 +30,9 @@ space /L1/a room X1..X2 Y1..Y2 daylight:yes
 daylight is either 1 (in scope for the daylight check) or 0 (out of scope): /L1/a carries daylight:yes
 ```
 
-**原因** — `daylight` に `1` でも `0` でもない値が書かれている。`yes` `true` `on` `1.0` はいずれも通らない。
+**原因** — `daylight` に `1` でも `0` でもない値が書かれている。`yes` `true` `on` はいずれも通らない。
+
+見るのは綴りではなく値である。数として読める綴りは数になるので、`1.0` `01` `1.00` は `daylight:1` と同じに扱われ、診断は出ない。`0.0` も同じく `0` である。
 
 **直し方** — `daylight:1` (判定する) か `daylight:0` (しない) にする。
 

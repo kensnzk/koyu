@@ -5,11 +5,13 @@ mode: reference
 
 # 欠番の診断コード
 
-11 の綴りが欠番である。**番号は再利用しない。**同じ綴りが別の意味を持つと、過去の出力もログも読めなくなる。台帳 (`DIAGNOSTIC_CODES`) にこれらのキーは無く、プログラムから引くと `undefined` が返る。
+11 の綴りが欠番である。**番号は再利用しない。**同じ綴りが別の意味を持つと、過去の出力もログも読めなくなる。台帳 (`DIAGNOSTIC_CODES`) にこれらのキーは無いので、**欠番の綴りで引くと型検査が止まる** — `DIAGNOSTIC_CODES["BND07"]` は TS2551 になる。実行時の値として確かめたいなら型を広げてから引き、`undefined` を得る。
 
 ```ts
 DIAGNOSTIC_CODES["BND04"]; // "error"
-DIAGNOSTIC_CODES["BND07"]; // undefined
+
+const ledger = DIAGNOSTIC_CODES as Record<string, "error" | "warning" | undefined>;
+ledger["BND07"]; // undefined — 欠番
 ```
 
 欠番になった理由は三つに分かれる。

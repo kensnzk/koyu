@@ -233,15 +233,15 @@ mode: reference
 ```text
 <svg xmlns="http://www.w3.org/2000/svg" width="682" height="782" viewBox="0 0 682 782" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
 <rect width="682" height="782" fill="#faf8f4"/>
-<path d="M 84 698 L 598 698 L 598 498 L 84 498 Z" fill="#f8f5ec"/>
-<path d="M 84 498 L 159 498 L 159 84 L 84 84 Z" fill="#f8f5ec"/>
-<path d="M 523 498 L 598 498 L 598 84 L 523 84 Z" fill="#f8f5ec"/>
-<path d="M 159 134 L 523 134 L 523 84 L 159 84 Z" fill="#f8f5ec"/>
+<path d="M 341 316 L 523 316 L 523 134 L 341 134 Z" fill="#f1ebdd"/>
 <path d="M 159 498 L 341 498 L 341 134 L 159 134 Z" fill="#f1ebdd"/>
 <path d="M 341 498 L 523 498 L 523 316 L 341 316 Z" fill="#f1ebdd"/>
+<path d="M 523 498 L 598 498 L 598 84 L 523 84 Z" fill="#f8f5ec"/>
+<path d="M 84 698 L 598 698 L 598 498 L 84 498 Z" fill="#f8f5ec"/>
+<path d="M 159 134 L 523 134 L 523 84 L 159 84 Z" fill="#f8f5ec"/>
 ```
 
-(`examples/house/main.muro` の `L1` の先頭 8 行。全体は 7,311 バイトで、最後は次の二行で終わる。)
+(`examples/house/main.muro` の `L1` の先頭 8 行。全体は 7,310 バイトで、最後は次の二行で終わる。)
 
 ```text
 <text x="660" y="764" text-anchor="end" font-size="9" fill="#a49b8a">koyu — generated from spaces (wall centrelines, mm)</text>

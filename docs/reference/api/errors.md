@@ -9,9 +9,9 @@ mode: reference
 import { SourceError, srcRef } from "@kensnzk/koyu";
 ```
 
-## 投げるのは解析だけである
+## 投げるのは解析と図の生成と `newUids` だけである
 
-**例外を投げるのは [`parse` 系の五つ](parsing.md)と [図の生成](draw.md) だけである。**
+**例外を投げるのは [`parse` 系の五つと `tokenize`](parsing.md)、[図の生成](draw.md)、そして `newUids` の引数検査だけである。**
 
 | 面 | 失敗の伝え方 |
 |---|---|

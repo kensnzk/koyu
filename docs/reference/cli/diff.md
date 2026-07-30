@@ -50,7 +50,7 @@ npx tsx src/cli.ts diff before.muro after.muro
 
 ## --json のかたち
 
-`ModelDiff` は七つの区画を持つ。`grid` は変化の列、それ以外は `added` / `removed` / `changed` を持ち、`zones` と `spaces` はさらに `renamed` を持つ。
+`ModelDiff` は八つの区画を持つ。`grid` は変化の列、それ以外は `added` / `removed` / `changed` を持ち、`zones` と `spaces` はさらに `renamed` を持つ。
 
 ```sh
 npx tsx src/cli.ts diff before.muro after.muro --json

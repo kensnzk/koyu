@@ -19,7 +19,7 @@ Every entrance finishes two derivations before returning.
 
 That order, not the reverse. Reversed, a pair whose contact a line has just removed would still gain a default boundary, and a zero-length boundary would draw a diagnostic with no source — blaming a relation nobody wrote.
 
-**These five are the only things that throw.** Syntax and composition failures arrive as a [`SourceError`](errors.md). Checking (`checkDiagnostics`, `check`) never throws; it always returns an array.
+**These five and `tokenize` are the only things that throw.** Syntax and composition failures arrive as a [`SourceError`](errors.md). Checking (`checkDiagnostics`, `check`) never throws; it always returns an array.
 
 ## parse
 

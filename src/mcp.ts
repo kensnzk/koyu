@@ -171,7 +171,9 @@ const TOOLS: Record<string, Tool> = {
         spaces: m.spaces.size,
         boundaries: m.boundaries.length,
         ...r,
-        // 構造化診断 (ADR-0016) — errors/warningsの文字列と同件・同順。code/severity/path/relatedつき
+        // 構造化診断 (ADR-0016) — errors と warnings を足したものと同件。並びは走査の順で、
+        // errors/warnings はそれを severity で二本に割ったものなので、連結して添字で対応させてはならない。
+        // code/severity/path/relatedつき
         diagnostics: checkDiagnostics(m),
       };
     },

@@ -40,7 +40,7 @@ The shape of a space is `pieces` (the derived convex pieces), not `rects` (the w
 
 ### 3. No invented defaults
 
-If a value that is needed was not written, the derivation does not quietly supply one — **it does not build the element**. With no ceiling height there is no ceiling and no roof; with no `slab:` not a single floor is generated. A shape that came out thin must never come out thin in silence, so the [SUF diagnostics](../diagnostics/suf.md) say so as errors.
+If a value that is needed was not written, the derivation does not quietly supply one — **it does not build the element**. With no ceiling height there is no ceiling; with no `slab:` not a single floor is generated. (A roof needs no ceiling height: where there is a level above, it sits at that level's z. See [Matter](bodies.md).) A shape that came out thin must never come out thin in silence, so the [SUF diagnostics](../diagnostics/suf.md) say so as errors.
 
 The exception is the [derivation constants](constants.md). Wall thickness 100mm, head height 2000mm, maximum riser 180mm — these are rules the specification fixes, not defaults invented on the spot.
 
@@ -61,7 +61,7 @@ Every outline `Form` returns is counter-clockwise (positive signed area), and re
 
 `svgPlan`, `svgAxo` and any outside viewer only draw this `Form`. **What may legitimately differ is the appearance, not the shape.** Two shapes out of one composition is a defect.
 
-That `Form` carries no appearance is machine-enforced: the `Form` of every bundled example is serialised to JSON and checked to contain no colour spelling, no Japanese, and no `UP`/`DN`.
+That `Form` carries no appearance is machine-enforced: the `Form` of every bundled example is serialised to JSON and checked to contain no colour spelling, no `UP`/`DN`, and no drafting word (`stroke`, `fill`, `font`, `text`, `label`, `dasharray`). **Words beyond ASCII pass only where they ride on identity written in the source** — `name`, paths, types, level names. A space named in Japanese appears in Japanese in the `Form`, because that is the identity of the subject and not its appearance. Non-ASCII on any other key fails the test.
 
 ## What is inside Form
 
@@ -91,7 +91,7 @@ levels: [ { name: "L1", z: 0, h: 2400, slab: 150, pitch: 2600 } ]
 
 ## Identity of the subject
 
-Every element of `Form` carries a `ref`. A boundary is `<a>|<b>@<i>`, an opening is `<boundary ref>/<index>`, a `seg` is `<boundary ref>~<index>`, a column is `<level>/<X grid>/<Y grid>`, and a run is the path of the space that declared it.
+Every element of `Form` carries its subject's identity. Boundaries, openings, `seg`s and columns carry a `ref`: a boundary is `<a>|<b>@<i>`, an opening is `<boundary ref>/<index>`, a `seg` is `<boundary ref>~<index>`, a column is `<level>/<X grid>/<Y grid>`. **A run carries no `ref`** — it carries the path of the space that declared it, in `path`. (A [plan](plan.md) entity with `of:"run"` does put that path in its `ref`.)
 
 ```text
 "/L1/a|/L1/b@0"        a boundary
@@ -121,7 +121,7 @@ Every element of `Form` carries a `ref`. A boundary is `<a>|<b>@<i>`, an opening
 - [Boundary segments](boundaries.md) — where a wall stands
 - [Matter](bodies.md) — walls, openings, columns, floors, ceilings, roofs
 - [Vertical runs](vertical-runs.md) — the arithmetic of step division and slope
-- [Constants and tolerances](constants.md) — seventeen and seven
+- [Constants and tolerances](constants.md) — eighteen and seven
 - [The plan](plan.md) — a classified set of 2D entities
 - [Scope](../scope.md) — what a green `check` means
 - [Stability](../stability.md) — `Form` freezes; the SVG does not

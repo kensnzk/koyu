@@ -18,7 +18,7 @@ space /L5/A/ldk ldk X1..X2 Y1..Y2 name:LDK uid:u-7f3k9m2qx4b8dhtv
 | **A space or zone with a uid** | **the uid is authoritative.** Rename the path and it is still the same thing |
 | **A space or zone without one** | matched by path. Rename it and the correspondence is cut |
 | **A relation (boundary)** | **derived from its two ends.** A relation cannot carry a uid |
-| **Openings, `seg`s, columns** | derived from their container plus a name unique inside it |
+| **Openings, `seg`s, `area`s, columns** | derived from their container plus a name unique inside it ([UID04](diagnostics/uid.md) rejects duplicates). The container is the boundary for openings and `seg`s, the space for `area`s, and the whole model for columns |
 
 **A relation cannot carry a uid because a relation always lies between two spaces.** Fix both ends and the relation is fixed. Writing a uid per relation would make relations outnumber spaces, which cuts away the very goal — that one building fits in a machine's field of view.
 

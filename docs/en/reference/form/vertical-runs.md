@@ -150,7 +150,7 @@ The asymmetry is what the judgements rely on — the second flight of a turning 
 | Stair flight | for k risers there are **k − 1 tread boards** (the top step is carried by the floor above). The top of tread i is bottom + i × riser, thickness riser + `TREAD_SOLID` (200mm) |
 | Ramp, escalator | one inclined slab, thickness `SLAB_T` |
 | Escalator balustrade | two per unit; width `min(140, unit width ÷ 8)`, thickness 100mm, raised 900mm above the tread surface |
-| Lift car | a box inset `min(300, side ÷ 6)` on all four sides. **Constant height regardless of storey pitch**, from FL + 60 to FL + 2400 |
+| Lift car | a box inset `min(300, shorter side ÷ 6)` on all four sides — the inset is **one value shared by all four**, not solved per side. **Constant height regardless of storey pitch**, from FL + 60 to FL + 2400 |
 
 **The tilt is decided by the z values, never by the direction of travel.** A down escalator tilts geometrically the same way an up one does; only the direction people move differs. Reading that one word geometrically as well is what once tilted the down unit into a mirror image, drew its arrow pointing up, and made the second unit vanish from the plan.
 

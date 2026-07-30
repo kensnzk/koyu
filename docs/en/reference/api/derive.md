@@ -178,13 +178,13 @@ console.log(form.spaces[0]);
 
 ```text
 {
-  path: '/B2/park',
-  type: 'parking',
-  level: 'B2',
+  path: '/B1/ev',
+  type: 'shaft',
+  level: 'B1',
   outline: [ [ [Object], [Object], [Object], [Object] ] ],
-  areaM2: 256,
-  z0: -7400,
-  z1: -4800,
+  areaM2: 14.04,
+  z0: -3700,
+  z1: -1100,
   indoor: true,
   semiOutdoor: false,
   covered: true
@@ -644,6 +644,7 @@ console.log(DERIVATION_CONSTANTS);
   CUT_HEIGHT: 1200,
   DEFAULT_RISER_MAX: 180,
   TREAD_TARGET: 300,
+  ARROW_SPAN_MIN: 900,
   LANDING_MIN: 1100,
   ENTRY_LANDING: 1100,
   LANE_ESCALATOR: 1200,
@@ -666,6 +667,7 @@ console.log(DERIVATION_CONSTANTS);
 | `CUT_HEIGHT` | plan cut height above FL, mm | the `cut` option of `derive` |
 | `DEFAULT_RISER_MAX` | maximum riser, mm | `riser:` |
 | `TREAD_TARGET` | target tread when deriving a landing on a return stair, mm | `tread:` |
+| `ARROW_SPAN_MIN` | shortest visible run interval in plan that still carries a direction arrow, mm. The comparison is **strict**, so an interval of exactly 900mm carries none | — |
 | `LANDING_MIN` | minimum landing depth, mm | — |
 | `ENTRY_LANDING` | depth of the boarding floor, mm | `entry:` |
 | `LANE_ESCALATOR` | nominal width of one escalator, mm | `lane:` |

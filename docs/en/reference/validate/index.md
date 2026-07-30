@@ -45,7 +45,7 @@ This is **a different axis** from `check`'s `error` / `warning`. Validation can 
 
 ## The ledger — fifteen rules
 
-The order below is the order of the scan, and the order the output comes out in.
+The rows are grouped by chapter, and within a chapter they follow the order the ledger (`VALIDATION_RULES`) declares them in. **Within a chapter that is not the order of the output** — findings come out one scan unit at a time, so for a single run `run.disconnected` precedes `stair.proportion` / `run.slope`, and the site chapter emits `site.frontage` → `site.area` → `site.escape`. Only the order of the chapters (`envelope` → `daylight` → vertical circulation → `access`/`column` → `site`) matches the output.
 
 | rule | level | what it says |
 |---|---|---|

@@ -26,7 +26,7 @@ How a line is spelled (where the `:` falls, how values are typed, what a repeat 
 | **Interpreted** | `h` `use` `road` `daylight` `site` `area` `style` `ceiling` `uid` `name` `stair` `riser` … | **Read.** The ledger defines the range of values, and a value outside it produces a diagnostic |
 | **Carried** | `spec` `fire` `sound` `floor` `sill`, and any namespaced key | **Not read.** Carried, nothing more |
 
-**Structure keys do not survive as attributes.** `type:`, `t:`, `air:`, `edge:`, `w:`, `at:`, `hinge:`, `swing:`, `d:`, `x:` and `y:` are lifted into fields of the element as the file is read, and their values are checked right there. So they never appear as `ATT01` or `ATT02` — a non-numeric `t:` stops earlier, with `t is written as a positive number`.
+**Structure keys do not survive as attributes.** `type:`, `t:`, `air:`, `edge:`, `w:`, `at:`, `hinge:`, `swing:`, `d:`, `x:` and `y:` are lifted into fields of the element as the file is read, and their values are checked right there. So they never appear as `ATT01` or `ATT02` — a non-numeric `t:` stops earlier, with `The attribute t is written as a number`.
 
 **Carried values cannot be looked at.** `spec:RC`, `fire:60` and `sill:800` are carried and given no meaning. What a wall is made of is a value of the thing-name key (`spec`); it is not a reason to add a boundary type.
 

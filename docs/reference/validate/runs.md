@@ -11,7 +11,7 @@ mode: reference
 | [`run.slope`](#run-slope) | caution |
 | [`run.disconnected`](#run-disconnected) | caution |
 
-**段数も踏面も踊り場も勾配も書かない。**書くのは装置と上る向きだけ (`stair:N` `ramp:E` `escalator:S` `lift:N`) で、あとは領域と階高から導かれる。[`koyu check`](../cli/check.md) が保証するのは「宣言から形が一意に決まる」までである — **決まった形が登りやすいかは、この巻が言う。**
+**段数も踏面も踊り場も勾配も書かない。**書くのは装置と上る向きだけ (`stair:N` `ramp:E` `escalator:S`。`lift` は上る向きを持たないので値は `1` で、`lift:1` と書く) で、あとは領域と階高から導かれる。[`koyu check`](../cli/check.md) が保証するのは「宣言から形が一意に決まる」までである — **決まった形が登りやすいかは、この巻が言う。**
 
 書かないものを検査する、という構えなので、検査の対象は「書かれた値」ではない。**導出された値である。**
 

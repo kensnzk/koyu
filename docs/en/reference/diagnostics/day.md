@@ -30,7 +30,9 @@ space /L1/a room X1..X2 Y1..Y2 daylight:yes
 daylight is either 1 (in scope for the daylight check) or 0 (out of scope): /L1/a carries daylight:yes
 ```
 
-**Cause** — `daylight` carries something that is neither `1` nor `0`. `yes`, `true`, `on` and `1.0` all fail.
+**Cause** — `daylight` carries something that is neither `1` nor `0`. `yes`, `true` and `on` all fail.
+
+What is read is the value, not the spelling. A spelling that reads as a number becomes one, so `1.0`, `01` and `1.00` are treated exactly as `daylight:1` and draw no diagnostic; `0.0` is likewise `0`.
 
 **Fix** — write `daylight:1` (test it) or `daylight:0` (do not).
 

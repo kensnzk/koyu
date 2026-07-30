@@ -50,7 +50,7 @@ Even the types are separate. Core returns `Diagnostic { code, severity }`; valid
 | Composition resolves | composition errors |
 | **Sufficiency of what shape needs** | [SUF01–04](diagnostics/suf.md) |
 | Soundness of relations | [BND01–06](diagnostics/bnd.md) / [VRT01–06](diagnostics/vrt.md) |
-| Uniqueness of derivation (openings, `seg`s, lines, columns, run shapes) | [OPN01–08](diagnostics/opn.md) / [SEG01–08](diagnostics/seg.md) / [LIN01–03](diagnostics/lin.md) / [COL01–02](diagnostics/col.md) / [RUN01–05](diagnostics/run.md) |
+| Uniqueness of derivation (openings, `seg`s, lines, columns, run shapes) | [OPN01–08](diagnostics/opn.md) / [SEG01–08](diagnostics/seg.md) / [LIN01–03](diagnostics/lin.md) / [COL01–02](diagnostics/col.md) / [RUN01–03 / RUN05](diagnostics/run.md) |
 | Value domains of interpreted attributes | [ATT01–03](diagnostics/att.md) / [DAY01](diagnostics/day.md) |
 | Soundness of the givens | [SIT01 / SIT02](diagnostics/sit.md) |
 
@@ -100,7 +100,7 @@ Core holds the questions of quantity and graph. **It just never says pass or fai
 | Tier | Examples | How core treats it |
 |---|---|---|
 | **Structural** | path, type, region, level, the other end of a relation, `kind` | **always read.** If it is broken, nothing is read |
-| **Interpreted** | `h` `w` `at` `daylight` `road` `site` `style` … | the ledger defines the value domain, and core **reads it** |
+| **Interpreted** | `h` `use` `daylight` `road` `site` `style` … | the ledger defines the value domain, and core **reads it** |
 | **Carried** | `acme.sensor` `bems.temp` `survey.measured` … | **not read.** Open, with a namespace |
 
 **The carried tier carries a namespace** (dot-separated). An unknown key without one is **an error** ([ATT03](diagnostics/att.md)) — so that a one-letter slip like `heigh:2400` cannot silently do nothing. That is the only shape in which "not looked at" and "looked at and fine" can be told apart.

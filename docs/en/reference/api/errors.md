@@ -9,9 +9,9 @@ mode: reference
 import { SourceError, srcRef } from "@kensnzk/koyu";
 ```
 
-## Only parsing throws
+## Only parsing, drawing and `newUids` throw
 
-**The only things that throw are the [five parse functions](parsing.md) and [the drawing functions](draw.md).**
+**The only things that throw are the [five parse functions and `tokenize`](parsing.md), [the drawing functions](draw.md), and the argument check in `newUids`.**
 
 | Surface | How failure arrives |
 |---|---|

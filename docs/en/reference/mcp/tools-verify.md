@@ -41,7 +41,7 @@ Every piece of output on this page was obtained by actually running it. Absolute
 | `spaces` | How many spaces after composition |
 | `boundaries` | How many boundaries **after derivation** |
 | `errors` `warnings` | Arrays of strings carrying their provenance |
-| `diagnostics` | The structured diagnostics. **Same count and same order as `errors` plus `warnings`** |
+| `diagnostics` | The structured diagnostics. **The same count as `errors` plus `warnings`.** The order is scan order, and `errors` / `warnings` are that list split in two by severity — so **never concatenate them and match by index** |
 
 **If you want to stop on warnings, look yourself.** There is no flag here corresponding to the CLI's `--strict`. Read `warnings.length` and decide.
 
@@ -129,7 +129,7 @@ boundary /L1/a /L1/b t:150
 }
 ```
 
-**The strings in `errors` and the entries in `diagnostics` are the same things.** The first is the human form with the position glued onto the front of the message; the second is the machine form. Same count, same order. **An agent reads `diagnostics`.**
+**The strings in `errors` and the entries in `diagnostics` point at the same things.** The first is the human form with the position glued onto the front of the message; the second is the machine form. `errors` plus `warnings` has the same count as `diagnostics`, which comes out in scan order — so only when there are no warnings, as here, does the order of `errors` match the order of `diagnostics`. **An agent reads `diagnostics`.**
 
 ### The shape of a diagnostic
 

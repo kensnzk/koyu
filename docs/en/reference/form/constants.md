@@ -36,7 +36,7 @@ Both are published as `DERIVATION_CONSTANTS` and `TOLERANCES`, and a test binds 
 | `STEP_MARK` | 400 | mm | pitch of the escalator step marks in plan |
 | `ARROW_SPAN_MIN` | 900 | mm | The shortest visible run interval on a [plan](plan.md) that still carries a direction arrow. The comparison is **strict**, so an interval of exactly 900mm carries none |
 
-Three dimensions are solved on the spot rather than held as constants. **The lift car** is inset `min(300, side ÷ 6)` on all four sides and stands from FL + 60 to FL + 2400. **The escalator balustrade** is `min(140, unit width ÷ 8)` wide and 100mm thick, raised 900mm above the tread surface. Each is defined relative to another value, so none of them is a constant of its own.
+Three dimensions are solved on the spot rather than held as constants. **The lift car** is inset `min(300, shorter side ÷ 6)` on all four sides — one value shared by all four, not solved per side — and stands from FL + 60 to FL + 2400. **The escalator balustrade** is `min(140, unit width ÷ 8)` wide and 100mm thick, raised 900mm above the tread surface. **The lift symbol on a [plan](plan.md)** is a frame inset `min(250, width ÷ 8)` on all four sides, plus its two diagonals. Each is defined relative to another value, so none of them is a constant of its own.
 
 ## Tolerances — seven
 

@@ -45,7 +45,7 @@ koyu validate examples/tower/main.muro
 
 ## 台帳 — 15の規則
 
-並びは走査の順で、出力もこの順に出る。
+並びは章の順で、章の中は台帳 (`VALIDATION_RULES`) の宣言順である。**章の中の並びは出力と一致しない** — 出力は走査の単位ごとに出るので、一つの走りについては `run.disconnected` が `stair.proportion` / `run.slope` より先に出るし、敷地は `site.frontage` → `site.area` → `site.escape` の順に出る。章の順序 (`envelope` → `daylight` → 縦動線 → `access`/`column` → `site`) だけが出力と同じである。
 
 | 規則 | level | 何を言うか |
 |---|---|---|

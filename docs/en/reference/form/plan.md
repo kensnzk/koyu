@@ -12,7 +12,7 @@ mode: reference
 - **The break line itself** — the position of the fact that something was cut
 - **The descending run** — what is visible below the cut
 
-Tell consumers to "slice the solid" and each of them will invent those four. The projection of an upper void really did fall out this way: eleven of them exist in the bundled examples, and a viewer's plans showed none.
+Tell consumers to "slice the solid" and each of them will invent those four. The projection of an upper void really did fall out this way: the bundled examples are full of them, and a viewer's plans showed none.
 
 So `Form` holds the plan as a **classified set of 2D entities**.
 

@@ -120,7 +120,7 @@ A column's z range runs from that level's FL to FL + pitch.
 
 ## Floors, ceilings and roofs
 
-The scan goes level by level in ascending z, spaces in declaration order within a level, and floor → ceiling → roof within a space. Every outline is a derived piece.
+The scan goes level by level in ascending z, spaces in **path collation order** within a level, and floor → ceiling → roof within a space. Declaration order is information the canonical form discards, so it is never read ([promise 1 of shape](index.md)). Every outline is a derived piece.
 
 | Slab | Condition | z range |
 |---|---|---|

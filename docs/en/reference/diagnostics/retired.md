@@ -5,11 +5,13 @@ mode: reference
 
 # Retired diagnostic codes
 
-Eleven spellings are retired. **Numbers are never reused.** If one spelling came to mean something else, past output and past logs would stop being readable. These keys are not in the ledger (`DIAGNOSTIC_CODES`), and looking one up from a program returns `undefined`.
+Eleven spellings are retired. **Numbers are never reused.** If one spelling came to mean something else, past output and past logs would stop being readable. These keys are not in the ledger (`DIAGNOSTIC_CODES`), so **a retired spelling stops the type checker** — `DIAGNOSTIC_CODES["BND07"]` is a TS2551. To see the run-time value, widen the type first and you get `undefined`.
 
 ```ts
 DIAGNOSTIC_CODES["BND04"]; // "error"
-DIAGNOSTIC_CODES["BND07"]; // undefined
+
+const ledger = DIAGNOSTIC_CODES as Record<string, "error" | "warning" | undefined>;
+ledger["BND07"]; // undefined — retired
 ```
 
 They were retired for three different reasons.

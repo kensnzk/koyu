@@ -35,8 +35,10 @@ Duplicate space path: /L1/a (first seen in floors/L1.muro at line 12)
 第2位置引数は型で、**必須**である。省略すると領域の一つ目が型として読まれ、領域が一つしか無いという別のエラーになる。
 
 ```text
-✖ t1.muro:line 4: space /L1/a requires a type (a word from the vocabulary)
+✖ t1.muro:line 4: A region is given as two ranges, X?..X? and Y?..Y?
 ```
+
+型も領域も無い行 (`space /L1/a` だけ) は、もっと直接に `space /L1/a requires a type (a word from the vocabulary)` で止まる。
 
 型の語彙は開いている。`room` も `ldk` も `厨房` も `tenant` も書ける。**構造として解釈されるのは二語だけ**である。
 

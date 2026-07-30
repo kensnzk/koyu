@@ -70,7 +70,7 @@ interface Diagnostic {
 
 | Field | Always present | Contents |
 |---|---|---|
-| `code` | yes | One of the ledger's 65 codes: two or three letters for the area plus a two-digit serial |
+| `code` | yes | One of the ledger's 65 codes: three letters for the area plus a two-digit serial |
 | `severity` | yes | `"error"` or `"warning"`. **An invariant property of the code**, never varying with the case |
 | `message` | yes | **The body only.** It does not include the position prefix (`file:line N: `) |
 | `line` | when the diagnostic has a position | The 1-based line of its provenance. Diagnostics with no written line — a derived default boundary, say — omit it |
@@ -104,7 +104,12 @@ An example with `related`. For a duplicate boundary (BND02) the later declaratio
 ]
 ```
 
-**No diagnostic is without a provenance.** Even a diagnostic about a set — "this pair of spaces carries two kinds of boundary at once" — has `line` pointing at one of the declarations that made the set, with the rest in `related`. Being told that something contradicts *somewhere* leaves nowhere to go and fix it.
+**A diagnostic about a set still returns the positions of the declarations that made the set** — being told that something contradicts *somewhere* leaves nowhere to go and fix it. It does so in one of two ways.
+
+- **`line` points at one of them and the rest go in `related`** — BND02 (a duplicate boundary), BND05 (`edge` and no `edge` at once), GEO02 (overlapping regions), COL02 (a column standing in an earlier declaration's shadow), UID04 (a duplicate name inside one container).
+- **All of them go in `related` and there is no `line`** — UID03 (a duplicate `uid`). The collision is symmetric, with no first declaration to name, so none is singled out; the body spells out every provenance as well.
+
+**Some diagnostics carry no position at all.** A default boundary (a derived wall) has no written line, so a diagnostic about one returns neither `line` nor `file` nor `related` — VER01, which reports that a `koyu 0.1` file derived a default boundary, is that case. The human-facing output carries no `<file>:line N: ` prefix either; you reach the fix through the two spaces `path` names.
 
 ## Severity and exit codes
 
@@ -202,7 +207,7 @@ koyu check broken.muro --json
 
 `checkDiagnostics(model)` returns `Diagnostic[]`. `check(model)` is the compatibility layer and returns a pair of **string** arrays, `{ errors, warnings }` — those strings do carry the position prefix. When you need codes, use `checkDiagnostics`.
 
-`DIAGNOSTIC_CODES` is the ledger itself, and looks a code's severity up. A retired spelling returns `undefined`.
+`DIAGNOSTIC_CODES` is the ledger itself, and looks a code's severity up.
 
 ```ts
 import { checkDiagnostics, DIAGNOSTIC_CODES } from "koyu";
@@ -212,7 +217,13 @@ for (const d of checkDiagnostics(model)) {
 }
 
 DIAGNOSTIC_CODES["BND04"]; // "error"
-DIAGNOSTIC_CODES["BND07"]; // undefined — retired
+```
+
+**A retired spelling is rejected by the type.** The ledger is `as const`, so a key that is not in it stops the type checker — `DIAGNOSTIC_CODES["BND07"]` is a TS2551. Being unable to handle an unregistered code is the contract. To see what a retired spelling does at run time, widen the type first.
+
+```ts
+const ledger = DIAGNOSTIC_CODES as Record<string, "error" | "warning" | undefined>;
+ledger["BND07"]; // undefined — retired
 ```
 
 The retired numbers are listed on [Retired diagnostic codes](retired.md).
