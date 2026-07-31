@@ -1,0 +1,17 @@
+band X X1..X2 Y1..Y2
+  space /L1/entry room w:3600 name:Entrance
+  space /L1/office room w:rest name:"Office floor"
+
+band X X1..X2 Y2..Y3
+  space /L1/corr corridor w:rest name:Corridor
+  space /L1/core stair w:3600 name:"Stair and shaft"
+
+space /out exterior name:Outside
+
+boundary /L1/entry /out t:200 spec:RC
+  door w:1800 edge:S name:Entrance
+boundary /L1/entry /L1/corr type:open
+boundary /L1/office /L1/corr t:120
+  door w:900
+boundary /L1/corr /L1/core t:150
+  door w:900

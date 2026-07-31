@@ -46,7 +46,7 @@
     "prepare": "npm run build",
     "test": "node --import tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "check:examples": "for f in examples/two-rooms.muro examples/office.muro examples/mansion.muro examples/house.muro examples/house/main.muro examples/tower/main.muro examples/basement/main.muro examples/complex/main.muro examples/twin/main.muro examples/steps/*.muro; do tsx src/cli.ts check $f || exit 1; done",
+    "check:examples": "for f in examples/two-rooms.muro examples/office.muro examples/mansion.muro examples/house.muro examples/house/main.muro examples/tower/main.muro examples/basement/main.muro examples/complex/main.muro examples/twin/main.muro examples/steps/*.muro skills/koyu-design/examples/flat-1ldk.muro skills/koyu-design/examples/office/main.muro; do tsx src/cli.ts check $f || exit 1; done",
     "gate:examples": "node --import tsx scripts/gate.mjs",
     "plan:examples": "tsx src/cli.ts plan examples/two-rooms.muro -o out/two-rooms.svg",
     "conformance": "node --import tsx --test test/conformance.test.ts",

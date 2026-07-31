@@ -86,6 +86,8 @@ npm run koyu -- site   examples/tower/main.muro      # ショーケース: polyg
 
 登録は一行 (`claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp`)。Claude Code・Claude Desktop・その他クライアントでの設定と標準ループは [docs/howto/install-mcp.md](docs/howto/install-mcp.md)、ループの実例は [agent-loop.md](docs/howto/agent-loop.md)。
 
+MCPサーバーは*確かめる*側の半分。*書く*ための知識はエージェントスキル [skills/koyu-design/](skills/koyu-design/SKILL.md) として別に配る — 記法・band中心の書き方・検証済みの実例を、クライアントが手元で読み込むので呼び出しごとのコストがない。導入方法 (Claude Code・Claude.ai・Claude Desktop) は [skills/README.md](skills/README.md)。
+
 ## 構成
 
 規範は [docs/reference/](docs/reference/index.md) に体系化してある — 記法・診断・判定・CLI・MCP・API・導出される形・正準JSON。**この木が正である。**ADR ([docs/decisions/](docs/decisions/)) は「なぜ」を持つが後から直さないので、現在の真ではなく履歴である。IFC4とのカバレッジ照合は [docs/ifc-coverage.md](docs/ifc-coverage.md)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [koyu](https://linear.app/munipersonal/project/koyu-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。実装は src/ に約7,500行 (パーサ・グラフ・チェック・平面図生成・CLI・MCPサーバー)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。

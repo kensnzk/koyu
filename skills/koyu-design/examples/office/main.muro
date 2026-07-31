@@ -1,0 +1,13 @@
+koyu 1.0
+name Two-storey office
+unit mm
+
+grid X 0 10800
+grid Y 0 4000 6400
+
+level L1 0 h:2700 slab:150
+level L2 3000 h:2700 slab:150
+level R 6000 slab:200
+
+import ./L1.muro
+import ./L2.muro
