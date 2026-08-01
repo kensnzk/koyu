@@ -1,0 +1,36 @@
+koyu 1.0
+name 1LDK on an 8 by 6 metre site
+unit mm
+
+grid X 0 7000
+grid Y 0 1650 4800
+
+level L1 0 h:2400 slab:150
+
+band X X1..X2 Y1..Y2
+  space /L1/entry hall w:1500 name:Entrance
+  space /L1/wc    wc   w:900  name:WC
+  space /L1/wash  wash w:1500 name:Washroom
+  space /L1/bath  bath w:rest name:Bathroom
+
+band X X1..X2 Y2..Y3
+  space /L1/ldk ldk  w:rest  name:LDK daylight:1
+  space /L1/bed room w:2800  name:Bedroom daylight:1
+
+space /out exterior name:Outside
+
+boundary /L1/entry /out t:120 spec:EW
+  door w:900 edge:S name:Front
+boundary /L1/entry /L1/ldk type:open
+boundary /L1/ldk /L1/wc t:100
+  door w:700
+boundary /L1/ldk /L1/wash t:100
+  door w:750
+boundary /L1/wash /L1/bath t:100
+  door w:750
+boundary /L1/ldk /L1/bed t:100
+  door w:900
+boundary /L1/ldk /out t:120 spec:EW
+  window w:2400 edge:N sill:400 h:2000
+boundary /L1/bed /out t:120 spec:EW
+  window w:1600 edge:N sill:800 h:1400
