@@ -86,7 +86,7 @@ npm run koyu -- site   examples/tower/main.muro      # ショーケース: polyg
 
 登録は一行 (`claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp`)。Claude Code・Claude Desktop・その他クライアントでの設定と標準ループは [docs/howto/install-mcp.md](docs/howto/install-mcp.md)、ループの実例は [agent-loop.md](docs/howto/agent-loop.md)。
 
-MCPサーバーは*確かめる*側の半分。*書く*ための知識はエージェントスキル [skills/koyu-design/](skills/koyu-design/SKILL.md) として別に配る — 記法・band中心の書き方・検証済みの実例を、クライアントが手元で読み込むので呼び出しごとのコストがない。導入方法 (Claude Code・Claude.ai・Claude Desktop) は [skills/README.md](skills/README.md)。
+MCPサーバーとCLIは*確かめる*側。muroで仕事をするための知識はエージェントスキルとして別に配り、クライアントが手元で読み込むので呼び出しごとのコストがない — [koyu-design](skills/koyu-design/SKILL.md) が建物を書き、[koyu-validate](skills/koyu-validate/SKILL.md) が判定して直し、[koyu-revise](skills/koyu-revise/SKILL.md) が既存を壊さずに変える。処理系が答える問いごとに一本。導入方法 (Claude Code・Claude.ai・Claude Desktop) は [skills/README.md](skills/README.md)。
 
 ## 構成
 

@@ -94,7 +94,7 @@ npm run koyu -- site   examples/tower/main.muro      # showcase: polygon site, t
 
 Registering it is one line (`claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp`). Setup for Claude Code, Claude Desktop, and other clients, plus the standard loop, is in [docs/en/howto/install-mcp.md](docs/en/howto/install-mcp.md).
 
-The MCP server is the half that *judges*; the knowledge for *writing* ships separately as an agent skill, [skills/koyu-design/](skills/koyu-design/SKILL.md) — the notation, band-first authoring, and worked examples, loaded locally by the client so it costs nothing per call. Installation (Claude Code, Claude.ai, Claude Desktop) is in [skills/README.md](skills/README.md).
+The MCP server and the CLI are the half that *judges*; the knowledge for working in muro ships separately as agent skills, loaded locally by the client so they cost nothing per call — [koyu-design](skills/koyu-design/SKILL.md) writes a building, [koyu-validate](skills/koyu-validate/SKILL.md) judges and repairs one, [koyu-revise](skills/koyu-revise/SKILL.md) changes one without breaking the rest. One skill per question the processor answers. Installation (Claude Code, Claude.ai, Claude Desktop) is in [skills/README.md](skills/README.md).
 
 ## Layout
 
