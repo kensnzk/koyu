@@ -1,24 +1,24 @@
 ---
-title: two-rooms — 記法の最小単位
+title: two-rooms — the smallest unit of the notation
 mode: explanation
 ---
 
-# two-rooms — 記法の最小単位
+# two-rooms — the smallest unit of the notation
 
-`examples/two-rooms.muro`。26行 / 空間3 / 境界3 / 屋内床面積 32.40㎡。室を二つ並べ、その間に扉を一枚、外へ出る扉を一枚、窓を三つ。**この記法の要素が一通り出そろう最小の場面**である。
+`examples/two-rooms.muro`. 26 lines / 3 spaces / 3 boundaries / 32.40 m² of interior floor area. Two rooms side by side, one door between them, one door to the outside, three windows. **It is the smallest scene in which every element of the notation appears once.**
 
 ![two-rooms L1](../img/two-rooms.svg)
 
-## 初めて示すもの
+## What it shows first
 
-- **[`space`](../reference/muro/space.md)** — パスが同一性、型が第2位置引数、領域が矩形の合併。
-- **[`boundary`](../reference/muro/boundary.md)** — 壁は物ではなく**二つの空間の関係**であること。壁芯線分はどこにも書かれておらず、両室の矩形から導出される。
-- **字下げの [`door`](../reference/muro/door.md) / [`window`](../reference/muro/window.md)** — 開口は壁 (境界) に属し、空間には属さない。
-- **`/out`** — 外部も一つの空間である。領域を持たないので、外皮の境界は**明示的に書かれている**。
-- **`edge:S`** — 外部への開口は辺を選ぶ必要がある。`/L1/b` の外周は3辺に分かれるためで、方位は X が東正・Y が北正 (N=+Y, S=-Y, E=+X, W=-X)。
-- **`daylight:1`** — 採光判定の対象は型からは推定されない。書いた空間だけが `light` の母集団に入る。
+- **[`space`](../reference/muro/space.md)** — a path for identity, a type as the second positional, a region as a union of rectangles.
+- **[`boundary`](../reference/muro/boundary.md)** — that a wall is not a thing but a **relation between two spaces**. The wall centerline segment is written nowhere; it is derived from the two rectangles.
+- **Indented [`door`](../reference/muro/door.md) / [`window`](../reference/muro/window.md)** — an opening belongs to a wall (a boundary), never to a space.
+- **`/out`** — the outside is a space too. It carries no region, so the envelope boundaries have to be **written explicitly**.
+- **`edge:S`** — an opening onto the outside has to pick a side. The perimeter of `/L1/b` splits into three of them. X is east-positive and Y is north-positive, so N=+Y, S=-Y, E=+X, W=-X.
+- **`daylight:1`** — whether the daylight check applies is never inferred from the type. Only the spaces that say so join the population `light` examines.
 
-## 全文
+## The whole file
 
 ```muro
 koyu 1.1
@@ -43,15 +43,15 @@ boundary /L1/b /out t:150 spec:EW1 fire:60
   window w:2600 h:1100 edge:E name:腰窓
 ```
 
-**室と室のあいだの壁は「書かれている」ように見えて、実際に書かれているのは関係だけである。**`boundary /L1/a /L1/b` は「AとBが壁で接する」としか言っていない。線分の始点と終点は、二つの矩形が Y1..Y2 の区間で X2 の線上に重なるという事実から出る。壁厚 120 は芯から両側へ 60 ずつ振り分けられ、面積はどちらの室も壁芯で 3600×4500 = 16.20㎡ になる。
+**The wall between the rooms looks written, but what is actually written is only the relation.** `boundary /L1/a /L1/b` says no more than "A and B meet at a wall". The start and end of the segment fall out of the fact that the two rectangles overlap along X2 over the interval Y1..Y2. The thickness 120 is split 60 to either side of the centerline, and both rooms measure 3600 × 4500 = 16.20 m² at the centerline.
 
-外皮の3本 (`boundary /L1/a /out` など) は書かなければならない。`/out` は領域を持たないので「接している」ことを幾何から導けないからである。逆に、もし `boundary /L1/a /L1/b` の行を消しても A と B のあいだには壁が立つ — 接する空間の既定は壁である。ただしその壁は扉を持たないので、**通れなくなる**。
+The three envelope lines (`boundary /L1/a /out` and the rest) have to be written, because `/out` has no region and so touching cannot be established from geometry. Conversely, deleting `boundary /L1/a /L1/b` still leaves a wall standing between A and B — a wall is what touching spaces default to. But that wall carries no door, so it **stops being passable**.
 
-## 投げる問い
+## Questions worth putting to it
 
-### 外へ出るのに何枚の扉を通るか
+### How many doors to get outside
 
-居室Aには外部への扉が無いので、答えは居室Bを経由する。
+Room A has no door to the outside, so the answer goes through room B.
 
 ```sh
 npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
@@ -61,9 +61,9 @@ npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
 2 doors — /L1/a → /L1/b → /out
 ```
 
-### 隣接の全体はどうなっているか
+### What does the adjacency look like as a whole
 
-「壁」と「扉1枚」の区別が、そのままグラフの辺の重みになる。
+The distinction between "a wall" and "one door" is exactly the weight on the graph edge.
 
 ```sh
 npx tsx src/cli.ts graph examples/two-rooms.muro
@@ -81,9 +81,9 @@ npx tsx src/cli.ts graph examples/two-rooms.muro
   — 1 door → /L1/b  (spec:EW1 fire:60)
 ```
 
-窓は辺に現れない。`window` は採光の器であって通行の口ではないからである。
+Windows never appear as edges. A `window` is a vessel for daylight, not an opening for passage.
 
-### 面積はどう数えられるか
+### How is area counted
 
 ```sh
 npx tsx src/cli.ts stats examples/two-rooms.muro
@@ -98,7 +98,7 @@ Total 32.40 m2 (indoor floor area)
   room: 32.40 m2
 ```
 
-### 採光は足りているか
+### Is there enough daylight
 
 ```sh
 npx tsx src/cli.ts light examples/two-rooms.muro
@@ -110,9 +110,9 @@ npx tsx src/cli.ts light examples/two-rooms.muro
 ✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
-窓面積 2.86㎡ は 2600×1100 から出た。**原本のどこにも 2.86 とは書かれていない。**
+The 2.86 m² of window came from 2600 × 1100. **The number 2.86 appears nowhere in the source.**
 
-## 次に読む
+## Read next
 
-- 複数階と吹抜けが加わる — [office](office.md)
-- 同じ場面を IFC4 / IFCX で書いた実測 — [koyu と IFC の実測比較](vs-ifc.md)
+- Multiple storeys and a void — [office](office.md)
+- The same scene written in IFC4 and IFCX, measured — [koyu measured against IFC](vs-ifc.md)

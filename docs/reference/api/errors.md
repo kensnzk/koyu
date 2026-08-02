@@ -1,42 +1,42 @@
 ---
-title: エラー
+title: Errors
 mode: reference
 ---
 
-# エラー
+# Errors
 
 ```ts
 import { SourceError, srcRef } from "@kensnzk/koyu";
 ```
 
-## 投げるのは解析と図の生成と `newUids` だけである
+## Only parsing, drawing and `newUids` throw
 
-**例外を投げるのは [`parse` 系の五つと `tokenize`](parsing.md)、[図の生成](draw.md)、そして `newUids` の引数検査だけである。**
+**The only things that throw are the [five parse functions and `tokenize`](parsing.md), [the drawing functions](draw.md), and the argument check in `newUids`.**
 
-| 面 | 失敗の伝え方 |
+| Surface | How failure arrives |
 |---|---|
-| `parse` `parseFiles` `parseWith` `parseFile` `parseFileWith` `tokenize` | `SourceError` を投げる |
-| `svgPlan` `svgAxo` | 素の `Error` を投げる (位置を持たない) |
-| `checkDiagnostics` `check` | **投げない。**必ず `Diagnostic[]` / `CheckResult` を返す |
-| `validate` | **投げない。**必ず `Finding[]` を返す |
-| `placeOpening` `placeBand` | **投げない。**`BandError` を値として返す |
-| `newUids` | 引数が不正なら `RangeError` |
+| `parse` `parseFiles` `parseWith` `parseFile` `parseFileWith` `tokenize` | throws a `SourceError` |
+| `svgPlan` `svgAxo` | throws a plain `Error` (no position) |
+| `checkDiagnostics` `check` | **never throws.** Always a `Diagnostic[]` / `CheckResult` |
+| `validate` | **never throws.** Always a `Finding[]` |
+| `placeOpening` `placeBand` | **never throw.** A `BandError` comes back as a value |
+| `newUids` | a `RangeError` on a bad argument |
 
-**「読めなかった」と「読めたが矛盾している」は別の伝え方をする。**前者は例外で止まり、後者は診断の列になる。
+**"I could not read it" and "I read it and it contradicts itself" arrive differently.** The first stops with an exception; the second is a list of diagnostics.
 
 ## SourceError
 
 ```ts
 class SourceError extends Error {
-  line: number;    // 出所の行
-  raw: string;     // 位置情報を除いた本文
-  file?: string;   // 合成時の出所レイヤー (解決済みの絶対パス)
-  // name は "SourceError"
-  // message は `${file ? file + ":" : ""}line ${line}: ${raw}`
+  line: number;    // the source line
+  raw: string;     // the body without position information
+  file?: string;   // the source layer under composition (a resolved absolute path)
+  // name is "SourceError"
+  // message is `${file ? file + ":" : ""}line ${line}: ${raw}`
 }
 ```
 
-構文のエラーと合成のエラーがこれで飛ぶ。**`message` は組み立て済みの完成文で、`raw` は位置接頭辞を除いた本文である。**自分の書式で出したいなら `raw` と `line` と `file` を使う。
+Syntax errors and composition errors arrive this way. **`message` is the finished sentence; `raw` is the body without the position prefix.** To format it your own way, use `raw`, `line` and `file`.
 
 ```ts
 import { SourceError, parse } from "@kensnzk/koyu";
@@ -60,7 +60,7 @@ try {
 }
 ```
 
-合成を通したときは `file` が入る。
+Go through composition and `file` is filled in.
 
 ```ts
 import { parseFile } from "@kensnzk/koyu/node";
@@ -74,24 +74,24 @@ try { parseFile("examples/house/L1.muro"); } catch (e) {
 examples/house/L1.muro:line 3: Undeclared level: level:L1
 ```
 
-分割されたレイヤーの一枚だけを読んだので、base 層にある `level` の宣言が無い。**渡すのは常に entry の一枚だけである。**
+Only one layer of a split building was read, so the `level` declared in the base layer is missing. **What you pass is always the one entry file.**
 
-`file` に入るのは**解決済みの絶対パス**である (上の出力は見やすさのために cwd を削っている)。診断の `file` フィールドと同じ値である。
+`file` holds the **resolved absolute path** (the output above strips the working directory for readability). It is the same value as the `file` field on a diagnostic.
 
-### 読めなかったファイル
+### Files that could not be read
 
-`import` の解決に失敗したときも `SourceError` である。
+A failure to resolve an `import` is also a `SourceError`.
 
-| `raw` | `line` | いつ |
+| `raw` | `line` | When |
 |---|---|---|
-| `Cannot read file: <entry>` | `0` | entry そのものが読めない |
-| `Cannot read file: <ref>` | `import` 行の行番号 | 途中の層が読めない |
+| `Cannot read file: <entry>` | `0` | the entry itself cannot be read |
+| `Cannot read file: <ref>` | the line of the `import` | a layer along the way cannot be read |
 
-`parseFiles` で対応表に無いキーを `import` したときも、`parseWith` のローダーが投げたときも、同じ形で伝わる。**entry の失敗だけが行番号 0 になる** — 読めなかったのはどの行でもないからである。
+Importing a key absent from the table in `parseFiles`, and a loader throwing in `parseWith`, both arrive in this shape. **Only the entry failure carries line 0** — nothing could be read, so there is no line to blame.
 
-### 診断への写し
+### Copying into a diagnostic
 
-CLI の `koyu check --json` は、この例外を捕まえて `SYN01` のコード付きの診断として写す。**API の側では写さない** — 例外は例外として捕まえる。
+`koyu check --json` catches this exception and copies it into a diagnostic coded `SYN01`. **The API does not** — an exception is caught as an exception.
 
 ```ts
 import { SourceError, checkDiagnostics } from "@kensnzk/koyu";
@@ -115,7 +115,7 @@ function readAndCheck(path: string) {
 function srcRef(line: number, file?: string): string
 ```
 
-位置を同じ書式で表す小物である。診断や自作のエラーで使う。
+A small helper that spells a position in the same format, for diagnostics and for errors of your own.
 
 ```ts
 import { srcRef } from "@kensnzk/koyu";
@@ -126,22 +126,22 @@ console.log(srcRef(12), "|", srcRef(12, "L1.muro"));
 line 12 | L1.muro:line 12
 ```
 
-`SourceError` の `message` はこの書式に本文を続けたものである。
+A `SourceError`'s `message` is exactly this format followed by the body.
 
-## 図の生成の例外
+## Exceptions from drawing
 
-`svgPlan` と `svgAxo` が投げるのは**素の `Error`** である。`SourceError` ではないので、`line` も `file` も持たない。
+`svgPlan` and `svgAxo` throw a **plain `Error`**. It is not a `SourceError`, so it has neither `line` nor `file`.
 
-| メッセージ | いつ |
+| Message | When |
 |---|---|
-| `No level is defined` | `svgPlan` に `level` を渡さず、模型にレベルが無い |
-| `There is no space with a region on level <名>` | `svgPlan` で指定したレベルに領域を持つ空間が無い |
-| `There is nothing to draw` | `svgAxo` で立体が一つも生成されない |
+| `No level is defined` | `svgPlan` with no `level` and a model with no level |
+| `There is no space with a region on level <name>` | `svgPlan` on a level with no space that has a region |
+| `There is nothing to draw` | `svgAxo` when no solid is generated |
 
-**捕まえないと生のスタックトレースになる。**
+**Uncaught, these become raw stack traces.**
 
-## 関連
+## See also
 
-- [解析と合成](parsing.md) — 例外を投げる五つの入口
-- [診断](diagnostics.md) — 例外にならない側の伝え方
-- [図の生成](draw.md) — もう一つ例外を投げる面
+- [Parsing and composition](parsing.md) — the five entrances that throw
+- [Diagnostics](diagnostics.md) — how the non-throwing side reports
+- [Drawing](draw.md) — the other surface that throws

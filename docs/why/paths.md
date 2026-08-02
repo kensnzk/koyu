@@ -1,25 +1,25 @@
 ---
-title: パスと面積集計
+title: Paths and area aggregation
 mode: explanation
 ---
 
-# パスと面積集計
+# Paths and area aggregation
 
-`/L5/A/ldk` は名前ではなく住所である。そして `/` で切られた階層は、そのまま集計の単位になる。**パスは二役を兼ねている。**
+`/L5/A/ldk` is not a name but an address. And the hierarchy cut by `/` is itself the unit of aggregation. **A path plays two roles at once.**
 
-この二役が、建築のデータで長年ややこしかった問題を一つ消す — **粒度をどこで切るか。**室で切るのか、住戸で切るのか、階で切るのか。koyu の答えは「全部で切る。パスがそれを同時に成立させる」である。
+Those two roles dissolve a problem that has been awkward in architectural data for years — **where to cut granularity.** At rooms? At dwelling units? At storeys? koyu's answer is "at all of them; the path makes them hold simultaneously".
 
-## 住所として
+## As an address
 
-パスは人間が読める。UUID の対応表を持たずに、外の世界がこの空間を指せる。
+A path is human-readable. The outside world can point at a space without a table of UUIDs.
 
 ```muro-part
 space /L5/A/ldk ldk X1..X3 Y1..Y2 name:リビングダイニング
 ```
 
-センサーの計測値も、予約システムも、BEMS も、`/L5/A/ldk` という文字列を外部キーにできる。**パスがそのまま意味である。**
+Sensor readings, a booking system and a BEMS can all use the string `/L5/A/ldk` as a foreign key. **The path is the meaning.**
 
-パスの先頭セグメントは、**同名の `level` が宣言されているときにだけ**レベルになる。`/L1/` と書いただけではレベルは生まれない。
+The leading segment of a path becomes a level **only when a `level` of that name is declared**. Writing `/L1/` does not conjure a level into existence.
 
 ```muro-bad
 grid X 0 3600
@@ -31,13 +31,13 @@ space /L1/x room X1..X2 Y1..Y2
 ✖ p3.muro:line 3: /L1/x has a region, but its level cannot be determined (give it at the head of the path or with level:)
 ```
 
-エラーであって、警告ではない。終了コードは 1 である。**レベルが決まらなければ形が作れない**ので、これは充足性の欠落として扱われる。
+An error, not a warning; the exit code is 1. **Without a level no form can be made**, so this counts as missing sufficiency.
 
-パスの先頭で表せるのは一つのレベルだけなので、**階を跨ぐくくり (メゾネット等) は `level:` 属性で明示する。**
+The head of a path can express only one level, so **groupings that cross storeys (maisonettes and the like) are stated with the `level:` attribute.**
 
-## 集計の階層として
+## As an aggregation hierarchy
 
-領域を持つ空間は、**領域を持つ子空間を持てない。**親子で領域が重なるからである。
+A space with a region **may not have child spaces with regions**, because parent and child would overlap.
 
 ```muro-bad
 grid X 0 3600 7200
@@ -53,7 +53,7 @@ space /L1/home/b room X2..X3 Y1..Y2
 ✖ p1.muro:line 4: Space regions overlap: /L1/home and /L1/home/b
 ```
 
-**住戸を室に割るときは、親を `space` ではなく `zone` にする。**ゾーンは幾何を持たず、パス接頭辞で配下を束ねるだけの、数える集約である。
+**To split a dwelling into rooms, make the parent a `zone`, not a `space`.** A zone has no geometry; it is a counted aggregation that gathers whatever sits under its path prefix.
 
 ```muro
 grid X 0 3600 7200
@@ -74,50 +74,50 @@ By zone (counted aggregation):
   /L1/home	住戸	28.80 m2
 ```
 
-個々の室が出て、しかも住戸の合計が残る。**「間取りに割っても住戸の言葉を失わない」**というのがこの二役の効き目である。
+The individual rooms come out, and the dwelling total survives. **You can split into a layout without losing the language of the dwelling** — that is what the double role buys.
 
-だから設計上の指針が一つ出る — **集計したい単位が、パスの先頭側に来る。**
+From which one design guideline follows: **put the unit you want to aggregate by nearer the head of the path.**
 
-同梱例には二つの流儀がある。
+The bundled examples use two idioms.
 
-| 流儀 | 例 | 何で束ねたいか |
+| Idiom | Examples | What you want to aggregate by |
 |---|---|---|
-| `/L1/room` — レベルを先頭に | `two-rooms` `office` `mansion` `tower` `complex` | 階ごとの面積・階ごとの検査 |
-| `/home/room` + `level:L1` — 住戸を先頭に | `house` | 住戸ごとの面積・メゾネット |
+| `/L1/room` — level first | `two-rooms`, `office`, `mansion`, `tower`, `complex` | area per storey, checks per storey |
+| `/home/room` + `level:L1` — dwelling first | `house` | area per dwelling, maisonettes |
 
-優劣ではない。**何で束ねたいかの違いである。**`zone` と `space` の使い分けは [zone](../reference/muro/zone.md)。
+Neither is better. **It is a difference in what you want to group by.** When to reach for `zone` rather than `space` is covered in [zone](../reference/muro/zone.md).
 
-## パスは変わる。だから uid がある
+## Paths change, which is why uid exists
 
-改名や階層再編でパスが変われば、それを外部キーにしていたセンサーや台帳との対応は切れる。
+Rename or restructure and the path changes, and any sensor or register that used it as a foreign key loses its join.
 
-**寿命がパスより長い参照が要るときは `uid:` を使う。**不透明なトークンで、モデル全体で一意で、パスから導出しない。
+**When a reference must outlive the path, use `uid:`.** It is an opaque token, unique across the model, and not derived from the path.
 
 ```muro-part
 space /L5/A/ldk ldk X1..X3 Y1..Y2 uid:u-7f3k9m2qx4b8dhtv
 ```
 
-**パスから導出しない**ことが要である。導出すれば改名でトークンが変わり、uid の意味 — 改名を跨いで同じものを指す — が消える。機械が作るときは乱数である。
+**Not derived from the path** is the crux. Derive it and a rename changes the token, and the whole point of a uid — pointing at the same thing across a rename — evaporates. When a machine makes one, it is random.
 
-役割分担は明確である。
+The division of labour is clean.
 
-| 用途 | 何を使うか |
+| Purpose | What to use |
 |---|---|
-| リポジトリの中の参照 (`boundary` / `doors` / ゾーン集計) | **パス** |
-| 集計の階層 | **パス** |
-| 改名を跨ぐ長期の同一性 (センサー・実測・台帳) | **uid** |
+| references inside the repository (`boundary`, `doors`, zone totals) | **the path** |
+| aggregation hierarchy | **the path** |
+| long-lived identity across renames (sensors, survey, registers) | **uid** |
 
-`uid` を書けるのは `space` と `zone` の二つに閉じている。関係に書けないのは、関係の同一性が両端から導かれるからである ([境界による壁の表現](boundary-is-a-relation.md))。詳細は [同一性](../reference/identity.md)。
+`uid` may be written on `space` and `zone` and nothing else. It cannot go on a relation because a relation's identity is derived from its two ends ([Walls as boundaries](boundary-is-a-relation.md)). The details are in [Identity](../reference/identity.md).
 
-## 名前空間としても働く
+## It also works as a namespace
 
-合成で複数のファイルを重ねるとき、層ごとの名前空間接頭辞は要らない — **パスの階層がすでに名前空間である。**`L5.muro` が `/L5/...` を書き、`core.muro` が `/B2..L19/core/...` を書けば、それだけで衝突しない。
+When composing several files, no per-layer namespace prefix is needed — **the path hierarchy is already a namespace.** Let `L5.muro` write `/L5/...` and `core.muro` write `/B2..L19/core/...` and nothing collides.
 
-これは USD からパス名前空間という機構だけを借りた結果である ([ファイル分割と重ね合わせ](composition-is-for-time.md))。
+This is the result of borrowing from USD only the mechanism of a path namespace ([Splitting and layering files](composition-is-for-time.md)).
 
-## この先
+## Next
 
-- [zone の書き方](../reference/muro/zone.md)
-- [同一性](../reference/identity.md)
-- [ファイル分割と重ね合わせ](composition-is-for-time.md)
+- [Writing `zone`](../reference/muro/zone.md)
+- [Identity](../reference/identity.md)
+- [Splitting and layering files](composition-is-for-time.md)
 - [koyu stats](../reference/cli/stats.md)

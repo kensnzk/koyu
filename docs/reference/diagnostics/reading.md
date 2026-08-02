@@ -1,15 +1,15 @@
 ---
-title: 診断を読む
+title: Reading a diagnostic
 mode: reference
 ---
 
-# 診断を読む
+# Reading a diagnostic
 
-**人向けの `check` は診断コードを表示しない。**出るのは本文だけで、`BND04` のようなコードはどこにも現れない。[索引](index.md)や族の頁を引くには、まずコードを手に入れる。
+**The human-facing `check` does not display diagnostic codes.** What comes out is the message body alone; a code like `BND04` appears nowhere. To use [the index](index.md) or a family page, first get the code.
 
-## コードを手に入れる
+## Getting the code
 
-次のファイル (二室が角でしか触れていない) を検査する。
+Check this file — two rooms touching only at a corner.
 
 ```muro-bad
 grid X 0 3600 7200
@@ -20,15 +20,15 @@ space /L1/b room X2..X3 Y2..Y3
 boundary /L1/a /L1/b t:120
 ```
 
-人向けの出力はこうなる。
+The human output looks like this.
 
 ```text
 ✖ <absolute path>/bad.muro:line 6: The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b
 ```
 
-行頭の出所は**解決済みの絶対パス**である (ここでは `<absolute path>` と省略して示した)。合成したモデルでは、この出所は entry ではなく**その診断を生んだ宣言が書かれているレイヤー**を指す。
+The provenance at the head of the line is the **resolved absolute path** (elided here as `<absolute path>`). In a composed model it names not the entry but **the layer where the declaration that produced the diagnostic is written**.
 
-`--json` を付けると、同じ診断がコードつきで出る。
+Add `--json` and the same diagnostic comes out with its code.
 
 ```sh
 koyu check bad.muro --json
@@ -50,11 +50,11 @@ koyu check bad.muro --json
 ]
 ```
 
-コードが手に入ったら[索引](index.md)を引く。
+With the code in hand, look it up in [the index](index.md).
 
-## Diagnostic の構造
+## The shape of a Diagnostic
 
-`--json` が吐くのは `Diagnostic` の配列である。
+`--json` emits an array of `Diagnostic`.
 
 ```ts
 interface Diagnostic {
@@ -68,19 +68,19 @@ interface Diagnostic {
 }
 ```
 
-| フィールド | 必ずあるか | 中身 |
+| Field | Always present | Contents |
 |---|---|---|
-| `code` | 必ず | 台帳の 65 コードのいずれか。領域3字 + 2桁の連番 |
-| `severity` | 必ず | `"error"` か `"warning"`。**コードの不変属性**であって、場合によって変わらない |
-| `message` | 必ず | **本文だけ。**位置接頭辞 (`ファイル:line N: `) を含まない |
-| `line` | 位置を持つ診断のみ | 出所の行番号 (1始まり)。既定境界の導出のように、書かれた行を持たない診断では省略される |
-| `file` | `line` があり、出所のレイヤーが分かるとき | そのレイヤーの解決済み絶対パス |
-| `path` | 対象がパスを持つとき | 対象の空間・ゾーン・`polygon` のパス。境界に対する診断は**両側のパス**が入る |
-| `related` | 関連位置があるとき | 重複の既出側、重なりの相手、影を作った先の宣言などの位置 |
+| `code` | yes | One of the ledger's 65 codes: three letters for the area plus a two-digit serial |
+| `severity` | yes | `"error"` or `"warning"`. **An invariant property of the code**, never varying with the case |
+| `message` | yes | **The body only.** It does not include the position prefix (`file:line N: `) |
+| `line` | when the diagnostic has a position | The 1-based line of its provenance. Diagnostics with no written line — a derived default boundary, say — omit it |
+| `file` | when `line` is present and the layer is known | That layer's resolved absolute path |
+| `path` | when the subject has a path | The path of the space, zone or `polygon` concerned. A diagnostic about a boundary carries **both** paths |
+| `related` | when there are related positions | The earlier of a duplicate, the other side of an overlap, the declaration that cast the shadow |
 
-`message` に位置が入らないのは、位置を別のフィールドが持つからである。エディタや CI は `line` / `file` を機械的に読み、人向けの `check` は `<file>:line <N>: ` を組み立てて本文の前に貼る。**この二つは同じ本文を共有している。**
+`message` carries no position because other fields carry it. Editors and CI read `line` / `file` mechanically; the human-facing `check` assembles `<file>:line <N>: ` and pastes it in front of the body. **The two share one body.**
 
-`related` が付く例。重複した境界 (BND02) では、後から書いた側が診断の出所になり、既出側が `related` に入る。
+An example with `related`. For a duplicate boundary (BND02) the later declaration is the diagnostic's provenance and the earlier one goes into `related`.
 
 ```json
 [
@@ -104,31 +104,31 @@ interface Diagnostic {
 ]
 ```
 
-**集合に対する診断も、集合を作った宣言の位置を返す。**「どこかで矛盾している」とだけ言われても直す場所が無いからである。持ち方は二つある。
+**A diagnostic about a set still returns the positions of the declarations that made the set** — being told that something contradicts *somewhere* leaves nowhere to go and fix it. It does so in one of two ways.
 
-- **一本を `line` が指し、残りが `related` に入る** — BND02 (境界の重複)、BND05 (`edge` の併存)、GEO02 (領域の重なり)、COL02 (先の宣言の影に入った柱)、UID04 (容器の中の名の重複)。
-- **すべてが `related` に入り、`line` を持たない** — UID03 (`uid` の重複)。どちらが先とも言えない対称な衝突なので一本を選ばない。出所は本文にも綴られる。
+- **`line` points at one of them and the rest go in `related`** — BND02 (a duplicate boundary), BND05 (`edge` and no `edge` at once), GEO02 (overlapping regions), COL02 (a column standing in an earlier declaration's shadow), UID04 (a duplicate name inside one container).
+- **All of them go in `related` and there is no `line`** — UID03 (a duplicate `uid`). The collision is symmetric, with no first declaration to name, so none is singled out; the body spells out every provenance as well.
 
-**位置を一つも持たない診断もある。**既定境界 (導出された壁) は書かれた行を持たないので、それについての診断は `line` も `file` も `related` も返さない — `koyu 0.1` のファイルで既定境界が導出されたことを言う VER01 がそれである。人向けの出力にも `<file>:line N: ` の接頭辞は付かず、直す先は `path` が名指す二つの空間から辿る。
+**Some diagnostics carry no position at all.** A default boundary (a derived wall) has no written line, so a diagnostic about one returns neither `line` nor `file` nor `related` — VER01, which reports that a `koyu 0.1` file derived a default boundary, is that case. The human-facing output carries no `<file>:line N: ` prefix either; you reach the fix through the two spaces `path` names.
 
-## severity と終了コード
+## Severity and exit codes
 
-| severity | 意味 | `check` | `check --json` | `check --strict` |
+| severity | Meaning | `check` | `check --json` | `check --strict` |
 |---|---|---|---|---|
-| `error` | 構成が成立していない | 1 | 1 | 1 |
-| `warning` | 疑わしい (成立はしている) | 0 | 0 | 1 |
-| (診断なし) | 緑 | 0 | 0 | 0 |
+| `error` | The composition does not stand up | 1 | 1 | 1 |
+| `warning` | Suspect (it does stand up) | 0 | 0 | 1 |
+| (no diagnostics) | Green | 0 | 0 | 0 |
 
-**警告も落としたいときは `--strict` を付ける。**CI の門番に置くのはこちらである。`--json` と `--strict` は同時に使える。
+**To fail on warnings too, add `--strict`.** That is what belongs in a CI gate. `--json` and `--strict` compose.
 
-エラーが一件も無いとき、人向けの `check` は件数と、緑が何を意味するかを印字する。
+With no errors, the human-facing `check` prints the counts and says what green means.
 
 ```text
 ✔ Consistent — 3 spaces / 3 boundaries
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-警告だけがあるときはこうなる (終了コードは 0、`--strict` を付けると 1)。
+With warnings only it looks like this (exit code 0; 1 under `--strict`).
 
 ```text
 ⚠ <absolute path>/warn.muro:line 6: The same pair of spaces carries both an edge-restricted and an unrestricted boundary (the segments overlap): /L1/a | /L1/b
@@ -136,13 +136,13 @@ interface Diagnostic {
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-人向けの出力では**警告が先、エラーが後**に並ぶ。`--json` は severity で並べ替えず、後述の走査の順のまま返す。
+In the human output **warnings come first and errors after**. `--json` does not sort by severity; it returns them in the scan order described below.
 
-## 並びは走査の順である
+## The order is the scan order
 
-診断の並びは、コードの族ではなく**走査した順**で決まる。検査は決まった順に並んだ節から成り、**節の粒度は走査単位であってコードの族ではない。**一つの節が宣言を一周するあいだに複数のコードを出すなら、それらは走査のその場で隣り合って出る。境界の妥当性を見る節は境界を一本ずつ回り、その境界の線分・開口・`seg` について言うべきことを、そこでまとめて出す。
+The order of diagnostics is decided by **the order things are scanned**, not by code family. The check is a fixed sequence of sections, and **the grain of a section is a scan, not a family of codes.** When one section, walking its declarations once, emits several codes, they come out next to each other right where the scan is. The section that checks boundary validity goes boundary by boundary, and says everything it has to say about that boundary's segments, openings and `seg`s in one place.
 
-外壁に扉と `seg` を置いた二つの境界を検査すると、族ごとにまとまらず、境界ごとにまとまる。
+Check two external-wall boundaries each carrying a door and a `seg`, and the output groups by boundary, not by family.
 
 ```muro-bad
 grid X 0 3600 7200
@@ -159,7 +159,7 @@ boundary /L1/b /out t:150
   seg w:800 spec:X
 ```
 
-出るコードと行はこの順である。
+The codes and lines come out in this order.
 
 ```text
 OPN05  line 8
@@ -168,15 +168,15 @@ OPN05  line 11
 SEG05  line 12
 ```
 
-**この性質は意図されたものである。**一つの境界について言うべきことが一箇所に固まるので、上から順に直していける。コードの族でまとめると、同じ境界の話が出力の端と端に分かれる。
+**This is deliberate.** Everything to be said about one boundary lands in one place, so you can fix from the top down. Grouping by code family would split one boundary's story across opposite ends of the output.
 
-## 母集団は「書かれた宣言」である
+## The population is what is written
 
-診断が数え上げるのは、導出された結果ではなく**書かれた宣言**である。同じ階の別の柱宣言が一本でも柱を立てたからといって、一本も立たない宣言が黙って通ることはない。属性についても同じで、**解釈される属性は値まで検査される** — 書いたのに解釈されなかった値が、黙って既定へ落ちることはない。
+What the diagnostics enumerate is **the written declarations**, not the derived results. A column declaration that stands no columns is not silently excused because a different declaration on the same storey happened to stand one. The same holds for attributes: **the values of interpreted attributes are checked** — a value you wrote is never quietly dropped to a default because it went uninterpreted.
 
-## 構文エラーは SYN01 に写る
+## A syntax error is copied into SYN01
 
-ファイルがモデルにならなかったときは、意味の検査が一件も走っていない。`--json` を付けたときだけ、有効な JSON を返すために、その例外が `SYN01` 一件に写される。
+When the file never became a model, not one semantic check has run. Only under `--json`, in order to return valid JSON, is that exception copied into a single `SYN01`.
 
 ```muro-bad
 grid X 0 3600
@@ -201,13 +201,13 @@ koyu check broken.muro --json
 ]
 ```
 
-`--json` を付けない `check` と、他のすべてのサブコマンドは、例外をそのまま `✖ <出所>:line N: <本文>` として印字し、終了コード1で終わる。**構文エラーが一つでもあると、`check --json` の結果は SYN01 が1件だけになる。**
+`check` without `--json`, and every other subcommand, print the exception as it stands — `✖ <provenance>:line N: <body>` — and exit 1. **One syntax error makes the whole of `check --json` a single SYN01.**
 
-## プログラムから読む
+## Reading them from a program
 
-`checkDiagnostics(model)` が `Diagnostic[]` を返す。`check(model)` は互換層で、`{ errors, warnings }` の**文字列**の組を返す — こちらの文字列には位置接頭辞が付いている。コードが要るなら `checkDiagnostics` を使う。
+`checkDiagnostics(model)` returns `Diagnostic[]`. `check(model)` is the compatibility layer and returns a pair of **string** arrays, `{ errors, warnings }` — those strings do carry the position prefix. When you need codes, use `checkDiagnostics`.
 
-`DIAGNOSTIC_CODES` は台帳そのもので、コードから規範の severity を引ける。
+`DIAGNOSTIC_CODES` is the ledger itself, and looks a code's severity up.
 
 ```ts
 import { checkDiagnostics, DIAGNOSTIC_CODES } from "koyu";
@@ -219,11 +219,11 @@ for (const d of checkDiagnostics(model)) {
 DIAGNOSTIC_CODES["BND04"]; // "error"
 ```
 
-**欠番の綴りは型が拒む。**台帳は `as const` なので、台帳に無いキーで引くと型検査が止まる — `DIAGNOSTIC_CODES["BND07"]` は TS2551 になる。登録していないコードを扱えないことが契約である。実行時の値として欠番を確かめたいなら、型を広げてから引く。
+**A retired spelling is rejected by the type.** The ledger is `as const`, so a key that is not in it stops the type checker — `DIAGNOSTIC_CODES["BND07"]` is a TS2551. Being unable to handle an unregistered code is the contract. To see what a retired spelling does at run time, widen the type first.
 
 ```ts
 const ledger = DIAGNOSTIC_CODES as Record<string, "error" | "warning" | undefined>;
-ledger["BND07"]; // undefined — 欠番
+ledger["BND07"]; // undefined — retired
 ```
 
-欠番の一覧は[欠番の診断コード](retired.md)にある。
+The retired numbers are listed on [Retired diagnostic codes](retired.md).

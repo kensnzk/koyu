@@ -1,23 +1,23 @@
 ---
-title: 書かなかったとき何が起きるか
+title: What happens when you write nothing
 mode: reference
 ---
 
-# 書かなかったとき何が起きるか
+# What happens when you write nothing
 
-**書かないことは意味を持つ。**そして意味は三つに分かれる。
+**Writing nothing means something.** And it means one of three things.
 
-| 沈黙の種類 | 起きること | 例 |
+| Kind of silence | What happens | Example |
 |---|---|---|
-| **既定が入る** | 書かなかった値の代わりに、決まった値か決まった規則が使われる | `type:` を書かない境界は `wall` になる |
-| **要素が生まれない** | 値を捏造せず、その要素を作らない。形は定まるが痩せる | `slab:` の無い階には床が一枚も生成されない (`SUF03` 警告) |
-| **止まる** | 一意な形を作るのに必要な情報が欠けている | 天井高がどこにも無ければ `SUF01` エラー |
+| **A default applies** | a fixed value or a fixed rule stands in for what was not written | a boundary with no `type:` is a `wall` |
+| **Nothing is generated** | no value is invented, and the element is simply not made. The shape is still determinate, just thinner | a level with no `slab:` gets no floor at all (`SUF03`, a warning) |
+| **It stops** | information needed for a single determinate shape is missing | with no ceiling height anywhere, `SUF01`, an error |
 
-**既定値を捏造して先へ進むことはしない。**だから同じ構成からは常に同じ形が出る。ただし**形が痩せたことは必ず知らされる**。
+**No default is ever invented in order to press on.** That is why the same description always yields the same shape — and why **a shape that came out thin is always reported.**
 
-この頁は既定の唯一の表である。値の書き方は [属性の三層](attributes.md)、位置の綴りは [位置と領域](positions.md)、方位の既定は [方位と a 側](orientation.md) にある。
+This page is the one table of defaults. How values are written is in [the three tiers of attribute](attributes.md), how positions are spelled in [positions and regions](positions.md), and the compass defaults in [orientation and the a side](orientation.md).
 
-## 最小のファイル
+## The smallest file
 
 ```muro
 koyu 1.1
@@ -27,132 +27,132 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
-**この5行で `check` は緑になり、平面図が描かれる。**残りはすべて既定である — 名前も無く、外部も無く、境界も一本も宣言されていない。
+**Five lines on which `check` is green and a plan is drawn.** Everything else is a default — no name, no exterior, not one boundary declared.
 
-## 基盤の宣言
+## Foundation declarations
 
-| 書かなければ | どうなるか |
+| Written nothing | What happens |
 |---|---|
-| `koyu <版>` | 最新版 `1.0` の意味論で読まれる。意味を固定したいなら書く → [版の宣言](version.md) |
-| `unit mm` | mm。v0 は mm しか持たない |
-| `name` | 建物名を持たない |
-| `grid X` / `grid Y` | **通り参照が一つも書けない。**領域を持つ行は `Undefined grid line name` で止まる |
-| `level` | 領域を持つ空間のレベルが決まらず `SUF02` (エラー) |
-| `level` の `h:` | その階の空間は自分の `h:` が無ければ天井高が決まらず `SUF01` (エラー)。天井も屋根も生成できない |
-| `level` の `slab:` | **その階の床が一枚も生成されない。**`SUF03` (警告) — 形は定まるので止まらない |
-| `level` の `underground:` | 地上階として扱われる。z の負値からは推定しない |
-| `level` の `pitch:` | 範囲宣言 (`L4..L10`) では必須。単一のレベルには書けない |
+| `koyu <version>` | read under the newest version, `1.0`. Write it to pin the meaning → [the version line](version.md) |
+| `unit mm` | mm. v0 has no other unit |
+| `name` | the building has no name |
+| `grid X` / `grid Y` | **no grid reference can be written at all.** Any line with a region stops with `Undefined grid line name` |
+| `level` | a space with a region has no determinable level — `SUF02` (error) |
+| `h:` on a level | unless the space carries its own `h:`, the ceiling height is undetermined — `SUF01` (error). Neither ceiling nor roof can be generated |
+| `slab:` on a level | **not one floor is generated on that storey.** `SUF03` (a warning) — the shape is determinate, so it does not stop |
+| `underground:` on a level | treated as above ground. It is never inferred from a negative z |
+| `pitch:` on a level | required on a range declaration (`L4..L10`); it cannot be written on a single level |
 
 ## space
 
-| 書かなければ | どうなるか |
+| Written nothing | What happens |
 |---|---|
-| 領域 | 領域を持たない空間になる。面積にも柱にも床にも現れない — `exterior` や集約のための空間はこれでよい |
-| `level:` | パスの先頭セグメントがレベル名ならそのレベル。名前が合わなければ `SUF02` (エラー) |
-| `h:` | 所属レベルの `h:`。どちらも無ければ `SUF01` (エラー) |
-| `daylight:` | **採光の問いの対象外。**型からは推定されない — `room` と書いても `ldk` と書いても対象にならない |
-| `ceiling:` | 天井は室の輪郭 × 天井高として導かれる。`ceiling:0` で張らない |
-| `use:` | 最も深いゾーン祖先の `use` を継承する。ゾーンにも無ければ集計の軸を持たない |
-| `road:` | 道路ではない。接道長に幅員を与えない |
-| `uid:` | パスが同一性である。改名すれば対応は切れる |
-| `stair:` `ramp:` `escalator:` `lift:` | 縦動線ではない。ただの空間 |
-| `floor:` `spec:` | 運ばれる値が無いだけ |
+| a region | the space has no region. It appears in no area, carries no column and no floor — which is exactly right for an `exterior` or an aggregation-only space |
+| `level:` | the first path segment, if it names a level. If it does not match, `SUF02` (error) |
+| `h:` | the level's `h:`. With neither, `SUF01` (error) |
+| `daylight:` | **out of scope for the daylight question.** It is never inferred from the type — neither `room` nor `ldk` puts a space in scope |
+| `ceiling:` | a ceiling is derived as the outline of the room × its ceiling height. `ceiling:0` builds none |
+| `use:` | inherited from the deepest zone ancestor. With none there either, the space has no axis of aggregation |
+| `road:` | not a road. It contributes no width to frontage |
+| `uid:` | the path is the identity. Rename it and the correspondence is cut |
+| `stair:` `ramp:` `escalator:` `lift:` | not a vertical circulation. Just a space |
+| `floor:` `spec:` | there is simply no value to carry |
 
 ## boundary
 
-**接する空間の既定は壁である。**
+**The default between touching spaces is a wall.**
 
-| 書かなければ | どうなるか |
+| Written nothing | What happens |
 |---|---|
-| 同一レベルで平面が接する組への `boundary` | **`wall` の既定境界が導かれる。**扉を持たないので通れない。機械形式には現れない |
-| 上下に重なる空間の間の垂直境界 | **床である。**通れない。`stair` / `shaft` / `void` は例外として宣言する |
-| 領域を持たない空間 (外部など) との `boundary` | **何も導かれない。**そこに壁は無く、外皮に穴が空く — 書き始めたレベルで残った辺は `koyu validate` の `envelope.gap` が言い、一本も書いていないレベルには何も言わない |
+| a `boundary` for a touching pair on one level | **a `wall` boundary is derived.** It carries no door, so it cannot be passed. It does not appear in the machine format |
+| a vertical boundary between stacked spaces | **it is a floor.** It cannot be passed. `stair` / `shaft` / `void` are the exceptions, and they are declared |
+| a `boundary` with a space that has no region (an exterior) | **nothing is derived.** There is no wall there, and the envelope has a hole — on a level where you have started writing them, `koyu validate` reports the faces left over as `envelope.gap`; on a level with none at all it says nothing |
 | `type:` | `wall` |
-| `t:` | 描画と立体の既定は 100mm。`air:1` の境界は 60mm (上限 80mm) |
-| `air:` | 遮る物として扱う |
-| `edge:` | その境界の**すべての**線分。開口や `seg` を置くときは辺が一つに定まらなければ `OPN05` / `SEG05` |
-| `h:` (`air:1` のとき) | 天端 1100mm |
-| `spec:` `fire:` `sound:` | 運ばれる値が無いだけ |
+| `t:` | 100 mm for drawing and for solids. An `air:1` boundary defaults to 60 mm, capped at 80 mm |
+| `air:` | treated as a thing that blocks |
+| `edge:` | **all** of that boundary's segments. To place an opening or a `seg`, the face must resolve to one, or `OPN05` / `SEG05` |
+| `h:` (on `air:1`) | a top at 1100 mm |
+| `spec:` `fire:` `sound:` | there is simply no value to carry |
 
-**宣言がその組に一つでもあれば既定境界は導かれない。**`edge:` で一辺だけを宣言した場合も同じで、残りの辺には壁が導かれない。
+**One declaration on the pair suppresses the derived wall.** That holds even if the declaration named a single face with `edge:` — the remaining faces get no derived wall either.
 
 ## door / window
 
-| 書かなければ | どうなるか |
+| Written nothing | What happens |
 |---|---|
-| `w:` | **エラー。**幅は必須である (アセットが与えてもよい) |
-| `at:` | 比率 `0.5` — 線分の中央。線分に収まるようクランプされる |
-| `hinge:` | 線分の始端側 (水平の線分は西端、垂直の線分は南端)。斜めの線分では始端に固定 |
-| `swing:` | a が領域を持てば `a` 側、でなければ `b` 側へ開く |
-| `style:` | `hinged` (開き戸) |
-| `h:` (扉) | 床からまぐさ高 2000mm まで立ち上がる |
-| `h:` (扉以外) | 高さ 1200mm。頭はまぐさ高 2000mm に揃う |
-| `name:` | 名を持たない。**合成の集合編集で指せなくなる** — `= window W1` の指す先が無い |
-| 扉を一枚も書かない | **通れない。**`check` は緑のままである |
+| `w:` | **an error.** Width is required (the asset may supply it) |
+| `at:` | the ratio `0.5` — the middle of the segment. Clamped to fit |
+| `hinge:` | the start end of the segment (west on a horizontal one, south on a vertical one). Pinned to the start on a diagonal |
+| `swing:` | opens toward `a` if a has a region, otherwise toward `b` |
+| `style:` | `hinged` |
+| `h:` on a door | it rises from the floor to a head height of 2000 mm |
+| `h:` on anything else | 1200 mm tall, with its head at 2000 mm |
+| `name:` | it has no name. **Composition can no longer point at it** — there is nothing for `= window W1` to find |
+| any door at all | **it cannot be passed.** `check` stays green |
 
-`sill:` を書かなくても窓台の高さは決まる — 頭を揃えた結果として出る。`sill:` は運搬層なので、書いても形は変わらない。
+A sill height follows without writing `sill:` — it falls out of aligning the heads. `sill:` is carried, so writing it changes no shape.
 
 ## column
 
-| 書かなければ | どうなるか |
+| Written nothing | What happens |
 |---|---|
-| `d:` | 一辺と同じ (角柱) |
-| `x:` / `y:` | **すべての通り。**そのレベルで (吹抜けでも外部でもない) 空間の内側にある交点すべてに立つ |
-| `name:` | `drop column` で指せなくなる |
+| `d:` | the same as the size (a square column) |
+| `x:` / `y:` | **every grid line.** One stands at every intersection that falls inside a space on that level (a void or an exterior does not count) |
+| `name:` | `drop column` can no longer point at it |
 
-同じ交点に二本は立たない — **先に書かれた宣言が勝つ。**
+Two columns never stand at one intersection — **the earlier declaration wins.**
 
-## 縦動線
+## Vertical circulation
 
-段数も踏面も勾配も書かれない。**書かれるのは領域と向きだけで、残りは階高から導かれる。**
+Riser count, tread and slope are never written. **What is written is the region and the direction; the rest follows from the storey height.**
 
-| 書かなければ | 既定 |
+| Written nothing | Default |
 |---|---|
-| `form:` | `straight` (折返さない) |
-| `turn:` | `R` (踊り場で右へ回る) |
-| `entry:` | 乗り込みの床の奥行 1100mm |
-| `riser:` | 蹴上げの上限 180mm — 段数がここから決まる |
-| `tread:` | 目標踏面 300mm — 踊り場を残余として決めるときに使われる |
-| `landing:` | 導出される (最小 1100mm)。書けば踏面が残余になる |
-| `lane:` | エスカレーター一台の呼び幅 1200mm — 台数がここから決まる |
-| `slope:` | 許容勾配の上限を宣言していないので、勾配は咎められない。エスカレーターだけは常用域から外れれば `run.slope` が言う |
+| `form:` | `straight` (it does not turn back) |
+| `turn:` | `R` (turning right at the landing) |
+| `entry:` | a boarding floor 1100 mm deep |
+| `riser:` | a maximum riser of 180 mm — the number of steps follows from it |
+| `tread:` | a target tread of 300 mm — used when the landing is taken as the remainder |
+| `landing:` | derived (a minimum of 1100 mm). Write it and the tread becomes the remainder instead |
+| `lane:` | 1200 mm per escalator unit — the number of units follows from it |
+| `slope:` | no permitted slope was declared, so the slope is not faulted. Only escalators are checked against the usual range, by `run.slope` |
 
 ## zone / polygon / band
 
-| 書かなければ | どうなるか |
+| Written nothing | What happens |
 |---|---|
-| `zone` の `site:` | 敷地の集約ではない。`koyu site` の対象にならない |
-| `zone` の `area:` | 導出面積と照合する測量値が無い |
-| `polygon` | 敷地面積は敷地内の空間と屋内の投影の合併から導かれる。敷地境界線も描かれない |
-| `band` の `w:rest` | **閉じた帯である。**全要素の寸法の合計が帯の幅と一致しなければエラー — 図面の「部分寸法の合計 = 総寸法」と同じ検算である |
+| `site:` on a zone | it is not a site aggregation and `koyu site` ignores it |
+| `area:` on a zone | there is no surveyed figure to reconcile the derived area against |
+| `polygon` | the site area is derived from the union of the spaces on the site and the indoor footprint. No site boundary line is drawn |
+| `w:rest` in a band | **the band is closed.** The member widths must sum to the extent of the band, or the file stops — the same arithmetic as "part dimensions add up to the overall dimension" on a drawing |
 
-## 導出の定数
+## Constants of derivation
 
-**これは台帳の既定ではない。**台帳が定めるのは「何を書いてよいか」であり、ここが定めるのは「書かれなかったときに何を導くか」である。**書けば必ず書いた値が勝つ。**
+**These are not ledger defaults.** The ledger says what may be written; this table says what is derived when nothing was. **What you write always wins.**
 
-| 定数 | 値 | 何を決めるか |
+| Constant | Value | What it decides |
 |---|---|---|
-| 壁厚 | 100 mm | `t:` の無い壁。芯線に対して両側へ半分ずつ |
-| 遮蔽しない境界の厚み | 60 mm | `air:1` の境界の `t:` の既定 |
-| 同・上限 | 80 mm | `t:` に何を書いてもここで頭打ち |
-| 同・天端高 | 1100 mm | `air:1` の境界の `h:` の既定 |
-| まぐさ高 | 2000 mm | 扉はここまで立ち上がり、それ以外はここから下がる |
-| 扉以外の開口の高さ | 1200 mm | 開口の `h:` の既定 |
-| 天井の見付け厚 | 30 mm | |
-| 屋根版の厚さ | 200 mm | 最上階で天井高の上へ載せる量でもある |
-| 平面の切断面 | FL + 1200 mm | 平面図がどの高さで切るか |
-| 蹴上げの上限 | 180 mm | `riser:` の既定 |
-| 目標踏面 | 300 mm | `tread:` の既定 |
-| 中間踊り場の最小奥行 | 1100 mm | 書かれた `landing:` もここまで引き上げられる |
-| 乗り込みの床の奥行 | 1100 mm | `entry:` の既定 |
-| エスカレーター一台の呼び幅 | 1200 mm | `lane:` の既定 |
-| 段板の見付け厚 | 200 mm | 立体 |
-| 踊り場・傾いた版の厚さ | 200 mm | |
-| 平面のエスカレーターの段の刻み | 400 mm | |
+| Wall thickness | 100 mm | a wall with no `t:`. Split half to each side of the centreline |
+| Non-blocking boundary thickness | 60 mm | the `t:` default on `air:1` |
+| — its cap | 80 mm | whatever `t:` says, it stops here |
+| — its top height | 1100 mm | the `h:` default on `air:1` |
+| Head height | 2000 mm | doors rise to it; everything else hangs down from it |
+| Height of a non-door opening | 1200 mm | the `h:` default |
+| Ceiling face thickness | 30 mm | |
+| Roof slab thickness | 200 mm | also how far above the ceiling height the top storey is capped |
+| Plan cut plane | FL + 1200 mm | the height at which a plan is cut |
+| Maximum riser | 180 mm | the `riser:` default |
+| Target tread | 300 mm | the `tread:` default |
+| Minimum intermediate landing | 1100 mm | a written `landing:` is raised to it |
+| Boarding floor depth | 1100 mm | the `entry:` default |
+| Nominal escalator width | 1200 mm | the `lane:` default |
+| Step face thickness | 200 mm | solids |
+| Landing and inclined slab thickness | 200 mm | |
+| Escalator step pitch in plan | 400 mm | |
 
-## 緑は「建物として成立している」ではない
+## Green does not mean "it stands up as a building"
 
-**接する空間の既定が壁である以上、扉を一枚も宣言しない二階建ては緑のまま完全に密封される。**
+**Because the default between touching spaces is a wall, a two-storey building with no door declared anywhere is completely sealed — and green.**
 
 ```muro
 koyu 1.1
@@ -172,7 +172,7 @@ boundary /L2/a /out t:150
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-これに扉が無いことを言うのは別の面である (位置の接頭辞は解決済みの絶対パスで出る — 下では途中を省いてある)。
+Saying that it has no door is a different face (the location prefix is the resolved absolute path; it is elided below).
 
 ```text
 ✖ [access.unreachable] …/sealed.muro:line 6: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
@@ -180,4 +180,4 @@ boundary /L2/a /out t:150
 Validation — 2 violations / 0 cautions
 ```
 
-`check` が言うのは「書かれたものがデータとして矛盾していない」までである。**緑を根拠に「動く」と主張しない。**
+What `check` says goes exactly as far as "what was written does not contradict itself as data". **Never claim it works on the strength of green.**

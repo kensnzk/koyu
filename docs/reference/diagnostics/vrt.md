@@ -1,34 +1,34 @@
 ---
-title: VRT — 垂直境界の診断
+title: VRT — vertical-boundary diagnostics
 mode: reference
 ---
 
-# VRT — 垂直境界の診断
+# VRT — vertical-boundary diagnostics
 
-上下階の隣接は**宣言しない**。平面の重なりから導かれ、既定は床である。書くのは例外だけで、三つある。
+Adjacency between storeys is **not declared**. It is derived from overlap in plan, and the default is a floor. Only the exceptions are written, and there are three.
 
-| `type:` | 意味 | 通行 |
+| `type:` | Meaning | Passage |
 |---|---|---|
-| `stair` | 階段 — 上下階が段で繋がる | 扉なしで通れる |
-| `shaft` | 昇降機・設備シャフト — 空間として連続する | 人は通れない |
-| `void` | 吹抜け — そこに床が無い | 人は通れない |
+| `stair` | A stair — the storeys are joined by steps | Passable without a door |
+| `shaft` | A lift or services shaft — the space is continuous | Impassable to people |
+| `void` | A void — there is no floor here | Impassable to people |
 
-この三つを持つ境界を**垂直境界**と呼ぶ。垂直境界は平面の線分を持たないので、**水平境界の検査 (線分・開口・`seg`) を一切受けない。**代わりに VRT の六つが、上下の関係として成り立っているかを見る。
+A boundary carrying one of these is a **vertical boundary**. It has no segment in plan, so it **receives none of the horizontal checks** — segments, openings, `seg`s. Instead these six ask whether it stands up as a relation between storeys.
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [VRT01](#vrt01) | error | 垂直境界は領域とレベルを持つ空間同士に書きます |
-| [VRT02](#vrt02) | error | 垂直境界は隣り合うレベルの間に書きます |
-| [VRT03](#vrt03) | error | 垂直境界の空間が平面上で重なっていません |
-| [VRT04](#vrt04) | warning | void 境界の上側が `type:void` ではありません |
-| [VRT05](#vrt05) | warning | 垂直境界の開口は解釈されません |
-| [VRT06](#vrt06) | warning | 垂直境界の `seg` は解釈されません |
+| [VRT01](#vrt01) | error | A vertical boundary needs a region and a level on both sides |
+| [VRT02](#vrt02) | error | A vertical boundary spans one step between adjacent levels |
+| [VRT03](#vrt03) | error | The spaces of a vertical boundary do not overlap in plan |
+| [VRT04](#vrt04) | warning | The space above a void boundary is not `type:void` |
+| [VRT05](#vrt05) | warning | An opening on a vertical boundary is not interpreted |
+| [VRT06](#vrt06) | warning | A `seg` on a vertical boundary is not interpreted |
 
-階を跨いで `type:` を書き忘れた境界は垂直境界にならず、[BND03](bnd.md#bnd03) が言う。コードの手に入れ方は[診断を読む](reading.md)にある。
+A boundary across storeys that forgot its `type:` is not a vertical boundary at all, and [BND03](bnd.md#bnd03) says so. How to get a code is on [Reading a diagnostic](reading.md).
 
-以下の誤り例はどれも `koyu check --strict` で終了コード1になり、**そのコードちょうど1件**を出す。
+Every wrong example below exits 1 under `koyu check --strict`, producing **exactly one** instance of that code.
 
-## VRT01 — 垂直境界は領域とレベルを持つ空間同士に書きます {#vrt01}
+## VRT01 — a vertical boundary needs a region and a level on both sides {#vrt01}
 
 `error`
 
@@ -43,13 +43,13 @@ boundary /L1/a /out type:stair
 
 `A stair boundary is written between spaces that have both a region and a level`
 
-**原因** — 垂直の関係は「平面のここが上下で繋がる」という話なので、両側が領域とレベルを持っていなければ位置が定まらない。相手が `exterior` (領域なし) だったり、レベルが特定できていない空間だったりする。
+**Cause** — a vertical relation says "this part of the plan connects up and down", so unless both sides have a region and a level the position is undetermined. The partner is an `exterior` (no region), or a space whose level could not be determined.
 
-**直し方** — 両側を、領域とレベルを持つ実在の空間にする。屋外階段を書きたいのなら、各階に階段室の空間 (半屋外なら `exterior` に `open` / `air:1` で面する空間) を立て、その間に `type:stair` を張る。
+**Fix** — make both sides real spaces with a region and a level. To write an exterior stair, stand up a stair space on each storey — one facing an `exterior` with `open` / `air:1` if it is semi-outdoor — and draw `type:stair` between them.
 
-**注 — この診断が出た境界は、以降の検査を受けない。**前提が崩れているので、レベルの隣接 (VRT02) も平面の重なり (VRT03) も問えない。
+**Note — a boundary that drew this diagnostic receives no further check.** With the premise gone, neither level adjacency (VRT02) nor overlap in plan (VRT03) can be asked.
 
-## VRT02 — 垂直境界は隣り合うレベルの間に書きます {#vrt02}
+## VRT02 — a vertical boundary spans one step between adjacent levels {#vrt02}
 
 `error`
 
@@ -66,9 +66,9 @@ boundary /L1/a /L3/a type:stair
 
 `A stair boundary is written between adjacent levels: /L1/a | /L3/a`
 
-**原因** — 一本の垂直境界が跨げるのは、z 順で**隣り合う**レベルの一段だけである。上の例は L1 と L3 で、間の L2 を飛ばしている。隣接は名前の順ではなく **z の順**で決まる。
+**Cause** — one vertical boundary spans exactly one step between levels **adjacent in z order**. The example is L1 and L3, skipping L2 in between. Adjacency is decided by z, not by the order of names.
 
-**直し方** — 段ごとに一本ずつ書く (`/L1/a | /L2/a` と `/L2/a | /L3/a`)。全階を貫くシャフトや階段室は `stack` の一行で一括宣言できる。
+**Fix** — write one per step (`/L1/a | /L2/a` and `/L2/a | /L3/a`). A shaft or stair enclosure running the whole height can be declared at once with a single `stack` line.
 
 ```muro
 grid X 0 3600
@@ -82,9 +82,9 @@ space /L3/ev shaft X1..X2 Y1..Y2
 stack ev L1..L3 type:shaft
 ```
 
-`stack` は各段の垂直境界に展開されるので、階数が増えても行は一本のままである。
+`stack` expands into one vertical boundary per step, so the line stays a single line however many storeys there are.
 
-## VRT03 — 垂直境界の空間が平面上で重なっていません {#vrt03}
+## VRT03 — the spaces of a vertical boundary do not overlap in plan {#vrt03}
 
 `error`
 
@@ -100,11 +100,11 @@ boundary /L1/a /L2/b type:stair
 
 `The spaces of a stair boundary do not overlap in plan: /L1/a | /L2/b`
 
-**原因** — 上下に繋ぐには、平面上で重なっていなければならない。階段室・シャフトの上下階の割付が食い違っている。
+**Cause** — to connect up and down they must overlap in plan. The layouts of the stair or shaft differ between the storeys.
 
-**直し方** — 両階の矩形を揃える。階段の位置を階ごとにずらす設計なら、重なる範囲に踊り場の空間を挟む。
+**Fix** — align the rectangles on both storeys. If the design shifts the stair per storey, insert a landing space in the range where they overlap.
 
-## VRT04 — void境界の上側が type:void ではありません {#vrt04}
+## VRT04 — the space above a void boundary is not type:void {#vrt04}
 
 `warning`
 
@@ -120,19 +120,19 @@ boundary /L1/a /L2/a type:void
 
 `The space above a void boundary is expected to be type:void: /L2/a`
 
-**原因** — `type:void` の境界は「ここに床が無い」と言っている。その上に載っている空間が普通の室のままだと、床が無いのに床面積として数えられてしまう。
+**Cause** — a `type:void` boundary says "there is no floor here". If the space sitting above it stays an ordinary room, it is counted as floor area despite having no floor.
 
-**直し方** — 上側の空間の型を `void` にする。
+**Fix** — make the type of the space above `void`.
 
 ```muro-part
 space /L2/a X1..X2 Y1..Y2 name:リビング上部 void:1
 ```
 
-`void` の空間は床面積に算入されず、`koyu stats` に `void (not counted as floor area)` と出る。
+A `void` space is not counted in floor area and shows in `koyu stats` as `void (not counted as floor area)`.
 
-**注 — 上下の判定は z の順で行う。**`boundary` にどちらを先に書いても、上にあるほうが検査される。
+**Note — above and below are decided by z.** Whichever side you write first on the `boundary`, the one that is higher is the one checked.
 
-## VRT05 — 垂直境界の開口は解釈されません {#vrt05}
+## VRT05 — an opening on a vertical boundary is not interpreted {#vrt05}
 
 `warning`
 
@@ -149,13 +149,13 @@ boundary /L1/a /L2/a type:stair
 
 `A door on a vertical boundary is not interpreted`
 
-**原因** — 開口は壁芯線分の上に載るもので、垂直境界に線分は無い。書いても採光にも通行にも図面にも効かない。`stair` は扉なしで通行可であり、扉を足しても `koyu doors` の枚数は増えない。
+**Cause** — an opening rides on a wall centerline segment, and a vertical boundary has no segment. Written, it affects neither daylight nor passage nor the drawing. A `stair` is passable without a door, and adding one does not raise the count in `koyu doors`.
 
-**直し方** — 開口の行を消す。階段の入口に建具があるのなら、それは階段室と隣室の**水平**境界に載る扉である。
+**Fix** — delete the opening line. If there really is a door at the entrance to the stair, it is a door on the **horizontal** boundary between the stair space and the adjoining room.
 
-**注 — 咎められるのは開口の行そのものである。**診断の `line` は `boundary` の行ではなく `door` の行を指し、開口が三つあれば診断も三件出る。
+**Note — what is reproached is the opening's own line.** The diagnostic's `line` points at the `door` line, not at the `boundary` line, and three openings produce three diagnostics.
 
-## VRT06 — 垂直境界の seg は解釈されません {#vrt06}
+## VRT06 — a seg on a vertical boundary is not interpreted {#vrt06}
 
 `warning`
 
@@ -172,8 +172,8 @@ boundary /L1/a /L2/a type:stair
 
 `A seg on a vertical boundary is not interpreted`
 
-**原因** — `seg` は境界線分の一区間を指すもので、垂直境界に線分は無い。壁材の切り替えも、`koyu plan` の描画も起きない。
+**Cause** — a `seg` names an interval of a boundary segment, and a vertical boundary has none. Neither a change of wall specification nor anything in `koyu plan` follows from it.
 
-**直し方** — `seg` の行を消す。シャフトの壁の仕様を書きたいのなら、それはシャフトの空間と隣室の**水平**境界に載る `seg` である。
+**Fix** — delete the `seg` line. To write the specification of a shaft's wall, that is a `seg` on the **horizontal** boundary between the shaft space and the adjoining room.
 
-**注** — [VRT05](#vrt05) と同じく、診断は `seg` の行そのものを指し、宣言が複数あれば複数出る。
+**Note** — as with [VRT05](#vrt05), the diagnostic points at the `seg`'s own line, and several declarations produce several diagnostics.

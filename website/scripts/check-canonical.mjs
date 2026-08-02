@@ -36,29 +36,14 @@ const baselinePath = path.join(
   'canonical-baseline.json',
 );
 
-const generatedRoots = {
-  ja: path.join(websiteDir, '.generated', 'docs'),
-  en: path.join(
-    websiteDir,
-    'i18n',
-    'en',
-    'docusaurus-plugin-content-docs',
-    'current',
-  ),
-};
+const generatedRoots = {docs: path.join(websiteDir, '.generated', 'docs')};
 
 // A published document id maps back to exactly one source file. Deriving the
 // scan set from what prepare-content.mjs actually emitted means the gate cannot
 // disagree with the publisher about what "published" means: drop spec/ from the
 // publisher and this gate stops scanning it, with no edit here.
-function sourceFor(id, locale) {
-  const candidates =
-    locale === 'en'
-      ? [
-          `docs/en/${id}.md`,
-        ]
-      : [`docs/${id}.md`, `${id}.md`];
-  for (const candidate of candidates) {
+function sourceFor(id) {
+  for (const candidate of [`docs/${id}.md`, `${id}.md`]) {
     const absolute = path.join(repositoryDir, candidate);
     if (existsSync(absolute)) return candidate;
   }

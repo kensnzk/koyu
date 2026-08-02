@@ -1,33 +1,33 @@
 ---
-title: HGT — 高さの不変量
+title: HGT — the height invariant
 mode: reference
 ---
 
-# HGT — 高さの不変量
+# HGT — the height invariant
 
-HGT は二つある。どちらも**書かれた値どうしが矛盾している**ことを言う。
+There are two HGT codes. Both say that **written values contradict each other**.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| HGT01 | error | 天井高 + 上階の床組み厚が階高を超えている — 上階に食い込む |
-| HGT02 | error | 部分吹抜けなのに、階を貫く天井高が宣言されている |
+| HGT01 | error | Ceiling height plus the slab above exceeds the storey height — it eats into the floor above |
+| HGT02 | error | A ceiling height that pierces a storey is declared under a partial void |
 
-**これは平面の重なりの断面版である。**同じレベルで二つの空間の領域が重なれば矛盾だと `check` が言う ([GEO02](./geo.md)) のと同じ資格で、下階の天井が上階の床を突き抜けていれば矛盾だと言う。どちらも「書かれたものがデータとして成立していない」話であって、建築の良し悪しの話ではない。だから HGT は `check` の側に残っている。
+**This is the sectional counterpart of overlapping in plan.** `check` calls two regions overlapping on one level a contradiction ([GEO02](./geo.md)); on exactly the same footing it calls a lower ceiling punching through the floor above a contradiction. Both are about written data failing to hold together, not about whether the building is any good. That is why HGT stays on the `check` side.
 
-## 不変量
+## The invariant
 
-各空間について、次を検査する。
+For every space:
 
 ```text
-有効天井高 + 上階の slab ≤ 階高
+effective ceiling height + the slab of the level above ≤ storey height
 ```
 
-- **有効天井高**は、その空間の `h:` があればそれ、無ければ所属レベルの `h:` である。空間の `h:` がレベルの `h:` に勝つ。
-- **上階の slab** は、次のレベルの `slab:` (床組み厚 — スラブ + 懐 + 仕上) である。
-- **階高**は、次のレベルの `z` と自レベルの `z` の差である。階高は書かれない — レベルの `z` から導かれる。
-- 許容は 0.5mm。丸めの誤差で落ちることはない。
+- The **effective ceiling height** is the space's own `h:` if it has one, otherwise the `h:` of the level it sits on. A space's `h` beats its level's.
+- The **slab above** is the next level's `slab:` (floor-construction thickness — structural slab, plenum and finish).
+- The **storey height** is the difference between the next level's `z` and this level's `z`. Storey height is never written; it is derived from the levels' `z`.
+- The tolerance is 0.5mm, so rounding never trips this.
 
-積み上がりは `koyu levels` がテキストの矩計として見せる。
+`koyu levels` shows the stack-up as a section in text.
 
 ```sh
 koyu levels examples/house/main.muro
@@ -41,19 +41,19 @@ L1	z:0	h:2400	slab:400
   ↑ storey height 2900 = ceiling 2400 + slab 500
 ```
 
-## 誰が検査されるか
+## Who gets checked
 
-不変量を問われるのは、次のすべてを満たす空間だけである。
+The invariant is asked only of spaces that satisfy all of the following.
 
-- **上にレベルがある。**最上階には上階の床が無いので、食い込む先が無い。
-- **上に空間が重なっている。**上階に空間はあるが自分の真上には無い、という空間は問われない。上階に空間が一つも無いレベルは、全体が「覆われている」ものとして扱う。
-- **半屋外ではない。**外部に `type:open` か `air:1` で接する空間 — バルコニー・テラス・屋外階段 — に天井は無い。
-- **縦動線の宣言を持たない。**`stair:` `ramp:` `escalator:` `lift:` を持つ空間の天井は上の走りに沿って傾いており、一つの数で語れない。宣言的な免除である。
-- **上階の `slab:` と有効天井高がどちらも決まっている。**どちらかが書かれていなければ立式できない。**その状態は不変量の破れではなく情報の欠落**なので、[SUF01 と SUF03](./suf.md) が別に言う。HGT は黙る。
+- **There is a level above.** The top storey has no floor above it to collide with.
+- **Something above overlaps it.** A space with storeys above it but nothing directly over its own footprint is not asked. A level above that carries no spaces at all counts as covering everything.
+- **It is not semi-outdoor.** A space meeting the exterior across `type:open` or `air:1` — a balcony, a terrace, an external stair — has no ceiling.
+- **It carries no vertical circulation declaration.** The ceiling over a space with `stair:`, `ramp:`, `escalator:` or `lift:` follows the flight above it and cannot be stated as one number. This is a declarative exemption.
+- **Both the slab above and the effective ceiling height are determined.** Without either, the inequality cannot be formed. **That state is missing information, not a broken invariant**, so [SUF01 and SUF03](./suf.md) say it instead and HGT stays quiet.
 
-最後の一点は事故になりやすい。上階に `slab:` を書き忘れると、下階の高さは**検査されないまま緑になる**。`--strict` を回して SUF03 を拾うこと。
+That last point bites. Forget `slab:` on the level above and the storey below **goes unchecked and stays green**. Run `--strict` so SUF03 is caught.
 
-## HGT01 — 上階に食い込みます
+## HGT01 — it collides with the storey above
 
 `error`
 
@@ -70,15 +70,15 @@ space /L2/a room X1..X2 Y1..Y2
 /L1/a collides into the floor above: ceiling height 2800 + L2's slab 400 = 3200 > storey height 3000
 ```
 
-**原因** — 天井高 2800 と床組み厚 400 の合計が階高 3000 を超えている。メッセージが三つの数字を全部出すので、どれを動かすかはその場で決まる。
+**Cause** — a ceiling height of 2800 plus a floor construction of 400 exceeds the storey height of 3000. The message prints all three numbers, so which one to move is settled on the spot.
 
-**直し方** — 三つのうちどれかを動かす。
+**Fix** — move one of the three.
 
-- 天井高を下げる — `level L1 0 h:2400 slab:400`
-- 床組みを薄くする — `level L2 3000 h:2400 slab:200`
-- 階高を上げる — `level L2 3400 h:2400 slab:400`
+- Lower the ceiling height — `level L1 0 h:2400 slab:400`
+- Thin the floor construction — `level L2 3000 h:2400 slab:200`
+- Raise the storey — `level L2 3400 h:2400 slab:400`
 
-その室だけ天井を下げたいなら、レベルではなく空間に書く。
+To lower the ceiling of one room only, write it on the space rather than on the level.
 
 ```muro
 grid X 0 3600
@@ -89,9 +89,9 @@ space /L1/a room X1..X2 Y1..Y2 h:2400
 space /L2/a room X1..X2 Y1..Y2
 ```
 
-階を貫かせたいのであれば、それは吹抜けの宣言 — 下の HGT02 を見る。
+If you meant to pierce the storey, that is a void — see HGT02 below.
 
-## HGT02 — 部分吹抜けの被覆不足
+## HGT02 — insufficient coverage under a partial void
 
 `error`
 
@@ -110,11 +110,11 @@ boundary /L1/a /L2/v type:void
 /L1/a collides into the floor above: ceiling height 5400 + L2's slab 400 = 5800 > storey height 3000. The void covers only 50.0% — under a partial void keep the ceiling height within the storey height (the height of the void part is derived)
 ```
 
-**原因** — `type:void` の境界は、高さの不変量に対する**宣言的な免除**である。しかし免除が効くのは、吹抜けが下階の平面を覆う範囲までである。上の例は下階の半分しか吹抜けていないのに、下階の天井高を階を貫く 5400 と宣言している。残り半分の上には床があるので、そこを 5400 にはできない。
+**Cause** — a `type:void` boundary is a **declarative exemption** from the height invariant, but the exemption reaches only as far as the void covers the lower storey's plan. The example voids half the lower storey yet declares a ceiling height of 5400, piercing the storey. Over the other half there is a floor, and that part cannot be 5400.
 
-免除が全面に効くのは**被覆率 99% 以上**のときだけである。メッセージは被覆率を小数一桁で出す — しきい値と衝突しない粒度である。
+The exemption is total only at a **coverage ratio of 99% or more**. The message prints the coverage to one decimal — a grain that cannot collide with the threshold.
 
-**直し方** — 下階の天井高を階高内に収める。
+**Fix** — bring the lower storey's ceiling height inside the storey.
 
 ```muro
 grid X 0 3600 7200
@@ -127,9 +127,9 @@ space /L2/b room X2..X3 Y1..Y2
 boundary /L1/a /L2/v type:void
 ```
 
-**吹抜け部分の高さは宣言しない。**`void` の関係から導出される。下階の天井高は「床のある側の天井高」であって、吹抜けの高さではない。
+**The height of the void part is never declared.** It is derived from the `void` relation. The lower storey's ceiling height is the ceiling height where there *is* a floor above, not the height of the void.
 
-全面を吹抜けにしたいのなら、`void` 空間の領域を下階の領域と同じにする。そのとき被覆率は 100% になり、階を貫く天井高がそのまま通る。
+To make the whole thing a void, give the `void` space the same region as the storey below. Coverage is then 100% and the storey-piercing ceiling height passes.
 
 ```muro
 grid X 0 3600
@@ -141,15 +141,15 @@ space /L2/v X1..X2 Y1..Y2 void:1
 boundary /L1/a /L2/v type:void
 ```
 
-## HGT が言わないこと
+## What HGT does not say
 
-**建築的な高さの判断は一件も持たない。**軒高・最高高さ・道路斜線・北側斜線・日影・天井高の下限 — これらは `check` にも `koyu validate` にも無い。koyu は高さについて「書かれた数どうしが噛み合っているか」だけを言う。
+**There is not one architectural judgement about height anywhere in koyu.** Eaves height, maximum height, road setback lines, north-side setback, shadow studies, minimum ceiling heights — none of these exist in `check` or in `koyu validate`. About height, koyu says only whether the written numbers add up.
 
-`koyu validate` が持つ高さまわりの判定は、階段の踏面と蹴上げの釣り合い (`stair.proportion`) と斜路の勾配 (`run.slope`) の二つで、どちらも**導出された形**に対する注意であって、法規の高さ制限ではない。
+The two height-adjacent judgements `koyu validate` does carry are the proportion of a derived stair's tread and riser (`stair.proportion`) and a derived ramp's slope (`run.slope`). Both are cautions about a **derived shape**, not statutory height limits.
 
-## 関連
+## Related
 
-- [SUF — 充足性](./suf.md) — 天井高や `slab` が**書かれていない**ときはこちら
-- [VRT — 垂直境界](./vrt.md) — `type:void` の境界そのものの検査
-- [GEO — 領域の重なり](./geo.md) — 平面での同じ話
+- [SUF — sufficiency](./suf.md) — for when a ceiling height or a `slab` is **not written at all**
+- [VRT — vertical boundaries](./vrt.md) — the checks on the `type:void` boundary itself
+- [GEO — overlapping regions](./geo.md) — the same story in plan
 - [koyu check](../cli/check.md) / [koyu validate](../cli/validate.md)

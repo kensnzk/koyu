@@ -1,11 +1,11 @@
 ---
-title: 形の導出
+title: Deriving form
 mode: reference
 ---
 
-# 形の導出
+# Deriving form
 
-`.muro` に形は書かれていない。壁の位置も、開口で割られた区間も、柱の座標も、階段の段割りも、**規則から現れる生成物である。**`derive(model)` がその唯一の入口である。
+No form is written in `.muro`. The position of a wall, the stretches a wall is divided into by its openings, the coordinates of a column, how a stair divides into risers — all of it is **generated from rules**. `derive(model)` is the one entrance to it.
 
 ```ts
 import {
@@ -20,13 +20,13 @@ import {
 function derive(model: Model, opts?: DeriveOptions): Form
 
 interface DeriveOptions {
-  cut?: number;   // 平面の切断面の高さ mm (FL から。既定 1200)
+  cut?: number;   // height of the plan's cutting plane, mm above FL (default 1200)
 }
 ```
 
-引数は原本と、**形を決める引数だけ**である。縮尺も余白も向きも色もここには無い — それは見た目であって形ではない。
+The arguments are the source and **the things that decide form**, nothing else. No scale, no margin, no orientation, no colour — those are appearance, not form.
 
-**`Form` は見た目を一つも持たない。**返るのは座標・厚み・z 範囲・向き・そして対象の同一性だけである。色も書体も線幅も注記文字列も記号も縮尺も紙面の余白も、この型のどこにも現れない。[`svgPlan` / `svgAxo`](draw.md) はこれを描くだけである。
+**`Form` carries no appearance at all.** What comes back is coordinates, thicknesses, z ranges, orientations and the identity of each subject. No colour, typeface, line weight, annotation string, symbol, scale or page margin appears anywhere in the type. [`svgPlan` and `svgAxo`](draw.md) merely draw it.
 
 ```ts
 import { derive } from "@kensnzk/koyu";
@@ -61,13 +61,13 @@ interface Form {
 }
 ```
 
-`input` は導出に使った引数をそのまま持つ。**切断高さは Form の入力であって中身ではない** — 同じ模型から違う切断高さの形を作れる。
+`input` echoes the arguments used. **The cut height is an input to the Form, not a part of it** — the same model can produce forms at different cut heights.
 
-## 添字は正準順である
+## The indices are canonical order
 
-**`FormBoundary.boundary` / `FormOpening.boundary` / `FormSeg.boundary` の添字は `canonicalBoundaryOrder(model)` の並びであって、`model.boundaries` の宣言順ではない。**
+**The `boundary` index on `FormBoundary`, `FormOpening` and `FormSeg` indexes `canonicalBoundaryOrder(model)`, not the declaration order in `model.boundaries`.**
 
-理由は単純である。宣言順は [正準JSON](canonical.md) が捨てる情報であり、**捨てられる情報が形を変えてはならない。**宣言順で同一性の綴りを振ると、正準JSONがバイト同一の二つの模型で `a|b@0` と `a|b@1` に割れてしまう。
+The reason is simple. Declaration order is information [canonical JSON](canonical.md) throws away, and **information that is thrown away must not change form.** Spell identity from declaration order and two models with byte-identical canonical JSON split into `a|b@0` and `a|b@1`.
 
 ### canonicalBoundaryOrder
 
@@ -75,7 +75,7 @@ interface Form {
 function canonicalBoundaryOrder(model: Model): Boundary[]
 ```
 
-境界を正準の順に並べて返す。並びは各境界を正準エントリへ直列化した文字列の照合順で、同じ綴りなら宣言順で安定する。**既定境界 (`derived`) も同じ規則で並ぶ** — 正準JSONには出ないが、`model.spaces` の並びから導かれるので、同じ規則で並べ直さないと同じ病を持つ。
+Returns the boundaries in canonical order: by the collation of each boundary serialised as its canonical entry, ties broken by declaration order for stability. **Default (`derived`) boundaries are ordered by the same rule** — they never reach canonical JSON, but they are derived from the order of `model.spaces`, so without the same reordering they carry the same disease.
 
 ```ts
 import { canonicalBoundaryOrder } from "@kensnzk/koyu";
@@ -96,9 +96,9 @@ canonical 4	declared 48	/B1/ev | /L1/ev
 canonical 5	declared 5	/B1/park | /B1/mech
 ```
 
-**二つの並びは一致しない。**`Form` の中の添字から原本の境界に戻りたいなら、`model.boundaries[i]` ではなく `canonicalBoundaryOrder(model)[i]` を引く。
+**The two orders do not agree.** To get from an index inside `Form` back to the source boundary, index `canonicalBoundaryOrder(model)`, not `model.boundaries`.
 
-同じ理由で、**描かれた線による切り分けもこの順で行われる。**線の切り分けは直前の結果を読むので順序が効き、宣言順で切ると同じ正準JSONから違う面積が出てしまう。
+For the same reason, **cutting regions by drawn lines happens in this order too.** Each cut reads the result of the previous one, so order matters; cutting in declaration order would produce different areas from the same canonical JSON.
 
 ## FormLevel
 
@@ -112,11 +112,11 @@ interface FormLevel {
 }
 ```
 
-`pitch` は**階高** — 壁と柱がどこまで立つかである。
+`pitch` is the **storey height** — how far walls and columns stand.
 
-- 上のレベルがあれば、その差がそのまま階高になる。
-- **上が無いときは屋根の頂点に揃う** — その階の最大天井高 + 屋根版の厚さ。同じ式でなければ、壁が屋根を突き抜けるか、屋根の下に隙間が空く。
-- 天井高が一つも決まらなければ階高も決まらず、**そのレベルには壁も柱も立たない。**既定値を捏造しない (`SUF01` が既に error として言う)。
+- With a level above, the difference is the storey height.
+- **With nothing above, it reaches the apex of the roof**: the greatest ceiling height on that storey plus the roof slab thickness. Any other formula and walls punch through the roof, or a gap opens under it.
+- If no ceiling height can be settled, the storey height cannot either, and **no wall and no column stands on that level.** No default is invented (`SUF01` already says so as an error).
 
 ### levelPitch
 
@@ -124,7 +124,7 @@ interface FormLevel {
 function levelPitch(model: Model, level: string): number | undefined
 ```
 
-同じ計算を単体で呼ぶ入口である。
+The same computation, callable on its own.
 
 ```ts
 import { levelPitch } from "@kensnzk/koyu";
@@ -151,7 +151,7 @@ console.log(form.levels);
 ]
 ```
 
-最上の `R` は天井高を持たないので `pitch` が無い。そこには壁も柱も立たない。
+The topmost level `R` has no ceiling height, so it has no `pitch` — and nothing stands there.
 
 ## FormSpace
 
@@ -160,17 +160,17 @@ interface FormSpace {
   path: string;
   type: string;
   level?: string;
-  outline: Pt[][];     // 導出された領域 (凸片)。反時計回り
+  outline: Pt[][];     // the derived region (convex pieces), counter-clockwise
   areaM2?: number;
-  z0?: number;         // 気積 — 天井高が決まるときだけ
+  z0?: number;         // the volume — only when a ceiling height is settled
   z1?: number;
   indoor: boolean;
   semiOutdoor: boolean;
-  covered: boolean;    // 上に空間が重なっているか
+  covered: boolean;    // is a space stacked above it?
 }
 ```
 
-領域を持たない空間 (`exterior` など) は `Form` に現れない。
+Spaces with no region (an `exterior`) do not appear in the `Form` at all.
 
 ```ts
 console.log(form.spaces[0]);
@@ -191,19 +191,19 @@ console.log(form.spaces[0]);
 }
 ```
 
-## FormBoundary と FormPanel
+## FormBoundary and FormPanel
 
 ```ts
 interface FormBoundary {
-  ref: string;          // 関係の同一性 — `a|b@i`
-  boundary: number;     // 正準順の添字 i
+  ref: string;          // identity of the relation — `a|b@i`
+  boundary: number;     // the canonical index i
   a: string;
   b: string;
   kind: BoundaryKind;
   derived: boolean;
   level?: string;
   air: boolean;
-  segment: Segment;     // 芯線分
+  segment: Segment;     // the centre line
   material?: {
     t: number;
     z0: number;
@@ -218,11 +218,11 @@ interface FormPanel {
 }
 ```
 
-**一つの境界が複数の線分を持つなら、`FormBoundary` も線分の数だけ出る。**`ref` は同じで `segment` が違う。
+**A boundary with several segments produces one `FormBoundary` per segment** — same `ref`, different `segment`.
 
-`material` は**物があるときだけ** (`kind:"wall"` で、レベルと階高が決まっているとき) 付く。`open` の境界は芯線だけを持ち、材を持たない。
+`material` is present **only where something is there**: `kind:"wall"` with a level and a storey height settled. An `open` boundary has a centre line and no material.
 
-**壁は最初から開口で割られた区間の列として現れる。**「壁の黒帯を紙の色で塗り潰す」という操作は要らない — `panels` に穴が既に空いている。
+**A wall arrives already divided by its openings.** There is no "paint the black band the colour of the paper" step — the holes are in `panels` from the start.
 
 ```ts
 const wall = form.boundaries.find((x) => x.material && x.material.panels.length > 1)!;
@@ -239,15 +239,15 @@ t=250 z=-3700→0
   panel (16000,14800)-(16000,16000) z -3700→0
 ```
 
-三枚の区間のうち真ん中が**扉の上の垂れ壁**である。下端 (−1700) が扉の頭 — 床 (−3700) から 2000mm — に揃っている。
+The middle of the three stretches is the **head panel over the door**: its underside (−1700) sits at the head of the door, 2000 mm above the floor at −3700.
 
-`ref` の綴りは `<a のパス>|<b のパス>@<正準順の添字>` である。`#` は色の綴りと紛れるので使わない。
+The spelling of `ref` is `<path a>|<path b>@<canonical index>`. `#` is avoided because it collides with the spelling of a colour.
 
-## FormOpening と FormSwing
+## FormOpening and FormSwing
 
 ```ts
 interface FormOpening {
-  ref: string;        // `<境界の ref>/<開口の添字>`
+  ref: string;        // `<the boundary's ref>/<opening index>`
   boundary: number;
   index: number;
   a: string; b: string;
@@ -255,27 +255,27 @@ interface FormOpening {
   name?: string;
   level?: string;
   segment: Segment;
-  cx: number; cy: number;   // 中心 mm
+  cx: number; cy: number;   // centre, mm
   w: number;
   z0: number; z1: number;
-  t: number;                // 建具の見付け厚 = 壁厚
+  t: number;                // the joinery's face thickness = wall thickness
   style?: string;
   swing?: FormSwing;
   sliding: boolean;         // style:sliding / style:auto
 }
 
 interface FormSwing {
-  into: string;    // 開く先の空間
-  hinge: Pt;       // 吊元
-  leaf: Pt;        // 葉が開ききった先
-  jamb: Pt;        // 反対の側柱
-  ccw: boolean;    // 軌跡が反時計回りか
+  into: string;    // the space it opens into
+  hinge: Pt;
+  leaf: Pt;        // where the leaf ends up fully open
+  jamb: Pt;        // the opposite jamb
+  ccw: boolean;    // does the arc sweep counter-clockwise?
 }
 ```
 
-開口の z は種類で決まる。**扉は床から立ち上がり**、それ以外は**まぐさ高 (2000mm) から高さのぶん下がる。**窓台 (`sill`) は運搬層なので core は見ない — 頭を揃えることで下端が決まる。
+The z range follows the kind. **A door rises from the floor**; everything else hangs down from the head height (2000 mm) by its own height. Sill height (`sill`) is a carried attribute, so core does not read it — aligning the heads is what fixes the bottom.
 
-`swing` は扉にだけ付く。開く先は `swing:a/b`、無ければ領域を持つ側 (a を先に見る)。向きは**開く先の導出された形**のうち開口に最も近い凸片の中心へ向かう成分で決まる — 割付ではなく形を読むので、線で切られた空間でも正しい側へ開く。
+`swing` is present on doors only. Which side it opens into comes from `swing:a/b`, or else the side that has a region (a first). The direction is decided by the component pointing at the centre of the nearest convex piece of the **derived shape** it opens into — reading form rather than the written allocation, so a space cut by a line still opens the right way.
 
 ```ts
 const o = form.openings.find((x) => x.kind === "door" && x.swing)!;
@@ -329,24 +329,24 @@ console.log(JSON.stringify(o, null, 1));
 
 ```ts
 interface FormSeg {
-  ref: string;      // `<境界の ref>~<seg の添字>`
+  ref: string;      // `<the boundary's ref>~<seg index>`
   boundary: number;
   index: number;
   level?: string;
   segment: Segment;
   cx: number; cy: number;
   w: number;
-  t: number;        // 帯の厚み = 壁厚
+  t: number;        // the band's thickness = wall thickness
 }
 ```
 
-**数えない分節も位置は導出される。**面積にもグラフにも現れないが、どこにあるかは形の問題である。
+**Even an uncounted subdivision has a derived position.** It appears in no area and in no graph, but where it is is a question of form.
 
 ## FormColumn / FormRun / FormSite
 
 ```ts
 interface FormColumn extends Column {
-  ref: string;      // `<レベル名>/<通りの組>`
+  ref: string;      // `<level name>/<grid pair>`
   z0: number;
   z1: number;
 }
@@ -362,7 +362,7 @@ interface FormSite {
 }
 ```
 
-柱は `z0` から `z0 + pitch` まで立つ。**階高が決まらないレベルには柱が一本も立たない。**
+A column stands from `z0` to `z0 + pitch`. **On a level with no settled storey height, not one column stands.**
 
 ```ts
 console.log(form.columns[0]);
@@ -384,15 +384,15 @@ console.log(form.columns[0]);
 }
 ```
 
-`VerticalRun` と `RunSolid` の中身は [実体と生成物](solids.md)。
+`VerticalRun` and `RunSolid` are described under [solids and generated fabric](solids.md).
 
-## FormPlan — 平面は純粋な断面ではない
+## FormPlan — a plan is not a pure section
 
 ```ts
 interface FormPlan {
   level: string;
-  cut: number;      // FL からの切断高さ mm
-  cutZ: number;     // 世界座標での切断面の高さ mm
+  cut: number;      // cut height above FL, mm
+  cutZ: number;     // the cutting plane in world z, mm
   entities: PlanEntity[];
 }
 
@@ -412,19 +412,19 @@ type PlanSubject = "space" | "boundary" | "opening" | "column" | "run";
 type PlanRole = "outline" | "tread" | "break" | "arrow";
 ```
 
-**立体を平面で切っても平面図は出てこない。**扉の軌跡は動きの記号であり、上部吹抜けの投影は切断面より上にあり、切断線は切れたことの位置であり、下りる走りは切断面より下の見えがかりである。どれも断面には無い。
+**Slicing a solid does not give you a plan.** The arc of a door is a sign of movement; the projection of a void above lies above the cut; the break line marks where something was cut; the descending flight is what is visible below the cut. None of it is in a section.
 
-だから平面は**分類つきの2Dエンティティ集合**として持つ。
+So the plan is held as a **classified set of 2D entities**.
 
-| `class` | 何か |
+| `class` | What it is |
 |---|---|
-| `cut` | 切断面が切ったもの |
-| `below` | 切断面より下の見えがかり |
-| `above` | 切断面より上のものの投影 |
-| `swing` | 動きの軌跡 (扉) |
-| `anchor` | 記号を置く座 |
+| `cut` | what the cutting plane cut |
+| `below` | what is visible below the cut |
+| `above` | the projection of what is above the cut |
+| `swing` | the arc of movement (a door) |
+| `anchor` | a seat for a symbol |
 
-**区間は足あと (`polygon`) と芯線 (`lines`) の両方を持つ。**厚みを持つものとして描くか、一本の線として描くか (遮蔽しない手すり) は見た目の判断なので、消費者が選べるようにしてある。
+**A stretch carries both its footprint (`polygon`) and its centre line (`lines`).** Whether to draw it as something with thickness or as a single line (a handrail that does not enclose) is a decision about appearance, so the consumer gets to make it.
 
 ```ts
 const plan = form.plans.find((p) => p.level === "B1")!;
@@ -447,35 +447,35 @@ level=B1 cut=1200 cutZ=-2500 entities=62
   swing/opening 2
 ```
 
-**一枚の平面に上る走りと下りる走りの両方が出る。**B1 では B1 から上る階段が切断線で切れ、その先に B2 から上がってきた階段が見える。これが階段が階ごとに違う姿で現れる理由であり、平面図が「そのレベルで切った断面」だという事実そのものである。
+**One plan holds both the ascending and the descending run.** On B1 the stair going up from B1 is cut at the break line, and beyond it the stair arriving from B2 is visible. That is why a stair looks different on every storey, and it is the plain fact that a plan is a section taken at that level.
 
-`swing` の `arc` は引き戸には付かない — 引き込みの向きだけが `lines` に残る。
+The `arc` of a `swing` is absent for a sliding door — only the direction it slides remains, in `lines`.
 
-## 導出の部品
+## Parts of the derivation
 
-`derive` が使っている部品は個別にも呼べる。**それを組み立てて一棟ぶんの形にするのが `derive` である** — 組み立てを消費者ごとにやると、同じ原本から違う建物が出る。
+The parts `derive` uses can be called individually. **What `derive` adds is the assembly** — assemble it per consumer and the same source yields different buildings.
 
 ### segmentsFor
 
 ```ts
 interface Segment {
   x1: number; y1: number; x2: number; y2: number;
-  horizontal: boolean;   // 水平なら y1===y2、垂直なら x1===x2
-  diagonal?: boolean;    // 軸に平行でない (描かれた線)
-  edgeOfA?: Edge;        // boundary.a 側の矩形から見た辺
+  horizontal: boolean;   // horizontal means y1===y2, vertical means x1===x2
+  diagonal?: boolean;    // not axis-parallel (a drawn line)
+  edgeOfA?: Edge;        // which side of boundary.a's rectangle
 }
 
 function segmentsFor(model: Model, b: Boundary): Segment[]
 ```
 
-**壁がどこに現れるかの答えはこの一本だけである。**壁を置く操作は存在しない。
+**This one function is the whole answer to where a wall appears.** There is no operation that places a wall.
 
-- 両側が領域を持つ → 二つの領域が共有する軸平行な辺
-- 片側が領域を持たない (`exterior` など) → 外周のうち、同レベルで向かい合う他室の区間を除いた残り
-- 境界に線が描かれている → その線のうち、左右がちょうど a と b になっている区間
-- 垂直境界 (`stair` / `shaft` / `void`) → 空配列
+- Both sides have a region → the axis-parallel edges the two regions share.
+- One side has no region (an `exterior`) → the perimeter minus the stretches faced by other rooms on the same level.
+- The boundary has a drawn line → the stretches of that line where the two sides are exactly a and b.
+- A vertical boundary (`stair` / `shaft` / `void`) → an empty array.
 
-**共有辺も外周も、割付ではなく導出された形 (`pieces`) から取る。**割付から取ると、線で切り落とした側にまで壁が立つ。
+**Shared edges and perimeters are taken from the derived shape (`pieces`), not the written allocation.** From the allocation, a wall would stand out past the side a line cut away.
 
 ```ts
 import { parse, segmentsFor } from "@kensnzk/koyu";
@@ -513,9 +513,9 @@ edge:N 0,4000 → 3600,4000
 edge:W 0,0 → 0,4000
 ```
 
-外壁が三本しか出ていないのは、`/L1/a` の E 辺を `/L1/b` が占めているからである。**外部との境界が複数の線分に割れるのはこれが理由で、開口を置くには `edge:` で辺を選ぶ必要がある。**
+Only three external segments come back because `/L1/b` occupies the E side of `/L1/a`. **This is why a boundary to the exterior splits into several segments, and why placing an opening on one needs `edge:` to pick a side.**
 
-方角は **N=+Y・S=−Y・E=+X・W=−X**。線分の長さが要るなら端点から自分で測る — koyu が持つのは「どこに線分があるか」までである。
+The compass is **N=+Y, S=−Y, E=+X, W=−X**. If you need a length, measure it from the endpoints yourself — koyu stops at where the segments are.
 
 ### deriveDefaultBoundaries
 
@@ -523,13 +523,13 @@ edge:W 0,0 → 0,4000
 function deriveDefaultBoundaries(model: Model): void
 ```
 
-同一レベルで平面が接する領域つき空間の組に、宣言境界が一つも無ければ `kind:"wall"` の境界を導いて `model.boundaries` に加える (`derived: true` の印が付く)。接触は**導出された形**で見るので、線で接触が消えた組には作られない。
+For every pair of region-bearing spaces on the same level that touch in plan and have no declared boundary at all, adds a `kind:"wall"` boundary to `model.boundaries`, marked `derived: true`. Contact is judged on the **derived shapes**, so a pair whose contact a line removed gets nothing.
 
-**`a`/`b` の向きは正準順である。**宣言境界の `a` は書かれた向きで、正準JSONが `a` キーとして保存するから形に持ち込んでよい。既定境界は正準JSONに出ないので**書かれた向きが無く**、空間の宣言順を拾えば正準形が捨てた情報が形を変えてしまう ([約束1](../form/index.md))。だからパスの照合順で決める — `edgeOfA` の方位と関係の同一性 `a|b@i` がこれに従う。
+**The orientation of `a`/`b` is canonical.** On a declared boundary, `a` is the side as written, and canonical JSON preserves it as the `a` key, so the shape may read it. A derived boundary does not appear in canonical JSON, so it **has no written orientation**; taking the declaration order of the spaces would let information the canonical form discards change the shape ([promise 1](../form/index.md)). Path collation order decides it instead — the `edgeOfA` bearing and the relation identity `a|b@i` follow from that.
 
-**領域を持たない空間 (`exterior` 等) との間には導かない。**相手を名指しすること自体が情報なので、そこは宣言してもらう。
+**Nothing is derived against a space with no region** (an `exterior`). Naming that counterpart is itself information, so it is left to be declared.
 
-**[`parse` 系](parsing.md)はすべて出口でこれを適用済みである。**冪等なので何度呼んでもよい。
+**Every [parse function](parsing.md) has already applied this on the way out.** It is idempotent, so calling it again is harmless.
 
 ```ts
 import { deriveDefaultBoundaries } from "@kensnzk/koyu";
@@ -542,7 +542,7 @@ console.log(before, "→", g.boundaries.length);
 2 → 2
 ```
 
-**明示的に呼ぶ必要があるのは、正準JSONから `Model` を組み立てたときだけである。**正準JSONは書かれた構成しか持たないので、既定の壁を読むにはこれを通す。
+**The one time you must call it yourself is after building a `Model` from canonical JSON.** Canonical JSON holds only the written composition, so the default walls have to be derived to read the meaning back.
 
 ### placeOpening / placeBand
 
@@ -556,11 +556,11 @@ interface Band {
 interface PlacedBand { segment: Segment; cx: number; cy: number }
 
 interface BandError {
-  error: string;      // 位置接頭辞つきの完成文
+  error: string;      // the finished sentence, with position prefix
   code: BandCode;
   line: number;
   file?: string;
-  message: string;    // 位置接頭辞を除いた本文
+  message: string;    // the body without the prefix
 }
 
 type BandCode =
@@ -571,15 +571,15 @@ function placeOpening(model: Model, b: Boundary, o: Opening): PlacedBand | BandE
 function placeBand(model: Model, b: Boundary, band: Band, label: string): PlacedBand | BandError
 ```
 
-境界線分の上に開口 (または `seg`) を置き、中心の絶対座標を返す。**置けないときは投げずに `BandError` を返す** — `"error" in result` で判別する。
+Places an opening (or a `seg`) on a boundary segment and returns the absolute coordinates of its centre. **When it cannot be placed, nothing is thrown — a `BandError` comes back**; discriminate with `"error" in result`.
 
-`label` が `"seg"` なら `SEG` 系、それ以外 (`"door"` / `"window"`) なら `OPN` 系のコードになる。`placeOpening` は `placeBand(model, b, o, o.kind)` にすぎない。
+A `label` of `"seg"` selects the `SEG` codes; anything else (`"door"`, `"window"`) selects the `OPN` codes. `placeOpening` is nothing but `placeBand(model, b, o, o.kind)`.
 
 ```ts
 import { placeBand, placeOpening } from "@kensnzk/koyu";
 
 console.log(placeOpening(g, bIn, bIn.openings[0]!));
-console.log(placeOpening(g, bOut, bIn.openings[0]!));   // 線分が複数 — 曖昧
+console.log(placeOpening(g, bOut, bIn.openings[0]!));   // several segments — ambiguous
 console.log(placeBand(g, bIn, { w: 1000, at: 0.25, line: 0 }, "seg"));
 ```
 
@@ -616,7 +616,7 @@ console.log(placeBand(g, bIn, { w: 1000, at: 0.25, line: 0 }, "seg"));
 }
 ```
 
-**比率の `at` は線分に収まるようクランプされる。**通り参照 (`atAbs`) はクランプされず、はみ出せば `OPN08` / `SEG08` になる。斜めの線分 (描かれた線) の上では通り参照が一意に位置を定めないので `OPN07` / `SEG07` になる — 比率で書く。
+**A ratio `at` is clamped to fit the segment.** A grid reference (`atAbs`) is not, and running off the end is `OPN08` / `SEG08`. On a diagonal segment (a drawn line) a grid reference does not fix a unique position, so it is `OPN07` / `SEG07` — write a ratio there.
 
 ## DERIVATION_CONSTANTS
 
@@ -624,7 +624,7 @@ console.log(placeBand(g, bIn, { w: 1000, at: 0.25, line: 0 }, "seg"));
 const DERIVATION_CONSTANTS: Readonly<Record<string, number>>
 ```
 
-**書かれなかったときに何を導くかを定める数である。**書けば必ず書いた値が勝つ — これは「何を書いてよいか」の台帳ではない。
+**These decide what is derived when nothing was written.** Write a value and the written value always wins. This is not a ledger of what may be written.
 
 ```ts
 import { DERIVATION_CONSTANTS } from "@kensnzk/koyu";
@@ -654,26 +654,26 @@ console.log(DERIVATION_CONSTANTS);
 }
 ```
 
-| 名 | 何の既定か | 上書き |
+| Name | Default for | Overridden by |
 |---|---|---|
-| `WALL_T` | 壁厚 mm。芯線に対して両側へ半分ずつ振り分ける | 境界の `t:` |
-| `RAIL_T` | 遮蔽しない境界 (`air:1`) の厚み mm | 境界の `t:` |
-| `RAIL_T_MAX` | 遮蔽しない境界の厚みの上限 mm。`t:` に何を書いてもここで頭打ち | — |
-| `RAIL_H` | 遮蔽しない境界の天端高 mm | 境界の `h:` |
-| `OPENING_HEAD` | 開口のまぐさ高 mm。扉はここまで立ち上がり、それ以外はここから下がる | — |
-| `OPENING_H` | 扉以外の開口の高さ mm | 開口の `h:` |
-| `CEILING_T` | 天井面の見付け厚 mm | — |
-| `ROOF_T` | 上に何も無いときの屋根版の厚さ mm | 上階の `slab:` |
-| `CUT_HEIGHT` | 平面の切断面の高さ mm (FL から) | `derive` の `cut` |
-| `DEFAULT_RISER_MAX` | 蹴上げの上限 mm | `riser:` |
-| `TREAD_TARGET` | 折返し階段の踊り場を導くときの目標踏面 mm | `tread:` |
-| `ARROW_SPAN_MIN` | 平面に進む向きの矢印が出る可視区間の下限 mm。**厳密な超過**なので、ちょうど 900mm の区間には矢印が出ない | — |
-| `LANDING_MIN` | 踊り場の最小奥行 mm | — |
-| `ENTRY_LANDING` | 乗り込みの床の奥行 mm | `entry:` |
-| `LANE_ESCALATOR` | エスカレーター一台の呼び幅 mm | `lane:` |
-| `TREAD_SOLID` | 段板の見付け厚 (立体) mm | — |
-| `SLAB_T` | 斜路・エスカレーター床版の厚さ mm | — |
-| `STEP_MARK` | 平面のエスカレーターの段の刻みのピッチ mm | — |
+| `WALL_T` | wall thickness, mm, split evenly about the centre line | the boundary's `t:` |
+| `RAIL_T` | thickness of a non-enclosing boundary (`air:1`), mm | the boundary's `t:` |
+| `RAIL_T_MAX` | its ceiling — whatever `t:` says, it stops here | — |
+| `RAIL_H` | top of a non-enclosing boundary, mm | the boundary's `h:` |
+| `OPENING_HEAD` | head height of an opening, mm; doors rise to it, everything else hangs from it | — |
+| `OPENING_H` | height of a non-door opening, mm | the opening's `h:` |
+| `CEILING_T` | face thickness of a ceiling, mm | — |
+| `ROOF_T` | roof slab thickness where nothing is above, mm | the `slab:` of the level above |
+| `CUT_HEIGHT` | plan cut height above FL, mm | the `cut` option of `derive` |
+| `DEFAULT_RISER_MAX` | maximum riser, mm | `riser:` |
+| `TREAD_TARGET` | target tread when deriving a landing on a return stair, mm | `tread:` |
+| `ARROW_SPAN_MIN` | shortest visible run interval in plan that still carries a direction arrow, mm. The comparison is **strict**, so an interval of exactly 900mm carries none | — |
+| `LANDING_MIN` | minimum landing depth, mm | — |
+| `ENTRY_LANDING` | depth of the boarding floor, mm | `entry:` |
+| `LANE_ESCALATOR` | nominal width of one escalator, mm | `lane:` |
+| `TREAD_SOLID` | face thickness of a tread in the solid, mm | — |
+| `SLAB_T` | thickness of a ramp or escalator deck, mm | — |
+| `STEP_MARK` | pitch of the escalator step marks in plan, mm | — |
 
 ## TOLERANCES
 
@@ -681,7 +681,7 @@ console.log(DERIVATION_CONSTANTS);
 const TOLERANCES: Readonly<Record<string, number>>
 ```
 
-**「どれだけ違えば別のものか」を決める数である。**同じ問いに二つの許容値があってはならないので、一箇所に集めてある。
+**These decide how different two things must be to be different things.** One question must not have two tolerances, so they live in one place.
 
 ```ts
 import { TOLERANCES } from "@kensnzk/koyu";
@@ -700,21 +700,21 @@ console.log(TOLERANCES);
 }
 ```
 
-| 名 | 単位 | 何の許容か |
+| Name | Unit | Tolerance for |
 |---|---|---|
-| `EPS` | mm | 長さ・座標。辺の共線・向かい合わせ・区間の一致・共線マージの隙間 |
-| `AREA_EPS` | mm² | 面積の退化。切った残りがこれ以下なら空 |
-| `PROBE` | mm | 描かれた線の左右を探る距離。**形の解像度の下限である** — この幅を下回る空間は左右のどちらにも判定できない |
-| `SPAN_EPS` | mm | 区間・切断・枠の一致。切断面と部品の z の比較、可視区間の長さの下限、外皮の穴の長さの下限 |
-| `CROSS_EPS` | 外積 | 半平面で切るときの符号。頂点を残すか、交点を挿むか |
-| `PARALLEL_EPS` | 無次元 | 無限直線と線分の平行判定・線分側パラメータの範囲 |
-| `POINT_EPS` | mm | 点が多角形の辺の上にあるとみなす幅 (境界上は内側扱い) |
+| `EPS` | mm | lengths and coordinates: collinearity, facing edges, matching stretches, gaps in a collinear merge |
+| `AREA_EPS` | mm² | degeneracy of area: a remnant this small is nothing |
+| `PROBE` | mm | how far to probe either side of a drawn line. **This is the resolution floor of form** — a space narrower than this cannot be assigned to either side |
+| `SPAN_EPS` | mm | matching of spans, cuts and frames: comparing z against the cut plane, the minimum visible run, the minimum envelope gap |
+| `CROSS_EPS` | cross product | the sign when cutting by a half-plane: keep the vertex, or insert the crossing |
+| `PARALLEL_EPS` | dimensionless | parallelism of an infinite line and a segment, and the range of the segment parameter |
+| `POINT_EPS` | mm | how wide a band counts as "on the polygon's edge" (on the boundary is inside) |
 
-**座標は mm の整数が基本である。**だから長さの許容 0.5mm は整数の刻みの半分に置かれている。面積の許容 1mm² は 1mm×1mm の破片であり、半平面で切った残りがこれ以下なら形として数えない。
+**Coordinates are integers of millimetres by default.** So the 0.5 mm length tolerance sits at half the integer step. The 1 mm² area tolerance is a 1 mm × 1 mm sliver: a remnant that small after a half-plane cut is not counted as a shape.
 
-## 関連
+## See also
 
-- [実体と生成物](solids.md) — 芯線と厚みから四辺形と角柱を起こす構成子、床・屋根・縦動線
-- [図の生成](draw.md) — `Form` を SVG にする
-- [Model と構成型](model.md) — `derive` の入力
-- [正準JSON](canonical.md) — 添字の並びを決めている形式
+- [Solids and generated fabric](solids.md) — raising quadrilaterals and prisms from a centre line and a thickness; floors, roofs, vertical circulation
+- [Drawing](draw.md) — turning a `Form` into SVG
+- [Model and its types](model.md) — the input to `derive`
+- [Canonical JSON](canonical.md) — the format that fixes the index order

@@ -5,30 +5,30 @@ mode: reference
 
 # koyu axo
 
-軸測図を SVG で書き出す。床・屋根・壁・柱・縦動線がそのまま投影される。**実行環境も WebGL も要らない** — 出るのは SVG なので、平面と同じ「生成して見る」手で立体を確かめられる。
+Writes an axonometric as SVG. Floors, roofs, walls, columns and vertical runs are projected as they are. **No runtime and no WebGL are needed** — the output is SVG, so you confirm the solid with the same generate-and-look move you use for the plan.
 
-## 引数
+## Arguments
 
 ```text
-koyu axo <entry.muro> [-o <出力.svg>] [-d NE|NW|SE|SW] [-l <レベル指定>] [-s <縮尺>] [--no-walls] [--ceilings]
+koyu axo <entry.muro> [-o <out.svg>] [-d NE|NW|SE|SW] [-l <levels>] [-s <scale>] [--no-walls] [--ceilings]
 ```
 
-entry のパスを一つ取る。出力はファイルに書かれ、標準出力には書いた先の一行だけが出る。
+Takes one entry path. The drawing goes to a file; stdout gets one line naming where it went.
 
-## 旗
+## Flags
 
-| 旗 | 既定 | 効果 |
+| Flag | Default | Effect |
 |---|---|---|
-| `-o <パス>` / `--out <パス>` | `out/axo.svg` | 出力先。ディレクトリは無ければ作られる |
-| `-d <向き>` / `--dir <向き>` | `SE` | 見る向き。`NE` `NW` `SE` `SW` の四つだけ |
-| `-l <指定>` / `--levels <指定>` | 全レベル | 描くレベル。`L1..L5` の範囲か `L1,L3` の列挙 |
-| `-s <数>` / `--scale <数>` | `0.02` | px per mm。正の数だけ |
-| `--no-walls` | 壁を描く | 壁を落とす |
-| `--ceilings` | 天井を描かない | 天井も描く (描くと中が見えなくなる) |
+| `-o <path>` / `--out <path>` | `out/axo.svg` | Where to write. The directory is created if missing |
+| `-d <dir>` / `--dir <dir>` | `SE` | Viewing direction. `NE`, `NW`, `SE`, `SW` only |
+| `-l <spec>` / `--levels <spec>` | all levels | Levels to draw. A range `L1..L5` or a list `L1,L3` |
+| `-s <n>` / `--scale <n>` | `0.02` | px per mm. Positive numbers only |
+| `--no-walls` | walls drawn | Drop the walls |
+| `--ceilings` | ceilings not drawn | Draw ceilings too (which hides the inside) |
 
-`-l` の範囲指定は端点に数字を要求しない。`R` のような名前も端点に取れて、二つの端点の `z` に挟まれたレベルがすべて選ばれる。
+A range does not require digits at its endpoints. A name like `R` works as an endpoint, and every level whose `z` falls between the two endpoints is selected.
 
-## 出力
+## Output
 
 ```sh
 npx tsx src/cli.ts axo examples/basement/main.muro -o out/axo.svg
@@ -38,7 +38,7 @@ npx tsx src/cli.ts axo examples/basement/main.muro -o out/axo.svg
 Generated the axonometric: out/axo.svg
 ```
 
-旗を重ねても出力の形は変わらない。
+Stacking flags does not change the shape of the output.
 
 ```sh
 npx tsx src/cli.ts axo examples/complex/main.muro -l L1..L3 -d NE -s 0.5 --ceilings -o out/axo2.svg
@@ -48,11 +48,11 @@ npx tsx src/cli.ts axo examples/complex/main.muro -l L1..L3 -d NE -s 0.5 --ceili
 Generated the axonometric: out/axo2.svg
 ```
 
-## 呼び方の問題は、呼び方の問題として返す
+## A calling mistake is returned as a calling mistake
 
-三つの旗はすべて値を検査する。**空の SVG も `NaN` の SVG も黙って書かない。**
+All three valued flags check what they are given. **Neither an empty SVG nor a `NaN` SVG is ever written silently.**
 
-未宣言のレベル名は、宣言されている名前の一覧を添えて止まる。
+An undeclared level name stops, with the declared names attached.
 
 ```sh
 npx tsx src/cli.ts axo examples/complex/main.muro -l ZZ9
@@ -62,7 +62,7 @@ npx tsx src/cli.ts axo examples/complex/main.muro -l ZZ9
 Undeclared level: ZZ9 (declared: B2 B1 L1 L2 L3 L4 L5 L6 L7 L8 L9 L10 L11 L12 L13 L14 L15 L16 L17 L18 L19 R)
 ```
 
-数として読めない縮尺、あるいは 0 以下の縮尺は止まる。
+A scale that is not a number, or is zero or less, stops.
 
 ```sh
 npx tsx src/cli.ts axo examples/complex/main.muro -s abc
@@ -72,7 +72,7 @@ npx tsx src/cli.ts axo examples/complex/main.muro -s abc
 -s takes a positive number: abc
 ```
 
-四つ以外の向きも止まる。
+Any direction outside the four stops.
 
 ```sh
 npx tsx src/cli.ts axo examples/complex/main.muro -d UP
@@ -82,19 +82,19 @@ npx tsx src/cli.ts axo examples/complex/main.muro -d UP
 -d is one of NE / NW / SE / SW: UP
 ```
 
-どれも終了コードは 2 である。
+All three exit 2.
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 書き出した |
-| 1 | 構文・合成エラーで読めなかった |
-| 2 | 未宣言のレベル名 / 読めない縮尺 / 未知の向き / ファイルパスを渡していない |
+| 0 | It was written |
+| 1 | It could not be read because of a syntax or composition error |
+| 2 | Undeclared level name / unreadable scale / unknown direction / no file path given |
 
-## 関連
+## See also
 
-- [koyu plan](plan.md) — 同じ SVG で平面を出す
-- [koyu levels](levels.md) — `-l` に渡せるレベル名の一覧
-- [koyu runs](runs.md) — 投影されている縦動線が何から導かれたか
-- [koyu コマンド](index.md) — 終了コードの共通の約束
+- [koyu plan](plan.md) — the plan, as the same kind of SVG
+- [koyu levels](levels.md) — the level names you can pass to `-l`
+- [koyu runs](runs.md) — what the projected vertical circulation was derived from
+- [The koyu command](index.md) — the shared promises about exit codes

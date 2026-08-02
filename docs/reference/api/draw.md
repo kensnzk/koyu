@@ -1,28 +1,28 @@
 ---
-title: 図の生成
+title: Drawing
 mode: reference
 ---
 
-# 図の生成
+# Drawing
 
-SVG の文字列を返す二つの関数である。**ここに形の規則は一つも無い** — 壁の厚みも、開口の位置も、扉の吊元も、階段がどこで切れるかも、[`derive(model)`](derive.md) が返す `Form` に既に入っている。この二つが決めるのは色・線種・線幅・書体・記号・注記の言葉・縮尺・投影・紙面の余白だけである。
+Two functions that return a string of SVG. **Not one rule of form lives here** — wall thickness, opening position, which side a door hangs on, where a stair is cut, are all already in the `Form` that [`derive(model)`](derive.md) returns. What these two decide is colour, line style, line weight, typeface, symbols, the words of annotations, scale, projection and page margin.
 
 ```ts
 import { svgPlan, svgAxo } from "@kensnzk/koyu";
 import type { PlanOptions, AxoOptions } from "@kensnzk/koyu";
 ```
 
-領域としては `@kensnzk/koyu/draw` にも分けてある。**同じ関数の別入口である。**
+There is also a domain entrance at `@kensnzk/koyu/draw`. **It is another door to the same functions.**
 
 ```ts
 import { svgPlan, svgAxo } from "@kensnzk/koyu/draw";
 ```
 
-## この面は凍らない
+## This surface is not frozen
 
-**SVG の中身は約束の外にある。**同じ入力から同じ形が出ることは約束されるが、**同じバイトが出ることは約束されない。**色・線種・書体・記号の見た目・要素の並びは断りなく変わる。
+**The contents of the SVG are outside the promise.** The same input yields the same form; it does not yield the same bytes. Colours, line styles, typefaces, the look of symbols and the order of elements all change without notice.
 
-だから**この出力をゴールデンファイルにしてはならない。**図を機械で比べたいなら [`toCanonical`](canonical.md) か [`derive`](derive.md) の返り値を比べる — そちらは形そのものであり、決定性が約束されている。
+So **do not use this output as a golden file.** To compare drawings mechanically, compare [`toCanonical`](canonical.md) or the value from [`derive`](derive.md) — those are the form itself, and determinism is promised there.
 
 ## svgPlan
 
@@ -30,13 +30,13 @@ import { svgPlan, svgAxo } from "@kensnzk/koyu/draw";
 function svgPlan(model: Model, opts?: PlanOptions): string
 
 interface PlanOptions {
-  level?: string;   // 既定: 最初に宣言されたレベル
-  scale?: number;   // px per mm。既定 0.05
-  cut?: number;     // 切断面の高さ mm (FL から)。既定 1200
+  level?: string;   // default: the first level declared
+  scale?: number;   // px per mm, default 0.05
+  cut?: number;     // cut height above FL, mm, default 1200
 }
 ```
 
-平面図を返す。`cut` は**形を決める引数**なので `derive` の入力へそのまま渡る — 縮尺と違って、これは見た目ではなく形の話である。
+Returns a plan. `cut` is a **thing that decides form**, so it is passed straight through to `derive` — unlike scale, it is not a matter of appearance.
 
 ```ts
 import { svgPlan } from "@kensnzk/koyu";
@@ -53,7 +53,7 @@ console.log(svg.split("\n")[0]);
 <svg xmlns="http://www.w3.org/2000/svg" width="528" height="393" viewBox="0 0 528 393" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
 ```
 
-`scale` と `cut` を動かすと紙面も変わる。
+Changing `scale` and `cut` changes the sheet.
 
 ```ts
 console.log(svgPlan(a, { level: "L1", scale: 0.1, cut: 800 }).split("\n")[0]);
@@ -63,16 +63,16 @@ console.log(svgPlan(a, { level: "L1", scale: 0.1, cut: 800 }).split("\n")[0]);
 <svg xmlns="http://www.w3.org/2000/svg" width="888" height="618" viewBox="0 0 888 618" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
 ```
 
-紙面の外接範囲には**書かれた割付も含める** — 線で切られた形より外へ割付がはみ出しても、紙には載る。敷地形状は最下階の平面 (配置図兼用) にだけ敷地境界線として描かれる。これは紙面の構成の判断であって、形の規則ではない。
+The extents of the sheet **include the written allocation**: where the allocation sticks out past a shape a line has cut, it still lands on the paper. A site polygon is drawn as a site boundary only on the lowest plan, which doubles as a site plan. Both are decisions about the sheet, not rules of form.
 
-### 投げることがある
+### It can throw
 
-**`Error` を投げる。**`SourceError` ではないので、位置も行番号も持たない。呼び出し側で捕まえること。
+**It throws an `Error`**, not a `SourceError`, so there is no position and no line number. Catch it yourself.
 
-| メッセージ | いつ |
+| Message | When |
 |---|---|
-| `No level is defined` | `level` を省き、模型にレベルが一つも無い |
-| `There is no space with a region on level <名>` | 指定したレベルに領域を持つ空間が無い |
+| `No level is defined` | `level` omitted and the model has no level at all |
+| `There is no space with a region on level <name>` | the level named has no space with a region |
 
 ```ts
 try { svgPlan(a, { level: "L9" }); } catch (e) { console.log("throws:", (e as Error).message); }
@@ -88,17 +88,17 @@ throws: There is no space with a region on level L9
 function svgAxo(model: Model, opts?: AxoOptions): string
 
 interface AxoOptions {
-  dir?: "NE" | "NW" | "SE" | "SW";   // 見る向き。既定 SE
-  scale?: number;                     // px per mm。既定 0.02
-  levels?: string[];                  // 描くレベル。既定すべて
-  ceilings?: boolean;                 // 天井も描く。既定 false
-  walls?: boolean;                    // 壁を描く。既定 true
+  dir?: "NE" | "NW" | "SE" | "SW";   // which corner you look down from, default SE
+  scale?: number;                     // px per mm, default 0.02
+  levels?: string[];                  // which levels to draw, default all
+  ceilings?: boolean;                 // draw ceilings too, default false
+  walls?: boolean;                    // draw walls, default true
 }
 ```
 
-軸測図 (アクソメ) を返す。平面図が「そのレベルで切った断面」であるのに対し、これは**立体をそのまま投影した図**である。WebGL も実行環境も要らない — 平面と同じく SVG のテキストが出るので、生成して見る、という同じ手で立体を確かめられる。
+Returns an axonometric. Where a plan is a section taken at a level, this is **the solid projected as it is.** No WebGL and no runtime are needed — like the plan it comes out as SVG text, so you check the solid with the same gesture: generate it and look.
 
-描かれるのは**生成物だけ**である。床・屋根、境界から現れた壁、通りの交点から現れた柱、縦動線。どれもソースには無い。
+What is drawn is **only what was generated**: floors and roofs, walls that appeared from boundaries, columns that appeared from grid intersections, vertical circulation. None of it is in the source.
 
 ```ts
 import { svgAxo } from "@kensnzk/koyu";
@@ -115,7 +115,7 @@ console.log(ax.split("\n")[0]);
 <svg xmlns="http://www.w3.org/2000/svg" width="472.1363028335939" height="405.35" viewBox="0 0 472.1363028335939 405.35" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
 ```
 
-`dir` は建物のどの隅から見下ろすかである。平面を90度ずつ回してから等角に落とすので、四つの向きで違う面が見える。
+`dir` picks the corner you look down from. The plan is rotated in quarter turns before the isometric projection, so each of the four shows different faces.
 
 ```ts
 for (const dir of ["NE", "NW", "SE", "SW"] as const) console.log(dir, svgAxo(h, { dir }).length);
@@ -128,7 +128,7 @@ SE 33025
 SW 32957
 ```
 
-**`ceilings` の既定が `false` なのは、描くと中が見えなくなるからである。**`walls: false` にすると床・屋根・柱・縦動線だけが残り、構造と面の関係が見える。
+**`ceilings` defaults to `false` because drawing them hides the inside.** With `walls: false` only floors, roofs, columns and vertical circulation remain, which shows how structure and surface relate.
 
 ```ts
 console.log("levels:", svgAxo(h, { levels: ["L1"] }).length,
@@ -140,17 +140,17 @@ console.log("levels:", svgAxo(h, { levels: ["L1"] }).length,
 levels: 19982 ceilings: 36021 walls:false 7425
 ```
 
-### 投げることがある
+### It can throw
 
-描くものが一つも無ければ `Error` を投げる。
+If nothing at all would be drawn, it throws an `Error`.
 
-| メッセージ | いつ |
+| Message | When |
 |---|---|
-| `There is nothing to draw` | 立体が一つも生成されない (レベルが無い、領域を持つ空間が無い、`levels` の指定が全部外れている) |
+| `There is nothing to draw` | no solid is generated — no level, no space with a region, or `levels` names nothing that exists |
 
-## 自分で描くなら
+## Drawing it yourself
 
-`Form` を直接読んで自分の描画系へ写すのが正道である。**同じ規則から出た形を、違う見た目で描く** — それがこの分離の目的である。
+The right way is to read the `Form` directly and map it into your own drawing system. **Draw the same derived form with a different appearance** — that is what the split is for.
 
 ```ts
 import { derive } from "@kensnzk/koyu";
@@ -159,15 +159,15 @@ const form = derive(model, { cut: 1200 });
 const plan = form.plans.find((p) => p.level === "L1")!;
 
 for (const e of plan.entities) {
-  // e.class は cut / below / above / swing / anchor
-  // e.polygon は足あと、e.lines は芯線 — どちらで描くかは見た目の判断
+  // e.class is cut / below / above / swing / anchor
+  // e.polygon is the footprint, e.lines the centre line — which to draw is appearance
 }
 ```
 
-分類と型の中身は [形の導出](derive.md)。芯線から実体を起こす構成子は [実体と生成物](solids.md)。**それを自分で書き直さないこと** — 部品を共有していても組み立ての規則を共有しなければ、同じ `Form` から違う形が出る。
+The classes and the types are on [deriving form](derive.md); the constructors that raise bodies from centre lines are on [solids and generated fabric](solids.md). **Do not rewrite those yourself** — sharing the parts without sharing the rules of assembly is exactly how the same `Form` starts producing different shapes.
 
-## 関連
+## See also
 
-- [形の導出](derive.md) — この二つが描いている `Form`
-- [実体と生成物](solids.md) — 芯線と厚みから実体を起こす構成子
-- [`koyu plan`](../cli/plan.md) / [`koyu axo`](../cli/axo.md) — 同じ生成をコマンドラインから
+- [Deriving form](derive.md) — the `Form` these two draw
+- [Solids and generated fabric](solids.md) — raising bodies from centre lines and thicknesses
+- [`koyu plan`](../cli/plan.md) / [`koyu axo`](../cli/axo.md) — the same generation from the command line

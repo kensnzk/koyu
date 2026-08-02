@@ -5,23 +5,23 @@ mode: reference
 
 # koyu light
 
-**`daylight:1` と宣言された空間**について、有効窓面積が床面積の 1/7 以上かを一覧で確かめる。
+For **spaces declared with `daylight:1`**, lists whether the effective window area reaches one seventh of the floor area.
 
-## 引数
+## Arguments
 
 ```text
 koyu light <entry.muro>
 ```
 
-entry のパスを一つ取る。
+Takes one entry path.
 
-## 旗
+## Flags
 
-無い。
+None.
 
-## 出力
+## Output
 
-対象の室が一行ずつ並び、最後に総括が出る。
+One line per room in scope, then a summary.
 
 ```sh
 npx tsx src/cli.ts light examples/house/main.muro
@@ -33,9 +33,9 @@ npx tsx src/cli.ts light examples/house/main.muro
 ✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
-列はタブ区切りの `印 / パス / 名前 / 数字` である。`1/5.3` は窓面積に対する床面積の比で、これが `1/7` より大きい分母を持てば不足になる。
+The columns are tab-separated: `mark / path / name / the numbers`. `1/5.3` is floor over window; a denominator larger than 7 means it falls short.
 
-不足している室があれば `✖` が付き、総括が件数を言う。
+When a room falls short it gets `✖`, and the summary gives the count.
 
 ```sh
 npx tsx src/cli.ts light dark.muro
@@ -47,19 +47,19 @@ npx tsx src/cli.ts light dark.muro
 ✖ Short of 1/7: 2 of 2 rooms (this is a validation judgement)
 ```
 
-窓が一枚も数えられなかった室は `no window` と出る。
+A room where no window could be counted reads `no window`.
 
-## h を持たない窓
+## Windows without h
 
-**`h` を書いていない `window` は面積を数えられない。**その室の行末に `⚠ windows without h: are not counted` が付く。上の `/L1/b` は `window w:2600 edge:E` と書いてあるのに 0.00 m2 になっている — 幅はあっても高さが無いからである。
+**A `window` with no `h` cannot have its area counted.** That room's line gains `⚠ windows without h: are not counted` at the end. The `/L1/b` above is written `window w:2600 edge:E` and still comes out as 0.00 m2 — it has a width but no height.
 
-この警告が付いた行の数字は下限であって、実際の窓面積ではない。
+The numbers on a line carrying that warning are a lower bound, not the actual window area.
 
-## 対象は型から推定しない
+## Scope is never inferred from the type
 
-**判定されるのは `daylight:1` を書いた空間だけである。**型は見ない。どの室に 1/7 が掛かるかは法の判断であって型からは導けないからで、共同住宅の居室は対象、ホテルの客室は対象外、という区別を `room` という一語では表せない。
+**Only spaces that write `daylight:1` are judged.** The type is not consulted. Which rooms the one-seventh rule applies to is a legal judgement and cannot be derived from a type: habitable rooms in an apartment building are in scope, guest rooms in a hotel are not, and the single word `room` cannot express the difference.
 
-対象が一つも無ければ、判定そのものが行われない。
+With nothing in scope, no judgement runs at all.
 
 ```sh
 npx tsx src/cli.ts light examples/office.muro
@@ -69,31 +69,31 @@ npx tsx src/cli.ts light examples/office.muro
 Nothing is in daylight scope (write daylight:1 on the rooms to be judged)
 ```
 
-**これを「合格」と読まないこと。**`daylight:1` を書き忘れても同じ出力になる。
+**Do not read this as a pass.** Forgetting to write `daylight:1` produces exactly the same output.
 
-## 粗い判定である
+## It is a rough judgement
 
-補正係数を掛けない。開口部の位置も、隣地境界線までの距離も、庇の出も見ない。基本計画の解像度に合わせた早期警報であって、確認申請の採光計算ではない。
+No correction factor is applied. It does not look at where in the wall the opening sits, at the distance to the neighbouring boundary, or at an overhang. It is an early warning pitched at the resolution of schematic design, not a daylight calculation for a building permit.
 
-そして**これは判定であって、`check` の保証ではない。**`light` が緑でも `check` が赤なら構成が壊れているし、`check` が緑でも `light` が赤なら窓が足りない。二つは別のことを見ている。
+And **this is a judgement, not what `check` guarantees.** A green `light` with a red `check` means the composition is broken; a green `check` with a red `light` means there are not enough windows. The two look at different things.
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 対象の全室が 1/7 を満たす、**または対象が一つも無い** |
-| 1 | 不足している室がある、または構文・合成エラーで読めなかった |
-| 2 | ファイルパスを渡していない (使い方が印字される) |
+| 0 | Every room in scope meets 1/7, **or nothing is in scope** |
+| 1 | Some room falls short, or the input could not be read |
+| 2 | No file path was given (usage is printed) |
 
-**対象が無いときの終了コードは 0 である。**`daylight:1` を一つも書いていないモデルで `light` を CI に置くと、何も見ていないまま緑が返る。
+**Nothing in scope exits 0.** Put `light` in CI for a model that writes no `daylight:1` anywhere, and green comes back having looked at nothing.
 
-## validate との関係
+## Its relation to validate
 
-`light` が出す `✖` は、[`koyu validate`](validate.md) の `daylight.ratio` (violation) と同じ判定である。`light` はその判定の**入力の数**まで見せる面で、`validate` は判定だけを返す面である。CI で落とすなら `validate` を使うほうが、他の 14 規則も同時に見られる。
+The `✖` lines `light` produces are the same judgement as [`koyu validate`](validate.md)'s `daylight.ratio` (violation). `light` is the surface that also shows **the inputs** to that judgement; `validate` returns the judgement alone. For CI, `validate` is the better gate — it covers the other 14 rules at the same time.
 
-## 関連
+## See also
 
-- [koyu validate](validate.md) — `daylight.ratio` と `daylight.unknown`
-- [koyu stats](stats.md) — 床面積の内訳
-- [.muro リファレンス](../muro/index.md) — `daylight:` と `window` の書き方
-- [koyu コマンド](index.md) — 終了コードの共通の約束
+- [koyu validate](validate.md) — `daylight.ratio` and `daylight.unknown`
+- [koyu stats](stats.md) — the floor area breakdown
+- [.muro reference](../muro/index.md) — how to write `daylight:` and `window`
+- [The koyu command](index.md) — the shared promises about exit codes

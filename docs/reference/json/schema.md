@@ -1,36 +1,36 @@
 ---
-title: 正準 JSON のスキーマ
+title: The canonical JSON schema
 mode: reference
 ---
 
-# 正準 JSON のスキーマ
+# The canonical JSON schema
 
-[正準 JSON](index.md) のキーごとのリファレンス。すべての例は同梱の建物から実際に出力したものである。
+A key-by-key reference for [canonical JSON](index.md). Every example here was produced by actually running the tool on a bundled building.
 
-## 省略の規則
+## What is omitted
 
-**値の無いキーは出力されない。**`koyu` `h` `slab` `t` `edge` `attrs` `line` などは、原本に書かれていなければ現れない。空のブロック(`assets` / `polygons` / `columns` / `zones` / `areas` / `openings` / `segs`)も出力されない。
+**A key with no value is not emitted.** `koyu`, `h`, `slab`, `t`, `edge`, `attrs`, `line` and the rest appear only if the source wrote them. Empty blocks (`assets`, `polygons`, `columns`, `zones`, `areas`, `openings`, `segs`) are not emitted either.
 
-属性の値は**数値の形なら数値、それ以外は文字列**である。`underground` は真のときだけ `1` として出る。`air` は真のときだけ `true` として出る。
+Attribute values are **numbers if they have numeric form, strings otherwise**. `underground` is emitted as `1` only when true; `air` is emitted as `true` only when true.
 
-## 最上位
+## Top level
 
-キーはこの順に固定である。
+The key order is fixed.
 
-| キー | 有無 | 中身 |
+| Key | Present | Content |
 |---|---|---|
-| `format` | **常に** | この形式自身の版。現在は `"koyu-canonical/1.1"` |
-| `koyu` | 版宣言があるときだけ | [言語の版](../muro/version.md)の素通し |
-| `name` | `name` があるとき | 建物の名 |
-| `unit` | **常に** | 現在は `"mm"` のみ |
-| `grid` | **常に** | `{ "X": [座標…], "Y": [座標…] }` — 通り名 `X1..` は暗黙 |
-| `levels` | **常に** | 名 → `{ z, h?, slab?, underground? }`。キーは照合順 |
-| `assets` | 宣言があるとき | 名 → `{ kind, attrs? }`。キーは照合順 |
-| `polygons` | 宣言があるとき | パス → `[[x, y], …]`。キーは照合順 |
-| `columns` | 宣言があるとき | 配列。**宣言順のまま** |
-| `zones` | 宣言があるとき | パス → `{ attrs? }`。キーは照合順 |
-| `spaces` | **常に** | パス → 空間。キーはパスの照合順 |
-| `boundaries` | **常に** | 配列。`between` の辞書順、同一 `between` は内容の正準順 |
+| `format` | **always** | the version of this format itself; currently `"koyu-canonical/1.1"` |
+| `koyu` | only with a version declaration | [the language version](../muro/version.md), passed through |
+| `name` | if `name` was written | the name of the building |
+| `unit` | **always** | currently `"mm"` only |
+| `grid` | **always** | `{ "X": [coords…], "Y": [coords…] }` — the names `X1..` are implicit |
+| `levels` | **always** | name → `{ z, h?, slab?, underground? }`; keys in collation order |
+| `assets` | if declared | name → `{ kind, attrs? }`; keys in collation order |
+| `polygons` | if declared | path → `[[x, y], …]`; keys in collation order |
+| `columns` | if declared | an array, **in declaration order** |
+| `zones` | if declared | path → `{ attrs? }`; keys in collation order |
+| `spaces` | **always** | path → space; keys in path collation order |
+| `boundaries` | **always** | an array; lexicographic by `between`, ties by canonical content |
 
 ## grid
 
@@ -38,7 +38,7 @@ mode: reference
 "grid": { "X": [0, 3600, 7200], "Y": [0, 4500] }
 ```
 
-座標の配列だけを持つ。通り名は先頭から `X1` `X2` … と暗黙に振られるので綴られない。
+Only the coordinate arrays. Grid names are implicitly `X1`, `X2`, … from the front, so they are not spelled.
 
 ## levels
 
@@ -49,12 +49,12 @@ mode: reference
 }
 ```
 
-| キー | 意味 |
+| Key | Meaning |
 |---|---|
-| `z` | FL の高さ mm。**常に出る** |
-| `h` | 天井高 mm |
-| `slab` | 床組み厚 mm |
-| `underground` | 地下であることの宣言。**`z` の負値からは推定しない** — 書かれたときだけ `1` として出る |
+| `z` | FL height in mm. **Always present** |
+| `h` | ceiling height in mm |
+| `slab` | floor construction depth in mm |
+| `underground` | the declaration that a level is below ground. **Never inferred from a negative `z`** — emitted as `1` only when written |
 
 ## assets
 
@@ -64,7 +64,7 @@ mode: reference
 }
 ```
 
-建具の型である。`kind` は `door` / `window`。開口が `ref` でこれを引く。
+A type of joinery. `kind` is `door` or `window`. Openings reach it through `ref`.
 
 ## polygons
 
@@ -72,7 +72,7 @@ mode: reference
 "polygons": { "/site": [[-2600, -7000], [38000, -7000], [38000, 19600], [2000, 21000], [-2600, 15000]] }
 ```
 
-**与件の形状であり、唯一「原本に書かれる幾何」である。**頂点列は幾何(巡回)なので並べ替えない。
+**A given, and the one geometry written into the source.** The vertex list is geometry (cyclic) and is never reordered.
 
 ## columns
 
@@ -83,15 +83,15 @@ mode: reference
 ]
 ```
 
-| キー | 意味 |
+| Key | Meaning |
 |---|---|
-| `size` | 断面の幅 mm |
-| `d` | 奥行 mm。書かれていなければ `size` と同じなので出ない |
-| `levels` | 立つレベルの列 |
-| `x` / `y` | 狙う通り名。省けばすべての通り。**通りの並び順に整えられる**(`x:X2,X1` と `x:X1,X2` は同じ構成である) |
-| `attrs` | 属性 |
+| `size` | section width in mm |
+| `d` | depth in mm. Omitted when it equals `size` |
+| `levels` | the levels the column stands on |
+| `x` / `y` | the grids it targets. Omit for all grids. **Ordered by grid order** (`x:X2,X1` and `x:X1,X2` are the same composition) |
+| `attrs` | attributes |
 
-**この配列だけは並べ替えない。**同じ交点に二本は立たず先の宣言が勝つので、宣言順が構成そのものである。
+**This is the one array that is never sorted.** Two columns never stand on the same intersection and the earlier declaration wins, so declaration order is the composition itself.
 
 ## zones
 
@@ -99,7 +99,7 @@ mode: reference
 "zones": { "/L3/A": { "attrs": { "name": "Aタイプ", "use": "exclusive" } } }
 ```
 
-集約は属性しか持たない。領域も型も持たない。
+A zone carries attributes only. No region, no type.
 
 ## spaces
 
@@ -117,15 +117,15 @@ mode: reference
 }
 ```
 
-| キー | 有無 | 中身 |
+| Key | Present | Content |
 |---|---|---|
-| `type` | 書かれたとき | 空間の型。**任意**なので、書かなければこの鍵は現れない (既定は捏造しない) |
-| `level` | 明示のときだけ | **パス先頭のセグメントと所属レベルが違うとき**(メゾネット等)にだけ出る。既定は省略される |
-| `at` | 領域があるとき | 通り名 4 つ組。**矩形が一つなら平坦な 4 つ組、複数なら 4 つ組の配列**で、配列は内容の正準順に並ぶ |
-| `attrs` | 属性があるとき | キーは照合順 |
-| `areas` | `area` があるとき | `{ at, attrs? }` の配列。内容の正準順 |
+| `type` | when written | the type of the space. **Optional**, so the key is absent when none was written (no default is fabricated) |
+| `level` | only when explicit | emitted only when the level differs from the first path segment (a maisonette, say). The default is omitted |
+| `at` | if there is a region | four grid names. **A flat quadruple for a single rectangle, an array of quadruples for several**, sorted by canonical content |
+| `attrs` | if there are attributes | keys in collation order |
+| `areas` | if `area` was written | an array of `{ at, attrs? }` in canonical content order |
 
-`at` の 4 つ組は `[X始, Y始, X終, Y終]` である。逆順に書かれた表記(`X2..X1`)は座標昇順に正規化される。
+The quadruple is `[X start, Y start, X end, Y end]`. A reversed notation (`X2..X1`) is normalised to ascending coordinates.
 
 ## boundaries
 
@@ -146,20 +146,20 @@ mode: reference
 }
 ```
 
-| キー | 有無 | 中身 |
+| Key | Present | Content |
 |---|---|---|
-| `between` | **常に** | 昇順の 2 パス。**関係の同一性の鍵である** |
-| `a` | **常に** | **書かれた向き** — 先に書いた空間。`edge` と `swing` はこの側から読む。これが無いと JSON だけでは開き勝手を復元できない |
-| `kind` | **常に** | `wall` / `open` / `stair` / `shaft` / `void` |
-| `t` | 書かれたとき | 壁厚 mm |
-| `air` | 真のときだけ | `true`。遮蔽しない物(手すり・柵) |
-| `edge` | 書かれたとき | `N` / `E` / `S` / `W` — 線分を a 側から見た辺で絞る |
-| `line` | 書かれたとき | 描かれた線の端点の対。**通り語の綴りのまま**、解決座標の昇順 |
-| `attrs` | 属性があるとき | `spec` `fire` `h` など |
-| `openings` | 開口があるとき | 内容の正準順 |
-| `segs` | `seg` があるとき | 内容の正準順 |
+| `between` | **always** | the two paths in ascending order. **This is the identity of the relation** |
+| `a` | **always** | **the written direction** — the space written first. `edge` and `swing` are read from that side. Without it, the swing cannot be recovered from JSON alone |
+| `kind` | **always** | `wall` / `open` / `stair` / `shaft` / `void` |
+| `t` | if written | wall thickness in mm |
+| `air` | only when true | `true`. Something that does not enclose (a rail, a fence) |
+| `edge` | if written | `N` / `E` / `S` / `W` — narrows the segments to one face seen from a |
+| `line` | if written | the endpoint pair of a drawn line, **as grid words**, in ascending resolved coordinates |
+| `attrs` | if there are attributes | `spec`, `fire`, `h`, … |
+| `openings` | if there are openings | canonical content order |
+| `segs` | if there are `seg`s | canonical content order |
 
-`air:1` の境界の天端高は属性として出る。
+The top height of an `air:1` boundary is emitted as an attribute.
 
 ```json
 {
@@ -170,7 +170,7 @@ mode: reference
 }
 ```
 
-描かれた線を持つ境界。
+A boundary with a drawn line.
 
 ```json
 {
@@ -182,23 +182,23 @@ mode: reference
 }
 ```
 
-**線分は向きを持たない**ので、端点の対は解決座標の (x, 次いで y) 昇順に正準化される。綴りは書かれたとおりの通り参照のまま入れ替わる。
+**A segment has no direction**, so the endpoint pair is canonicalised to ascending resolved (x, then y). The spelling stays exactly the grid reference that was written; only the order swaps.
 
-**既定境界はここに出ない。**接する空間の既定は壁だが、正準 JSON は書かれた構成のみを持つ。
+**Default boundaries do not appear here.** Touching spaces default to a wall, but canonical JSON holds only the written composition.
 
 ## openings
 
-| キー | 有無 | 中身 |
+| Key | Present | Content |
 |---|---|---|
-| `kind` | **常に** | `door` / `window` |
-| `ref` | アセットを引くとき | アセット名 |
-| `w` | **常に** | 幅 mm |
-| `h` | 書かれたとき | 高さ mm |
-| `at` | **常に** | **比率なら数値、通り参照なら文字列**。書かれていなければ `0.5` |
-| `edge` | 書かれたとき | `N` / `E` / `S` / `W` |
-| `hinge` | 書かれたとき | 吊元 |
-| `swing` | 書かれたとき | 開く先 `a` / `b` |
-| `attrs` | 属性があるとき | `name` `style` など。**アセットから継いだ属性も展開されて出る** |
+| `kind` | **always** | `door` / `window` |
+| `ref` | when an asset is used | the asset name |
+| `w` | **always** | width in mm |
+| `h` | if written | height in mm |
+| `at` | **always** | **a number for a ratio, a string for a grid reference**. Unwritten it is `0.5` |
+| `edge` | if written | `N` / `E` / `S` / `W` |
+| `hinge` | if written | the hinge side |
+| `swing` | if written | the side it opens into, `a` / `b` |
+| `attrs` | if there are attributes | `name`, `style`, … **Attributes inherited from an asset are expanded and emitted too** |
 
 ## segs
 
@@ -208,19 +208,19 @@ mode: reference
 ]
 ```
 
-| キー | 有無 | 中身 |
+| Key | Present | Content |
 |---|---|---|
-| `w` | **常に** | 幅 mm |
-| `at` | **常に** | 比率なら数値、通り参照なら文字列 |
-| `edge` | 書かれたとき | `N` / `E` / `S` / `W` |
-| `attrs` | 属性があるとき | 区間上書きの `spec` など |
+| `w` | **always** | width in mm |
+| `at` | **always** | a number for a ratio, a string for a grid reference |
+| `edge` | if written | `N` / `E` / `S` / `W` |
+| `attrs` | if there are attributes | an interval override such as `spec` |
 
-`seg` は数えない分節である — 面積にもグラフにも現れず、区間の上書きだけを運ぶ。
+A `seg` is an uncounted segment — it appears in no area and no graph, and carries only an override over an interval.
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [正準 JSON](index.md) — 三つの安定性の規則とバイトの規範
-- [koyu json](../cli/json.md) — 出力の取り方
-- [boundary](../muro/boundary.md) / [space](../muro/space.md) — 書く側の記法
-- [seg](../muro/seg.md) / [area](../muro/area.md) — 数えない分節
-- [column](../muro/column.md) — 宣言順が意味である理由
+- [Canonical JSON](index.md) — the three stability rules and the byte-level norms
+- [koyu json](../cli/json.md) — how to get the output
+- [boundary](../muro/boundary.md) / [space](../muro/space.md) — the notation that produces this
+- [seg](../muro/seg.md) / [area](../muro/area.md) — uncounted segments
+- [column](../muro/column.md) — why declaration order is meaning

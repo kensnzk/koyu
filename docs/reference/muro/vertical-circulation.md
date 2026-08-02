@@ -1,13 +1,13 @@
 ---
-title: 縦動線 — stair / ramp / escalator / lift
+title: Vertical circulation — stair / ramp / escalator / lift
 mode: reference
 ---
 
-# 縦動線 — stair / ramp / escalator / lift
+# Vertical circulation — stair / ramp / escalator / lift
 
-段数も踏面も踊り場も勾配も、`.muro` には書かれない。**書かれるのは領域と階高と「上る向き」だけで、形はそこから導かれる。**
+Riser counts, treads, landings and slopes are never written in `.muro`. **What is written is the region, the storey height and the direction of ascent; the form follows from those.**
 
-宣言は空間の属性である。**キーが装置を名指し、値が上る向きを言う。**
+The declaration is an attribute on a space. **The key names the device and the value gives the direction of ascent.**
 
 ```muro-part
 space /L1/st  stair      X1..X2 Y1..Y2 name:階段 stair:N form:return turn:R
@@ -16,30 +16,30 @@ space /L1/es  escalator  X3..X4 Y1..Y2 name:エスカレーター escalator:N la
 space /L1/ev  shaft      X4..X5 Y1..Y2 name:昇降機 lift:1
 ```
 
-| キー | 値 |
+| Key | Value |
 |---|---|
-| `stair:` | 上る向き `N` / `E` / `S` / `W` |
-| `ramp:` | 上る向き `N` / `E` / `S` / `W` |
-| `escalator:` | 上る向き `N` / `E` / `S` / `W` |
-| `lift:` | `1` (昇降機に向きは無い) |
+| `stair:` | Direction of ascent, `N` / `E` / `S` / `W` |
+| `ramp:` | Direction of ascent, `N` / `E` / `S` / `W` |
+| `escalator:` | Direction of ascent, `N` / `E` / `S` / `W` |
+| `lift:` | `1` (a lift has no direction) |
 
-向きは `N` = +Y、`S` = −Y、`E` = +X、`W` = −X である。第二引数の型 (`stair` `ramp` `shaft` …) は集計のための語彙であって、形を決めるのは属性のキーの方である。
+`N` is +Y, `S` is −Y, `E` is +X, `W` is −X. The type in the second position (`stair`, `ramp`, `shaft`, …) is open vocabulary used for aggregation; what generates the form is the attribute key.
 
-**一つの空間に宣言は一つだけである。**
+**One space carries one declaration.**
 
 ```text
 RUN01  More than one vertical circulation declaration: stair:N ramp:N (one space carries one)
 ```
 
-## 形が決まる条件
+## What has to hold for a form to exist
 
-宣言から形が一意に決まらなければ、`check` が止める。次の五つが揃っていなければならない。
+If the declaration does not determine a form uniquely, `check` stops. Five things must hold.
 
-1. 縦動線の宣言が**ちょうど一つ**
-2. 値が向きとして読める (昇降機なら `1`)
-3. 領域が**矩形一つ**である (`+` で合併した L 字は不可)
-4. レベルが特定できる
-5. 昇降機以外は、**上に次のレベルがある**
+1. Exactly **one** vertical circulation declaration
+2. A value that reads as a direction (`1` for a lift)
+3. A region that is **a single rectangle** — an L shape built with `+` will not do
+4. A level that can be determined
+5. For everything but a lift, **a level above**
 
 ```text
 RUN02  The value of stair is the direction it rises, N/E/S/W: stair:up
@@ -48,58 +48,58 @@ RUN03  The region of vertical circulation is a single rectangle (a union leaves 
 SUF04  No level sits above L3, so no form is generated for /L3/st
 ```
 
-`SUF04` だけが警告で、残りはエラーである。**昇降機は上のレベルが無くても形を持つ** — かごはそのレベルの中で閉じる。
+`SUF04` is a warning; the rest are errors. **A lift has a form even with no level above it** — the car closes within its own level.
 
-## form — 直と折返し
+## form — straight and turning back
 
 ```text
-form:straight   直進 (既定)
-form:return     折返し
+form:straight   straight (the default)
+form:return     turning back
 ```
 
-**折返せるのは階段と斜路だけである。**エスカレーターと昇降機に `form:return` を書けばエラーになる。曲線は無い — 螺旋は折返しの連続として書く。
+**Only a stair and a ramp turn back.** `form:return` on an escalator or a lift is an error. There are no curves — a spiral is written as a succession of turns.
 
 ```text
 RUN05  form is straight / return: form:spiral (write a spiral as a succession of turns)
 RUN05  form:return may not be written on escalator (only a stair and a ramp turn back)
 ```
 
-`turn:` は折返しの回り方で、**`L` と書いたときだけ左**、未記入も他の値も右 (`R`) である。`turn:R` なら第一の走りが進行方向の左に来る。
+`turn:` picks the direction of the turn, and **only the literal `L` means left** — anything else, including nothing, is right (`R`). With `turn:R` the first flight lies on the left of the direction of travel.
 
-## 乗り込みの帯
+## The boarding band
 
-走りは領域の縁からは始まらない。**近端に乗り込みの帯が残り、そこが扉の開く場所になる。**縁から始めると階段室の扉が段板に直接ぶつかる。直進では遠端にも同じ帯が残る。
+A flight does not begin at the edge of the region. **A boarding band is left at the near end, and that is where the door opens.** Starting at the edge would drive the stair enclosure's door straight into the treads. A straight run leaves the same band at the far end.
 
 ```text
-form:straight   走りに使える長さ = 全長 − entry × 2
-form:return     走りに使える長さ = 全長 − entry
+form:straight   usable length = full length − entry × 2
+form:return     usable length = full length − entry
 ```
 
-`entry:` の既定は **1100mm**。この帯が全長を食い切ると形が決まらない。
+`entry:` defaults to **1100mm**. When that band eats the whole length, no form is determined.
 
 ```text
 RUN05  The form of the vertical circulation is undetermined: /L1/s (check that the landing does not exceed the full length)
 ```
 
-## 段割り
+## Dividing the steps
 
-蹴上げの数は、階高を蹴上げの上限で割った切り上げ (最低2段)。踏面は、**走り一本**の長さをその走りの段の隙間の数で割った残りである。折返しでは走りが二本あって踏面も二つ出るので、代表するのは窮屈な方になる (後述の[集約値](#集約値))。
+The riser count is the rise divided by the riser limit, rounded up, with a floor of two. The tread is the length of **one flight** divided by the number of gaps between that flight's steps. A turning run has two flights and therefore two treads, and the more cramped one represents it (see [aggregate values](#aggregate-values) below).
 
 ```text
-段数   = max(2, ceil(上る高さ ÷ riser))
-蹴上げ = 上る高さ ÷ 段数
-踏面   = 走り一本の長さ ÷ max(1, その走りの段数 − 1)
-  form:straight   走り一本 = 走りに使える長さ、その走りの段数 = 全段数
-  form:return     走り一本 = 全長 − entry − 踊り場、段数は下の走りが k・上の走りが 段数 − k
+risers = max(2, ceil(rise ÷ riser))
+riser  = rise ÷ risers
+tread  = the length of one flight ÷ max(1, that flight's risers − 1)
+  form:straight   one flight = the usable length, and its risers are all of them
+  form:return     one flight = full length − entry − landing; k risers below, risers − k above
 ```
 
-`riser:` は**蹴上げの上限** mm で、既定は **180**。書けば段数が変わる。
+`riser:` is the **upper limit** on a riser in mm, defaulting to **180**. Writing it changes the riser count.
 
-折返しの中間踊り場は**残余として決まる**。走り長・踏面・踊り場は一つの式で結ばれていて、書けるのは高々二つである。設計者が握りたいのは踏面の快適さなので、既定では残余を踊り場へ寄せる — 目標踏面 `tread:` (既定 **300mm**) を先に取り、残りが踊り場になる。逆に `landing:` を書けば踏面が残余になる。導出値も書かれた値も、**最小奥行 1100mm** を下回れば 1100mm まで引き上げられる。
+The intermediate landing of a turning run **falls out as the remainder**. Flight length, tread and landing are bound by one equation, and at most two of them can be written. What a designer wants to hold is the comfort of the tread, so by default the remainder is pushed into the landing: the target tread `tread:` (default **300mm**) is taken first and what is left becomes the landing. Write `landing:` instead and the tread becomes the remainder. Derived or written, a landing shallower than the **1100mm minimum** is raised to 1100mm.
 
-段の分割は `k = min(段数−1, max(1, round(段数÷2)))` で、踊り場の高さは FL + k×蹴上げ。round が半数を切り上げるので、**奇数段では下の走りが一段多い**。斜路の折返しは踊り場を高さのちょうど半分に置く。
+The steps split at `k = min(risers−1, max(1, round(risers ÷ 2)))`, and the landing sits at FL + k × riser. Because `round` takes a half upwards, **an odd riser count gives the lower flight one more step**. A turning ramp puts its landing at exactly half the height.
 
-導出の結果は `runs` が印字する。
+`runs` prints what was derived.
 
 ```text
 $ koyu runs core.muro
@@ -109,75 +109,75 @@ L2→R	lift	昇降機	/L2/ev
 L2→R	stair	階段	rise 4200mm	return	24 risers of 175mm, tread 300mm	going 6600mm	/L2/st
 ```
 
-## 並列 — エスカレーター
+## Parallel units — escalators
 
-エスカレーターだけが並列の台を持つ。一台の呼び幅は `lane:` (既定 **1200mm**)、台数は 幅 ÷ 呼び幅 の切り捨てで最低一台、一台の幅は呼び幅と 幅÷台数 の小さい方、余りは両端に等分される。
+Only an escalator has parallel units. The nominal width of one unit is `lane:` (default **1200mm**); the count is the width divided by that, rounded down, with a floor of one; one unit is the smaller of the nominal width and width ÷ count; the remainder is split evenly between the two sides.
 
-**台ごとに走る向きが交互になる** — 上りの隣は上から降りてくる一台である。
+**The units alternate in direction** — the one beside an up escalator comes down.
 
-`lane:` は階段・斜路・昇降機では効かない。台数は常に一である。
+`lane:` does nothing on a stair, a ramp or a lift. Their count is always one.
 
 ```text
 $ koyu runs examples/complex/main.muro
 L1→L2	escalator	エスカレーター	rise 6600mm	straight	slope 1/1.5	going 9800mm	/L1/es
 ```
 
-## 集約値
+## Aggregate values
 
-一つの走りが複数の区間に分かれるとき、代表する値の取り方は決まっている。
+When one run splits into several parts, which part represents it is fixed.
 
-| 値 | 取り方 |
+| Value | How it is taken |
 |---|---|
-| 走りの水平長 (`going`) | **一台目だけ**を数える (折返しの二本はどちらも数える) |
-| 踏面 | **最も窮屈な走り**が代表する |
-| 勾配 | **最も急な走り**が代表する |
+| Total horizontal flight length (`going`) | **The first unit only** (both flights of a turning run count) |
+| Tread | **The most cramped flight** represents it |
+| Slope | **The steepest flight** represents it |
 
-折返しの二本目は段数が多い分だけ細かい。一本目だけを見ると、窮屈な走りが検査をすり抜ける。
+The second flight of a turning run carries more steps and is therefore finer. Look only at the first and a cramped flight slips past the checks.
 
-## 属性の一覧
+## The attributes
 
-| キー | 既定 | 何を決めるか |
+| Key | Default | What it decides |
 |---|---|---|
-| `stair:` `ramp:` `escalator:` | — | 装置と上る向き (`N`/`E`/`S`/`W`) |
-| `lift:` | — | 昇降機 (値は `1`) |
-| `form:` | `straight` | `straight` / `return`。折返せるのは階段と斜路だけ |
-| `turn:` | `R` | 折返しの回り方。`L` と書いたときだけ左 |
-| `entry:` | 1100 | 乗り込みの帯の奥行 mm |
-| `landing:` | 導出 | 中間踊り場の奥行 mm (最小 1100) |
-| `riser:` | 180 | 蹴上げの**上限** mm。段数を決める |
-| `tread:` | 300 | 目標踏面 mm。折返しの踊り場を導くのに使う |
-| `lane:` | 1200 | 一台の呼び幅 mm。エスカレーターだけが読む |
-| `slope:` | — | 許容勾配の分母。**形には効かない** — 検証だけが読む閾値 |
+| `stair:` `ramp:` `escalator:` | — | The device and the direction of ascent (`N`/`E`/`S`/`W`) |
+| `lift:` | — | A lift (the value is `1`) |
+| `form:` | `straight` | `straight` / `return`. Only a stair and a ramp turn back |
+| `turn:` | `R` | Direction of the turn. Only a literal `L` means left |
+| `entry:` | 1100 | Depth of the boarding band in mm |
+| `landing:` | derived | Depth of the intermediate landing in mm (minimum 1100) |
+| `riser:` | 180 | **Upper limit** on a riser in mm. It sets the riser count |
+| `tread:` | 300 | Target tread in mm, used to derive a turning run's landing |
+| `lane:` | 1200 | Nominal width of one unit in mm. Only an escalator reads it |
+| `slope:` | — | The denominator of an acceptable slope. **It does not affect the form** — only validation reads it |
 
-`entry:` `landing:` `riser:` `tread:` `lane:` `slope:` はいずれも正の数でなければならない。
+`entry:`, `landing:`, `riser:`, `tread:`, `lane:` and `slope:` must all be positive numbers.
 
-## トポロジーは別に書く
+## The topology is written separately
 
-**縦動線の宣言は形を作るだけで、階を繋がない。**「どのレベルとどのレベルが通じているか」は垂直の境界が持つ — `stack` か、`boundary … type:stair` である。
+**A vertical circulation declaration makes a form; it does not join storeys.** Which level connects to which is held by a vertical boundary — `stack`, or `boundary … type:stair`.
 
 ```muro-part
 space /L1..L2/st stair X1..X2 Y2..Y3 name:階段 stair:N form:return
 stack st L1..L2 type:stair
 ```
 
-**縦の通行可能性は `stair` の一語が引き受ける。**階段も斜路もエスカレーターもトポロジーは同じなので、境界の型は増やさない。装置の違いは空間側の宣言だけが持つ。昇降機のシャフトは `type:shaft` で、連続するが人は通れない。
+**Vertical passability is carried by the single word `stair`.** A stair, a ramp and an escalator have the same topology, so the set of boundary types does not grow; the difference between the devices lives only on the space. A lift shaft is `type:shaft` — continuous, but not passable.
 
-形だけを書いて垂直の境界を落とすと、`check` は緑のまま通る。言うのは `koyu validate` である。
+Write the form and leave out the vertical boundary and `check` stays green. It is `koyu validate` that says so.
 
 ```text
 ⚠ [run.disconnected] nostack.muro:line 13: /L1/st has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
 ```
 
-## 登りやすさは check の保証ではない
+## Climbability is not what check guarantees
 
-`check` が言うのは「宣言から形が一意に決まる」までである。**決まった形が登りやすいかは別の面が言う。**
+What `check` says goes as far as "the declaration determines a form uniquely". **Whether that form is comfortable to climb is said by a different surface.**
 
-| 判定 | いつ出るか |
+| Verdict | When it appears |
 |---|---|
-| `stair.proportion` | 導出された踏面が 240mm 未満、または 2×蹴上げ+踏面 が 550〜700mm の外 |
-| `run.slope` (斜路) | 導出された勾配が、書かれた `slope:` の 1/N より急 |
-| `run.slope` (エスカレーター) | 導出された勾配が常用域 (およそ 1/1.7 = 30度) の外 |
-| `run.disconnected` | 形はあるが、階を繋ぐ垂直の境界が無い |
+| `stair.proportion` | The derived tread is under 240mm, or 2 × riser + tread falls outside 550–700mm |
+| `run.slope` (ramp) | The derived slope is steeper than the 1/N written as `slope:` |
+| `run.slope` (escalator) | The derived slope is outside the usual range (about 1/1.7, i.e. 30 degrees) |
+| `run.disconnected` | The form exists but no vertical boundary joins the levels |
 
 ```text
 $ koyu validate a.muro
@@ -186,17 +186,17 @@ $ koyu validate a.muro
 ⚠ [run.slope] a.muro:line 15: Derived slope 1/0.9 is outside the usual escalator range (about 1/1.7 = 30 degrees)
 ```
 
-閾値は日本の慣行の粗い写しであり、凍っていない。**これらは判定であって、保証ではない。**
+The thresholds are a coarse copy of Japanese practice and are not frozen. **These are judgements, not guarantees.**
 
-## 平面と立体に現れるもの
+## What reaches the drawings
 
-平面図は「そのレベルで FL から 1200mm の高さで切った断面」である。上る走りは切断面と部品の高さを比べて可視区間が決まり、下りる走りは同じ枠を共有する上りの走りが**隠した残り**に現れる。段鼻は可視区間の中だけに並び、切断線は走りの幅いっぱいを横切る一本の線分として出る。
+A plan is the section cut at 1200mm above FL on that level. An ascending run's visible extent follows from comparing the cut with the heights of its parts; a descending run appears in **what its twin ascending run left uncovered**. Nosings are drawn only inside the visible extent, and the cut appears as a single line crossing the full width of the run.
 
-矢印は、エスカレーターなら台ごとに、階段と斜路なら出発する走りと到着する走りに一本ずつ。向きは人の進む向きだけから決まり、**エスカレーターはどちらの面でも同じ向きを指し、階段と斜路は下りの面で反転する** — 機械の向きは固定で、人の向きは面で変わるからである。
+Arrows go one per unit on an escalator, and one each on the departing and the arriving run for a stair or a ramp. Their direction comes from the direction people travel, so **an escalator points the same way on both floors while a stair and a ramp reverse on the upper one** — the machine's direction is fixed and the person's changes with the floor.
 
-立体では、階段の走りは蹴上げ k 段に対して段板 **k−1 枚** (最上段は上階の床が受ける)、斜路は傾いた版一枚、エスカレーターは**一台につき版一枚と欄干二枚**、昇降機のかごは**階高に依らず一定の高さ**の箱になる。欄干の寸法は [form/constants.md](../form/constants.md) にある。
+In three dimensions a stair flight of k risers carries **k−1 treads** (the top step is received by the floor above), a ramp is one inclined slab, an escalator is **one slab plus two balustrades per unit**, and a lift car is a box of **constant height regardless of the storey height**. The balustrade dimensions are in [form/constants.md](../form/constants.md).
 
-## 通しの例
+## A complete example
 
 ```muro
 koyu 1.1
@@ -249,12 +249,12 @@ $ koyu validate core.muro
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
 ```
 
-階段の領域は 2800 × 6600mm、上る高さは 4200mm。乗り込み 1100mm を引いた 5500mm から、目標踏面 300mm で踊り場 2200mm が残余として決まり、走り一本が 3300mm、蹴上げは 24 段で 175mm、踏面は 300mm になる。**その数字はどこにも書かれていない。**
+The stair's region is 2800 × 6600mm and the rise is 4200mm. Taking the 1100mm boarding band off leaves 5500mm; a target tread of 300mm leaves a 2200mm landing as the remainder, so each flight is 3300mm, the 24 risers come out at 175mm, and the tread is 300mm. **None of those numbers is written anywhere.**
 
-## 関連
+## See also
 
-- [stack](stack.md) — 階を跨ぐ関係の一括宣言とスパン展開
-- [space](space.md) — 空間の宣言、領域とパス
-- [boundary](boundary.md) — 境界の型、水平と垂直
-- [koyu check](../cli/check.md) — 形が一意に決まるかを見る門番
-- [koyu validate](../cli/validate.md) — 登りやすさの判定
+- [stack](stack.md) — declaring relations across storeys at once, and span expansion
+- [space](space.md) — declaring spaces, regions and paths
+- [boundary](boundary.md) — boundary types, horizontal and vertical
+- [koyu check](../cli/check.md) — the gate that asks whether a form is determined
+- [koyu validate](../cli/validate.md) — the judgement on climbability

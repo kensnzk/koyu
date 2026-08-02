@@ -1,13 +1,13 @@
 ---
-title: Model と構成型
+title: Model and its types
 mode: reference
 ---
 
-# Model と構成型
+# Model and its types
 
-`Model` は `.muro` を読んで合成した結果である。**書かれた構成がそのまま入っていて、形はほとんど入っていない** — 壁の位置も、床も、屋根も、柱の座標も、ここには無く、[`derive`](derive.md) が規則から起こす。
+A `Model` is the result of reading and composing `.muro`. **It holds the written composition and almost no form** — the position of a wall, the floors, the roof, the coordinates of a column are not in it. [`derive`](derive.md) raises those from rules.
 
-型はすべて `@kensnzk/koyu` から出ている。値を持たない純粋な型なので `import type` で引ける。
+Every type here comes from `@kensnzk/koyu`. They carry no runtime value, so `import type` is enough.
 
 ```ts
 import type { Model, Space, Boundary, Opening, Pt } from "@kensnzk/koyu";
@@ -35,7 +35,7 @@ interface Model {
 }
 ```
 
-**単位は mm の一つだけである。**`unit` は常に `"mm"` で、他の値を取らない。座標も寸法もすべて mm の数で、面積を返す関数だけが ㎡ を返す。
+**There is exactly one unit: millimetres.** `unit` is always `"mm"` and takes no other value. Every coordinate and dimension is a number of millimetres; only the area functions return m².
 
 ```ts
 import { parseFile } from "@kensnzk/koyu/node";
@@ -66,11 +66,11 @@ console.log({
 }
 ```
 
-`version` は言語版で、宣言が無ければ既定 (`1.0`) が入る。**宣言されたかどうかは `versionDeclared` が別に持つ** — [正準JSON](canonical.md) はこれを見て `koyu` キーを出すか決める。受理される版の一覧は [言語版](versions.md)。
+`version` is the language version; with no declaration the default (`1.0`) goes in. **Whether it was declared is held separately in `versionDeclared`** — [canonical JSON](canonical.md) reads that to decide whether to emit the `koyu` key. The accepted versions are listed under [language versions](versions.md).
 
-### layers — 層の強度順序
+### layers — the strength order
 
-`layers` は合成に参加したレイヤーの一覧である。**この並びが層の強度順序である** — 添字0の entry が最も弱く、**後の層ほど強い。**並びは `import` 行を深さ優先で平坦化した順で、同じ層が二度現れれば最初の位置を保つ。単一ソースの `parse` では空になる。
+`layers` lists the layers that took part in composition. **This order is the strength order of the layers**: index 0, the entry, is the weakest, and **later layers are stronger**. The order is the `import` lines flattened depth-first, with a layer that appears twice keeping its first position. For a single-source `parse` it is empty.
 
 ```ts
 const m = parseFile("examples/house/main.muro");
@@ -87,11 +87,11 @@ console.log(m.layers.map((l) => l.replace(process.cwd() + "/", "")));
 ]
 ```
 
-入るのは**解決済みの絶対パス**である (上の出力は見やすさのために cwd を削っている)。診断の `file` フィールドもこの値である。
+What actually goes in is the **resolved absolute path** (the output above strips the working directory for readability). The `file` field on a diagnostic carries the same value.
 
-### attrSrc — 属性ごとの出所
+### attrSrc — where each attribute came from
 
-`attrSrc` のキーは `<種別>:<対象>:<属性キー>`、値は `layers` の添字である。**最終的な値をどの層が与えたかを言えるようにするためにある。**強い層の意見だけを通す `over` はここを読む — 走査の順ではなく強度で決まる。
+The keys of `attrSrc` are `<kind>:<subject>:<attribute key>` and the values are indices into `layers`. **It exists so you can say which layer gave the final value.** `over`, which lets only the stronger layer's opinion through, reads it — strength decides, not scan order.
 
 ```ts
 import { parseFiles } from "@kensnzk/koyu";
@@ -125,19 +125,19 @@ console.log(m.compositionEdits);
 ]
 ```
 
-`compositionEdits` は `over` / `drop` / 集合編集 (`+` `-` `=`) が書かれた箇所の列である。**上書きの跡は合成後のモデルにも正準JSONにも残らない**ので、旧い言語版のファイルが新しい語を使っているのを診断が捕まえるために、ここだけが宣言の出所を走査の順に持つ。導出も正準形もこれを読まない。
+`compositionEdits` records where `over`, `drop` and the set edits (`+` `-` `=`) were written. **No trace of an override survives into the composed model or into canonical JSON**, so this one list keeps the declarations in scan order purely so a diagnostic can catch an older-version file using a newer word. Neither derivation nor the canonical form reads it.
 
 ## GridAxis / GridRef / Rect / Pt / Edge
 
 ```ts
-interface GridAxis { names: string[]; coords: number[] }  // 通り名と座標 mm (同順)
+interface GridAxis { names: string[]; coords: number[] }  // names and mm coordinates, same order
 interface GridRef { xa: string; xb: string; ya: string; yb: string }
 interface Rect { x1: number; y1: number; x2: number; y2: number }  // x1<x2, y1<y2
 interface Pt { x: number; y: number }
 type Edge = "N" | "E" | "S" | "W";
 ```
 
-通り名は宣言順に `X1` `X2` … と振られる。**名は位置から読まれる**ので、座標を途中に挿すと以降の名が付け替わる。
+Grid names are assigned in declaration order: `X1`, `X2`, … **A name is read from its position**, so inserting a coordinate in the middle renames everything after it.
 
 ```ts
 console.log(m.grid);
@@ -150,7 +150,7 @@ console.log(m.grid);
 }
 ```
 
-`Edge` の方角は **N=+Y・S=−Y・E=+X・W=−X** である。X は東が正、Y は北が正。`edge` を書いた要素は「最初に書いた空間の矩形から見た辺」を指す。
+The compass of `Edge` is **N=+Y, S=−Y, E=+X, W=−X**: X is positive to the east, Y positive to the north. An element carrying `edge` names a side of the rectangle of the space written first.
 
 ## Attrs / AttrValue
 
@@ -159,25 +159,25 @@ type AttrValue = string | number;
 type Attrs = Record<string, AttrValue>;
 ```
 
-属性の値は文字列か数である。**数に見える綴りは数として入る** — `h:2400` は `2400` であって `"2400"` ではない。真偽値は無く、`daylight:1` のように `0` / `1` で書く。
+An attribute value is a string or a number. **A spelling that looks numeric goes in as a number** — `h:2400` is `2400`, not `"2400"`. There is no boolean; write `0` / `1`, as in `daylight:1`.
 
-どの鍵を書いてよいかは台帳が定める。台帳に無く名前空間も持たない鍵は `ATT03` のエラーになる — [属性の三層](../muro/attributes.md)。
+Which keys may be written is fixed by a ledger. A key absent from it and carrying no namespace is the `ATT03` error — see [the three tiers of attributes](../muro/attributes.md).
 
 ## Level
 
 ```ts
 interface Level {
   name: string;
-  z: number;          // FL の高さ mm
-  h?: number;         // 階の基準天井高 mm
-  slab?: number;      // 床組み厚 mm (下階の天井面から自階FLまで)
+  z: number;          // finished floor level, mm
+  h?: number;         // the storey's reference ceiling height, mm
+  slab?: number;      // floor build-up, mm (ceiling of the storey below up to this FL)
   underground?: boolean;
   line: number;
   file?: string;
 }
 ```
 
-**地下は `z` の負値から推定しない。**地盤面は敷地の事実であって座標系の原点の事実ではないので、`underground` は宣言である。地上/地下の床面積の集計と矩計の表示がこれを読む。
+**Being underground is not inferred from a negative `z`.** Ground level is a fact about the site, not about where the origin of the coordinate system happens to sit, so `underground` is declared. Above/below-ground floor-area totals and the section display read it.
 
 ```ts
 console.log(m.levels["L1"]);
@@ -194,9 +194,9 @@ console.log(m.levels["L1"]);
 }
 ```
 
-`line` と `file` はどの要素にも付いている。**出所を持たない宣言は無い** — 診断が位置を言えるようにするためである。
+`line` and `file` are on every element. **No declaration is without a source** — that is what lets a diagnostic name a position.
 
-(この頁に貼った出力の `/Users/…/` は、解決済みの絶対パスを紙面のために縮めた表記である。実際には省略の無いフルパスが入る。)
+(The `/Users/…/` in the output on this page is a resolved absolute path shortened to fit the page. The real value is the full path.)
 
 ## Space
 
@@ -215,16 +215,16 @@ interface Space {
 }
 ```
 
-**パスが同一性である。**`/L1/a` のように人間が読める階層で名指し、パスの第一義は集計の階層である。レベルは既定でパスの先頭セグメントから読むが、階を跨ぐくくり (メゾネット) は `level:` 属性で明示する。
+**The path is the identity.** It names the space in a hierarchy a human can read, like `/L1/a`, and its first purpose is the hierarchy of aggregation. The level is read from the first segment by default; a grouping that crosses storeys (a maisonette) states it with the `level:` attribute.
 
-`type` は開かれた語彙である (`room` `corridor` `exterior` `void` …)。構造的に解釈されるのは `exterior` (外部) と `void` (床面積に算入しない) の二語だけで、残りは書き手の言葉として運ばれる。
+`type` is an open vocabulary (`room`, `corridor`, `exterior`, `void`, …). Only two words are read structurally — `exterior` (outside) and `void` (not counted into floor area). The rest is carried as the author's own word.
 
-**`rects` と `pieces` は別のものである。**
+**`rects` and `pieces` are not the same thing.**
 
-- `rects` は**書かれた割付** — グリッド参照 (`grids`) を解決した mm 矩形の列。L字などは複数の矩形の合併として書かれる。
-- `pieces` は**導出された領域** — 凸片の集合。既定は `rects` を写したものだが、境界に線が描かれていればその半平面で切り分けた結果になる。
+- `rects` is the **written allocation**: the mm rectangles you get by resolving the grid references in `grids`. An L-shape is written as a union of rectangles.
+- `pieces` is the **derived region**: a set of convex pieces. By default it is a copy of `rects`, but where a line has been drawn on a boundary it is the result of cutting along that half-plane.
 
-**面積・平面図・立体はすべて `pieces` を読む。**`rects` は「書かれた綴り」として正準JSONに残る。領域を持たない空間 (`exterior` など) では両方とも空になる。
+**Area, plans and solids all read `pieces`.** `rects` survives into canonical JSON as the written spelling. For a space with no region (an `exterior`, say) both are empty.
 
 ```ts
 console.log(m.spaces.get("/home/ldk"));
@@ -265,7 +265,7 @@ interface Area {
 }
 ```
 
-**数えない分節である。**室に従属する領域 (床材の切替など) を表し、面積にも室数にも空間グラフにも一切現れない。運ぶのは属性の上書きだけである。
+**A subdivision that is not counted.** It marks a region subordinate to a room — a change of floor finish, say — and appears in no area, no room count and no space graph. All it carries is an attribute override.
 
 ```ts
 import { parseFile } from "@kensnzk/koyu/node";
@@ -294,7 +294,7 @@ interface Zone {
 }
 ```
 
-**数える集約である。**住戸・部門といった空間の上位のくくりで、**幾何を持たない** — 面積はパス接頭辞で束ねた空間の合計として [`zoneAreaM2`](queries.md#zoneaream2) が導く。
+**An aggregation that is counted** — a dwelling, a department, any grouping above spaces. It **carries no geometry**: its area is the sum over spaces gathered by path prefix, which [`zoneAreaM2`](queries.md#zoneaream2) derives.
 
 ```ts
 console.log(m.zones.get("/home"));
@@ -321,7 +321,7 @@ interface Asset {
 }
 ```
 
-建具の**型の宣言**である。`asset SD1 door w:800 style:sliding` と宣言し、開口が `door SD1 …` で参照する。インスタンス側の属性が上書きする。別ファイル (アセット集) に置いて `import` できる。
+A declaration of a **type** of joinery. You write `asset SD1 door w:800 style:sliding`, and an opening refers to it with `door SD1 …`. Attributes on the instance override those on the type. Put them in their own file and `import` it.
 
 ```ts
 console.log([...m.assets.values()][0]);
@@ -343,17 +343,17 @@ console.log([...m.assets.values()][0]);
 type BoundaryKind = "wall" | "open" | "stair" | "shaft" | "void";
 ```
 
-**kind が言うのは関係のトポロジーだけである。**手すり・カーテンウォールといった「実現する物」は kind に入らない — それは属性の言葉である。
+**The kind states only the topology of the relation.** A handrail, a curtain wall — the *thing* that realises the boundary — is not a kind; that is the language of attributes.
 
-| kind | 向き | 意味 | 通れるか |
+| kind | Direction | Meaning | Passable? |
 |---|---|---|---|
-| `wall` | 水平 | 物がある | 扉があるときだけ |
-| `open` | 水平 | 何もない | 通れる |
-| `stair` | 垂直 | 階段 | 通れる |
-| `shaft` | 垂直 | EV等 — 空間として連続するが人は通れない | 通れない |
-| `void` | 垂直 | 吹抜け — 床の不在 | 通れない |
+| `wall` | horizontal | something is there | only with a door |
+| `open` | horizontal | nothing is there | yes |
+| `stair` | vertical | a stair | yes |
+| `shaft` | vertical | a lift shaft — continuous as space, but people do not pass | no |
+| `void` | vertical | a void — the absence of floor | no |
 
-**垂直の既定は床 (slab) であり、書かない。**レベルの `slab` 宣言が一括で与える。水平の既定は壁で、これも書かない — 接する空間の組に宣言が一つも無ければ `kind:"wall"` の境界が導出される。
+**The vertical default is a slab, and it is never written.** The level's `slab` declaration supplies it wholesale. The horizontal default is a wall, equally unwritten: where two touching spaces have no declared boundary at all, a `kind:"wall"` boundary is derived.
 
 ## Boundary
 
@@ -363,8 +363,8 @@ interface Boundary {
   b: string;
   kind: BoundaryKind;
   drawn?: DrawnLine;
-  t?: number;          // 壁厚 mm (芯振り分け)
-  air?: boolean;       // 遮蔽しない (手すり・柵)
+  t?: number;          // wall thickness mm, split about the centre line
+  air?: boolean;       // does not enclose (handrail, fence)
   edge?: Edge;
   attrs: Attrs;
   openings: Opening[];
@@ -375,11 +375,11 @@ interface Boundary {
 }
 ```
 
-**境界はどちらの空間にも属さない。**二つの空間パスを結ぶ第一級の関係である。壁の位置は書かれない — 空間の割付から導出される ([`segmentsFor`](derive.md#segmentsfor))。
+**A boundary belongs to neither space.** It is a first-class relation joining two space paths. Its position is never written — it is derived from the allocation of the spaces ([`segmentsFor`](derive.md#segmentsfor)).
 
-`air:1` は**遮蔽しないこと**を言う。手すり・柵のように物はあるが外気と光を遮らないもので、通行可能性とは別の軸である (扉の無い `wall` は `air:1` でも通れない)。**外部に対して `open` または `air:1` の境界を持つ空間が半屋外と導出される。**
+`air:1` says the boundary **does not enclose**: a handrail or a fence, where something is there but neither air nor light is stopped. That is a different axis from passability (a `wall` with no door is impassable whether or not it has `air:1`). **A space with an `open` or `air:1` boundary to the exterior is derived as semi-outdoor.**
 
-`derived: true` は接触から導かれた既定境界の印である。**正準JSONには出ない** — 書かれた構成ではないからである。
+`derived: true` marks a default boundary raised from mere contact. **It never appears in canonical JSON**, because it is not written composition.
 
 ```ts
 console.log(m.boundaries.find((b) => b.openings.length > 0));
@@ -414,31 +414,31 @@ console.log(m.boundaries.find((b) => b.openings.length > 0));
 }
 ```
 
-`a` と `b` の向きが意味を持つのは `edge` と `swing` だけである。**形はそれに従わない** — 二空間のどちらを先に書いても、導出される凸片も壁線分も同じである。
+The order of `a` and `b` matters only to `edge` and `swing`. **Form does not follow it** — write the two spaces in either order and the derived convex pieces and wall segments are identical.
 
 ## Opening
 
 ```ts
 interface Opening {
   kind: "door" | "window";
-  ref?: string;        // 参照した建具アセット名
-  w: number;           // 幅 mm
-  h?: number;          // 高さ mm
-  at: number;          // 区間上の位置 0..1 (既定 0.5)
-  atRef?: string;      // 明示位置の綴り (at:X2+450)
-  atAbs?: number;      // その解決値 mm
+  ref?: string;        // the joinery asset referred to
+  w: number;           // width mm
+  h?: number;          // height mm
+  at: number;          // position along the segment, 0..1 (default 0.5)
+  atRef?: string;      // explicit position as written (at:X2+450)
+  atAbs?: number;      // its resolved value, mm
   atAxis?: "X" | "Y";
   edge?: Edge;
-  hinge?: Edge;        // 吊元の側
-  swing?: "a" | "b";   // 開く側
+  hinge?: Edge;        // which side the hinge is on
+  swing?: "a" | "b";   // which side it opens into
   attrs: Attrs;
   line: number;
 }
 ```
 
-**比率の `at` は線分に収まるようクランプされる。**通り参照 (`atAbs`) はクランプされず、はみ出しはエラーになる — 書いた位置が黙って動くことは無い。
+**A ratio `at` is clamped to fit the segment.** A grid reference (`atAbs`) is not clamped; running off the end is an error. A position you wrote never moves silently.
 
-`hinge` は線分の向きで許される値が決まる (水平線分なら `W`/`E`、垂直線分なら `S`/`N`)。既定は始端側。`swing` は境界の a 側 / b 側で、既定は領域を持つ方 (a を先に見る)。
+Which `hinge` values are allowed follows from the segment's direction (`W`/`E` on a horizontal segment, `S`/`N` on a vertical one); the default is the start end. `swing` is the boundary's a-side or b-side, defaulting to whichever has a region (a first).
 
 ## Seg
 
@@ -455,7 +455,7 @@ interface Seg {
 }
 ```
 
-**境界上の数えない分節である。**壁材が途中から変わる区間など。位置の書き方は開口と同じだが、**通行にも接続にも一切影響しない。**
+**An uncounted subdivision on a boundary** — a stretch where the wall material changes, say. It is positioned exactly as an opening is, but **affects neither passage nor connection.**
 
 ```ts
 const b = o.boundaries.find((x) => x.segs.length > 0)!;
@@ -470,28 +470,28 @@ console.log(b.a, b.b, b.segs[0]);
 
 ```ts
 interface DrawnLine {
-  aRef: string;    // 書かれた綴り
+  aRef: string;    // as written
   bRef: string;
-  a: Pt;           // 解決座標 mm
+  a: Pt;           // resolved coordinates, mm
   b: Pt;
   line: number;
   effect?: "cut" | "nothing" | "undetermined";
 }
 ```
 
-**空間を区切る設計の行為そのものである。**端点は通り語 (`X3,Y1` / `X3+600,Y2-900`) で書く — 生座標も角度も無い。境界が既定で持つ「隣接から導かれる線分」を、この線が置き換える。
+**The act of dividing space, written down.** Endpoints are written in grid words (`X3,Y1`, `X3+600,Y2-900`) — there are no raw coordinates and no angles. The line replaces the segment a boundary would otherwise derive from adjacency.
 
-**線分は向きを持たない。**同じ二点を結ぶ線はどちらの端から書いても同じ線なので、解析の出口で端点は解決座標の昇順 (x, then y) に揃えられる。`aRef` / `bRef` も一緒に入れ替わるので、診断が引用する綴りは書かれたとおりのまま並び替わる。揃えないと、開口の `at:` の起点が書き順で決まってしまい、**正準JSONがバイト同一のまま扉が別の位置に出る。**
+**A segment has no direction.** The same two points joined either way round are the same line, so at the exit of parsing the endpoints are ordered by resolved coordinate (x, then y). `aRef` and `bRef` swap with them, so a diagnostic still quotes what was written. Without this the start of `at:` on an opening would depend on writing order, and **canonical JSON would stay byte-identical while a door moved.**
 
-`effect` は**切り分けの帰結**で、導出したその場で記録される。
+`effect` is the **outcome of the cut**, recorded at the moment the cut is made.
 
-| `effect` | 意味 |
+| `effect` | Meaning |
 |---|---|
-| `"cut"` | 実際に形を切った |
-| `"nothing"` | 何も切らなかった (`LIN03` の警告になる) |
-| `"undetermined"` | 残す側が決まらない (`LIN01` のエラーになる) |
+| `"cut"` | it actually divided a shape |
+| `"nothing"` | it cut nothing (the `LIN03` warning) |
+| `"undetermined"` | which side to keep is not decidable (the `LIN01` error) |
 
-**正準JSONには出ない** — 書かれた構成ではなく導出の帰結だからである。後から計算し直すと、既に切られた形を相手に見ることになって母集団が食い違うので、判定と操作が同じ場所で同じ母集団を見るようになっている。
+**It never appears in canonical JSON** — it is an outcome of derivation, not written composition. Recomputing it later would examine shapes that have already been cut, so the judgement and the operation stay in one place, looking at one population.
 
 ```ts
 const c = parseFile("examples/complex/main.muro");
@@ -519,10 +519,10 @@ console.log({ a: dl.a, b: dl.b, kind: dl.kind, drawn: dl.drawn });
 
 ```ts
 interface ColumnDecl {
-  size: number;        // 一辺 mm
-  depth?: number;      // 矩形断面の奥行 mm
-  levels: string[];    // 展開済みレベル名 (z 昇順)
-  xNames?: string[];   // 限定する通り名。未指定は全通り
+  size: number;        // side, mm
+  depth?: number;      // depth of a rectangular section, mm
+  levels: string[];    // expanded level names, ascending in z
+  xNames?: string[];   // grid lines to restrict to; unset means all
   yNames?: string[];
   attrs: Attrs;
   line: number;
@@ -533,17 +533,17 @@ interface Column {
   x: number; y: number;
   w: number; d: number;
   level: string;
-  grid: string;        // 立っている通りの組 (X3/Y2)
-  decl: number;        // どの宣言から立ったか (model.columns の添字)
+  grid: string;        // the pair of grid lines it stands on (X3/Y2)
+  decl: number;        // which declaration raised it (index into model.columns)
   attrs: Attrs;
 }
 ```
 
-**位置は書かれない。**宣言が言うのは「どの通りに、どの階に、どの寸法で」だけで、柱は通り芯の交点のうちその階の床のある所に立つ。壁が境界から現れるのと同じ構えを、点の要素に適用したものである。
+**Position is never written.** A declaration says only which grid lines, which storeys, what size; the columns then stand at the grid intersections that have floor on that storey. It is the same stance that makes a wall appear from a boundary, applied to a point element.
 
-`model.columns` に入るのは宣言 (`ColumnDecl`) であり、立った柱 (`Column`) は [`columnsFor`](queries.md#columnsfor) が導く。
+`model.columns` holds declarations (`ColumnDecl`). The columns that actually stand (`Column`) are derived by [`columnsFor`](queries.md#columnsfor).
 
-**宣言の順は意味である。**同じ交点に二本は立たず、先の宣言が勝つ。だから正準JSONも差分も宣言順を保つ — 二行を入れ替えると実際に立つ柱が変わる。
+**Declaration order is meaning.** Two columns never stand on the same intersection, and the earlier declaration wins. So canonical JSON and diff both preserve the order — swapping two lines changes which columns stand.
 
 ```ts
 const c = parseFile("examples/complex/main.muro");
@@ -575,7 +575,7 @@ interface SitePolygon {
 }
 ```
 
-測量に由来する所与の多角形である。**モデルの中で唯一の自由頂点列** — 空間の領域はグリッド参照の矩形として書かれるので、頂点を直接並べられるのはここだけである。`site:1` を持つゾーンに対応させる。
+A given polygon, from survey. **It is the only free vertex list in the model** — the region of a space is written as grid-referenced rectangles, so this is the one place vertices are listed directly. It corresponds to a zone carrying `site:1`.
 
 ```ts
 const p = [...c.polygons.values()][0]!;
@@ -586,9 +586,9 @@ console.log({ path: p.path, points: p.points.length, first: p.points[0], line: p
 { path: '/site', points: 10, first: { x: -6000, y: -8000 }, line: 7 }
 ```
 
-## 関連
+## See also
 
-- [解析と合成](parsing.md) — この型を作る五つの入口
-- [形の導出](derive.md) — この型から形を起こす
-- [正準JSON](canonical.md) — この型を機械形式へ落とす
-- [記法リファレンス](../muro/index.md) — 同じ構成を `.muro` の側から見る
+- [Parsing and composition](parsing.md) — the five entrances that build this type
+- [Deriving form](derive.md) — raising form from this type
+- [Canonical JSON](canonical.md) — writing this type out as a machine format
+- [The `.muro` reference](../muro/index.md) — the same composition seen from the notation

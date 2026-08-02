@@ -1,83 +1,83 @@
 ---
-title: 階をつなぐ (階段・シャフト・吹抜け)
+title: Connect storeys (stairs, shafts, voids)
 mode: howto
 ---
 
-# 階をつなぐ (階段・シャフト・吹抜け)
+# Connect storeys (stairs, shafts, voids)
 
-上下に重なる空間のあいだに、階段・エレベーターシャフト・吹抜けを書く。段数も踏面も勾配も書かず、形は導出させる。
+Write stairs, lift shafts and voids between spaces that stack. Do not write riser counts, treads or slopes — let the form be derived.
 
-以下の出力例のファイルパスは、実際には絶対パスで出る。読みやすさのためファイル名だけに縮めてある。
+File paths in the output below are absolute when you actually run these commands. They are shortened to bare filenames here for readability.
 
-## 垂直の既定は床である
+## The vertical default is a floor
 
-平面が重なる二つの空間のあいだには、書かなくても**床**がある。これが既定なので、床を書く必要はない。**書くのは例外のほうだけ**で、例外は三つしかない。
+Between two spaces whose plans overlap there is a **floor**, whether or not you write one. That is the default, so there is nothing to write for a floor. **You write only the exceptions**, and there are exactly three.
 
-| 型 | 通れるか | 床 | 使うもの |
+| Type | Passable | Floor | What it is for |
 |---|---|---|---|
-| `stair` | 通れる (扉0枚) | 無い | 階段・斜路・エスカレーター |
-| `shaft` | 通れない | 無い | EVシャフト・DS・PS |
-| `void` | 通れない | 無い | 吹抜け |
+| `stair` | yes (counts 0 doors) | none | stairs, ramps, escalators |
+| `shaft` | no | none | lift shafts, duct and pipe shafts |
+| `void` | no | none | double-height voids |
 
-**通行のトポロジーは `stair` の一語が引き受ける。**階段も斜路もエスカレーターも「レベル間を通れる」という同じ関係であり、装置の違いは境界ではなく空間の側が言う。三つの型の意味は [stack](../reference/muro/stack.md) にまとまっている。
+**One word, `stair`, carries the whole topology of vertical passage.** A stair, a ramp and an escalator are the same relation — you can get from one level to the next — and the difference between the devices is declared on the space, not on the boundary. The three types are set out in [stack](../reference/muro/stack.md).
 
-## 1. 上下に同じ位置の空間を置く
+## 1. Put a space on each storey
 
-垂直の関係は、二つの空間のあいだの関係である。**両端の空間が要る。**階段室なら各階に階段室の空間を、シャフトなら各階にシャフトの空間を置く。
+A vertical relation is a relation between two spaces, so **both ends have to exist**. A stair needs a stair space on every storey it serves; a shaft needs a shaft space on every storey it passes.
 
 ```muro-part
-space /L1..L3/st stair X2..X3 Y1..Y2 name:階段室 use:common stair:N form:return
-space /L1..L3/ev shaft X3..X4 Y1..Y2 name:EV     use:common lift:1
+space /L1..L3/st stair X2..X3 Y1..Y2 name:Stair use:common stair:N form:return
+space /L1..L3/ev shaft X3..X4 Y1..Y2 name:Lift  use:common lift:1
 ```
 
-パスの先頭を `L1..L3` のスパンで書けば、宣言済みレベルの z 順に展開される。書き方の詳細は [基準階を一度だけ書く](typical-floors.md) にある。
+A path whose head is a span, `L1..L3`, expands over the declared levels in z order. [Write a typical floor once](typical-floors.md) covers that notation.
 
-**縦動線は空間である。**面積を持ち、通行でき、避難経路になる。境界だけにすると集計から落ちる。
+**Vertical circulation is space.** It has area, it is passable, it carries escape. Reduce it to a connection and it drops out of the schedules.
 
-## 2. 形は宣言せず、生成規則を選ぶ
+## 2. Do not declare the form — choose the rule that generates it
 
-段数・蹴上・踏面・勾配は**どこにも書かない。**書くのは「どこに・どれだけの大きさで・どちらへ上るか」だけで、レベル差と導出された走り長から形が出る。
+Riser count, riser height, tread and slope appear **nowhere in the source**. You write where it is, how big it is and which way it climbs; the form follows from the level difference and the derived going.
 
-| 属性 | 意味 |
+| Attribute | Meaning |
 |---|---|
-| `stair:N/E/S/W` | 階段。上る向き (N=+Y, S=−Y, E=+X, W=−X) |
-| `ramp:N/E/S/W` | 斜路 |
-| `escalator:N/E/S/W` | エスカレーター |
-| `lift:1` | エレベーター (走りを持たない) |
-| `form:return` / `form:straight` | 折返しか直進か |
-| `slope:` | 勾配の**上限**の宣言。検査に使われる |
+| `stair:N/E/S/W` | a stair, and the direction of climb (N=+Y, S=−Y, E=+X, W=−X) |
+| `ramp:N/E/S/W` | a ramp |
+| `escalator:N/E/S/W` | an escalator |
+| `lift:1` | a lift (no going) |
+| `form:return` / `form:straight` | scissor/return flights, or one straight flight |
+| `slope:` | declares the **maximum** gradient; used by validation |
 
-螺旋階段は書かない — 折返し (`form:return`) の連続として書く。属性の一覧は [縦動線](../reference/muro/vertical-circulation.md) にある。
+There is no spiral stair. A spiral is written as successive returns (`form:return`). The full list of attributes is in [vertical circulation](../reference/muro/vertical-circulation.md).
 
-## 3. 垂直境界を張る
+## 3. Write the vertical boundaries
 
-二層だけなら `boundary` を一本書く。
+For two storeys, one `boundary` is enough.
 
 ```muro-part
 boundary /L1/hall /L2/hall type:stair
 ```
 
-**階数が多いなら `stack` で一度に書く。**`stack <末尾のセグメント> <レベル範囲> type:` は、連続するレベル対ごとに垂直境界を一本ずつ張るのと同じである。
+**For many storeys, write it once with `stack`.** `stack <last path segment> <level range> type:` is the same as writing one vertical boundary per consecutive pair of levels.
 
 ```muro-part
 stack st L1..L3 type:stair
 stack ev L1..L3 type:shaft
 ```
 
-`stack ev L1..L3 type:shaft` は次の二行に等しい。
+`stack ev L1..L3 type:shaft` is exactly these two lines:
 
 ```muro-part
 boundary /L1/ev /L2/ev type:shaft
 boundary /L2/ev /L3/ev type:shaft
 ```
 
-階を跨ぐ関係はどの階の層にも属さない。複数ファイルに割っているなら base層に置く。
+A relation that spans storeys belongs to no storey's layer. Put it in the base layer when the building is split across files.
 
-## 確かめる
+## Check it
 
 ```muro
 koyu 1.1
-name 階をつなぐ稽古
+name Connecting storeys
 unit mm
 
 grid X 0 8400 11200 14000
@@ -88,30 +88,30 @@ level L2 4200 h:2800 slab:1400
 level L3 8400 h:2800 slab:1400
 level R 12600 slab:600
 
-space /out name:外部 outside:1
+space /out name:Outside outside:1
 
-space /L1..L3/st   stair X2..X3 Y1..Y2 name:階段室 use:common stair:N form:return
-space /L1..L3/ev   shaft X3..X4 Y1..Y2 name:EV use:common lift:1
-space /L1..L3/hall hall  X2..X4 Y2..Y3 name:乗場ホール use:common
+space /L1..L3/st   stair X2..X3 Y1..Y2 name:Stair use:common stair:N form:return
+space /L1..L3/ev   shaft X3..X4 Y1..Y2 name:Lift use:common lift:1
+space /L1..L3/hall hall  X2..X4 Y2..Y3 name:Lift-lobby use:common
 
-space /L1/lobby     hall X1..X2 Y1..Y3 name:エントランス use:common
-space /L2..L3/office room X1..X2 Y1..Y3 name:貸室 use:exclusive
+space /L1/lobby     hall X1..X2 Y1..Y3 name:Entrance use:common
+space /L2..L3/office room X1..X2 Y1..Y3 name:Tenancy use:exclusive
 
 boundary /L1..L3/hall /L1..L3/st t:200 spec:RC
-  door w:900 name:階段防火戸
+  door w:900 name:Stair-fire-door
 boundary /L1..L3/hall /L1..L3/ev t:200 spec:RC
 boundary /L1..L3/st /L1..L3/ev t:200 spec:RC
 
 boundary /L1/lobby /L1/st t:200 spec:RC
 boundary /L1/lobby /L1/hall type:open
 boundary /L1/lobby /out edge:W t:200 spec:CW
-  door w:1800 name:正面出入口
+  door w:1800 name:Front-entrance
 boundary /L1/lobby /out edge:N t:200 spec:CW
 boundary /L1/lobby /out edge:S t:200 spec:CW
 
 boundary /L2..L3/office /L2..L3/st t:200 spec:RC
 boundary /L2..L3/office /L2..L3/hall t:200 spec:RC
-  door w:1600 name:貸室入口
+  door w:1600 name:Tenancy-entrance
 boundary /L2..L3/office /out edge:W t:200 spec:CW
 boundary /L2..L3/office /out edge:N t:200 spec:CW
 boundary /L2..L3/office /out edge:S t:200 spec:CW
@@ -132,56 +132,56 @@ $ npx tsx src/cli.ts check vert.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-[`koyu runs`](../reference/cli/runs.md) が、書かなかった形を答える。段数も踏面も原本のどこにも無い。
+[`koyu runs`](../reference/cli/runs.md) answers with the form you did not write. Neither the riser count nor the tread appears anywhere in the source.
 
 ```text
 $ npx tsx src/cli.ts runs vert.muro
-L1→L2	lift	EV	/L1/ev
-L1→L2	stair	階段室	rise 4200mm	return	24 risers of 175mm, tread 300mm	going 6600mm	/L1/st
-L2→L3	lift	EV	/L2/ev
-L2→L3	stair	階段室	rise 4200mm	return	24 risers of 175mm, tread 300mm	going 6600mm	/L2/st
-L3→R	lift	EV	/L3/ev
-L3→R	stair	階段室	rise 4200mm	return	24 risers of 175mm, tread 300mm	going 6600mm	/L3/st
+L1→L2	lift	Lift	/L1/ev
+L1→L2	stair	Stair	rise 4200mm	return	24 risers of 175mm, tread 300mm	going 6600mm	/L1/st
+L2→L3	lift	Lift	/L2/ev
+L2→L3	stair	Stair	rise 4200mm	return	24 risers of 175mm, tread 300mm	going 6600mm	/L2/st
+L3→R	lift	Lift	/L3/ev
+L3→R	stair	Stair	rise 4200mm	return	24 risers of 175mm, tread 300mm	going 6600mm	/L3/st
 ```
 
-階段は通行の辺になり、扉を増やさない。3階の貸室から外までの4枚は、貸室入口・階段防火戸 (3階)・階段防火戸 (1階)・正面出入口である — 2層降りるあいだ扉は1枚も増えない。
+A stair is a passable edge that adds no doors. The four doors from the third-floor tenancy to the street are the tenancy entrance, the stair fire door on L3, the stair fire door on L1 and the front entrance — descending two storeys costs nothing.
 
 ```text
 $ npx tsx src/cli.ts doors vert.muro /L3/office /out
 4 doors — /L3/office → /L3/hall → /L3/st → /L2/st → /L1/st → /L1/hall → /L1/lobby → /out
 ```
 
-シャフトは通れない。連続していても通行路ではない。
+A shaft is not a route. Continuous is not the same as passable.
 
 ```text
 $ npx tsx src/cli.ts doors vert.muro /L1/ev /L2/ev
 Cannot reach /L2/ev from /L1/ev
 ```
 
-## 吹抜けを書く
+## Write a void
 
-下階の天井が抜けているところには、**上階側に `void:1` を宣言した空間を置き**、下階の空間との間に `type:void` の垂直境界を書く。
+Where the ceiling below is open, **put a space declaring `void:1` on the upper storey** and write a `type:void` vertical boundary to the space below.
 
 ```muro-part
-space /L2/void X2..X3 Y1..Y2 name:リビング上部 void:1
+space /L2/void X2..X3 Y1..Y2 name:Over-the-living-room void:1
 
 boundary /L1/ldk /L2/void type:void
 ```
 
-`void` は床面積に算入されない。[`koyu stats`](../reference/cli/stats.md) がそう言う。
+A void carries no floor area, and [`koyu stats`](../reference/cli/stats.md) says so.
 
 ```text
 L2
-  /L2/bed	主寝室	bedroom	26.50 m2
-  /L2/hall	2階ホール	hall	13.25 m2
-  /L2/void	リビング上部	void (not counted as floor area)
+  /L2/bed	Main-bedroom	bedroom	26.50 m2
+  /L2/hall	Upper-hall	hall	13.25 m2
+  /L2/void	Over-the-living-room	void (not counted as floor area)
   Subtotal 39.75 m2
 ```
 
-通行もできない。[`koyu graph`](../reference/cli/graph.md) の `↕ void` は辺に見えるが、渡れない辺である。
+It is not passable either. The `↕ void` line in [`koyu graph`](../reference/cli/graph.md) looks like an edge, but nobody crosses it.
 
 ```text
-/L2/void (リビング上部)
+/L2/void (Over-the-living-room)
   ↕ void → /L1/ldk
   | wall → /L2/bed
   | wall → /L2/hall
@@ -192,11 +192,11 @@ $ npx tsx src/cli.ts doors two.muro /L1/ldk /L2/void
 Cannot reach /L2/void from /L1/ldk
 ```
 
-## 落ちるところ
+## Where it goes wrong
 
-### 形はあるのに繋がっていない — run.disconnected (caution)
+### The form is there but nothing connects — run.disconnected (caution)
 
-`stair:` や `form:` を書いたのに `stack` も垂直境界も書いていないと、階段の形は導出されるのに通行のグラフは切れたままになる。`check` は緑を返す。捕まえるのは [`koyu validate`](../reference/cli/validate.md) である。
+Write `stair:` and `form:` but no `stack` and no vertical boundary, and the stair's form is derived while the circulation graph stays cut. `check` returns green. [`koyu validate`](../reference/cli/validate.md) is what catches it.
 
 ```text
 ⚠ [run.disconnected] vert-nostack.muro:line 15: /L1/st has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
@@ -204,28 +204,28 @@ Cannot reach /L2/void from /L1/ldk
 ⚠ [run.disconnected] vert-nostack.muro:line 15: /L3/st has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
 ```
 
-### 段が窮屈になる — stair.proportion (caution)
+### The steps come out cramped — stair.proportion (caution)
 
-階段室が短すぎると、同じ段数を短い走りに詰め込むので踏面が痩せる。上の例の階段室の奥行を 8400 から 4000 に縮めると、
+Too short a stair enclosure crams the same risers into a shorter going, and the tread starves. Shrink the stair space above from 8400 deep to 4000:
 
 ```text
 $ npx tsx src/cli.ts runs vert-cramped.muro
-L1→L2	lift	EV	/L1/ev
-L1→L2	stair	階段室	rise 4200mm	return	24 risers of 175mm, tread 164mm	going 3600mm	/L1/st
+L1→L2	lift	Lift	/L1/ev
+L1→L2	stair	Stair	rise 4200mm	return	24 risers of 175mm, tread 164mm	going 3600mm	/L1/st
 ```
 
 ```text
 ⚠ [stair.proportion] vert-cramped.muro:line 15: Derived step dimensions are cramped: 24 risers of 175mm, tread 164mm (2*riser+tread = 514mm; expected 550-700mm)
 ```
 
-**直すのは階段の寸法ではなく、階段室の大きさである。**階高から必要な走り長を先に決める手順は [書く前に寸法を決める](choose-dimensions.md) にある。
+**What you fix is the size of the enclosure, not the size of the step.** [Choose dimensions before you write](choose-dimensions.md) shows how to size the going from the storey height first.
 
-### シャフトを通って避難させてしまう
+### Escaping through a shaft
 
-`doors` が「到達できません」を返す原因のうち、最も気づきにくいのが `shaft` と `void` である。エレベーターシャフトは全階を貫いていても通行路ではない。避難経路は必ず `stair` を通す。
+Of all the reasons `doors` says "cannot reach", `shaft` and `void` are the hardest to spot. A lift shaft that runs the full height of the building is still not a route. Escape has to go through `stair`.
 
-## 次に
+## Next
 
-- [到達できない空間を見つける](find-unreachable.md) — つないだつもりの経路を機械的に検査する
-- [基準階を一度だけ書く](typical-floors.md) — 同じコアが何層も続くとき
-- [書く前に寸法を決める](choose-dimensions.md) — 階段室・シャフトの実寸
+- [Find spaces you cannot reach](find-unreachable.md) — test the route you think you built
+- [Write a typical floor once](typical-floors.md) — when the same core repeats
+- [Choose dimensions before you write](choose-dimensions.md) — real sizes for stairs and shafts

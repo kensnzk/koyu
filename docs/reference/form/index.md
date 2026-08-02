@@ -1,136 +1,136 @@
 ---
-title: 形 — derive(model)
+title: Form — derive(model)
 mode: reference
 ---
 
-# 形 — derive(model)
+# Form — derive(model)
 
-原本に形は無い。平面図も面積も動線も、書かれるのではなく**導かれる**。その導出を行う関数は一つしかない。
+The source has no shape. The plan, the areas, the circulation — none of it is written. All of it is **derived**. And there is exactly one function that does the deriving.
 
 ```ts
 import { derive } from "@kensnzk/koyu";
 
-const form = derive(model);          // 切断高さは既定の 1200mm
-const cut  = derive(model, { cut: 900 });
+const form = derive(model);           // cut height defaults to 1200mm
+const low  = derive(model, { cut: 900 });
 ```
 
-`derive(model, {cut?}) → Form` が**形の唯一の入口である**。面積を測るのも、壁の位置を知るのも、平面の要素を得るのも、立体を組むのも、すべてこの一つの戻り値から出る。
+`derive(model, {cut?}) → Form` is **the one entry point to shape**. Measuring an area, locating a wall, getting the elements of a plan, assembling a solid — every one of them comes out of this single return value.
 
-## 四つの約束
+## Four promises
 
-### 1. 形は正準形の関数である
+### 1. Shape is a function of the canonical form
 
 ```text
 toCanonical(a) === toCanonical(b)  ⟹  derive(a) ≡ derive(b)
 ```
 
-[正準 JSON](../json/index.md) は「同じ建物とは何か」の定義である。したがって**正準形が捨てる情報は、形を変えてはならない** — 線の端点の書き順も、境界の宣言順も、空間の宣言順も、`+` による領域の合併の書き順も、行の並びも、形に効かない。
+[Canonical JSON](../json/index.md) is the definition of "what makes two buildings the same". Therefore **information the canonical form discards must not change the shape** — not the order the endpoints of a line were written in, not the declaration order of boundaries, not the declaration order of spaces, not the order the parts of a `+` region union were written in, not the order of the lines in the file.
 
-**含意は片向きである — 逆は成り立たない。**正準形が違っても形は同じでありうる。運搬層の属性 ([台帳](../muro/attributes.md)の tier `carry`) は正準形に載るが core が解釈しないので、形に届かない。
+**The implication runs one way — the converse does not hold.** Two different canonical forms can still give the same shape. Carrier-tier attributes (`carry` in the [ledger](../muro/attributes.md)) ride in the canonical form, but core does not interpret them, so they never reach the shape.
 
 ```text
 space /L1/a room X1..X2 Y1..Y2 acme.sensor:21
 space /L1/a room X1..X2 Y1..Y2 acme.sensor:99
 ```
 
-この二行は別のバイトを与え、同じ形を与える。したがって**正準形の差は「形が変わった」の証拠にならない。**形が変わったかを問うなら、形を比べるほかない。
+These two lines give different bytes and the same shape. **A difference in the canonical form is therefore no evidence that the shape changed.** To ask whether the shape changed, there is nothing for it but to compare the shapes.
 
-この含意は文としての約束ではなく、機械が縛れる述語である。線の端点を入れ替えた版・境界を並べ替えた版・空間を並べ替えた版・合併を入れ替えた版・`a`/`b` の向きを逆に書いた版を作り、正準形が等しいことを**前提として確かめてから**形の一致を主張する。前提が崩れれば「この組は何も証明していない」として落ちる。
+This implication is not a promise made in prose; it is a predicate a machine can enforce. Variants are built with the endpoints of a line swapped, with the boundaries reordered, with the spaces reordered, with a region union swapped, and with `a`/`b` written the other way round. The test **first establishes that the canonical forms are equal**, then asserts that the shapes match. If the premise fails, the pair is reported as proving nothing.
 
-**捨てられた情報を読まないために、形は三つの並びを正準順で決める。**空間 (`spaces`・`slabs`) はパスの照合順、境界 (`boundaries`・`openings`・`segs` の添字) は[内容の正準順](../api/derive.md)、空間の凸片は書かれた綴りの正準順である。いずれも正準 JSON が使う並びと同じ規則で、**宣言順ではない。**
+**So that discarded information is never read, the shape fixes three orderings canonically.** Spaces (`spaces`, `slabs`) go in path collation order, boundaries (and the indices of `openings` and `segs`) in [canonical content order](../api/derive.md), and the convex pieces of a space in the canonical order of their written spelling. Each is the same rule canonical JSON uses — **never declaration order.**
 
-ここから二つの規則が出る。**描かれた線は向きを持たない**([凸片](regions.md))。**切り分けは正準の境界順に効く**(同)。
+Two rules follow. **A drawn line has no direction** ([Regions](regions.md)). **Cutting happens in canonical boundary order** (same page).
 
-### 2. 形を読む入口は一つである
+### 2. There is one way in to the shape
 
-空間の形は `pieces`(導出された凸片)であって `rects`(書かれた割付)ではない。割付はセルの綴りであり、形ではない。**面積・共有辺・外周・被覆・柱の立地・投影 — 形を読むすべての導出がこの一つの入口を通る。**
+The shape of a space is `pieces` (the derived convex pieces), not `rects` (the written allocation). An allocation is a spelling of cells; it is not a shape. **Areas, shared edges, outlines, coverage, where columns stand, projections — every derivation that reads shape goes through this one door.**
 
-`Form` が返す `FormSpace.outline` は常に導出された凸片である。割付は `Form` に現れない。
+`FormSpace.outline` is always the derived pieces. The written allocation never appears in `Form`.
 
-### 3. 既定値を捏造しない
+### 3. No invented defaults
 
-必要な値が書かれていなければ、既定を勝手に置くのではなく**その要素を作らない**。天井高が決まらなければ天井は生成されず、`slab:` が無ければ床が一枚も生成されない (屋根は天井高を要らない — 上のレベルがあればその z に架かる。[実体](bodies.md))。「形が痩せている」ことは黙って起きてはならないので、[SUF の診断](../diagnostics/suf.md)が error として言う。
+If a value that is needed was not written, the derivation does not quietly supply one — **it does not build the element**. With no ceiling height there is no ceiling; with no `slab:` not a single floor is generated. (A roof needs no ceiling height: where there is a level above, it sits at that level's z. See [Matter](bodies.md).) A shape that came out thin must never come out thin in silence, so the [SUF diagnostics](../diagnostics/suf.md) say so as errors.
 
-例外は[導出定数](constants.md)である。壁厚 100mm も、まぐさ高 2000mm も、蹴上げ上限 180mm も、仕様が定めた規則であって捏造ではない。
+The exception is the [derivation constants](constants.md). Wall thickness 100mm, head height 2000mm, maximum riser 180mm — these are rules the specification fixes, not defaults invented on the spot.
 
-### 4. 凸片は反時計回りである
+### 4. Pieces run counter-clockwise
 
-`Form` が返す輪郭はすべて反時計回り(符号つき面積が正)であり、[辺の方位](boundaries.md) N/E/S/W の読みはこの向きを前提とする。
+Every outline `Form` returns is counter-clockwise (positive signed area), and reading the [edge orientations](boundaries.md) N/E/S/W assumes it.
 
-## Form は見た目を持たない
+## Form carries no appearance
 
-| `Form` が持つもの | `Form` が持たないもの |
+| What `Form` holds | What `Form` does not hold |
 |---|---|
-| **座標** — 領域の凸片・境界線分・開口の中心・柱の断面・段板の矩形 | **色・書体・文字寸・線幅・線種** |
-| **厚み** — 壁・手すり・面 | **注記の言葉** — `UP` も `12段 蹴上175/踏面300` も |
-| **z 範囲** — 壁・開口・柱・面・立体 | **作図の記号** — 吹抜けの対角線・切断線の二本の斜線・通り芯の丸・矢印の頭 |
-| **向き** — 辺の方位・上る向き・扉の吊元と開く側・矢印が上るか | **縮尺・紙面の余白・viewBox** |
-| **対象の同一性** — どの空間の、どの境界の、どの開口の形か | **描く順序・重ね順・陰影** |
-| **[平面の分類](plan.md)** — cut / below / above / swing / anchor | **何を描き何を省くかの判断** |
+| **Coordinates** — pieces of a region, boundary segments, opening centres, column sections, tread rectangles | **Colour, typeface, text size, line weight, line style** |
+| **Thickness** — walls, rails, slabs | **Words of annotation** — neither `UP` nor `12 risers @175 / 300 going` |
+| **z ranges** — walls, openings, columns, slabs, solids | **Drafting symbols** — the diagonal of a void, the two slashes of a break line, the circle of a grid bubble, the head of an arrow |
+| **Direction** — edge orientation, direction of rise, hinge and swing side, whether an arrow goes up | **Scale, page margin, viewBox** |
+| **Identity of the subject** — which space, which boundary, which opening this shape belongs to | **Draw order, stacking, shading** |
+| **[Plan classification](plan.md)** — cut / below / above / swing / anchor | **The judgement of what to draw and what to leave out** |
 
-`svgPlan` / `svgAxo` と外部のビュアーは、この `Form` を描くだけである。**複数あってよいのは見た目であって、形ではない。**「同じ構成から複数の形が出る」ことは欠陥である。
+`svgPlan`, `svgAxo` and any outside viewer only draw this `Form`. **What may legitimately differ is the appearance, not the shape.** Two shapes out of one composition is a defect.
 
-見た目を持たないことは機械が縛る — 同梱例の `Form` を JSON にして、色の綴りも `UP`/`DN` も作図の語 (`stroke` `fill` `font` `text` `label` `dasharray`) も一つも現れないことを検査する。**ASCII の外の語は、原本に書かれた同一性 (`name`・パス・型・レベル名) に乗るときだけ通す** — 空間の名が日本語なら `Form` にも日本語で出るが、それは見た目ではなく対象の同一性である。同一性以外のキーに非 ASCII が乗ればテストが落ちる。
+That `Form` carries no appearance is machine-enforced: the `Form` of every bundled example is serialised to JSON and checked to contain no colour spelling, no `UP`/`DN`, and no drafting word (`stroke`, `fill`, `font`, `text`, `label`, `dasharray`). **Words beyond ASCII pass only where they ride on identity written in the source** — `name`, paths, types, level names. A space named in Japanese appears in Japanese in the `Form`, because that is the identity of the subject and not its appearance. Non-ASCII on any other key fails the test.
 
-## Form の中身
+## What is inside Form
 
 ```ts
 interface Form {
-  input: FormInput;          // 導出に渡した引数 (切断高さ)
-  levels: FormLevel[];       // レベルと階高
-  spaces: FormSpace[];       // 導出された凸片・面積・気積・屋内/半屋外/被覆
-  boundaries: FormBoundary[];// 芯線分と、物があるならその材 (開口で割られた区間)
-  openings: FormOpening[];   // 中心・幅・z 範囲・建具厚・扉の振れ
-  segs: FormSeg[];           // 数えない分節の位置
-  slabs: Slab[];             // 床・天井・屋根
-  columns: FormColumn[];     // 通り芯の交点に立つ柱
-  runs: FormRun[];           // 縦動線の段割りと立体
-  site: FormSite[];          // 与件の敷地形状と面積
-  plans: FormPlan[];         // レベルごとの、分類つき2Dエンティティ集合
+  input: FormInput;           // the argument the derivation was given (cut height)
+  levels: FormLevel[];        // levels and storey pitch
+  spaces: FormSpace[];        // derived pieces, area, volume, indoor / semi-outdoor / covered
+  boundaries: FormBoundary[]; // centre segment, and if there is matter, its panels
+  openings: FormOpening[];    // centre, width, z range, leaf thickness, door swing
+  segs: FormSeg[];            // where the uncounted segments sit
+  slabs: Slab[];              // floors, ceilings, roofs
+  columns: FormColumn[];      // columns standing on grid intersections
+  runs: FormRun[];            // vertical circulation: step division and solids
+  site: FormSite[];           // the given site polygon and its area
+  plans: FormPlan[];          // per level: a classified set of 2D entities
 }
 ```
 
-`levels` の各要素は `pitch`(階高 — 壁と柱がどこまで立つか)を持つ。上のレベルがあればその差、無ければ**その階の最大天井高 + 屋根版の厚さ**である。`levelPitch(model, level)` が単独でも答える。
+Each entry of `levels` carries `pitch` — the storey height, i.e. how far walls and columns rise. It is the difference to the level above if there is one, and otherwise **the tallest ceiling height on that storey plus the roof slab thickness**. `levelPitch(model, level)` answers it on its own.
 
 ```text
 levels: [ { name: "L1", z: 0, h: 2400, slab: 150, pitch: 2600 } ]
 ```
 
-(`examples/two-rooms.muro`。上のレベルが無いので `2400 + 200`。)
+(`examples/two-rooms.muro`. There is no level above, so `2400 + 200`.)
 
-## 対象の同一性
+## Identity of the subject
 
-`Form` の各要素は同一性を運ぶ。境界・開口・`seg`・柱は `ref` を持ち、境界は `<a>|<b>@<i>`、開口は `<境界の ref>/<番号>`、`seg` は `<境界の ref>~<番号>`、柱は `<レベル>/<X通り>/<Y通り>` である。**縦動線は `ref` を持たない** — 宣言した空間のパスを `path` に運ぶ。([平面](plan.md)のエンティティは `of:"run"` のときそのパスを `ref` に載せる。)
+Every element of `Form` carries its subject's identity. Boundaries, openings, `seg`s and columns carry a `ref`: a boundary is `<a>|<b>@<i>`, an opening is `<boundary ref>/<index>`, a `seg` is `<boundary ref>~<index>`, a column is `<level>/<X grid>/<Y grid>`. **A run carries no `ref`** — it carries the path of the space that declared it, in `path`. (A [plan](plan.md) entity with `of:"run"` does put that path in its `ref`.)
 
 ```text
-"/L1/a|/L1/b@0"        境界
-"/L1/b|/out@2/0"       その境界の 0 番目の開口
-"L1/X2/Y3"             柱
+"/L1/a|/L1/b@0"        a boundary
+"/L1/b|/out@2/0"       opening 0 of that boundary
+"L1/X2/Y3"             a column
 ```
 
-**添字 `@i` は正準の境界順の添字であって、宣言順ではない。**宣言順は正準 JSON が捨てる情報なので、宣言順で振ると同じ正準形から違う綴りが出る。並びを得る関数 `canonicalBoundaryOrder(model)` が公開されているので、消費者は `model.boundaries[i]` を当ててはならない。
+**The index `@i` is an index into canonical boundary order, not declaration order.** Declaration order is information the canonical form discards, so indexing by it would produce different spellings from the same canonical form. `canonicalBoundaryOrder(model)` is public precisely so consumers never index `model.boundaries[i]`.
 
-## 実体の構成子
+## Constructors of matter
 
-`Form` が持つのは芯線と厚みと z である。そこから実体を起こす規則も導出の一部なので、実装は一つしかない。消費者がそれぞれ書き直せば、部品を共有していても組み立ての規則は共有されず、同じ `Form` から違う形が出る余地がまた開く。
+`Form` holds centre lines, thicknesses and z. Raising matter from those is itself part of the derivation, so there is exactly one implementation. If each consumer rewrote it, the parts would be shared but **the rules of assembly would not**, and the door to "two shapes from one `Form`" would open again.
 
-| 構成子 | 何を起こすか |
+| Constructor | What it raises |
 |---|---|
-| `thicken(x1, y1, x2, y2, t)` | 芯線を厚みのある四辺形へ。斜めの線分でも同じ一つの式 |
-| `bandLine(seg, cx, cy, w)` | 帯(開口・`seg`)が線分上で占める区間 |
-| `band(seg, cx, cy, w, t)` | その区間を厚みのある四辺形へ — `bandLine` を `thicken` したもの |
-| `columnRect(c)` | 柱の断面 |
-| `runPrism(s)` | 縦動線の立体を角柱(底面の輪郭と頂点ごとの上端/下端 z)へ |
+| `thicken(x1, y1, x2, y2, t)` | a centre line into a thick quadrilateral — one formula, diagonal segments included |
+| `bandLine(seg, cx, cy, w)` | the interval a band (opening or `seg`) occupies along a segment |
+| `band(seg, cx, cy, w, t)` | that interval as a thick quadrilateral — `bandLine` run through `thicken` |
+| `columnRect(c)` | the section of a column |
+| `runPrism(s)` | a vertical-circulation solid as a prism (base outline plus per-vertex top/bottom z) |
 
-**四辺形の頂点は 始点+n → 終点+n → 終点−n → 始点−n の順である**ので、向かい合う二辺の中点を結べば芯線に戻る。平面のエンティティは区間の**足あと(四辺形)と芯線の両方**を持つ — 厚みを持つものとして描くか一本の線として描くか(遮蔽しない手すり・柵)は見た目の判断なので、消費者が足あとから芯線を復元しなくて済むようにしてある。
+**The vertices of the quadrilateral run start+n → end+n → end−n → start−n**, so joining the midpoints of the two opposing sides gives the centre line back. Plan entities carry **both the footprint (the quadrilateral) and the centre line** — whether to draw something as thick or as a single line (a rail or a fence that does not enclose) is a judgement about appearance, so consumers never have to recover the axis from the footprint.
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [凸片](regions.md) — 割付から領域へ。描かれた線による再切断
-- [境界線分](boundaries.md) — 壁がどこに立つか
-- [実体](bodies.md) — 壁・開口・柱・床・天井・屋根
-- [縦動線](vertical-runs.md) — 段割りと勾配の算術
-- [導出定数と公差](constants.md) — 18 個と 7 個
-- [平面](plan.md) — 分類つき2Dエンティティ集合
-- [約束の範囲](../scope.md) — `check` が緑であることの意味
-- [凍る面](../stability.md) — `Form` は凍り、SVG は凍らない
+- [Regions](regions.md) — from allocation to region, and re-cutting by a drawn line
+- [Boundary segments](boundaries.md) — where a wall stands
+- [Matter](bodies.md) — walls, openings, columns, floors, ceilings, roofs
+- [Vertical runs](vertical-runs.md) — the arithmetic of step division and slope
+- [Constants and tolerances](constants.md) — eighteen and seven
+- [The plan](plan.md) — a classified set of 2D entities
+- [Scope](../scope.md) — what a green `check` means
+- [Stability](../stability.md) — `Form` freezes; the SVG does not

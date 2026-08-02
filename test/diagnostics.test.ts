@@ -443,7 +443,7 @@ function indexLedger(page: string): Record<string, string> {
 // The pages checked are the **published documentation**. `spec/` is an internal tree on its way
 // out and has in fact gone stale; while two trees both claim to be normative, the machine must
 // bind the one that is canonical.
-for (const page of ["docs/reference/diagnostics/index.md", "docs/en/reference/diagnostics/index.md"]) {
+for (const page of ["docs/reference/diagnostics/index.md"]) {
   test(`ledger: DIAGNOSTIC_CODES and the table in ${page} agree as sets, and BND07 is retired`, () => {
     assert.deepEqual(indexLedger(page), DIAGNOSTIC_CODES);
     // A retired code leaves the ledger but keeps a headstone in the index

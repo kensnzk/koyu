@@ -1,238 +1,238 @@
 ---
-title: 診断コード索引
+title: The diagnostic code index
 mode: reference
 ---
 
-# 診断コード索引
+# The diagnostic code index
 
-`koyu check` が返すメッセージの全目録である。コードは **65**、族は **19**、内訳は error 49 件・warning 16 件。この頁はどのコードがどの族に属し、どの重さを持つかを一枚で見せる。原因と最小の再現と直し方は族ごとの頁にある。
+Every message `koyu check` returns, catalogued. There are **65** codes in **19** families: 49 errors and 16 warnings. This page shows which family a code belongs to and how heavy it is. The cause, a minimal reproduction, and the fix live on the family pages.
 
-`check` が言うのは**書かれたものがデータとして矛盾していないか**までである。建物として使えるかは言わない — それは `koyu validate` の 15 の規則が別に言う。二つは型からして別で、`check` は `Diagnostic { code, severity }` を返し、`validate` は `Finding { rule, level }` を返す。コードの綴り (3字+2桁) と規則の綴り (`site.escape` のような `章.規則`) も字面で見分けがつく。
+What `check` tells you stops at **whether what is written is self-consistent as data**. It says nothing about whether the building is usable — that is what `koyu validate` says, separately, with its 15 rules. The two are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns `Finding { rule, level }`. Even the spellings differ on sight — a code is three letters plus two digits, a rule is `chapter.rule` (`site.escape`).
 
-**人向けの `check` はコードを表示しない。**この索引を引く前に `--json` を付けてコードを手に入れる — 手順は[診断を読む](reading.md)にある。
+**The human-facing `check` does not display codes.** Get the code with `--json` before looking anything up here; the procedure is on [Reading a diagnostic](reading.md).
 
-## severity は二つしかない
+## There are only two severities
 
-| severity | 意味 | `check` の終了コード | `check --strict` の終了コード |
+| severity | Meaning | `check` exit code | `check --strict` exit code |
 |---|---|---|---|
-| `error` | 構成が成立していない。書かれた構成から一意な形が作れない | 1 | 1 |
-| `warning` | 疑わしい。成立はしていて、形も一意に決まる | 0 | 1 |
+| `error` | The composition does not stand up; no single shape can be made from what is written | 1 | 1 |
+| `warning` | Suspect. It does stand up, and the shape is still determined | 0 | 1 |
 
-severity はコードの不変属性である。**同じコードが場合によって error になったり warning になったりはしない。**重さを変える必要が出たときは、既存コードの severity を動かさず、新しいコードを切る。
+Severity is an invariant property of a code. **The same code is never an error in one file and a warning in another.** When the weight has to change, the existing code keeps its severity and a new code is minted.
 
-## 症状から引く
+## Looking up by symptom
 
-| 症状 | 見るコード |
+| Symptom | Codes to look at |
 |---|---|
-| 境界を書いたのに「接していない」と言われる | [BND04](bnd.md#bnd04) |
-| 扉や窓を置いたら「線分が複数あります」と言われる | [OPN05](opn.md#opn05) |
-| 外壁に窓を開けたいのに置けない | [OPN04](opn.md#opn04) [OPN05](opn.md#opn05) |
-| 階段や吹抜けを書いたのに叱られる | [VRT01](vrt.md#vrt01) [VRT02](vrt.md#vrt02) [VRT03](vrt.md#vrt03) |
-| 階段に扉を書いたら「解釈されません」と言われる | [VRT05](vrt.md#vrt05) |
-| 空間を並べたら「領域が重なっています」と言われる | [GEO02](geo.md#geo02) |
-| 住戸を室に割ろうとして重なりを叱られる | [GEO02](geo.md#geo02) — 直し方は割付ではない |
-| 境界のパスを書いたら「未定義」と言われる | [REF01](ref.md#ref01) |
-| 床材を貼った `area` が通らない | [SEG01](seg.md#seg01) [SEG02](seg.md#seg02) |
-| レベルを書いたつもりが「レベルが特定できません」と言われる | [SUF02](suf.md) |
-| 階高の検算が通らない | [HGT01](hgt.md) [HGT02](hgt.md) |
-| 天井高や床組み厚を書かずに、天井も床も生成されていない | [SUF01](suf.md) [SUF03](suf.md) |
-| 属性を書いたのに効いていない | [ATT01](att.md) [ATT02](att.md) [ATT03](att.md) |
-| 敷地の数字が合わない | `check` は言わない — `koyu validate` の `site.escape` / `site.area` が言う |
-| 階段の踏面や勾配が窮屈 | `check` は言わない — `koyu validate` の `stair.proportion` / `run.slope` が言う |
-| 外皮に穴が開いている | `check` は言わない — `koyu validate` の `envelope.gap` が言う |
-| ファイルが1行も読まれずに落ちる | [SYN01](syn.md) |
+| You wrote a boundary and were told the spaces "do not touch" | [BND04](bnd.md#bnd04) |
+| You placed a door or window and were told "there is more than one segment" | [OPN05](opn.md#opn05) |
+| You cannot get a window onto an external wall | [OPN04](opn.md#opn04) [OPN05](opn.md#opn05) |
+| You wrote a stair or a void and were told off | [VRT01](vrt.md#vrt01) [VRT02](vrt.md#vrt02) [VRT03](vrt.md#vrt03) |
+| You put a door on a stair and were told it "is not interpreted" | [VRT05](vrt.md#vrt05) |
+| You laid out spaces and were told "the regions overlap" | [GEO02](geo.md#geo02) |
+| The overlap appeared while subdividing a dwelling into rooms | [GEO02](geo.md#geo02) — the fix is not the layout |
+| A path on a boundary is reported undefined | [REF01](ref.md#ref01) |
+| A floor finish written as an `area` will not pass | [SEG01](seg.md#seg01) [SEG02](seg.md#seg02) |
+| You thought you wrote a level and were told "its level cannot be determined" | [SUF02](suf.md) |
+| The floor-height arithmetic does not pass | [HGT01](hgt.md) [HGT02](hgt.md) |
+| No ceiling height or slab thickness written, and neither ceilings nor floors are generated | [SUF01](suf.md) [SUF03](suf.md) |
+| You wrote an attribute and it had no effect | [ATT01](att.md) [ATT02](att.md) [ATT03](att.md) |
+| The site's figures do not agree | `check` does not say — `koyu validate`'s `site.escape` / `site.area` do |
+| The stair's going or slope is cramped | `check` does not say — `koyu validate`'s `stair.proportion` / `run.slope` do |
+| There is a hole in the envelope | `check` does not say — `koyu validate`'s `envelope.gap` does |
+| The file dies without a single line being read | [SYN01](syn.md) |
 
-## 全コード
+## Every code
 
-並びは台帳の順である。
+The order is the ledger's.
 
-### REF — 参照 (1)
+### REF — references (1)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [REF01](ref.md#ref01) | error | 未定義の空間を参照しています |
+| [REF01](ref.md#ref01) | error | References an undefined space |
 
-### BND — 境界 (6)
+### BND — boundaries (6)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [BND01](bnd.md#bnd01) | error | 同じ空間同士の境界は書けません |
-| [BND02](bnd.md#bnd02) | error | 境界が重複しています |
-| [BND03](bnd.md#bnd03) | error | 異なるレベルの空間に壁境界は書けません |
-| [BND04](bnd.md#bnd04) | error | 空間が接していないため境界を導けません |
-| [BND05](bnd.md#bnd05) | warning | 同じ空間対に edge 限定つきと無しの境界が併存しています |
-| [BND06](bnd.md#bnd06) | warning | 外周に残る辺が無く、境界線分がゼロです |
+| [BND01](bnd.md#bnd01) | error | A boundary between a space and itself |
+| [BND02](bnd.md#bnd02) | error | A duplicate boundary |
+| [BND03](bnd.md#bnd03) | error | A wall boundary to a space on a different level |
+| [BND04](bnd.md#bnd04) | error | The spaces do not touch, so no boundary can be derived |
+| [BND05](bnd.md#bnd05) | warning | Edge-restricted and unrestricted boundaries coexist on one pair |
+| [BND06](bnd.md#bnd06) | warning | No edge remains on the perimeter, so the segment is of zero length |
 
-### LVL — レベル (1)
+### LVL — levels (1)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [LVL01](lvl.md) | error | 二つのレベルの z が同じです |
+| [LVL01](lvl.md) | error | Two levels have the same z |
 
-### GEO — 領域の重なり (2)
+### GEO — overlapping regions (2)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [GEO01](geo.md#geo01) | error | 一つの空間の領域同士が重なっています |
-| [GEO02](geo.md#geo02) | error | 二つの空間の領域が重なっています |
+| [GEO01](geo.md#geo01) | error | The regions of one space overlap each other |
+| [GEO02](geo.md#geo02) | error | The regions of two spaces overlap |
 
-### VRT — 垂直境界 (6)
+### VRT — vertical boundaries (6)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [VRT01](vrt.md#vrt01) | error | 垂直境界は領域とレベルを持つ空間同士に書きます |
-| [VRT02](vrt.md#vrt02) | error | 垂直境界は隣り合うレベルの間に書きます |
-| [VRT03](vrt.md#vrt03) | error | 垂直境界の空間が平面上で重なっていません |
-| [VRT04](vrt.md#vrt04) | warning | void 境界の上側が `type:void` ではありません |
-| [VRT05](vrt.md#vrt05) | warning | 垂直境界の開口は解釈されません |
-| [VRT06](vrt.md#vrt06) | warning | 垂直境界の `seg` は解釈されません |
+| [VRT01](vrt.md#vrt01) | error | A vertical boundary needs a region and a level on both sides |
+| [VRT02](vrt.md#vrt02) | error | A vertical boundary spans one step between adjacent levels |
+| [VRT03](vrt.md#vrt03) | error | The spaces of a vertical boundary do not overlap in plan |
+| [VRT04](vrt.md#vrt04) | warning | The space above a void boundary is not `type:void` |
+| [VRT05](vrt.md#vrt05) | warning | An opening on a vertical boundary is not interpreted |
+| [VRT06](vrt.md#vrt06) | warning | A `seg` on a vertical boundary is not interpreted |
 
-### OPN — 開口 (8)
+### OPN — openings (8)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [OPN01](opn.md#opn01) | error | `hinge` の軸違い |
-| [OPN02](opn.md#opn02) | error | 開口同士が重なっています |
-| [OPN03](opn.md#opn03) | warning | open 境界の開口は通行に影響しません |
-| [OPN04](opn.md#opn04) | error | 開口を置ける境界線分がありません |
-| [OPN05](opn.md#opn05) | error | 境界線分が複数あって曖昧です |
-| [OPN06](opn.md#opn06) | error | 開口の幅が境界線分の長さを超えています |
-| [OPN07](opn.md#opn07) | error | 開口の明示位置の軸違い |
-| [OPN08](opn.md#opn08) | error | 開口の明示位置が線分からはみ出します |
+| [OPN01](opn.md#opn01) | error | The wrong axis for `hinge` |
+| [OPN02](opn.md#opn02) | error | The openings overlap |
+| [OPN03](opn.md#opn03) | warning | An opening on an open boundary has no effect on passage |
+| [OPN04](opn.md#opn04) | error | There is no boundary segment on which to place the opening |
+| [OPN05](opn.md#opn05) | error | There is more than one boundary segment — ambiguous |
+| [OPN06](opn.md#opn06) | error | The opening is wider than the boundary segment |
+| [OPN07](opn.md#opn07) | error | The wrong axis for an explicit opening position |
+| [OPN08](opn.md#opn08) | error | An explicit opening position runs off the segment |
 
-### SEG — 数えない分節 (8)
+### SEG — uncounted subdivisions (8)
 
-`area` (室の内側) が SEG01・SEG02、`seg` (境界の上) が SEG03〜SEG08 である。
+`area` (inside a room) is SEG01–SEG02; `seg` (along a boundary) is SEG03–SEG08.
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [SEG01](seg.md#seg01) | error | 領域を持たない空間に `area` は書けません |
-| [SEG02](seg.md#seg02) | warning | `area` が領域からはみ出しています |
-| [SEG03](seg.md#seg03) | warning | open 境界の `seg` は解釈されません |
-| [SEG04](seg.md#seg04) | error | `seg` を置ける境界線分がありません |
-| [SEG05](seg.md#seg05) | error | `seg` の境界線分が複数あって曖昧です |
-| [SEG06](seg.md#seg06) | error | `seg` の幅が境界線分の長さを超えています |
-| [SEG07](seg.md#seg07) | error | `seg` の明示位置の軸違い |
-| [SEG08](seg.md#seg08) | error | `seg` の明示位置が線分からはみ出します |
+| [SEG01](seg.md#seg01) | error | An `area` on a space with no region |
+| [SEG02](seg.md#seg02) | warning | An `area` spills outside the region |
+| [SEG03](seg.md#seg03) | warning | A `seg` on an open boundary is not interpreted |
+| [SEG04](seg.md#seg04) | error | There is no boundary segment on which to place the `seg` |
+| [SEG05](seg.md#seg05) | error | There is more than one boundary segment for the `seg` — ambiguous |
+| [SEG06](seg.md#seg06) | error | The `seg` is wider than the boundary segment |
+| [SEG07](seg.md#seg07) | error | The wrong axis for an explicit `seg` position |
+| [SEG08](seg.md#seg08) | error | An explicit `seg` position runs off the segment |
 
-### ZON — ゾーン (2)
+### ZON — zones (2)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [ZON01](zon.md) | warning | ゾーンの下に空間がありません |
-| [ZON02](zon.md) | warning | ゾーンと同じパスの空間があります |
+| [ZON01](zon.md) | warning | There are no spaces beneath the zone |
+| [ZON02](zon.md) | warning | A space shares its path with a zone |
 
-### HGT — 高さの不変量 (2)
+### HGT — the height invariant (2)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [HGT01](hgt.md) | error | 上階の床に食い込みます |
-| [HGT02](hgt.md) | error | 部分吹抜けの被覆が足りません |
+| [HGT01](hgt.md) | error | It collides into the floor above |
+| [HGT02](hgt.md) | error | Insufficient coverage for a partial void |
 
-### SUF — 充足性 (4)
+### SUF — sufficiency (4)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [SUF01](suf.md) | error | 天井高が決まらず、天井も屋根も生成できません |
-| [SUF02](suf.md) | error | レベルが特定できず、立体が一つも生成できません |
-| [SUF03](suf.md) | warning | レベルに `slab` が無く、床が一枚も生成されません |
-| [SUF04](suf.md) | warning | 縦動線の宣言に対して形が一つも生成されません |
+| [SUF01](suf.md) | error | The ceiling height cannot be determined; no ceiling and no roof can be generated |
+| [SUF02](suf.md) | error | The level cannot be determined; not one solid can be generated |
+| [SUF03](suf.md) | warning | The level has no `slab`, so not one floor is generated |
+| [SUF04](suf.md) | warning | A vertical-circulation declaration produces no shape at all |
 
-### SIT — 敷地形状 (3)
+### SIT — site outline (3)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [SIT01](sit.md) | error | 敷地形状に重複する頂点があります |
-| [SIT02](sit.md) | error | 敷地形状が自己交差しています |
-| [SIT04](sit.md) | warning | `polygon` に対応するゾーンがありません |
+| [SIT01](sit.md) | error | The site shape has a duplicate vertex |
+| [SIT02](sit.md) | error | The site shape is self-intersecting |
+| [SIT04](sit.md) | warning | No zone corresponds to the `polygon` |
 
-SIT03 と SIT05 は[欠番](retired.md)である。
+SIT03 and SIT05 are [retired numbers](retired.md).
 
-### UID — 同一性 (4)
+### UID — identity (4)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [UID01](uid.md) | error | `uid` は数字だけのトークンにできません |
-| [UID02](uid.md) | error | `uid` に空白は使えません |
-| [UID03](uid.md) | error | `uid` が重複しています |
-| [UID04](uid.md) | error | 同じ対象の中で `name` が重複しています |
+| [UID01](uid.md) | error | A `uid` cannot be a token of digits alone |
+| [UID02](uid.md) | error | A `uid` cannot contain whitespace |
+| [UID03](uid.md) | error | A duplicate `uid` |
+| [UID04](uid.md) | error | A duplicate `name` within one container |
 
-### ATT — 属性 (3)
+### ATT — attributes (3)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [ATT01](att.md) | error | 属性は正の数値で書きます |
-| [ATT02](att.md) | error | 属性の値が台帳の語彙にありません |
-| [ATT03](att.md) | error | 台帳に無い属性キーで、名前空間もありません |
+| [ATT01](att.md) | error | The attribute takes a positive number |
+| [ATT02](att.md) | error | The value is not in the ledger's vocabulary |
+| [ATT03](att.md) | error | The key is not in the ledger and carries no namespace |
 
-### DAY — 採光の対象 (1)
+### DAY — daylight scope (1)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [DAY01](day.md) | error | `daylight` は 1 (採光判定の対象) か 0 (対象外) です |
+| [DAY01](day.md) | error | `daylight` is either 1 (in scope) or 0 (out of scope) |
 
-### RUN — 縦動線 (4)
+### RUN — vertical circulation (4)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [RUN01](run.md) | error | 一つの空間に縦動線の宣言が複数あります |
-| [RUN02](run.md) | error | 縦動線の値は上る向き N/E/S/W です |
-| [RUN03](run.md) | error | 縦動線の領域が矩形一つでない、またはレベルが不明です |
-| [RUN05](run.md) | error | `form` の値が不正、または形が決まりません |
+| [RUN01](run.md) | error | More than one vertical-circulation declaration on one space |
+| [RUN02](run.md) | error | The value must be a direction of travel, N/E/S/W |
+| [RUN03](run.md) | error | The region is not a single rectangle, or the level is unknown |
+| [RUN05](run.md) | error | `form` is invalid, or the shape is not determined |
 
-RUN04・RUN06・RUN07・RUN08 は[欠番](retired.md)である。
+RUN04, RUN06, RUN07 and RUN08 are [retired numbers](retired.md).
 
-### LIN — 描かれた線 (3)
+### LIN — drawn lines (3)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [LIN01](lin.md) | error | 線が二つの空間を分離していません |
-| [LIN02](lin.md) | error | 垂直境界に線は描けません |
-| [LIN03](lin.md) | warning | 線が何も切っていません |
+| [LIN01](lin.md) | error | The line does not separate the two spaces |
+| [LIN02](lin.md) | error | A vertical boundary cannot carry a line |
+| [LIN03](lin.md) | warning | The line cuts nothing |
 
-### COL — 柱 (2)
+### COL — columns (2)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [COL01](col.md) | warning | 宣言に対して立つ柱が0本です |
-| [COL02](col.md) | warning | 同じ交点に先の柱宣言が立っています |
+| [COL01](col.md) | warning | Not one column stands for this declaration |
+| [COL02](col.md) | warning | An earlier declaration already took the same intersections |
 
-### VER — 言語版の受理条件 (4)
+### VER — language-version acceptance (4)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [VER01](ver.md) | error | koyu 0.1 のファイルに、境界が宣言されていない接触ペアがあります |
-| [VER02](ver.md) | error | koyu 0.3 以前のファイルに `daylight` の無い居室型があります |
-| [VER03](ver.md) | error | koyu 0.4 以前のファイルに 0.5 の語があります |
-| [VER04](ver.md) | error | koyu 0.5 以前のファイルに 1.0 の語があります |
-| [VER05](ver.md) | error | koyu 1.0 以前の型の位置に exterior / void があります |
+| [VER01](ver.md) | error | A koyu 0.1 file has a touching pair with no boundary declared |
+| [VER02](ver.md) | error | A koyu 0.3-or-earlier file has a habitable type with no `daylight` |
+| [VER03](ver.md) | error | A koyu 0.4-or-earlier file uses 0.5 vocabulary |
+| [VER04](ver.md) | error | A koyu 0.5-or-earlier file uses 1.0 vocabulary |
+| [VER05](ver.md) | error | A koyu 1.0-or-earlier file writes exterior / void in the type position |
 
-### SYN — 構文・合成 (1)
+### SYN — syntax and composition (1)
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [SYN01](syn.md) | error | 構文または合成のエラー |
+| [SYN01](syn.md) | error | A syntax or composition error |
 
-SYN01 は個別の検査ではなく、読み込みが投げた例外を一件に写したものである。**`check --json` のときにだけ現れる** — `--json` を付けない `check` は例外をそのまま印字して終了コード1で終わる。
+SYN01 is not a check of its own but the exception thrown while reading, copied into a single diagnostic. **It appears only under `check --json`** — without `--json`, `check` prints the exception as it is and exits 1.
 
-## 欠番
+## Retired numbers
 
-**番号は再利用しない。**過去の出力が読めなくなるからである。11 の番号が欠番で、そのうち 6 つは `koyu validate` の規則へ、4 つは SUF の族へ移った。何が何に置き換わったかは[欠番の診断コード](retired.md)にある。
+**Numbers are never reused.** Reusing one would make past output unreadable. Eleven are retired: six moved to `koyu validate` rules and four folded into the SUF family. What replaced what is on [Retired diagnostic codes](retired.md).
 
 `BND07` `HGT03` `HGT04` `HGT05` `RUN04` `ENV01` `RUN06` `RUN07` `RUN08` `SIT03` `SIT05`
 
-## check が緑でも見ていないこと
+## What a green check has not looked at
 
-**緑は「構成がデータとして矛盾しておらず、書かれた構成から形が作れる」までを意味する。**建築としての妥当性については何も言わない。特に次の二つは緑のまま通り抜ける。
+**Green means the composition is self-consistent as data and a shape can be made from what is written.** It says nothing about architectural validity. Two things in particular walk straight through it.
 
-**閉じた建物。**接する空間の既定は壁であり、壁は扉が無ければ通れない。扉を一枚も書かない二階建ては緑のまま完全に密封される。
+**A sealed building.** The default between touching spaces is a wall, and a wall is impassable without a door. A two-storey house with not one door written is green and completely sealed.
 
 ```sh
 koyu doors <file> /L2/bed /out/road
 ```
 
-これが「到達できません」と答えたら、動線が繋がっていない。`koyu validate` の `access.unreachable` も同じことを違反として言う。
+If that answers "unreachable", the circulation is not connected. `koyu validate`'s `access.unreachable` says the same thing as a violation.
 
-**採光。**窓を一枚も書かなくても緑になる。`koyu light <file>` が居室ごとの 1/7 判定を出し、`koyu validate` の `daylight.ratio` が違反として言う。
+**Daylight.** Not one window is needed to be green. `koyu light <file>` gives the 1/7 judgement per room, and `koyu validate`'s `daylight.ratio` reports it as a violation.
 
-`check` の呼び方と旗は [koyu check](../cli/check.md) に、判定の側は [koyu validate](../cli/validate.md) にある。
+How to call `check` and its flags is on [koyu check](../cli/check.md); the validation surface is on [koyu validate](../cli/validate.md).

@@ -1,116 +1,116 @@
 ---
-title: IFC4 対応表
+title: IFC4 coverage
 mode: explanation
 ---
 
-# IFC4 対応表
+# IFC4 coverage
 
-IFC4 のスキーマを鏡にして、**koyu が何を書けるか・何をまだ書けないか・何を方針として書かないか**を並べた表である。参考であって契約ではない — 契約は [約束の範囲](../reference/scope.md) と [持たないもの](../reference/not-held.md) が持つ。
+A table that uses the IFC4 schema as a mirror to lay out **what koyu can write, what it cannot yet, and what it deliberately will not**. It is for reference, not a contract — the contract is held by [Scope](../reference/scope.md) and [What koyu does not hold](../reference/not-held.md).
 
-用語に馴染みが無ければ [BIM・IFC・USD の基礎](bim-ifc-usd.md) を先に読む。
+If the terminology is unfamiliar, read [BIM, IFC and USD basics](bim-ifc-usd.md) first.
 
-| 記号 | 意味 |
+| Symbol | Meaning |
 |---|---|
-| **●** | 対応 — 書ける、または導出される |
-| **◐** | 部分対応 — 書けるが解釈が浅い |
-| **○** | 未対応 — 計画にある |
-| **—** | 方針として対象外 (理由を明記) |
+| **●** | covered — writable, or derived |
+| **◐** | partial — writable but shallowly interpreted |
+| **○** | not yet — planned |
+| **—** | deliberately out of scope (reason given) |
 
-## 規模の見取り図
+## The shape of the schema
 
-IFC のスキーマ (IFC2x3/4/4x3 統合) の約 1,140 エンティティのうち、幾何・形状表現系が約 250、構造解析系が約 45、設備系が約 150、土木系が約 50、関係 (`IfcRel*`) が約 60 である。
+Of the roughly 1,140 entities in the IFC schema (2x3, 4 and 4x3 combined), about 250 are geometry and shape representation, 45 structural analysis, 150 building services, 50 infrastructure, and 60 are the `IfcRel*` relationships.
 
-**幾何表現の層 — IFC の物量の中核 — を「形は生成物」の方針が丸ごと原本から追放している。**これが koyu が小さい理由の骨格である。残る建築系コア (空間構造・建築要素・属性・数量) がこの表の主戦場になる。
+**The geometry layer — the bulk of IFC's mass — is evicted from the source wholesale by the rule that form is generated.** That is the skeleton of why koyu is small. What remains, the architectural core (spatial structure, building elements, attributes, quantities), is the battleground of this table.
 
-## A. 空間構造
+## A. Spatial structure
 
-| IFC | 状態 | koyu での対応 |
+| IFC | State | In koyu |
 |---|---|---|
-| `IfcProject` / `IfcBuilding` / `IfcBuildingStorey` | ● | `name` 宣言・パス階層・[`level`](../reference/muro/level.md) (z / h / slab、レベルスパン)。矩計は `koyu levels` |
-| `IfcSpace` | ● | [`space`](../reference/muro/space.md) — **二次的存在から一次要素への格上げが主題そのものである** |
-| `IfcSpatialZone` / `IfcZone` | ● | [`zone`](../reference/muro/zone.md) (数える集約)。階を跨ぐくくりは `level:` 属性 |
-| `IfcSite` (敷地) | ◐ | `zone … site:1` + 地上の外部空間 + [`polygon`](../reference/muro/polygon.md) (所与のジオメトリ)。接道・建蔽率・容積率は `koyu site` が導出。残: 測地座標と真北、建築面積の算入細則 |
-| `IfcExternalSpatialElement` | ● | `/out` は方角・性格ごとの複数の `exterior` に割れる (道路は `road:` に幅員)。粒度は自由で、一枚岩も有効 |
-| `IfcRelAggregates` (空間分解) | ● | パスの階層そのもの ([パスと面積集計](paths.md)) |
+| `IfcProject` / `IfcBuilding` / `IfcBuildingStorey` | ● | the `name` declaration, the path hierarchy, [`level`](../reference/muro/level.md) (z / h / slab, level spans). The section stack-up is `koyu levels` |
+| `IfcSpace` | ● | [`space`](../reference/muro/space.md) — **promoting this from secondary to primary is the whole subject** |
+| `IfcSpatialZone` / `IfcZone` | ● | [`zone`](../reference/muro/zone.md) (counted aggregation). Groupings across storeys use the `level:` attribute |
+| `IfcSite` | ◐ | `zone … site:1` plus exterior spaces at grade plus [`polygon`](../reference/muro/polygon.md) (given geometry). Frontage, coverage ratio and floor area ratio are derived by `koyu site`. Remaining: geodetic coordinates and true north, the finer rules of footprint measurement |
+| `IfcExternalSpatialElement` | ● | `/out` may be split into several `exterior` spaces by orientation or character (roads carry a width in `road:`). Granularity is free; a monolith works too |
+| `IfcRelAggregates` | ● | the path hierarchy itself ([Paths and area aggregation](paths.md)) |
 
-## B. 空間境界
+## B. Space boundaries
 
-| IFC | 状態 | koyu での対応 |
+| IFC | State | In koyu |
 |---|---|---|
-| `IfcRelSpaceBoundary` (PHYSICAL / VIRTUAL) | ● | [`boundary`](../reference/muro/boundary.md) の `kind` が `wall` / `open`。**IFC では付随的な関係が、ここでは一次のグラフの辺である** |
-| 同 (INTERNAL / EXTERNAL) | ● | 宣言ではなく導出 (相手が `exterior` か)。半屋外も `open` / `air:1` から導出 |
-| 2nd Level 境界 (熱計算粒度) | — | 省エネ計算の粒度は対象外。必要になったら生成物の側で導出する |
+| `IfcRelSpaceBoundary` (PHYSICAL / VIRTUAL) | ● | the `kind` of a [`boundary`](../reference/muro/boundary.md), `wall` or `open`. **What IFC treats as an incidental relation is here a first-class graph edge** |
+| the same (INTERNAL / EXTERNAL) | ● | derived, not declared (is the other end `exterior`). Semi-outdoor is likewise derived from `open` / `air:1` |
+| 2nd-level boundaries (thermal granularity) | — | energy-calculation granularity is out of scope. If it is ever needed, derive it on the generated side |
 
-## C. 建築要素
+## C. Building elements
 
-| IFC | 状態 | koyu での対応 |
+| IFC | State | In koyu |
 |---|---|---|
-| `IfcWall` / `IfcWallStandardCase` | ● | 壁 = 境界の属性 (`t` / `spec` / `fire` / `sound`)。**壁を置く操作は存在しない** |
-| `IfcRailing` | ● | `spec` の自由語 + `air:1`。`kind` に物の名を入れない |
-| `IfcSlab` (床) | ● | 書かない — `level` の `slab` が既定。不在は `void` 境界 |
-| `IfcSlab.ROOF` / `IfcRoof` (屋根) | ◐ | **陸屋根は導出される** — 上に空間が重なっていない範囲に、上階の `slab` または既定の厚さで架かる。吹抜けにも架かる。残: 勾配屋根・庇・パラペット |
-| `IfcDoor` / `IfcWindow` | ● | [`door`](../reference/muro/door.md) / [`window`](../reference/muro/window.md) (`w` / `h` / `at` / `edge`)、開き勝手 `hinge` / `swing`、明示位置 `at:X2+450` (はみ出し・重なりは検査)。建具の型は [`asset`](../reference/muro/asset.md)、開き方は `style:hinged/sliding/auto`。窓台 `sill` は運搬層。残: 折戸、防火設備の別 (`fire` は運搬層で解釈しない)、枠と納まり |
-| `IfcOpeningElement` / `IfcRelVoids` / `IfcRelFills` | ● | 開口は境界の字下げ。**ブーリアンは存在しない** — 壁は最初から開口で割られた区間の列である ([平面図の生成](plan-is-not-a-section.md)) |
-| `IfcStair` / `IfcStairFlight` / `IfcRamp` | ● | 空間の属性 (`stair:N` / `ramp:N` / `escalator:N` / `lift:1`) と垂直境界。**段数・蹴上げ・踏面・踊り場・勾配はすべて導出される** — 領域と階高と上る向きだけから。窮屈さと勾配は `stair.proportion` / `run.slope` が判定する ([縦動線](../reference/muro/vertical-circulation.md)) |
-| `IfcColumn` | ● | [`column`](../reference/muro/column.md) — **位置を書かない要素。**通り芯の交点と床の交わりから現れる。空しか支えない半屋外 (上に床の無い屋上テラス) には立たない。扉との重なりは `column.blocksdoor` が判定する |
-| `IfcBeam` / `IfcMember` | — | 構造は物の別の層。梁は空間の一次モデルに座を持たない |
-| `IfcCurtainWall` | ◐ | `spec` の自由語で書ける (解釈は無い)。大開口は `window` でも書ける |
-| `IfcCovering` (仕上げ) | ◐ | 床は `floor` 属性 + [`area`](../reference/muro/area.md) (数えない分節)。天井は `ceiling:0` で「張らない」が言えるだけ。下がり天井マップ・仕上表は未 |
-| `IfcBuildingElementProxy` | ◐ | 自由語彙 (型 / `spec`) で運べる |
+| `IfcWall` / `IfcWallStandardCase` | ● | a wall is attributes on a boundary (`t` / `spec` / `fire` / `sound`). **There is no operation that places a wall** |
+| `IfcRailing` | ● | a free word in `spec` plus `air:1`. Object names do not go into `kind` |
+| `IfcSlab` (floor) | ● | not written — the `slab` of a `level` is the default. Its absence is a `void` boundary |
+| `IfcSlab.ROOF` / `IfcRoof` | ◐ | **flat roofs are derived** — laid over whatever has no space above it, at the upper level's `slab` thickness or the default. Voids get roofs too. Remaining: pitched roofs, eaves, parapets |
+| `IfcDoor` / `IfcWindow` | ● | [`door`](../reference/muro/door.md) / [`window`](../reference/muro/window.md) (`w` / `h` / `at` / `edge`), hand and swing (`hinge` / `swing`), explicit position `at:X2+450` (overruns and overlaps are checked). Door and window types are [`asset`](../reference/muro/asset.md); operation is `style:hinged/sliding/auto`. The sill height `sill` is carried, not interpreted. Remaining: folding leaves, fire-rated sets (`fire` is carried and not interpreted), frames and junctions |
+| `IfcOpeningElement` / `IfcRelVoids` / `IfcRelFills` | ● | an opening is an indented line under a boundary. **There is no boolean** — a wall is a run of intervals divided by openings from the start ([How plans are generated](plan-is-not-a-section.md)) |
+| `IfcStair` / `IfcStairFlight` / `IfcRamp` | ● | attributes on a space (`stair:N` / `ramp:N` / `escalator:N` / `lift:1`) plus a vertical boundary. **Riser count, rise, tread, landings and slope are all derived** from the region, the storey height and the direction of ascent alone. Crampedness and slope are judged by `stair.proportion` / `run.slope` ([vertical circulation](../reference/muro/vertical-circulation.md)) |
+| `IfcColumn` | ● | [`column`](../reference/muro/column.md) — **an element whose position is never written.** It appears where a grid crossing meets a floor. It does not stand on semi-outdoor space that supports only sky (a roof terrace with nothing above it). Overlap with a door is judged by `column.blocksdoor` |
+| `IfcBeam` / `IfcMember` | — | structure is a separate layer of things. A beam has no seat in a space-primary model |
+| `IfcCurtainWall` | ◐ | writable as a free word in `spec` (uninterpreted). A large opening can also be written as a `window` |
+| `IfcCovering` (finishes) | ◐ | floors via the `floor` attribute plus [`area`](../reference/muro/area.md) (uncounted subdivision). Ceilings only as far as `ceiling:0`, "do not build one". Dropped-ceiling maps and finish schedules are absent |
+| `IfcBuildingElementProxy` | ◐ | carried by the open vocabulary (type / `spec`) |
 
-## D. バルコニー — 床の延長か
+## D. Balconies — an extension of the floor?
 
-IFC4 にバルコニー専用のエンティティは無い (実務は `IfcSlab` + `IfcRailing` + 外部 `IfcSpace` の組合せ)。
+IFC4 has no dedicated balcony entity (practice combines `IfcSlab` + `IfcRailing` + an exterior `IfcSpace`).
 
-**koyu の答え: バルコニーは床の延長ではなく空間である。**そもそも床は原本に書かれないので、「床の延長か」という問いは物の言語に属する。空間として書き、半屋外は導出され、床は生成物である。手すりと立ち上がりの高さは境界の `h` が持つ (`spec:手すり air:1 h:1100`)。
+**koyu's answer: a balcony is not an extension of the floor but a space.** Since floors are not written in the source at all, "is it an extension of the floor" is a question in the language of things. Write it as a space; semi-outdoor is derived; the floor is generated. Railing and upstand heights live in the boundary's `h` (`spec:手すり air:1 h:1100`).
 
-残るのは**鉛直方向の複合プロファイル**である — 「RC 立ち上がり 1200 + 笠木手摺」のような断面は書けない。窓の `sill` / `h`、腰壁、立ち上がりを統一する語彙が要る。
+What remains is **the composite vertical profile** — a section like "1200 mm RC upstand with a coping-mounted handrail" cannot be written. A vocabulary unifying the window's `sill` / `h`, spandrels and upstands is needed.
 
-## E. 属性・分類・材料・数量
+## E. Attributes, classification, materials, quantities
 
-| IFC | 状態 | koyu での対応 |
+| IFC | State | In koyu |
 |---|---|---|
-| `IfcPropertySet` / `IfcProperty` | ● | 開かれた `key:value` + [属性の台帳](../reference/muro/attributes.md)。台帳に無いキーは名前空間が要る ([属性の拡張](open-vocabulary.md)) |
-| `IfcTypeObject` / `IfcRelDefinesByType` | ◐ | [`asset`](../reference/muro/asset.md) が建具の型を持つ。建具以外の型 (壁種別など) は `spec` の自由語のまま |
-| `IfcElementQuantity` (数量) | ◐ | **数量は宣言せず導出する** (`koyu stats` / `koyu light`)。壁芯固定で、内法・容積対象・区画面積の規約は未 |
-| `IfcClassification` (外部分類) | ○ | 台帳と外部辞書 (bSDD / Uniclass / 室用途コード) の橋。未着手 |
-| `IfcMaterial` / `IfcMaterialLayerSet` | ◐ | `spec` は名前だけ。層構成は実施設計の情報であり、合成の後段レイヤーの候補 |
-| `IfcGrid` | ● | [`grid`](../reference/muro/grid.md) (通り芯 + オフセット) |
-| `IfcOwnerHistory` | ● | **持たない — git が履歴である** |
+| `IfcPropertySet` / `IfcProperty` | ● | open `key:value` plus [the attribute ledger](../reference/muro/attributes.md). A key not in the ledger needs a namespace ([Extending attributes](open-vocabulary.md)) |
+| `IfcTypeObject` / `IfcRelDefinesByType` | ◐ | [`asset`](../reference/muro/asset.md) holds door and window types. Other types (wall types and so on) stay free words in `spec` |
+| `IfcElementQuantity` | ◐ | **quantities are derived, never declared** (`koyu stats`, `koyu light`). Fixed to wall centerlines; conventions for internal-face, volumetric and compartment areas are absent |
+| `IfcClassification` | ○ | a bridge from the ledger to outside dictionaries (bSDD, Uniclass, room-use codes). Not started |
+| `IfcMaterial` / `IfcMaterialLayerSet` | ◐ | `spec` is a name only. Layer build-ups are detailed-design information and a candidate for a later composition layer |
+| `IfcGrid` | ● | [`grid`](../reference/muro/grid.md) (grid lines plus offsets) |
+| `IfcOwnerHistory` | ● | **absent — git is the history** |
 
-## F. 敷地の外・都市
+## F. Beyond the site, and the city
 
-| IFC | 状態 | koyu での対応 |
+| IFC | State | In koyu |
 |---|---|---|
-| `IfcGeographicElement` (外構) | ○ | アプローチ・駐車場・植栽・舗装。外部空間の分節 + 外構語彙 |
-| `IfcMapConversion` / `IfcProjectedCRS` (測地) | ○ | 真北と測地座標。採光・日影の方位、都市データ接続の前提 |
-| IFC4x3 土木 (道路・鉄道・橋梁・トンネル 約 50) | — | 対象外 (建築に絞る) |
+| `IfcGeographicElement` (landscape) | ○ | approaches, parking, planting, paving. Subdivision of exterior space plus a landscape vocabulary |
+| `IfcMapConversion` / `IfcProjectedCRS` | ○ | true north and geodetic coordinates. A prerequisite for daylight and shadow orientation and for city-data connections |
+| IFC4x3 infrastructure (roads, rail, bridges, tunnels — about 50) | — | out of scope (this is about buildings) |
 
-## G. 方針として対象外
+## G. Deliberately out of scope
 
-| IFC 領域 | 理由 |
+| IFC area | Reason |
 |---|---|
-| 幾何・形状表現 (約 250) | **形は生成物。**原本に形を持たないことが主題である |
-| 構造解析系 (`IfcStructural*` 約 45) | 構造は物の別の層 |
-| 設備系 (約 150) | 対象外。PS・EV・機械室は空間として既に書ける |
-| プロセス・コスト (`IfcTask` / `IfcCostItem` 等) | 探求の範囲外 |
-| 資産管理・センサー (`IfcAsset` / `IfcSensor` 等) | 動的な状態は原本に入れない。パスが外部キーになる |
-| スタイル・表示 (`IfcStyledItem` 等) | 描画はツールの仕事。原本は構成 |
+| geometry and shape representation (~250) | **form is generated.** Not holding form in the source *is* the subject |
+| structural analysis (`IfcStructural*`, ~45) | structure is a separate layer of things |
+| building services (~150) | out of scope. Risers, lifts and plant rooms are already writable as spaces |
+| process and cost (`IfcTask`, `IfcCostItem`, …) | outside this enquiry |
+| asset management and sensors (`IfcAsset`, `IfcSensor`, …) | dynamic state does not enter the source. The path becomes the foreign key |
+| style and presentation (`IfcStyledItem`, …) | drawing is the tool's job. The source is composition |
 
-## 対応の思想
+## The idea behind the mapping
 
-IFC の「エンティティ」は、koyu では三つのどれかに落ちる。
+An IFC "entity" lands in one of three places in koyu.
 
-1. **構造として解釈される少数の語** — `kind` と、台帳の解釈層の属性
-2. **開かれた語彙の値** — 型と `spec`。`IfcRailing` も `IfcCurtainWall` もここ
-3. **導出される生成物** — 数量・幾何・内外の別・段数・柱・屋根
+1. **A few words read structurally** — `kind`, and the interpreted attributes in the ledger
+2. **Values in an open vocabulary** — types and `spec`. `IfcRailing` and `IfcCurtainWall` both land here
+3. **Generated products** — quantities, geometry, the inside/outside distinction, riser counts, columns, roofs
 
-**エンティティを増やさずにカバレッジを広げるのがこの設計の賭けであり、この表はその検算である。**
+**Widening coverage without adding entities is the bet of this design, and this table is the arithmetic check on it.**
 
-そして**カバー率は価値ではない。**足せば機械の視野から外れ、目的が壊れる ([記述できる粒度](resolution.md))。○ の行は「いつか埋める穴」ではなく、**埋めるかどうかを五つの問いで判断する候補**である ([属性の拡張](open-vocabulary.md))。
+And **coverage percentage is not a value.** Add and you fall out of the machine's field of view, and the goal breaks ([Level of detail](resolution.md)). The ○ rows are not "holes to be filled some day" but **candidates to be judged by the five questions** ([Extending attributes](open-vocabulary.md)).
 
-## この先
+## Next
 
-- [IFC・USD との比較](vs-ifc.md) — トークン実測つきの比較
-- [記述できる粒度](resolution.md)
-- [持たないもの](../reference/not-held.md)
+- [Comparison with IFC and USD](vs-ifc.md) — comparison with measured token counts
+- [Level of detail](resolution.md)
+- [What koyu does not hold](../reference/not-held.md)

@@ -1,127 +1,127 @@
 ---
-title: over / drop — 上書きと削除
+title: over / drop — overriding and removing
 mode: reference
 ---
 
-# over / drop — 上書きと削除
+# over / drop — overriding and removing
 
-`over` は既にあるものの属性を差し替え、`drop` は既にあるものを消す。`over` の直下に字下げして書く `+` / `-` / `=` は、開口や `area` のような**集合**を編集する。
+`over` replaces attributes on something that already exists; `drop` removes something that already exists. The `+` / `-` / `=` lines written indented directly under `over` edit a **set** — openings, `seg`, `area`.
 
-三つとも muro 1.0 の語である。`koyu 0.5` 以前を宣言したファイルに書けば `check` が **VER04** (error) で止める。
+All three are muro 1.0 words. Writing one in a file that declares `koyu 0.5` or earlier is stopped by `check` as **VER04** (an error).
 
-## 対象の種別は、行の形で読む
+## The kind of target is read from the shape of the line
 
-`over` にも `drop` にも「これは空間だ」と言う語は無い。**行の形が種別を決める。**
+Neither `over` nor `drop` has a word that says "this is a space". **The shape of the line decides the kind.**
 
-| 書き方 | 対象 |
+| How it is written | Target |
 |---|---|
-| `over /path …` | 空間。その名の空間が無ければ**ゾーン** |
-| `over /pathA /pathB …` | 境界 (二つの空間パスを結ぶ関係) |
-| `over level <名> …` | レベル |
-| `over asset <名> …` | 建具アセット |
-| `drop /path` | 空間。その名の空間が無ければゾーン |
-| `drop /pathA /pathB` | 境界 |
-| `drop column <名>` | 柱の宣言 |
+| `over /path …` | A space. If no space has that path, a **zone** |
+| `over /pathA /pathB …` | A boundary (the relation joining two space paths) |
+| `over level <name> …` | A level |
+| `over asset <name> …` | A door or window asset |
+| `drop /path` | A space; a zone if no space has that path |
+| `drop /pathA /pathB` | A boundary |
+| `drop column <name>` | A column declaration |
 
-パスは先頭が `/` かどうかで見分けられ、`level` と `asset` は行頭の語で見分けられる。パスが三つ以上並べばエラーである。
+A path is recognised by its leading `/`; `level` and `asset` by the word at the head of the line. Three or more paths is an error.
 
 ```text
 ✖ x.muro:line 1: Too many paths on the over target: /L1/a /L1/b /out
 ✖ x.muro:line 1: over takes the form over /path … / over /pathA /pathB … / over level <name> … / over asset <name> …
 ```
 
-## over — 属性を差し替える
+## over — replacing attributes
 
 ```muro-part
-over /L1/a h:2400 spec:実測          # 空間
-over /site area:1097.80              # ゾーン (同名の空間が無いので)
-over /L1/a /L1/b t:150 type:open     # 境界
-over level L3 h:2600                 # レベル
-over asset SD1 w:900 style:hinged    # アセット
+over /L1/a h:2400 spec:as-built      # a space
+over /site area:1097.80              # a zone (no space carries that path)
+over /L1/a /L1/b t:150 type:open     # a boundary
+over level L3 h:2600                 # a level
+over asset SD1 w:900 style:hinged    # an asset
 ```
 
-**`over` は定義ではない。**対象が既に合成されていなければエラーになる。
+**`over` is not a definition.** If the target has not already been composed, it is an error.
 
 ```text
 ✖ e1.muro:line 1: No such target for over: /L1/nowhere (place it after the layer that defines it)
 ```
 
-存在しないものに意見だけを足すのは、たいてい綴り違いか、層の順序の思い違いである。
+Adding an opinion to something that does not exist is usually a misspelling, or a mistaken idea of the layer order.
 
-`over` は自由属性だけでなく、parse が持ち上げる典型化された値にも届く — 境界の `type` `t` `air` `edge`、レベルの `h` `slab` `underground`、空間の `level` はいずれも上書きできる。
+`over` reaches the typed fields the parser lifts out of the attributes as well as the free ones — a boundary's `type`, `t`, `air` and `edge`, a level's `h`, `slab` and `underground`, and a space's `level` can all be overridden.
 
-**`over` が書ける語は、その宣言に書ける語と同じである。**空間の `level` は所属を実際に動かし ([space](space.md))、宣言されていないレベルなら宣言行と同じ言葉で断られる。逆に、宣言が拒む語は `over` でも拒まれる — `w:` は帯の要素の語なので、`over` で空間に書くこともできない ([band](band.md))。
+**What `over` may write is exactly what its declaration may write.** A space's `level` really does move where it belongs ([space](space.md)), and an undeclared level is refused in the same words the declaration uses. Conversely, a word the declaration refuses `over` refuses too — `w:` belongs to the members of a band, so it cannot be written on a space through `over` either ([band](band.md)).
 
 ```text
 ✖ p.muro:line 1: w: may not be written on space (a space written by width sits indented under band)
 ```
 
-**同じ語が書き方によって別の意味になってはならない** — でなければ `over` で直した版と最初からそう書いた版が同じ正準形を与えるという[規則5](composition.md)が破れる。
+**The same word must not mean different things depending on how it was written** — otherwise [rule 5](composition.md), that an overridden model and one written that way from the start give the same canonical form, is broken.
 
-**レベルに書けるのは三語だけである。**
+**Only three words may be overridden on a level.**
 
 ```text
 ✖ x.muro:line 1: Only h / slab / underground may be overridden on a level: spec
 ```
 
-### 同じ空間対に境界が複数あるとき
+### When one pair of spaces carries several boundaries
 
-`edge:` で辺を限定した境界を同じ空間対に複数書くことがある。`over /L1/a /L1/b t:250` は**その対の境界すべて**に届く。一枚だけを狙う言葉は無い。
+The same pair of spaces may carry several boundaries, each limited to an edge with `edge:`. `over /L1/a /L1/b t:250` reaches **every boundary between that pair**. There is no word for singling one of them out.
 
-### 既定の壁は上書きできない
+### A default wall cannot be overridden
 
-接する空間の間には、宣言が無くても `wall` の境界が導かれる。この既定の境界は**すべての層を合成し終えてから**作られるので、合成の途中である `over` からは見えない。
+A `wall` boundary is derived between touching spaces even when none is written. That default is built **after every layer has been composed**, so it does not exist yet while `over` is running.
 
 ```text
 ✖ o.muro:line 1: No such boundary for over: /L1/a | /L1/b
 ```
 
-厚みや仕様を与えたい壁は、既定に頼らず `boundary` として宣言する。
+A wall that needs a thickness or a specification is declared as a `boundary` rather than left to the default.
 
-### 強度
+### Strength
 
-どの層の `over` が勝つかは、層の並びが決める。**後の層ほど強い。**同じ層が同じ属性に二度意見を持てばエラーである。規則は [合成の六規則](composition.md) にある。
+Which layer's `over` wins is decided by the layer order. **Later layers are stronger.** One layer holding two opinions about the same attribute is an error. The rules are in [the rules of composition](composition.md).
 
-## 集合の編集 — `+` / `-` / `=`
+## Set edits — `+` / `-` / `=`
 
-同じ座に複数の層が意見を持ちうるもの — 開口・`seg`・`area` — は、暗黙にマージされない。`over` の直下に字下げして、**明示された編集**を書く。
+Things about which several layers may hold an opinion at the same place — openings, `seg`, `area` — are never merged implicitly. **A declared edit** is written indented directly under `over`.
 
 ```muro-part
 over /L1/a /L1/b
-  - door D2                              # 削除
-  = door D1 w:1000                       # 置換
-  + window w:600 h:1200 at:0.9 name:W1   # 追加
+  - door D2                              # remove
+  = door D1 w:1000                       # replace
+  + window w:600 h:1200 at:0.9 name:W1   # add
 ```
 
-**`over` の直下に置けるのはこの三つだけである。**
+**Nothing else may sit directly under `over`.**
 
 ```text
 ✖ x.muro:line 2: Only + (add) / - (remove) / = (replace) may sit directly under over: door
 ```
 
-対象によって、編集できる集合が違う。
+Which set can be edited depends on the target.
 
-| `over` の対象 | 編集できるもの |
+| Target of `over` | What can be edited |
 |---|---|
-| 境界 | `door` / `window` / `seg` |
-| 空間 | `area` |
-| ゾーン・レベル・アセット | 無い |
+| A boundary | `door` / `window` / `seg` |
+| A space | `area` |
+| A zone, a level, an asset | Nothing |
 
 ```text
 ✖ x.muro:line 2: over on a space edits area: door
 ```
 
-### 同一性は「容れ物 + その中で一意な名」
+### Identity is the container plus a name unique within it
 
-`-` と `=` は要素を**名で指す**。`name:` を持たない要素は編集の対象にできない — 指す言葉が無いからである。
+`-` and `=` point at a member **by name**. A member without `name:` cannot be edited — there is no word with which to point at it.
 
 ```muro-part
 boundary /L1/a /L1/b t:120
-  door w:900 name:D1     # 名がある — 後から編集できる
-  door w:800 at:0.8      # 名が無い — 後から指せない
+  door w:900 name:D1     # named — editable later
+  door w:800 at:0.8      # unnamed — nothing can point at it
 ```
 
-`+` で足す要素には `name:` が要る。同じ容れ物の中で名が重複すればエラー、`-` や `=` の指す名が一意でなければエラーである。
+A member added with `+` requires `name:`. A duplicate name inside the same container is an error, and so is a name that `-` or `=` cannot resolve uniquely.
 
 ```text
 ✖ e2.muro:line 2: A door added with + requires name: (it is the name later statements point to)
@@ -130,16 +130,16 @@ boundary /L1/a /L1/b t:120
 ✖ x.muro:line 2: The door name D9 is not unique
 ```
 
-### `=` が差し替えるもの
+### What `=` actually replaces
 
-`=` は**全置換ではない** — 名は残り、書いた属性だけが差し替わる。寸法として届くのは `w:` と `h:` の二つである。
+`=` is **not a wholesale replacement** — the name stays and only the attributes written are replaced. The dimensions it reaches are `w:` and `h:`.
 
 ```muro-part
 over /L1/a /L1/b
-  = door D1 w:1000        # 幅が 1000 になる
+  = door D1 w:1000        # the width becomes 1000
 ```
 
-**位置 (`at:`) や辺 (`edge:`) は `=` では動かない。**書けば要素の属性としては残るが、開口はその場から移動しない。位置を変えたいときは消して書き直す。
+**Position (`at:`) and edge (`edge:`) are not moved by `=`.** Written there they survive as attributes of the member, but the opening does not move. To move one, remove it and write it again.
 
 ```muro-part
 over /L1/a /L1/b
@@ -147,42 +147,42 @@ over /L1/a /L1/b
   + door w:900 at:0.2 name:D1
 ```
 
-## drop — 消す
+## drop — removing
 
-**消えるのは、消すと書いたものだけである。**
+**What goes is exactly what was written to go.**
 
 ```muro-part
-drop /L1/store        # 空間
-drop /L1/a /L1/b      # 境界
-drop column C1        # 柱の宣言
+drop /L1/store        # a space
+drop /L1/a /L1/b      # a boundary
+drop column C1        # a column declaration
 ```
 
-対象が無ければエラーになる。黙って何もしないということはない。
+A missing target is an error. It never silently does nothing.
 
 ```text
 ✖ x.muro:line 1: No such target for drop: /L1/nowhere
 ✖ x.muro:line 1: No such column: C9
 ```
 
-`drop` が取れるのは空間・ゾーン・境界・柱の四つだけである。アセットとレベルは消せない。
+`drop` takes exactly four kinds of target: a space, a zone, a boundary, a column. Assets and levels cannot be dropped.
 
 ```text
 ✖ y.muro:line 1: drop takes the form drop /path / drop /pathA /pathB / drop column <name>
 ```
 
-### 空間を消せば、その関係も消える
+### Dropping a space drops its relations
 
-境界は二つの空間の**間**にしか存在しない。だから空間が消えれば、その空間を端に持つ境界も一緒に消える。他の境界は無傷である。
+A boundary exists only **between** two spaces. So when a space goes, every boundary with that space at an end goes with it. The rest are untouched.
 
-### 境界を消しても、壁は戻ってくることがある
+### Dropping a boundary can bring the wall back
 
-`drop /L1/a /L1/b` が消すのは**宣言**である。二つの空間が平面で接しているなら、合成の後に既定の `wall` が導かれ、そこに壁が立つ。消えるのは厚み・仕様・そして**その境界が持っていた開口**である。
+`drop /L1/a /L1/b` removes the **declaration**. If the two spaces touch in plan, a default `wall` is derived after composition and a wall stands there anyway. What is lost is the thickness, the specification, and **the openings that boundary carried**.
 
-扉を含んだ壁を `drop` すると、扉の無い既定の壁が残る — 通れなくなる。
+Drop a wall that held a door and an unbroken default wall remains — the way through is gone.
 
-### drop column は同名が複数なら拒む
+### drop column refuses an ambiguous name
 
-柱の同一性も「名」である。同じ名の柱の宣言が二つあれば、どちらを消すのかが書かれていないので、`drop` は**黙って両方消さずに拒む**。
+A column's identity is a name too. If two column declarations carry the same name, which one to remove was never written, so `drop` **refuses rather than silently removing both**.
 
 ```muro-part
 column 700 L1 x:X1,X2 name:C1
@@ -194,15 +194,15 @@ drop column C1
 ✖ dropcol.muro:line 1: The column name C1 is not unique
 ```
 
-名を分ければ通る。開口や `seg` の集合編集と同じ規律である。
+Give them different names and it passes. It is the same discipline as the set edits on openings and `seg`.
 
-## 上書きの跡は残らない
+## No trace of an override survives
 
-**`over` も `drop` も、合成後のモデルにも正準JSONにも残らない。**`over` で `h:2400` にした建物と、最初から `h:2400` と書いた建物は、同じ正準JSONを与える。`drop` した空間は、最初から書かれていなかったのと区別がつかない。
+**Neither `over` nor `drop` survives into the composed model or the canonical JSON.** A building brought to `h:2400` by `over` and a building written with `h:2400` from the start yield the same canonical JSON. A dropped space is indistinguishable from one that was never written.
 
-正準形が答えるのは「同じ建物か」であって「どう書かれたか」ではない。
+What the canonical form answers is "is this the same building", not "how was it written".
 
-どの層が最終値を与えたかを知りたいときは、合成の途中を記録した出所を引く。
+To find out which layer gave the final value, read the provenance recorded during composition.
 
 ```text
 $ koyu layers main.muro --attrs
@@ -217,10 +217,10 @@ Attribute provenance:
   space:/L1/a:spec	← 2 as-built.muro
 ```
 
-## 関連
+## See also
 
-- [合成の六規則](composition.md) — 強度・定義と上書きの区別・決定性・出所
-- [import](import.md) — 層を読む一語と、層の並びの作られ方
-- [boundary](boundary.md) — 境界の宣言と開口
-- [space](space.md) — 空間の宣言と `area`
-- [koyu layers](../cli/layers.md) — どの層が最終値を与えたかを印字する
+- [The rules of composition](composition.md) — strength, definition versus override, determinism, provenance
+- [import](import.md) — the word that reads a layer, and how the order is built
+- [boundary](boundary.md) — declaring boundaries and their openings
+- [space](space.md) — declaring spaces and `area`
+- [koyu layers](../cli/layers.md) — prints which layer gave the final value

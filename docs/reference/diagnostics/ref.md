@@ -1,19 +1,19 @@
 ---
-title: REF — 参照の診断
+title: REF — reference diagnostics
 mode: reference
 ---
 
-# REF — 参照の診断
+# REF — reference diagnostics
 
-境界は空間のパスで相手を名指す。名指した先が存在しなければ、関係は成り立たない。REF はその一つだけの族である。
+A boundary names its partner by the path of a space. If the thing named does not exist, the relation does not stand. REF is a family of exactly one.
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [REF01](#ref01) | error | 未定義の空間を参照しています |
+| [REF01](#ref01) | error | References an undefined space |
 
-コードの手に入れ方は[診断を読む](reading.md)にある。
+How to get a code is on [Reading a diagnostic](reading.md).
 
-## REF01 — 未定義の空間を参照しています {#ref01}
+## REF01 — references an undefined space {#ref01}
 
 `error`
 
@@ -27,16 +27,16 @@ boundary /L1/a /L1/zzz
 
 `References an undefined space: /L1/zzz`
 
-**原因** — `boundary` に書いたパスに対応する `space` が無い。原因は三つのどれかである。
+**Cause** — there is no `space` matching the path written on the `boundary`. It is one of three things.
 
-1. **パスの綴り違い。**`/L1/bed` と `/L1/bedroom` のような取り違え。
-2. **`space` の書き忘れ。**境界だけ先に書いて、空間を書いていない。
-3. **合成でそのレイヤーが読まれていない。**別ファイルにあるはずの空間が、`import` の抜けで入ってきていない。
+1. **A misspelt path** — `/L1/bed` where `/L1/bedroom` was meant.
+2. **A forgotten `space`** — the boundary was written first and the space never followed.
+3. **A layer not loaded in composition** — the space is in another file and a missing `import` kept it out.
 
-**直し方** — まずパスの綴りを確かめる。別ファイルにあるはずの空間なら、base 層に `import` があるかを見る。`koyu check <entry> --json` が返す `file` は**合成に参加したレイヤー**を指すので、意図したレイヤーが実際に読まれているかはそこで分かる。
+**Fix** — check the spelling of the path first. If the space should be in another file, look for the `import` in the base layer. The `file` that `koyu check <entry> --json` returns names **the layers that took part in composition**, so you can see there whether the intended layer was actually read.
 
-**注 — 順序の問題ではない。**`boundary` は空間より**前に**書いてよい。境界は前方参照できるので、前後を入れ替えても直らない。前方参照できないのは `grid` と `level` の二つで、こちらは使用より前に宣言しないと効かない。
+**Note — this is not a problem of order.** A `boundary` may be written **before** the spaces; boundaries may refer forward, so swapping the lines does not fix it. The two declarations that cannot be referred to forward are `grid` and `level`: they take effect only if declared before they are used.
 
-**注 — 診断は両側のパスを持つ。**`path` には `["/L1/a", "/L1/zzz"]` のように境界の両端が入る。存在するほうも入っているのは、どの境界の話かを言うためである。両端とも未定義なら、一本の境界に対して REF01 が二件出る。
+**Note — the diagnostic carries both paths.** `path` holds both ends of the boundary, as in `["/L1/a", "/L1/zzz"]`. The end that does exist is included so the diagnostic can say which boundary it is about. If both ends are undefined, one boundary produces two REF01s.
 
-**注 — 未定義の参照があると、その境界の形の検査には進まない。**線分の導出も開口の配置も、相手の空間が無ければ意味を持たないからである。REF01 を直すと、隠れていた [BND](bnd.md) や [OPN](opn.md) の診断が現れることがある。
+**Note — a boundary with an undefined reference is not checked for shape.** Deriving a segment or placing an opening means nothing without the partner space, so those checks are skipped. Fixing a REF01 can bring [BND](bnd.md) or [OPN](opn.md) diagnostics into view that were hidden behind it.

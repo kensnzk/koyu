@@ -1,53 +1,53 @@
 ---
-title: リファレンス
+title: Reference
 mode: reference
 ---
 
-# リファレンス
+# Reference
 
-**ここに書かれていることが正である。**引くための巻であって、通して読んで身につく作りにはしていない。学ぶなら [はじめての .muro](../start/index.md)、目的から引くなら [手順](../howto/index.md) を見る。
+**What is written here is what is true.** This volume is for looking things up, not for reading through. To learn the notation, start with [Your first .muro](../start/index.md); to work from a goal, use the [how-to guides](../howto/index.md).
 
-各巻は koyu の**面**でできている — 書く言葉、ツールが返してくるメッセージ、コマンド、サーバー、ライブラリ、導出される形。触っている面から引く。
+The volumes follow koyu's surfaces — the words you write, the messages the tools return, the commands, the server, the library, and the form that is derived. Look it up from the surface you are touching.
 
-## 書く
+## Writing
 
-| 巻 | 何に答えるか |
+| Volume | What it answers |
 |---|---|
-| [.muro の全構文](muro/index.md) | この語はどう綴るか。何を書けて、何が既定になるか |
+| [Every .muro construct](muro/index.md) | How is this word spelled? What may it carry, and what happens if you leave it out? |
 
-宣言ごとに一枚ある。`space` `zone` `boundary` `door` `window` `column` `import` `over`/`drop` ほか。属性の値域と既定値は各宣言の頁が持ち、層をまたぐ規則は [合成](muro/composition.md) が持つ。
+One page per declaration: `space`, `zone`, `boundary`, `door`, `window`, `column`, `import`, `over`/`drop` and the rest. Each declaration's page owns its attributes and defaults; rules that span layers live in [composition](muro/composition.md).
 
-## 確かめる
+## Checking
 
-| 巻 | 何に答えるか |
+| Volume | What it answers |
 |---|---|
-| [診断コード索引](diagnostics/index.md) | `koyu check` が出したこのコードは何で、どこを直すか (65件) |
-| [koyu validate](validate/index.md) | 建築的な判定。**`check` の保証ではない** (15規則) |
+| [Diagnostic code index](diagnostics/index.md) | What does this `koyu check` code mean, and what do I change? (65 codes) |
+| [koyu validate](validate/index.md) | Architectural judgement. **Not what `check` guarantees.** (15 rules) |
 
-二つは別の面である。何が違うかは [check と validate の違い](../why/two-kinds-of-green.md) にある。
+They are two different surfaces. [check and validate](../why/two-kinds-of-green.md) explains why.
 
-## 動かす
+## Running
 
-| 巻 | 何に答えるか |
+| Volume | What it answers |
 |---|---|
-| [koyu コマンド](cli/index.md) | サブコマンド14個の引数・旗・出力・終了コード |
-| [koyu-mcp](mcp/index.md) | エージェントから触るための面。12ツールと JSON-RPC の契約 |
-| [TypeScript API](api/index.md) | `@kensnzk/koyu` の公開名と入口 |
+| [The koyu command](cli/index.md) | Arguments, flags, output and exit codes for all 14 subcommands |
+| [koyu-mcp](mcp/index.md) | The surface an agent touches: 12 tools and the JSON-RPC contract |
+| [TypeScript API](api/index.md) | The public names of `@kensnzk/koyu` and the entry points |
 
-## 出てくるもの
+## What comes out
 
-| 巻 | 何に答えるか |
+| Volume | What it answers |
 |---|---|
-| [形](form/index.md) | 書かれた構成から、どうやって一意な形が決まるか。導出定数と公差 |
-| [正準 JSON](json/index.md) | 機械が読む形。バイトの規範と安定性の規則 |
+| [Form](form/index.md) | How a written composition becomes one unambiguous form. Derivation constants and tolerances |
+| [Canonical JSON](json/index.md) | The machine form: the byte-level norms and the stability rules |
 
-## 約束の範囲
+## The extent of the promise
 
-| 頁 | 何に答えるか |
+| Page | What it answers |
 |---|---|
-| [約束の範囲](scope.md) | `check` が緑であることは何を意味し、何を意味しないか |
-| [凍る面](stability.md) | 版をまたいで依存してよいもの。言語の版と実装の版 |
-| [同一性](identity.md) | `uid` — どこに書け、いつ必要になり、何を保証するか |
-| [持たないもの](not-held.md) | 意図してできないようにしてあること |
+| [What check guarantees](scope.md) | What a green `check` means, and what it does not |
+| [Frozen surfaces](stability.md) | What you may depend on across versions. The language version and the implementation version |
+| [Identity](identity.md) | `uid` — where you may write it, when you need it, what it guarantees |
+| [What koyu does not hold](not-held.md) | What is deliberately impossible |
 
-語が分からなくなったら [用語集](../glossary.md)。
+If a word is unfamiliar, see the [glossary](../glossary.md).

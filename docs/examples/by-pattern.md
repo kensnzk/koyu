@@ -1,114 +1,114 @@
 ---
-title: 書きたいものから引く
+title: Look it up by what you want to write
 mode: reference
 ---
 
-# 書きたいものから引く
+# Look it up by what you want to write
 
-**書きたいものが決まっているときの索引である。**左から「やりたいこと」を探し、右の例のファイルを開いて、その形を写す。同梱の例はすべて `koyu check` が通る実物なので、写した形は動く。
+**This is the index for when you already know what you want to write.** Find the intent on the left, open the example file on the right, and copy the shape. Every bundled example passes `koyu check`, so what you copy works.
 
-記法そのものの規定は[記法リファレンス](../reference/muro/index.md)にある。この頁が持つのは**どこに実物があるか**だけである。
+The rules of the notation itself are in the [notation reference](../reference/muro/index.md). All this page holds is **where the real thing is**.
 
-## 平面を割る
+## Dividing a plan
 
-| やりたいこと | 書き方 | 実物 |
+| What you want | How to write it | The real thing |
 |---|---|---|
-| 室を並べる | `space <パス> <型> X1..X2 Y1..Y2` | `examples/two-rooms.muro` |
-| L字・凸型の室 | 領域を `+` で繋ぐ | `examples/house.muro` の `/home/ldk` |
-| 室のあいだの壁 | `boundary` を一行。書かなくても既定で壁が立つ (ただし通れない) | `examples/two-rooms.muro` |
-| 扉・窓を吊る | 境界に字下げで `door` / `window` | `examples/two-rooms.muro` |
-| 開口の位置を指定 | `at:0.75` (比率) / `at:X2+600` (通り芯基準) | `examples/office.muro` / `examples/house/L1.muro` |
-| 外部への開口で辺を選ぶ | `edge:N` / `edge:E` / `edge:S` / `edge:W` | `examples/two-rooms.muro` |
-| 位置ではなく寸法と並びで割る | [`band`](../reference/muro/band.md) + 字下げの `space` | `examples/tower/typical.muro` / `examples/complex/hotel.muro` |
-| 斜めに切る | 境界に字下げで [`line`](../reference/muro/line.md) | `examples/complex/L1.muro` |
-| 室を割らずに床材だけ変える | 空間に字下げで [`area`](../reference/muro/area.md) | `examples/office.muro` の `/L1/hall` |
-| 一本の壁の一部だけ材料を変える | 境界に字下げで [`seg`](../reference/muro/seg.md) | `examples/office.muro` |
-| 建具の型を一箇所にまとめる | [`asset`](../reference/muro/asset.md) を宣言し、開口が名前で参照 | `examples/house/assets.muro` |
+| Place rooms | `space <path> <type> X1..X2 Y1..Y2` | `examples/two-rooms.muro` |
+| An L-shaped or notched room | Join regions with `+` | `/home/ldk` in `examples/house.muro` |
+| A wall between rooms | One `boundary` line. Omit it and a wall still stands — but it cannot be passed | `examples/two-rooms.muro` |
+| Hang a door or a window | `door` / `window` indented under a boundary | `examples/two-rooms.muro` |
+| Position an opening | `at:0.75` (a ratio) or `at:X2+600` (a grid reference) | `examples/office.muro` / `examples/house/L1.muro` |
+| Pick a side for an opening onto the outside | `edge:N` / `edge:E` / `edge:S` / `edge:W` | `examples/two-rooms.muro` |
+| Divide by dimension and order rather than position | [`band`](../reference/muro/band.md) plus indented `space` lines | `examples/tower/typical.muro` / `examples/complex/hotel.muro` |
+| Cut on a diagonal | [`line`](../reference/muro/line.md) indented under a boundary | `examples/complex/L1.muro` |
+| Change a floor finish without dividing the room | [`area`](../reference/muro/area.md) indented under a space | `/L1/hall` in `examples/office.muro` |
+| Change the material of part of one wall | [`seg`](../reference/muro/seg.md) indented under a boundary | `examples/office.muro` |
+| Keep door and window types in one place | Declare an [`asset`](../reference/muro/asset.md); openings reference it by name | `examples/house/assets.muro` |
 
-## 階を積む
+## Stacking storeys
 
-| やりたいこと | 書き方 | 実物 |
+| What you want | How to write it | The real thing |
 |---|---|---|
-| 階を宣言する | `level L1 0 h:2400 slab:150` | `examples/two-rooms.muro` |
-| 等差の階を一行で | `level L3..L9 6700 pitch:2900 h:2400 slab:500` | `examples/mansion.muro` |
-| 最上階の上限を与える | 空間を持たない `level R` | `examples/office.muro` |
-| 基準階を一度だけ書く | パスの先頭を `/L2..L9/` にする | `examples/mansion.muro` |
-| 例外階を差分で書く | 基準階の層とは別のファイルに、違うところだけ書く | `examples/tower/L3.muro` |
-| 階がパスから読めないとき | 空間に `level:L1` | `examples/house.muro` |
-| 一室だけ天井を高くする | 空間に `h:6700` | `examples/office.muro` の `/L1/hall` |
-| 地下を書く | `level B1 -3700 … underground:1` | `examples/basement/main.muro` |
-| 客の階数に現れない機械階 | 独立した `level M1` を挟む | `examples/twin/main.muro` |
+| Declare a storey | `level L1 0 h:2400 slab:150` | `examples/two-rooms.muro` |
+| Declare an arithmetic run of storeys | `level L3..L9 6700 pitch:2900 h:2400 slab:500` | `examples/mansion.muro` |
+| Give the top floor an upper bound | A `level R` that holds no spaces | `examples/office.muro` |
+| Write the typical floor once | Begin the path `/L2..L9/` | `examples/mansion.muro` |
+| Write an exception floor as a difference | Put only what differs into its own file | `examples/tower/L3.muro` |
+| When the storey cannot be read from the path | `level:L1` on the space | `examples/house.muro` |
+| Raise the ceiling of one room | `h:6700` on the space | `/L1/hall` in `examples/office.muro` |
+| Write a basement | `level B1 -3700 … underground:1` | `examples/basement/main.muro` |
+| A plant level absent from the public numbering | An independent `level M1` wedged in | `examples/twin/main.muro` |
 
-## 縦に繋ぐ
+## Connecting vertically
 
-**床は書かない。**上下に重なる空間には既定で床がある。書くのは例外だけである。
+**Floors are never written.** Spaces that overlap above and below have a floor by default. Only the exceptions get written.
 
-| やりたいこと | 書き方 | 実物 |
+| What you want | How to write it | The real thing |
 |---|---|---|
-| 階段で繋ぐ | `boundary /L1/stair /L2/stair type:stair` | `examples/office.muro` |
-| 通れないシャフト | `type:shaft` | `examples/office.muro` |
-| 床を抜く (吹抜け) | `type:void` の境界と、`void:1` を宣言した空間 | `examples/office.muro` |
-| 何層にもわたる縦動線を一括で | [`stack`](../reference/muro/stack.md) `ev L1..L10 type:shaft` | `examples/mansion.muro` |
-| 階段の段数・踏面を出す | 空間に `stair:N form:return` と書き、[`runs`](../reference/cli/runs.md) に訊く | `examples/basement/main.muro` |
-| 斜路 | 空間に `ramp:E form:return slope:6` | `examples/basement/main.muro` |
-| エスカレーター | 空間に `escalator:N`、繋ぎは `type:stair` | `examples/complex/L1.muro` |
-| 昇降機 | 空間に `lift:1`、繋ぎは `type:shaft` | `examples/basement/main.muro` |
-| 何層も貫くアトリウム | `stack atrium L1..L5 type:void` | `examples/complex/main.muro` |
-| EVの通過階を表す | シャフトは通し、乗場ホールの空間を置かない | `examples/twin/core.muro` |
+| Connect with a stair | `boundary /L1/stair /L2/stair type:stair` | `examples/office.muro` |
+| A shaft nobody walks | `type:shaft` | `examples/office.muro` |
+| Remove the floor (a void) | a `type:void` boundary plus a space declaring `void:1` | `examples/office.muro` |
+| Many storeys of circulation at once | [`stack`](../reference/muro/stack.md) `ev L1..L10 type:shaft` | `examples/mansion.muro` |
+| Get riser counts and treads out | Write `stair:N form:return` on the space, then ask [`runs`](../reference/cli/runs.md) | `examples/basement/main.muro` |
+| A ramp | `ramp:E form:return slope:6` on the space | `examples/basement/main.muro` |
+| An escalator | `escalator:N` on the space; the connection is `type:stair` | `examples/complex/L1.muro` |
+| A lift | `lift:1` on the space; the connection is `type:shaft` | `examples/basement/main.muro` |
+| An atrium through several storeys | `stack atrium L1..L5 type:void` | `examples/complex/main.muro` |
+| Express a lift passing a floor | Run the shaft through; place no lobby space | `examples/twin/core.muro` |
 
-## 外・敷地・外構
+## Outside, site and landscape
 
-| やりたいこと | 書き方 | 実物 |
+| What you want | How to write it | The real thing |
 |---|---|---|
-| 外部を作る | `space /out name:外部` (領域は要らない) | `examples/two-rooms.muro` |
-| 外部を方角ごとに割る | `/out/n` `/out/e` … と複数の `exterior` | `examples/house.muro` |
-| 道路 | `space /road-s exterior road:22000` | `examples/complex/site.muro` |
-| 敷地 | `zone /site … site:1` (測量値は `area:`) | `examples/house.muro` |
-| 敷地形状 | [`polygon`](../reference/muro/polygon.md) `/site x,y x,y …` | `examples/tower/site-geometry.muro` |
-| 庭・通路を実在の空間にする | L1 上の `exterior` / `yard` / `garden` が建物の周りをタイルする | `examples/house/site.muro` |
-| 塀・フェンス | 境界に `spec:ブロック塀 air:1` | `examples/house.muro` |
-| バルコニーを半屋外にする | 外部に対して `air:1` の境界を一本持たせる | `examples/mansion.muro` |
-| 接道長を出す | 敷地配下の空間と `road:` を持つ外部を境界で接する | `examples/tower/site.muro` |
+| Create the outside | `space /out name:外部` (no region needed) | `examples/two-rooms.muro` |
+| Split the outside by orientation | Several `exterior` spaces, `/out/n`, `/out/e`, … | `examples/house.muro` |
+| A road | `space /road-s exterior road:22000` | `examples/complex/site.muro` |
+| A site | `zone /site … site:1`, with the survey figure in `area:` | `examples/house.muro` |
+| A site shape | [`polygon`](../reference/muro/polygon.md) `/site x,y x,y …` | `examples/tower/site-geometry.muro` |
+| Make gardens and paths real spaces | `exterior` / `yard` / `garden` on L1, tiling around the building | `examples/house/site.muro` |
+| A wall or a fence | `spec:ブロック塀 air:1` on the boundary | `examples/house.muro` |
+| Make a balcony semi-outdoor | Give it one `air:1` boundary with the outside | `examples/mansion.muro` |
+| Get road frontage out | Let spaces under the site meet an exterior carrying `road:` | `examples/tower/site.muro` |
 
-## 大きさを畳む
+## Folding size
 
-| やりたいこと | 書き方 | 実物 |
+| What you want | How to write it | The real thing |
 |---|---|---|
-| 同じ階が何層も続く | パスの先頭を `/L7..L13/` に | `examples/complex/office.muro` |
-| 同じ割付を地下2層に | `/B2..B1/` | `examples/basement/main.muro` |
-| コアを地下から最上階まで | `/B2..L19/` の空間9行 | `examples/complex/core.muro` |
-| 客室・テナント区画を並べる | `band` に幅を並べる | `examples/complex/hotel.muro` |
-| 幅の合計を検算させる | `w:rest` を使わない**閉じた帯**にする | `examples/tower/typical.muro` |
-| 柱を立てる | [`column`](../reference/muro/column.md) `900 B2..L6` (位置は書かない) | `examples/complex/main.muro` |
+| Many identical storeys | Begin the path `/L7..L13/` | `examples/complex/office.muro` |
+| The same layout on two basement levels | `/B2..B1/` | `examples/basement/main.muro` |
+| A core from the basement to the top | Nine `space` lines under `/B2..L19/` | `examples/complex/core.muro` |
+| A run of guest rooms or tenancies | List widths in a `band` | `examples/complex/hotel.muro` |
+| Have the widths reconciled | Use a **closed band** with no `w:rest` | `examples/tower/typical.muro` |
+| Stand columns | [`column`](../reference/muro/column.md) `900 B2..L6` (no position written) | `examples/complex/main.muro` |
 
-## ファイルを分ける
+## Splitting into files
 
-| やりたいこと | 書き方 | 実物 |
+| What you want | How to write it | The real thing |
 |---|---|---|
-| 層に分けて分担する | base 層で `import ./L1.muro` | `examples/house/main.muro` |
-| どこまでを base 層が持つか | `koyu` / `name` / `unit` / `grid` / `level`、そして階を跨ぐ境界 | `examples/tower/main.muro` |
-| 所与のジオメトリを隔離する | 敷地形状だけの層を作る | `examples/tower/site-geometry.muro` |
-| 層の強さを見る | [`koyu layers`](../reference/cli/layers.md) | — |
-| 上の層で値を上書きする | [`over` / `drop`](../reference/muro/over-drop.md) | 同梱の例では使っていない |
-| 単一ファイルと合成版が同じか確かめる | [`koyu diff`](../reference/cli/diff.md) | `examples/house.muro` と `examples/house/main.muro` |
+| Divide the work into layers | `import ./L1.muro` from the base layer | `examples/house/main.muro` |
+| Know what the base layer holds | `koyu` / `name` / `unit` / `grid` / `level`, plus boundaries that cross storeys | `examples/tower/main.muro` |
+| Isolate given geometry | Give the site shape a layer of its own | `examples/tower/site-geometry.muro` |
+| See how strong each layer is | [`koyu layers`](../reference/cli/layers.md) | — |
+| Override a value from a stronger layer | [`over` / `drop`](../reference/muro/over-drop.md) | Not used in the bundled examples |
+| Confirm a single file and a composition agree | [`koyu diff`](../reference/cli/diff.md) | `examples/house.muro` against `examples/house/main.muro` |
 
-## 数える・問う
+## Counting and asking
 
-| 訊きたいこと | コマンド | 実物 |
+| What you want to know | Command | The real thing |
 |---|---|---|
-| 構成が壊れていないか | [`check`](../reference/cli/check.md) | すべての例 |
-| 建築的におかしくないか | [`validate`](../reference/cli/validate.md) | すべての例 |
-| 面積・用途別の比率 | [`stats`](../reference/cli/stats.md) | [office](office.md) / [twin](twin.md) |
-| 外へ出るのに扉は何枚か | [`doors`](../reference/cli/doors.md) | [two-rooms](two-rooms.md) / [mansion](mansion.md) |
-| 隣接の全体 | [`graph`](../reference/cli/graph.md) | [two-rooms](two-rooms.md) |
-| 矩計 (高さの積み上がり) | [`levels`](../reference/cli/levels.md) | [office](office.md) / [basement](basement.md) |
-| 段数・踏面・勾配 | [`runs`](../reference/cli/runs.md) | [basement](basement.md) / [complex](complex.md) |
-| 採光 | [`light`](../reference/cli/light.md) | [mansion](mansion.md) / [tower](tower.md) |
-| 敷地・建蔽率・容積率・接道 | [`site`](../reference/cli/site.md) | [house](house.md) / [twin](twin.md) |
-| 平面図 | [`plan`](../reference/cli/plan.md) | すべての例 |
-| 立体 | [`axo`](../reference/cli/axo.md) | [complex](complex.md) / [twin](twin.md) |
-| 機械形式 | [`json`](../reference/cli/json.md) | `examples/two-rooms.canonical.json` |
+| Whether the composition is broken | [`check`](../reference/cli/check.md) | Every example |
+| Whether anything is architecturally wrong | [`validate`](../reference/cli/validate.md) | Every example |
+| Areas and the split by use | [`stats`](../reference/cli/stats.md) | [office](office.md) / [twin](twin.md) |
+| How many doors to get outside | [`doors`](../reference/cli/doors.md) | [two-rooms](two-rooms.md) / [mansion](mansion.md) |
+| The adjacency as a whole | [`graph`](../reference/cli/graph.md) | [two-rooms](two-rooms.md) |
+| The section stack-up | [`levels`](../reference/cli/levels.md) | [office](office.md) / [basement](basement.md) |
+| Riser counts, treads, slopes | [`runs`](../reference/cli/runs.md) | [basement](basement.md) / [complex](complex.md) |
+| Daylight | [`light`](../reference/cli/light.md) | [mansion](mansion.md) / [tower](tower.md) |
+| Site, coverage, floor area ratio, frontage | [`site`](../reference/cli/site.md) | [house](house.md) / [twin](twin.md) |
+| A plan drawing | [`plan`](../reference/cli/plan.md) | Every example |
+| An axonometric | [`axo`](../reference/cli/axo.md) | [complex](complex.md) / [twin](twin.md) |
+| The machine format | [`json`](../reference/cli/json.md) | `examples/two-rooms.canonical.json` |
 
-## 難度で選ぶなら
+## If you would rather pick by difficulty
 
-[同梱の建物](index.md)の表に規模が並んでいる。おおむね two-rooms → office → house → basement → mansion → tower → complex → twin の順に積み上がる。
+The scale table is in [the bundled buildings](index.md). They build up roughly in the order two-rooms → office → house → basement → mansion → tower → complex → twin.

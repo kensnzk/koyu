@@ -1,51 +1,51 @@
 ---
-title: boundary — 二つの空間の境界
+title: boundary — the boundary between two spaces
 mode: reference
 ---
 
-# boundary — 二つの空間の境界
+# boundary — the boundary between two spaces
 
 ```text
 boundary /pathA /pathB [key:value...]
-  door … / window … / seg … / line …      # 字下げ一段
+  door … / window … / seg … / line …      # one level of indentation
 ```
 
-`boundary` は壁を置く行ではない。**二つの空間のあいだに境界という関係がある、と宣言する行**である。壁芯の線分はどこにも書かれない — 両空間の割付から導出される。
+`boundary` is not a line that places a wall. It is **a line declaring that a boundary relation exists between two spaces**. The wall centerline is written nowhere — it is derived from the allocations of the two spaces.
 
-だから境界は、どちらの空間にも属さない。`/L1/a` の持ち物でも `/L1/b` の持ち物でもなく、その二つを結ぶ第一級の関係である。
+So a boundary belongs to neither space. It is not owned by `/L1/a` or by `/L1/b`; it is a first-class relation joining the two.
 
-## 線分は書かれず、導かれる
+## Segments are derived, not written
 
-線分の求め方は、両側が領域を持つかどうかで分かれる。
+How the segments are found depends on whether each side has a region.
 
-| 場合 | 線分 |
+| Case | Segments |
 |---|---|
-| 両側が領域を持つ | **共有辺** — 同一直線上で重なり合う区間。重なりが長さを持たなければ境界にならない (角の一点は接触ではない) |
-| 片側だけが領域を持つ | **外周の残り** — 領域を持つ側の外周から、同じレベルの他のすべての空間と向かい合う区間を引いたもの |
-| どちらも領域を持たない | 線分は無い |
-| 垂直の kind (`stair` / `shaft` / `void`) | 線分は無い — 垂直の境界に壁は立たない |
+| Both sides have a region | the **shared edge** — the interval where two collinear edges overlap. An overlap of no length is not a boundary (a single corner point is not contact) |
+| Only one side has a region | the **remaining perimeter** — the outline of the side that has a region, minus every interval facing another space on the same level |
+| Neither side has a region | no segment |
+| A vertical kind (`stair` / `shaft` / `void`) | no segment — vertical boundaries carry no wall |
 
-同じ直線上に並んだ線分は一本にまとめられる (向き・固定座標・a 側から見た方位の三つが揃うときだけ)。だから複数の矩形をまたぐ壁の上にも、開口は一つの線分として置ける。
+Collinear segments are merged into one, but only when direction, fixed coordinate and the compass point as seen from the a side all agree. That is why an opening can sit on a single segment even where the wall spans several rectangles.
 
-**一つの関係が複数の線分に割れる。**外部のような領域を持たない空間との境界はたいてい室の四方に分かれるので、開口を置くには `edge:` で辺を選ぶ。
+**One relation can split into several segments.** A boundary with a space that has no region — the outside, typically — usually splits across all four sides of the room, so placing an opening means picking a side with `edge:`.
 
-異なるレベルの空間へ `wall` の境界を書くとエラーになる (BND03)。階を跨ぐ関係は垂直の kind が引き受ける。
+Writing a `wall` boundary to a space on a different level is an error (BND03). Relations that cross storeys are carried by the vertical kinds.
 
-## 五つの kind
+## The five kinds
 
-`type:` はトポロジーだけを言う。**物の名は入らない** — 手すりもカーテンウォールも鉄筋コンクリートも `spec:` の値である。
+`type:` says nothing but topology. **No name of a thing goes in it** — a railing, a curtain wall and reinforced concrete are all values of `spec:`.
 
-| type | 向き | 通行 | 意味 |
+| type | Direction | Passable | Meaning |
 |---|---|---|---|
-| `wall` | 水平 (既定) | 扉があるときだけ | 物がある |
-| `open` | 水平 | 常に可 | 何もない — 一続きの空間の名目上の切れ目 |
-| `stair` | 垂直 | 可 | 階段・斜路・エスカレーターに共通するトポロジー |
-| `shaft` | 垂直 | 不可 | 連続するが通れない (昇降路・パイプスペース) |
-| `void` | 垂直 | 不可 | 床の不在 (吹抜け) |
+| `wall` | horizontal (default) | only where there is a door | there is something there |
+| `open` | horizontal | always | there is nothing there — a nominal seam in one continuous space |
+| `stair` | vertical | yes | the topology shared by stairs, ramps and escalators |
+| `shaft` | vertical | no | continuous but not passable (a lift shaft, a pipe space) |
+| `void` | vertical | no | the absence of a floor |
 
-**縦の通行可能性は `stair` の一語が引き受ける。**階段も斜路もエスカレーターも「上下を通れる」という同じ関係なので、型は増やさない。装置の違いは空間の側の宣言 (`stair:` `ramp:` `escalator:` `lift:`) が形の生成規則として持つ。
+**Vertical passability is carried by the single word `stair`.** A stair, a ramp and an escalator are all the same relation — "you can pass between these levels" — so the type list does not grow. The difference between the devices is declared on the space (`stair:` `ramp:` `escalator:` `lift:`), where it acts as a rule for generating form.
 
-床は書かない。連続するレベルの空間は平面が重なれば垂直に隣接し、その既定の解釈は「床がある」である。例外だけを `stair` / `shaft` / `void` で宣言する。
+Floors are not written. Spaces on consecutive levels are vertically adjacent wherever they overlap in plan, and the default reading of that adjacency is "there is a floor". Only the exceptions are declared, with `stair` / `shaft` / `void`.
 
 ```muro
 koyu 1.1
@@ -79,7 +79,7 @@ boundary /L1/st /L2/st type:stair
 boundary /L1/ev /L2/ev type:shaft
 ```
 
-`koyu graph` がこの関係の網を読み上げる。
+`koyu graph` reads the web of relations back to you.
 
 ```text
 /L1/hall (ホール)
@@ -94,9 +94,9 @@ boundary /L1/ev /L2/ev type:shaft
   ↕ stair → /L2/st
 ```
 
-## 接する空間の既定は壁
+## Touching spaces default to a wall
 
-境界を一行も書かなくてよい。**同一レベルで平面が接する領域つき空間の組には、その組に宣言が一つも無ければ `wall` の境界が導出される。**垂直の「既定は床」と対称の、水平の「既定は壁」である。
+You need not write a boundary at all. **Wherever two spaces with regions touch in plan on the same level and no boundary has been declared for that pair, a `wall` boundary is derived.** This is the horizontal counterpart of the vertical "default is a floor".
 
 ```muro
 koyu 1.1
@@ -113,41 +113,41 @@ space /L1/b room X2..X3 Y1..Y2 name:B
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-境界を書いていないのに「1 boundary」と出るのは、この導出のためである。**そして導出された壁は扉を持たないので通れない。**
+"1 boundary" appears although no boundary was written, because of that derivation. **And a derived wall has no door, so it cannot be passed.**
 
 ```text
 Cannot reach /L1/b from /L1/a
 ```
 
-宣言は例外のためにある — `open` にするため、`air:1` にするため、属性を付けるため、そして開口を吊るためである。宣言がその組に一つでもあれば (辺を限定したものでも) 導出は起きない。導出された境界は正準JSONには出ない。緑であることを「通れる」の根拠にしてはならない。
+Declarations exist for the exceptions: to make it `open`, to make it `air:1`, to attach attributes, and to hang openings. One declaration anywhere for that pair — even an edge-restricted one — suppresses the derivation. Derived boundaries never appear in the canonical JSON. Green is not grounds for claiming the building can be walked through.
 
-## 属性
+## Attributes
 
-| 属性 | 層 | 意味 |
+| Attribute | Tier | Meaning |
 |---|---|---|
-| `type` | 構造 | 上の五語。既定 `wall` |
-| `t` | 構造 | 壁厚mm。芯線に対して両側へ半分ずつ振り分ける。書かなければ描画は 100mm、`air:1` の境界では 60mm を使う |
-| `air` | 構造 | `1` = 物はあるが外気も光も遮らない (手すり・柵・フェンス)。**通行の話ではない** — 手すり壁は通れない。厚みは 80mm で頭打ちになる |
-| `edge` | 構造 | 線分を a 側から見た辺 N/E/S/W に限定する |
-| `h` | 解釈 | `air:1` の境界の天端高mm。既定 1100。正の数値でなければ ATT01 |
-| `name` | 解釈 | 表示名 |
-| `spec` `fire` `sound` | 運搬 | 運ぶだけ。`spec` は物の名で、ツールは解釈しない |
+| `type` | structure | one of the five words above. Default `wall` |
+| `t` | structure | wall thickness in mm, split evenly either side of the centerline. Left out, drawing uses 100mm — or 60mm on an `air:1` boundary |
+| `air` | structure | `1` = there is something there, but it blocks neither air nor light (a railing, a fence). **Not a statement about passage** — a parapet wall is still not passable. The thickness is capped at 80mm |
+| `edge` | structure | restrict the segments to one compass side N/E/S/W as seen from the a side |
+| `h` | interpreted | top height in mm of an `air:1` boundary. Default 1100. Anything other than a positive number is ATT01 |
+| `name` | interpreted | display name |
+| `spec` `fire` `sound` | carried | carried and nothing more. `spec` is the name of the thing, and no tool interprets it |
 
-**構造の属性は parse がそのまま型つきの欄へ持ち上げる**ので、合成後のモデルの自由属性には残らない。解釈の属性は値域が検査される。運搬の属性は一切読まれない。
+**Structure attributes are lifted straight into typed fields by parse**, so they no longer sit among the free attributes of the composed model. Interpreted attributes have their values checked. Carried attributes are never read.
 
-台帳に無いキーは書けない — 書けば ATT03 (error) である。運搬したいだけの値は**ドットを含む名前空間**を付ける。
+A key that is not in the ledger cannot be written — writing it is ATT03 (error). A value you only want carried takes **a namespace containing a dot**.
 
 ```text
 ✖ seg (/L1/a | /out) carries finish:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.finish:タイル)
 ```
 
-`acme.finish:タイル` と書けば通る。core は名前空間つきのキーを絶対に見ない。この境界があるから「見ていない」と「見て問題がない」が区別できる。
+`acme.finish:tile` passes. The core never looks at a namespaced key. That boundary is what lets "not looked at" be told apart from "looked at and fine".
 
-`air:1` は半屋外の導出に効く。外部に対して `open` か `air:1` の境界を持つ領域つき空間は**半屋外**と導出され、床面積の別掲・採光の係数・[柱](column.md)の立地・天井と屋根の不生成に一斉に効く。
+`air:1` feeds the derivation of semi-outdoor space. A space with a region that meets the outside across an `open` or `air:1` boundary is derived as **semi-outdoor**, and that reaches at once into the separate line for floor area, the daylight coefficient, where [columns](column.md) stand, and the absence of ceilings and roofs.
 
-## a 側の向きが効くのは二つだけ
+## Only two things read the a side
 
-`boundary /L1/a /out` と `boundary /out /L1/a` は同じ関係の二つの綴りである。**面積も形も線分の位置も、書き順には依らない。**
+`boundary /L1/a /out` and `boundary /out /L1/a` are two spellings of the same relation. **Area, shape and the position of the segments do not depend on the order.**
 
 ```muro
 koyu 1.1
@@ -163,14 +163,14 @@ boundary /out /L1/a t:150 spec:RC
   line X1,Y2-3000 X1+3000,Y2
 ```
 
-この境界を `boundary /L1/a /out` と書き直しても、面積は 31.50 m2 のまま動かない。正準JSONで変わるのは `a` の値だけである。
+Rewrite this boundary as `boundary /L1/a /out` and the area stays at 31.50 m2. The only thing that changes in the canonical JSON is the value of `a`.
 
-書き順が意味を持つのは**二つだけ**である。
+Exactly **two** things read the order.
 
-- **`edge`** — 「a 側の形から見た辺」なので、a と b を入れ替えれば方位が裏返る
-- **[扉の開く先](door.md)** — `swing:` を書かなければ「a が領域を持てば a、でなければ b」へ開く
+- **`edge`** — it means "the side as seen from the form of a", so swapping a and b flips the compass point
+- **[which way a door opens](door.md#swing--which-side-it-opens-into)** — without `swing:`, a door opens into "a if a has a region, otherwise b"
 
-`edge` の非対称は、書き間違えるとその場で言葉になる。
+Get `edge` the wrong way round and the tool says so on the spot.
 
 ```muro-bad
 koyu 1.1
@@ -187,37 +187,37 @@ boundary /L1/b /L1/a t:120 edge:N
 ✖ No shared edge on edge:N: /L1/b | /L1/a (they actually touch on S)
 ```
 
-`/L1/a` を先に書けば `edge:N` が正しく、`/L1/b` を先に書くなら `edge:S` である。方位は N=+Y、S=−Y、E=+X、W=−X。
+Write `/L1/a` first and `edge:N` is right; write `/L1/b` first and it is `edge:S`. The compass is N=+Y, S=−Y, E=+X, W=−X.
 
-垂直の境界を階から階へ一息に張るなら、一行ずつ書く代わりに [stack](stack.md) がある。
+To throw a vertical boundary from storey to storey in one breath, rather than a line at a time, there is [stack](stack.md).
 
-## 診断
+## Diagnostics
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| REF01 | error | 未定義の空間パスを参照している |
-| BND01 | error | 同一空間同士の境界 |
-| BND02 | error | 同じ空間対の境界の重複 (辺の限定まで同一)。`wall` と `open` の食い違いもここで捕まる |
-| BND03 | error | 異なるレベルの空間への `wall` 境界 |
-| BND04 | error | 接していない空間の境界 — 線分が一本も導けない |
-| BND05 | warning | 同じ空間対に辺の限定つきと無しが混在する (線分が重なる) |
-| BND06 | warning | 線分の長さがゼロ — 外周に残る辺が無い |
-| VRT01 | error | 垂直の境界が、領域とレベルを持つ空間同士に書かれていない |
-| VRT02 | error | 隣り合わないレベルのあいだの垂直の境界 |
-| VRT03 | error | 平面が重ならない垂直の境界 |
-| VRT04 | warning | `void` 境界の上側が `type:void` でない |
-| VRT05 | warning | 垂直の境界の上の開口 (解釈されない) |
-| VRT06 | warning | 垂直の境界の上の `seg` (解釈されない) |
-| ATT01 / ATT02 / ATT03 | error | 属性の値が数値でない / 台帳の語彙にない / キーが台帳に無い |
+| REF01 | error | references an undefined space path |
+| BND01 | error | a boundary between a space and itself |
+| BND02 | error | duplicate boundary for the same pair (identical down to the edge restriction). A `wall` / `open` contradiction is caught here too |
+| BND03 | error | a `wall` boundary to a space on a different level |
+| BND04 | error | the spaces do not touch — not one segment can be derived |
+| BND05 | warning | the same pair carries both an edge-restricted and an unrestricted boundary (the segments overlap) |
+| BND06 | warning | the segment has zero length — no edge remains on the perimeter |
+| VRT01 | error | a vertical boundary not written between spaces that have both a region and a level |
+| VRT02 | error | a vertical boundary between non-adjacent levels |
+| VRT03 | error | a vertical boundary between spaces that do not overlap in plan |
+| VRT04 | warning | the space above a `void` boundary is not `type:void` |
+| VRT05 | warning | an opening on a vertical boundary (not interpreted) |
+| VRT06 | warning | a `seg` on a vertical boundary (not interpreted) |
+| ATT01 / ATT02 / ATT03 | error | an attribute value is not a number / not in the ledger's vocabulary / the key itself is not in the ledger |
 
-`check` の人向けの出力にコードは出ない。`--json` を付けると出る。
+Codes do not appear in the human-readable output of `check`. Add `--json` and they do.
 
-コードから原因と直し方を引くなら [診断コードの一覧](../diagnostics/index.md) がある。
+To look a code up by cause and cure, there is [the list of diagnostic codes](../diagnostics/index.md).
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [space](space.md) — 境界が結ぶもの
-- [door](door.md) / [window](window.md) — 境界の上に載る開口
-- [seg](seg.md) — 境界の上の数えない分節
-- [line](line.md) — 隣接からの導出ではなく、描かれた線で境界を実現する
-- [koyu check](../cli/check.md) — 構造の整合の門番
+- [space](space.md) — what a boundary joins
+- [door](door.md) / [window](window.md) — the openings that sit on a boundary
+- [seg](seg.md) — the uncounted segmentation along a boundary
+- [line](line.md) — realising a boundary with a drawn line instead of deriving it from adjacency
+- [koyu check](../cli/check.md) — the gate on structural consistency

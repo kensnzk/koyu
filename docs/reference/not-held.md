@@ -1,66 +1,66 @@
 ---
-title: 持たないもの
+title: What koyu does not hold
 mode: reference
 ---
 
-# 持たないもの
+# What koyu does not hold
 
-**このデータの解像度は基本計画レベルである。**足りないのではなく、そこに置いてある。以下は、置かないと決めたものの一覧である。
+**The resolution of this data is that of a schematic design.** Not for lack of ambition — that is where it is placed. What follows is the list of things deliberately left out.
 
-## 原本における幾何
+## Geometry in the source
 
-**平面図も面積も動線も、書かれるのではなく[導かれる](form/index.md)。**空間が持つのは通り芯への参照であって座標ではない。壁の位置は二つの空間の関係から現れ、柱は通り芯と床の交わりから現れ、段割りは領域と階高から現れる。
+**The plan, the areas, the circulation are not written. They are [derived](form/index.md).** What a space holds is a reference to grid lines, not coordinates. A wall's position emerges from the relation between two spaces, a column from a grid intersection meeting a floor, a step division from a region and a storey pitch.
 
-例外は**与件**だけである — 敷地形状の [`polygon`](muro/polygon.md) と、[描かれた線](muro/line.md)。前者は所与であって設計の産物ではなく、後者は設計者が引いた線そのもので、他の何かから出てくるものではない。
+There are exactly two exceptions, both **givens**: the site [`polygon`](muro/polygon.md) and a [drawn line](muro/line.md). The first is given rather than designed; the second is the line the designer drew, and nothing else produces it.
 
-**なぜ持たないか。**幾何はこれから現実側から取れる。スキャン、SLAM、写真測量 — 形を得る手段は安くなり続ける。取れるようになるものを、わざわざ原本に書いて持つ理由はない。
+**Why not hold it.** Geometry is increasingly obtainable from reality. Scanning, SLAM, photogrammetry — the ways to acquire form keep getting cheaper. There is no reason to write into the source what will simply be available.
 
-点群からは決して出てこないものがある。**ここが何の空間か。この境界は誰と誰の境か。この扉は通ってよいのか。いつからそうなのか。**意味と関係と同一性は、観測では得られない。書くしかない。
+And there are things a point cloud never yields. **What kind of space this is. Whose boundary this is. Whether this door may be used. Since when.** Meaning, relation and identity cannot be observed. They have to be written.
 
-だから原本は書くしかないものを持つ。**形を原本に持たないことは妥協ではなく、役割の定義である。**そして、書くしかないものだけを持てば軽い。軽ければ一棟が丸ごと機械の視野に入る。**軽さは目的ではなく、役割から出る結果である。**
+So the source holds what has to be written. **Not holding shape in the source is not a compromise; it is the definition of the role.** And holding only what has to be written makes it light. Light enough that one whole building fits in a machine's field of view. **Lightness is not the goal; it is what falls out of the role.**
 
-## 配置の仕組み
+## A placement mechanism
 
-**内包は座を与えない。**柱と機器は「どの空間に含まれるか」だけを持ち、そこから形は作れない。
+**Containment gives no seat.** A column or a piece of equipment carries only "which space contains it", and no shape can be made from that.
 
-配置の仕組みを持てば、原本に座標が戻ってくる。柱が形を持つのは、通り芯という与件と床という導出が交わるからであって、「ここに置く」と書いたからではない。
+Add a placement mechanism and coordinates come back into the source. A column has shape because the given (a grid) crosses a derivation (a floor), not because somebody wrote "put it here".
 
-## 建築的な判定を原本の契約に含めること
+## Architectural judgement as part of the source contract
 
-採光の 1/7 も、接道の 2m も、階段の踏面の下限も、**原本の構成が満たすべき不変量ではない。**
+Neither the 1/7 of daylight, nor the 2m of frontage, nor a lower bound on a stair's going is **an invariant the composition must satisfy**.
 
-判定は[別の面](validate/index.md)にある。そこは凍らず、増える。core が数を返し、検証が数に線を引く — この分業が崩れると、法規や慣習の一つを足すたびに言語の版が動くことになる。
+Judgement lives on [another face](validate/index.md). That face does not freeze, and it grows. Core returns numbers; validation draws lines through them. Break that division of labour and every added regulation or convention moves the language version.
 
-`check` が緑であることの意味は[約束の範囲](scope.md)が定義しており、そこに建築的な妥当性は入っていない。
+What a green `check` means is defined by [Scope](scope.md), and architectural validity is not in it.
 
-## 実務解像度の追求
+## Chasing production-level resolution
 
-**カバー率は価値ではない。**
+**Coverage is not a value.**
 
-足せば足すほど機械の視野から外れ、目的が壊れる。天井が室の輪郭と一致しない場合(折上げ・下がり天井・数室にまたがる連続天井・カーテンウォール手前の見切り)は、基本計画の解像度の外である。逃げ道は `ceiling:0`(現し天井)の一つだけで、それ以上の作図を受け取る語は無い。
+The more that is added, the further it drifts out of the machine's field of view, and the goal breaks. Cases where a ceiling does not follow the outline of the room — a coffer, a bulkhead, a continuous ceiling spanning several rooms, a pelmet in front of a curtain wall — are outside the resolution of a schematic design. The only escape hatch is `ceiling:0` (an exposed soffit); there is no word for handing over a drafted ceiling.
 
-同じ理由で、**曲線を持たない。**螺旋階段は折返しの連続として書く。
+For the same reason, **there are no curves.** A spiral stair is written as a succession of turns.
 
-## 往復互換
+## Round-tripping
 
-**出口は作るが往復は作らない。**[正準 JSON](json/index.md) は `.muro` のパーサを持たないプログラムへの出口だが、そこから読み戻す関数は無い。**系への入口は `parse` だけである。**
+**There is an exit but no round trip.** [Canonical JSON](json/index.md) is the exit for programs that have no `.muro` parser, but there is no function that reads it back. **The only way into the system is `parse`.**
 
-原本は一つでよい、という選択である。読み込む側を作れば、原本が二つになる。
+That is a choice for one original. Build a reader and there are two.
 
-## それでも開いている場所
+## Where it is nonetheless open
 
-持たないことと、書けないことは違う。
+Not holding something is not the same as forbidding it.
 
-**[運搬層](scope.md)は名前空間つきで開いている。**`acme.sensor:23` `bems.temp:24.5` `survey.measured:2026-03-11` — 何でも書けて、そのまま運ばれる。core はそれを**見ない**と宣言している。
+**The [carried tier](scope.md) is open, with a namespace.** `acme.sensor:23`, `bems.temp:24.5`, `survey.measured:2026-03-11` — anything can be written and is carried through. Core declares that it **does not read** it.
 
-開いていることと信頼できることは、境界が宣言されていれば両立する。宣言が無ければ、**見ていないことと、見て問題がないことが区別できない。**その状態の「異常なし」は何も意味しない。
+Being open and being trustworthy coexist as long as the boundary is declared. Without the declaration, **"not looked at" cannot be told apart from "looked at and fine"**, and "nothing wrong" in that state means nothing.
 
-だから名前空間を持たない未知のキーはエラー([ATT03](diagnostics/att.md))である。**持てるが判定しないは正当な状態であり、それを明示することが自由の条件である。**
+That is why an unknown key without a namespace is an error ([ATT03](diagnostics/att.md)). **Being able to carry something without judging it is a legitimate state, and saying so explicitly is the condition of that freedom.**
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [約束の範囲](scope.md) — 保証するものとしないもの
-- [凍る面](stability.md) — 凍らせない面の一覧
-- [形](form/index.md) — 導出される側
-- [attributes](muro/attributes.md) — 三層と名前空間
-- [polygon](muro/polygon.md) / [line](muro/line.md) — 二つの例外
+- [Scope](scope.md) — what is and is not guaranteed
+- [Stability](stability.md) — the list of surfaces that do not freeze
+- [Form](form/index.md) — the side that is derived
+- [attributes](muro/attributes.md) — the three tiers and namespaces
+- [polygon](muro/polygon.md) / [line](muro/line.md) — the two exceptions

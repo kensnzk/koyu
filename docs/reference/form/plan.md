@@ -1,33 +1,33 @@
 ---
-title: 平面 — 分類つき2Dエンティティ
+title: The plan — classified 2D entities
 mode: reference
 ---
 
-# 平面 — 分類つき2Dエンティティ
+# The plan — classified 2D entities
 
-**平面は水平断面ではない。**立体を切っただけでは平面図にならない。次の四つは、どれだけ正確に切っても出てこない。
+**A plan is not a horizontal section.** Slicing a solid does not give you a plan. Four things never come out of it, however accurately you cut.
 
-- **扉の開き勝手** — 動きの記号であって、そこに物は無い
-- **上の吹抜けの見上げ** — 切断面より上のものが下階の平面に落ちる
-- **切断線そのもの** — 切れたことの位置
-- **下りる走り** — 切断面より下の見えがかり
+- **The swing of a door** — a symbol of movement; there is no matter there
+- **The look-up into a void above** — what is above the cut, dropped onto the storey below
+- **The break line itself** — the position of the fact that something was cut
+- **The descending run** — what is visible below the cut
 
-消費者に「立体から切れ」と言えば、この四つを各自が発明することになる。上部吹抜けの投影は実際にそうして落ちた — 同梱例にいくつも出ているものが、あるビュアーの平面から一つも出ていなかった。
+Tell consumers to "slice the solid" and each of them will invent those four. The projection of an upper void really did fall out this way: the bundled examples are full of them, and a viewer's plans showed none.
 
-だから `Form` は平面を**分類つきの2Dエンティティ集合**として持つ。
+So `Form` holds the plan as a **classified set of 2D entities**.
 
 ```ts
-form.plans   // レベルごとに一つ
+form.plans   // one per level
 // { level: "L1", cut: 1200, cutZ: 1200, entities: [ … ] }
 ```
 
-## エンティティ
+## Entities
 
 ```ts
 interface PlanEntity {
   class: "cut" | "below" | "above" | "swing" | "anchor";
   of: "space" | "boundary" | "opening" | "column" | "run";
-  ref: string;                 // 対象の同一性
+  ref: string;                 // identity of the subject
   role?: "outline" | "tread" | "break" | "arrow";
   polygon?: Pt[];
   lines?: Seg2[];
@@ -36,77 +36,77 @@ interface PlanEntity {
 }
 ```
 
-| 分類 | 意味 |
+| Class | Meaning |
 |---|---|
-| `cut` | 切断面が切ったもの |
-| `below` | 切断面より下の見えがかり |
-| `above` | 切断面より上のものの投影 |
-| `swing` | 動きの軌跡(扉) |
-| `anchor` | 記号を置く座 |
+| `cut` | what the cut plane cut |
+| `below` | what is visible below the cut |
+| `above` | the projection of what is above the cut |
+| `swing` | the trace of movement (a door) |
+| `anchor` | a seat for a symbol |
 
-`role` は縦動線のエンティティが**作図の中で何の線か**を言う — 走りの側線 (`outline`)、段鼻や段の刻み (`tread`)、切断線 (`break`)、進む向きの矢印 (`arrow`)。
+`role` says **what kind of line** a vertical-circulation entity is in drafting terms — the side lines of a run (`outline`), nosings or step marks (`tread`), the break line (`break`), the direction-of-travel arrow (`arrow`).
 
-`examples/two-rooms.muro` の L1 は 25 個のエンティティを持つ。
+L1 of `examples/two-rooms.muro` holds 25 entities.
 
 ```text
 cut/space 2   cut/boundary 11   above/boundary 4   below/boundary 2
 cut/opening 4   swing/opening 2
 ```
 
-壁の区間が三つの分類に割れているのが読める。切断面 (z = 1200) を含む区間が `cut`、垂れ壁が `above`、腰壁が `below` である。
+You can read the wall intervals splitting across three classes. Intervals spanning the cut (z = 1200) are `cut`; head walls are `above`; sill walls are `below`.
 
-## 切断高さは Form の入力であって、中身ではない
+## The cut height is an input to Form, not part of it
 
 ```ts
 derive(model)              // cut = 1200 (CUT_HEIGHT)
 derive(model, { cut: 900 })
 ```
 
-`FormPlan.cut` は FL からの高さ、`cutZ` は世界座標での高さである。切断高さを変えれば分類が変わる — それは同じ形の別の切り方であって、別の形ではない。
+`FormPlan.cut` is the height above FL and `cutZ` the height in world coordinates. Changing the cut height changes the classification — that is a different slice of the same shape, not a different shape.
 
-## 壁と開口
+## Walls and openings
 
-境界に材があれば、[開口で割られた区間](bodies.md)のそれぞれが一つのエンティティになる。区間の z 範囲と切断面を比べ、跨いでいれば `cut`、上端が切断面より下なら `below`、そうでなければ `above` に落ちる。材を持たない境界(`type:open`)は芯線分だけを持つ。
+If a boundary has matter, each of [the intervals it was split into by openings](bodies.md) becomes one entity. Its z range is compared with the cut plane: spanning it gives `cut`, a top below it gives `below`, otherwise `above`. A boundary with no matter (`type:open`) carries only its centre segment.
 
-**区間は足あと(厚みのある四辺形)と芯線の両方を持つ。**厚みを持つものとして描くか一本の線として描くか(遮蔽しない手すり・柵)は見た目の判断なので、消費者が足あとから芯線を復元しなくて済むようにしてある。
+**An interval carries both the footprint (the thick quadrilateral) and the centre line.** Drawing it as thick or as a single line (a rail or fence that does not enclose) is a judgement about appearance, so consumers never have to recover the axis from the footprint.
 
-開口は建具そのものの帯を持ち、扉なら `swing` のエンティティが続く。引戸・自動扉には円弧が無く、吊元から葉の先端への線分だけが出る。
+An opening carries the band of the leaf itself, and a door is followed by a `swing` entity. Sliding and automatic doors have no arc — only the segment from hinge to leaf tip.
 
-平面の黒帯は**`Form` の「切られた区間」そのもの**である。紙の色で塗り潰す操作はどこにも無い。
+The black band in a plan **is the "cut interval" of `Form` itself**. There is nowhere an operation that paints over it in the paper colour.
 
-## 上る走りと下りる走り
+## Ascending and descending runs
 
-一枚の平面には二つの走りが出る — このレベルから**上る**走りと、このレベルへ**下りる**走りである。これが階段が階ごとに違う姿で現れる理由であり、平面が「そのレベルで切った断面」だという事実そのものである。
+One plan shows two runs — the one **ascending** from this level and the one **descending** to it. That is why a stair appears differently on every storey, and it is the fact that a plan is a section cut at that level.
 
-**上る走り**は部品ごとに、その z の範囲と切断面を比べて可視区間を決める。切断面が部品の上端以上なら丸ごと見え、下端以下なら丸ごと見えず、跨ぐなら跨いだ位置で切れる。判定は幾何だけで行い、部品の番号では決めない — 並列の台は同じ高さで切られるので、こう書いてはじめて二台目に窓が出る。
+**The ascending run** has, per part, a visible interval decided by comparing its z range with the cut plane. If the cut is at or above the top of the part it is wholly visible; at or below the bottom, wholly hidden; spanning, it breaks where it crosses. The test is purely geometric and never keys on the index of the part — parallel units are cut at the same height, and only this way does the second unit get a window.
 
-**下りる走り**は、同じ枠を共有する双子の上る走りが**隠した残り**に現れる。双子であるには、矩形の四座標が `SPAN_EPS` 以内で一致し、向き・形式・装置・部品数がすべて一致していなければならない。位置だけで照合すると鏡像が出る。双子が無ければ下りる走りは丸ごと見える。
+**The descending run** appears in **what its twin ascending run left uncovered**. To be a twin, the four coordinates of the rectangle must match within `SPAN_EPS`, and direction, form, device and part count must all agree. Matching on position alone produces mirror images. With no twin, the descending run is wholly visible.
 
-上る走りは `cut`、下りる走りは `below` に落ちる。
+Ascending runs land in `cut`, descending runs in `below`.
 
-段鼻は部品の t0 を起点に踏面の刻みで並べ、可視区間の外は落とす。エスカレーターの段の刻みは**可視区間の始点**を起点に `STEP_MARK`(400mm)の一定ピッチで並べる。
+Nosings are laid out from the part's t0 at the going interval, and anything outside the visible interval is dropped. Escalator step marks are laid out from **the start of the visible interval** at a constant `STEP_MARK` (400mm) pitch.
 
-矢印は、エスカレーターなら台ごとに、階段と斜路なら出発する走り(上りの面)/ 到着する走り(下りの面)に一本。**向きは人の進む向きだけから決まる。**エスカレーターはどちらの面でも同じ向きを指し、階段と斜路は下りの面で反転する — 機械の向きは固定で、人の向きは面で変わる。可視区間が `ARROW_SPAN_MIN` (900mm) を**超えなければ**矢印は出ない — ちょうど 900mm の区間にも出ない ([導出定数](constants.md))。
+Arrows are drawn per unit for an escalator, and for a stair or ramp one per departing flight (on the ascending face) or arriving flight (on the descending face). **The direction is decided by the way people travel and nothing else.** An escalator points the same way on both faces; a stair or ramp reverses on the descending face — the machine's direction is fixed, a person's changes with the face. A visible interval that does not **exceed** `ARROW_SPAN_MIN` (900mm) gets no arrow — an interval of exactly 900mm gets none either ([derivation constants](constants.md)).
 
-`anchor` は注記の座だけを返す。段数も勾配も[縦動線](vertical-runs.md)の側にあり、それを言葉にするのは描画側である。
+`anchor` returns only the seat for the annotation. The riser count and the slope live on the [vertical run](vertical-runs.md); turning them into words is the drawing side's job.
 
-**切断線**は、走りが切断面を跨いだ位置を**走りの幅いっぱいに横切る一本の線分**である。作図慣習の平行な二本の斜線は見た目であり、描画側が引く。
+**The break line** is a single segment crossing the full width of the run at the position where it spans the cut plane. The conventional pair of parallel slashes is appearance, and the drawing side adds it.
 
-## 上部吹抜けの投影
+## The projection of an upper void
 
-`void` の境界で結ばれた上下の空間について、**上の空間の導出された形**が下階の平面に `above` として落ちる。割付で落とすと、描かれた線で切られた吹抜けが切られる前の姿で出る。
+For the two spaces joined by a `void` boundary, **the derived shape of the upper space** drops onto the lower plan as `above`. Dropping the allocation instead would show a void cut by a drawn line in its uncut form.
 
-## 敷地境界線は最下階に出る
+## Site boundaries appear on the lowest storey
 
-`Form` の `site` は与件の敷地形状を、レベルに関係なく持つ。
+`Form.site` carries the given site polygon regardless of level.
 
-**`koyu plan` は最下階の平面を配置図兼用とし、そこにだけ敷地境界線を二点鎖線で描く** (通り芯は一点鎖線なので、線種で見分けがつく)。これは紙面の構成の判断であって形ではない — どのレベルの図に載せるかも、線種も、[凍る面](../stability.md)の外にある。
+**`koyu plan` treats the lowest storey's plan as a site plan too, and draws the site boundary there — and only there — as a dash-double-dot line** (grid lines are dash-dot, so the two are told apart by style). That is a judgement about the composition of the sheet, not shape. Neither which level it lands on nor the line style is inside [what freezes](../stability.md).
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [形](index.md) — `Form` が持つものと持たないもの
-- [実体](bodies.md) — 切られる前の壁・開口・柱・面
-- [縦動線の算術](vertical-runs.md) — 走りの段割り
-- [導出定数と公差](constants.md) — `CUT_HEIGHT` と `STEP_MARK`
-- [koyu plan](../cli/plan.md) — この集合を SVG にする
-- [koyu axo](../cli/axo.md) — 同じ `Form` を立体で見る
+- [Form](index.md) — what `Form` holds and does not hold
+- [Matter](bodies.md) — walls, openings, columns and slabs before the cut
+- [The arithmetic of vertical runs](vertical-runs.md) — how a run is divided
+- [Constants and tolerances](constants.md) — `CUT_HEIGHT` and `STEP_MARK`
+- [koyu plan](../cli/plan.md) — turning this set into SVG
+- [koyu axo](../cli/axo.md) — the same `Form` seen as a solid

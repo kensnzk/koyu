@@ -1,9 +1,9 @@
 ---
-title: 言語版
+title: Language versions
 mode: reference
 ---
 
-# 言語版
+# Language versions
 
 ```ts
 import { DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS } from "@kensnzk/koyu";
@@ -20,17 +20,17 @@ console.log(SUPPORTED_LANGUAGE_VERSIONS, DEFAULT_LANGUAGE_VERSION);
 [ '0.1', '0.2', '0.3', '0.4', '0.5', '1.0' ] 1.0
 ```
 
-**受理される版は六つで、既定は `1.0` である。**
+**Six versions are accepted, and the default is `1.0`.**
 
-## 言語の版であって、ツールの版ではない
+## The language's version, not the tool's
 
-`.muro` の一行目に書く `koyu 1.0` は**言語の意味論の版**である。パッケージの版 (`package.json` の `version`) とも、[正準JSON](canonical.md) が名乗る形式の版 (`koyu-canonical/1.1`) とも別のものである。
+The `koyu 1.0` written on the first line of a `.muro` is **the version of the language's meaning.** It is not the package version (`version` in `package.json`), and it is not the format version [canonical JSON](canonical.md) announces (`koyu-canonical/1.1`).
 
-**三つは独立に動く。**ツールが上がっても言語の意味は動かないし、言語が上がっても正準形式の綴りが動くとは限らない。
+**The three move independently.** The tool can rise without the meaning of the language moving, and the language can rise without the spelling of the canonical form moving.
 
-## 並びが版の順である
+## The array order is the version order
 
-**`SUPPORTED_LANGUAGE_VERSIONS` の添字が版の新旧の順である。**版を比べるならこの配列の添字で比べる。
+**The index into `SUPPORTED_LANGUAGE_VERSIONS` is the ordering of versions.** Compare versions by that index.
 
 ```ts
 import { SUPPORTED_LANGUAGE_VERSIONS } from "@kensnzk/koyu";
@@ -39,11 +39,11 @@ const older = (a: string, b: string) =>
   SUPPORTED_LANGUAGE_VERSIONS.indexOf(a) < SUPPORTED_LANGUAGE_VERSIONS.indexOf(b);
 ```
 
-**文字列として比べてはならない。**いま並んでいる六つの綴りではたまたま辞書順と一致するが、それはこの六つの偶然であって規則ではない。版が増えれば崩れる。
+**Do not compare them as strings.** The six spellings currently in the array happen to sort lexicographically into the right order, but that is an accident of these six, not a rule. It breaks as soon as versions are added.
 
-## 省略の意味
+## What omission means
 
-**版の宣言を省くと、常に最新版の意味論で読まれる。**
+**Omit the version declaration and the file is read with the newest meaning, always.**
 
 ```ts
 import { parse } from "@kensnzk/koyu";
@@ -59,13 +59,13 @@ console.log(n.version, n.versionDeclared);
 1.0 undefined
 ```
 
-`version` には既定が入るが、`versionDeclared` は立たない。**この二つは別のことを言っている** — 前者は「どの意味論で読んだか」、後者は「著者が版を書いたか」である。[正準JSON](canonical.md) が `koyu` キーを出すかどうかは後者で決まる。
+`version` gets the default, but `versionDeclared` is not set. **The two say different things**: the first is "which meaning it was read with", the second is "did the author write a version". Whether [canonical JSON](canonical.md) emits the `koyu` key follows from the second.
 
-**省略は「最新版で読む」であって「版を跨いで意味が安定する」ではない。**意味を固定したいファイルには版を書く。
+**Omission means "read with the newest version", not "meaning is stable across versions".** Write the version into any file whose meaning you want pinned.
 
-## 受理されない版
+## Versions that are not accepted
 
-配列に無い綴りは解析の時点で `SourceError` になる。
+A spelling absent from the array is a `SourceError` at parse time.
 
 ```ts
 try { parse(`koyu 9.9\ngrid X 0 3600`); } catch (e) { console.log((e as Error).message); }
@@ -75,16 +75,16 @@ try { parse(`koyu 9.9\ngrid X 0 3600`); } catch (e) { console.log((e as Error).m
 line 1: Unsupported koyu version: 9.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0)
 ```
 
-## 旧版は意味保存の場合だけ受理される
+## Older versions are accepted only where meaning is preserved
 
-**古い版を宣言したファイルは、その版の意味のまま読まれる。**だが「その版に無かった語」を使っていれば、診断がそれを咎める。
+**A file that declares an older version is read with that version's meaning.** But if it uses a word that version did not have, a diagnostic says so.
 
-| コード | 何を咎めるか |
+| Code | What it objects to |
 |---|---|
-| `VER01` | `koyu 0.1` で既定境界の導出に頼っている |
-| `VER02` | `koyu 0.3` 以前で、採光の推定対象だった型に `daylight` が無い |
-| `VER03` | `koyu 0.4` 以前のファイルに 0.5 の語 (縦動線・描かれた線・柱・地下) |
-| `VER04` | `koyu 0.5` 以前のファイルに 1.0 の語 (`over` / `drop` / 集合編集) |
+| `VER01` | `koyu 0.1` relying on derived default boundaries |
+| `VER02` | `koyu 0.3` or earlier, with no `daylight` on a type that used to be inferred |
+| `VER03` | a `koyu 0.4`-or-earlier file using a 0.5 word (vertical circulation, drawn lines, columns, underground) |
+| `VER04` | a `koyu 0.5`-or-earlier file using a 1.0 word (`over`, `drop`, set edits) |
 
 ```ts
 import { checkDiagnostics, parseFiles } from "@kensnzk/koyu";
@@ -108,18 +108,18 @@ for (const d of checkDiagnostics(m)) console.log(d.code, d.severity, d.message, 
 VER04 error A koyu 0.5 file uses a 1.0 word: over /L1/a floor:タイル (a composition override) — raise the version to koyu 1.0 (finish.muro:1)
 ```
 
-**出所は書いた層である。**版を宣言したのは `main.muro` だが、咎められているのは `finish.muro` の1行目である — 直す手はそこにある。
+**The source is the layer that wrote the word.** `main.muro` declared the version, but the complaint points at line 1 of `finish.muro` — which is where the fix belongs.
 
-**版は base 層で一度だけ宣言する。**合成のどこにでも書けるものではない。
+**The version is declared once, in the base layer.** It is not something that can appear anywhere in a composition.
 
-## 版を上げるとき
+## When the version rises
 
-言語の意味論を変える変更は言語版を上げる。だから**この配列に版が増えたということは、意味が動いたということである。**逆に、パッケージの版が上がっただけなら、`.muro` の読まれ方は変わらない。
+A change to the meaning of the language raises the language version. So **a new entry in this array means meaning moved.** Conversely, a package release on its own never changes how a `.muro` is read.
 
-同梱の建物 (`examples/`) は常に最新の版で書かれている。
+The bundled buildings under `examples/` are always written at the newest version.
 
-## 関連
+## See also
 
-- [版を書く](../muro/version.md) — `koyu <版>` の書き方
-- [正準JSON](canonical.md) — 形式の版と `koyu` キー
-- [診断リファレンス](../diagnostics/index.md) — `VER01`〜`VER04` の直し方
+- [Writing the version](../muro/version.md) — how to write `koyu <version>`
+- [Canonical JSON](canonical.md) — the format version and the `koyu` key
+- [Diagnostics reference](../diagnostics/index.md) — fixing `VER01` through `VER04`

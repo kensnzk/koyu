@@ -1,87 +1,87 @@
 ---
-title: 敷地と外構を書いて建蔽率・容積率を出す
+title: Describe a site and get coverage and plot ratio
 mode: howto
 ---
 
-# 敷地と外構を書いて建蔽率・容積率を出す
+# Describe a site and get coverage and plot ratio
 
-敷地を記述に加え、[`koyu site`](../reference/cli/site.md) で敷地面積・接道・建築面積・建蔽率・容積率を出す。
+Add the site to the description and let [`koyu site`](../reference/cli/site.md) report site area, road frontage, footprint, building coverage and floor area ratio.
 
-**koyu は敷地を宣言された数値としては持たない。**建蔽率も容積率も、書かれた敷地と書かれた建物から導かれる。宣言できるのは測量由来の二つ — 敷地面積 (`area:`) と敷地形状 (`polygon`) — だけで、どちらも導出値と照合される。
+**koyu does not hold the site as declared numbers.** Coverage and plot ratio are derived from the site you wrote and the building you wrote. Only two things may be declared, both of them survey facts — site area (`area:`) and site outline (`polygon`) — and both are reconciled against the derived value.
 
-以下の出力例のファイルパスは、実際には絶対パスで出る。読みやすさのためファイル名だけに縮めてある。
+File paths in the output below are absolute when you actually run these commands. They are shortened to bare filenames here for readability.
 
-## 前提
+## Before you start
 
-- 建物側が [`koyu check`](../reference/cli/check.md) エラー0で通っていること。
-- 測量図から、敷地面積 (㎡) と敷地形状の頂点座標 (mm) が読めること。
-- 道路の幅員 (mm) が分かっていること。
+- The building passes [`koyu check`](../reference/cli/check.md) with zero errors.
+- You can read the site area (m²) and the outline's vertex coordinates (mm) off the survey.
+- You know the width of the road (mm).
 
-## 1. 敷地の外を方角・性格ごとに割る
+## 1. Split the outside by direction and character
 
-`/out` を一つの空間にせず、道路・隣地ごとの `exterior` に割る。**道路には幅員を `road:` (mm) で付ける** — `site` はこの印を見て接道を探す。
-
-```muro-part
-space /out/road name:南側道路 road:6000 outside:1
-space /out/n name:北側隣地 outside:1
-space /out/e name:東側隣地 outside:1
-space /out/w name:西側隣地 outside:1
-```
-
-## 2. 敷地ゾーンを宣言する
-
-敷地は `site:1` を持つ `zone` である。測量値の敷地面積は `area:` (㎡) に書く。
+Do not make `/out` one space. Split it into an `exterior` per road and per neighbour. **Give roads their width with `road:` (mm)** — that is the mark `site` looks for when it hunts for frontage.
 
 ```muro-part
-zone /site name:敷地 site:1 area:154.00
+space /out/road name:South-road road:6000 outside:1
+space /out/n name:North-neighbour outside:1
+space /out/e name:East-neighbour outside:1
+space /out/w name:West-neighbour outside:1
 ```
 
-## 3. 地上の外部空間で建物の周りをタイルする
+## 2. Declare the site zone
 
-敷地ゾーンの配下に、庭・通路・駐車場を**実在の空間として**置く。レベルは地上階を明示する (`level:L1`)。建物と合わせて敷地を隙間なく覆えば、`polygon` が無くても導出面積が正しく出る。
+A site is a `zone` carrying `site:1`. The surveyed area goes in `area:` (m²).
 
 ```muro-part
-space /site/garden garden X1-2000..X2+2000 Y1-3000..Y1 level:L1 name:南庭
-space /site/west yard X1-2000..X1 Y1..Y2+3000 level:L1 name:西側通路
-space /site/east yard X2..X2+2000 Y1..Y2+3000 level:L1 name:東側通路
-space /site/north yard X1..X2 Y2..Y2+3000 level:L1 name:北側通路
+zone /site name:Site site:1 area:154.00
 ```
 
-## 4. 敷地内の外部空間から隣地・道路へ境界を書く
+## 3. Tile the ground around the building with outdoor spaces
 
-**この手順を飛ばすと庭が建築面積に算入される。**庭も通路も、型が `exterior` ではない領域つき空間である。屋外だと判定されるのは**外部に対して `open` か `air:1` の境界を持つときだけ**で、これは宣言ではなく導出である。塀・フェンスは `air:1` で書く。
+Under the site zone, put the garden, the paths and the parking down as **real spaces**. Say which level they sit on (`level:L1`). Cover the site without gaps, together with the building, and the derived area comes out right even without a `polygon`.
 
 ```muro-part
-boundary /site/garden /out/road edge:S t:120 spec:ブロック塀 air:1 h:1200
-  door w:900 name:門扉
-boundary /site/garden /out/w edge:W t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/west /out/n edge:N t:120 spec:ブロック塀 air:1 h:1200
+space /site/garden garden X1-2000..X2+2000 Y1-3000..Y1 level:L1 name:South-garden
+space /site/west yard X1-2000..X1 Y1..Y2+3000 level:L1 name:West-path
+space /site/east yard X2..X2+2000 Y1..Y2+3000 level:L1 name:East-path
+space /site/north yard X1..X2 Y2..Y2+3000 level:L1 name:North-path
 ```
 
-領域を持たない空間 (`/out` 配下の `exterior` はふつうそう) との組には既定境界が導かれない。**どの外部に面しているかは名指しが情報だから**で、外周の空間から一本ずつ書く。外周が複数の辺に分かれるときは `edge:` で辺を選ぶ — `N`=+Y・`S`=−Y・`E`=+X・`W`=−X。
+## 4. Write boundaries from those spaces out to the roads and neighbours
 
-敷地内の外部空間どうしは連続しているので `type:open` で結ぶ。
+**Skip this step and the garden counts as building footprint.** Gardens and paths are spaces with regions whose type is not `exterior`. A space is judged outdoor **only when it has an `open` or `air:1` boundary to the exterior**, and that is derived, not declared. Walls and fences are written with `air:1`.
+
+```muro-part
+boundary /site/garden /out/road edge:S t:120 spec:Block-wall air:1 h:1200
+  door w:900 name:Gate
+boundary /site/garden /out/w edge:W t:120 spec:Block-wall air:1 h:1200
+boundary /site/west /out/n edge:N t:120 spec:Block-wall air:1 h:1200
+```
+
+No default boundary is derived against a space that has no region, which is what the `exterior` spaces under `/out` usually are. **Which piece of outside you face is information, and information is named**, so write one line per perimeter space. Where the perimeter breaks into several sides, pick one with `edge:` — `N`=+Y, `S`=−Y, `E`=+X, `W`=−X.
+
+Outdoor spaces inside the site are continuous with one another, so join them with `type:open`.
 
 ```muro-part
 boundary /site/garden /site/west type:open
 boundary /site/west /site/north type:open
 ```
 
-## 5. 敷地形状を polygon で書く
+## 5. Write the outline as a polygon
 
-測量図の実形が要るときは `polygon` を書く。**この記法で唯一、格子に載らない自由頂点で形を書ける行**である — 敷地の形は測量由来の所与であって、設計の生成物ではない。頂点は `x,y` の mm 座標をグリッドと同じ座標系で3つ以上、`site:1` のゾーンパスに対応させる。
+When the surveyed shape matters, write a `polygon`. **It is the one line in the notation where a shape is written with free vertices off the grid** — the shape of a site is a survey fact, not a product of the design. Give three or more `x,y` millimetre coordinates in the same coordinate system as the grid, against the path of the `site:1` zone.
 
 ```muro-part
 polygon /site -2000,-3000 9000,-3000 9000,11000 -2000,11000
 ```
 
-polygon は隔離した層に置くとよい。所与のジオメトリと設計の記述を混ぜないための運用で、同梱の tower はこの形をとっている (`examples/tower/site-geometry.muro` は宣言が `polygon` 1 行だけの層である)。文法は [polygon](../reference/muro/polygon.md) にある。
+Keep the polygon in a layer of its own. That keeps given geometry from mixing with designed description; the bundled tower does exactly this — `examples/tower/site-geometry.muro` is a layer whose only declaration is one `polygon` line. The grammar is in [polygon](../reference/muro/polygon.md).
 
-## 確かめる
+## Check it
 
 ```muro
 koyu 1.1
-name 敷地つきの平屋
+name A house with its site
 unit mm
 
 grid X 0 7000
@@ -89,40 +89,40 @@ grid Y 0 8000
 level L1 0 h:2400 slab:150
 level R 2700 slab:150
 
-# 敷地の外 — 方角・性格ごとに割る。道路は road:幅員 (mm)
-space /out/road name:南側道路 road:6000 outside:1
-space /out/n name:北側隣地 outside:1
-space /out/e name:東側隣地 outside:1
-space /out/w name:西側隣地 outside:1
+# Outside the site — split by direction and character. Roads carry road:width (mm)
+space /out/road name:South-road road:6000 outside:1
+space /out/n name:North-neighbour outside:1
+space /out/e name:East-neighbour outside:1
+space /out/w name:West-neighbour outside:1
 
-# 敷地 — site:1 のゾーンと、その配下の地上の外部空間
-zone /site name:敷地 site:1 area:154.00
-space /site/garden garden X1-2000..X2+2000 Y1-3000..Y1 level:L1 name:南庭
-space /site/west yard X1-2000..X1 Y1..Y2+3000 level:L1 name:西側通路
-space /site/east yard X2..X2+2000 Y1..Y2+3000 level:L1 name:東側通路
-space /site/north yard X1..X2 Y2..Y2+3000 level:L1 name:北側通路
+# The site — a zone with site:1, and the ground-level outdoor spaces under it
+zone /site name:Site site:1 area:154.00
+space /site/garden garden X1-2000..X2+2000 Y1-3000..Y1 level:L1 name:South-garden
+space /site/west yard X1-2000..X1 Y1..Y2+3000 level:L1 name:West-path
+space /site/east yard X2..X2+2000 Y1..Y2+3000 level:L1 name:East-path
+space /site/north yard X1..X2 Y2..Y2+3000 level:L1 name:North-path
 
 space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK
 
 boundary /L1/ldk /site/garden t:150 spec:EW
-  door w:900 name:掃き出し
+  door w:900 name:Garden-door
 
-# 敷地内の外部空間どうしは連続している
+# Outdoor spaces inside the site are continuous with one another
 boundary /site/garden /site/west type:open
 boundary /site/garden /site/east type:open
 boundary /site/west /site/north type:open
 boundary /site/east /site/north type:open
 
-# 敷地境界 — 塀は air:1 (物はあるが外気を遮らない)
-boundary /site/garden /out/road edge:S t:120 spec:ブロック塀 air:1 h:1200
-  door w:900 name:門扉
-boundary /site/garden /out/w edge:W t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/garden /out/e edge:E t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/west /out/w edge:W t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/west /out/n edge:N t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/east /out/e edge:E t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/east /out/n edge:N t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/north /out/n edge:N t:120 spec:ブロック塀 air:1 h:1200
+# The site boundary — a wall that is solid but does not enclose air is air:1
+boundary /site/garden /out/road edge:S t:120 spec:Block-wall air:1 h:1200
+  door w:900 name:Gate
+boundary /site/garden /out/w edge:W t:120 spec:Block-wall air:1 h:1200
+boundary /site/garden /out/e edge:E t:120 spec:Block-wall air:1 h:1200
+boundary /site/west /out/w edge:W t:120 spec:Block-wall air:1 h:1200
+boundary /site/west /out/n edge:N t:120 spec:Block-wall air:1 h:1200
+boundary /site/east /out/e edge:E t:120 spec:Block-wall air:1 h:1200
+boundary /site/east /out/n edge:N t:120 spec:Block-wall air:1 h:1200
+boundary /site/north /out/n edge:N t:120 spec:Block-wall air:1 h:1200
 
 polygon /site -2000,-3000 9000,-3000 9000,11000 -2000,11000
 ```
@@ -135,30 +135,30 @@ $ npx tsx src/cli.ts check site.muro
 
 ```text
 $ npx tsx src/cli.ts site site.muro
-Site /site (敷地)
+Site /site (Site)
   Site shape: polygon with 4 vertices (a polygon declaration — given geometry)
   Site area: declared 154.00 m2 / derived 154.00 m2
-  Road: /out/road (南側道路) width 6000mm / frontage 11000mm
+  Road: /out/road (South-road) width 6000mm / frontage 11000mm
   Building footprint (horizontal projection, rough): 56.00 m2 → building coverage ratio 36.4%
   Total floor area: 56.00 m2 → floor area ratio 36.4%
 ```
 
-読み方は次のとおり。
+How to read it:
 
-| 行 | 出所 |
+| Line | Where it comes from |
 |---|---|
-| Site shape | `polygon` の頂点数。無いときはこの行が出ない |
-| Site area — declared | `zone /site` の `area:` (測量値) |
-| Site area — derived | polygon があればシューレース、無ければ敷地配下の空間と屋内の水平投影の合併 |
-| Road | 敷地ゾーン配下の空間と `road:` 付き exterior との境界線分長の合計。**建物の外壁が道路に面していても接道ではない** |
-| Building footprint | 屋内空間の水平投影の合併 |
-| ratios | 建築面積 ÷ 敷地面積、延べ面積 ÷ 敷地面積 |
+| Site shape | the polygon's vertex count; absent when there is no polygon |
+| Site area — declared | `area:` on `zone /site`, the surveyed figure |
+| Site area — derived | the shoelace formula on the polygon, or the union of the horizontal projections of the site's spaces and the indoor spaces |
+| Road | total length of boundary segments between spaces under the site zone and an `exterior` carrying `road:`. **An external wall of the building facing the road is not frontage** |
+| Building footprint | the union of the horizontal projections of the indoor spaces |
+| ratios | footprint ÷ site area, and total floor area ÷ site area |
 
-`site` の終了コードは、敷地ゾーンがあるとき0、無いとき1である。
+`site` exits 0 when there is a site zone and 1 when there is not.
 
-## 手順4を飛ばすと建築面積が倍になる
+## Skip step 4 and the footprint doubles
 
-隣地への塀の境界7本を落とすと、`check` は緑のまま建築面積が倍以上になる。
+Delete the seven boundary walls to the neighbours and `check` stays green while the footprint more than doubles.
 
 ```text
 $ npx tsx src/cli.ts check site-nofence.muro
@@ -166,26 +166,26 @@ $ npx tsx src/cli.ts check site-nofence.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 
 $ npx tsx src/cli.ts site site-nofence.muro
-Site /site (敷地)
+Site /site (Site)
   Site shape: polygon with 4 vertices (a polygon declaration — given geometry)
   Site area: declared 154.00 m2 / derived 154.00 m2
-  Road: /out/road (南側道路) width 6000mm / frontage 11000mm
+  Road: /out/road (South-road) width 6000mm / frontage 11000mm
   Building footprint (horizontal projection, rough): 121.00 m2 → building coverage ratio 78.6%
   Total floor area: 121.00 m2 → floor area ratio 78.6%
 ```
 
-**外部への境界を持たない庭は半屋外と導出されず、屋内として数えられている。**
+**A garden with no boundary to the exterior is not derived as semi-outdoor, so it is counted as indoors.**
 
-## 宣言と導出が食い違うとき
+## When declared and derived disagree
 
-`area:` を 160.40 に変えても `check` は緑のままである。**構成としては何も壊れていない** — 測量値と多角形の食い違いは建築的な判定であり、[`koyu validate`](../reference/cli/validate.md) が言う (polygon があるときだけ照合される)。
+Change `area:` to 160.40 and `check` stays green. **Nothing about the composition is broken** — a survey figure disagreeing with a polygon is an architectural judgement, and [`koyu validate`](../reference/cli/validate.md) is what says it (the two are compared only when a polygon exists).
 
 ```text
 ⚠ [site.area] site-mismatch.muro:line 17: Declared and derived site areas disagree: declared 160.4 m2 / derived 154.00 m2
 Validation — 0 violations / 1 caution
 ```
 
-規則は `site.area` (caution)。`validate --json` で構造化された結果が出る。
+The rule is `site.area`, a caution. `validate --json` gives it structured.
 
 ```json
 [
@@ -202,9 +202,9 @@ Validation — 0 violations / 1 caution
 ]
 ```
 
-**CI で止めたいのは violation である** — `validate` の終了コードは violation があるときだけ 1 になる。建物が敷地形状からはみ出す `site.escape` と、接道長が 2m 未満の `site.frontage` がその二つで、どちらも [敷地の判定](../reference/validate/site.md) にある。
+**Violations are what stop CI** — `validate` exits 1 only when there are violations. On the site side those are `site.escape`, the building spilling outside the outline, and `site.frontage`, less than 2m of road frontage. Both are in [the site rules](../reference/validate/site.md).
 
-## 同梱の例で
+## On the bundled examples
 
 ```text
 $ npx tsx src/cli.ts site examples/house.muro
@@ -215,7 +215,7 @@ Site /site (敷地)
   Total floor area: 92.75 m2 → floor area ratio 73.5%
 ```
 
-`examples/house.muro` は polygon を持たないので、敷地面積の導出は庭・通路・建物の合併から出ている。
+`examples/house.muro` has no polygon, so the derived site area comes from the union of the garden, the paths and the building.
 
 ```text
 $ npx tsx src/cli.ts site examples/tower/main.muro
@@ -228,8 +228,8 @@ Site /site (敷地)
   Total floor area: 4785.92 m2 → floor area ratio 436.0%
 ```
 
-## 次に
+## Next
 
-- [層に割って import で合成する](split-into-layers.md) — polygon を隔離した層に置く
-- [窓を開けて採光を通す](windows-and-daylight.md) — 庭が「上が開いている」ことが採光の係数に効く
-- [到達できない空間を見つける](find-unreachable.md) — 門扉から玄関まで通れるか
+- [Split a building into layers](split-into-layers.md) — keeping the polygon in its own layer
+- [Open windows and pass the daylight check](windows-and-daylight.md) — a garden open to the sky sets the coefficient
+- [Find spaces you cannot reach](find-unreachable.md) — is there a route from the gate to the front door

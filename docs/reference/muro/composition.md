@@ -1,39 +1,39 @@
 ---
-title: 合成 — 層の強度と六つの規則
+title: Composition — layer strength and the six rules
 mode: reference
 ---
 
-# 合成 — 層の強度と六つの規則
+# Composition — layer strength and the six rules
 
-**合成は時間と分担のためにあり、大きさのためではない。**分担して書く、例外を差分として書く、計画の上に as-built を重ねる — これが合成の用途である。一棟が大きいからファイルを分けるのではない。
+**Composition exists for time and for division of labour, not for size.** Writing in parts, writing an exception as a difference, laying as-built over the plan — these are what composition is for. Files are not split because a building is large.
 
-合成は六つの規則を守る。**この六つが揃ってはじめて合成が使える。**揃っていないことの帰結は「同じ入力から違う結果が出る」であって、それは原本ではない。
+Composition keeps six rules. **It is usable only when all six hold.** The consequence of any one being absent is that the same input yields a different result, and that is not an original.
 
 ---
 
-## 規則1 — 層は明示された強度順序を持つ
+## Rule 1 — Layers carry a declared order of strength
 
-**`import` 行の並びが強度の宣言である。**入れ子になった `import` の木を深さ優先で平らにした列が層の並びであり、**後の層ほど強い**。entry は添字 0 で最も弱い。同じ層が二度 import されれば最初の位置を保つ (合成は一度だけ)。
+**The order of the `import` lines is the declaration of strength.** The tree of nested imports flattened depth-first is the layer order, and **later layers are stronger**. The entry is index 0 and the weakest. A layer imported twice keeps its first position — it is composed only once.
 
 ```muro-part
 koyu 1.1
 grid X 0 4000 8000
 level L1 0 h:2700 slab:300
-import ./plan.muro        # 層1
-import ./as-built.muro    # 層2 — こちらが強い
+import ./plan.muro        # layer 1
+import ./as-built.muro    # layer 2 — this one is stronger
 ```
 
-**強度は走査の順ではない。**entry の行が `import` より後ろに書かれていても、entry は添字 0 のままである。順序で決めていたら、`import` 行を上下に動かしただけで結果が変わってしまう。
+**Strength is not scan order.** A line in the entry written after the `import` lines is still at index 0. Deciding by scan order would mean that moving an `import` line up or down changes the result.
 
 ```muro-part
-# main.muro — この over は「走査としては最後」だが、最も弱い層の意見である
+# main.muro — this over is scanned last, and is still the weakest opinion
 import ./plan.muro
 over /L1/a h:9999
 ```
 
-`plan.muro` が `space /L1/a room X1..X2 Y1..Y2 h:2500` と書いていれば、合成後の `h` は **2500** である。定義した層 (添字1) の方が、entry (添字0) より強い。
+If `plan.muro` says `space /L1/a room X1..X2 Y1..Y2 h:2500`, the composed `h` is **2500**. The layer that defined it (index 1) is stronger than the entry (index 0).
 
-層の並びは `layers` が印字する。
+`layers` prints the order.
 
 ```text
 $ koyu layers <entry.muro>
@@ -43,56 +43,56 @@ Layers (weakest first — later layers are stronger):
   2	as-built.muro
 ```
 
-## 規則2 — 単一の値は、最も強い層の意見が勝つ
+## Rule 2 — For a single value, the strongest layer's opinion wins
 
-厚みも仕様も用途も階高も、上書きは一つの規則で説明される。
+Thickness, specification, use, storey height — every override is explained by one rule.
 
 ```muro-part
-over /L1/a h:2400 spec:実測
+over /L1/a h:2400 spec:as-built
 over /L1/a /L1/b t:150 type:open
 over level L1 h:2900
 over asset SD1 w:900
 ```
 
-`over` は空間・ゾーン・境界・レベル・アセットを対象にとる。**書き方から対象の種別が決まる** — パス一つなら空間 (無ければゾーン)、パス二つなら境界、`level` / `asset` に続けて名を書けばそれぞれ。綴りと制約は [over / drop](over-drop.md) にある。
+`over` takes a space, a zone, a boundary, a level, or an asset. **The kind of target follows from how the line is written** — one path is a space (a zone if no space has it), two paths a boundary, and `level` or `asset` followed by a name the corresponding element. The spelling and the constraints are in [over / drop](over-drop.md).
 
-強度の比較は**属性ごと**に行われる。強い層が `h` に意見を持っていても、`spec` に意見が無ければ弱い層の `spec` がそのまま通る。
+Strength is compared **per attribute**. A stronger layer holding an opinion about `h` does not silence a weaker layer's `spec` if the stronger layer says nothing about `spec`.
 
-**同じ層が同じ属性に二度意見を持つのはエラーである。**どちらが勝つかが決まらないからで、これは「暗黙の解決を残さない」の直接の帰結である。
+**It is an error for one layer to hold two opinions about the same attribute.** Which one wins would be undetermined, and that is the direct consequence of leaving no implicit resolution.
 
 ```text
 $ koyu check main.muro
 ✖ e3.muro:line 2: One layer holds two opinions about h on /L1/a (which one wins is undetermined)
 ```
 
-同じ層の中で定義と `over` が同じ属性に触れた場合も同じエラーになる。上書きは**別の層から**行うものである。
+The same error appears when a definition and an `over` inside one layer touch the same attribute. An override is something one layer does **to another**.
 
-## 規則3 — 集合は、明示された編集で合成する
+## Rule 3 — Sets compose through declared edits
 
-**暗黙のマージをしない。**同じ座に複数の意見がありうるもの — 開口・`seg`・`area`・柱 — はすべてこの規則に属す。
+**No implicit merge.** Everything about which several layers may hold an opinion at the same place — openings, `seg`, `area`, columns — belongs to this rule.
 
 ```muro-part
 over /L1/a /L1/b
-  - door D2                              # 削除
-  = door D1 w:1000                       # 置換 (書いた属性だけを差し替える)
-  + window w:600 h:1200 at:0.9 name:W1   # 追加
-drop /L1/store                           # 空間 (その関係も一緒に消える)
-drop /L1/a /L1/b                         # 境界
-drop column C1                           # 柱の宣言
+  - door D2                              # remove
+  = door D1 w:1000                       # replace (only the attributes written)
+  + window w:600 h:1200 at:0.9 name:W1   # add
+drop /L1/store                           # a space (its relations go with it)
+drop /L1/a /L1/b                         # a boundary
+drop column C1                           # a column declaration
 ```
 
-**同一性は「容れ物 + その中で一意な名」である。**`name:` を持たない要素は編集の対象にできない — 指す言葉が無いからである。`+` で足す要素には `name:` が要り、同じ容れ物の中で名が重複すればエラー、`-` と `=` が指す名が一意でなければエラーである。
+**Identity is "the containing object plus a name unique within it."** An element without `name:` cannot be the target of an edit — there is no word with which to point at it. An element added with `+` requires `name:`; a duplicate name inside the same container is an error, and so is a name that `-` or `=` cannot resolve uniquely.
 
-**規則3が、これまで特殊扱いされてきたものを普通にする。**同じ場所に複数の層が意見を持ちうるものは、暗黙の勝ち負けではなく明示された編集で解決される。**特殊なのは値の種類であって、規則ではない。**専用の構文を作らない。
+**Rule 3 makes ordinary what used to be treated as special.** Anything about which several layers may hold an opinion is resolved by a declared edit rather than an implicit winner. **What is special is the kind of value, not the rule.** No dedicated syntax is created.
 
-## 規則4 — 定義と上書きを区別する
+## Rule 4 — Definition and override are distinguished
 
-| | 文 | 対象が既にあるとき | 対象が無いとき |
+| | Statement | When the target exists | When it does not |
 |---|---|---|---|
-| **定義** | `space` `boundary` `zone` `asset` `level` `polygon` `column` | **エラー** (重複) | 定義する |
-| **上書き** | `over` | 上書きする | **エラー** |
+| **Definition** | `space` `boundary` `zone` `asset` `level` `polygon` `column` | **error** (duplicate) | defines it |
+| **Override** | `over` | overrides it | **error** |
 
-二つは別の文であって、書き方から区別がつく。存在しないものに意見だけを足すのは、たいてい綴り違いか、層の順序の思い違いである。
+They are different statements, and which is which follows from how they are written. Adding an opinion to something that does not exist is usually a misspelling, or a mistaken idea of the layer order.
 
 ```text
 $ koyu check main.muro
@@ -104,17 +104,17 @@ $ koyu check main.muro
 ✖ e4.muro:line 1: Duplicate space path: /L1/a (first seen in plan.muro at line 1)
 ```
 
-## 規則5 — 同じ入力からは常に同じ結果が出る
+## Rule 5 — The same input always yields the same result
 
-入力には**層とその順序の宣言**を含む。同じ entry からは常に同じ層の列が出て、同じ層の列からは常に同じモデルが出る。
+The input includes **the declaration of the layers and their order**. The same entry always yields the same list of layers, and the same list of layers always yields the same model.
 
-**上書きの跡は合成後のモデルにも正準JSONにも残らない。**`over` で `h:2400` にした模型と、最初から `h:2400` と書いた模型は、同じ正準JSONを与える。正準形が答えるのは「同じ建物か」であって「どう書かれたか」ではない。
+**No trace of an override survives into the composed model or the canonical JSON.** A model brought to `h:2400` by `over` and a model written with `h:2400` from the start yield the same canonical JSON. What the canonical form answers is "is this the same building", not "how was it written".
 
-同じことは `import` にも `stack` にもスパン展開にも帯にも言える — どれも合成の途中で普通の宣言に展開され、機械形式には残らない。
+The same holds for `import`, `stack`, span expansion and bands: each is expanded into ordinary declarations during composition and leaves nothing in the machine format.
 
-## 規則6 — 出所が追える
+## Rule 6 — Provenance can be followed
 
-最終的な値を、どの層が与えたかを示せる。
+The layer that gave the final value can be named.
 
 ```text
 $ koyu layers main.muro --attrs
@@ -129,47 +129,47 @@ Attribute provenance:
   space:/L1/a:spec	← 2 as-built.muro
 ```
 
-出所の鍵は `<種別>:<対象>:<属性キー>` である。種別は `space` `zone` `boundary` `level` `asset` のいずれかで、境界の対象は `<パスa>|<パスb>` と綴る。API では `model.attrSrc` が同じ鍵を持ち、値は `model.layers` の添字である。
+The provenance key is `<kind>:<subject>:<attribute>`. The kind is one of `space`, `zone`, `boundary`, `level`, `asset`, and a boundary subject is spelled `<pathA>|<pathB>`. Through the API the same keys live in `model.attrSrc`, whose values are indices into `model.layers`.
 
 ---
 
-## 衝突とエラー
+## Collisions and errors
 
-合成の解決が定まらない状態は、**モデルが組み上がる前に止まる**。壊れた JSON を JSON パーサが弾くのと同じ層にあり、診断として後から報告するものではない。`check --json` ではこれらは `SYN01` として現れ、行と — 合成のときは — ファイルを言う。
+A state in which the resolution of the composition is undetermined **stops before the model is assembled**. It sits at the same layer as a JSON parser rejecting broken JSON, and is not something reported afterwards as a diagnostic. Under `check --json` these appear as `SYN01`, carrying the line and — when composing — the file.
 
-| 状態 | 扱い |
+| State | Treatment |
 |---|---|
-| 空間パス・ゾーンパス・アセット名・敷地形状の重複 | エラー (両者の出所つき) |
-| `grid` / `name` / `koyu` の再宣言 | エラー (`name` は同じ文字列なら可) |
-| `over` の対象が無い / `drop` の対象が無い | エラー |
-| 同じ層が同じ属性に二度意見を持つ | エラー |
-| 集合の編集で名が無い / 一意でない / 重複する | エラー |
-| 同じファイルの二重 import・循環 | 冪等 (一度だけ合成される) |
+| Duplicate space path, zone path, asset name, or site shape | error (with both origins) |
+| Re-declaring `grid` / `name` / `koyu` | error (`name` may repeat with the same string) |
+| `over` with no target / `drop` with no target | error |
+| One layer holding two opinions about the same attribute | error |
+| A set edit with no name, an ambiguous name, or a duplicate name | error |
+| Importing the same file twice, or a cycle | idempotent (composed once) |
 
-## 何を合成しないか
+## What is not composed
 
-- **案の分岐** — 一つのファイルに複数の案を畳まない。分岐は git が持つ
-- **アセットの入れ子参照** — アセットはアセットを参照しない
-- **層ごとの名前空間接頭辞** — パスの階層がすでに名前空間である
-- **層の部分的な読み込み** — 層は丸ごと合成される
+- **Alternatives** — several schemes are not folded into one file. Branching belongs to git
+- **Nested asset references** — an asset does not reference an asset
+- **Per-layer namespace prefixes** — the path hierarchy is already a namespace
+- **Partial loading of a layer** — a layer is composed whole
 
-## 合成の語は muro 1.0 の語である
+## The words of composition are 1.0 words
 
-`over` `drop` と `+` / `-` / `=` は muro 1.0 で入った。`koyu 0.5` 以前を宣言したファイルにこれらを書けば、`check` が **VER04** (error) で止める。
+`over`, `drop` and the set edits `+` / `-` / `=` arrived in muro 1.0. Writing one of them in a file that declares `koyu 0.5` or earlier is stopped by `check` as **VER04** (an error).
 
-`check --json` が返す診断はこう読める (コードと本文だけを抜き出したもの)。
+Read as code plus message, the diagnostics `check --json` returns look like this.
 
 ```text
 VER04  A koyu 0.5 file uses a 1.0 word: over /L1/a h:2500 (a composition override) — raise the version to koyu 1.0
 VER04  A koyu 0.5 file uses a 1.0 word: drop /L1/b (a composition removal) — raise the version to koyu 1.0
 ```
 
-版宣言を省いたファイルは最新版 `1.0` の意味論で読まれるので、この診断は出ない。受理される版は `0.1` `0.2` `0.3` `0.4` `0.5` `1.0` の六つで、新旧はこの並びの順である。
+A file with no version declaration is read with the semantics of the latest version, `1.0`, so it never sees this diagnostic. The accepted versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5` and `1.0`, and older-to-newer runs in that order.
 
-## 関連
+## See also
 
-- [import](import.md) — 層を読む一語と、層の並びの作られ方
-- [over / drop](over-drop.md) — 上書き・削除・集合編集の綴りと制約
-- [stack](stack.md) — 階を跨ぐ関係の一括宣言とスパン展開
-- [koyu check](../cli/check.md) — 合成後のモデルに対して走る門番
-- [koyu layers](../cli/layers.md) — 層の並びと属性の出所を印字する
+- [import](import.md) — the word that reads a layer, and how the order is built
+- [over / drop](over-drop.md) — the spelling and constraints of overriding, removing and set edits
+- [stack](stack.md) — declaring relations across storeys at once, and span expansion
+- [koyu check](../cli/check.md) — the gate, run against the composed model
+- [koyu layers](../cli/layers.md) — prints the layer order and attribute provenance

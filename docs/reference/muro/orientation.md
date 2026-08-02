@@ -1,20 +1,20 @@
 ---
-title: 方位と a 側
+title: Orientation and the a side
 mode: reference
 ---
 
-# 方位と a 側
+# Orientation and the a side
 
-**`N` `E` `S` `W` は軸の言葉である。**
+**`N`, `E`, `S` and `W` are words about axes.**
 
-| 語 | 軸 | 向き |
+| Word | Axis | Direction |
 |---|---|---|
-| `N` | +Y | 北 |
-| `S` | −Y | 南 |
-| `E` | +X | 東 |
-| `W` | −X | 西 |
+| `N` | +Y | north |
+| `S` | −Y | south |
+| `E` | +X | east |
+| `W` | −X | west |
 
-方位磁針ではない。建物が真北を向いていなくても、この四語は `grid X` と `grid Y` が張った座標系の +X / −X / +Y / −Y をそのまま指す。座標の綴り方は [位置と領域](positions.md) にある。
+They are not a compass needle. If the building is not oriented to true north, these four words still mean +X / −X / +Y / −Y in the coordinate system that `grid X` and `grid Y` set up. How coordinates are spelled is in [positions and regions](positions.md).
 
 ```muro
 koyu 1.1
@@ -35,87 +35,87 @@ boundary /L1/room /out t:150
   door   w:900  h:2100 edge:N name:勝手口
 ```
 
-上の居室は `X1..X2 Y1..Y2` の一枚の矩形なので、外部への境界は四本の線分に分かれる。`edge:S` は `Y1` の側 (y = 0)、`edge:N` は `Y2` の側 (y = 5600)、`edge:W` は `X1` の側、`edge:E` は `X2` の側である。
+The room above is a single rectangle `X1..X2 Y1..Y2`, so its boundary with the exterior falls into four segments. `edge:S` is the `Y1` side (y = 0), `edge:N` is the `Y2` side (y = 5600), `edge:W` is the `X1` side and `edge:E` is the `X2` side.
 
-## なぜこの対応になるか
+## Why the mapping is what it is
 
-導出された領域の輪郭は反時計回りに巡る。その頂点列を一周し、軸に平行な辺だけを読むと、**+x へ進む辺が `S`、−x が `N`、+y が `E`、−y が `W` の面**になる。結果として `N` は +Y、`S` は −Y、`E` は +X、`W` は −X の面を指す。
+The outline of a derived region runs counter-clockwise. Walking that vertex list and reading only the axis-parallel edges, **an edge running +x is the `S` face, −x is `N`, +y is `E`, and −y is `W`.** So `N` names the +Y face, `S` the −Y face, `E` the +X face and `W` the −X face.
 
-**斜めの辺は方位を持たない。**`line` で引いた斜めの境界に `edge:` を書いても絞られない — `line` を持つ境界の線分はそもそも `edge:` の絞り込みを受けない。
+**A diagonal edge has no compass direction.** Writing `edge:` on a boundary realised by a `line` narrows nothing — the segments of a boundary that carries a drawn line are not filtered by `edge:` at all.
 
-## `edge:` は何を選ぶか
+## What `edge:` selects
 
-`edge:` は**境界の線分を、その方位のものだけに絞る**。書ける場所は三つある。
+`edge:` **narrows the segments of a boundary to those facing that way.** It can be written in three places.
 
-| 書く場所 | 効き方 |
+| Where | Effect |
 |---|---|
-| `boundary` の行 | その境界が持つ線分を、はじめから一つの方位に限定する |
-| `door` / `window` の行 | 境界の線分のうち、開口を置く辺を選ぶ |
-| `seg` の行 | 同上 |
+| on the `boundary` line | limits that boundary to one face from the start |
+| on a `door` / `window` line | picks which face the opening sits on |
+| on a `seg` line | the same |
 
-**外部への境界は線分が複数になるのが普通である。**部屋の外周から他の空間と接する区間を除いた残りが線分になるので、四周が空いていれば四本になる。そこへ辺を選ばずに開口を置こうとすると止まる。
+**A boundary with the exterior normally has several segments.** What is left of a room's perimeter after removing the stretches that face other spaces becomes the segments — four of them if all four sides are open. Placing an opening there without choosing a face stops.
 
 ```text
 There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)
 ```
 
-これが `OPN05` (開口) と `SEG05` (`seg`) である。逆に、その方位に線分が一本も無ければ `OPN04` / `SEG04` になる。
+That is `OPN05` for openings and `SEG05` for `seg`. Conversely, if there is no segment facing that way at all, it is `OPN04` / `SEG04`.
 
-## a 側 — 方位はどちらの空間から見た言葉か
+## The a side — whose face is being named
 
-**`edge:` の方位は、境界の行に先に書いた空間 (a 側) の形から読む。**
+**The compass word in `edge:` is read from the shape of the space written first on the boundary line (the a side).**
 
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 
-boundary /L1/a /L1/b edge:E     # a の東の面 = 二室の間の壁
+boundary /L1/a /L1/b edge:E     # a's east face — the wall between the two rooms
 ```
 
-同じ壁を書き順だけ変えると、方位は裏返る。
+Write the same wall the other way round and the word flips.
 
 ```text
 No shared edge on edge:E: /L1/b | /L1/a (they actually touch on W)
 ```
 
-`/L1/b` を先に書けば、二室の間の壁は `b` から見て西にあるので `edge:W` になる。**`a` と `b` の書き順が意味を持つのは `edge` と `swing` の二つだけ**である — それ以外 (線分の位置、面積の分け方、描かれた線がどちら側を残すか) は書き順に依らない。
+With `/L1/b` first, the wall between the rooms lies to b's west, so it is `edge:W`. **The order of `a` and `b` matters for exactly two things — `edge` and `swing`.** Everything else (where the segments fall, how area is split, which side a drawn line keeps) is independent of the order.
 
-**a 側が領域を持たないときは、領域を持つ側から読む。**`boundary /out /L1/room edge:N` の `N` は `/L1/room` の北面である — 外部には形が無いので、方位を読む相手がそこにしかない。
+**When the a side has no region, the word is read from the side that does.** In `boundary /out /L1/room edge:N` the `N` is the north face of `/L1/room`, because the exterior has no shape to read a face from.
 
-## 開き勝手 — `hinge` と `swing`
+## Which way the door opens — `hinge` and `swing`
 
-扉の開き方は二つの語で決まる。**片方は軸の言葉、片方は関係の言葉である。**
+Two words decide it. **One is a word about axes, the other about the relation.**
 
-**`hinge` は吊元 — 線分のどちらの端に蝶番が付くか。**
+**`hinge` is the jamb — which end of the segment the hinge sits on.**
 
-| 線分 | 書ける値 | 書かなければ |
+| Segment | Accepted values | If omitted |
 |---|---|---|
-| 水平 (`N` / `S` の面) | `W` / `E` | 西端 (座標の小さい方) |
-| 垂直 (`E` / `W` の面) | `S` / `N` | 南端 (座標の小さい方) |
-| 斜め | — | 始端側に固定される |
+| horizontal (an `N` / `S` face) | `W` / `E` | the west end (the lower coordinate) |
+| vertical (an `E` / `W` face) | `S` / `N` | the south end (the lower coordinate) |
+| diagonal | — | pinned to the start end |
 
-軸を取り違えれば `OPN01` になる — 水平の線分に `hinge:N` は書けない。線分は常に座標の昇順に向くので、「始端」は西端または南端である。
+Getting the axis wrong is `OPN01` — `hinge:N` cannot go on a horizontal segment. Segments always run in ascending coordinate order, so "the start" is the west or south end.
 
-**`swing` は開く先 — `a` 側と `b` 側のどちらへ開くか。**`a` / `b` の二値で、方位ではない。書かなければ、a が領域を持てば `a`、でなければ `b` へ開く。実際の回転の向きは、開く先の形のうち開口に最も近い部分の中心へ向かう成分で決まる。
+**`swing` is which side the leaf opens toward — `a` or `b`.** It is not a compass word. Omitted, the door opens toward `a` if a has a region, otherwise toward `b`. The actual sense of rotation is taken from the component pointing at the centre of the nearest part of the shape on the side it opens toward.
 
-`style:sliding` と `style:auto` の開口は軌跡を持たない — 吊元の側へ引き込まれる。
+Openings with `style:sliding` or `style:auto` have no arc — they slide toward the hinge side.
 
-## `at:` の軸は辺が決める
+## The axis of `at:` follows the face
 
-**水平の線分 (`N` / `S`) の上では位置は X の通り参照で、垂直の線分 (`E` / `W`) の上では Y の通り参照で書く。**
+**On a horizontal segment (`N` / `S`) an absolute position is an X grid reference; on a vertical one (`E` / `W`) it is a Y reference.**
 
 ```text
 The door position X1+1000 is on the wrong axis: a vertical segment takes a Y grid line
 ```
 
-これが `OPN07` / `SEG07` である。比率 (`at:0.3`) はどちらの線分でも書ける。
+That is `OPN07` / `SEG07`. A ratio (`at:0.3`) works on either.
 
-## 縦動線の値も方位である
+## Vertical circulation uses the same four words
 
-`stair:` `ramp:` `escalator:` の値は**上る向き**であり、同じ四語を使う。
+The value of `stair:`, `ramp:` and `escalator:` is **the direction of travel going up**, spelled with the same four words.
 
 ```muro-part
 space /B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 stair:N form:return
 ```
 
-`stair:N` は「+Y へ向かって上る」である。段数も踏面も勾配も書かない — 領域と階高から導かれる。昇降機だけは向きを持たないので `lift:1` と書く。値が四語のどれでもなければ `RUN02` になる。
+`stair:N` means "rises toward +Y". Riser count, tread depth and slope are never written — they are derived from the region and the storey height. A lift has no direction, so it is written `lift:1`. A value that is none of the four is `RUN02`.

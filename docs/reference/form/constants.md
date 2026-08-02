@@ -1,73 +1,73 @@
 ---
-title: 導出定数と公差
+title: Derivation constants and tolerances
 mode: reference
 ---
 
-# 導出定数と公差
+# Derivation constants and tolerances
 
-**導出定数は台帳の既定値ではない。**[属性の台帳](../muro/attributes.md)が定めるのは「何を書いてよいか」であり、ここが定めるのは「**何も書かれなかったとき何が導かれるか**」である。書けば必ず書いた値が勝つ。
+**Derivation constants are not defaults of the attribute ledger.** The [ledger](../muro/attributes.md) fixes what may be written; these fix **what is derived when nothing was written**. Write a value and the written value always wins.
 
-公差は「どれだけ違えば別のものか」を決める数である。座標は mm の整数が基本なので、長さの許容は整数の刻みの半分に置かれている。
+Tolerances are the numbers that decide how different two things must be to be different things. Coordinates are integer millimetres by default, so a length tolerance sits at half the integer step.
 
-どちらも `DERIVATION_CONSTANTS` と `TOLERANCES` として公開されており、この頁の二つの表と実装の一致はテストが縛る。
+Both are published as `DERIVATION_CONSTANTS` and `TOLERANCES`, and a test binds the two tables on this page to the implementation.
 
-## 導出定数 — 18 個
+## Derivation constants — eighteen
 
 <!-- derivation-constants -->
 
-| 定数 | 値 | 単位 | 何を決めるか |
+| Constant | Value | Unit | What it decides |
 |---|---|---|---|
-| `WALL_T` | 100 | mm | [壁厚](bodies.md)の既定(`t:` で上書き)。芯線に対して両側へ半分ずつ |
-| `RAIL_T` | 60 | mm | 遮蔽しない境界(`air:1`)の厚みの既定(`t:` で上書き) |
-| `RAIL_T_MAX` | 80 | mm | 遮蔽しない境界の厚みの上限。`t:` に何を書いてもここで頭打ち |
-| `RAIL_H` | 1100 | mm | 遮蔽しない境界の天端高の既定(境界の `h:` で上書き) |
-| `OPENING_HEAD` | 2000 | mm | [開口のまぐさ高](bodies.md)。扉はここまで立ち上がり、それ以外はここから下がる |
-| `OPENING_H` | 1200 | mm | 扉以外の開口の高さの既定(開口の `h:` で上書き) |
-| `CEILING_T` | 30 | mm | 天井面の見付け厚 |
-| `ROOF_T` | 200 | mm | 屋根版の厚さの既定と、最上階で天井高の上へ載せる量 |
-| `CUT_HEIGHT` | 1200 | mm | [平面の切断面](plan.md)の FL からの高さ(`derive` の入力の既定) |
-| `DEFAULT_RISER_MAX` | 180 | mm | [蹴上げの上限](vertical-runs.md)(`riser:` で上書き)。段数を決める |
-| `TREAD_TARGET` | 300 | mm | 折返しの踊り場を残余として決めるときの目標踏面(`tread:` で上書き) |
-| `LANDING_MIN` | 1100 | mm | 中間踊り場の最小奥行。書かれた `landing:` もここまで引き上げる |
-| `ENTRY_LANDING` | 1100 | mm | 乗り込みの床の奥行の既定(`entry:` で上書き) |
-| `LANE_ESCALATOR` | 1200 | mm | エスカレーター一台の呼び幅の既定(`lane:` で上書き)。台数を決める |
-| `TREAD_SOLID` | 200 | mm | 段板の見付け厚(立体) |
-| `SLAB_T` | 200 | mm | 踊り場の版と、斜路・エスカレーターの傾いた版の厚さ |
-| `STEP_MARK` | 400 | mm | 平面のエスカレーターの段の刻みのピッチ |
-| `ARROW_SPAN_MIN` | 900 | mm | [平面](plan.md)の進む向きの矢印が出る可視区間の下限。**厳密な超過**なので、ちょうど 900mm の区間には矢印が出ない |
+| `WALL_T` | 100 | mm | default [wall thickness](bodies.md) (`t:` overrides), distributed half to each side of the centre line |
+| `RAIL_T` | 60 | mm | default thickness of a non-enclosing boundary (`air:1`); `t:` overrides |
+| `RAIL_T_MAX` | 80 | mm | cap on the thickness of a non-enclosing boundary; whatever `t:` says, it stops here |
+| `RAIL_H` | 1100 | mm | default top height of a non-enclosing boundary; the boundary's `h:` overrides |
+| `OPENING_HEAD` | 2000 | mm | [lintel height](bodies.md). A door rises to it; everything else drops from it |
+| `OPENING_H` | 1200 | mm | default height of an opening that is not a door; the opening's `h:` overrides |
+| `CEILING_T` | 30 | mm | face thickness of a ceiling |
+| `ROOF_T` | 200 | mm | default roof slab thickness, and the amount stacked above the ceiling height on a top storey |
+| `CUT_HEIGHT` | 1200 | mm | height of the [plan cut](plan.md) above FL (the default input to `derive`) |
+| `DEFAULT_RISER_MAX` | 180 | mm | [maximum riser](vertical-runs.md) (`riser:` overrides). It decides the riser count |
+| `TREAD_TARGET` | 300 | mm | target going used when the landing of a turning run is solved as the remainder (`tread:` overrides) |
+| `LANDING_MIN` | 1100 | mm | minimum depth of an intermediate landing; a written `landing:` is raised to it too |
+| `ENTRY_LANDING` | 1100 | mm | default depth of the entry floor band (`entry:` overrides) |
+| `LANE_ESCALATOR` | 1200 | mm | default nominal width of one escalator unit (`lane:` overrides). It decides the unit count |
+| `TREAD_SOLID` | 200 | mm | face thickness of a tread board (solids) |
+| `SLAB_T` | 200 | mm | thickness of a landing slab and of the inclined slab of a ramp or escalator |
+| `STEP_MARK` | 400 | mm | pitch of the escalator step marks in plan |
+| `ARROW_SPAN_MIN` | 900 | mm | The shortest visible run interval on a [plan](plan.md) that still carries a direction arrow. The comparison is **strict**, so an interval of exactly 900mm carries none |
 
-台帳に無い、その場で解ける寸法が三つある。**昇降機のかご**は四方から `min(300, 短辺 ÷ 6)` だけ内へ寄せ (寄せ量は辺ごとではなく四方で同じ一つの値)、FL + 60 から FL + 2400 に立つ。**エスカレーターの欄干**は幅 `min(140, 台の幅 ÷ 8)`・厚さ 100mm で、段板面から 900mm 持ち上がる。**[平面](plan.md)の昇降機の記号**は四方から `min(250, 幅 ÷ 8)` だけ内へ寄せた枠と、その対角線二本である。どれも他の値との比で決まるので、単独の定数を持たない。
+Three dimensions are solved on the spot rather than held as constants. **The lift car** is inset `min(300, shorter side ÷ 6)` on all four sides — one value shared by all four, not solved per side — and stands from FL + 60 to FL + 2400. **The escalator balustrade** is `min(140, unit width ÷ 8)` wide and 100mm thick, raised 900mm above the tread surface. **The lift symbol on a [plan](plan.md)** is a frame inset `min(250, width ÷ 8)` on all four sides, plus its two diagonals. Each is defined relative to another value, so none of them is a constant of its own.
 
-## 公差 — 7 個
+## Tolerances — seven
 
 <!-- tolerances -->
 
-**同じ問いに二つの公差があってはならない。**
+**No question may have two tolerances.**
 
-| 公差 | 値 | 単位 | 何の許容か |
+| Tolerance | Value | Unit | What it permits |
 |---|---|---|---|
-| `EPS` | 0.5 | mm | [辺](boundaries.md)の軸平行・向かい合わせ・区間の一致・共線マージの隙間・通り参照のはみ出し・開口の重なり |
-| `AREA_EPS` | 1 | mm² | 切った残りが消えるか。左右の面積差が「偏りなし」か。屋根タイルが残るか |
-| `PROBE` | 5 | mm | 描かれた線の左右を探る距離。**形の解像度の下限である** |
-| `SPAN_EPS` | 1 | mm | 切断面と部品の z の比較・可視区間の長さの下限・双子の枠の一致・外皮の穴の長さの下限・壁の区間の下限 |
-| `CROSS_EPS` | 1e-6 | — | 半平面で切るときの符号(外積 = 面積の二倍)の許容 |
-| `PARALLEL_EPS` | 1e-9 | — | 無限直線と線分の平行判定・線分側パラメータの範囲 |
-| `POINT_EPS` | 1 | mm | 点が多角形の辺の上にあるとみなす幅(境界上は内側扱い)。柱の立地もこれで見る |
+| `EPS` | 0.5 | mm | [edge](boundaries.md) axis-parallelism, facing, interval coincidence, gap in collinear merging, grid-reference overrun, opening overlap |
+| `AREA_EPS` | 1 | mm² | whether what a cut leaves disappears; whether the left/right area difference counts as "no bias"; whether a roof tile survives |
+| `PROBE` | 5 | mm | how far to probe either side of a drawn line. **The lower bound on the resolution of shape** |
+| `SPAN_EPS` | 1 | mm | comparing the cut plane with a part's z; minimum length of a visible interval; matching twin frames; minimum length of an envelope hole; minimum length of a wall interval |
+| `CROSS_EPS` | 1e-6 | — | the sign (cross product = twice the area) when cutting by a half-plane |
+| `PARALLEL_EPS` | 1e-9 | — | parallelism between an infinite line and a segment; the range of the segment-side parameter |
+| `POINT_EPS` | 1 | mm | the width within which a point counts as lying on a polygon edge (on the boundary counts as inside). Where a column stands is read this way |
 
-`EPS` が 0.5mm なのは、**整数 mm の刻みの半分**だからである。`AREA_EPS` の 1mm² は 1mm × 1mm の破片で、半平面で切った残りがこれ以下なら形として数えない。
+`EPS` is 0.5mm because that is **half the integer millimetre step**. `AREA_EPS` at 1mm² is a 1mm × 1mm sliver: if a half-plane cut leaves that or less, it is not counted as shape.
 
-`PROBE` の 5mm は他の六つと性格が違う。これは丸めの許容ではなく、**幅 5mm を下回る空間は左右のどちらにも判定できず、境界の線分が一本も出ない**という、形そのものの下限である。
+`PROBE` at 5mm is different in kind from the other six. It is not a rounding allowance but a floor on shape itself: **a space narrower than 5mm can be assigned to neither side of the line, and its boundary yields no segment at all.**
 
-## なぜ一箇所に集めてあるか
+## Why they live in one place
 
-これらの値がモジュールごとに置かれていたあいだ、同じ 0.5 が二箇所に別々に書かれ、`1` が四箇所に直値で並び、軸平行の判定だけが共通の値ではなく直値の 0.5 を使っていた。どれも同じ値なので事故は起きていない。起きていたのは、**一つを動かしたときに何が動くのかを誰も言えない**という状態である。
+While these values sat module by module, the same 0.5 was written twice independently, a `1` appeared as a literal in four places, and the axis-parallel test used a literal 0.5 rather than the shared value. All the same numbers, so nothing broke. What was broken was that **nobody could say what would move if one of them moved.**
 
-同じことが壁厚 100mm にも起きていた — 四箇所に別々のリテラルとして書かれ、そのうち一箇所を直しても他の三箇所は動かなかった。公差も定数も[導出の規則](index.md)の一部であり、規則が消費者ごとに違えば同じ原本から違う建物が出る。
+The same had happened to the wall thickness of 100mm — four separate literals, and fixing one left the other three untouched. Tolerances and constants are part of [the rules of derivation](index.md), and rules that differ per consumer mean different buildings out of the same source.
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [形](index.md) — `derive(model)` と四つの約束
-- [実体](bodies.md) — 定数が実際に効く場所
-- [縦動線の算術](vertical-runs.md) — 段割りの定数
-- [attributes](../muro/attributes.md) — 何を書いてよいかの側
-- [defaults](../muro/defaults.md) — 記法の側の既定
+- [Form](index.md) — `derive(model)` and the four promises
+- [Matter](bodies.md) — where the constants actually bite
+- [The arithmetic of vertical runs](vertical-runs.md) — the step-division constants
+- [attributes](../muro/attributes.md) — the side that says what may be written
+- [defaults](../muro/defaults.md) — the defaults of the notation itself

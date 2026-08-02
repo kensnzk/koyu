@@ -1,17 +1,17 @@
 ---
-title: 一行の読まれ方
+title: How a line is read
 mode: reference
 ---
 
-# 一行の読まれ方
+# How a line is read
 
-**一行が一文である。**`.muro` の一行は、
+**One line, one statement.** A line of `.muro` has the shape
 
 ```text
-キーワード 位置引数… key:value…
+keyword positional… key:value…
 ```
 
-の形をとる。読む側の状態は「直前の非字下げ行が何だったか」だけで、括弧も終端子も入れ子も無い。この頁は、その一行がトークンへ割られ、値へ変わるまでを書く。どの行が書けるかの一覧は [.muro の全構文](index.md)、位置の綴りは [位置と領域](positions.md)、属性の掟は [属性の三層](attributes.md) にある。
+The only state the reader carries is "what was the last non-indented line" — there are no brackets, no terminators, no nesting. This page covers how that line is split into tokens and turned into values. For which lines exist at all, see [every construct](index.md); for how positions are spelled, [positions and regions](positions.md); for the rules on attribute keys, [the three tiers of attribute](attributes.md).
 
 ```muro
 koyu 1.1
@@ -24,101 +24,101 @@ grid Y 0 5600
 level L1 0 h:2700 slab:200
 
 space /L1/ldk  ldk  X1..X2 Y1..Y2 name:"居間 と 食堂" acme.note:"#3 と #4"
-space /L1/hall hall X2..X3 Y1..Y2 name:玄関           # 末尾コメント
+space /L1/hall hall X2..X3 Y1..Y2 name:玄関           # a trailing comment
 space /out     name:外部 outside:1
 
 boundary /L1/hall /out t:150 spec:EW1
   door w:900 h:2100 edge:S name:玄関戸
 ```
 
-## トークン
+## Tokens
 
-**区切りは空白で、何個でもよい。**上の例が桁を揃えているのは読むためであり、意味は変わらない。タブも空白である。空行は無視される。
+**Whitespace separates tokens, and any amount of it does.** The columns above are aligned to be read; the meaning does not change. A tab is whitespace too. Blank lines are ignored.
 
-**行継続は無い。**行末の `\` も、次行への折り返しも無い。長い行は長いまま書く — 分けたいなら層に分けて `import` で重ねる。
+**There is no line continuation.** No trailing `\`, no folding onto the next line. A long line stays long — if you want to split the work, split it into layers and compose them with `import`.
 
-**位置引数は順序が意味である。**`space /L1/ldk ldk …` の第1が パス、第2が型で、入れ替えれば別の意味になるか、読めなくなる。位置引数の数と並びはキーワードごとに違う。
+**Positional arguments carry meaning by order.** In `space /L1/ldk ldk …` the first is the path and the second is the type; swap them and you get a different building or an error. How many positionals there are, and what they mean, differs per keyword.
 
-## コメント
+## Comments
 
-**引用符の外の `#` から行末までがコメントである。**行頭に置けば行全体が消え、行末に置けばそこから先が消える。
+**A `#` outside quotes runs to the end of the line.** At the start of a line it erases the line; at the end it erases the tail.
 
 ```muro-part
-# この行はまるごとコメント
-space /L1/hall hall X2..X3 Y1..Y2 name:玄関   # ここから先もコメント
+# this whole line is a comment
+space /L1/hall hall X2..X3 Y1..Y2 name:玄関   # and everything from here
 ```
 
-`#` を値として書きたければ引用符で囲む。`acme.note:"#3 と #4"` の値は `#3 と #4` である。
+To keep a `#` as part of a value, quote it. The value of `acme.note:"#3 と #4"` is `#3 と #4`.
 
-## 引用符
+## Quotes
 
-**`"` は開閉のスイッチであって、トークンを囲む器ではない。**トークンのどこに現れてもよく、対で現れた区間の中では空白と `#` が普通の文字になる。引用符そのものは値に残らない。
+**`"` is a toggle, not a wrapper.** It may appear anywhere inside a token, and between a pair of them whitespace and `#` become ordinary characters. The quote marks themselves do not survive into the value.
 
-| 書いたもの | 得られる値 |
+| Written | Value |
 |---|---|
 | `name:"居間 と 食堂"` | `居間 と 食堂` |
 | `name:南"の"部屋` | `南の部屋` |
 | `acme.note:"#3 と #4"` | `#3 と #4` |
-| `h:"2400"` | 数値 `2400` — 引用符は数値の読みを止めない |
+| `h:"2400"` | the number `2400` — quoting does not stop numeric reading |
 
-**閉じない引用符はエラーである。**行の終わりまで開いたままなら `Unclosed quote` で止まる。
+**An unclosed quote is an error.** If one is still open at the end of the line, the file stops with `Unclosed quote`.
 
-## 字下げ
+## Indentation
 
-**行頭に空白があれば、その行は直前の非字下げ行に従属する。**深さは意味を持たない — 一段だけで、入れ子は無い。空白が一つでもあれば従属し、無ければ新しい親になる。
+**A line that begins with whitespace is subordinate to the non-indented line above it.** The depth carries no meaning — there is one level and no nesting. One space is enough to subordinate; none at all starts a new parent.
 
-| 親 | 書ける字下げ行 |
+| Parent | Indented lines it takes |
 |---|---|
 | `boundary` | `door` `window` `seg` `line` |
-| `stack` | `door` `window` `seg` — `line` は垂直境界に引けないので `LIN02` になる |
+| `stack` | `door` `window` `seg` — a `line` cannot be drawn on a vertical boundary, so it gives `LIN02` |
 | `space` | `area` |
-| `band` | `space` (帯の要素 — 領域の代わりに `w:` を持つ) |
+| `band` | `space` (a band member — it carries `w:` instead of a region) |
 | `over` | `+` `-` `=` |
 
-親でない行の下に字下げ行を置けばエラーになり、親と噛み合わない語も同じくエラーである。`over` の直下に置けるのは `+` `-` `=` の三つだけで、`door` を直に字下げしても通らない。
+Indenting under a line that is not a parent is an error, and so is a word the parent does not take. Only `+`, `-` and `=` may sit directly under `over`; an indented `door` there does not pass.
 
-**親が複数の対象へ展開されるなら、字下げ行はその全部に効く。**`boundary /L3..L10/a /L3..L10/b` の下の `door` は8階ぶんの境界すべてに一枚ずつ吊られ、`stack` の下の開口や `seg` はその積層の全ての垂直境界へ渡る (垂直境界の開口は解釈されないので、`check` は警告を出す)。
+**When the parent expands to several targets, the indented line reaches all of them.** A `door` under `boundary /L3..L10/a /L3..L10/b` hangs one leaf on each of eight storeys, and an opening or a `seg` under `stack` reaches every vertical boundary in the stack — where openings are not interpreted, so `check` says so as a warning.
 
 ## key:value
 
-**キーは最初の `:` の左、値は右である。**
+**The key is everything left of the first `:`; the value is what follows.**
 
-- 値が空ならエラー (`name:` だけの書き方は無い)
-- キーが空ならエラー (`:x` は読めない)
-- **同一行内で同じキーが二度出ればエラー**である。後勝ちを黙認すると、綴り違いとマージ事故が隠れる
+- An empty value is an error — there is no bare `name:`
+- An empty key is an error — `:x` cannot be read
+- **The same key twice on one line is an error.** Letting the later one silently win hides typos and merge accidents
 
-**値の型は綴りが決める。**`-?\d+(\.\d+)?` に完全一致すれば数値、それ以外は文字列になる。
+**The spelling decides the type.** A value matching `-?\d+(\.\d+)?` exactly becomes a number; anything else stays a string.
 
 ```text
-h:2400        → 数値 2400
-h:2400.5      → 数値 2400.5
-h:24OO        → 文字列 "24OO"  (英字の O が混じっている)
-name:0123     → 数値 123       (先頭の 0 は消える)
-uid:0123      → エラー — uid に数字だけのトークンは書けない
+h:2400        → the number 2400
+h:2400.5      → the number 2400.5
+h:24OO        → the string "24OO"  (those are letter O's)
+name:0123     → the number 123     (the leading zero is gone)
+uid:0123      → an error — a uid may not be a token of digits alone
 ```
 
-数値として読めない値を数値の場所に書いたときは黙って落ちない。行の場で `The attribute h is written as a number: 24OO` になるか、[属性の三層](attributes.md) が言う `ATT01` になる。
+A value that fails to read as a number where a number belongs never falls silently to a default. It stops on the spot with `The attribute h is written as a number: 24OO`, or it comes back as `ATT01` — see [the three tiers of attribute](attributes.md).
 
-**キーを勝手に増やすことはできない。**台帳に無いキーは名前空間 (`acme.note` のようなドット区切り) を持たなければ書けず、持たなければ `ATT03` になる。詳しくは [属性の三層](attributes.md)。
+**Keys cannot be invented freely.** A key that is not in the ledger must carry a namespace (a dotted key such as `acme.note`); without one it is `ATT03`. Again, [the three tiers of attribute](attributes.md).
 
-## 位置引数と属性の見分け
+## Telling positionals from attributes
 
-パーサは「トークンに `..` が含まれるか」「`/` で始まるか」「`:` を含むか」で位置引数と属性を分ける。行の中での並びは、ほとんどの行で自由である — `space /L1/a room name:居室 X1..X2 Y1..Y2` は領域を先に書いた版と同じに読まれる。
+The parser sorts tokens by whether they contain `..`, start with `/`, or contain `:`. In almost every line the order is therefore free — `space /L1/a room name:居室 X1..X2 Y1..Y2` reads exactly like the version with the region first.
 
-**例外が一つある。開口の先頭の非 `key:value` トークンはアセット参照であって、名ではない。**
+**There is one exception. The first non-`key:value` token on an opening is an asset reference, not a name.**
 
 ```muro-part
 asset SD1 door w:800 h:2000 style:sliding name:片引き戸
 
 boundary /L1/a /L1/b
-  door SD1 at:0.3        # SD1 というアセットを参照する
-  door w:900 name:D2     # 名は name: に書く
+  door SD1 at:0.3        # refers to the asset SD1
+  door w:900 name:D2     # a name goes in name:
 ```
 
-`door D2 w:900` と書けば「D2 というアセットが未定義である」と言われる。**名は必ず `name:` に書く。**
+Write `door D2 w:900` and you are told that the asset D2 is undefined. **A name always goes in `name:`.**
 
-## 正規化と出所
+## Normalisation and provenance
 
-**原稿は NFC として読まれる。**`が` は一つの符号位置とも「か + 濁点」とも綴れる。正規化しなければ同じに見える二つのパスが別の空間になり、パス重複のエラーも出ないまま機械形式に見分けのつかないキーが二つ並ぶ。NFKC は採らない — `㎡` や `①` を書き換えてしまい、それは書かれた表記を保つことに反する。
+**The source is read as NFC.** `が` can be spelled as one code point or as "か + combining mark". Without normalising, two paths that look identical become two different spaces — with no duplicate-path error — and the machine format ends up with two indistinguishable keys. NFKC is not used: it would rewrite `㎡` and `①`, and that would not preserve what was written.
 
-**エラーは行を名指す。**位置を持つ診断は `<ファイル>:line <N>: <本文>` の形で出る。層を重ねているときの `<ファイル>` は、その行を書いたファイルであって入口のファイルではない。
+**Errors name the line.** Every diagnostic that has a position is printed as `<file>:line <N>: <message>`. When layers are composed, `<file>` is the file that wrote the line, not the entry.

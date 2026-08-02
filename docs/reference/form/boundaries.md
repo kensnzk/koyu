@@ -1,104 +1,104 @@
 ---
-title: 境界線分 — 壁がどこに立つか
+title: Boundary segments — where a wall stands
 mode: reference
 ---
 
-# 境界線分 — 壁がどこに立つか
+# Boundary segments — where a wall stands
 
-壁を置く操作は存在しない。**壁の位置は、二つの空間の[凸片](regions.md)の関係から現れる。**`boundary` の一行が言うのは「この二つのあいだに何があるか」であって、線がどこを走るかではない。
+There is no operation that places a wall. **A wall's position emerges from the relation between the [convex pieces](regions.md) of two spaces.** The `boundary` line says what lies between those two, not where a line runs.
 
 ```ts
 form.boundaries[0].segment
 // { x1: 3600, y1: 0, x2: 3600, y2: 4500, horizontal: false, edgeOfA: "E" }
 ```
 
-一つの境界は**線分を複数持ちうる**。`Form` は線分ごとに一つの `FormBoundary` を持ち、どれも同じ `ref` を共有する。
+One boundary can produce **several segments**. `Form` holds one `FormBoundary` per segment, all sharing the same `ref`.
 
-## 辺の方位
+## Edge orientation
 
-凸片の反時計回りの頂点列を一周し、軸に平行な辺だけを読む。
+Walk the counter-clockwise vertex list of a piece and read only the axis-parallel edges.
 
-| 進む向き | 面 |
+| Travelling | Face |
 |---|---|
 | +x | **S** |
 | −x | **N** |
 | +y | **E** |
 | −y | **W** |
 
-したがって **N = +Y、S = −Y、E = +X、W = −X** の面を指す。斜めの辺は方位を持たない。
+So **N = +Y, S = −Y, E = +X, W = −X**. A diagonal edge has no orientation.
 
-二つの辺が「向かい合う」とは、方位が互いに逆 (N↔S / E↔W) であり、かつ固定座標の差が `EPS` 以下であることをいう。
+Two edges "face each other" when their orientations are opposite (N↔S / E↔W) and their fixed coordinates differ by at most `EPS`.
 
-`edgeOfA` は **`a` 側(先に書いた空間)から見た方位**である。`boundary /L1/a /L1/b` と `boundary /L1/b /L1/a` は同じ関係の二つの綴りだが、`edge:` が指す辺は逆になる。
+`edgeOfA` is the orientation **seen from `a`**, the space written first. `boundary /L1/a /L1/b` and `boundary /L1/b /L1/a` are two spellings of the same relation, but `edge:` names opposite faces in them.
 
-## 線分の導出 — 順序が意味を持つ
+## Deriving the segments — the order matters
 
-境界の線分は次の順で決まる。**先に当たった枝で決着する。**
+Segments are decided in this order. **The first branch that applies settles it.**
 
-1. 両端のどちらかの空間が存在しなければ、線分は無い
-2. `type` が `stair` / `shaft` / `void` なら線分は無い(**垂直の境界は壁を持たない**)
-3. **描かれた線があれば、それが境界の実現である。**共線マージも `edge:` の絞り込みも掛からない
-4. 両側が領域を持つなら**共有辺**。レベルが違えば線分は無い(異なるレベル間に壁は立たない)
-5. 片側だけが領域を持つなら**外周**。相手は「同じレベルの、この二空間以外のすべての空間の領域」である
-6. どちらも領域を持たなければ線分は無い
+1. If either end space does not exist, there is no segment
+2. If `type` is `stair` / `shaft` / `void`, there is no segment (**a vertical boundary has no wall**)
+3. **If there is a drawn line, that line is the realisation of the boundary.** Neither collinear merging nor `edge:` filtering applies
+4. If both sides have regions, take the **shared edges**. Different levels means no segment (no wall stands between levels)
+5. If only one side has a region, take the **outline**. The counterpart is "every space on the same level other than these two"
+6. If neither side has a region, there is no segment
 
-4 と 5 の結果には共線マージを掛け、最後に `edge:` があれば「a 側から見た辺」で絞る。
+Results from 4 and 5 go through collinear merging, and finally `edge:` narrows them by "the face as seen from a".
 
-### 共有辺
+### Shared edges
 
-A の各凸片の軸平行な辺と B の各凸片の辺のうち、**向かい合っていて重なる区間を持つもの**を取る。重なりが `EPS` 以下なら共有辺にならない — **点接触は接触ではない**。線分は座標の昇順に向き、`a` 側から見た方位を持つ。
+Take the axis-parallel edges of A's pieces and B's pieces that **face each other and share an overlapping interval**. An overlap at or below `EPS` is not a shared edge — **touching at a point is not touching**. Segments run in ascending coordinate order and carry the orientation seen from `a`.
 
-### 外周
+### Outline
 
-各凸片の各辺から、向かい合う相手の辺が覆う区間を引いた残りである。**同じ空間の他の凸片も相手に数える**ので、L 字を二矩形で書いても内部の継ぎ目に壁は立たない。相手を引く順序は結果に影響しない。
+For each edge of each piece, subtract the intervals covered by facing edges of the counterpart. **Other pieces of the same space count as counterparts too**, so an L written as two rectangles grows no wall along its internal seam. The order of subtraction does not affect the result.
 
-外周は複数の辺に割れる。だから外部への開口を置くには `edge:N/E/S/W` で辺を選ぶ必要がある([OPN05](../diagnostics/opn.md))。
+An outline splits into several faces. That is why placing an opening onto the exterior needs `edge:N/E/S/W` ([OPN05](../diagnostics/opn.md)).
 
-## 共線マージ
+## Collinear merging
 
-同じ直線上に並ぶ線分を一本にまとめる。まとめる単位は **(向き・固定座標・a 側から見た方位)** の三つ組で、**固定座標は厳密に一致していなければならない**。同じ組の中で座標の昇順に並べ、隙間が `EPS` 以下なら伸ばし、超えたら切る。
+Segments lying on the same line are joined into one. The grouping key is **(orientation, fixed coordinate, face as seen from a)**, and **the fixed coordinate must match exactly**. Within a group, segments are sorted ascending; a gap at or below `EPS` extends the run, a larger one breaks it.
 
-**背中合わせの辺は併合されない。**同じ直線上に N の辺と S の辺があっても、方位が違うので別の線分のままである。
+**Back-to-back edges are never merged.** An N face and an S face on the same line have different orientations, so they stay separate segments.
 
-マージがあるおかげで、複数の矩形にまたがる一枚の窓を一つの線分の上に置ける。
+Merging is what lets a single window span several rectangles and still sit on one segment.
 
-## 描かれた線が実現する区間
+## The interval a drawn line realises
 
-**一本の設計線は複数の境界に共有される。**貫通通路の壁は、その前を通る区画の数だけ境界を持つ。各境界が線の全長を実現すると、平面には同じ壁が何本も重なる。
+**One design line is shared by several boundaries.** The wall of a through-passage has as many boundaries as there are units along it. If every boundary realised the full length of the line, the plan would carry the same wall several times over.
 
-そうならないよう、線は両空間の凸片の辺で切られ、各区間の中点から法線方向へ探り距離 `PROBE`(5mm)だけ離れた二点を取り、**左右がちょうど a と b になっている区間だけ**を残す。片側が領域を持たない相手なら、持つ側が片側だけに居ることで境界になる。この判定は a と b について対称である。
+To prevent that, the line is cut at the edges of both spaces' pieces; from the midpoint of each interval two points are taken `PROBE` (5mm) away along the normal, and **only the intervals where left and right are exactly a and b** are kept. If one side has no region, the side that does being alone there makes it a boundary. The test is symmetric in a and b.
 
-`PROBE` は**形の解像度の下限である** — この幅を下回る空間は左右のどちらにも判定できず、境界の線分が一本も出ない。
+`PROBE` is **the lower bound on the resolution of shape** — a space narrower than that can be assigned to neither side, and the boundary produces no segment at all.
 
-出力の線分は**正準の端点の順**(解決座標の昇順)を保ち、`a` 側から見た方位を持たない。したがって **`line` を持つ境界に `edge:` を書いても効かない。**
+Output segments keep the **canonical endpoint order** (ascending resolved coordinate) and carry no face seen from `a`. Therefore **`edge:` on a boundary that has a `line` has no effect**.
 
-## 通行可能性
+## Passability
 
-線分の有無と、人が通れるかは別の話である。
+Whether a segment exists and whether a person can pass are different questions.
 
-| `type` | 通れるか |
+| `type` | Passable |
 |---|---|
-| `wall` | **扉があるときだけ。**`window` では通れない |
-| `open` | 常に通れる |
-| `stair` | 常に通れる(垂直の通行) |
-| `shaft` | 通れない — 空間としては連続するが人は通らない |
-| `void` | 通れない — 床が無い |
+| `wall` | **only if there is a door.** A `window` does not pass |
+| `open` | always |
+| `stair` | always (vertical passage) |
+| `shaft` | no — continuous as space, but people do not go through |
+| `void` | no — there is no floor |
 
-`air:1` は**遮蔽の話であって通行の話ではない**。扉の無い手すり壁は `wall` + `air:1` なので、自動的に通れない。
+`air:1` is **about enclosure, not about passage**. A rail wall is `wall` + `air:1` with no door, so it is impassable automatically.
 
-`passable(boundary)` がこれを返す。合否は言わない — 「外へ出られるか」は[判定の面](../validate/access.md)が別に答える。
+`passable(boundary)` returns this. It says nothing about pass or fail — "can you get out" is answered separately by the [judgement face](../validate/access.md).
 
-## 外皮の穴
+## Holes in the envelope
 
-空間の外周のうち、**他の空間とも、宣言された外部境界とも向かい合っていない**区間がある。これが外皮の穴である。`envelopeGaps(model, space)` が線分として返す。
+Parts of a space's outline face **neither another space nor a declared exterior boundary**. Those are holes in the envelope, and `envelopeGaps(model, space)` returns them as segments.
 
-接する空間の既定は壁だが、**領域を持たない空間(外部)との境界は導出されない** — 相手の名指しが情報だからである。だから外部への `boundary` の書き忘れは、黙って壁の不在になる。`check` はこれを言わない。言うのは[判定の面](../validate/envelope.md)の `envelope.gap` である。
+Touching spaces default to a wall, but **no default is derived against a space with no region** (the exterior) — naming the counterpart is itself information, so it is declared. A forgotten `boundary` to the outside therefore becomes a silent absence of wall. `check` does not say so. The [judgement face](../validate/envelope.md) does, as `envelope.gap`.
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [凸片](regions.md) — 線分が読む辺の出どころ
-- [実体](bodies.md) — 線分に厚みと z が乗る
-- [boundary](../muro/boundary.md) — 境界をどう書くか
-- [orientation](../muro/orientation.md) — N/E/S/W の向き
-- [BND の診断](../diagnostics/bnd.md) — 線分が導けないとき
-- [envelope の判定](../validate/envelope.md) — 外皮の穴
+- [Regions](regions.md) — where the edges come from
+- [Matter](bodies.md) — thickness and z land on the segment
+- [boundary](../muro/boundary.md) — how to write one
+- [orientation](../muro/orientation.md) — the N/E/S/W convention
+- [BND diagnostics](../diagnostics/bnd.md) — when no segment can be derived
+- [envelope judgement](../validate/envelope.md) — holes in the envelope

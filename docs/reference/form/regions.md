@@ -1,94 +1,94 @@
 ---
-title: 凸片 — 割付から領域へ
+title: Regions — from allocation to shape
 mode: reference
 ---
 
-# 凸片 — 割付から領域へ
+# Regions — from allocation to shape
 
-空間の領域は矩形の合併として書かれる。**書かれた割付は形ではない。**形は、割付から導かれた**凸片の列**である。
+The region of a space is written as a union of rectangles. **The written allocation is not the shape.** The shape is a list of **convex pieces** derived from it.
 
 ```ts
 form.spaces[0].outline
 // [ [ {x:0,y:0}, {x:3600,y:0}, {x:3600,y:4500}, {x:0,y:4500} ] ]
 ```
 
-面積も、壁の位置も、屋根の輪郭も、柱の立地も、投影も — [形を読むすべての導出](index.md)がこの一つの入口を通る。
+Areas, wall positions, roof outlines, where columns stand, projections — [every derivation that reads shape](index.md) goes through this one door.
 
-## 割付から凸片へ
+## From allocation to pieces
 
-導出はまず各矩形を反時計回りの四頂点へ写す。
+Each rectangle is first mapped to four counter-clockwise vertices.
 
 ```text
 {x1,y1,x2,y2}  →  [(x1,y1), (x2,y1), (x2,y2), (x1,y2)]
 ```
 
-次に、境界に[描かれた線](../muro/line.md)があれば、その半平面で切り直す。
+Then, if a boundary carries a [drawn line](../muro/line.md), the pieces are re-cut by its half-plane.
 
 ```text
-線が無い    :  凸片 = 割付の写し
-線がある    :  凸片 = 窓の外 + 窓の中を半平面で切った残り
+no line  :  pieces = a copy of the allocation
+a line   :  pieces = outside the window + the inside re-cut by the half-plane
 ```
 
-切り直しは合成の出口で**一度だけ**効く。**冪等ではない** — 先に効いた線が縮めた領域が、後の線の窓を縮める。
+Cutting happens **exactly once**, at the exit of composition. It **is not idempotent** — a region shrunk by an earlier line shrinks the window of a later one.
 
-## 切る順序は、宣言順ではない
+## The order of cutting is not declaration order
 
-線の切り分けは**正準の境界順**に効く。並びの規則は正準 JSON と同じで、`between` の辞書順、同じ `between` は直列化順である。合成で境界が挟まっても並びは動かない。
+Lines cut in **canonical boundary order**: the lexicographic order of `between`, with equal `between` broken by serialised content. Composition may insert boundaries in the middle; the order does not move.
 
-宣言順で切ってはならない理由は、[正準形が宣言順を捨てる](../json/index.md)からである。捨てられる情報で切ると、同じ正準形から違う面積が出る — 交差する二本の線を持つ実測で、同じバイト列のモデルから 27.00 ㎡ と 22.50 ㎡ が出た。**形は正準形の関数でなければならない。**
+Cutting in declaration order is forbidden because [the canonical form discards declaration order](../json/index.md). Cutting by information that is discarded means the same canonical form yields different areas — measured, two crossing lines gave 27.00 m² and 22.50 m² from byte-identical models. **Shape must be a function of the canonical form.**
 
-## 線の及ぶ窓
+## The window a line reaches
 
-線は無限直線ではない。**線に沿っては限られた区間を、線を横切っては相手を含む範囲を**切る。この非対称が要である — 無限直線として扱うと離れた翼を巻き込んで室が消え、線分の外接矩形として扱うと軸平行の線で退化して何も切れない。どちらの誤りも実際に起きた。
+A line is not an infinite line. **Along itself it cuts a limited interval; across itself it cuts a range that contains the other side.** The asymmetry is the point — treated as an infinite line it swallows a distant wing and the room vanishes; treated as the bounding box of the segment it degenerates for an axis-parallel line and cuts nothing. Both failures actually happened.
 
-線の向きは `|Δy| ≥ |Δx|` なら**縦向き**である(ちょうど 45 度と退化した点も縦向きに数える)。縦向きなら「沿う」軸が y、「横切る」軸が x で、横向きならその逆になる。
+A line is **vertical** when `|Δy| ≥ |Δx|` (exactly 45° and a degenerate point count as vertical). For a vertical line the "along" axis is y and the "across" axis is x; for a horizontal line it is the other way round.
 
-| 場合 | 沿う軸 | 横切る軸 |
+| Case | Along | Across |
 |---|---|---|
-| 二空間を分け直す(両側が領域を持つ) | 二つの領域の外接矩形の**積** | 二つの外接矩形の**和** |
-| 外皮を切る(片側が領域を持たない) | **線分自身の区間** | 領域を持つ側の外接矩形**全体** |
+| Re-dividing two spaces (both sides have a region) | the **intersection** of the two bounding boxes | the **union** of the two bounding boxes |
+| Cutting the envelope (one side has no region) | **the interval of the segment itself** | the **whole** bounding box of the side that has a region |
 
-窓は二辺とも[許容](constants.md) `EPS` を超えていなければ実体を持たず、その線は何も切らない([LIN01](../diagnostics/lin.md))。
+If either side of the window is not greater than the [tolerance](constants.md) `EPS`, the window has no substance and the line cuts nothing ([LIN01](../diagnostics/lin.md)).
 
-## 残す側
+## Which side is kept
 
-線のどちら側を残すかは書かない。**窓に触れる凸片を丸ごと測って**決める。窓に触れるかは外接矩形どうしの重なりで見る。各片を線で二分し、左の面積の合計と右の面積の合計を比べ、差が `AREA_EPS` 未満なら「偏りなし」とする。
+Which side of the line survives is not written. It is decided by **measuring, whole, the pieces the window touches**. Whether a piece is touched is read from bounding-box overlap. Each piece is split by the line, the total area on the left is compared with the total on the right, and a difference below `AREA_EPS` counts as "no bias".
 
-**切るのは窓の中だけ、決めるのは片の全体である。**全ての凸片を測ると線が届かない翼が符号を支配して室が消え、窓の中だけを測ると隅から隅への線が「二等分」に見える。
+**Cut inside the window only; decide from the whole piece.** Measuring every piece lets a wing the line never reaches dominate the sign and the room disappears; measuring only inside the window makes a corner-to-corner line look like a bisection.
 
-- **外皮を切る場合** — 領域を持つ側の偏りが、そのまま残す側である。偏りなしなら切らない
-- **二空間の場合** — 両側の偏りを取り、片方だけが 0 なら他方の反対を当てる。両方 0 でも、同じ側でも切らない
+- **Cutting the envelope** — the bias of the side that has a region is the side kept. No bias, no cut
+- **Two spaces** — take the bias of both sides; if exactly one is 0, give it the opposite of the other. If both are 0, or if both point the same way, no cut
 
-**`a`/`b` のどちらを先に書いたかは、残す側に効かない。**`boundary /L1/room /out` と `boundary /out /L1/room` は同じ関係の二つの綴りであり、残す側は**領域を持つ側そのもの**が決める。a/b の向きが意味を持つのは `edge` と `swing` — 「どちらから見た関係か」を必要とする二つ — だけである。この規則を持たなかったとき、書き順を逆にしただけで 26 ㎡ と 34 ㎡ に割れ、`check` は緑のままだった。
+**Which of `a` and `b` was written first has no effect on which side is kept.** `boundary /L1/room /out` and `boundary /out /L1/room` are two spellings of the same relation, and the side kept is decided by **the side that has a region**. The direction of a/b matters only for `edge` and `swing` — the two things that need "seen from which side". Before this rule existed, reversing the order gave 26 m² and 34 m², and `check` stayed green.
 
-## 分け直しの操作
+## The operation
 
-窓の内と外へ割り、**窓の中の割付を合併してから線の両側へ分け直す**。
+The pieces are split into inside and outside the window, and **the allocation inside the window is merged before being re-divided across the line**.
 
-- **二空間の分け直しでは合計面積が保存される** — 一方が失う三角形を他方が得る
-- **外皮を切る場合は領域を持つ側だけが減る** — 相手は面積を得ない
+- **Re-dividing two spaces preserves total area** — the triangle one loses, the other gains
+- **Cutting the envelope only shrinks the side with a region** — the other side gains nothing
 
-半平面で切った結果が三頂点未満か、面積が `AREA_EPS` 以下なら、その片は無かったことにする。この閾値が無ければ、隅切りの端に髪の毛のような破片が残り、それが辺として読まれて幽霊の壁を生む。
+If a half-plane cut leaves fewer than three vertices, or an area at or below `AREA_EPS`, the piece is treated as never having existed. Without that threshold, hair-thin slivers survive at the end of a chamfer, get read as edges, and grow ghost walls.
 
-## 線は向きを持たない
+## A line has no direction
 
-**同じ二点を結ぶ線は、どちらの端から書いても同じ線である。**導出は切り分けの前に、各線の端点を**解決座標の (x, 次いで y) 昇順**へ揃える。正準 JSON が端点の対に使う規則と同じものである。綴り(通り参照)も一緒に入れ替わるので、診断が引用する綴りは書かれたとおりのまま順だけが入れ替わる。
+**The same two points joined in either order are the same line.** Before cutting, the endpoints of every line are ordered by **resolved coordinate, ascending in (x, then y)** — the same rule canonical JSON uses for the endpoint pair. The spelling (the grid reference) travels with the swap, so a diagnostic quotes exactly what was written, only in the other order.
 
-**この正準の始端が、線に載る開口の `at:` の起点である。**揃えなければ、正準 JSON がバイト同一のまま扉が別の位置に出る — 実測で `line X1,Y1+2000 X2,Y1+4000` と `line X2,Y1+4000 X1,Y1+2000` が同じハッシュのまま扉を (1500, 2500) と (4500, 3500) に置いていた。
+**That canonical start point is the origin for the `at:` of any opening carried by the line.** Without the ordering, canonical JSON stays byte-identical while the door moves — measured, `line X1,Y1+2000 X2,Y1+4000` and `line X2,Y1+4000 X1,Y1+2000` hashed identically while placing the door at (1500, 2500) and (4500, 3500).
 
-## 切り分けの帰結
+## What the cut actually did
 
-線が実際に何をしたかは、導出したその場で記録される。公開型 `DrawnLine` の `effect` がそれを持つ。
+What a line did is recorded at the moment it does it. The public type `DrawnLine` carries it as `effect`.
 
-| 値 | 意味 | 診断 |
+| Value | Meaning | Diagnostic |
 |---|---|---|
-| `"cut"` | 実際に形を切った | — |
-| `"nothing"` | 何も切らなかった — 既定の隣接線と同じか、線の及ぶ範囲に割付が無い | [LIN03](../diagnostics/lin.md)(warning) |
-| `"undetermined"` | 残す側が決まらない — 両側の偏りが同じか、割付をちょうど二等分した | [LIN01](../diagnostics/lin.md)(error) |
+| `"cut"` | it really cut the shape | — |
+| `"nothing"` | it cut nothing — same as the default adjacency line, or the allocation lies outside its reach | [LIN03](../diagnostics/lin.md) (warning) |
+| `"undetermined"` | which side to keep is undecidable — equal bias on both sides, or an exact bisection | [LIN01](../diagnostics/lin.md) (error) |
 
-後から計算し直さないのは、そのときには**既に切られた形**が相手になっていて、母集団が食い違うからである。`effect` は導出の帰結であって書かれた構成ではないので、正準 JSON には出ない。
+It is not recomputed later, because by then the counterpart is **the already-cut shape** and the population no longer matches. `effect` is a consequence of derivation, not written composition, so it does not appear in canonical JSON.
 
-## 一つ書いてみる
+## Write one
 
 ```muro
 koyu 1.1
@@ -104,7 +104,7 @@ boundary /L1/a /out t:150 spec:RC
   line X1,Y2-3000 X1+3000,Y2
 ```
 
-6000 × 6000 の割付から北西の三角形 (3000 × 3000 ÷ 2 = 4.5 ㎡) が落ちる。
+The north-west triangle (3000 × 3000 ÷ 2 = 4.5 m²) falls off a 6000 × 6000 allocation.
 
 ```sh
 npx tsx src/cli.ts stats corner.muro
@@ -118,12 +118,12 @@ Total 31.50 m2 (indoor floor area)
   room: 31.50 m2
 ```
 
-割付は 36 ㎡ のままだが、**面積は凸片から出る**。
+The allocation is still 36 m². **The area comes from the pieces.**
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [形](index.md) — `derive(model)` と四つの約束
-- [境界線分](boundaries.md) — 凸片の辺から壁が立つ
-- [line](../muro/line.md) — 線をどう書くか
-- [space](../muro/space.md) — 割付をどう書くか
-- [LIN の診断](../diagnostics/lin.md) — 切れなかったときに何が出るか
+- [Form](index.md) — `derive(model)` and the four promises
+- [Boundary segments](boundaries.md) — walls stand on the edges of pieces
+- [line](../muro/line.md) — how to write a line
+- [space](../muro/space.md) — how to write an allocation
+- [LIN diagnostics](../diagnostics/lin.md) — what comes out when a cut fails

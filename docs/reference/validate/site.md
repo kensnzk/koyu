@@ -1,27 +1,27 @@
 ---
-title: 敷地 — site.escape / site.area / site.frontage
+title: The site — site.escape / site.area / site.frontage
 mode: reference
 ---
 
-# 敷地 — site.escape / site.area / site.frontage
+# The site — site.escape / site.area / site.frontage
 
-| 規則 | level |
+| rule | level |
 |---|---|
 | [`site.escape`](#site-escape) | violation |
 | [`site.area`](#site-area) | caution |
 | [`site.frontage`](#site-frontage) | violation |
 
-敷地は `site:1` を持つゾーンで、その形は同じパスの `polygon` が与える。**敷地形状そのものの健全性** — 重複頂点・自己交差・対応するゾーンの不在 — は [`koyu check`](../cli/check.md) が言う。与件が壊れていれば形が作れないので、あれは読解の一部である。
+The site is the zone carrying `site:1`, and its shape is given by the `polygon` at the same path. **The soundness of the shape itself** — duplicate vertices, self-intersection, a polygon with no corresponding zone — is what [`koyu check`](../cli/check.md) says. Broken given data yields no shape at all, so that belongs to reading the source.
 
-この章が持つのは、**建物と敷地の関係についての判断**である。
+What this chapter holds are **judgements about the relation between the building and the site**.
 
-建蔽率と容積率は数なので [`koyu site`](../cli/site.md) が返す。上限と較べるにはどの用途地域かという書かれていない事実が要るので、判定は持たない。
+Coverage and floor-area ratios are numbers, so [`koyu site`](../cli/site.md) returns them. Comparing them against a limit needs a fact that was never written — which zoning district this is — so there is no judgement for it.
 
-## `site.escape` — 敷地形状からはみ出す {#site-escape}
+## `site.escape` — it escapes the site outline {#site-escape}
 
 `violation`
 
-領域を持つ空間が敷地の多角形の外に出ている。
+A space with a region lies outside the site polygon.
 
 ```muro-fail
 koyu 1.1
@@ -39,23 +39,23 @@ space /L1/a room X2..X3 Y1..Y2
 Validation — 1 violation / 0 cautions
 ```
 
-多角形は X = 10000 で終わっているのに、`/L1/a` は X2..X3 = 10000..14000 を占めている。
+The polygon stops at X = 10000, while `/L1/a` occupies X2..X3 = 10000..14000.
 
-**検査は四隅の内包だけではない。**多角形の頂点が空間の中へ入り込んでいないか、辺が交差していないかも見る。だから凹んだ敷地 — 旗竿地や隅切りのある敷地 — でも正しく捕まる。境界の上に乗っているのは内側扱いで、許容は 1mm である。
+**The test is not just corner containment.** It also looks for polygon vertices intruding into the space and for edges crossing, so it is correct on a concave site — a flag lot, or one with a cut corner. Sitting on the line counts as inside, with a 1mm tolerance.
 
-照合するのは割付ではなく**導出された領域**なので、敷地なりに切った外形はそのまま通る。
+What is compared is not the written layout but **the derived region**, so an outline cut to follow the site passes as written.
 
-数えない空間が二つある。**敷地ゾーンの配下にある空間 (`/site/…`)** と、**`outside:1` の空間**である。外構のタイルと道路は敷地の外に出て当然だからである。
+Two kinds of space are never counted: **spaces under the site zone (`/site/…`)** and **`type:exterior` spaces**. The landscape tiles and the roads are supposed to be out there.
 
-メッセージは最初に見つけたはみ出し点の座標を出す。一つの空間につき一件だけ出る。
+The message prints the coordinates of the first escaping point found. One space yields at most one finding.
 
-**直し方** — 割付を敷地内に収めるか、`polygon` の測量値を直す。上の例で多角形のほうが正しければ空間を縮め、空間のほうが正しければ頂点を `0,0 14000,0 14000,10000 0,10000` に直す。
+**Fix** — bring the layout inside the site, or correct the surveyed values in the `polygon`. Above, if the polygon is right, shrink the space; if the space is right, correct the vertices to `0,0 14000,0 14000,10000 0,10000`.
 
-## `site.area` — 敷地面積の宣言と導出が食い違う {#site-area}
+## `site.area` — the declared and derived site areas disagree {#site-area}
 
 `caution`
 
-ゾーンの `area:` (測量値の転記) と、`polygon` の頂点から計算した面積が **0.05㎡ 以上**ずれている。
+The zone's `area:` (a transcription of the survey) and the area computed from the `polygon` differ by **0.05 m² or more**.
 
 ```muro-caution
 koyu 1.1
@@ -72,11 +72,11 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 Validation — 0 violations / 1 caution
 ```
 
-10m 角の多角形は 100㎡ だが、`area:` には 120.00 と書いてある。**同じ事実が二箇所に書かれていて、食い違っている。**頂点の打ち間違いか、`area:` の転記ミスか、測量図の更新が片方にしか反映されていないかである。
+A 10 m square polygon is 100 m², but `area:` says 120.00. **One fact is written in two places, and the two disagree.** Either a mistyped vertex, a transcription error in `area:`, or a survey update that reached only one of them.
 
-`area:` を書かない敷地には、この検査は掛からない。二つの数が無ければ食い違いようがない。
+A site with no `area:` is not checked. With only one number there is nothing to disagree with.
 
-**直し方** — どちらが正しいかを決めて片方を直す。`area:` は測量成果の転記なので、ふつう疑うべきは `polygon` の頂点のほうである。両方の数字は [`koyu site`](../cli/site.md) が並べて出す。
+**Fix** — decide which is right and correct the other. Since `area:` is a transcription of the survey result, the thing to suspect is usually the `polygon`'s vertices. [`koyu site`](../cli/site.md) prints both figures side by side.
 
 ```sh
 koyu site main.muro
@@ -90,11 +90,11 @@ Site /site (敷地)
   Total floor area: 100.00 m2 → floor area ratio 83.3%
 ```
 
-## `site.frontage` — 接道長が足りない {#site-frontage}
+## `site.frontage` — the road frontage is too short {#site-frontage}
 
 `violation`
 
-`road:` (幅員 mm) を持つ外部空間と、敷地ゾーン配下の空間との間の境界線分の合計が **2000mm** に足りない。
+The boundary segments between an exterior space carrying `road:` (its width in mm) and the spaces under the site zone total less than **2000mm**.
 
 ```muro-fail
 koyu 1.1
@@ -113,15 +113,15 @@ boundary /site/yard /out/road-n type:open
 Validation — 1 violation / 0 cautions
 ```
 
-道路は X1..X2 = 0..1500 の幅しか敷地に接していない。接道長を数えているのは境界線分の長さであって、道路の幅員 (`road:4000`) ではない。
+The road meets the site over X1..X2 = 0..1500 only. What is measured is the length of the boundary segments, not the road's own width (`road:4000`).
 
-**接道に数えるのは、敷地と道路の間の境界だけである。**建物の外壁が道路に面していても、それは接道ではない — 数えられるのは `site:1` ゾーンの配下にある空間 (外構のタイル) と道路の間に書かれた境界だけである。
+**Only the boundary between the site and the road counts as frontage.** A building wall facing the road does not — the only lengths summed are those on boundaries written between a road and a space under the `site:1` zone (the landscape tiles).
 
-**敷地が宣言されていなければ、この規則は走らない。**`site:1` のゾーンが無い模型では接道長として 0 が導かれるが、それは「接道が無い」ではなく「導けていない」である。地下の断面だけを書いた例のように、道路は書くが敷地は書かない模型は現にある。導けていない数に線を引けば、書いていないことが違反になってしまう。
+**With no site declared, the rule does not run.** In a model with no `site:1` zone the frontage derives as 0, but that is "not derivable", not "no frontage". Models that write a road and no site genuinely exist — a basement section, for instance. Draw a line under a number that could not be derived, and not writing something becomes a violation.
 
-2m という下限は建築の側の規則である。接道長そのものは数として導かれ、[`koyu site`](../cli/site.md) が道路ごとに並べて出す。
+The 2 m floor is a rule on the architectural side. The frontage length itself is derived as a number, and [`koyu site`](../cli/site.md) lists it road by road.
 
-**直し方** — 道路に面する境界を書く。上の例なら、敷地が道路に接する幅 (X1..X2) を実際の幅に直す。
+**Fix** — write the boundary that faces the road. In the example, correct the width over which the site meets the road (X1..X2) to the real one.
 
 ```muro
 koyu 1.1
@@ -144,7 +144,7 @@ Site /site (敷地)
   Total floor area: 0.00 m2 → floor area ratio 0.0%
 ```
 
-## 関連
+## See also
 
-- [`koyu site`](../cli/site.md) — 敷地面積・接道長・建築面積・建蔽率・容積率という数そのもの
-- [判定の台帳](index.md) — 15規則と、`Finding` が `Diagnostic` と別である理由
+- [`koyu site`](../cli/site.md) — site area, frontage, footprint, coverage and floor-area ratios as numbers
+- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`

@@ -5,30 +5,30 @@ mode: reference
 
 # koyu site
 
-敷地面積・接道・建蔽率・容積率を出す。宣言ではなく構成から導出される、基本計画のボリューム検討の数字である。
+Gives site area, road frontage, building coverage ratio and floor area ratio. They are derived from the composition rather than declared — the volume-study numbers of schematic design.
 
-## 引数
+## Arguments
 
 ```text
 koyu site <entry.muro>
 ```
 
-entry のパスを一つ取る。
+Takes one entry path.
 
-## 旗
+## Flags
 
-無い。
+None.
 
-## 必要な二つの宣言
+## The two declarations it needs
 
-| 要素 | 書き方 |
+| Element | How it is written |
 |---|---|
-| 敷地 | `site:1` を持つ**ゾーン** |
-| 道路 | `road:<幅員mm>` を持つ `exterior` の**空間** |
+| The site | A **zone** carrying `site:1` |
+| A road | An `exterior` **space** carrying `road:<width in mm>` |
 
-どちらも無ければ敷地レポートは出ない。
+Without both, no site report comes out.
 
-## 出力
+## Output
 
 ```sh
 npx tsx src/cli.ts site examples/house/main.muro
@@ -42,20 +42,20 @@ Site /site (敷地)
   Total floor area: 92.75 m2 → floor area ratio 73.5%
 ```
 
-| 行 | 中身 |
+| Line | Contents |
 |---|---|
-| `Site` | 敷地ゾーンのパスと表示名 |
-| `Site shape` | `polygon` を宣言したときだけ出る。頂点数 |
-| `Site area` | `area:` を書いていれば `declared … / derived …` の二つ、書いていなければ `Site area (derived):` の一つ |
-| `Road` | 道路ごとに一行。幅員と接道長 |
-| `Building footprint` | 建築面積 (水平投影、粗い) と建蔽率 |
-| `Total floor area` | 延床面積と容積率 |
+| `Site` | The site zone's path and display name |
+| `Site shape` | Only when a `polygon` is declared. The vertex count |
+| `Site area` | Both figures as `declared … / derived …` when `area:` is written; otherwise one figure as `Site area (derived):` |
+| `Road` | One line per road: width and frontage |
+| `Building footprint` | Building footprint (horizontal projection, rough) and coverage ratio |
+| `Total floor area` | Total floor area and floor area ratio |
 
-比率の分母は、`area:` を書いていればその宣言値、書いていなければ導出値である。
+The denominator of the ratios is the declared value when `area:` is written, and the derived value otherwise.
 
-## 敷地形状を宣言したとき
+## When the site shape is declared
 
-`polygon` で敷地形状を書くと、面積はその多角形から出る。ゾーンの `area:` (測量値) との照合がそのまま二つの数字として並ぶ。
+Writing the site shape as a `polygon` makes the area come from that polygon. The reconciliation against the zone's `area:` (the surveyed figure) is simply the two numbers side by side.
 
 ```sh
 npx tsx src/cli.ts site examples/tower/main.muro
@@ -71,13 +71,13 @@ Site /site (敷地)
   Total floor area: 4785.92 m2 → floor area ratio 436.0%
 ```
 
-**宣言値と導出値が食い違っても `site` は黙って両方を並べる。**食い違いを問題として言うのは [`koyu validate`](validate.md) の `site.area` (caution) である。建物が敷地形状からはみ出していれば `site.escape` (violation)、接道長が 2m 未満なら `site.frontage` (violation) が出る。
+**When the declared and derived figures disagree, `site` silently prints both.** Calling the disagreement a problem is [`koyu validate`](validate.md)'s `site.area` (caution). A building that leaves the site polygon is `site.escape` (violation); frontage under 2m is `site.frontage` (violation).
 
-## 接道長の数え方
+## How frontage is counted
 
-接道長は**敷地ゾーン配下の空間と道路との境界線分長の合計**である。建物の外壁が直接道路に面する分は数えない。外構を書かずに建物だけを道路に接させると、接道長が 0 になる。
+Frontage is the total length of the boundary segments **between spaces under the site zone and the road**. A building wall that faces the road directly is not counted. Write only the building and no exterior works, and the frontage comes out as zero.
 
-## 敷地が無いとき
+## When there is no site
 
 ```sh
 npx tsx src/cli.ts site examples/mansion.muro
@@ -87,23 +87,23 @@ npx tsx src/cli.ts site examples/mansion.muro
 There is no site (write site:1 on a zone and road:<width> on the road)
 ```
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 敷地レポートを出せた |
-| 1 | 敷地が無い (`site:1` のゾーンも `road:` を持つ外部も無い)、または構文・合成エラーで読めなかった |
-| 2 | ファイルパスを渡していない (使い方が印字される) |
+| 0 | The site report came out |
+| 1 | There is no site (no zone with `site:1` and no exterior with `road:`), or the input could not be read |
+| 2 | No file path was given (usage is printed) |
 
-**`site` は数字を出すだけで、合否は言わない。**建蔽率 51.9% が指定建蔽率を超えているかどうかは、この面が持っている情報ではない。
+**`site` only produces numbers; it never passes judgement.** Whether a coverage ratio of 51.9% exceeds the permitted figure is not information this surface holds.
 
-## 粗さについて
+## About the coarseness
 
-建築面積の算入細則は粗い。庇の出も、地階の扱いも、車庫の緩和も見ない。延床面積は [`koyu stats`](stats.md) の屋内床面積と同じ数で、半屋外と屋外は入っていない。
+The rules for what counts toward the building footprint are rough. Overhangs, the treatment of basements and garage relief are all ignored. Total floor area is the same figure as [`koyu stats`](stats.md)'s indoor floor area, so semi-outdoor and outdoor are not in it.
 
-## 関連
+## See also
 
 - [koyu validate](validate.md) — `site.area` / `site.escape` / `site.frontage`
-- [koyu stats](stats.md) — 延床面積の内訳
-- [.muro リファレンス](../muro/index.md) — `zone` の `site:` と `polygon` の書き方
-- [koyu コマンド](index.md) — 終了コードの共通の約束
+- [koyu stats](stats.md) — the total floor area broken down
+- [.muro reference](../muro/index.md) — a `zone`'s `site:` and how to write `polygon`
+- [The koyu command](index.md) — the shared promises about exit codes

@@ -5,23 +5,23 @@ mode: reference
 
 # koyu graph
 
-空間ごとの隣接を、境界の種別と扉数つきで並べる。[`koyu doors`](doors.md) が答えを出す前の地図である。
+Lists adjacency space by space, with the kind of each boundary and the number of doors. It is the map you read before [`koyu doors`](doors.md) gives an answer.
 
-## 引数
+## Arguments
 
 ```text
 koyu graph <entry.muro>
 ```
 
-entry のパスを一つ取る。
+Takes one entry path.
 
-## 旗
+## Flags
 
-無い。
+None.
 
-## 出力
+## Output
 
-空間の宣言順に、その空間とその隣を並べる。
+Spaces come out in declaration order, each followed by its neighbours.
 
 ```sh
 npx tsx src/cli.ts graph examples/two-rooms.muro
@@ -39,25 +39,25 @@ npx tsx src/cli.ts graph examples/two-rooms.muro
   — 1 door → /L1/b  (spec:EW1 fire:60)
 ```
 
-見出しの行はパスと表示名、その下の字下げされた行が隣である。**関係は両側から出る** — `/L1/a` と `/L1/b` の間の扉は二度現れる。
+The heading line is the path and the display name; the indented lines are its neighbours. **Every relation appears from both sides** — the door between `/L1/a` and `/L1/b` shows up twice.
 
-括弧の中は境界の属性である。属性を持たない境界では括弧ごと出ない。
+The parentheses hold the boundary's attributes. A boundary with no attributes gets no parentheses.
 
-## 記号
+## The marks
 
-| 記号 | 意味 | 通れるか |
+| Mark | Meaning | Passable |
 |---|---|---|
-| `— N doors` | 扉が N 枚ある壁 | 通れる |
-| `\| wall` | 扉の無い壁 | 通れない |
-| `〰 open` | `open` — 物が無い | 通れる |
-| `\| railing etc. (open to the air, not passable)` | `air:1` の壁 (手すり・柵・塀) | 通れない |
-| `↕ stair` | `stair` | 通れる |
-| `↕ shaft (not passable)` | `shaft` (EV 等) | 通れない |
-| `↕ void` | `void` — 床の不在 | 通れない |
+| `— N doors` | A wall with N doors | Yes |
+| `\| wall` | A wall with no doors | No |
+| `〰 open` | `open` — nothing there | Yes |
+| `\| railing etc. (open to the air, not passable)` | A wall with `air:1` (railings, fences, garden walls) | No |
+| `↕ stair` | `stair` | Yes |
+| `↕ shaft (not passable)` | `shaft` (lifts and the like) | No |
+| `↕ void` | `void` — the absence of a floor | No |
 
-扉が一枚のときは `1 door`、それ以外は `N doors` になる。
+One door reads `1 door`; anything else reads `N doors`.
 
-垂直の関係も同じ一覧に並ぶ。
+Vertical relations sit in the same list.
 
 ```sh
 npx tsx src/cli.ts graph examples/house/main.muro
@@ -78,27 +78,27 @@ npx tsx src/cli.ts graph examples/house/main.muro
   ↕ stair → /home/hall2
 ```
 
-(この建物の全出力の一部である。)
+(An excerpt from this building's full output.)
 
-## 宣言していない境界も出る
+## Boundaries you never declared show up too
 
-接する空間の既定は壁なので、**書かなかった接触は「扉の無い壁」として現れる。**属性の付いていない `| wall` の行はたいていこれである。
+The default between touching spaces is a wall, so **a contact you did not write appears as a wall with no doors.** A `| wall` line carrying no attributes is usually one of these.
 
-一覧に隣が一つも出ない空間は、どの空間とも接していない。位置の書き間違いか、レベルの取り違えを疑う。
+A space that lists no neighbours at all touches nothing. Suspect a mistake in its position, or the wrong level.
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 常に (空間が一つも無くても 0 である) |
-| 1 | 構文・合成エラーで読めなかった |
-| 2 | ファイルパスを渡していない (使い方が印字される) |
+| 0 | Always (even with no spaces at all) |
+| 1 | It could not be read because of a syntax or composition error |
+| 2 | No file path was given (usage is printed) |
 
-**`graph` は合否を言わない。**通れない壁がいくつあっても 0 を返す。判断が要るなら [`koyu doors`](doors.md) か [`koyu validate`](validate.md) を使う。
+**`graph` never passes judgement.** However many impassable walls there are, it returns 0. For a verdict, use [`koyu doors`](doors.md) or [`koyu validate`](validate.md).
 
-## 関連
+## See also
 
-- [koyu doors](doors.md) — 二点間の最少扉数の経路
-- [koyu validate](validate.md) — 到達できない室を建物全体から拾う
-- [.muro リファレンス](../muro/index.md) — `boundary` の種別と属性
-- [koyu コマンド](index.md) — 終了コードの共通の約束
+- [koyu doors](doors.md) — the fewest-door route between two points
+- [koyu validate](validate.md) — picking unreachable rooms out of the whole building
+- [.muro reference](../muro/index.md) — boundary kinds and attributes
+- [The koyu command](index.md) — the shared promises about exit codes

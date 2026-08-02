@@ -1,26 +1,26 @@
 ---
-title: プロトコル
+title: The protocol
 mode: reference
 ---
 
-# プロトコル
+# The protocol
 
-`koyu-mcp` が話す JSON-RPC の面。ツールの中身ではなく、**その外側の封筒**を書き下す。エージェント基盤を自分で書く人、登録が繋がらない人、返りの形を機械で扱う人のための頁である。
+The JSON-RPC surface `koyu-mcp` speaks. Not what the tools do — **the envelope around them**. This page is for people writing agent infrastructure, people whose registration will not connect, and people handling the responses by machine.
 
-この頁の出力はすべて実際に走らせて得たものである。
+Every piece of output on this page was obtained by actually running it.
 
-## 枠づけ
+## Framing
 
-stdio 上の **JSON-RPC 2.0**。手書きの実装で、MCP の SDK は使っていない。
+**JSON-RPC 2.0** over stdio. Hand-written; no MCP SDK is involved.
 
-- **一行 = 一メッセージ。**標準入力から改行区切りの JSON を読み、標準出力へ改行区切りの JSON を書く。`Content-Length` のヘッダは無い。
-- **空行は読み飛ばす。**
-- **壊れた行は黙って捨てる。**JSON として読めない行にはエラーを返さない — stdio の流儀である。
-- **標準入力が閉じたら終了コード 0 で終わる。**
-- **通知には応答しない。**`id` を持たないメッセージ (`notifications/initialized` など) は受け取って何も返さない。
-- **応答は処理しない。**`method` を持たないメッセージは無視される。
+- **One line, one message.** Newline-delimited JSON in on stdin, newline-delimited JSON out on stdout. There are no `Content-Length` headers.
+- **Blank lines are skipped.**
+- **A malformed line is dropped in silence.** A line that is not readable as JSON gets no error back — that is the stdio convention.
+- **When stdin closes, the process exits 0.**
+- **Notifications get no reply.** A message without an `id` (`notifications/initialized`, say) is accepted and answered with nothing.
+- **Responses are ignored.** A message without a `method` is dropped.
 
-サーバーは自分からリクエストを送らない。ログもプログレスも標準出力へ流さない — 標準出力に出るのは JSON-RPC の応答だけである。
+The server never initiates a request. It writes no logs and no progress to stdout — what appears on stdout is JSON-RPC responses and nothing else.
 
 ## initialize
 
@@ -32,15 +32,15 @@ stdio 上の **JSON-RPC 2.0**。手書きの実装で、MCP の SDK は使って
 {"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.17.0"},"instructions":"Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written."}}
 ```
 
-| フィールド | 中身 |
+| Field | Contents |
 |---|---|
-| `protocolVersion` | **クライアントが送ってきた値をそのまま返す。**`params.protocolVersion` が無ければ `"2025-06-18"` を名乗る。版の交渉も拒否も行わない |
-| `capabilities` | `{"tools":{}}` — ツールだけを宣言する。`listChanged` は宣言しないし、ツールの集合は動かない |
+| `protocolVersion` | **Whatever the client sent, echoed back.** If `params.protocolVersion` is absent, the server announces `"2025-06-18"`. It neither negotiates nor rejects a version |
+| `capabilities` | `{"tools":{}}` — tools only. It does not declare `listChanged`, and the tool set never changes |
 | `serverInfo.name` | `"koyu"` |
-| `serverInfo.version` | `"0.17.0"` — **実装の版である。**記法の版 (`koyu 1.1`) とは別に動く |
-| `instructions` | エージェント向けの一段落。標準ループと、`check` と `validate` の別を述べる |
+| `serverInfo.version` | `"0.17.0"` — **the implementation's version.** It moves independently of the notation's (`koyu 1.1`) |
+| `instructions` | One paragraph for the agent: the standard loop, and the difference between `check` and `validate` |
 
-`initialize` は状態を作らない。**`initialize` を送らずに `tools/call` を投げても動く** — サーバーは初期化済みかどうかを覚えていない。行儀の良いクライアントは送るが、手で確かめるときは省ける。
+`initialize` creates no state. **A `tools/call` sent without `initialize` works** — the server does not remember whether it was initialised. A well-behaved client sends it; when you are checking things by hand you can skip it.
 
 ## ping
 
@@ -52,7 +52,7 @@ stdio 上の **JSON-RPC 2.0**。手書きの実装で、MCP の SDK は使って
 {"jsonrpc":"2.0","id":1,"result":{}}
 ```
 
-空のオブジェクトが返る。
+An empty object.
 
 ## tools/list
 
@@ -60,9 +60,9 @@ stdio 上の **JSON-RPC 2.0**。手書きの実装で、MCP の SDK は使って
 {"jsonrpc":"2.0","id":2,"method":"tools/list"}
 ```
 
-12 件が `name` / `description` / `inputSchema` の三つ組で返る。ページングは無く、`nextCursor` も返らない。並びは実装の宣言順で、`model_summary` `check` `layers` `write_layer` `new_uids` `doors` `spaces` `light` `validate` `site` `plan_svg` `canonical_json` である。
+All 12 come back as `name` / `description` / `inputSchema`. There is no paging and no `nextCursor`. The order is the implementation's declaration order: `model_summary`, `check`, `layers`, `write_layer`, `new_uids`, `doors`, `spaces`, `light`, `validate`, `site`, `plan_svg`, `canonical_json`.
 
-`inputSchema` は素の JSON Schema で、`type: "object"` と `properties` と `required` だけを持つ。`file` の型は常に `{"type":"string"}` である。
+Each `inputSchema` is plain JSON Schema carrying only `type: "object"`, `properties` and `required`. `file` is always `{"type":"string"}`.
 
 ```text
   {
@@ -88,16 +88,16 @@ stdio 上の **JSON-RPC 2.0**。手書きの実装で、MCP の SDK は使って
   },
 ```
 
-`required` の中身は四通りしかない。
+There are only four distinct `required` lists.
 
-| `required` | ツール |
+| `required` | Tools |
 |---|---|
 | `["file"]` | `model_summary` `check` `layers` `new_uids` `spaces` `light` `validate` `site` `canonical_json` |
 | `["file","layer","content"]` | `write_layer` |
 | `["file","from","to"]` | `doors` |
 | `["file","level"]` | `plan_svg` |
 
-`new_uids` の `count` と `spaces` の `level` は `properties` にあるが `required` には無い。
+`new_uids`'s `count` and `spaces`'s `level` appear in `properties` but not in `required`.
 
 ## tools/call
 
@@ -109,54 +109,54 @@ stdio 上の **JSON-RPC 2.0**。手書きの実装で、MCP の SDK は使って
 {"jsonrpc":"2.0","id":1,"result":{"content":[{"type":"text","text":"{\n \"ok\": true,\n \"spaces\": 3,\n \"boundaries\": 3,\n \"errors\": [],\n \"warnings\": [],\n \"diagnostics\": []\n}"}]}}
 ```
 
-返るのは `content` 一要素の配列だけである。`structuredContent` は返らない。
+What comes back is a `content` array with one element. No `structuredContent` is returned.
 
-**`content[0].type` は常に `"text"`。**画像もリソースリンクも返さない。[`plan_svg`](tools-ask.md#plan_svg) は SVG を返すが、それも `text` である。
+**`content[0].type` is always `"text"`.** No images, no resource links. [`plan_svg`](tools-ask.md#plan_svg) returns SVG, and that too is `text`.
 
-**テキストの中身は二通りある。**
+**The text has two shapes.**
 
-- **文字列を返すツール** — `plan_svg` だけ。SVG のソースがそのまま入る。
-- **それ以外のすべて** — 返り値のオブジェクトを `JSON.stringify(値, null, 1)` で書いた文字列が入る。**字下げは空白 1 個である。**
+- **Tools that return a string** — only `plan_svg`. The SVG source goes in verbatim.
+- **Everything else** — the return value written with `JSON.stringify(value, null, 1)`. **The indent is one space.**
 
-字下げが 1 個であることは [`canonical_json`](tools-read.md#canonical_json) に効いてくる。[`koyu json`](../cli/json.md) が書くファイルは空白 2 個なので、**バイト列としては一致しない。**キーの順序と値は一致する。
+That one-space indent matters for [`canonical_json`](tools-read.md#canonical_json). The file [`koyu json`](../cli/json.md) writes is indented two spaces, so **the two are not byte-identical.** Key order and values are.
 
-`params.arguments` を省略すると空のオブジェクトとして扱われる。したがって必須引数を欠いた呼び出しになり、下の「ツールのエラー」の経路を通る。
+Omitting `params.arguments` makes it an empty object, so the call is one with its required arguments missing, and takes the "tool errors" path below.
 
-## エラーの返り方
+## How errors come back
 
-**二層ある。**プロトコルの誤りは JSON-RPC のエラーで、ツールの中の失敗は成功した応答の中の `isError` で返る。
+**There are two layers.** Protocol mistakes come back as JSON-RPC errors; failures inside a tool come back as `isError` inside a successful response.
 
-### プロトコルのエラー
+### Protocol errors
 
 ```text
 {"jsonrpc":"2.0","id":4,"error":{"code":-32601,"message":"Unsupported method: completion/complete"}}
 {"jsonrpc":"2.0","id":5,"error":{"code":-32602,"message":"Unknown tool: blueprint"}}
 ```
 
-| コード | いつ | 本文 |
+| Code | When | Message |
 |---|---|---|
-| `-32601` | 下の一覧に無い `method` | `Unsupported method: <名>` |
-| `-32602` | `tools/call` の `name` が 12 のどれでもない | `Unknown tool: <名>` |
+| `-32601` | A `method` not in the list below | `Unsupported method: <name>` |
+| `-32602` | A `tools/call` `name` that is none of the 12 | `Unknown tool: <name>` |
 
-この二つ以外の JSON-RPC エラーコードは返らない。壊れた JSON の行はエラーではなく黙殺である。
+No other JSON-RPC error code is ever returned. A malformed JSON line is not an error — it is dropped.
 
-### ツールのエラー
+### Tool errors
 
-**ツールの中で起きた失敗は JSON-RPC のエラーにならない。**`result` が返り、その中に `isError: true` が立ち、本文が `content[0].text` に入る。エージェントはそれを読んで直せる。
+**A failure inside a tool never becomes a JSON-RPC error.** A `result` comes back with `isError: true` set on it and the message in `content[0].text`, so the agent can read it and fix things.
 
 ```text
 {"jsonrpc":"2.0","id":6,"result":{"content":[{"type":"text","text":"to (a string) is required"}],"isError":true}}
 ```
 
-この経路を通るのは主に三つである。
+Three things mostly take this path.
 
-**引数が足りない・型が違う。**`inputSchema` はサーバー側で強制されない。欠けた引数はツールの中で見つかる。
+**A missing or wrongly typed argument.** `inputSchema` is not enforced by the server; a missing argument is found inside the tool.
 
 ```text
 file (a string) is required
 ```
 
-**ファイルが読めない・構文や合成が壊れている。**`file` を受けるすべてのツールが同じ経路を通る。位置は本文の先頭に `<パス>:line <行>:` の形で付き、ファイル自体が読めないときは `line 0:` になる。
+**A file that cannot be read, or broken syntax or composition.** Every tool that takes `file` goes the same way. The position prefixes the message as `<path>:line <n>:`, and when it is the file itself that cannot be read, the line is `0`.
 
 ```text
 line 0: Cannot read file: /private/tmp/examples/two-rooms.muro
@@ -166,34 +166,34 @@ line 0: Cannot read file: /private/tmp/examples/two-rooms.muro
 <abs>/bad.muro:line 8: The region has zero width
 ```
 
-**ここが [`koyu check --json`](../cli/check.md) との違いである。**CLI は構文・合成エラーを `SYN01` の診断一件に写して有効な JSON を返すが、MCP の [`check`](tools-verify.md#check) は `isError` を立てて素のメッセージを返す。`diagnostics` の配列は返らない。
+**This is where it differs from [`koyu check --json`](../cli/check.md).** The CLI maps a syntax or composition error onto a single `SYN01` diagnostic and still returns valid JSON; the MCP [`check`](tools-verify.md#check) sets `isError` and returns the bare message. No `diagnostics` array comes back.
 
-**問いの引数が建物に無い。**未宣言のレベル名などがここに来る。
+**An argument that names something the building does not have.** An undeclared level name lands here.
 
 ```text
 There is no space with a region on level L9
 ```
 
-(`<abs>` は解決済みの絶対パスを略した表記である。実際の出力にはフルパスが出る。)
+(`<abs>` stands in for the resolved absolute path; the real output prints it in full.)
 
-## 実装されている method の全部
+## Every method that is implemented
 
-| method | 返り |
+| method | Result |
 |---|---|
 | `initialize` | `protocolVersion` / `capabilities` / `serverInfo` / `instructions` |
 | `ping` | `{}` |
-| `tools/list` | `{tools: [...]}` — 12 件 |
+| `tools/list` | `{tools: [...]}` — 12 of them |
 | `tools/call` | `{content: [{type:"text", text}], isError?: true}` |
-| `resources/list` | `{resources: []}` — **常に空** |
-| `prompts/list` | `{prompts: []}` — **常に空** |
+| `resources/list` | `{resources: []}` — **always empty** |
+| `prompts/list` | `{prompts: []}` — **always empty** |
 
-`resources/list` と `prompts/list` は `capabilities` が宣言していないのに答える。**空を返すのは「持っていない」の意味であって、後から増える予告ではない。**建物の原本はリソースとして配らない — 読むのは [`layers`](tools-read.md#layers) の仕事である。
+`resources/list` and `prompts/list` answer even though `capabilities` does not declare them. **Empty means "there are none", not "these are coming".** The building's source is not handed out as a resource — reading it is [`layers`](tools-read.md#layers)'s job.
 
-これ以外 (`resources/read` `prompts/get` `completion/complete` `logging/setLevel` `roots/list` など) はすべて `-32601` である。
+Everything else (`resources/read`, `prompts/get`, `completion/complete`, `logging/setLevel`, `roots/list`, …) is `-32601`.
 
-## 関連
+## See also
 
-- [koyu-mcp](index.md) — 無状態であること・標準ループ・12 のツール
-- [クライアントに登録する](install.md) — 手で JSON-RPC を流して確かめる
-- [読む](tools-read.md) / [書く](tools-write.md) / [確かめる](tools-verify.md) / [問う](tools-ask.md) — 各ツールの引数と返り
-- [koyu check](../cli/check.md) — CLI 側の `--json` が構文エラーをどう扱うか
+- [koyu-mcp](index.md) — statelessness, the standard loop, the 12 tools
+- [Registering it with a client](install.md) — checking it by pushing JSON-RPC in by hand
+- [Reading](tools-read.md) / [Writing](tools-write.md) / [Verifying](tools-verify.md) / [Asking](tools-ask.md) — each tool's arguments and result
+- [koyu check](../cli/check.md) — how the CLI's `--json` treats a syntax error

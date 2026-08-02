@@ -5,25 +5,25 @@ mode: reference
 
 # koyu validate
 
-建築の側の判断を回す。採光・到達可能性・外皮の連続・階段の寸法・敷地の数字 — **`koyu check` が保証しないことを、別の名前と別の型で言う。**
+Runs the judgements that belong to architecture — daylight, reachability, envelope continuity, stair proportions, the site numbers. **It says, under a different name and a different type, what `koyu check` does not guarantee.**
 
-## 引数
+## Arguments
 
 ```text
 koyu validate <entry.muro> [--json]
 ```
 
-entry のパスを一つ取る。
+Takes one entry path.
 
-## 旗
+## Flags
 
-| 旗 | 効果 |
+| Flag | Effect |
 |---|---|
-| `--json` | 判定を `Finding[]` の JSON で標準出力に書く |
+| `--json` | Writes the findings to stdout as `Finding[]` JSON |
 
-## 出力
+## Output
 
-何も引っ掛からなければ一行だけ出る。
+When nothing is caught, one line comes out.
 
 ```sh
 npx tsx src/cli.ts validate examples/house/main.muro
@@ -33,7 +33,7 @@ npx tsx src/cli.ts validate examples/house/main.muro
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
 ```
 
-引っ掛かれば一件ずつ並び、最後に件数が出る。`✖` が違反 (violation)、`⚠` が疑い (caution) である。
+Otherwise each finding gets a line and a count follows. `✖` is a violation, `⚠` is a caution.
 
 ```sh
 npx tsx src/cli.ts validate sealed.muro
@@ -46,11 +46,11 @@ npx tsx src/cli.ts validate sealed.muro
 Validation — 3 violations / 0 cautions
 ```
 
-この `sealed.muro` は [`koyu check`](check.md) が緑を返すファイルである。二つのコマンドは違うことを見ている。
+That `sealed.muro` is a file [`koyu check`](check.md) returns green for. The two commands look at different things.
 
-角括弧の中が規則名で、続く `<解決済みの絶対パス>:line <行>:` が出所である。出所を持たない判定では位置の接頭辞が付かない。
+Inside the square brackets is the rule name; what follows, `<resolved absolute path>:line <n>:`, is the provenance. Findings without a position carry no prefix.
 
-## --json のかたち
+## The shape of --json
 
 ```sh
 npx tsx src/cli.ts validate caution.muro --json
@@ -71,45 +71,45 @@ npx tsx src/cli.ts validate caution.muro --json
 ]
 ```
 
-フィールドは `rule` `level` `message` が必ずあり、`line` `file` `path` は持つときだけ出る。
+`rule`, `level` and `message` are always present; `line`, `file` and `path` appear only when the finding has them.
 
-**`level` は規則の不変属性である。**同じ規則が場合によって違反になったり疑いになったりはしない。
+**`level` is an invariant property of the rule.** The same rule is never a violation one time and a caution another.
 
-## 判定の 15 規則
+## The 15 rules
 
-| 規則 | level | 何を言うか |
+| Rule | Level | What it says |
 |---|---|---|
-| `envelope.gap` | caution | 外皮に穴がある — 何にも面していない外周がある |
-| `daylight.ratio` | violation | 有効窓面積が床面積の 1/7 に満たない |
-| `daylight.unknown` | caution | `h` を持たない窓があり、窓面積を数え切れていない |
-| `stair.proportion` | caution | 導出された段が窮屈 (踏面 240mm 未満、または 2R+T が 550〜700 の外) |
-| `run.slope` | caution | 導出された勾配が宣言より急、あるいは常用域の外 |
-| `run.disconnected` | caution | 縦動線の形はあるが、上下を繋ぐ垂直境界が無い |
-| `access.unreachable` | violation | 領域を持つ室から外部へ辿り着けない |
-| `access.voidonly` | violation | 扉が吹抜け (床の無い所) にしか開いていない |
-| `access.throughtenant` | caution | 階段室からの避難が賃貸区画を通る |
-| `access.parking` | violation | 駐車場から車が出られない |
-| `access.backofhouse` | caution | 共用廊下からバックヤードを通らずに縦動線へ届かない |
-| `column.blocksdoor` | violation | 導出された柱が導出された扉と重なる |
-| `site.escape` | violation | 建物が敷地形状からはみ出す |
-| `site.area` | caution | 敷地面積の宣言と導出が食い違う |
-| `site.frontage` | violation | 接道長が 2m 未満 |
+| `envelope.gap` | caution | A hole in the envelope — perimeter that faces nothing |
+| `daylight.ratio` | violation | Effective window area is below one seventh of the floor |
+| `daylight.unknown` | caution | A window has no `h`, so the window area was not fully counted |
+| `stair.proportion` | caution | The derived steps are cramped (tread under 240mm, or 2R+T outside 550–700) |
+| `run.slope` | caution | The derived slope is steeper than declared, or outside normal use |
+| `run.disconnected` | caution | A vertical run exists in form, but no vertical boundary joins the two levels |
+| `access.unreachable` | violation | A room with a region cannot reach the exterior |
+| `access.voidonly` | violation | The only doors open onto a void, where there is no floor |
+| `access.throughtenant` | caution | Escape from a stair core passes through a leased tenancy |
+| `access.parking` | violation | A car cannot get out of the parking |
+| `access.backofhouse` | caution | A vertical run is unreachable from the public corridor without crossing back-of-house |
+| `column.blocksdoor` | violation | A derived column overlaps a derived door |
+| `site.escape` | violation | The building leaves the site polygon |
+| `site.area` | caution | The declared and derived site areas disagree |
+| `site.frontage` | violation | Road frontage is under 2m |
 
-規則名は章 (`envelope` / `daylight` / `stair` / `run` / `access` / `column` / `site`) とその中の名でできている。章は管轄ではなく主題である。
+A rule name is a chapter (`envelope` / `daylight` / `stair` / `run` / `access` / `column` / `site`) plus a name inside it. The chapter is a subject, not a jurisdiction.
 
-並びは章の順で、章の中は走査の順である。
+Findings come out in chapter order, and within a chapter in scan order.
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 違反が無い — **疑い (caution) だけなら 0 である** |
-| 1 | 違反 (violation) が一件以上ある |
-| 2 | ファイルパスを渡していない (使い方が印字される) |
+| 0 | No violations — **cautions alone still give 0** |
+| 1 | One or more violations |
+| 2 | No file path was given (usage is printed) |
 
-構文・合成エラーで読めなかったファイルは 1 で落ちる (`✖` の一行が標準エラーに出る)。`--json` はこの経路では有効な JSON を返さない — `check --json` の `SYN01` に写す仕組みは `validate` には無い。
+A file that could not be read exits 1, with a single `✖` on stderr. `--json` does not produce valid JSON on that path — the `SYN01` trick that `check --json` uses does not exist in `validate`.
 
-疑いだけのときの終了コードを実際に見るとこうなる。
+Here is the cautions-only exit code for real.
 
 ```sh
 npx tsx src/cli.ts validate caution.muro
@@ -120,27 +120,27 @@ npx tsx src/cli.ts validate caution.muro
 Validation — 0 violations / 1 caution
 ```
 
-終了コードは 0 である。**CI で疑いも落としたいなら、`--json` を読んで自分で数える。**`check --strict` に当たる旗は `validate` には無い。
+The exit code is 0. **To fail CI on cautions too, read `--json` and count them yourself.** There is no `validate` equivalent of `check --strict`.
 
-## check との違い
+## How it differs from check
 
 | | `koyu check` | `koyu validate` |
 |---|---|---|
-| 返す型 | `Diagnostic` | `Finding` |
-| 名前 | `code` (`BND04` — 4文字+2桁) | `rule` (`envelope.gap` — 章と名) |
-| 重さ | `severity`: `error` / `warning` | `level`: `violation` / `caution` |
-| 数 | 65 コード | 15 規則 |
-| 何を保証するか | 書かれたものがデータとして矛盾していない | **何も保証しない — 判断である** |
-| 面としての性質 | 凍る。増減は言語の版を動かす | 凍らない。増やしてよいし捨ててよい |
+| Returned type | `Diagnostic` | `Finding` |
+| Name | `code` (`BND04` — four letters and two digits) | `rule` (`envelope.gap` — chapter and name) |
+| Weight | `severity`: `error` / `warning` | `level`: `violation` / `caution` |
+| Count | 65 codes | 15 rules |
+| What it guarantees | That what is written holds together as data | **Nothing — it is a judgement** |
+| Nature of the surface | Frozen. Adding or removing moves the language version | Not frozen. May grow, may be discarded |
 
-フィールド名が違うので、二つの配列は取り違えようがない。連結しようとすれば型が落ちる。**「check の緑」と「validate の緑」を同じ言葉で語れないようにすることが、この分離の目的である。**
+The field names differ, so the two arrays cannot be confused; try to concatenate them and the types fail. **Making it impossible to describe "check's green" and "validate's green" with the same words is the point of the split.**
 
-判定を足しても言語の版は動かない。`validate` の面は粗くてよく、管轄が一つしかなくてもよく、精度が足りなくてもよい — 値段が安いのは、凍らないからである。
+Adding a judgement does not move the language version. The `validate` surface is allowed to be coarse, to cover one jurisdiction only, and to be imprecise — it is cheap because it is not frozen.
 
-## 関連
+## See also
 
-- [koyu check](check.md) — 構造整合の門番
-- [判定の規則](../validate/index.md) — 15 規則の閾値と直し方
-- [koyu light](light.md) — 採光の入力の数と 1/7 の判定を一覧で見る
-- [koyu doors](doors.md) — 到達可能性を経路で確かめる
-- [CI で門番にする](ci.md) — `check` だけの CI が見なくなるもの
+- [koyu check](check.md) — the structural-consistency gate
+- [Validation rules](../validate/index.md) — thresholds and fixes for all 15
+- [koyu light](light.md) — the daylight inputs and the 1/7 test as a list
+- [koyu doors](doors.md) — checking reachability as a route
+- [Gating CI](ci.md) — what a check-only CI stops looking at

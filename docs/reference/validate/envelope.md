@@ -1,19 +1,19 @@
 ---
-title: 外皮 — envelope.gap
+title: The envelope — envelope.gap
 mode: reference
 ---
 
-# 外皮 — envelope.gap
+# The envelope — envelope.gap
 
-| 規則 | level |
+| rule | level |
 |---|---|
 | [`envelope.gap`](#envelope-gap) | caution |
 
-**接する二つの空間の間には、何も書かなくても壁が導かれる。**書き忘れても壁は立つ。だが**外部への境界だけは導かれない** — 領域を持たない空間との間に既定の境界は引かれず、相手を名指すことそのものが情報だからである。
+**Between two spaces that touch, a wall is derived whether or not you write one.** Forget it and the wall still stands. **But a boundary to the outside is never derived** — no default boundary is drawn against a space with no region, because naming the other side is itself information.
 
-その非対称の帰結として、外部への境界の書き忘れは**黙って壁の不在**になる。図を見るまで気づかない。この規則は、それを言葉にするためにある。
+The consequence of that asymmetry is that a forgotten boundary to the outside becomes **a silently missing wall**. You only notice by looking at the drawing. This rule puts it into words.
 
-## `envelope.gap` — 何にも面していない外周がある {#envelope-gap}
+## `envelope.gap` — part of the outline faces nothing {#envelope-gap}
 
 `caution`
 
@@ -37,37 +37,37 @@ boundary /L1/b /out t:150
 Validation — 0 violations / 1 caution
 ```
 
-`/L1/a` の外周は四辺ある。東は `/L1/b` と接しているので相手がいる。西には境界を一本書いた。**残る北と南は、他の空間とも宣言された境界とも向かい合っていない。**そこには壁が立たない。
+`/L1/a` has four sides. The east side meets `/L1/b`, so it has a counterpart. One boundary was written on the west. **The north and the south face neither another space nor a declared boundary.** No wall stands there.
 
-メッセージは**どの辺が空いているかを言う**。合計長だけでは、辺を書き分けている図面のどこを直せばよいか分からないからである。辺の別が書かれていない境界にぶつかった区間は `N/S` `E/W` のようにまとめて出る。
+The message **names the sides**. A total length alone would not tell you which edge to fix in a drawing that writes its edges separately. Runs covered by a boundary that does not name an edge come out grouped as `N/S` or `E/W`.
 
-### 何が検査されるか
+### What is checked
 
-外周のうち、次のどれにも当たらない区間が「穴」である。
+A stretch of the outline is a hole unless it is one of these:
 
-1. 同じレベルの別の空間と向かい合っている区間
-2. その空間について宣言された境界が覆う区間 (`type:open` でも `air:1` でも覆う — **どれも「書かない」とは違う**)
+1. facing another space on the same level, or
+2. covered by a boundary declared for that space — `type:open` and `air:1` both cover it, and **all of them differ from writing nothing**.
 
-上下を繋ぐ境界 (`type:stair` / `type:shaft` / `type:void`) は水平の外周を覆わないので、覆う側には数えない。
+Boundaries that join levels (`type:stair`, `type:shaft`, `type:void`) do not cover a horizontal outline, so they do not count as cover.
 
-### 検査するのは完全性ではなく「書き始めたなら閉じきる」
+### What is checked is "finish what you started", not completeness
 
-**外部への境界を一本も持たないレベルには、何も言わない。**そのレベルは外皮をまだ模型にしていないだけである — 二室一扉の最小の例に警告を出しても意味がない。
+**A level with no boundary to the outside at all says nothing.** That level has simply not modelled its envelope yet, and nagging a two-room example would be pointless.
 
-「外皮を書き始めている」の判定は具体的である。**領域を持たない空間 (`space /out outside:1` のような、範囲を書かない外部) との境界が、そのレベルのどこかに一本でも宣言されていること。**逆に言えば、外部を `space /out/n exterior X1..X3 Y2..Y3` のように**領域つきで**書いて敷地をタイルしている模型では、その境界は「領域を持つ空間どうし」なので、このレベルは外皮を書き始めたとは見なされない。
+The test for "has started its envelope" is concrete: **somewhere on that level, a boundary is declared against a space with no region** — the kind of exterior written as `space /out outside:1`, with no extent. Which means that a model whose outside is written **with a region**, tiling the site as `space /out/n exterior X1..X3 Y2..Y3`, has boundaries between two spaces that both have regions, and its levels are never taken to have started an envelope.
 
-数えない空間もある。
+Some spaces are never reported:
 
-- 領域を持たない空間 (外部そのもの)
-- `outside:1` の空間
-- 半屋外の空間 (外部に対して `type:open` か `air:1` で接することから導出される)
-- `site:1` を持つゾーンの配下にある外構のタイル
+- spaces with no region (the outside itself)
+- `outside:1` spaces
+- semi-outdoor spaces (derived from meeting an exterior across `type:open` or `air:1`)
+- the site tiles under a zone carrying `site:1`
 
-どれも囲われていないのが正常だからである。
+Not being enclosed is normal for all of them.
 
-### 直し方
+### Fix
 
-残りの辺に境界を書く。`edge:N/E/S/W` で辺を選ぶか、辺を限定しない一本で残り全部を受ける。
+Write boundaries for the remaining edges. Pick them with `edge:N/E/S/W`, or catch the whole remainder with one boundary that names no edge.
 
 ```muro
 koyu 1.1
@@ -90,9 +90,9 @@ boundary /L1/b /out t:150
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
 ```
 
-壁が要らない開放的な縁なら `type:open` を、手すりなら `air:1` を書く。**穴が閉じるのは「壁を書いたから」ではなく「相手を名指したから」である。**
+If an edge is genuinely open, write `type:open`; if it is a railing, write `air:1`. **The hole closes not because you wrote a wall, but because you named the other side.**
 
-## 関連
+## See also
 
-- [到達](access.md) — 外皮を閉じきると今度は出られなくなる。扉の話はそちら
-- [判定の台帳](index.md) — 15規則と、`Finding` が `Diagnostic` と別である理由
+- [Reachability](access.md) — close the envelope and the next problem is getting out. Doors live there
+- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`

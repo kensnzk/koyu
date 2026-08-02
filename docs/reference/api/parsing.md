@@ -1,25 +1,25 @@
 ---
-title: 解析と合成
+title: Parsing and composition
 mode: reference
 ---
 
-# 解析と合成
+# Parsing and composition
 
-`.muro` のテキストから [`Model`](model.md) を作る五つの入口である。**違うのは `import` の解決の仕方だけで、出てくる `Model` は同じ形である。**
+Five entrances turn `.muro` text into a [`Model`](model.md). **They differ only in how `import` resolves; the `Model` that comes out has the same shape.**
 
 ```ts
 import { parse, parseFiles, parseWith, tokenize } from "@kensnzk/koyu";
 import { parseFile, parseFileWith } from "@kensnzk/koyu/node";
 ```
 
-どの入口も出口で二つの導出を済ませてから返す。
+Every entrance finishes two derivations before returning.
 
-1. **描かれた線による領域の切り分け** — 空間の `pieces` が埋まる
-2. **既定境界の導出** — 接する空間の組に宣言が一つも無ければ `kind:"wall"` の境界が加わる
+1. **Cutting regions by drawn lines** — a space's `pieces` gets filled in.
+2. **Deriving default boundaries** — where two touching spaces have no declared boundary at all, a `kind:"wall"` boundary is added.
 
-順序はこの通りである。逆にすると、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に出所の無い診断が出てしまう — 書いていない関係を責めることになる。
+That order, not the reverse. Reversed, a pair whose contact a line has just removed would still gain a default boundary, and a zero-length boundary would draw a diagnostic with no source — blaming a relation nobody wrote.
 
-**投げるのはこの五つと `tokenize` だけである。**構文と合成の失敗は [`SourceError`](errors.md) として飛ぶ。検査 (`checkDiagnostics` / `check`) は投げず、必ず配列を返す。
+**These five and `tokenize` are the only things that throw.** Syntax and composition failures arrive as a [`SourceError`](errors.md). Checking (`checkDiagnostics`, `check`) never throws; it always returns an array.
 
 ## parse
 
@@ -27,7 +27,7 @@ import { parseFile, parseFileWith } from "@kensnzk/koyu/node";
 function parse(source: string): Model
 ```
 
-一枚のテキストを読む。`import` は解決できないのでエラーになる。テスト・スクラッチ・文字列を組み立てる場面向け。
+Reads one piece of text. `import` cannot resolve, so it errors. For tests, scratch work, and text you assemble yourself.
 
 ```ts
 import { parse } from "@kensnzk/koyu";
@@ -43,7 +43,7 @@ console.log(m.spaces.size, m.version, m.layers);
 1 1.0 []
 ```
 
-`layers` は合成に参加した層の一覧なので、単一ソースでは空になる。版の宣言が無いので `version` には既定が入っている。
+`layers` lists the layers that took part in composition, so with a single source it is empty. No version is declared here, so `version` holds the default.
 
 ## parseFiles
 
@@ -51,9 +51,9 @@ console.log(m.spaces.size, m.version, m.layers);
 function parseFiles(files: Record<string, string>, entry: string): Model
 ```
 
-キーと中身の対応表を渡す。`import` はそのキー空間の中で解決される。キーは POSIX 風の相対パス (`L1.muro`, `floors/L1.muro`) として正規化される。
+Hand it a table of key to content. `import` resolves inside that key space; keys are normalised as POSIX-style relative paths (`L1.muro`, `floors/L1.muro`).
 
-**ブラウザ向けの標準の入口である** — エディタのバッファをそのまま渡せる。
+**This is the standard entrance for a browser** — you can pass editor buffers straight in.
 
 ```ts
 import { parseFiles } from "@kensnzk/koyu";
@@ -69,7 +69,7 @@ console.log(m.spaces.size, m.layers);
 2 [ 'main.muro', 'L1.muro' ]
 ```
 
-対応表に無いキーを `import` すると `Cannot read file:` の `SourceError` になる。
+Importing a key that is not in the table raises a `SourceError` reading `Cannot read file:`.
 
 ## parseWith
 
@@ -82,9 +82,9 @@ type LayerLoader = (
 function parseWith(loader: LayerLoader, entry: string): Model
 ```
 
-**レイヤーの読み方そのものを差し替える。**HTTP から引く、データベースから引く、といった入口はここに載る。
+**Replace how layers are read.** Pulling from HTTP, from a database, from anywhere — that entrance goes here.
 
-`fromKey` が `undefined` のときは entry 自身の解決である。それ以外は「このキーのファイルの中に書かれた `ref`」を解決する。返す `key` が層の同一性で、**同じキーは一度しか合成されない** — 二重 `import` も循環も冪等に畳まれる。
+When `fromKey` is `undefined` you are resolving the entry itself; otherwise you are resolving the `ref` written inside the file at that key. The `key` you return is the identity of the layer, and **the same key is composed only once** — a double `import` and a cycle both fold away idempotently.
 
 ```ts
 import { parseWith } from "@kensnzk/koyu";
@@ -100,7 +100,7 @@ console.log(m.spaces.size, m.layers);
 1 [ 'e' ]
 ```
 
-ローダーが例外を投げてよい。entry の読み込みで投げれば `Cannot read file: <entry>` の `SourceError` に翻訳される。
+The loader may throw. Throwing on the entry is translated into a `SourceError` reading `Cannot read file: <entry>`.
 
 ## parseFile
 
@@ -108,9 +108,9 @@ console.log(m.spaces.size, m.layers);
 function parseFile(filePath: string): Model
 ```
 
-ファイルシステムから読む。**`@kensnzk/koyu/node` から出る** — ルートは `node:fs` を引かない。CLI が使っているのもこれである。
+Reads from the filesystem. **It comes from `@kensnzk/koyu/node`** — the root never pulls `node:fs`. This is what the CLI uses.
 
-**`import` は書かれたファイルからの相対で解決される。**entry からの相対でもカレントディレクトリからの相対でもない。
+**`import` resolves relative to the file the line is written in**, not relative to the entry and not relative to the working directory.
 
 ```ts
 import { parseFile } from "@kensnzk/koyu/node";
@@ -129,9 +129,9 @@ examples/house/L1.muro
 examples/house/L2.muro
 ```
 
-`layers` に入るのは**解決済みの絶対パス**である (上の出力は見やすさのために cwd を削っている)。診断の `file` フィールドも同じ値になる。
+`layers` holds **resolved absolute paths** (the output above strips the working directory for readability). The `file` field on a diagnostic carries the same value.
 
-割られた層の一枚を単体で渡すと落ちる。その層には `grid` も `level` も無いからである — 渡すのは常に entry の一枚だけである。
+Handing it a single layer of a split building fails: that layer has neither `grid` nor `level`. What you pass is always the one entry file.
 
 ## parseFileWith
 
@@ -142,9 +142,9 @@ function parseFileWith(
 ): Model
 ```
 
-`overlay` が文字列を返したパスは、ディスクの内容の代わりにそれが合成される。渡るのは**解決済みの絶対パス**である。
+For any path where `overlay` returns a string, that string is composed instead of the contents on disk. What it receives is the **resolved absolute path**.
 
-**書き込み前の門番がこれを使う。**「この内容で保存したら壊れないか」を、保存せずに検査できる。
+**This is what a pre-write gatekeeper uses**: it can ask "would saving this break anything?" without saving.
 
 ```ts
 import { parseFileWith } from "@kensnzk/koyu/node";
@@ -160,7 +160,7 @@ console.log(m.spaces.get("/L1/a")!.attrs["name"]);
 差し替え
 ```
 
-`overlay` を省くと `parseFile` と同じである (`parseFile` はこの関数の別名にすぎない)。
+Omit `overlay` and it is `parseFile` — which is nothing but another name for this function.
 
 ## tokenize
 
@@ -168,9 +168,9 @@ console.log(m.spaces.get("/L1/a")!.attrs["name"]);
 function tokenize(line: string, ln: number): string[]
 ```
 
-一行を字句へ分解する低レベルの部品である。**空白で切り、引用符の中の空白は保つ。**引用符の外の `#` 以降はコメントとして落ちる。引用符が閉じていなければ `SourceError` を投げる (`ln` はその位置に使われる)。
+The low-level part that splits one line into tokens. **It splits on whitespace and keeps whitespace inside quotes.** Outside quotes, everything from `#` on is dropped as a comment. An unclosed quote throws a `SourceError` (that is what `ln` is for).
 
-エディタの補完・構文の色付け・行の書き換えを自分で書くときに使う。
+Use it when you are writing your own completion, syntax colouring, or line rewriting.
 
 ```ts
 import { tokenize } from "@kensnzk/koyu";
@@ -181,22 +181,22 @@ console.log(tokenize('space /L1/a room X1..X2 Y1..Y2 name:"居 室" # comment', 
 [ 'space', '/L1/a', 'room', 'X1..X2', 'Y1..Y2', 'name:居 室' ]
 ```
 
-引用符そのものは残らない。`name:"居 室"` は一つのトークン `name:居 室` になる。
+The quote marks themselves do not survive: `name:"居 室"` becomes the single token `name:居 室`.
 
-## どれを使うか
+## Which one
 
-| 状況 | 入口 |
+| Situation | Entrance |
 |---|---|
-| ファイルを一つ読む (node) | `parseFile` |
-| 保存前に検査する (node) | `parseFileWith` |
-| ブラウザ・エディタのバッファ | `parseFiles` |
-| HTTP・DB・独自のストレージ | `parseWith` |
-| 文字列一枚だけ・テスト | `parse` |
-| 一行の字句が要る | `tokenize` |
+| read one file (node) | `parseFile` |
+| check before saving (node) | `parseFileWith` |
+| browser, editor buffers | `parseFiles` |
+| HTTP, a database, your own storage | `parseWith` |
+| one string, a test | `parse` |
+| you need the tokens of a line | `tokenize` |
 
-## 関連
+## See also
 
-- [Model と構成型](model.md) — 返ってくる型
-- [診断](diagnostics.md) — 読んだあとの検査
-- [エラー](errors.md) — `SourceError` の中身
-- [`import` — 層に割る](../muro/import.md) — 記法の側から見た合成
+- [Model and its types](model.md) — what comes back
+- [Diagnostics](diagnostics.md) — checking what you read
+- [Errors](errors.md) — what is inside a `SourceError`
+- [`import` — splitting into layers](../muro/import.md) — composition seen from the notation

@@ -5,28 +5,28 @@ mode: reference
 
 # koyu check
 
-書かれたものがデータとして矛盾していないかを検査する。編集のたびに通す門番であり、CI に置くのもこれである。
+Checks that what is written holds together as data. It is the gate to pass after every edit, and it is what you put in CI.
 
-## 引数
+## Arguments
 
 ```text
 koyu check <entry.muro> [--json] [--strict]
 ```
 
-entry のパスを一つ取る。`import` で割られた建物なら base 層のファイルを渡す。
+Takes one entry path. For a building split with `import`, pass the base layer's file.
 
-## 旗
+## Flags
 
-| 旗 | 効果 |
+| Flag | Effect |
 |---|---|
-| `--json` | 診断を `Diagnostic[]` の JSON で標準出力に書く。**診断コードが出るのはこのときだけ** |
-| `--strict` | 警告があっても終了コード 1 にする |
+| `--json` | Writes the diagnostics to stdout as `Diagnostic[]` JSON. **This is the only time the codes appear** |
+| `--strict` | Makes the exit code 1 even when there are only warnings |
 
-二つは併用できる。`--json --strict` は JSON を書いた上で、警告だけでも 1 を返す。
+They combine. `--json --strict` writes the JSON and still returns 1 for warnings alone.
 
-## 出力
+## Output
 
-エラーが無ければ、緑の行と、その緑が何を意味するかの行が出る。
+With no errors you get the green line, plus a line saying what that green means.
 
 ```sh
 npx tsx src/cli.ts check examples/two-rooms.muro
@@ -37,9 +37,9 @@ npx tsx src/cli.ts check examples/two-rooms.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-数えられている境界は**導出後**の境界である。接する空間の既定は壁なので、`boundary` を一行も書いていなくても境界は現れる。書かれた構成の側の数を見たいときは [`koyu json`](json.md) を使う。
+The boundaries counted are the boundaries **after derivation**. The default between touching spaces is a wall, so boundaries appear even when you wrote no `boundary` line at all. For the count on the written side, use [`koyu json`](json.md).
 
-警告があれば緑のまま件数が付き、警告そのものが `⚠` で前に出る。
+Warnings keep the green line and add a count; each warning comes out first, marked `⚠`.
 
 ```sh
 npx tsx src/cli.ts check warn.muro
@@ -51,7 +51,7 @@ npx tsx src/cli.ts check warn.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-エラーがあれば `✖` の行だけが出て、緑の行は出ない。位置は `<解決済みの絶対パス>:line <行>:` の形で本文の前に付く。
+With errors only the `✖` lines appear; the green line does not. The position prefixes the body as `<resolved absolute path>:line <n>:`.
 
 ```sh
 npx tsx src/cli.ts check bad.muro
@@ -61,11 +61,11 @@ npx tsx src/cli.ts check bad.muro
 ✖ <absolute path>/bad.muro:line 6: The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b
 ```
 
-**人向けの出力に診断コードは出ない。**コードを引きたいときは `--json` を付ける。
+**Codes never appear in the human output.** To look one up, add `--json`.
 
-## --json のかたち
+## The shape of --json
 
-診断が無ければ空配列である。
+With no diagnostics it is an empty array.
 
 ```sh
 npx tsx src/cli.ts check examples/two-rooms.muro --json
@@ -75,7 +75,7 @@ npx tsx src/cli.ts check examples/two-rooms.muro --json
 []
 ```
 
-診断があれば一件ずつの配列になる。`message` は本文だけを持ち、位置は `line` と `file` が別に持つ。`file` は解決済みの絶対パスである。
+Otherwise it is one object per diagnostic. `message` carries the body only; the position is carried separately by `line` and `file`, and `file` is the resolved absolute path.
 
 ```sh
 npx tsx src/cli.ts check bad.muro --json
@@ -97,11 +97,11 @@ npx tsx src/cli.ts check bad.muro --json
 ]
 ```
 
-フィールドは `code` `severity` `message` の三つが必ずあり、`line` `file` `path` `related` は持つときだけ出る。
+`code`, `severity` and `message` are always present; `line`, `file`, `path` and `related` appear only when the diagnostic has them.
 
-**`severity` はコードの属性である。**同じコードが場合によって `error` になったり `warning` になったりはしない。コードは全部で 65 個ある。
+**`severity` is a property of the code.** The same code is never an error one time and a warning another. There are 65 codes in all.
 
-構文エラーや合成エラーで**モデルが組み上がらなかった**場合も、`--json` は有効な JSON を返す。`SYN01` の一件に写される。
+A file that **never composed into a model** — a syntax or composition error — still returns valid JSON under `--json`. It is copied into a single `SYN01`.
 
 ```sh
 npx tsx src/cli.ts check broken.muro --json
@@ -119,7 +119,7 @@ npx tsx src/cli.ts check broken.muro --json
 ]
 ```
 
-ファイルが読めなかった場合も同じ経路を通る。この場合は位置が無いので `line` も `file` も出ない。
+An unreadable file takes the same path. There is no position, so neither `line` nor `file` appears.
 
 ```text
 [
@@ -131,23 +131,23 @@ npx tsx src/cli.ts check broken.muro --json
 ]
 ```
 
-`--json` を付けずに同じファイルを渡すと、JSON ではなく `✖` の一行が出る。どちらも終了コードは 1 である。
+Without `--json` the same file produces a single `✖` line instead of JSON. Either way the exit code is 1.
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | エラーが無い (`--strict` のときは警告も無い) |
-| 1 | エラーがある / `--strict` で警告がある / 構文・合成エラーで読めなかった |
-| 2 | ファイルパスを渡していない (使い方が印字される) |
+| 0 | No errors (and, under `--strict`, no warnings either) |
+| 1 | There are errors / there are warnings under `--strict` / it could not be read because of a syntax or composition error |
+| 2 | No file path was given (usage is printed) |
 
-`--json` はこの終了コードを変えない。診断を JSON で書いた上で、同じ判定で 0 か 1 を返す。
+`--json` does not change the exit code. It writes the diagnostics as JSON and still returns 0 or 1 on the same test.
 
-## check が言わないこと
+## What check does not say
 
-`check` が保証するのは「書かれたものがデータとして矛盾していない」までである。**建物として使えるかは一言も見ていない。**
+What `check` guarantees stops at "what is written holds together as data". **It says nothing whatsoever about whether the building is usable.**
 
-接する空間の既定は壁で、壁は扉が無ければ通れない。だから扉を一枚も書かない建物は、完全に密封されたまま `check` が緑になる。窓も同じで、一枚も無くても緑である。
+The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no doors at all comes out green while perfectly sealed. The same goes for windows: none at all is still green.
 
 ```muro
 koyu 1.1
@@ -170,12 +170,12 @@ npx tsx src/cli.ts check sealed.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-同じファイルを [`koyu validate`](validate.md) に渡すと三つの違反が出る。**緑を根拠に「動く」と主張しない。**
+Hand the same file to [`koyu validate`](validate.md) and three violations come out. **Never claim it works on the strength of the green.**
 
-## 関連
+## See also
 
-- [koyu validate](validate.md) — `check` がしない建築的な判定
-- [診断コード](../diagnostics/index.md) — 65 コードの原因と直し方
-- [CI で門番にする](ci.md) — `--strict` を付ける理由
-- [koyu json](json.md) — 書かれた構成の側の境界数
-- [koyu コマンド](index.md) — entry と終了コードの共通の約束
+- [koyu validate](validate.md) — the architectural judgement `check` does not make
+- [Diagnostics](../diagnostics/index.md) — cause and fix for all 65 codes
+- [Gating CI](ci.md) — why you add `--strict`
+- [koyu json](json.md) — the boundary count on the written side
+- [The koyu command](index.md) — the shared promises about entry and exit codes

@@ -18,7 +18,7 @@ This page is a **map and a body of law**, not a copy of the explanations. The sa
 | `src/validate/` | **The region that does not freeze** — architectural judgement (`access.ts` `envelope.ts` `light.ts` `runs.ts` `site.ts`). Returns `Finding { rule, level }`. | **It may be dirty.** Add to it freely, throw parts away freely. One condition only — it must never be confused with what core guarantees. |
 | `src/draw/` | **The region that does not freeze** — `plan.ts` `axo.ts` (SVG generation). Outside the freeze ([docs/reference/stability.md](docs/reference/stability.md)). | Appearance may change freely. **The shape may not.** |
 | directly under `src/` | `index.ts` (the public surface) `cli.ts` `mcp.ts` `parse-file.ts` | `test/domains.test.ts` enforces the one-way dependency by machine. |
-| `docs/` | **The published documentation. This is authoritative.** 167 pages × 2 languages (`npm run gate:docs` counts them). `start/` (tutorial) `why/` (explanation) `howto/` (procedures) `reference/` (normative — `muro/` `diagnostics/` `validate/` `cli/` `mcp/` `api/` `form/` `json/`) `examples/` `glossary.md` | **One page, one job.** Keep each page self-contained — never delegate to an ADR. If you change behaviour, fix the relevant page in the same change. |
+| `docs/` | **The published documentation. This is authoritative.** One tree, in English (`npm run gate:docs` counts the pages and checks every one is reachable). `start/` (tutorial) `why/` (explanation) `howto/` (procedures) `reference/` (normative — `muro/` `diagnostics/` `validate/` `cli/` `mcp/` `api/` `form/` `json/`) `examples/` `glossary.md` | **One page, one job.** Keep each page self-contained — never delegate to an ADR. If you change behaviour, fix the relevant page in the same change. |
 | `docs/decisions/` | **ADRs** — why it was decided this way and what was rejected. **Not published.** | Decisions are append-only. **Never edited afterwards** (editing destroys the point of the record). To reverse one, write a new ADR. |
 | `docs/log/` `docs/reviews/` | Work records and design reviews. **Not published.** | |
 | `docs/policy.md` and the other loose .md files | `policy.md` `writing-architecture.md` `modules.md` `horizon.md` `ifc-coverage.md` `terminology.md`. **Unpublished** raw material. | |
@@ -83,7 +83,7 @@ model_summary → layers → write_layer → check ──error──→ fix it a
 8. **Zero runtime dependencies.** Add nothing outside devDependencies.
 9. **Examples are written in the newest language version.** Introduce new notation and bring the examples along — the release test checks this.
 10. **When writing a document, paste only output you actually ran.** Never paste guessed output.
-11. **Everything inside code is written in English** — comments, identifiers, test names, assertion messages, and the `description` fields of a JSON Schema. Documents are written in Japanese only where the reader is Japanese: the ADRs under `docs/decisions/`, and the Japanese half of the published bilingual `docs/`. Everything else — this page, the READMEs, the working notes — is English.
+11. **Everything inside code is written in English** — comments, identifiers, test names, assertion messages, and the `description` fields of a JSON Schema. **The published documentation is English too** — its reader is a machine, and the processor already answers in English everywhere it speaks. Japanese survives only where the reader is a person and the page is not published: the ADRs under `docs/decisions/`, and the working notes at the top of `docs/`.
 
 ## When you hit an error
 

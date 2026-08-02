@@ -1,23 +1,23 @@
 ---
-title: 記法形式の比較
+title: Notation format comparison
 mode: explanation
 ---
 
-# 記法形式の比較
+# Notation format comparison
 
-「JSON か YAML でよかったのでは」は最初に来る問いである。新しい構文には値段がある — パーサ、エディタ支援、シンタックスハイライト、そして読み手が覚え直す手間。
+"Couldn't this have been JSON or YAML?" is the first question. New syntax has a price — a parser, editor support, syntax highlighting, and the effort a reader spends learning it.
 
-**それでも DSL にしたのは、設計基準を一つに固定したからである。**
+**It is a DSL anyway because one design criterion was fixed.**
 
-> **LLM が一つのコンテキストで読み切り、正しく部分編集できるか。**
+> **Can an LLM read it in one context and correctly edit part of it?**
 
-この基準から、テキストネイティブであること、参照が人間の読める階層パスであること、単一の巨大ファイルではなく小さなファイルの集合であること、単位と座標系を先頭で一度だけ宣言することが、すべて決まる。**そして著者形式が DSL であることも、ここから出る。**
+From that criterion follow being text-native, referring by human-readable hierarchical paths, being a set of small files rather than one enormous one, and declaring units and coordinate system once at the top. **And so does the authored format being a DSL.**
 
-なお koyu は機械形式も持っている — 正準 JSON である。**二つの綴りが一つの意味論を共有している**というのがこの設計であって、JSON を拒んでいるわけではない ([正準 JSON](../reference/json/index.md))。
+koyu does have a machine format — canonical JSON. **Two spellings sharing one semantics** is the design; JSON is not being refused ([Canonical JSON](../reference/json/index.md)).
 
-## 同じ二室を書き比べる
+## The same two rooms, written both ways
 
-同梱の `two-rooms.muro` から注釈を除いた本文はこれである。
+Here is the body of the bundled `two-rooms.muro`, comments removed.
 
 ```muro
 koyu 1.1
@@ -38,7 +38,7 @@ boundary /L1/b /out t:150 spec:EW1 fire:60
   window w:2600 h:1100 edge:E name:腰窓
 ```
 
-同じ内容を YAML で素直に書くとこうなる。
+The same content written straightforwardly in YAML:
 
 ```text
 koyu: "1.0"
@@ -75,30 +75,30 @@ boundaries:
       - kind: door
         w: 780
         h: 2000
-  # …残り二つの境界と三つの開口が続く
+  # …two more boundaries and three more openings follow
 ```
 
-o200k_base で実測した数字である。
+Measured with o200k_base:
 
-| 形式 | バイト | 行 | トークン | 対 DSL |
+| Format | Bytes | Lines | Tokens | vs DSL |
 |---|---:|---:|---:|---:|
-| DSL (本文) | 496 | 16 | **220** | 1.0x |
-| YAML (同じ内容) | 947 | 61 | 414 | **1.9x** |
-| 正準 JSON (機械形式) | 2,164 | 140 | 729 | 3.3x |
+| DSL (body) | 496 | 16 | **220** | 1.0x |
+| YAML (same content) | 947 | 61 | 414 | **1.9x** |
+| Canonical JSON (machine format) | 2,164 | 140 | 729 | 3.3x |
 
-**行が 3.8 倍、トークンが 1.9 倍になる。**そして増えた分は建築の情報ではない — `path:` `type:` `region:` `openings:` `kind:` といった、構造を綴るためだけのキーである。
+**3.8× the lines and 1.9× the tokens.** And what has been added is not architectural information — it is `path:`, `type:`, `region:`, `openings:`, `kind:`, keys that exist only to spell out the structure.
 
-## 一行が一つの決定である
+## One line is one decision
 
-DSL の側で決定的なのは、トークン数より**構造の見え方**である。
+What is decisive on the DSL side is not token count but **how the structure reads**.
 
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
 ```
 
-**一行が一つの空間であり、一つの設計判断である。**位置引数の並び (パス、型、X 範囲、Y 範囲) は建築の言い方の順そのもので、属性は後ろに続く。
+**One line is one space, and one design decision.** The positional order (path, type, X range, Y range) is the order architecture says them in, and attributes follow.
 
-字下げが包含を表す。
+Indentation carries containment.
 
 ```muro-part
 boundary /L1/b /out t:150 spec:EW1 fire:60
@@ -106,23 +106,23 @@ boundary /L1/b /out t:150 spec:EW1 fire:60
   window w:2600 h:1100 edge:E name:腰窓
 ```
 
-**開口が境界に属することは、`openings:` というキーではなく、字下げが言う。**関係と、その上に置かれた区間、という構造がそのまま字面になる。
+**That the openings belong to the boundary is said by the indentation, not by an `openings:` key.** The structure — a relation, and intervals placed on it — is the shape on the page.
 
-## 診断が行を指せる
+## Diagnostics can point at a line
 
-これは実務上いちばん効いている。
+This is what pays off most in practice.
 
 ```text
 ✖ b3.muro:line 7: Duplicate boundary: /L1/a | /L1/b (first seen at b3.muro:line 6)
 ```
 
-**エラーが「ファイルと行」を指す。**書いた人は、その行を見れば直せる。エージェントも同じで、行番号を受け取ってその行だけを書き換えられる。
+**An error points at a file and a line.** The author looks at that line and fixes it. So does an agent: it receives a line number and rewrites that line.
 
-YAML でも行番号は取れるが、**指せる粒度が違う。**一つの空間が 6 行に散っていれば、「この空間が悪い」は 6 行のどこかを指すことになる。**一行一決定なら、診断の粒度と決定の粒度が一致する。**
+YAML has line numbers too, but **the granularity of what can be pointed at differs.** If one space is spread over six lines, "this space is wrong" points somewhere among six lines. **With one line per decision, the granularity of the diagnostic matches the granularity of the decision.**
 
-## 差分が構成の言葉になる
+## The diff speaks the language of composition
 
-通り芯を一本動かしてみる。
+Move one grid line.
 
 ```sh
 npx tsx src/cli.ts diff tr-a.muro tr-b.muro
@@ -134,26 +134,26 @@ npx tsx src/cli.ts diff tr-a.muro tr-b.muro
 ± /L1/b: area 16.20 m2 → 13.50 m2
 ```
 
-**「X2 が動いて、a が広がり、b が縮んだ」**と読める。座標の羅列ではない。
+**"X2 moved, a grew, b shrank."** Not a list of coordinates.
 
-これは DSL であることの直接の効果ではないが、**位置を通り参照で書く**という決定と組みになっている。生の座標を書ける形式では、通り芯を一本動かすと数十の座標が一斉に変わり、差分は読めなくなる。
+That is not a direct effect of being a DSL, but it pairs with the decision to **write position as a grid reference**. In a format where raw coordinates can be written, moving one grid line changes dozens of coordinates at once and the diff becomes unreadable.
 
-## 位置は言葉で書く
+## Position is written in words
 
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2
   door w:900 at:X2+450 edge:S
 ```
 
-`X2+450` は「通り芯 X2 から 450mm」である。**座標ではなく、決定の言い方である。**
+`X2+450` means "450 mm from grid line X2". **Not a coordinate but the way the decision is stated.**
 
-`X1..X2` も同じで、「X1 通りから X2 通りまで」と読む。通り芯が動けば領域が追随し、原本は一文字も変わらない。
+`X1..X2` is the same: "from grid X1 to grid X2". Move the grid line and the region follows; the source does not change by one character.
 
-**汎用形式でこれを書けないわけではない。**`"region": {"x": ["X1", "X2"]}` と書けばよい。ただしその瞬間、それは**汎用形式の中に埋め込まれた DSL** である。文字列の中に独自の文法を持たせるくらいなら、文法を表に出したほうが読める。
+**A general-purpose format could express this** — write `"region": {"x": ["X1", "X2"]}`. But at that moment it is **a DSL embedded inside a general-purpose format.** Rather than hiding a private grammar inside strings, it reads better to put the grammar in the open.
 
-## 繰り返しを畳む語がある
+## There are words that fold repetition
 
-大きい建物は、違うものが多いのではなく**同じものが多い。**DSL はその性質に合わせた語を持てる。
+A large building has not many different things but **many of the same thing.** A DSL can carry words shaped to that fact.
 
 ```muro-part
 level L4..L10 pitch:3000
@@ -164,39 +164,39 @@ band X X2..X4 Y4-3200..Y5
   space /L14..L19/s03 room w:rest name:スイート03
 ```
 
-複合建築の実例では、コアの 21 レベル分が 9 行、ホテル 78 室が 13 行の帯の宣言から展開されている ([IFC・USD との比較](vs-ifc.md))。
+In the bundled complex, 21 levels of core come from 9 lines and 78 hotel rooms come from a 13-line band declaration ([Comparison with IFC and USD](vs-ifc.md)).
 
-汎用形式でこれをやろうとすれば、アンカーとエイリアス、あるいは外部のテンプレート機構が要る。**そしてそこで畳まれた結果は、もう YAML パーサだけでは読めない。**
+Doing this in a general-purpose format takes anchors and aliases, or an external templating mechanism. **And the folded result is then no longer readable by a YAML parser alone.**
 
-**入場基準は明確である — muro に入るのは決定的な展開だけ。**選択も条件分岐も含まないものだけが入る。「廊下は 1.8m、残りを住戸で等分」は決定的なので入る。「住戸をなるべく南に」は最適化なので入らない — それはエージェントが解いて、解を muro に書く。**数式は入るがマクロは入らない。**
+**The entry criterion is explicit — only deterministic expansion gets into the notation.** Only what contains no choice and no conditional. "The corridor is 1.8 m; divide the remainder equally among dwellings" is deterministic and gets in. "Put the dwellings as far south as possible" is optimisation and does not — an agent solves that and writes the solution into the source. **Formulae get in; macros do not.**
 
-## 機械形式は別にある
+## The machine format is separate
 
-**著者形式と機械形式を分けている**ので、DSL であることの代償は小さい。
+**Because the authored format and the machine format are separated**, the price of being a DSL is small.
 
-| | 著者形式 (`.muro`) | 機械形式 (正準 JSON) |
+| | Authored (`.muro`) | Machine (canonical JSON) |
 |---|---|---|
-| 誰が読む | 人と LLM | プログラム |
-| 何を持つ | 書かれた構成 | 合成の結果 |
-| 版 | 言語の版 | 綴りの版 |
-| 安定性 | 書き方は自由 | **同じ入力からは同じバイト列** |
+| Who reads it | humans and LLMs | programs |
+| What it holds | the written composition | the result of composition |
+| Version | the language version | the spelling version |
+| Stability | write it however you like | **same input, same bytes** |
 
-外部のツールが koyu を読みたければ、正準 JSON を読めばよい。**独自の文法を実装する必要はない。**
+An outside tool that wants to read koyu reads the canonical JSON. **It never has to implement a private grammar.**
 
-## 代償
+## The price
 
-正直に書いておく。
+Stated honestly.
 
-- **パーサを自分で書くことになる。**koyu は実行時依存ゼロなので、これは自前である
-- **エディタ支援を自分で用意することになる。**シンタックスハイライトの文法定義を一つ持ち、実装と台帳との一致をテストが縛っている
-- **読み手が構文を覚える必要がある。**ただし覚える量は小さい — 非字下げの行が 16 種、字下げの行が 9 種で、入れ子も括弧も終端子も無い ([.muro の全構文](../reference/muro/index.md))
-- **汎用ツール (YAML の linter やスキーマ検証) が使えない。**代わりに `check` が 65 の診断を持つ
+- **You write the parser yourself.** koyu has zero runtime dependencies, so it is hand-written.
+- **You provide editor support yourself.** There is one syntax-highlighting grammar definition, and tests bind it to the implementation and the ledger.
+- **Readers must learn the syntax.** The amount is small — 16 kinds of unindented line and 9 kinds of indented line, with no nesting, no brackets and no terminators ([The whole syntax of .muro](../reference/muro/index.md)).
+- **General-purpose tooling (YAML linters, schema validation) does not apply.** In its place `check` carries its own diagnostics.
 
-**この代償を払う価値があるかは、設計基準に照らして判断されている。**一棟が一つのコンテキストに載り、エージェントが行単位で編集でき、差分が構成の言葉で読める — その三つが同時に成り立つなら、払う値打ちがある、というのがこの選択である。
+**Whether that price is worth paying is judged against the design criterion.** A whole building fits in one context, an agent can edit it line by line, and diffs read in the language of composition — if those three hold at once, the choice pays.
 
-## この先
+## Next
 
-- [正準 JSON](../reference/json/index.md) — 機械形式
-- [記法 (.muro)](../reference/muro/index.md) — 文の一覧
-- [IFC・USD との比較](vs-ifc.md)
+- [Canonical JSON](../reference/json/index.md) — the machine format
+- [The whole syntax of .muro](../reference/muro/index.md)
+- [Comparison with IFC and USD](vs-ifc.md)
 - [koyu diff](../reference/cli/diff.md)

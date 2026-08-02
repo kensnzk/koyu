@@ -1,45 +1,45 @@
 ---
-title: ATT — 属性
+title: ATT — attributes
 mode: reference
 ---
 
-# ATT — 属性
+# ATT — attributes
 
-ATT は三つある。すべてエラーである。
+There are three ATT codes. All are errors.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| ATT01 | error | 解釈される属性の値が正の数値でない |
-| ATT02 | error | 解釈される属性の値が決められた集合の外 |
-| ATT03 | error | 台帳に無い鍵を、名前空間なしで書いた |
+| ATT01 | error | An interpreted attribute's value is not a positive number |
+| ATT02 | error | An interpreted attribute's value is outside its fixed set |
+| ATT03 | error | A key not in the ledger was written without a namespace |
 
-**書いたのに解釈されなかったものを、黙って落とさない。**これが三つに共通する一つの主張である。
+**What you wrote but koyu could not interpret is never dropped in silence.** That is the one claim behind all three.
 
-黙殺が最も高くつくのは、その属性が**別の検査の入口になっている**ときである。`site:yes` と書くと敷地に関する判定が丸ごと走らなくなり、`h:35OO` と書くと高さの不変量 ([HGT01](./hgt.md)) が消え、`heigh:2400` は同じことを一字違いで起こす。どれも答えだけが静かに無くなる。
+The silence costs most when the attribute is **the entrance to another check**. Write `site:yes` and every judgement about the site stops running; write `h:35OO` and the height invariant ([HGT01](./hgt.md)) disappears; write `heigh:2400` and one wrong letter does the same. In each case only the answer goes missing.
 
-## 属性の三層
+## The three tiers
 
-属性は三層に分かれている。**どの層に属するかは要素ごとの台帳が決める** — 同じ綴りでも、書く場所が違えば層が違う。
+Attributes come in three tiers. **Which tier a key belongs to is decided by the ledger for that element** — the same spelling in a different place can be a different tier.
 
-| 層 | koyu は | 例 |
+| Tier | koyu | Examples |
 |---|---|---|
-| **構造** | 必ず見る。`parse` が型付きのフィールドへ持ち上げる | `space` の `level:` `w:`／`boundary` の `type:` `t:` `air:` `edge:`／開口の `w:` `h:` `at:` `edge:` `hinge:` `swing:`／`column` の `d:` `x:` `y:` |
-| **解釈** | 見る。値域が決まっている | `space` の `h:` `use:` `road:` `daylight:` `ceiling:` `uid:` `name:` と縦動線の一式／`zone` の `name:` `use:` `site:` `area:` `uid:`／`boundary` の `h:` `name:`／開口の `style:` `name:` |
-| **運搬** | **見ない。**運ぶだけ | `space` の `floor:` `spec:`／`boundary` の `spec:` `fire:` `sound:`／開口の `sill:` `spec:` `fire:`／`area` の `floor:` `spec:`／`seg` の `spec:` `fire:` `sound:`／`column` の `spec:` |
+| **Structure** | always reads it; `parse` lifts it into a typed field | `space`'s `level:` `w:`; `boundary`'s `type:` `t:` `air:` `edge:`; an opening's `w:` `h:` `at:` `edge:` `hinge:` `swing:`; `column`'s `d:` `x:` `y:` |
+| **Interpreted** | reads it, and the value domain is fixed | `space`'s `h:` `use:` `road:` `daylight:` `ceiling:` `uid:` `name:` and the vertical-circulation set; `zone`'s `name:` `use:` `site:` `area:` `uid:`; `boundary`'s `h:` `name:`; an opening's `style:` `name:` |
+| **Carry** | **never reads it.** It is only transported | `space`'s `floor:` `spec:`; `boundary`'s `spec:` `fire:` `sound:`; an opening's `sill:` `spec:` `fire:`; `area`'s `floor:` `spec:`; `seg`'s `spec:` `fire:` `sound:`; `column`'s `spec:` |
 
-構造と解釈の層は koyu が読むので、台帳が契約である。運搬の層は運ぶだけなので、誰が何を書いてもよい。
+The structure and interpreted tiers are read by koyu, so the ledger is the contract. The carry tier is only transported, so anyone may write anything.
 
-**では未知の鍵はどちらなのか。**この問いに字面で答えられなければ、「見ていない」と「見て問題がない」を区別できない。だから運搬層に**名前空間**を要求する。
+**Then which tier is an unknown key?** Without an answer visible on the page, "not looked at" and "looked at and fine" cannot be told apart. So the carry tier is required to carry a **namespace**.
 
 ```text
-spec:RC              台帳にある鍵。名前空間は要らない。koyu は運ぶだけ
-acme.sensor:23       名前空間つき。誰でも書ける。koyu は絶対に見ない
-heigh:2400           台帳に無く名前空間も無い → ATT03
+spec:RC              a key in the ledger. No namespace needed. koyu only carries it
+acme.sensor:23       namespaced. Anyone may write it. koyu never looks inside
+heigh:2400           not in the ledger and not namespaced → ATT03
 ```
 
-名前空間は**ドット区切り**で、`^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)+$` に合う綴りである。小文字で始まり、ドットを一つ以上含む。`acme.sensor` `bems.temp` `survey.measured` `acme.sub.key` はすべて通り、`Acme.sensor` `acme.Sensor` `acme_x` は通らない。中身に koyu は一切の意味を与えない — 分割の規則すら持たない。
+A namespace is **dot-separated**, matching `^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)+$`: it starts lowercase and contains at least one dot. `acme.sensor`, `bems.temp`, `survey.measured` and `acme.sub.key` all pass; `Acme.sensor`, `acme.Sensor` and `acme_x` do not. koyu gives the contents no meaning at all — it does not even have a rule for splitting them.
 
-## ATT01 — 属性は正の数値で書きます {#att01}
+## ATT01 — the attribute takes a positive number {#att01}
 
 `error`
 
@@ -56,19 +56,19 @@ space /L2/a room X1..X2 Y1..Y2
 h on /L1/a is written as a positive number: h:35OO
 ```
 
-**原因** — 数値のつもりで書いた値が数値として読めていない。`35OO` (数字の 0 でなく英字の O)、`3500mm` (単位つき)、`1/12` (分数) はいずれも文字列として運ばれ、読む側は「書かれていない」と見なす。0 と負数も弾く。
+**Cause** — a value meant as a number does not read as one. `35OO` (letter O instead of digit 0), `3500mm` (with a unit) and `1/12` (a fraction) are all carried as strings, and the reader treats them as unwritten. Zero and negatives are refused as well.
 
-**正の数値を要求する鍵**は次のとおり。
+The keys that require a positive number are these.
 
-| 要素 | 鍵 |
+| Element | Keys |
 |---|---|
-| `space` | `h` (天井高 mm)・`road` (幅員 mm)・`entry`・`landing`・`riser`・`tread`・`lane`・`slope` |
-| `zone` | `area` (敷地の宣言面積 ㎡) |
-| `boundary` | `h` (`air:1` の境界の天端高 mm) |
+| `space` | `h` (ceiling height, mm), `road` (carriageway width, mm), `entry`, `landing`, `riser`, `tread`, `lane`, `slope` |
+| `zone` | `area` (the site's declared area, m²) |
+| `boundary` | `h` (top height of an `air:1` boundary, mm) |
 
-**直し方** — 単位のない正の数値にする。長さはすべて mm なので単位は書かない。斜路の `slope:` は**分母だけ**を書く — `slope:12` が 1/12 である。
+**Fix** — write a positive number with no unit. Every length is in mm, so units are never written. A ramp's `slope:` takes **the denominator only** — `slope:12` means 1/12.
 
-## ATT02 — 属性の値が語彙にありません {#att02}
+## ATT02 — the value is not in the vocabulary {#att02}
 
 `error`
 
@@ -85,22 +85,22 @@ space /site/a room X1..X2 Y1..Y2 level:L1
 site on zone /site is one of 0 / 1: site:yes
 ```
 
-**原因** — 値の集合が決まっている属性に、その集合の外の綴りを書いた。該当するのは四つだけである。
+**Cause** — an attribute whose value set is fixed was given a spelling outside that set. Only four keys are like this.
 
-| 要素 | 鍵 | 値 |
+| Element | Key | Values |
 |---|---|---|
 | `zone` | `site` | `0` / `1` |
-| `space` | `ceiling` | `0` / `1` (0 = 天井を張らない) |
+| `space` | `ceiling` | `0` / `1` (0 = no ceiling is built) |
 | `space` | `turn` | `R` / `L` |
-| 開口・`asset` | `style` | `hinged` / `sliding` / `auto` |
+| Opening, `asset` | `style` | `hinged` / `sliding` / `auto` |
 
-**大文字小文字は区別される。**`turn:l` は `turn:L` ではない。
+**Case matters.** `turn:l` is not `turn:L`.
 
-**直し方** — 台帳の綴りに揃える。`site:1` は「このゾーンが敷地である」という宣言で、敷地の面積・接道・はみ出しの判定と `koyu site` の入口である。`site:yes` と書くと、この入口が閉じたまま `check` が緑になる。
+**Fix** — use the ledger's spelling. `site:1` declares that this zone is the site, and it is the entrance to the site's area, frontage and containment judgements as well as to `koyu site`. Write `site:yes` and that entrance stays shut while `check` goes green.
 
-`daylight` はこの表に無い。値域は [DAY01](./day.md) が別に守っている。
+`daylight` is not in this table; its value domain is guarded separately by [DAY01](./day.md).
 
-## ATT03 — 台帳に無い属性があります {#att03}
+## ATT03 — the attribute is not in the ledger {#att03}
 
 `error`
 
@@ -115,11 +115,11 @@ space /L1/a room X1..X2 Y1..Y2 heigh:2200
 /L1/a carries heigh:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.heigh:2200)
 ```
 
-**原因** — その要素の台帳に無い鍵を、名前空間なしで書いた。**一字違いは黙って効かない** — `heigh:2200` は天井高にならず高さの不変量を丸ごと無音にし、`sit:1` は敷地の判定を、`stiar:N` は縦動線を消す。
+**Cause** — a key not in that element's ledger was written without a namespace. **A single wrong letter silently does nothing**: `heigh:2200` is not a ceiling height and it silences the height invariant entirely, `sit:1` erases the site judgements, `stiar:N` erases the vertical circulation.
 
-**綴り間違いは検出される。**`nmae:居室A` も `flooring:tile` も ATT03 である。「解釈されない属性は自由に書けてそのまま運ばれる」ということはない — 自由に書きたいなら名前空間を付ける。
+**Misspelled keys are detected.** `nmae:居室A` and `flooring:tile` are both ATT03. It is not true that an uninterpreted attribute may be written freely and carried through — if you want to write freely, add a namespace.
 
-**直し方** — まず綴りを確かめる。本当に自由な値 (センサー値・実測・第三者の台帳) なら、ドット区切りの名前空間を付ける。
+**Fix** — check the spelling first. If the value really is free (sensor readings, survey data, a third party's ledger), give it a dot-separated namespace.
 
 ```muro
 grid X 0 3600 7200
@@ -128,19 +128,19 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 h:2200 acme.sensor:23 bems.temp:22.5
 ```
 
-名前空間つきの属性に koyu は一切の意味を与えない。値域も検査せず、導出にも判定にも使わない。**持てるが判定しない**ことが字面で明示された状態であり、それがこの層の目的である。
+koyu gives a namespaced attribute no meaning at all: it checks no value domain and uses it in neither derivation nor validation. **It can be carried but is not judged**, said plainly on the page — which is the whole point of the tier.
 
-## 母集団と並び
+## The population and the order
 
-検査されるのは**書かれた宣言**である。走査は宣言の順で、次の順に一周する。
+What is checked is **the declarations that were written**. The scan follows declaration order, one pass in this sequence.
 
-1. 空間 — その空間自身、続けてその `area`
-2. ゾーン
-3. 境界 — その境界自身、続けてその開口、続けてその `seg`
-4. `asset`
-5. `column`
+1. Spaces — the space itself, then its `area`s
+2. Zones
+3. Boundaries — the boundary itself, then its openings, then its `seg`s
+4. `asset`s
+5. `column`s
 
-診断の本文は、どの宣言かを言い方で区別する。
+The message names the declaration in a different way for each.
 
 ```muro-bad
 grid X 0 3600 7200
@@ -166,22 +166,22 @@ seg (/L1/a | /out) carries sond:, which is not in the ledger (check the spelling
 column 600mm carries spek:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.spek:RC)
 ```
 
-`asset` は開口と同じ台帳で読まれる。「アセットには書けて開口には書けない属性」は作らない、という同一視である。
+An `asset` is read against the opening's ledger. The two are identified deliberately, so that no attribute can be writable on an asset but not on an opening.
 
-## level だけは扱いが違う
+## `level` is handled differently
 
-`level` は属性の袋を持たない。`h:` `slab:` `pitch:` `underground:` はすべて型付きのフィールドで、それ以外の鍵は**パーサがその場で拒む**。だから `level` に対して ATT03 は出ない。
+`level` carries no attribute bag. `h:`, `slab:`, `pitch:` and `underground:` are all typed fields, and any other key **is refused by the parser on the spot**. So ATT03 never fires for a `level`.
 
 ```text
 level carries spec:, which is not in the ledger (level reads h / slab / pitch / underground)
 ```
 
-`check --json` ではこれは [SYN01](./syn.md) として出る。
+Under `check --json` this appears as [SYN01](./syn.md).
 
-## 関連
+## Related
 
-- [DAY — 採光の対象](./day.md) — `daylight` の値域はここが守る
-- [HGT — 高さの不変量](./hgt.md) — `h:` の誤記で消える検査
-- [SIT — 敷地形状](./sit.md) — `site:` の誤記で消える判定
-- [SYN — 構文と合成](./syn.md) — `level` の未知の鍵、属性キーの重複、引用符
+- [DAY — the daylight scope](./day.md) — where `daylight`'s value domain is guarded
+- [HGT — the height invariant](./hgt.md) — the check a misspelled `h:` erases
+- [SIT — the site shape](./sit.md) — the judgements a misspelled `site:` erases
+- [SYN — syntax and composition](./syn.md) — unknown keys on `level`, duplicate keys, quoting
 - [koyu check](../cli/check.md)

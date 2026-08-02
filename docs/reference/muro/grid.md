@@ -1,35 +1,35 @@
 ---
-title: grid — 通り芯
+title: grid — grid lines
 mode: reference
 ---
 
-# grid — 通り芯
+# grid — grid lines
 
 ```muro-part
 grid X 0 6400 12800 19200
 grid Y 0 5600 7600 13200
 ```
 
-`grid <軸> <座標mm> <座標mm> ...` は、軸上の通り芯の座標を並べる。**この記法に座標の直書きは無い** — 位置は常に通り芯の言葉で書かれるので、通り芯が無ければ領域も線も開口の位置も書けない。
+`grid <axis> <coordinate mm> <coordinate mm> ...` lists the coordinates of the grid lines on one axis. **Nothing in this notation is written as a bare coordinate** — position is always written in the language of the grid, so without a grid there is no way to write a region, a drawn line, or the position of an opening.
 
-軸は `X` と `Y` の二つだけである。X は東が正、Y は北が正で、高さ方向 (z) は軸ではなく [level](level.md) が持つ。
+There are two axes, `X` and `Y`. X is positive to the east and Y is positive to the north; the vertical direction (z) is not an axis but belongs to [level](level.md).
 
-## 通り名は自動でつく
+## Grid lines are named for you
 
-書くのは座標だけで、名は付けられない。`grid X` に並べた座標が西から順に `X1` `X2` `X3` …、`grid Y` の座標が南から順に `Y1` `Y2` `Y3` … になる。
+You write only coordinates; you do not name them. The coordinates of `grid X` become `X1` `X2` `X3` … from west to east, and those of `grid Y` become `Y1` `Y2` `Y3` … from south to north.
 
 ```muro-part
 grid X 0 6400 12800 19200
 #      X1 X2   X3    X4
 ```
 
-したがって通り名は**軸と序数**であって、図面の「通り符号」(A通り・1通り) ではない。符号を運びたいなら空間や境界の属性に書く。
+A grid name is therefore **an axis and an ordinal**, not the gridline mark of a drawing (grid A, grid 1). If you want to carry the mark, write it as an attribute on a space or a boundary.
 
-`X` で始まる名は X 軸、`Y` で始まる名は Y 軸と読まれるので、参照に軸を書き添える必要は無い。序数は 1 から始まり、`X0` は存在しない。
+A name beginning with `X` is read on the X axis and one beginning with `Y` on the Y axis, so a reference never has to say which axis it means. Ordinals start at 1; there is no `X0`.
 
-## 使用より前に宣言する
+## Declare it before you use it
 
-**`grid` は、その通り名を使う行より前になければ効かない。**通り参照はその行を読む時点で座標に解決されるので、後ろに置かれた `grid` は間に合わない。
+**A `grid` line has no effect on lines above it.** A grid reference is resolved into a coordinate as its own line is read, so a `grid` placed further down arrives too late.
 
 ```muro-bad
 level L1 0 h:2400 slab:150
@@ -42,54 +42,54 @@ grid Y 0 4000
 ✖ gridlate.muro:line 2: Undefined grid line name: X1
 ```
 
-[boundary](boundary.md) が空間を前方参照できるのとは対照的である。境界が結ぶのはパスという名前だが、通り参照が指すのは座標そのものだからである。
+This contrasts with [boundary](boundary.md), which may forward-reference its spaces. A boundary joins two names; a grid reference points at a coordinate.
 
-## 軸ごとに一度だけ
+## Once per axis
 
-`grid X` と `grid Y` はそれぞれ一度しか宣言できない。合成しているときも層を跨いで一度で、二本目は同じ座標列でもエラーになる — 通り芯は建物全体で一つの座標系であり、後から足したり差し替えたりする対象ではない。
+`grid X` and `grid Y` may each be declared once. When composing, that is once across all layers, and a second line is an error even with identical coordinates — the grid is one coordinate system for the whole building, not something later layers extend or replace.
 
 ```text
 ✖ n5.muro:line 2: grid X is declared once (in the base layer when composing)
 ```
 
-## 座標の規則
+## Rules for the coordinates
 
-| 規則 | エラー |
+| Rule | Error |
 |---|---|
-| 軸は `X` / `Y` | `A grid axis is X or Y: Z` |
-| 座標は 2 つ以上 | `grid takes two or more coordinates` |
-| 昇順で書く | `grid coordinates are written in ascending order` (等値も不可) |
+| The axis is `X` or `Y` | `A grid axis is X or Y: Z` |
+| Two or more coordinates | `grid takes two or more coordinates` |
+| Written in ascending order | `grid coordinates are written in ascending order` (equal values are rejected too) |
 
-座標は mm の数値で、負でもよい。原点をどこに置くかは自由で、[polygon](polygon.md) の頂点も[柱](column.md)の位置もこの同じ座標系で読まれる。
+Coordinates are numbers in mm and may be negative. Where the origin sits is your choice; the vertices of a [polygon](polygon.md) and the positions of [columns](column.md) are read in this same coordinate system.
 
-## 通り参照 — 位置の綴り方
+## Grid references — how position is spelled
 
-宣言した通り名は、そのまま位置の語になる。
+A declared grid name is itself the word for a position.
 
-| 綴り | 意味 |
+| Spelling | Meaning |
 |---|---|
-| `X2` | X2 通りの座標 |
-| `X2+600` | X2 通りから東へ 600mm |
-| `Y3-150` | Y3 通りから南へ 150mm |
-| `X1..X2+3200` | 範囲 (両端とも通り参照) |
+| `X2` | the coordinate of grid line X2 |
+| `X2+600` | 600mm east of X2 |
+| `Y3-150` | 150mm south of Y3 |
+| `X1..X2+3200` | a range (both ends are grid references) |
 
-オフセットは**整数のみ**である。`X2+600.5` は通り名として読めずエラーになる。
+An offset is **an integer only**. `X2+600.5` is not readable as a grid name and is an error.
 
 ```text
 ✖ g1.muro:line 4: Undefined grid line name: X2+600.5
 ```
 
-宣言していない通りを参照してもエラーになる (`Undefined grid line name: Y3`)。範囲・領域・線の端点・開口の絶対位置での使い方は [位置と領域](positions.md) にまとめてある。
+Referring to a grid line that was never declared is an error too (`Undefined grid line name: Y3`). Ranges, regions, the endpoints of a drawn line, and the absolute position of an opening are all collected in [positions and regions](positions.md).
 
-## 通り芯は描かれる線ではない
+## A grid line is not a drawn line
 
-`grid` が置くのは座標であって、長さも端点も持たない。通り芯そのものが何かを分けることも無い — 空間を分けるのは[空間](space.md)の領域と[境界](boundary.md)である。
+`grid` places coordinates; they have neither length nor endpoints. A grid line divides nothing by itself — what divides is a [space](space.md)'s region and a [boundary](boundary.md).
 
-通り芯が形を生むのは一箇所だけで、[柱](column.md)がその交点に立つ。`column` の `x:` / `y:` は通り名 (`x:X2,X3`) で書く。
+There is exactly one place where the grid produces form: a [column](column.md) stands at its intersections. A column's `x:` / `y:` restriction is written with grid names (`x:X2,X3`).
 
-## 正準JSON
+## Canonical JSON
 
-通り芯は座標の配列として出る。名は序数から決まるので保存されない。
+The grid is an array of coordinates per axis. Names follow from the ordinals, so they are not stored.
 
 ```text
 $ npx tsx src/cli.ts json lv.muro
@@ -105,7 +105,7 @@ $ npx tsx src/cli.ts json lv.muro
   },
 ```
 
-## 最小の例
+## The smallest file
 
 ```muro
 grid X 0 3600

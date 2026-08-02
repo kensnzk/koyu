@@ -1,15 +1,15 @@
 ---
-title: koyu — 建築をテキストで書く
+title: koyu — writing architecture as text
 mode: explanation
 ---
 
-# koyu — 建築をテキストで書く
+# koyu — writing architecture as text
 
-koyu は建築をテキストで書く記法 (`.muro`) と、その処理系である。
+koyu is a notation for writing architecture as text (`.muro`) and the toolchain that reads it.
 
-**空間が一次要素である。**壁は物ではなく、二つの空間のあいだの境界という関係である。開口は、その境界に切られた接続である。書かれるのは空間の領域と境界の関係だけで、平面図も面積も動線も書かれない — 導出される。
+**Space is the primary element.** A wall is not a thing; it is the boundary relation between two spaces. An opening is a connection cut into that boundary. What gets authored is spatial regions and the boundary relations between them — plans, areas and circulation are not written but derived.
 
-一室はこう書く。4行で、これで完結したファイルである。
+One room is written like this. Four lines, and it is a complete file.
 
 ```muro
 grid X 0 3600
@@ -22,11 +22,11 @@ space /L1/a room X1..X2 Y1..Y2
 koyu plan first.muro -o first.svg
 ```
 
-![一室だけの平面図。通り芯 X1 X2 Y1 Y2 と、淡い色の矩形が一つ。壁は一本も描かれていない](img/start-index-one-room.svg)
+![Plan of a single room: grid lines X1 X2 Y1 Y2 and one pale rectangle. Not one wall is drawn](img/start-index-one-room.svg)
 
-**壁が一本も描かれていない。**空間はあるが、境界が一つも無いからである。
+**Not one wall is drawn.** There is a space, but not one boundary.
 
-`space` を1行足す。ほかは何も変えない。
+Add one more `space` line. Change nothing else.
 
 ```muro
 grid X 0 3600 5400
@@ -36,31 +36,31 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 ```
 
-![二室の平面図。X2通り芯の上に黒い帯が一本立ち、二つの室を分けている](img/start-index-two-rooms.svg)
+![Plan of two rooms, with a black band standing on grid line X2 between them](img/start-index-two-rooms.svg)
 
-**壁が現れた。壁を描く操作はこの記法のどこにも無い。**壁は二つの空間の境界関係であり、空間の割付から導かれる。接する空間の組に境界の宣言が一つも無ければ、それは「未定義」ではなく「壁」を意味する。
+**A wall appears. There is no operation anywhere in this notation that draws a wall.** A wall is the boundary relation between two spaces, derived from how those spaces are laid out. Where a pair of touching spaces carries no declaration at all, that means "wall" rather than "undefined".
 
-解像度は基本設計の粒度である。梁下がりをモデル化しないのは欠落ではなく、選んだ抽象の高さである — BIM が重すぎた設計初期こそ、この記法の居場所である。建物一棟が数百行のテキストに収まるので、建築が git と LLM と同じ地面に乗る。
+The resolution is schematic-design level. Not modelling downstand beams is not an omission but a chosen height of abstraction — the early design phase, where BIM has always been too heavy, is exactly where this notation lives. A whole building fits in a few hundred lines of text, which puts architecture on the same ground as git and LLMs.
 
-## どこから読むか
+## Where to start
 
-| あなたが | 行き先 |
+| If you are | Go to |
 |---|---|
-| **koyu を触ったことがない** | [はじめての .muro](start/index.md) — 一室から二階建て一棟まで、30〜45分 |
-| **まず手元で動かしたい** | [koyu を入れる](start/install.md) — npm から、あるいはソースから |
-| **なぜこの形なのかを知りたい** | [解説](why/index.md) — 空間が一次であること、壁が関係であること、緑が何を意味しないか |
-| **やることが決まっている** | 手順 — [階を足す](howto/add-a-storey.md)・[住戸を室に割る](howto/subdivide-a-unit.md)・[エージェントに書かせる](howto/agent-loop.md) |
-| **記法の一語を引きたい** | [.muro の全構文](reference/muro/index.md)・[koyu コマンド](reference/cli/index.md)・[診断コード索引](reference/diagnostics/index.md) |
-| **プログラムやエージェントから使いたい** | [プログラムから建物を読む](start/first-program.md)・[TypeScript API](reference/api/index.md)・[koyu-mcp](reference/mcp/index.md) |
+| **new to koyu** | [Your first .muro](start/index.md) — one room to a two-storey house, 30–45 minutes |
+| **wanting to run it first** | [Installing koyu](start/install.md) — from npm, or from source |
+| **asking why it has this shape** | [Explanations](why/index.md) — space as primary, walls as relations, what green does not mean |
+| **already knowing what you want to do** | How-to — [Add a storey](howto/add-a-storey.md) · [Subdivide a unit](howto/subdivide-a-unit.md) · [Let an agent write it](howto/agent-loop.md) |
+| **looking a word up** | [Every construct in .muro](reference/muro/index.md) · [The koyu command](reference/cli/index.md) · [The diagnostic code index](reference/diagnostics/index.md) |
+| **driving it from a program or an agent** | [Reading a building from a program](start/first-program.md) · [TypeScript API](reference/api/index.md) · [koyu-mcp](reference/mcp/index.md) |
 
-## 二つの問いは別である
+## Two different questions
 
-`koyu check` は**書かれた構成がデータとして整合しているか**を言う。それだけである。扉を一枚も宣言しない二階建ては、完全に密封されたまま緑で通る。
+`koyu check` tells you whether **what is written is consistent as data**. That is all it tells you. A two-storey house that declares no door at all passes green, sealed shut.
 
-建築的な妥当性は `koyu validate` が別に言い、動線は `koyu doors`、採光は `koyu light` が答える。この線引きは[約束の範囲](reference/scope.md)にある。緑を根拠に「この建物は動く」と主張してはいけない — その落とし穴は[チュートリアル](start/index.md)の第5段で実際に踏んでみせる。
+Architectural validity is what `koyu validate` says, separately; circulation is answered by `koyu doors` and daylight by `koyu light`. That line is drawn in [Scope — what a green check means](reference/scope.md). Never argue from green that a building works — [the tutorial](start/index.md) walks you into that trap on purpose at stage 5.
 
-## 名前
+## The name
 
-戸牖 (koyu) は戸と窓、すなわち開口を指す。老子・第十一章 — 戸牖を鑿ちて以て室と為す、其の無に当たりて室の用有り。室を使えるものにしているのは壁ではなく、そこに空いている空間である。空間が一次で、壁が関係で、開口が境界に切られた接続であるような記法にとって、これより古い出典は無い。同音の「固有」も掛けてある — すべての空間は人が読める固有の名、その階層パスで指される。
+戸牖 (*koyu*) means doors and windows — openings. Laozi, chapter 11: cut doors and windows to make a room; it is the emptiness within, the space, that makes the room useful, not the walls. For a notation in which space is primary, walls are relations, and openings are connections cut into boundaries, this is the oldest source there is. The homophone 固有 (*koyu*, "proper, intrinsic") is intended too — every space is addressed by a human-readable proper name, its hierarchical path.
 
-拡張子は `.muro` (室)。ファイルが持つ単位は部材ではなく部屋である。
+The file extension is `.muro` (室, *muro* — room). The unit a file holds is not a building component but a room.

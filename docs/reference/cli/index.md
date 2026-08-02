@@ -1,44 +1,44 @@
 ---
-title: koyu コマンド
+title: The koyu command
 mode: reference
 ---
 
-# koyu コマンド
+# The koyu command
 
-`koyu` は `.muro` を一つ受け取り、合成し、問いに答える。14 のサブコマンドはすべて同じ導出を共有していて、CLI・MCP サーバー・公開 API は同じ答えの別の入口である。
+`koyu` takes one `.muro` file, composes it, and answers a question about it. All 14 subcommands share the same derivations; the CLI, the MCP server, and the public API are different entrances to the same answers.
 
-## 走らせ方
+## Running it
 
 ```sh
 koyu check examples/two-rooms.muro
 ```
 
-パッケージ (`@kensnzk/koyu`) を入れると `koyu` と `koyu-mcp` の二つの実行ファイルが入る。動作環境は Node 22 以上である。
+Installing the package (`@kensnzk/koyu`) gives you two executables, `koyu` and `koyu-mcp`. It needs Node 22 or later.
 
-リポジトリの中から直接走らせるなら次の二つが同じ意味を持つ。**この頁と、この下のコマンド別の頁に貼られている出力は、すべてリポジトリのルートで実際に実行して得たものである。**
+From inside the repository the following two are equivalent. **Every piece of output on this page and on the per-command pages below was obtained by actually running the command at the root of the repository.**
 
 ```sh
 npx tsx src/cli.ts check examples/two-rooms.muro
 npm run koyu -- check examples/two-rooms.muro
 ```
 
-**人向けの出力は英語である。**機械が読む面 (診断・Finding・MCP) と同じ言葉に揃えてあり、ロケールを切り替える引数は無い。同じ文言の台帳を二つ持たないためである。
+**The human-facing output is in English.** It uses the same words as the machine-facing surfaces (diagnostics, findings, MCP), and there is no argument to switch locale — so that the same wording is never maintained in two ledgers.
 
-## 共通のかたち
+## The common shape
 
 ```text
 koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <entry.muro> [args...]
 ```
 
-**渡すのは常に entry のファイルパス一つである。**`import` で層に割った建物でも、base 層のファイル (`examples/house/main.muro` など) だけを渡す。合成は毎回ゼロから行われ、途中の状態はどこにも保存されない。
+**What you pass is always one path, the entry.** Even for a building split into layers with `import`, pass only the base layer's file (`examples/house/main.muro`, say). Composition happens from scratch on every run, and no intermediate state is stored anywhere.
 
-例外は [`diff`](diff.md) だけで、そこでは二つ目のファイルパスを続けて取る。
+[`diff`](diff.md) is the one exception: it takes a second file path after the first.
 
-## entry と import の解決
+## The entry, and how import resolves
 
-`import` の相対パスは、**その `import` 行が書かれているファイルからの相対**で解決される。entry からの相対でもカレントディレクトリからの相対でもない。だから base 層のファイルだけを別の場所へコピーしても合成できない (`Cannot read file: ./assets.muro` になる)。
+An `import` path resolves **relative to the file the `import` line is written in** — not relative to the entry, and not relative to the working directory. So copying just the base layer's file somewhere else will not compose; you get `Cannot read file: ./assets.muro`.
 
-割られた層の一枚を単体で渡すと落ちる。その層には `grid` も `level` も無いからである。
+Passing one of the split layers on its own dies, because that layer has neither `grid` nor `level`.
 
 ```sh
 npx tsx src/cli.ts check examples/house/L1.muro
@@ -48,25 +48,25 @@ npx tsx src/cli.ts check examples/house/L1.muro
 ✖ <absolute path>/examples/house/L1.muro:line 3: Undeclared level: level:L1
 ```
 
-(`<absolute path>` は解決済みの絶対パスを略した表記である。実際の出力にはフルパスが出る。)
+(`<absolute path>` stands in for the resolved absolute path; the real output prints it in full.)
 
-合成に参加した層とその強度順序は [`koyu layers`](layers.md) が見せる。
+[`koyu layers`](layers.md) shows which layers took part and in what strength order.
 
-## 終了コードの読み方
+## Reading the exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 成功 — 問いの答えが「はい」 |
-| 1 | 失敗 — エラーがある / 不足している / 到達できない、あるいは入力が構文・合成エラーで読めなかった |
-| 2 | 呼び方が違う — 引数が足りない、未知のサブコマンド、未宣言のレベル名、読めない数値 |
+| 0 | Success — the answer to the question is yes |
+| 1 | Failure — there are errors, something is missing, it cannot be reached, or the input could not be read because of a syntax or composition error |
+| 2 | You called it wrong — a missing argument, an unknown subcommand, an undeclared level name, an unreadable number |
 
-**`2` は「あなたの書いたモデル」ではなく「あなたの打ったコマンド」の問題である。**`0` と `1` が具体的に何を意味するかはサブコマンドごとに違うので、各頁の終了コード表を見る。とくに [`diff`](diff.md) だけは `0` = 差分なし・`1` = 差分あり・`2` = 入力が壊れているという別の流儀を持つ。
+**`2` is a problem with the command you typed, not with the model you wrote.** What `0` and `1` mean concretely differs per subcommand, so read the exit-code table on each page. [`diff`](diff.md) in particular has its own convention: `0` = no difference, `1` = differences, `2` = the input is broken.
 
-呼び方の問題を終了コード 0 で通さないことは意図された規律である。読めない縮尺を渡したときに `width="NaN"` の SVG を書いて「生成しました」と言うようなことはしない。
+Never letting a calling mistake pass with exit 0 is deliberate. Handing in an unreadable scale does not produce a `width="NaN"` SVG announced as "generated".
 
-## --help は無い
+## There is no --help
 
-**`--help` というフラグは実装されていない。**サブコマンド名かファイルパスを欠いた呼び出しが使い方を印字するが、それは「呼び方が違う」経路であり、**終了コードは 2 になる。**`--help` と打った場合も、`--help` がサブコマンド名・ファイルパスの位置を埋めないので同じ経路を通る。
+**No `--help` flag is implemented.** A call that omits the subcommand name or the file path prints usage, but that is the "you called it wrong" path, and **the exit code is 2**. Typing `--help` takes the same path, because `--help` does not fill the subcommand and file-path positions.
 
 ```sh
 npx tsx src/cli.ts --help
@@ -80,9 +80,9 @@ Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|l
   diff:  koyu diff <a.muro> <b.muro> [--json] — the difference in the language of composition (0=no difference / 1=differences / 2=the input is broken)
 ```
 
-**この使い方の表示は網羅していない。**四つのサブコマンドしか触れておらず、[`plan`](plan.md) の `-l` / `-o` も、[`axo`](axo.md) の六つの旗も、[`doors`](doors.md) の二つのパス引数も書かれていない。各コマンドの旗は、それぞれの頁が全部を書き下している。
+**That usage text is not exhaustive.** It mentions four subcommands only. [`plan`](plan.md)'s `-l` / `-o`, [`axo`](axo.md)'s six flags, and [`doors`](doors.md)'s two path arguments are all absent from it. Each command's page below writes out every flag it has.
 
-未知のサブコマンドも終了コード 2 である。
+An unknown subcommand is also exit 2.
 
 ```sh
 npx tsx src/cli.ts frobnicate examples/two-rooms.muro
@@ -92,37 +92,37 @@ npx tsx src/cli.ts frobnicate examples/two-rooms.muro
 Unknown command: frobnicate
 ```
 
-## 14 のサブコマンド
+## The 14 subcommands
 
-| コマンド | 何に答えるか | 旗 | 終了コード |
+| Command | What it answers | Flags | Exit codes |
 |---|---|---|---|
-| [`check`](check.md) | 書かれたものはデータとして矛盾していないか | `--json` `--strict` | 0 / 1 |
-| [`validate`](validate.md) | 建築として妥当か (check の保証ではない) | `--json` | 0 / 1 |
-| [`layers`](layers.md) | どの層が合成に参加し、どの値をどこが与えたか | `--attrs` | 0 / 1 |
-| [`diff`](diff.md) | この編集で構成の何が変わったか | `--json` | 0 / 1 / 2 |
-| [`plan`](plan.md) | 平面図 (SVG) | `-l` `-o` | 0 / 1 / 2 |
-| [`axo`](axo.md) | 軸測図 (SVG) | `-o` `-d` `-l` `-s` `--no-walls` `--ceilings` | 0 / 1 / 2 |
-| [`doors`](doors.md) | そこからそこへ、扉を何枚通るか | — | 0 / 1 / 2 |
-| [`graph`](graph.md) | この空間は何と、どう繋がっているか | — | 0 / 1 |
-| [`stats`](stats.md) | 面積はいくつか | — | 0 / 1 |
-| [`levels`](levels.md) | 高さはどう積み上がっているか | — | 0 / 1 |
-| [`runs`](runs.md) | 縦動線はどう導かれたか | — | 0 / 1 |
-| [`light`](light.md) | 採光の対象は 1/7 を満たすか | — | 0 / 1 |
-| [`site`](site.md) | 敷地面積・接道・建蔽率・容積率 | — | 0 / 1 |
-| [`json`](json.md) | 機械が読む正準 JSON | — | 0 / 1 |
+| [`check`](check.md) | Does what is written hold together as data | `--json` `--strict` | 0 / 1 |
+| [`validate`](validate.md) | Is it sound as architecture (not what check guarantees) | `--json` | 0 / 1 |
+| [`layers`](layers.md) | Which layers composed, and which layer gave which value | `--attrs` | 0 / 1 |
+| [`diff`](diff.md) | What did this edit change about the composition | `--json` | 0 / 1 / 2 |
+| [`plan`](plan.md) | The plan drawing (SVG) | `-l` `-o` | 0 / 1 / 2 |
+| [`axo`](axo.md) | The axonometric (SVG) | `-o` `-d` `-l` `-s` `--no-walls` `--ceilings` | 0 / 1 / 2 |
+| [`doors`](doors.md) | How many doors from here to there | — | 0 / 1 / 2 |
+| [`graph`](graph.md) | What is this space next to, and how | — | 0 / 1 |
+| [`stats`](stats.md) | What are the areas | — | 0 / 1 |
+| [`levels`](levels.md) | How do the heights stack up | — | 0 / 1 |
+| [`runs`](runs.md) | How was the vertical circulation derived | — | 0 / 1 |
+| [`light`](light.md) | Do the rooms in daylight scope meet 1/7 | — | 0 / 1 |
+| [`site`](site.md) | Site area, frontage, coverage, floor area ratio | — | 0 / 1 |
+| [`json`](json.md) | The canonical JSON a machine reads | — | 0 / 1 |
 
-どのコマンドも、サブコマンド名かファイルパスを欠いて呼べば使い方を印字して終了コード 2 を返す。上の表はその共通の 2 を省いてある。
+Every command prints usage and returns exit 2 if the subcommand name or the file path is missing. The table above omits that shared 2.
 
-## 二つの緑を混同しない
+## Do not conflate the two greens
 
-`check` が緑であることと、建物として使えることは別である。接する空間の既定は壁なので、扉を一枚も宣言しない二階建ては `check` が緑のまま完全に密封される。`check` が言うのは「書かれたものがデータとして矛盾していない」までで、建築的な妥当性は [`validate`](validate.md) が別に言う。
+A green `check` and a usable building are different things. The default between touching spaces is a wall, so a two-storey building that declares no door at all stays green in `check` while being perfectly sealed. `check` says only that what is written holds together as data; architectural soundness is what [`validate`](validate.md) says, separately.
 
-型からして別である。`check` が返すのは `Diagnostic { code, severity }`、`validate` が返すのは `Finding { rule, level }` で、綴りも違えば連結もできない。CI に置くなら両方を置く — その組み方は [CI で門番にする](ci.md) にある。
+They differ down to the type. `check` returns `Diagnostic { code, severity }`; `validate` returns `Finding { rule, level }`. The spellings differ and the two arrays cannot be concatenated. Put both in CI — how to wire them up is on [Gating CI](ci.md).
 
-## 関連
+## See also
 
-- [CI で門番にする](ci.md) — どのコマンドをどの終了コードで落とすか
-- [VS Code 拡張](editor.md) — 保存のたびに `check` を走らせる
-- [koyu-mcp](../mcp/index.md) — エージェント向けの同じ導出
-- [公開 API](../api/index.md) — プログラムから同じ導出を呼ぶ
-- [.muro リファレンス](../muro/index.md) — 渡すファイルの書き方
+- [Gating CI](ci.md) — which command to fail the build on, and at which exit code
+- [The VS Code extension](editor.md) — running `check` on every save
+- [koyu-mcp](../mcp/index.md) — the same derivations for agents
+- [The public API](../api/index.md) — the same derivations from a program
+- [.muro reference](../muro/index.md) — how to write the file you pass in

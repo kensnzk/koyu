@@ -1,19 +1,19 @@
 ---
-title: よくある詰まり
+title: Common traps
 mode: howto
 ---
 
-# よくある詰まり
+# Common traps
 
-**十三個ある。**新しく書き始めた人がぶつかるものを、原因と直し方まで通して書く。
+**There are thirteen.** These are what people hit when they start writing, worked through from cause to fix.
 
-出たメッセージから引きたいだけなら[症状から診断を引く](by-symptom.md)が索引である。この頁は、そこから飛んでくる先である。
+If all you want is to look up a message, [Look up a diagnostic by symptom](by-symptom.md) is the index. This page is where it sends you.
 
-以下の出力は実際に走らせて得たものである。出所の絶対パスはファイル名だけに縮めてある。
+Every output below was actually run. Absolute paths in the position prefix have been shortened to the file name.
 
-## 1. 通り名が未定義だと言われる
+## 1. Undefined grid line name
 
-`grid` は**宣言の順序が効く数少ない行**である。`boundary` は空間を前方参照してよいが、`grid` と `level` は使う行より前になければならない。
+`grid` is **one of the few lines whose declaration order matters.** A `boundary` may refer forward to a space, but `grid` and `level` must come before the lines that use them.
 
 ```muro-bad
 level L1 0
@@ -24,7 +24,7 @@ space /L1/a room X1..X2 Y1..Y2
 ✖ nogrid.muro:line 2: Undefined grid line name: X1
 ```
 
-順序だけの誤りでも、文言は同じである。
+Getting only the order wrong gives the same wording.
 
 ```muro-bad
 space /L1/a room X1..X2 Y1..Y2
@@ -37,7 +37,7 @@ level L1 0
 ✖ order.muro:line 1: Undefined grid line name: X1
 ```
 
-**直し方。**基盤の宣言をファイルの先頭にまとめる。層を重ねているなら入口 (entry) に置く。
+**The fix.** Gather the groundwork declarations at the top of the file. When composing layers, put them in the entry.
 
 ```muro-part
 grid X 0 3600
@@ -45,11 +45,11 @@ grid Y 0 4000
 level L1 0
 ```
 
-`X5` のように存在しない通り名を書いたときも同じ文言になる。`grid X 0 3600 7200` が作る通りは `X1` `X2` `X3` の三本だけである。
+Writing a grid name that does not exist, such as `X5`, gives the same wording. `grid X 0 3600 7200` makes exactly three lines: `X1`, `X2`, `X3`.
 
-## 2. 接していないと言われる
+## 2. The spaces do not touch
 
-角で触れているだけの二室は接していない。境界の壁芯線分は矩形の**共有辺**として導かれるので、長さのある辺を共有していなければ線分が出てこない。
+Two rooms that meet at a corner do not touch. A boundary's centre-line segment is derived as the **shared edge** of the rectangles, so without a shared edge that has length, no segment comes out.
 
 ```muro-bad
 grid X 0 3600 7200
@@ -64,7 +64,7 @@ boundary /L1/a /L1/b t:120
 ✖ corner.muro:line 6: The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b
 ```
 
-二つの矩形はこうなっている。
+The two rectangles sit like this.
 
 ```text
         X1        X2        X3
@@ -75,13 +75,13 @@ boundary /L1/a /L1/b t:120
   Y1     +---------+
 ```
 
-`●` が唯一の接点で、長さがゼロである。
+`●` is the only contact, and it has zero length.
 
-**直し方。**どちらかの矩形を伸ばして辺を共有させるか、その `boundary` 行を消す。
+**The fix.** Extend one of the rectangles so an edge is shared, or delete the `boundary` line.
 
-## 3. 辺を選べと言われる
+## 3. Pick an edge
 
-室の外周のうち、他の空間と接していない残りが外部との境界になる。角の室なら南と西のように**複数の辺に割れる**ので、開口をどこに置くかが決まらない。
+Whatever is left of a room's perimeter after the other spaces have taken their share becomes the boundary to the exterior. For a corner room that **splits across several edges** — south and west, say — and there is no way to decide where the opening goes.
 
 ```muro-bad
 grid X 0 3600
@@ -97,18 +97,18 @@ boundary /L1/living /out t:150
 ✖ edge.muro:line 7: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/living | /out)
 ```
 
-**直し方。**外壁に開口を置くときは `edge:` で辺を選ぶ。
+**The fix.** Pick the edge with `edge:` when placing an opening in an exterior wall.
 
 ```muro-part
 boundary /L1/living /out t:150
   door w:900 edge:S
 ```
 
-方角は**最初に書いた空間の矩形から見る。**`N`=+Y (北)・`S`=−Y (南)・`E`=+X (東)・`W`=−X (西)。X は東が正、Y は北が正である。境界行そのものを一つの辺に限定したいときは `boundary` 側に `edge:` を書く。
+Compass directions are read **from the rectangle of the space written first**: `N`=+Y, `S`=−Y, `E`=+X, `W`=−X. X is positive to the east and Y to the north. To confine the boundary line itself to one edge, write `edge:` on the `boundary`.
 
-## 4. 領域の書き方を叱られる
+## 4. A region is given as two ranges
 
-領域は**二つの範囲**である — X 系で一つ、Y 系で一つ。片方しか書かなければこう言われる。
+A region is **two** ranges — one on X and one on Y. Write only one and you get this.
 
 ```muro-bad
 grid X 0 3600
@@ -121,17 +121,17 @@ space /L1/a room X1..X2
 ✖ region.muro:line 4: A region is given as two ranges, X?..X? and Y?..Y?
 ```
 
-**直し方。**もう一方の軸の範囲を書く。
+**The fix.** Write the range on the other axis too.
 
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2
 ```
 
-**型を書き忘れたのではない。**型は任意である ([space](../reference/muro/space.md))。`space /L1/a X1..X2 Y1..Y2` は型を持たない空間として通る — 型は自由なラベルであって、ツールはそこを読まない。
+**A forgotten type is not the cause.** The type is optional ([space](../reference/muro/space.md)): `space /L1/a X1..X2 Y1..Y2` passes as a space with no label. The type is a free word and no tool reads it.
 
-## 5. 領域が重なっていると言われる
+## 5. Space regions overlap
 
-住戸を室に割るときの定番である。`space` は領域を持つので、領域を持つ親の下に領域を持つ子を置けば必ず重なる。
+The classic trap when dividing a dwelling unit into rooms. A `space` holds a region, so a child with a region under a parent with a region always overlaps.
 
 ```muro-bad
 grid X 0 3600 7200
@@ -145,7 +145,7 @@ space /L1/home/ldk ldk X1..X2 Y1..Y2 name:LDK
 ✖ overlap.muro:line 4: Space regions overlap: /L1/home and /L1/home/ldk
 ```
 
-**直し方。**くくりは `zone` で書く。ゾーンは幾何を持たず、パス接頭辞で配下を束ねるだけなので重ならない。住戸の面積はゾーンが配下から合計する。
+**The fix.** Write the grouping as a `zone`. A zone holds no geometry — it gathers members by path prefix — so nothing can overlap. The unit's area is summed from its members.
 
 ```muro
 grid X 0 3600 7200
@@ -160,9 +160,9 @@ space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
 ✔ Consistent — 2 spaces / 1 boundary
 ```
 
-割るか割らないかの判断そのものは[数える分節と数えない分節](uncounted-divisions.md)にある。
+Deciding whether to divide at all is on [Counted and uncounted divisions](uncounted-divisions.md).
 
-## 6. 未定義の空間を参照していると言われる
+## 6. References an undefined space
 
 ```muro-bad
 grid X 0 3600 7200
@@ -177,11 +177,11 @@ boundary /L1/a /L1/bath t:120
 ✖ ref.muro:line 6: References an undefined space: /L1/bath
 ```
 
-**直し方。**パスの綴りを直す。層を重ねているときは、**その空間を宣言した層を `import` しているか**も確かめる。エラーは常に出所の層の名つきで返るので、どの層から見えていないのかが読める。
+**The fix.** Correct the path. When composing layers, also check **whether the layer declaring that space is imported.** The error always names the layer it came from, so you can read which layer cannot see it.
 
-## 7. レベルが特定できないと言われる
+## 7. The level cannot be determined
 
-**パスの先頭に `/L1/` と書いても、レベルを宣言したことにはならない。**`level` 行が別に要る。
+**Writing `/L1/` at the head of a path does not declare a level.** A `level` line is required separately.
 
 ```muro-bad
 grid X 0 3600
@@ -193,9 +193,9 @@ space /L1/a room X1..X2 Y1..Y2
 ✖ nolevel.muro:line 3: /L1/a has a region, but its level cannot be determined (give it at the head of the path or with level:)
 ```
 
-メッセージはパスの書き方を指しているが、直すのは足りない `level` 行である。severity は `error` で終了コードは 1 — レベルが決まらなければ z が決まらず、この空間からは立体が一つも生成されない。
+The message points at path spelling, but what needs fixing is the missing `level` line. Its severity is `error` and the exit code is 1 — with no level there is no z, and not one solid comes out of that space.
 
-**直し方。**`level` 行を足す。ただし**その `level` を使う `space` 行より前に置く。**後ろに置くと同じエラーが出たままである。
+**The fix.** Add the `level` line, **before the `space` lines that use it.** Put it after and the same error stays.
 
 ```muro-part
 grid X 0 3600
@@ -204,11 +204,11 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
-パスの先頭でレベルを表さない書き方 (`/home/bed1` のように用途で束ねる) をするときは、空間側に `level:L1` を書く。
+When paths do not carry the level at their head — grouping by use, as in `/home/bed1` — write `level:L1` on the space instead.
 
-## 8. plan がスタックトレースを吐く
+## 8. plan throws a stack trace
 
-**`check` が緑でも `plan` は落ちることがある。**描画は `check` の検査対象ではない。
+**A green `check` does not stop `plan` from failing.** Drawing is not what `check` inspects.
 
 ```sh
 koyu plan nolevel.muro -o out.svg
@@ -218,25 +218,25 @@ koyu plan nolevel.muro -o out.svg
 Error: No level is defined
 ```
 
-原因は `level` 行が一つも無いこと。`level L1 0 h:2400 slab:150` を足す。
+The cause is that there is no `level` line at all. Add `level L1 0 h:2400 slab:150`.
 
-宣言されたレベルはあるのに落ちるときは、**そのレベルに領域を持つ空間が一つも無い。**
+When levels are declared and it still fails, **no space on that level has a region.**
 
 ```text
 Error: There is no space with a region on level R
 ```
 
-一方、レベル名そのものを間違えたときは、スタックトレースではなく呼び方の問題として返る。**レベル名は大文字小文字を区別する。**
+Getting the level *name* wrong, on the other hand, comes back as a problem with how you called it rather than a stack trace. **Level names are case-sensitive.**
 
 ```text
 Undeclared level: l2 (declared: L1 L2 R)
 ```
 
-終了コードは 2 で、宣言済みのレベル名が併せて印字される。`koyu levels` でも確かめられる。
+The exit code is 2 and the declared level names are printed alongside. `koyu levels` shows them too.
 
-## 9. 緑なのに外へ出られない
+## 9. Green, and no way out
 
-接する空間の間には、宣言が無ければ**扉のない壁**が導かれる。**扉は自動では付かない。**外皮と階段だけ宣言した二階建ては、`check` が緑のまま全室が密閉される。
+Between touching spaces, a **wall with no door** is derived when nothing is declared. **Doors are never added automatically.** A two-storey house with only the envelope and the stair declared seals every room while `check` stays green.
 
 ```muro
 koyu 1.1
@@ -260,7 +260,7 @@ boundary /L1/b /out t:150 spec:EW edge:E
 Cannot reach /out from /L1/a
 ```
 
-`graph` を見ると、書いていない壁が見える。
+`graph` shows the walls nobody wrote.
 
 ```text
 /L1/a (居室A)
@@ -274,20 +274,20 @@ Cannot reach /out from /L1/a
   | wall → /L1/b  (spec:EW)
 ```
 
-`spec:` の付いていない `| wall` の行が、導出された既定の壁である。
+The `| wall` lines without a `spec:` are the walls that were derived by default.
 
-**直し方。**通したい組に `boundary` を書き、字下げで `door` を置く。宣言すると、その組の既定の導出は止まる。
+**The fix.** Write a `boundary` for the pair you want passable, and indent a `door` under it. Declaring one stops the default derivation for that pair.
 
 ```muro-part
 boundary /L1/a /L1/b t:120 spec:LGS
   door w:800
 ```
 
-「到達できません」は、**起点か終点のパスが存在しないときにも同じ文言で返る。**まず `graph` で綴りを確かめる。
+"Cannot reach" **comes back with identical wording when the start or end path does not exist.** Check the spelling with `graph` first.
 
-## 10. 緑なのに外皮が無い
+## 10. Green, and no envelope
 
-既定の壁が導かれるのは、**領域を持つ空間どうし**が接している組だけである。`/out` のような領域を持たない空間との組には導出されない — どの外部に面しているかは名指しが情報だからである。
+Default walls are derived only for pairs where **both spaces have regions.** Nothing is derived against a space with no region, such as `/out` — which exterior a room faces is information that has to be named.
 
 ```muro
 grid X 0 3600 7200
@@ -301,15 +301,15 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
 ✔ Consistent — 2 spaces / 1 boundary
 ```
 
-境界一本は室の間の既定の壁で、外周には一枚も壁が無い。それでも緑である。
+That one boundary is the default wall between the rooms; the perimeter has none at all. It is still green.
 
-`validate` はこれを見ている。上の 9 の例に対する返りはこうなる。
+`validate` does look at this. Against the example in trap 9 it returns:
 
 ```text
 ⚠ [envelope.gap] sealed.muro:line 7: Perimeter not faced by any envelope: /L1/a — S 3600mm / N 3600mm (7200mm over 2 run(s)). Write a boundary to the exterior
 ```
 
-**直し方。**外部空間を宣言し、外周の室から一本ずつ境界を書く。外部は方角や性格ごとに割っておくと `edge:` の指定が楽になり、敷地の問いも立てられるようになる。
+**The fix.** Declare an exterior space and write one boundary from each perimeter room. Splitting the exterior by direction or character makes `edge:` easier to write and opens up the site questions.
 
 ```muro-part
 space /out name:外部 outside:1
@@ -317,24 +317,24 @@ boundary /L1/a /out t:150 spec:EW
 boundary /L1/b /out t:150 spec:EW
 ```
 
-**内壁は自動、外壁は手書き。**この非対称は意図されたものである。
+**Interior walls automatic, exterior walls by hand.** The asymmetry is deliberate.
 
-## 11. 属性が効かない
+## 11. An attribute has no effect
 
-台帳に無い属性キーは、名前空間が無ければ**エラーになる。**黙って通ることはない。
+An attribute key that is not in the ledger and has no namespace **is an error.** It never passes silently.
 
 ```text
 ✖ att.muro:line 4: /L1/bath carries nmae:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.nmae:浴室)
 ```
 
-一方、**型 (`space` の第2位置引数) は開かれた語彙**であり、しかも任意である。koyu はこの位置を一切読まないので、どの語も自由語として運ばれ、検査も警告もされない。
+The **type** (the second positional argument of `space`), by contrast, **is an open vocabulary.** Only two types are read structurally; everything else is carried as a free word, unchecked and unwarned.
 
-| 型 | 解釈 |
+| Type | Interpretation |
 |---|---|
-| `exterior` | 外部。領域なしで書ける。床面積に算入しない |
-| `void` | 吹抜け。床面積に算入せず、通行もしない |
+| `exterior` | Exterior. May be written without a region. Not counted as floor area |
+| `void` | A void. Not counted as floor area, and not passable |
 
-`hall` も `wet` も `room` も `ldk` も自由語である。**採光の対象になるかどうかも型では決まらない。**`daylight:1` を書いた室だけが判定に入る。
+`hall`, `wet`, `room` and `ldk` are all free words. **Nor does the type decide whether a room is judged for daylight.** Only rooms written with `daylight:1` enter the judgement.
 
 ```muro-part
 space /L1/bath wet X1..X2 Y1..Y2 name:浴室 daylight:1
@@ -345,29 +345,29 @@ space /L1/bath wet X1..X2 Y1..Y2 name:浴室 daylight:1
 ✖ Short of 1/7: 1 of 1 room (this is a validation judgement)
 ```
 
-`daylight:1` を落とすと、型を一字も変えずに判定から外れる。
+Drop the `daylight:1` and it leaves the judgement without one character of the type changing.
 
 ```text
 Nothing is in daylight scope (write daylight:1 on the rooms to be judged)
 ```
 
-**直し方。**書ける属性の一覧は[属性の三層](../reference/muro/attributes.md)にある。どの層がその値を与えたかは `koyu layers --attrs` が印字する。
+**The fix.** The list of writable attributes is on [The three attribute tiers](../reference/muro/attributes.md). Which layer supplied a value is printed by `koyu layers --attrs`.
 
-## 12. 空のファイルも緑になる
+## 12. An empty file is green too
 
 ```text
 ✔ Consistent — 0 spaces / 0 boundaries
 ```
 
-`check` が見るのは「書かれた構成が成立しているか」だけである。**緑は「書けている」ことの証拠ではない。**
+All `check` looks at is whether the written composition stands. **Green is not evidence that anything got written.**
 
 ```text
 Total 0.00 m2 (indoor floor area)
 ```
 
-**直し方。**中身は `stats` (面積)・`graph` (隣接)・`doors` (動線)・`light` (採光)・`site` (敷地) で見る。
+**The fix.** Look inside with `stats` (areas), `graph` (adjacency), `doors` (circulation), `light` (daylight) and `site` (the site).
 
-## 13. 境界の数が二つの場所で違う
+## 13. Two places give different boundary counts
 
 ```text
 ✔ Consistent — 2 spaces / 1 boundary
@@ -377,14 +377,14 @@ Total 0.00 m2 (indoor floor area)
   "boundaries": []
 ```
 
-**同じファイルの結果である。**`check` は導出後のモデルの本数を数え、正準 JSON は**書かれた構成だけ**を保存する。既定境界は正準 JSON に出ない。
+**These are the same file.** `check` counts the composed model; canonical JSON stores **only what was written.** Default boundaries do not appear in canonical JSON.
 
-食い違いではなく、二つの層の役割の違いである。正準 JSON から意味を読む側は `deriveDefaultBoundaries` を適用してから読む。導出後の姿を見たいときは `graph` が答える。
+It is not a contradiction but a difference of role between two layers. A reader taking meaning out of canonical JSON applies `deriveDefaultBoundaries` first. To see the composed picture, `graph` answers.
 
-## 関連
+## Related
 
-- [症状から診断を引く](by-symptom.md) — 症状の索引
-- [診断コード索引](../reference/diagnostics/index.md) — コードから引く 65 件の全目録
-- [数える分節と数えない分節](uncounted-divisions.md) — 5 の判断そのもの
-- [属性の三層](../reference/muro/attributes.md) — 11 で照合する台帳
-- [約束の範囲](../reference/scope.md) — 9・10・12・13 に共通する理由
+- [Look up a diagnostic by symptom](by-symptom.md) — the symptom index
+- [Diagnostic code index](../reference/diagnostics/index.md) — all 65, looked up by code
+- [Counted and uncounted divisions](uncounted-divisions.md) — the judgement behind trap 5
+- [The three attribute tiers](../reference/muro/attributes.md) — the ledger to check against in trap 11
+- [The scope of the promise](../reference/scope.md) — the reason shared by traps 9, 10, 12 and 13

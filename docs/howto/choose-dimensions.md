@@ -1,52 +1,52 @@
 ---
-title: 書く前に寸法を決める
+title: Choose dimensions before you write
 mode: howto
 ---
 
-# 書く前に寸法を決める
+# Choose dimensions before you write
 
-グリッド・コア断面・貸室デプスを先に決めてから空間を書く。逆にすると `check` は通るが建物にならない。
+Settle the grid, the core section and the tenancy depth first, then write the spaces. Do it the other way round and `check` will pass something that is not a building.
 
-**この頁は koyu の意味論ではない。**ここに並ぶ数字は、実在の機器カタログと日本の設計慣行から取った**設計の知見**であって、記法の規則でも処理系の保証でもない。[`koyu check`](../reference/cli/check.md) は整合を守るが**寸法の現実性は守らない** — 幅2mのエレベーターも奥行30mの貸室も緑になる。別の慣行で設計するなら、この表ごと差し替えてよい。
+**This page is not koyu semantics.** The numbers below are **design knowledge**, taken from real product catalogues and from Japanese design practice. They are not rules of the notation and not guarantees of the implementation. [`koyu check`](../reference/cli/check.md) protects consistency and **says nothing about whether a dimension is realistic** — a 2m-wide lift and a 30m-deep tenancy both come out green. If you design against a different set of conventions, replace this whole table.
 
-## 順序
+## The order
 
-1. **グリッドを選ぶ。**事務所・商業なら 8,400 が既定値になる。
-2. **コアの断面を置く。**シャフト 2,400 + 背面帯 1,800 + 乗場ホール 4,200 の三層で読む。
-3. **貸室デプスを決める。**コアから窓まで 8.4〜12.6m に収める。
-4. **階高を決める。**事務所基準階は 4,200 = 天井 2,800 + 懐 1,400。
-5. **そこではじめて `space` を書く。**
+1. **Pick the grid.** For offices and retail, 8,400 is the default.
+2. **Lay out the core section.** Read it as three bands: shaft 2,400 + service zone 1,800 + lift lobby 4,200.
+3. **Settle the tenancy depth.** Core to window, 8.4–12.6m.
+4. **Settle the storey height.** A typical office floor is 4,200 = ceiling 2,800 + service void 1,400.
+5. **Only now write `space`.**
 
-## 構造グリッド
+## Structural grid
 
-| 部位 | 値 | 根拠 |
+| Item | Value | Why |
 |---|---|---|
-| 事務所・商業の基本スパン | **8,400** | 日本の大規模オフィスの最頻値 (6.4〜9.6m の中庸)。駐車3台 (2,800×3) とも割り切れる |
-| 大スパン (宴会場・無柱) | 16,800〜25,200 | 基本スパンの2〜3倍で梁成を現実に収める |
-| 柱寸法 | 低層 1,000 → 高層 700 角 | 階を追って絞る |
+| Basic bay, office and retail | **8,400** | the modal bay in large Japanese offices (the middle of 6.4–9.6m); also divides into three 2,800 parking bays |
+| Long span (banqueting, column-free) | 16,800–25,200 | two or three basic bays keeps the beam depth realistic |
+| Column size | 1,000 low, tapering to 700 square high | narrowed as the building rises |
 
-同梱の `examples/twin/` は全体が 8,400 のグリッドに載っている。
+The bundled `examples/twin/` sits entirely on an 8,400 grid.
 
-## 縦動線
+## Vertical circulation
 
-| 部位 | 値 | 根拠 |
+| Item | Value | Why |
 |---|---|---|
-| エレベーター 1600kg級 かご | 2,150W × 1,600D | 実在の乗用機の標準寸法 |
-| 同 昇降路 (シャフト) 1台 | 2,800W × 2,400D | かご + カウンターウェイト + 躯体余裕 |
-| **3室並び = 8,400 = 1スパン** | 2,800 × 3 | 台数計画がそのままグリッドに乗る |
-| 乗場ホール (対面バンク) | 幅 4,200 | 片側バンクなら 2,700〜3,500 |
-| シャフト背面帯 | 1,800 | EPS・PS・DS を収める設備帯 |
-| 台数の目安 | 事務所 3,000〜4,000㎡/台、ホテル 100室/台 | 交通計算の初期値 |
-| エスカレーター | 幅1,200機。長さ ≒ 階高 × √3 (階高6,900 で 12,000) | 30°勾配。乗降場各2,000を足す |
-| 車路スロープ | 幅 6,000 (すれ違い) / 勾配 1/6 まで | 階高4,200なら水平長 25,200 = 3スパン |
+| 1600kg lift car | 2,150W × 1,600D | the standard size of a real passenger machine |
+| Its shaft, one car | 2,800W × 2,400D | car + counterweight + structural tolerance |
+| **Three side by side = 8,400 = one bay** | 2,800 × 3 | the traffic calculation lands straight on the grid |
+| Lift lobby, facing banks | 4,200 wide | a single bank wants 2,700–3,500 |
+| Service band behind the shafts | 1,800 | holds the electrical, plumbing and duct risers |
+| Rule of thumb for car count | office 3,000–4,000 m²/car, hotel 100 rooms/car | starting values for traffic analysis |
+| Escalator | 1,200 wide; length ≈ storey height × √3 (12,000 for a 6,900 storey) | 30° pitch; add 2,000 at each landing |
+| Vehicle ramp | 6,000 wide for two-way, up to 1:6 | a 4,200 rise wants 25,200 of run — three bays |
 
-**シャフトは1機=1室で書く。**束ねると平面が EV 室の実態を失う。
+**Write one shaft per car, one car per space.** Bundle them and the plan loses what a lift room actually is.
 
-## 階段室の大きさは、段の形を決める
+## The size of the stair enclosure decides the step
 
-段数も踏面も書かない。書くのは階段室の大きさで、[`koyu runs`](../reference/cli/runs.md) がそこから段を出す。**踏面は 300mm を目標に導かれ、余りは踊り場が吸う。**階段室が短いと目標に届かず、踏面が痩せる。
+You do not write riser counts or treads. You write the size of the enclosure, and [`koyu runs`](../reference/cli/runs.md) derives the step from it. **The tread is derived towards a target of 300mm, and the landing absorbs whatever is left over.** Too short an enclosure never reaches the target, and the tread starves.
 
-階高 4,200・幅 2,800・折返しの階段室で、上る向きの奥行だけを変えて `runs` を取ると次になる。
+For a 4,200 rise in a 2,800-wide return stair, varying only the depth in the direction of climb:
 
 ```text
 4000	L1→L2	stair	S	rise 4200mm	return	24 risers of 175mm, tread 164mm	going 3600mm	/L1/s
@@ -57,71 +57,71 @@ mode: howto
 7000	L1→L2	stair	S	rise 4200mm	return	24 risers of 175mm, tread 300mm	going 6600mm	/L1/s
 ```
 
-[`koyu validate`](../reference/cli/validate.md) が窮屈な段を `stair.proportion` (caution) で言う。上の6つのうち、4,000 と 4,600 が捕まり、5,000 以上は通る。
+[`koyu validate`](../reference/cli/validate.md) flags a cramped step as `stair.proportion` (a caution). Of those six, 4,000 and 4,600 are caught; 5,000 and above pass.
 
 ```text
 ⚠ [stair.proportion] s4000.muro:line 11: Derived step dimensions are cramped: 24 risers of 175mm, tread 164mm (2*riser+tread = 514mm; expected 550-700mm)
 ⚠ [stair.proportion] s4600.muro:line 11: Derived step dimensions are cramped: 24 risers of 175mm, tread 218mm (2*riser+tread = 568mm; expected 550-700mm)
 ```
 
-**階高が上がれば必要な奥行も上がる。**同じ幅 2,800 で階高を 6,900 (1階エントランス) にすると、7,000 の奥行でようやく踏面 253mm になる。
+**A taller storey needs a deeper enclosure.** Keep the width at 2,800 and raise the storey to 6,900 — a ground-floor entrance — and 7,000 of depth is what it takes to reach a 253mm tread.
 
 ```text
 L1→L2	stair	S	rise 6900mm	return	39 risers of 177mm, tread 253mm	going 9600mm	/L1/s
 ```
 
-**2,800 × 7,000 が、特別避難階段の塊として置ける実用の寸法である** — `examples/twin/core.muro` の階段はこの寸法で書かれている。
+**2,800 × 7,000 is the workable block for a protected escape stair** — the stairs in `examples/twin/core.muro` are written at exactly that size.
 
-## 断面 (階高)
+## Section (storey heights)
 
-| 部位 | 階高 | 内訳 |
+| Item | Storey height | Made of |
 |---|---|---|
-| 事務所基準階 | **4,200** | 天井 2,800 + 懐 1,400 (`slab:1400` と書く) |
-| 商業 (物販) | 4,800〜6,900 | 天井 3,000〜。1階エントランスは 6,900 (天井 6,000) |
-| ホテル客室・住戸 | 3,200〜4,200 | 事務所と同じ板に載せるなら 4,200 のまま |
-| 機械階 | 4,600〜6,000 | 熱源機器の据付高さ。**客の階数に現れない** (M1/M2 と名付ける) |
-| 地下駐車場 | 3,300 (梁下 2,300+) | `slab:900` |
+| Typical office floor | **4,200** | ceiling 2,800 + service void 1,400 (write `slab:1400`) |
+| Retail | 4,800–6,900 | ceiling from 3,000; the ground-floor entrance at 6,900 (ceiling 6,000) |
+| Hotel room, dwelling | 3,200–4,200 | keep 4,200 if it shares a slab with offices |
+| Plant floor | 4,600–6,000 | the installation height of the machinery. **It does not appear in the storey numbering the public sees** — name them M1, M2 |
+| Basement car park | 3,300 (2,300+ under the beams) | `slab:900` |
 
-階高の積み上がりは [`koyu levels`](../reference/cli/levels.md) が矩計として返す。天井高 + 上階の床組み厚が階高を超えれば `check` が止める。
+[`koyu levels`](../reference/cli/levels.md) prints the stack of storey heights as a section. If ceiling plus the slab above exceeds the storey height, `check` stops you.
 
-## 平面の割り
+## Grain of the plan
 
-| 部位 | 値 | 根拠 |
+| Item | Value | Why |
 |---|---|---|
-| 事務所貸室デプス (コア→窓) | **8.4〜12.6m** | 標準 9〜13m。18m を超すと執務環境も構造も破綻する |
-| ホテル客室 | 幅 4,200 × 奥行 8,400 ≈ 35㎡ | **幅 = スパンの 1/2** で割り切る |
-| 共同住宅住戸 | 幅 8,400 (1スパン) × 奥行 10〜12m | 70〜90㎡ ファミリー |
-| 廊下 (中廊下) | 2,400 | 事務所コア内は 2,400〜4,200 |
-| 店舗モール | 幅 8,400 (吹抜含む) | 両側店舗の歩行帯 + 滞留 |
-| 便所ブロック | 1スパンの半分 (4,200 × 8,400)、男女で1スパン | 事務所基準階の標準 |
+| Office tenancy depth, core to window | **8.4–12.6m** | standard is 9–13m; past 18m both the workplace and the structure fall apart |
+| Hotel room | 4,200 wide × 8,400 deep ≈ 35 m² | **width = half a bay** divides cleanly |
+| Apartment | 8,400 wide (one bay) × 10–12m deep | a 70–90 m² family unit |
+| Double-loaded corridor | 2,400 | 2,400–4,200 inside an office core |
+| Retail mall | 8,400 wide including the void | walking zone on both sides plus dwell space |
+| Toilet block | half a bay (4,200 × 8,400); one bay for both sexes | standard on a typical office floor |
 
-## 深い床は採光で落ちる
+## Deep floor plates fail on daylight
 
-**1/7 は面積比なので、床が深くなると窓を大きくしても届かない。**幅 8,400 の板に 5,600 × 2,600 のカーテンウォールを1枚入れ、奥行だけを 10.2m と 16.8m にして [`koyu light`](../reference/cli/light.md) を取ると、
+**One-seventh is a ratio of areas, so past a certain depth no amount of glazing reaches it.** Put a single 5,600 × 2,600 curtain wall panel into an 8,400-wide plate and vary only the depth — 10.2m and 16.8m — then run [`koyu light`](../reference/cli/light.md):
 
 ```text
-✔ /L1/shallow	奥行10.2m	window 14.56 m2 / floor 85.68 m2 = 1/5.9 (needs 1/7 ≈ 12.24 m2)
-✖ /L1/deep	奥行16.8m	window 14.56 m2 / floor 141.12 m2 = 1/9.7 (needs 1/7 ≈ 20.16 m2)
+✔ /L1/shallow	Depth-10200	window 14.56 m2 / floor 85.68 m2 = 1/5.9 (needs 1/7 ≈ 12.24 m2)
+✖ /L1/deep	Depth-16800	window 14.56 m2 / floor 141.12 m2 = 1/9.7 (needs 1/7 ≈ 20.16 m2)
 ✖ Short of 1/7: 1 of 2 rooms (this is a validation judgement)
 ```
 
-**窓面の検算は、区画を決める前に行う。**足りない区画は、住戸にせずラウンジや倉庫に振るという判断もある。手順は [窓を開けて採光を通す](windows-and-daylight.md) にある。
+**Do the window arithmetic before you commit to the unit layout.** A zone that cannot make it is a candidate for a lounge or a store rather than a dwelling. The procedure is in [Open windows and pass the daylight check](windows-and-daylight.md).
 
-## 外皮
+## Envelope
 
-| 部位 | 値 |
+| Item | Value |
 |---|---|
-| カーテンウォール | 1スパン幅 (8,400) × 階高いっぱいの `window` で「その面はガラス」と言う |
-| 大開口エントランス | 4枚引き自動ドア2連 = 7,200 × 5,000 |
-| 住戸掃き出し | 5,600 × 2,600 (`sill:200`) |
-| パラペット + 手すり | `h:1200` / `air:1` — テラス・屋上庭園の縁 |
+| Curtain wall | one bay wide (8,400) × full storey height as a `window` says "that face is glass" |
+| Grand entrance | two four-leaf automatic doors = 7,200 × 5,000 |
+| Dwelling sliding door | 5,600 × 2,600 with `sill:200` |
+| Parapet and balustrade | `h:1200` with `air:1` — the edge of a terrace or roof garden |
 
-**`air:1` を書いた縁が、その空間を半屋外にする。**採光の係数も屋外の判定もそこから導かれる。
+**The edge carrying `air:1` is what makes the space semi-outdoor.** The daylight coefficient and the outdoor test both follow from it.
 
-## 収益床の現実
+## What the rentable ratio really is
 
-- 事務所単用途の**基準階**レンタブル比は 70〜80%。**建物全体では 60〜70%** に落ちる (1階ロビー・機械階が食う)。
-- 巨大複合はさらに下がる。同梱の `examples/twin/` の実測は次のとおりで、延床 141,448.56㎡ に対し収益床 (rentable + exclusive) は 46.8%、駐車場を除いた地上部だけなら 52.2% である。
+- A single-use office **typical floor** runs 70–80% rentable. **Across the whole building it falls to 60–70%** — the ground-floor lobby and the plant floors eat it.
+- A large mixed-use scheme falls further. The bundled `examples/twin/` measures as follows: against 141,448.56 m² of floor area, rentable plus exclusive is 46.8%, and 52.2% of the above-ground part once the car park is set aside.
 
 ```text
 $ npx tsx src/cli.ts stats examples/twin/main.muro
@@ -131,7 +131,7 @@ Semi-outdoor 6534.08 m2 (balconies, external stairs and the like — whether the
 By use: common 60487.47 m2 (42.8%) / parking 14868.00 m2 (10.5%) / rentable 63462.21 m2 (44.9%) / exclusive 2630.88 m2 (1.9%)
 ```
 
-コア2本・機械階2層・ホール・宴会場・屋上緑化テラスが全部 common に積まれた正直な数字である。
+That is an honest number with two cores, two plant floors, a hall, banqueting and planted roof terraces all piled into `common`.
 
 ```text
 $ npx tsx src/cli.ts site examples/twin/main.muro
@@ -145,10 +145,10 @@ Site /site (敷地)
   Total floor area: 141448.56 m2 → floor area ratio 610.5%
 ```
 
-**レンタブル比を上げたければ板を深くするのではなく、コア断面を絞る。**デプスを深くすると窓なし床が増えるだけである。
+**To raise the rentable ratio, narrow the core — do not deepen the plate.** Depth only adds floor without a window.
 
-## 次に
+## Next
 
-- [階をつなぐ](connect-storeys.md) — 決めた寸法で階段室とシャフトを置く
-- [窓を開けて採光を通す](windows-and-daylight.md) — 窓面の検算
-- [基準階を一度だけ書く](typical-floors.md) — 決めた基準階を一度だけ書く
+- [Connect storeys](connect-storeys.md) — placing stairs and shafts at the sizes you chose
+- [Open windows and pass the daylight check](windows-and-daylight.md) — the window arithmetic
+- [Write a typical floor once](typical-floors.md) — writing the floor you just sized, once

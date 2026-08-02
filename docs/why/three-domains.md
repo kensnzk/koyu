@@ -1,100 +1,100 @@
 ---
-title: 言語・判定・描画の分離
+title: Separating language, checks and drawing
 mode: explanation
 ---
 
-# 言語・判定・描画の分離
+# Separating language, checks and drawing
 
-koyu は三つの領域からなる。**求められる品質が違うので、分けてある。**
+koyu is made of three domains. **They are kept apart because the quality demanded of each is different.**
 
-| 領域 | 何を持つか | 大きさ | 品質 | 版 |
+| Domain | What it holds | Size | Quality | Version |
 |---|---|---|---|---|
-| **core** | 言語・意味論・合成・同一性・導出・構造整合の診断・問い・正準 JSON | 小さい | **きれいでなければならない** | **凍る** |
-| **検証** | 建築的な判定 — 15 の規則 | 大きくなる | 汚くてよい | 凍らない |
-| **表現・ビルド** | SVG 生成と外部のビュアー | 大きくなる | 汚くてよい | 凍らない |
+| **core** | the language, its semantics, composition, identity, derivation, structural diagnostics, questions, canonical JSON | small | **must be clean** | **freezes** |
+| **validation** | architectural judgement — fifteen rules | grows | may be messy | does not freeze |
+| **presentation and build** | SVG generation and outside viewers | grows | may be messy | does not freeze |
 
-**依存は一方向である。**検証も表現も core に依存し、core はどちらにも依存しない。core は自分だけで完結して動く。この一方向は文ではなく**テストが機械的に守る。**
+**The dependency runs one way.** Validation and presentation depend on core; core depends on neither. Core runs complete on its own. That one-wayness is enforced **by a test, not by prose**.
 
-> **koyu は座標を作らない。描画は意味を作らない。**
+> **koyu does not make coordinates. Drawing does not make meaning.**
 
-## 分けないと何が起きるか
+## What happens if you do not separate them
 
-**二つのことが同時に起きる。**
+**Two things happen at once.**
 
-**汚さが core に染み出して凍る。**判定の粗い規則が core の診断に混ざれば、その粗さが凍結の対象になる。「1/7」という数字が core の不変量になった瞬間、それは別の管轄でも別の建物用途でも 1/7 でなければならなくなる。
+**Mess seeps into core and freezes there.** Let a coarse judgement rule into core's diagnostics and that coarseness becomes part of what is frozen. The moment "1/7" becomes a core invariant, it has to be 1/7 in every jurisdiction and for every building use.
 
-**core の慎重さが検証と表現の成長を止める。**judge を足すたびに言語の版を検討することになれば、判定は増えなくなる。図面の線幅を変えるたびに凍結面を確認することになれば、図面は良くならない。
+**Core's caution stops validation and presentation from growing.** If adding a judgement means considering a language version bump, judgements stop being added. If changing a line weight means checking a frozen surface, drawings stop improving.
 
-**分けることそのものが、検証と表現が汚くてよい条件である。**凍らない領域の汚れはいつでも書き直せるので安い。凍る領域の汚れは永久に残る。**値段が桁違いに違う。**
+**The separation itself is what makes it acceptable for the other two to be messy.** Mess in a domain that does not freeze can be rewritten at any time, so it is cheap. Mess in a domain that freezes is permanent. **The prices differ by orders of magnitude.**
 
-## core — 小さく、きれいに、凍る
+## core — small, clean, frozen
 
-core が持つのはこれだけである。
+core holds this and no more.
 
-- **記法の文法と意味論** — 何が書けて、書いたものが何を意味するか
-- **合成** — 層の強度順序、単一値の解決、集合の編集、出所
-- **同一性** — uid とパス、関係の同一性
-- **導出** — 書かれた構成から**一意な形**を作る規則と、その参照実装
-- **構造整合の診断** — `check` が返す 65 のコード
-- **問い** — 面積・グラフ・経路・開口面積。**ただし合否を言わない**
-- **機械形式** — 正準 JSON
+- **the grammar and semantics of the notation** — what may be written and what it means
+- **composition** — layer strength order, single-value resolution, set editing, provenance
+- **identity** — uid and path, the identity of relations
+- **derivation** — the rules that make **a unique form** out of the written composition, and their reference implementation
+- **structural diagnostics** — the 65 codes `check` returns
+- **questions** — area, graph, routes, opening area. **Never pass or fail**
+- **the machine format** — canonical JSON
 
-**実行時依存はゼロである。**この領域が外部のパッケージに依存しないことが、「凍る」という約束を成立させている。
+**There are zero runtime dependencies.** That this domain depends on no outside package is what makes the promise to freeze possible at all.
 
-core に足すことは高い。解析・合成・機械形式・仕様・文書の五箇所を同時に触り、凍結後は破壊的変更になりうる。**だから五問の関門がある** ([属性の拡張](open-vocabulary.md))。
+Adding to core is expensive: parsing, composition, machine format, spec and documentation all move at once, and after the freeze the change may be breaking. **Hence the five-question gate** ([Extending attributes](open-vocabulary.md)).
 
-## 検証 — 汚くてよい。増やす
+## Validation — may be messy; grows
 
-採光、面積率、高さの整合、外皮の連続、扉の設置可能性、避難、到達可能性、そしてまだ思いついていないすべて。
+Daylight, coverage ratio, height consistency, envelope continuity, whether a door can be installed, egress, reachability, and everything not yet thought of.
 
-**規則が粗くても、管轄が一つしかなくても、精度が足りなくても、増やしてよい。試して捨ててよい。凍らないから安い。**
+**Add it even if the rule is coarse, even if it covers only one jurisdiction, even if the precision is short. Try it and throw it away. It is cheap because it does not freeze.**
 
-**独立した部品にはしない。**部品の境界は、版が別々に動く必要が出た瞬間に切るのが正しく、その必要はまだ無い。そして判定は何が正しいかがまだ定まっていない領域であり、定まらないうちに境界を与えれば**誤った境界のまま固まる。**切り出す条件は三つのいずれか — 二つ目の管轄が要る、判定だけを使う利用者が現れる、判定の版が独立に動く必要が出る。
+**It is not made a separate package.** The right moment to cut a package boundary is when the versions need to move independently, and that need has not arrived. Judgement is also a domain where what is correct is not settled, and giving it a boundary before it settles **freezes the wrong boundary**. It gets extracted when one of three things happens: a second jurisdiction is needed, a consumer appears who wants judgement alone, or the judgement version needs to move independently.
 
-**すべての判定は機械から呼べなければならない。**呼べない判定は、機械にとって存在しないに等しい ([MCP サーバー](../reference/mcp/index.md))。
+**Every judgement must be callable by a machine.** A judgement that cannot be called does not exist as far as a machine is concerned ([MCP server](../reference/mcp/index.md)).
 
-## 表現・ビルド — 汚くてよい。精度を上げる
+## Presentation and build — may be messy; gets more precise
 
-形の生成と、描画と、人のための面。2D と 3D、図面としての体裁、診断の提示、判定の提示、オーサリング支援。
+Form generation, drawing, and the human-facing surface. 2D and 3D, drawing conventions, presenting diagnostics, presenting judgements, authoring support.
 
-**寸法線も、通り芯記号も、建具の作図表現も、縮尺も、勾配屋根も、複雑な納まりも、精度は少しずつ上げればよい。凍らないから安い。**
+**Dimension lines, grid bubbles, door and window conventions, scale, pitched roofs, complicated junctions — the precision can be raised a bit at a time. It is cheap because it does not freeze.**
 
-**汚くてよい条件は一つ。描けないことが、書けないことと混同されないこと。**何を描き、何を描かないかを列挙して持つ。これが無ければ、描画側の限界が記述側の限界として原本に持ち込まれ、**原本が表現に引きずられる。**
+**There is one condition on being allowed to be messy: what cannot be drawn must never be mistaken for what cannot be written.** What is drawn and what is not is enumerated and held. Without that, the limits of the drawing side get imported as limits of the description side, and **the source starts being dragged around by its presentation.**
 
-そしてこの領域は**形を変えてはならない。**変えてよいのは見た目であって形ではない ([導出の決定性](form-must-be-unique.md))。この線も機械が縛っている — 描画のコードが形を組み立てる部品を一つも引いていないこと、導出の定数が描画側に綴られていないことが検査される。
+And this domain **must not change the form**. What may change is the appearance, not the form ([Determinism of derivation](form-must-be-unique.md)). That line is machine-enforced too — the drawing code is checked to import none of the form-assembling parts, and the derivation constants are checked not to be spelled out on the drawing side.
 
-## 依存の向きと成長の向き
+## The direction of dependency and of growth
 
 ```text
         ┌─────────────┐
-        │  koyu core  │  小さい・きれい・凍る
+        │  koyu core  │  small · clean · freezes
         └──────┬──────┘
-               │ 一方向
+               │ one way
         ┌──────┴──────┐
         │             │
-   ┌────▼────┐   ┌────▼────┐
-   │  検証   │   │ 表現    │  大きくなる・汚くてよい・凍らない
-   └─────────┘   └─────────┘
+   ┌────▼─────┐  ┌────▼──────────┐
+   │validation│  │ presentation  │  grows · may be messy · does not freeze
+   └──────────┘  └───────────────┘
 ```
 
-> **言語は増やさない。検証と表現は増やす。**
+> **The language does not grow. Validation and presentation do.**
 
-新しい判定も、外部データとの突き合わせも、新しい問いも、図面の質も、**行き先はここである。**言語の版は動かない。
+New judgements, reconciliation against outside data, new questions, better drawings — **this is where they all go.** The language version does not move.
 
-## 版は二本ある
+## There are two version lines
 
-- **記法の版** — 言語と意味論と合成の規則。**「このように書かれたファイルは、この意味であり続ける」**を約束する
-- **実装の版** — どの記法を実装するか。**「この実装の面を壊さない」**を約束する
+- **the notation's version** — the language, its semantics and the rules of composition. It promises **"a file written this way will keep meaning this"**
+- **the implementation's version** — which notation it implements. It promises **"this implementation's surfaces will not break"**
 
-**二本は別の約束なので、同時に到達する必要はない。**現に記法は 1.0 に到達し、実装は 0.x のままである — 言語は確定し、実装はまだ何も凍結を約束していない。
+**They are separate promises, so they need not arrive together.** As it stands the notation has reached 1.0 while the implementation is still 0.x — the language is settled, and the implementation has promised to freeze nothing yet.
 
-機械形式はこの二本のどちらでもない、**綴りの版**を別に持つ。意味論は記法の版が持つが、同じ意味論を別のキーで綴り直すことはありうるので、綴りの版は別に数える。
+The machine format carries neither of those but **a spelling version** of its own. The semantics belong to the notation's version, but the same semantics may be re-spelled under different keys, so the spelling is counted separately.
 
-版の全体は [安定性](../reference/stability.md) にある。
+Versions as a whole are covered in [Stability](../reference/stability.md).
 
-## この先
+## Next
 
-- [check と validate の違い](two-kinds-of-green.md) — core と検証の診断の分け方
-- [導出の決定性](form-must-be-unique.md) — core と描画の分け方
-- [約束の範囲](../reference/scope.md)
-- [持たないもの](../reference/not-held.md)
+- [check and validate](two-kinds-of-green.md) — how core's and validation's diagnostics are split
+- [Determinism of derivation](form-must-be-unique.md) — how core and drawing are split
+- [Scope](../reference/scope.md)
+- [What koyu does not hold](../reference/not-held.md)

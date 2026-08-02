@@ -1,17 +1,17 @@
 ---
-title: 幾何の小物
+title: Geometry helpers
 mode: reference
 ---
 
-# 幾何の小物
+# Geometry helpers
 
-多角形と矩形を扱う五つの関数である。座標は mm、面積は ㎡ で返る。
+Five functions over polygons and rectangles. Coordinates are millimetres; areas come back in m².
 
 ```ts
 import { envelopeGaps, pointInPolygon, polyBounds, polygonAreaM2, rectToPoly } from "@kensnzk/koyu";
 ```
 
-**ここに判定は一つも無い。**「建物が敷地からはみ出しているか」も「外皮に穴があるか」も、ここには答えが無い — それは [`validate`](validate.md) の `site.escape` と `envelope.gap` が言う。ここにあるのは、その判定が読む数と形だけである。
+**Not one judgement lives here.** Neither "does the building run off the site?" nor "is there a hole in the envelope?" is answered here — those are `site.escape` and `envelope.gap` in [`validate`](validate.md). What is here is only the numbers and shapes those judgements read.
 
 ## polygonAreaM2
 
@@ -19,7 +19,7 @@ import { envelopeGaps, pointInPolygon, polyBounds, polygonAreaM2, rectToPoly } f
 function polygonAreaM2(points: Pt[]): number
 ```
 
-シューレース公式による多角形の面積を ㎡ で返す。**巻き方向を問わない** — 符号付き面積の絶対値なので、時計回りでも反時計回りでも同じ値になる。
+The shoelace area of a polygon, in m². **Winding does not matter** — it is the absolute value of the signed area, so clockwise and counter-clockwise give the same number.
 
 ## pointInPolygon
 
@@ -27,7 +27,7 @@ function polygonAreaM2(points: Pt[]): number
 function pointInPolygon(p: Pt, poly: Pt[], eps?: number): boolean
 ```
 
-点が多角形の内側にあるか。**境界の上は内側扱いである。**`eps` は「辺の上にあるとみなす幅」で、既定は 1mm。
+Whether a point is inside a polygon. **On the boundary counts as inside.** `eps` is how wide a band counts as "on an edge"; the default is 1 mm.
 
 ## polyBounds
 
@@ -35,7 +35,7 @@ function pointInPolygon(p: Pt, poly: Pt[], eps?: number): boolean
 function polyBounds(poly: Pt[]): Rect
 ```
 
-頂点列の外接矩形。
+The bounding rectangle of a vertex list.
 
 ## rectToPoly
 
@@ -43,9 +43,9 @@ function polyBounds(poly: Pt[]): Rect
 function rectToPoly(r: Rect): Pt[]
 ```
 
-矩形を頂点列へ。**反時計回り**で、`(x1,y1) → (x2,y1) → (x2,y2) → (x1,y2)` の順である。
+A rectangle as a vertex list, **counter-clockwise**, in the order `(x1,y1) → (x2,y1) → (x2,y2) → (x1,y2)`.
 
-**この巻き方向は約束である。**辺の向きから方角を読む導出 (+x へ進む辺が南、+y が東、−x が北、−y が西) がこの順に依存している。
+**That winding is a promise.** The derivation that reads a compass direction from an edge's direction — an edge running +x faces south, +y east, −x north, −y west — depends on it.
 
 ```ts
 import { pointInPolygon, polyBounds, polygonAreaM2, rectToPoly } from "@kensnzk/koyu";
@@ -68,7 +68,7 @@ console.log(rectToPoly({ x1: 0, y1: 0, x2: 3600, y2: 4000 }));
 ]
 ```
 
-三つ目の `pointInPolygon` は辺のちょうど上の点で、**真が返っている。**巻き方向を逆にしても面積は変わらない。
+The third `pointInPolygon` sits exactly on an edge and comes back **true**. Reversing the winding leaves the area unchanged.
 
 ## envelopeGaps
 
@@ -76,11 +76,11 @@ console.log(rectToPoly({ x1: 0, y1: 0, x2: 3600, y2: 4000 }));
 function envelopeGaps(model: Model, s: Space): Segment[]
 ```
 
-空間の外周のうち、**何にも面していない区間**を返す。他の空間とも、宣言された外部境界とも向かい合っていない縁 — **外皮の穴**である。
+Returns the stretches of a space's perimeter that **face nothing at all** — edges opposite neither another space nor a declared boundary to the exterior. **Holes in the envelope.**
 
-既定境界は領域を持たない空間との間には導かれないので、**外部への境界の書き忘れは黙って壁の不在になる。**これを言葉にするための導出である。
+Default boundaries are never derived against a space with no region, so **forgetting a boundary to the exterior is silently the absence of a wall.** This derivation exists to put that into words.
 
-長さが `SPAN_EPS` (1mm) 以下の区間は落とされる。領域を持たない空間、レベルの決まらない空間では空配列が返る。
+Stretches shorter than `SPAN_EPS` (1 mm) are dropped. A space with no region, or with no settled level, gives an empty array.
 
 ```ts
 import { envelopeGaps, parse } from "@kensnzk/koyu";
@@ -103,16 +103,16 @@ for (const s of ["/L1/a", "/L1/b"]) {
 /L1/b [ 'S 3600,0→7200,0', 'E 7200,0→7200,4000', 'N 3600,4000→7200,4000' ]
 ```
 
-`/L1/a` の W 辺は `boundary /L1/a /out edge:W` が覆い、E 辺は `/L1/b` が向かい合っているので、残った S と N が穴として出ている。
+The W side of `/L1/a` is covered by `boundary /L1/a /out edge:W`, and its E side faces `/L1/b`, so what remains — S and N — comes back as holes.
 
-返るのは [`Segment`](derive.md#segmentsfor) — 端点と、水平かどうかと、`a` 側から見た辺の方角である。**長さは持たない**ので、要るなら端点から測る。
+What you get is a [`Segment`](derive.md#segmentsfor): endpoints, whether it is horizontal, and which side of the a-space it belongs to. **It carries no length**, so measure from the endpoints if you need one.
 
-## 幾何の許容値
+## Geometric tolerances
 
-**「どれだけ違えば別のものか」を決める数は一箇所に集めてある。**[`TOLERANCES`](derive.md#tolerances) を見る。点が辺の上にあるとみなす幅の既定 (`POINT_EPS` = 1mm) も、外皮の穴の長さの下限 (`SPAN_EPS` = 1mm) もそこにある。
+**The numbers that decide how different two things must be to be different things live in one place**: see [`TOLERANCES`](derive.md#tolerances). Both the default width for "on an edge" (`POINT_EPS` = 1 mm) and the minimum length of an envelope gap (`SPAN_EPS` = 1 mm) are there.
 
-## 関連
+## See also
 
-- [形の導出](derive.md) — `Segment` と許容値の台帳
-- [モデルへの問い](queries.md) — 面積と敷地の数
-- [検証](validate.md) — この形に判定を掛ける面
+- [Deriving form](derive.md) — `Segment` and the tolerance ledger
+- [Questions about a model](queries.md) — areas and site numbers
+- [Validation](validate.md) — the surface that judges these shapes

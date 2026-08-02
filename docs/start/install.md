@@ -1,15 +1,15 @@
 ---
-title: koyu を入れる
+title: Installing koyu
 mode: howto
 ---
 
-# koyu を入れる
+# Installing koyu
 
-koyu を手元で走らせる道は二つある — npm から入れるか、リポジトリをクローンするか。どちらでも同じ `koyu` コマンドが手に入る。
+There are two routes to running koyu locally — install it from npm, or clone the repository. Either way you end up with the same `koyu` command.
 
-## 要るもの
+## What you need
 
-**Node.js 22 以上。**それだけである。koyu は実行時依存を一つも持たないので、入れると入るのは koyu 自身だけである。
+**Node.js 22 or newer.** That is all. koyu has no runtime dependencies, so installing it installs koyu and nothing else.
 
 ```sh
 node --version
@@ -19,11 +19,11 @@ node --version
 v26.5.0
 ```
 
-## npm から
+## From npm
 
-### 一度だけ試す
+### Try it once
 
-インストールせずに走らせる。
+Run it without installing.
 
 ```sh
 npx -p @kensnzk/koyu koyu check first.muro
@@ -34,22 +34,22 @@ npx -p @kensnzk/koyu koyu check first.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-### プロジェクトに入れる
+### Install it into a project
 
-`.muro` を置くディレクトリで npm プロジェクトを作り、devDependency として入れる。CI で `koyu check` を門番に使うならこれである。
+Make an npm project in the directory that holds your `.muro` files and add koyu as a devDependency. This is the route to take if `koyu check` is going to be a gate in CI.
 
 ```sh
 npm install --save-dev @kensnzk/koyu
 ```
 
-`node_modules/.bin/` に二つの実行ファイルが入る。
+Two executables land in `node_modules/.bin/`.
 
 ```text
 koyu
 koyu-mcp
 ```
 
-`npm run` のスクリプトからは名前だけで呼べる。
+`npm run` scripts can then call them by name alone.
 
 ```json
 {
@@ -59,17 +59,17 @@ koyu-mcp
 }
 ```
 
-### どこからでも使えるようにする
+### Install it everywhere
 
 ```sh
 npm install --global @kensnzk/koyu
 ```
 
-`koyu` と `koyu-mcp` が PATH に入る。
+`koyu` and `koyu-mcp` go on your PATH.
 
-## ソースから
+## From source
 
-記法そのものに手を入れたいとき、あるいは公開版より先の状態を使いたいときはこちらである。[チュートリアル](index.md)もこの道で書いてある。
+Take this route when you want to work on the notation itself, or run ahead of the published version. [The tutorial](index.md) is written along this route.
 
 ```sh
 git clone https://github.com/kensnzk/koyu.git
@@ -77,7 +77,7 @@ cd koyu
 npm install
 ```
 
-リポジトリの中では、次の二つが同じ意味を持つ。
+Inside the repository these two mean the same thing.
 
 ```sh
 npx tsx src/cli.ts check examples/two-rooms.muro
@@ -89,7 +89,7 @@ npm run koyu -- check examples/two-rooms.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-TypeScript のまま走っているので、ビルドは要らない。ビルドしたものが要るなら `npm run build` が `dist/` を吐き、`node dist/cli.js` が同じ答えを返す。
+It runs straight from the TypeScript, so no build step is needed. If you want the built artefact, `npm run build` emits `dist/`, and `node dist/cli.js` gives the same answers.
 
 ```sh
 npm run build
@@ -101,9 +101,9 @@ node dist/cli.js check examples/two-rooms.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-## 入ったことを確かめる
+## Confirming it works
 
-4行のファイルを作って通す。
+Write a four-line file and put it through.
 
 ```muro
 grid X 0 3600
@@ -123,16 +123,16 @@ koyu plan first.muro -o first.svg
 Generated the plan: first.svg
 ```
 
-`first.svg` をブラウザで開くと、通り芯と淡い矩形が一つあって、**壁は一本も描かれていない**。そこから先は[はじめての .muro](index.md) が引き受ける。
+Open `first.svg` in a browser and you get grid lines and one pale rectangle, with **not one wall drawn**. [Your first .muro](index.md) takes it from there.
 
-## 出力について
+## About the output
 
-**人向けの出力は英語である。**機械が読む面 (診断・判定・MCP) と同じ言葉に揃えてあり、ロケールを切り替える引数は無い。同じ文言の台帳を二つ持たないためである。`.muro` に書く名前は書き手の言葉なので、日本語のままで構わない。
+**Output for humans is in English.** It is kept in the same words as the machine-facing surfaces — diagnostics, findings, MCP — and there is no argument that switches locale, so that the same wording is never kept in two places. Names you write in `.muro` are your own words and may be in any language.
 
-終了コードは `check` が 0 (問題なし) / 1 (エラーあり) / 2 (入力が壊れている)。CI に繋ぐ形は [CI に組み込む](../reference/cli/ci.md)にある。
+Exit codes from `check` are 0 (nothing found), 1 (errors), 2 (the input is broken). Wiring that into a pipeline is in [Running koyu in CI](../reference/cli/ci.md).
 
-## 隣にあるもの
+## What sits next to it
 
-- **エディタ支援** — VS Code 用の拡張が `.muro` に色を付け、保存のたびに `check` を写す。[エディタ支援](../reference/cli/editor.md)。
-- **MCP サーバー** — `koyu-mcp` を LLM エージェントのクライアントに繋ぐ。登録は一行で済む。[クライアントに登録する](../reference/mcp/install.md)。
-- **プログラムから使う** — TypeScript から同じ導出を呼ぶ。[プログラムから建物を読む](first-program.md)。
+- **Editor support** — a VS Code extension colours `.muro` and mirrors `check` on every save. See [Editor support](../reference/cli/editor.md).
+- **The MCP server** — connect `koyu-mcp` to an LLM agent's client; registration is a single line. See [Registering it with a client](../reference/mcp/install.md).
+- **Driving it from a program** — call the same derivations from TypeScript. See [Reading a building from a program](first-program.md).

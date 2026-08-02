@@ -1,37 +1,37 @@
 ---
-title: 検証
+title: Validation
 mode: reference
 ---
 
-# 検証
+# Validation
 
-建築的な判定の面である。採光が足りるか、外皮が閉じているか、階段が登れるか、車が駐車場から出られるか、建物が敷地に収まるか — [`checkDiagnostics`](diagnostics.md) が一言も言わないことを、ここが言う。
+The surface that passes architectural judgement. Is there enough daylight, is the envelope closed, can the stair be climbed, can a car get out of the car park, does the building fit on the site — everything [`checkDiagnostics`](diagnostics.md) says nothing about is said here.
 
 ```ts
 import { validate, VALIDATION_RULES } from "@kensnzk/koyu";
 import type { Finding, ValidationRule } from "@kensnzk/koyu";
 ```
 
-領域としては `@kensnzk/koyu/validate` にも分けてある。**同じ関数の別入口である。**
+There is also a domain entrance at `@kensnzk/koyu/validate`. **It is another door to the same function.**
 
 ```ts
 import { validate, VALIDATION_RULES } from "@kensnzk/koyu/validate";
 ```
 
-## この面は凍らない
+## This surface is not frozen
 
-core は凍る — 意味論を変える変更は言語版を上げる。**この面は凍らない。**規則が粗くても、管轄が一つしかなくても、精度が足りなくても、増やしてよいし捨ててよい。値段が安いのは、凍らないからである。
+core is frozen: a change of meaning raises the language version. **This surface is not.** A rule may be coarse, may cover one jurisdiction only, may lack precision — it can still be added, and it can be dropped. It is cheap precisely because it is not frozen.
 
-その代わり、**判定の結果が構成の保証と混同されないようにしてある。**型からして分けてある。
+In exchange, **its results are kept from being mistaken for guarantees about the composition.** The types themselves are separated.
 
-| | 構成の診断 | 建築の判定 |
+| | Composition diagnostic | Architectural judgement |
 |---|---|---|
-| 型 | `Diagnostic` | `Finding` |
-| 識別子 | `code: "BND04"` | `rule: "daylight.ratio"` |
-| 重さ | `severity: "error" \| "warning"` | `level: "violation" \| "caution"` |
-| 入口 | `checkDiagnostics(model)` | `validate(model)` |
+| Type | `Diagnostic` | `Finding` |
+| Identifier | `code: "BND04"` | `rule: "daylight.ratio"` |
+| Weight | `severity: "error" \| "warning"` | `level: "violation" \| "caution"` |
+| Entrance | `checkDiagnostics(model)` | `validate(model)` |
 
-フィールド名が違うので、二つの配列は取り違えようがない。連結しようとすれば型が落ちる。**「core の緑」と「判定の緑」を同じ言葉で語れないようにすることが、この分離の目的である。**
+The field names differ, so the two arrays cannot be confused; concatenating them loses the type. **The point of the split is that "core is green" and "the judgement is green" cannot be said in the same words.**
 
 ## validate
 
@@ -39,9 +39,9 @@ core は凍る — 意味論を変える変更は言語版を上げる。**こ�
 function validate(model: Model): Finding[]
 ```
 
-全ての判定を回す。並びは章の順で、章の中は走査の順である。
+Runs every rule. The order is chapter order, and within a chapter it is scan order.
 
-**合否は返らない。**返るのは「守られなかったこと」の列であって、建物が使えるかどうかの結論ではない。空配列は「何も引っ掛からなかった」であって「合格」ではない。
+**No verdict comes back.** What comes back is a list of things not upheld — not a conclusion about whether the building works. An empty array means "nothing was caught", not "it passed".
 
 ```ts
 import { validate } from "@kensnzk/koyu";
@@ -54,7 +54,7 @@ console.log(validate(parseFile("examples/tower/main.muro")));
 []
 ```
 
-引っ掛かる方の例。
+And one that is caught.
 
 ```ts
 import { parse, validate } from "@kensnzk/koyu";
@@ -77,7 +77,7 @@ for (const f of validate(m)) console.log(JSON.stringify(f));
 {"rule":"access.unreachable","level":"violation","message":"Cannot reach the exterior: /L1/b (no passable boundary leads out — write a door)","line":5,"path":["/L1/b"]}
 ```
 
-**この模型は `checkDiagnostics` を通る。**構成としては何も壊れていない — 外壁を一枚書き忘れ、窓を一つも書かず、扉を一枚も書いていないだけである。二つの面が別のことを言っているのが、この例で見える。
+**That model passes `checkDiagnostics`.** Nothing about the composition is broken: an external wall was simply never written, no window was written, no door was written. The example is where you can see the two surfaces saying different things.
 
 ## Finding
 
@@ -92,18 +92,18 @@ interface Finding {
 }
 ```
 
-| フィールド | 中身 |
+| Field | Contents |
 |---|---|
-| `rule` | 台帳の規則名 — 章と主題を `.` で繋いだ綴り |
-| `level` | `"violation"` (守られなかった) か `"caution"` (疑わしい) |
-| `message` | 本文。**位置接頭辞を含まない** (診断と同じ流儀) |
-| `line` | 出所の行 |
-| `file` | 合成時の出所レイヤー |
-| `path` | 対象の空間・ゾーンのパス |
+| `rule` | the ledger rule name — chapter and subject joined by `.` |
+| `level` | `"violation"` (not upheld) or `"caution"` (suspect) |
+| `message` | the body. **No position prefix**, same as a diagnostic |
+| `line` | the source line |
+| `file` | the source layer under composition |
+| `path` | the space or zone concerned |
 
-**`level` は規則の不変属性である。**同じ規則が場合によって `violation` になったり `caution` になったりはしない。重さを変えるときは新しい規則名を切る。だから `VALIDATION_RULES` を見て `level` を先に知ることができる。
+**`level` is an invariant property of the rule.** The same rule is never a violation one time and a caution the next; when the weight has to change, a new rule name is cut. That is why you can read `level` off `VALIDATION_RULES` in advance.
 
-`level` は診断の `severity` とは**別の軸である。**判定が緑でも構成が壊れていることはあるし、その逆もある。
+`level` is **a different axis** from a diagnostic's `severity`. The judgement can be green while the composition is broken, and the reverse.
 
 ## VALIDATION_RULES
 
@@ -113,7 +113,7 @@ const VALIDATION_RULES: Record<ValidationRule, "violation" | "caution">
 type ValidationRule = keyof typeof VALIDATION_RULES;
 ```
 
-判定の台帳である。**綴りが診断コードと違うのは事故を防ぐためである** — `ENV01` と `envelope.gap` を取り違える読み手はいない。
+The ledger of judgements. **The spelling deliberately differs from a diagnostic code**, so that nobody mistakes `ENV01` for `envelope.gap`.
 
 ```ts
 import { VALIDATION_RULES } from "@kensnzk/koyu";
@@ -140,15 +140,15 @@ site.area	caution
 site.frontage	violation
 ```
 
-**規則は 15 個で、この並びが `validate` の返り値の並びでもある。**
+**There are 15 rules, and this order is also the order `validate` returns them in.**
 
-章 (`envelope` / `daylight` / `stair` / `run` / `access` / `column` / `site`) は管轄ではなく**主題**である。管轄が二つ目を持ったとき (別の国の法規) に、章の下へ足す。
+The chapters (`envelope`, `daylight`, `stair`, `run`, `access`, `column`, `site`) are subjects, not jurisdictions. When a second jurisdiction arrives (another country's code), it goes underneath a chapter.
 
-一件ずつが何を見て何を言うかは [判定リファレンス](../validate/index.md)。
+What each rule looks at and says is in the [validation reference](../validate/index.md).
 
-## 終了コードのように使う
+## Turning it into an exit code
 
-`koyu validate` は `violation` があれば 1 を返し、`caution` だけなら 0 を返す。
+`koyu validate` exits 1 when there is a `violation`, and 0 when there are only `caution`s.
 
 ```ts
 import { validate } from "@kensnzk/koyu";
@@ -157,7 +157,7 @@ const findings = validate(model);
 const code = findings.some((f) => f.level === "violation") ? 1 : 0;
 ```
 
-`ValidationRule` は規則名の合併型なので、台帳に無い綴りはコンパイルが通らない。
+`ValidationRule` is the union of rule names, so a spelling absent from the ledger will not compile.
 
 ```ts
 import type { Finding, ValidationRule } from "@kensnzk/koyu";
@@ -166,9 +166,9 @@ const BLOCKING: ValidationRule[] = ["access.unreachable", "site.escape"];
 const blocking = (fs: Finding[]) => fs.filter((f) => BLOCKING.includes(f.rule));
 ```
 
-## 関連
+## See also
 
-- [判定リファレンス](../validate/index.md) — 15規則の中身
-- [`koyu validate`](../cli/validate.md) — 同じ判定をコマンドラインから
-- [診断](diagnostics.md) — 構成の整合を言う別の面
-- [モデルへの問い](queries.md) — 判定が読んでいる数と形
+- [Validation reference](../validate/index.md) — what the 15 rules do
+- [`koyu validate`](../cli/validate.md) — the same judgements from the command line
+- [Diagnostics](diagnostics.md) — the other surface, on consistency
+- [Questions about a model](queries.md) — the numbers and shapes the judgements read

@@ -1,21 +1,21 @@
 ---
-title: DAY — 採光の対象
+title: DAY — the daylight scope
 mode: reference
 ---
 
-# DAY — 採光の対象
+# DAY — the daylight scope
 
-DAY は一つだけである。
+There is only one DAY code.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| DAY01 | error | `daylight` の値が 0 でも 1 でもない |
+| DAY01 | error | `daylight` carries a value that is neither 0 nor 1 |
 
-`daylight` は「この空間に採光の判定を掛けるか」という**二値の宣言**であり、`koyu light` の**唯一の入口**である。型からは推定しない — `bedroom` と書いても `room` と書いても、`daylight:1` が無ければ判定の対象にならない。
+`daylight` is a **binary declaration** — whether the daylight test applies to this space — and it is the **sole entrance** to `koyu light`. Nothing is inferred from the type: write `bedroom` or write `room`, and without `daylight:1` the space is not in scope.
 
-だから値の綴りが揺れると**判定が全損する**。`daylight:yes` を自由な属性として通してしまえば、その空間は黙って対象外に落ち、`light` は「全室合格」と区別の付かない出力を返す。DAY01 はその一点だけのために在る。
+So a wobble in the spelling of the value is **a total loss of the verdict**. Let `daylight:yes` through as a free attribute and the space drops silently out of scope, and `light` returns output indistinguishable from "every room passes". DAY01 exists for that one reason.
 
-## DAY01 — daylight は 1 か 0 です
+## DAY01 — daylight is either 1 or 0
 
 `error`
 
@@ -30,11 +30,11 @@ space /L1/a room X1..X2 Y1..Y2 daylight:yes
 daylight is either 1 (in scope for the daylight check) or 0 (out of scope): /L1/a carries daylight:yes
 ```
 
-**原因** — `daylight` に `1` でも `0` でもない値が書かれている。`yes` `true` `on` はいずれも通らない。
+**Cause** — `daylight` carries something that is neither `1` nor `0`. `yes`, `true` and `on` all fail.
 
-見るのは綴りではなく値である。数として読める綴りは数になるので、`1.0` `01` `1.00` は `daylight:1` と同じに扱われ、診断は出ない。`0.0` も同じく `0` である。
+What is read is the value, not the spelling. A spelling that reads as a number becomes one, so `1.0`, `01` and `1.00` are treated exactly as `daylight:1` and draw no diagnostic; `0.0` is likewise `0`.
 
-**直し方** — `daylight:1` (判定する) か `daylight:0` (しない) にする。
+**Fix** — write `daylight:1` (test it) or `daylight:0` (do not).
 
 ```muro
 grid X 0 3600 7200
@@ -43,20 +43,20 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 ```
 
-**書かないという選択もある。**`daylight` を書かなければ、その空間は対象外である。DAY01 は書かれた値だけを見るので、書かなければ出ない。`daylight:0` を明示するのは、「検討したうえで対象外にした」と読ませたいときである。
+**Writing nothing is also a choice.** With no `daylight`, the space is out of scope. DAY01 only looks at values that were written, so leaving it out never fires. Writing `daylight:0` explicitly says "considered, and deliberately out of scope".
 
-## 型は関係しない
+## The type is irrelevant
 
-**採光の対象は宣言であって推定ではない。**
+**The daylight scope is declared, never inferred.**
 
-- `wet` に `daylight:1` を書けば、洗面所も判定に載る。
-- `bedroom` に何も書かなければ、寝室でも判定には載らない。
+- Write `daylight:1` on a `wet` and the washroom is tested.
+- Write nothing on a `bedroom` and the bedroom is not.
 
-これは書き手に granularity を渡すためでもある。住戸をまるごと一空間として書いたなら住戸に `daylight:1` を書き、室に割ったなら室ごとに書く。**判定の分母をどの粒度に置くかは、`daylight:1` を書く位置として書き手が決める。**
+This also hands the granularity to the writer. If a dwelling is written as one space, put `daylight:1` on the dwelling; if it is split into rooms, put it on each room. **Where you write `daylight:1` is where you decide the denominator of the test.**
 
-## 対象になると何が起きるか
+## What being in scope produces
 
-`koyu light` が、その空間ごとに有効窓面積と床面積の比を出す。
+`koyu light` reports, per space, the ratio of effective window area to floor area.
 
 ```muro
 grid X 0 3600 7200
@@ -81,13 +81,13 @@ koyu light house.muro
 ✖ Short of 1/7: 1 of 2 rooms (this is a validation judgement)
 ```
 
-窓面積は、その空間の境界の上にある `h:` を持つ `window` の `w × h` の合計である。**`h:` を書かない窓は数えられない** — 数え切れていないことは `koyu validate` が `daylight.unknown` として言う。窓の先が半屋外で、その半屋外の上に空間が重なっていれば (バルコニー下・庇下) 係数 0.7 が掛かる。上が開いていれば 1.0 である。
+The window area is the sum of `w × h` over the `window`s on that space's boundaries **that carry an `h:`**. A window with no `h:` cannot be counted — that the count is incomplete is reported by `koyu validate` as `daylight.unknown`. If the far side of a window is semi-outdoor and that semi-outdoor space has something above it (under a balcony, under an eave), a factor of 0.7 applies; if the sky is open above it, 1.0.
 
-判定そのもの (1/7 に足りているか) は建築の側の判断なので、`check` ではなく `koyu validate` の `daylight.ratio` が持つ。`check` が言うのは「宣言が読めるか」までである。
+The verdict itself — whether 1/7 is met — is an architectural judgement, so it lives in `koyu validate` as `daylight.ratio`, not in `check`. `check` says only whether the declaration can be read.
 
-## 関連
+## Related
 
-- [ATT — 属性](./att.md) — `daylight` 以外の属性の値と鍵の検査
-- [VER — 言語の版](./ver.md) — 0.3 以前は型から採光の対象を推定していた (VER02)
+- [ATT — attributes](./att.md) — the key and value checks for every other attribute
+- [VER — the language version](./ver.md) — up to 0.3 the daylight scope was inferred from the type (VER02)
 - [koyu validate](../cli/validate.md) — `daylight.ratio` / `daylight.unknown`
 - [koyu check](../cli/check.md)

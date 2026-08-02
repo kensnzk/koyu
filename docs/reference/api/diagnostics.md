@@ -1,11 +1,11 @@
 ---
-title: 診断
+title: Diagnostics
 mode: reference
 ---
 
-# 診断
+# Diagnostics
 
-構成の整合を検査する面である。**言うのは「書かれたものがデータとして矛盾していない」までであって、建築として妥当かは何も言わない。**建築の側の判断は [`validate`](validate.md) が別に言う。
+The surface that checks the consistency of a composition. **It says only that what is written is not self-contradictory as data; it says nothing about whether the result works as architecture.** That judgement is made separately by [`validate`](validate.md).
 
 ```ts
 import { check, checkDiagnostics, DIAGNOSTIC_CODES } from "@kensnzk/koyu";
@@ -18,7 +18,7 @@ import type { CheckResult, Diagnostic, DiagnosticCode } from "@kensnzk/koyu";
 function checkDiagnostics(model: Model): Diagnostic[]
 ```
 
-**これが一次の形式である。**構造化して扱うならこちらを使う。
+**This is the primary form.** Use it whenever you want structure.
 
 ```ts
 import { checkDiagnostics, parse } from "@kensnzk/koyu";
@@ -53,15 +53,15 @@ console.log(JSON.stringify(checkDiagnostics(model), null, 1));
 ]
 ```
 
-**`checkDiagnostics` は投げない。**構文・合成のエラーは [`parse` 系](parsing.md)が `SourceError` として投げるので、そちらは呼び出し側で捕まえる。
+**`checkDiagnostics` never throws.** Syntax and composition errors are thrown by the [parse functions](parsing.md) as a `SourceError`; catch those there.
 
-### 三つの規律
+### Three disciplines
 
-**母集団は書かれた宣言である。**診断は「書かれた一行に対して一件」出る。導出された結果を数えるのではない。
+**The population is the written declarations.** One diagnostic per written line, not per derived result.
 
-**出所を必ず持つ。**位置を持たない診断はほとんど無い — `line` が無いのは、どの行にも帰せない診断だけである。
+**Every diagnostic has a source.** A diagnostic without `line` is one that cannot be attributed to any line at all — and there are very few.
 
-**並びは走査の順である。**コードの族でまとめ直したりはしない。同じ入力なら同じ順で出る。
+**The order is scan order.** Diagnostics are never regrouped by code family. The same input always yields the same order.
 
 ## Diagnostic
 
@@ -77,19 +77,19 @@ interface Diagnostic {
 }
 ```
 
-| フィールド | 中身 |
+| Field | Contents |
 |---|---|
-| `code` | 台帳のコード (領域2〜3字 + 2桁の連番) |
-| `severity` | `"error"` か `"warning"` — **コードの不変属性である** |
-| `message` | 本文。**位置接頭辞を含まない** |
-| `line` | 出所の行 |
-| `file` | 合成時の出所レイヤー (解決済みの絶対パス) |
-| `path` | 対象の空間・ゾーン・多角形のパス (境界は両方) |
-| `related` | 関連位置 — 重複の既出側、重なりの相手など |
+| `code` | the ledger code (2–3 letters of domain plus two digits) |
+| `severity` | `"error"` or `"warning"` — **an invariant property of the code** |
+| `message` | the body. **It carries no position prefix** |
+| `line` | the source line |
+| `file` | the source layer under composition (a resolved absolute path) |
+| `path` | the space, zone or polygon concerned (both, for a boundary) |
+| `related` | related positions — the earlier of a duplicate, the other side of an overlap |
 
-**`severity` はコードの属性であって、場合によって変わらない。**同じコードが error になったり warning になったりはしない。重さを変えたくなったときは新しいコードが切られる。だから `DIAGNOSTIC_CODES` の表を持って分岐を書いてよい。
+**`severity` belongs to the code and does not vary with circumstance.** The same code is never an error one time and a warning the next. When the weight needs to change, a new code is cut. So you may safely branch on the `DIAGNOSTIC_CODES` table.
 
-`related` は「もう一方はどこか」を言う。重複した uid の既出側、重なった空間の相手側などがここに入る。
+`related` answers "and where is the other one?" — the earlier occurrence of a duplicate uid, the space on the other side of an overlap.
 
 ```ts
 const dup = parse(`grid X 0 3600 7200
@@ -131,7 +131,7 @@ interface CheckResult {
 }
 ```
 
-互換の文字列形式である。`checkDiagnostics` と**同件・同順**で、位置接頭辞 (`ファイル:line N: `) を組み立てた文字列を返す。人にそのまま見せる用途向け。
+The compatibility string form. **Same count, same order** as `checkDiagnostics`, with the position prefix (`file:line N: `) assembled into the string. For showing a human directly.
 
 ```ts
 import { check } from "@kensnzk/koyu";
@@ -147,9 +147,9 @@ console.log(errors, warnings);
 ]
 ```
 
-この例は `parse` で読んだので出所ファイルが無く、接頭辞が行番号だけになっている。`parseFile` で読めば `<絶対パス>:line 6: ` が付く。
+This example was read with `parse`, so there is no source file and the prefix is just the line number. Read with `parseFile` it would be `<absolute path>:line 6: `.
 
-**コードは文字列に出ない。**コードで分岐したいなら `checkDiagnostics` を使う。
+**Codes do not appear in the strings.** To branch on a code, use `checkDiagnostics`.
 
 ## DIAGNOSTIC_CODES
 
@@ -159,7 +159,7 @@ const DIAGNOSTIC_CODES: Record<DiagnosticCode, "error" | "warning">
 type DiagnosticCode = keyof typeof DIAGNOSTIC_CODES;
 ```
 
-全コードと severity の対応表である。**台帳が唯一の出所で、登録していないコードは型が通らない。**
+Every code with its severity. **The ledger is the single source, and a code that is not registered will not type-check.**
 
 ```ts
 import { DIAGNOSTIC_CODES } from "@kensnzk/koyu";
@@ -175,15 +175,15 @@ console.log(DIAGNOSTIC_CODES["BND04"], DIAGNOSTIC_CODES["BND07"]);
 error undefined
 ```
 
-**コードは 65 個で、error が 49、warning が 16 である。**
+**There are 65 codes: 49 errors and 16 warnings.**
 
-`BND07` が `undefined` を返すのは、それが**欠番**だからである。廃止されたコードの番号は再利用されない — 古いログや古い設定に残った番号が、別の意味で復活しないためである。欠番の一覧と、その代わりに何が言われるようになったかは [引退した診断](../diagnostics/retired.md)。
+`BND07` returns `undefined` because it is a **retired number**. Retired numbers are never reused, so a number left in an old log or an old configuration cannot come back meaning something else. The retired list, and what is said in their place, is at [retired diagnostics](../diagnostics/retired.md).
 
-コード一件ずつの原因と直し方は [診断リファレンス](../diagnostics/index.md)。
+Cause and cure for each code is in the [diagnostics reference](../diagnostics/index.md).
 
-## DiagnosticCode を型として使う
+## Using DiagnosticCode as a type
 
-`DiagnosticCode` はコードの合併型である。台帳に無い綴りはコンパイルが通らない。
+`DiagnosticCode` is the union of the codes. A spelling absent from the ledger will not compile.
 
 ```ts
 import type { Diagnostic, DiagnosticCode } from "@kensnzk/koyu";
@@ -192,11 +192,11 @@ const FATAL: DiagnosticCode[] = ["BND04", "GEO02", "SUF02"];
 const fatal = (ds: Diagnostic[]) => ds.filter((d) => FATAL.includes(d.code));
 ```
 
-`"BND07"` をこの配列に書けば、その場で型エラーになる。
+Put `"BND07"` in that array and it is a type error on the spot.
 
-## 終了コードのように使う
+## Turning it into an exit code
 
-CLI の `koyu check` は error があれば 1 を返し、`--strict` を付けると warning でも 1 を返す。同じ規則を自分で書くならこうなる。
+`koyu check` exits 1 when there is an error, and with `--strict` exits 1 on a warning too. Written out, the rule is:
 
 ```ts
 import { checkDiagnostics } from "@kensnzk/koyu";
@@ -209,11 +209,11 @@ function exitCode(model: Model, strict = false): number {
 }
 ```
 
-**診断が空でも建物が使えるとは限らない。**接する空間の既定は壁で、壁は扉が無ければ通れない。扉を一枚も宣言しない二階建ては、診断が空のまま完全に密封される。動線が繋がっているかは [`doorsBetween`](queries.md#doorsbetween) が、建築の側の判断は [`validate`](validate.md) が言う。
+**An empty diagnostic list does not mean the building works.** Two touching spaces default to a wall, and a wall without a door cannot be passed. A two-storey house with not one door declared stays sealed shut with an empty list. Whether the circulation connects is [`doorsBetween`](queries.md#doorsbetween); the architectural judgement is [`validate`](validate.md).
 
-## 関連
+## See also
 
-- [診断リファレンス](../diagnostics/index.md) — 65コードの原因と直し方
-- [検証](validate.md) — 建築的な判定 (`Finding`)
-- [`koyu check`](../cli/check.md) — 同じ検査をコマンドラインから
-- [エラー](errors.md) — 検査ではなく解析が投げるもの
+- [Diagnostics reference](../diagnostics/index.md) — cause and cure for all 65 codes
+- [Validation](validate.md) — architectural judgement (`Finding`)
+- [`koyu check`](../cli/check.md) — the same check from the command line
+- [Errors](errors.md) — what parsing, rather than checking, throws

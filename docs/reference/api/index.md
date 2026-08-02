@@ -5,15 +5,15 @@ mode: reference
 
 # TypeScript API
 
-`@kensnzk/koyu` は `.muro` を読み、検査し、問いに答え、形を導き、図を吐くライブラリである。**CLI が答えるものはすべてこの API が答える。**[`koyu` コマンド](../cli/index.md)・`koyu-mcp` サーバー・この API は同じ導出の三つの入口であり、どれかにしか無い答えというものは無い。
+`@kensnzk/koyu` reads `.muro`, checks it, answers questions about it, derives form from it, and emits drawings. **Everything the CLI answers, this API answers.** The [`koyu` command](../cli/index.md), the `koyu-mcp` server and this API are three entrances to the same derivations; there is no answer that only one of them has.
 
 ```sh
 npm install @kensnzk/koyu
 ```
 
-実行時依存はゼロである。パッケージが引くのは Node 標準モジュールだけで、それも `@kensnzk/koyu/node` の中だけに閉じている。動作環境は **Node 22 以上** (`engines.node` が `>=22`)。
+There are no runtime dependencies. The only modules the package pulls are Node built-ins, and those are confined to `@kensnzk/koyu/node`. It needs **Node 22 or later** (`engines.node` is `>=22`).
 
-## 入口
+## Entrances
 
 ```ts
 import { parse, checkDiagnostics, derive } from "@kensnzk/koyu";
@@ -22,61 +22,61 @@ import { validate, VALIDATION_RULES } from "@kensnzk/koyu/validate";
 import { svgPlan, svgAxo } from "@kensnzk/koyu/draw";
 ```
 
-| 入口 | 中身 | `node:fs` |
+| Entrance | What is in it | `node:fs` |
 |---|---|---|
-| `@kensnzk/koyu` | 面の全部 — 解析・診断・問い・導出・生成・差分・検証 | **引かない** |
-| `@kensnzk/koyu/node` | `parseFile` `parseFileWith` の二つだけ | 引く |
-| `@kensnzk/koyu/validate` | `validate` `VALIDATION_RULES` と型 `Finding` `ValidationRule` | 引かない |
-| `@kensnzk/koyu/draw` | `svgPlan` `svgAxo` と型 `PlanOptions` `AxoOptions` | 引かない |
-| `@kensnzk/koyu/examples/*` | 同梱の建物の原本 (`examples/two-rooms.muro` など)。テストや評価から読む | — |
-| `@kensnzk/koyu/syntax` | エディタの文法 (TextMate 文法の JSON)。VS Code と Shiki が共有する | — |
+| `@kensnzk/koyu` | the whole surface — parsing, diagnostics, queries, derivation, drawing, diff, validation | **not pulled** |
+| `@kensnzk/koyu/node` | `parseFile` and `parseFileWith`, nothing else | pulled |
+| `@kensnzk/koyu/validate` | `validate`, `VALIDATION_RULES`, and the types `Finding` and `ValidationRule` | not pulled |
+| `@kensnzk/koyu/draw` | `svgPlan`, `svgAxo`, and the types `PlanOptions` and `AxoOptions` | not pulled |
+| `@kensnzk/koyu/examples/*` | the source of a bundled building (`examples/two-rooms.muro` and friends), for tests and evaluation | — |
+| `@kensnzk/koyu/syntax` | the editor grammar (TextMate grammar as JSON), shared by VS Code and Shiki | — |
 
-上の四つが JS モジュールの入口で、`import` して名を引く。下の二つはデータ (同梱の建物の原本と文法ファイル) なので、`node:fs` の欄を持たない。**パッケージが公開しているサブパスはこの表で尽きている** — 宣言されたサブパスがこの頁に書かれていることはテストが縛るので、入口を足して書かなければ落ちる。
+The first four are JavaScript module entrances: you `import` names from them. The last two are data — the sources of the bundled buildings, and the grammar file — so the `node:fs` column does not apply. **This table is every subpath the package publishes.** A test binds each declared subpath to an appearance on this page, so adding an entrance without writing it here makes the test fail.
 
-**ルートは `node:fs` も `node:path` も引かない。**ブラウザ・Web Worker・エッジランタイムでそのまま動く。ファイルシステムを触る入口だけが `/node` に分離してある。分けてあるのはパーサ本体を純粋に保つためで、合成 (`import` の解決) は「レイヤーをどう読むか」という関数を外から受け取る形になっており、fs はその実装の一つでしかない。ブラウザは仮想ファイル群 (`parseFiles`) か独自ローダー (`parseWith`) を渡す — [解析と合成](parsing.md)。
+**The root pulls neither `node:fs` nor `node:path`.** It runs unchanged in a browser, a web worker, or an edge runtime. Only the entrance that touches the filesystem lives under `/node`. The split exists to keep the parser itself pure: composition (resolving `import`) takes a "how do I read a layer" function from outside, and the filesystem is only one implementation of it. A browser passes a virtual file set (`parseFiles`) or its own loader (`parseWith`) — see [Parsing and composition](parsing.md).
 
-`/validate` と `/draw` はルートが再輸出している面の一部でもある。**領域を混ぜないための別入口**であって、別の実装ではない。ルートから `validate` を呼んでも `@kensnzk/koyu/validate` から呼んでも同じ関数である。(`/validate` のモジュールには `Finding` を組み立てる補助 `finding` も出ているが、これはルートが再輸出していない — 下の一覧に無い名は約束の外にある。)
+`/validate` and `/draw` are also part of what the root re-exports. They are **separate entrances so the domains do not blur**, not separate implementations: calling `validate` from the root and from `@kensnzk/koyu/validate` calls the same function. (The `/validate` module also exposes `finding`, a constructor for a `Finding`; the root does not re-export it, and a name absent from the list below is outside the promise.)
 
-## 面は書き下されている
+## The surface is written down
 
-パッケージのルートは **`export *` を使わない。**モジュールに export を足した瞬間に、誰も宣言していない約束が凍る面に増えてしまうからである。約束は書き下されていなければならない。
+The package root does not use `export *`. The moment a module gains an export, a promise nobody declared would join a frozen surface. A promise has to be written out to be a promise.
 
-したがって**この面の全部は、`src/index.ts` に一つずつ書かれた名の集合である**。ここに無い名は、ソースの中にあっても約束ではない。下の表がその集合であり、`test/public-api.test.ts` が実装との一致を縛っている — **数は数えない。表が出所である。**
+So **this surface is exactly the set of names spelled out one by one in `src/index.ts`**. A name that is not there is not a promise, however visible it is in the source. The table below is that set, and `test/public-api.test.ts` holds it in set-equality with the implementation — **the count is not written down; the table is the source.**
 
-**約束の全部がこの表である。**この表と `src/index.ts` の集合の一致はテストが縛るので、export を足して表に書かなければ落ちる。名の並びは照合順で、面の分け方は名がどのモジュールから出ているかである。
+**The whole promise is this table.** A test binds this table and the set in `src/index.ts` to each other, so adding an export without writing it here fails. Names go in collation order, and the grouping follows which module each name is exported from.
 
 <!-- api-surface -->
 
-| 面 | 値 | 型 |
+| Surface | Values | Types |
 |---|---|---|
-| [解析と合成](parsing.md) | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
-| [モデルと問い](model.md) | `areaM2` `canonicalBoundaryOrder` `columnsFor` `DEFAULT_LANGUAGE_VERSION` `displayName` `effectiveUse` `heff` `isCoveredAbove` `isIndoor` `isOutside` `isSemiOutdoor` `isVoid` `levelsSorted` `newUids` `pointInPolygon` `polyBounds` `polygonAreaM2` `rectToPoly` `SourceError` `srcRef` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` `unionAreaM2` `zoneAreaM2` | `Area` `Asset` `Attrs` `AttrValue` `Boundary` `BoundaryKind` `Column` `ColumnDecl` `DrawnLine` `Edge` `GridAxis` `GridRef` `Level` `Model` `Opening` `Pt` `Rect` `Seg` `SitePolygon` `Space` `Zone` |
-| [診断](diagnostics.md) | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `CheckResult` `Diagnostic` `DiagnosticCode` |
-| [グラフと線分](queries.md) | `deriveDefaultBoundaries` `doorsBetween` `envelopeGaps` `neighbors` `passable` `placeBand` `placeOpening` `segmentsFor` | `Band` `BandCode` `BandError` `NeighborInfo` `PlacedBand` `Route` `Segment` |
-| [導出 (Form)](derive.md) | `band` `bandLine` `columnRect` `derive` `DERIVATION_CONSTANTS` `levelPitch` `runPrism` `thicken` | `DeriveOptions` `Form` `FormBoundary` `FormColumn` `FormInput` `FormLevel` `FormOpening` `FormPanel` `FormPlan` `FormPrism` `FormRun` `FormSeg` `FormSite` `FormSpace` `FormSwing` `PlanClass` `PlanEntity` `PlanRole` `PlanSubject` |
-| [属性の台帳](../muro/attributes.md) | `ASSET_ELEM` `ATTR_LEDGER` `attrSpec` `CARRY_NAMESPACE` `isNamespaced` `known` | `AttrSpec` `AttrTier` |
-| [公差](../form/constants.md) | `TOLERANCES` | — |
-| [面 — 床・天井・屋根](solids.md) | `slabs` | `Slab` `SlabKind` |
-| [採光の入力](queries.md) | `daylightInputs` | `DaylightInput` |
-| [縦動線](solids.md) | `RUN_KEYS` `runDecls` `runDrawsForLevel` `runSolids` `slopeText` `verticalRuns` | `RunArrow` `RunDecl` `RunDevice` `RunDraw` `RunForm` `RunPart` `RunSolid` `Seg2` `VerticalRun` |
-| [敷地](queries.md) | `siteReport` | `RoadFrontage` `SiteReport` |
-| [差分](diff.md) | `renderDiff` `semanticDiff` | `BoundaryChange` `BoundaryItem` `ChangedItem` `ColumnItem` `FieldChange` `GridChange` `ModelDiff` `RenamedItem` `SpaceItem` |
-| [平面の描画](draw.md) | `svgPlan` | `PlanOptions` |
-| [立体の描画](draw.md) | `svgAxo` | `AxoOptions` |
-| [建築的な判定](validate.md) | `validate` `VALIDATION_RULES` | `Finding` `ValidationRule` |
+| [Parsing and composition](parsing.md) | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
+| [The model and its questions](model.md) | `areaM2` `canonicalBoundaryOrder` `columnsFor` `DEFAULT_LANGUAGE_VERSION` `displayName` `effectiveUse` `heff` `isCoveredAbove` `isIndoor` `isOutside` `isSemiOutdoor` `isVoid` `levelsSorted` `newUids` `pointInPolygon` `polyBounds` `polygonAreaM2` `rectToPoly` `SourceError` `srcRef` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` `unionAreaM2` `zoneAreaM2` | `Area` `Asset` `Attrs` `AttrValue` `Boundary` `BoundaryKind` `Column` `ColumnDecl` `DrawnLine` `Edge` `GridAxis` `GridRef` `Level` `Model` `Opening` `Pt` `Rect` `Seg` `SitePolygon` `Space` `Zone` |
+| [Diagnostics](diagnostics.md) | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `CheckResult` `Diagnostic` `DiagnosticCode` |
+| [Graph and segments](queries.md) | `deriveDefaultBoundaries` `doorsBetween` `envelopeGaps` `neighbors` `passable` `placeBand` `placeOpening` `segmentsFor` | `Band` `BandCode` `BandError` `NeighborInfo` `PlacedBand` `Route` `Segment` |
+| [Derivation (Form)](derive.md) | `band` `bandLine` `columnRect` `derive` `DERIVATION_CONSTANTS` `levelPitch` `runPrism` `thicken` | `DeriveOptions` `Form` `FormBoundary` `FormColumn` `FormInput` `FormLevel` `FormOpening` `FormPanel` `FormPlan` `FormPrism` `FormRun` `FormSeg` `FormSite` `FormSpace` `FormSwing` `PlanClass` `PlanEntity` `PlanRole` `PlanSubject` |
+| [The attribute ledger](../muro/attributes.md) | `ASSET_ELEM` `ATTR_LEDGER` `attrSpec` `CARRY_NAMESPACE` `isNamespaced` `known` | `AttrSpec` `AttrTier` |
+| [Tolerances](../form/constants.md) | `TOLERANCES` | — |
+| [Slabs — floors, ceilings, roofs](solids.md) | `slabs` | `Slab` `SlabKind` |
+| [Daylight inputs](queries.md) | `daylightInputs` | `DaylightInput` |
+| [Vertical circulation](solids.md) | `RUN_KEYS` `runDecls` `runDrawsForLevel` `runSolids` `slopeText` `verticalRuns` | `RunArrow` `RunDecl` `RunDevice` `RunDraw` `RunForm` `RunPart` `RunSolid` `Seg2` `VerticalRun` |
+| [Site](queries.md) | `siteReport` | `RoadFrontage` `SiteReport` |
+| [Diff](diff.md) | `renderDiff` `semanticDiff` | `BoundaryChange` `BoundaryItem` `ChangedItem` `ColumnItem` `FieldChange` `GridChange` `ModelDiff` `RenamedItem` `SpaceItem` |
+| [Drawing the plan](draw.md) | `svgPlan` | `PlanOptions` |
+| [Drawing the solid](draw.md) | `svgAxo` | `AxoOptions` |
+| [Architectural verdicts](validate.md) | `validate` `VALIDATION_RULES` | `Finding` `ValidationRule` |
 
-面に載る基準は四つある。
+Four things put a name on the surface.
 
-1. パッケージの外 (ビューワー・評価ハーネス・スクリプト・エディタ拡張) が実際に呼ぶ
-2. CLI か MCP が答えるものを API からも答えるために要る
-3. 導出として名指しで約束されている
-4. テストが契約として固定している
+1. Something outside the package (the viewer, the eval harness, scripts, the editor extension) actually calls it.
+2. It is needed so the API can answer what the CLI or MCP answers.
+3. It is a derivation promised by name.
+4. A test pins it as a contract.
 
-core のモジュール同士が引き合うだけの配管は面ではない。型は、載せた値の署名を書き下すのに要るものだけが載る。
+Plumbing that only lets core modules reach each other is not surface. Types are on it only when they are needed to spell out the signature of a value that is on it.
 
-## 最初のプログラム
+## The first program
 
-読み込み、検査し、面積を出す。これだけで一巡している。
+Read a file, check it, print areas. That is one full turn of the loop.
 
 ```ts
 import { checkDiagnostics, areaM2 } from "@kensnzk/koyu";
@@ -100,39 +100,39 @@ for (const s of model.spaces.values()) {
 /out	exterior	-
 ```
 
-`model.spaces` は `Map<string, Space>`、`model.boundaries` は `Boundary[]` である。**パスが空間の同一性**であり、境界はどちらの空間にも属さない第一級の関係として配列に並ぶ — [Model と構成型](model.md)。
+`model.spaces` is a `Map<string, Space>` and `model.boundaries` is a `Boundary[]`. **A path is the identity of a space**, and a boundary belongs to neither space it joins — it is a first-class relation sitting in an array. See [Model and its types](model.md).
 
-**診断が空でも建物が使えるとは限らない。**`checkDiagnostics` が言うのは「書かれたものがデータとして矛盾していない」までである。扉を一枚も書かない二階建ては、診断が空のまま完全に密封される。建築の側の判断は [`validate`](validate.md) が別に言う。
+**An empty diagnostic list does not mean the building works.** `checkDiagnostics` says only that what is written is not self-contradictory as data. A two-storey house with not one door declared stays sealed shut with an empty list. The architectural judgement is made separately by [`validate`](validate.md).
 
-## 頁の地図
+## Map of the pages
 
-| 頁 | 何を引くか |
+| Page | What you look up |
 |---|---|
-| [Model と構成型](model.md) | `Model` `Space` `Boundary` `Zone` `Level` `Opening` ほか、書かれた構成の型 |
-| [解析と合成](parsing.md) | `parse` `parseFiles` `parseWith` `parseFile` `parseFileWith` `tokenize` `LayerLoader` |
-| [診断](diagnostics.md) | `checkDiagnostics` `check` `DIAGNOSTIC_CODES` `Diagnostic` `CheckResult` |
-| [検証](validate.md) | `validate` `VALIDATION_RULES` `Finding` `ValidationRule` |
-| [モデルへの問い](queries.md) | `doorsBetween` `neighbors` `areaM2` `siteReport` `daylightInputs` ほか |
-| [形の導出](derive.md) | `derive` と `Form` の全構成型、`DERIVATION_CONSTANTS` `TOLERANCES` |
-| [実体と生成物](solids.md) | `thicken` `band` `columnRect` `runPrism` `slabs` `verticalRuns` ほか |
-| [図の生成](draw.md) | `svgPlan` `svgAxo` とその選択肢 |
-| [正準JSON](canonical.md) | `toCanonical` |
-| [意味差分](diff.md) | `semanticDiff` `renderDiff` `ModelDiff` |
-| [同一性の生成](identity.md) | `newUids` |
-| [幾何の小物](geometry.md) | `polygonAreaM2` `pointInPolygon` `polyBounds` `rectToPoly` `envelopeGaps` |
-| [エラー](errors.md) | `SourceError` `srcRef` |
-| [言語版](versions.md) | `SUPPORTED_LANGUAGE_VERSIONS` `DEFAULT_LANGUAGE_VERSION` |
+| [Model and its types](model.md) | `Model` `Space` `Boundary` `Zone` `Level` `Opening` and the rest of the written composition |
+| [Parsing and composition](parsing.md) | `parse` `parseFiles` `parseWith` `parseFile` `parseFileWith` `tokenize` `LayerLoader` |
+| [Diagnostics](diagnostics.md) | `checkDiagnostics` `check` `DIAGNOSTIC_CODES` `Diagnostic` `CheckResult` |
+| [Validation](validate.md) | `validate` `VALIDATION_RULES` `Finding` `ValidationRule` |
+| [Questions about a model](queries.md) | `doorsBetween` `neighbors` `areaM2` `siteReport` `daylightInputs` and friends |
+| [Deriving form](derive.md) | `derive`, every type in `Form`, `DERIVATION_CONSTANTS`, `TOLERANCES` |
+| [Solids and generated fabric](solids.md) | `thicken` `band` `columnRect` `runPrism` `slabs` `verticalRuns` and friends |
+| [Drawing](draw.md) | `svgPlan`, `svgAxo` and their options |
+| [Canonical JSON](canonical.md) | `toCanonical` |
+| [Semantic diff](diff.md) | `semanticDiff` `renderDiff` `ModelDiff` |
+| [Generating identity](identity.md) | `newUids` |
+| [Geometry helpers](geometry.md) | `polygonAreaM2` `pointInPolygon` `polyBounds` `rectToPoly` `envelopeGaps` |
+| [Errors](errors.md) | `SourceError` `srcRef` |
+| [Language versions](versions.md) | `SUPPORTED_LANGUAGE_VERSIONS` `DEFAULT_LANGUAGE_VERSION` |
 
-## 三つの領域
+## Three domains
 
-面の中身は三つに割れていて、**割れ方そのものが約束の一部である。**
+The surface falls into three parts, and **the way it falls is itself part of the promise.**
 
-| 領域 | 何を言うか | 凍るか |
+| Domain | What it says | Frozen? |
 |---|---|---|
-| core | 構成の整合と、そこから導かれる数と形 | **凍る** — 意味論を変える変更は言語版を上げる |
-| 検証 | 建築的な判定 (`Finding`) | 凍らない — 増える・精度が上がる・捨てられる |
-| 生成 | SVG の中身 | 凍らない — 見た目は自由に変わる |
+| core | consistency of the composition, and the numbers and shapes derived from it | **frozen** — a change of meaning raises the language version |
+| validation | architectural judgement (`Finding`) | not frozen — rules are added, sharpened, dropped |
+| drawing | the content of the SVG | not frozen — looks change freely |
 
-core は**合否を言わない。**面積・線分・凸片・立体を返すところまでが core であり、「足りているか」「守られているか」は検証が言う。この分離は型に現れている — core は `Diagnostic { code, severity }` を返し、検証は `Finding { rule, level }` を返す。フィールド名から違うので、二つの配列は取り違えようがない。
+core **never passes judgement.** Areas, segments, convex pieces, solids — that is where core stops. Whether something is *enough*, or *complied with*, is validation's sentence. The split shows up in the types: core returns `Diagnostic { code, severity }` and validation returns `Finding { rule, level }`. The field names differ, so the two arrays cannot be confused for each other.
 
-生成 (`svgPlan` / `svgAxo`) が返す SVG の中身は約束の外にある。**同じ入力から同じ形が出ることは約束されるが、同じバイトが出ることは約束されない。**色・線種・書体・記号の見た目は断りなく変わる。図を機械で比べるなら [`toCanonical`](canonical.md) か [`derive`](derive.md) の返り値を比べる。
+The bytes of the SVG that `svgPlan` and `svgAxo` return are outside the promise. **The same input yields the same form, but not the same bytes.** Colours, line styles, typefaces and symbols change without notice. To compare drawings mechanically, compare [`toCanonical`](canonical.md) or the value returned by [`derive`](derive.md).

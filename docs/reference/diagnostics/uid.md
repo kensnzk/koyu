@@ -1,25 +1,25 @@
 ---
-title: UID — 同一性
+title: UID — identity
 mode: reference
 ---
 
-# UID — 同一性
+# UID — identity
 
-UID は四つある。すべてエラーである。
+There are four UID codes. All are errors.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| UID01 | error | `uid` が数字だけのトークン |
-| UID02 | error | `uid` に空白が含まれる (空も同じ) |
-| UID03 | error | `uid` が重複している |
-| UID04 | error | 含む対象の中で `name` が重複している |
+| UID01 | error | The `uid` is a token of digits alone |
+| UID02 | error | The `uid` contains whitespace (or is empty) |
+| UID03 | error | The `uid` is duplicated |
+| UID04 | error | A `name` is duplicated within one container |
 
-**同一性は二つある。**このことを掴むと四つのコードが二つに割れる。
+**There are two kinds of identity here**, and once you see that, the four codes split into two.
 
-- **`uid`** — `space` と `zone` に書く**不透明トークン**。モデル全体で一意で、パスを変えても「同じもの」だと言うために使う。`koyu diff` の改名検出がこれを読む。UID01〜UID03 がこれを守る。
-- **`name`** — 開口・`seg`・`area`・柱の同一性。これらは自分のパスを持たないので、**含む対象 + その中で一意な名**が同一性になる。UID04 がこれを守る。
+- **`uid`** — an **opaque token** written on a `space` or a `zone`. It is unique across the whole model and exists so you can say "this is the same thing" after changing a path. `koyu diff`'s rename detection reads it. UID01–UID03 guard it.
+- **`name`** — the identity of an opening, a `seg`, an `area` or a column. None of these has a path of its own, so their identity is **the container plus a name unique inside it**. UID04 guards that.
 
-## UID01 — uid は数字だけのトークンにできません
+## UID01 — a uid cannot be a token of digits alone
 
 `error`
 
@@ -34,9 +34,9 @@ space /L1/a room X1..X2 Y1..Y2 uid:0123
 A uid cannot be a token of digits alone: uid:123 (write something like sp-123)
 ```
 
-**原因** — 数値の形をした属性値は数値として保持される。`0123` と書いても `123` になる — メッセージが `uid:123` と言っているのがまさにそれで、先頭の 0 はもう無い。書いたトークンの区別が失われた状態で同一性を担わせることはできない。
+**Cause** — an attribute value shaped like a number is kept as a number. Write `0123` and you get `123` — which is exactly what the message is showing you; the leading zero is already gone. A token that has lost the distinctions you wrote into it cannot carry identity.
 
-**直し方** — 数字以外を混ぜる。接頭辞を付けるのが簡単である。
+**Fix** — mix in something that is not a digit. A prefix is the easy way.
 
 ```muro
 grid X 0 3600
@@ -45,7 +45,7 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 uid:sp-0123
 ```
 
-## UID02 — uid に空白は使えません
+## UID02 — a uid cannot contain whitespace
 
 `error`
 
@@ -60,11 +60,11 @@ space /L1/a room X1..X2 Y1..Y2 uid:"sp 1"
 A uid cannot contain whitespace: "sp 1"
 ```
 
-**原因** — 引用符で囲めば空白を含む値は書けるが、`uid` は不透明トークンなので空白を許さない。空の値 (`uid:""`) も同じく通らない。
+**Cause** — quoting lets a value contain whitespace, but a `uid` is an opaque token and does not allow it. An empty value (`uid:""`) is refused on the same line.
 
-**直し方** — 空白をハイフンかアンダースコアに置き換える (`uid:sp-1`)。
+**Fix** — replace the whitespace with a hyphen or an underscore (`uid:sp-1`).
 
-## UID03 — uid が重複しています
+## UID03 — a duplicate uid
 
 `error`
 
@@ -80,15 +80,15 @@ space /L1/b room X2..X3 Y1..Y2 uid:sp-1
 Duplicate uid: sp-1 (space /L1/a — <absolute path>/bad.muro:line 4, space /L1/b — <absolute path>/bad.muro:line 5)
 ```
 
-**原因** — 同じ `uid` が二箇所にある。**一意性は `space` と `zone` を跨ぐ** — 空間とゾーンが同じトークンを持っても重複である。行をコピーして `uid` を直し忘れた場合に出る。
+**Cause** — the same `uid` appears twice. **Uniqueness spans `space` and `zone`**: a space and a zone carrying the same token is also a duplicate. Copying a line and forgetting to change the `uid` is how this arrives.
 
-メッセージは全ての出所を種別つきで並べ、`related` にも同じ位置が入る。
+The message lists every origin with its kind, and `related` carries the same positions.
 
-**直し方** — 片方を別のトークンに変える。
+**Fix** — change one of them to another token.
 
-複数のファイルを `import` で合成しているなら、レイヤーごとに接頭辞を決めておくと事故が減る (`sp-` / `w2-` / `ext-`)。機械に作らせるなら、`koyu-mcp` の `new_uids` か API の `newUids` が衝突しないトークンを返す。
+If you compose several files with `import`, deciding a prefix per layer prevents most of these (`sp-` / `w2-` / `ext-`). If a machine is writing them, `koyu-mcp`'s `new_uids` and the API's `newUids` return tokens that do not collide.
 
-## UID04 — 同じ対象の中で name が重複しています
+## UID04 — a duplicate name within one container
 
 `error`
 
@@ -107,22 +107,22 @@ boundary /L1/a /out t:150
 Duplicate opening name within boundary /L1/a | /out: W1 (<absolute path>/bad.muro:line 7, <absolute path>/bad.muro:line 8) — the name is what identifies it inside its container
 ```
 
-**原因** — 開口も `seg` も `area` も柱も、自分のパスを持たない。だから同一性は「含む対象の中で一意な名」でしか成り立たない。名が二つの要素を指していれば、`= window W1` はどちらを差し替えるのか、`- window W1` はどちらを消すのかが決まらない。**推測せずにその場で拒む。**
+**Cause** — an opening, a `seg`, an `area` and a column all lack a path of their own, so their identity can only be "a name unique inside the container". If one name points at two elements, `= window W1` cannot say which to replace and `- window W1` cannot say which to delete. **koyu does not guess; it refuses on the spot.**
 
-検査されるのは四つで、含む対象がそれぞれ違う。
+Four things are checked, each with a different container.
 
-| 要素 | 含む対象 | メッセージの言い方 |
+| Element | Container | How the message names it |
 |---|---|---|
-| 開口 (`door` / `window`) | その境界 | `within boundary /L1/a \| /out` |
-| `seg` | その境界 | `within boundary /L1/a \| /out` |
-| `area` | その空間 | `within space /L1/a` |
-| `column` | モデル全体 | `within the model` |
+| Opening (`door` / `window`) | its boundary | `within boundary /L1/a \| /out` |
+| `seg` | its boundary | `within boundary /L1/a \| /out` |
+| `area` | its space | `within space /L1/a` |
+| `column` | the whole model | `within the model` |
 
-柱だけがモデル全体を範囲に取る。柱は境界にも空間にも属さず、通りと階だけで宣言されるからである。
+Only columns take the whole model as their scope. A column belongs to neither a boundary nor a space; it is declared with a size, storeys and grid lines alone.
 
-**名を書かない要素は母集団に入らない。**同一性を主張していないのだから、いくつ並べても衝突しない。
+**Elements with no name are not in the population.** They assert no identity, so any number of them can sit side by side.
 
-**アセットから継いだ名は数えない。**
+**A name inherited from an asset does not count.**
 
 ```muro
 grid X 0 3600 7200
@@ -136,12 +136,12 @@ boundary /L1/a /out t:150
   window W1 edge:S at:0.75
 ```
 
-`asset W1 … name:掃き出し窓` の `name` は**型の名**であって、その開口自身の主張ではない。同じ建具を一枚の壁に二枚並べても衝突にはならない。上のファイルは緑である。
+The `name` on `asset W1 … name:掃き出し窓` is **the name of a type**, not a claim made by either opening. Putting the same unit twice in one wall is no collision. The file above is green.
 
-**直し方** — 片方の名を変える (`name:W1-e` / `name:W1-w`)。そもそも個別に指す必要がなければ、`name:` を書かない。
+**Fix** — change one of the names (`name:W1-e` / `name:W1-w`). If you never need to point at them individually, do not write `name:` at all.
 
-## 関連
+## Related
 
-- [ATT — 属性](./att.md) — `uid` と `name` を含む属性の鍵と値の検査
-- [ZON — ゾーン](./zon.md) — `uid` を持てるもう一方
+- [ATT — attributes](./att.md) — the key and value checks that cover `uid` and `name`
+- [ZON — zones](./zon.md) — the other thing that can carry a `uid`
 - [koyu check](../cli/check.md)

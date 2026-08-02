@@ -1,9 +1,9 @@
 ---
-title: 同一性の生成
+title: Generating identity
 mode: reference
 ---
 
-# 同一性の生成
+# Generating identity
 
 ```ts
 import { newUids } from "@kensnzk/koyu";
@@ -11,29 +11,29 @@ import { newUids } from "@kensnzk/koyu";
 function newUids(model: Model, count?: number): string[]
 ```
 
-改名を跨ぐ同一性トークン (`uid`) を作る。
+Makes identity tokens (`uid`) that survive a rename.
 
-## パスは同一性、uid は永続同一性
+## The path is identity; the uid is persistent identity
 
-**空間の同一性はパスである。**`/L1/a` と書けばそれが名前であり、参照であり、集計の階層である。ほとんどの場面ではそれで足りる。
+**A space's identity is its path.** Write `/L1/a` and that is the name, the reference and the hierarchy of aggregation. For most purposes that is enough.
 
-`uid` が要るのは**改名を跨ぎたいときだけ**である。`/L1/a` を `/L1/study` に改める編集は、パスだけで見れば「一つ消えて一つ生えた」である。同じ `uid` が両側にあれば、[`semanticDiff`](diff.md) はそれを**改名**として読む。
+A `uid` is needed **only when you want identity to survive a rename.** Renaming `/L1/a` to `/L1/study` looks, by path alone, like one space disappearing and another appearing. With the same `uid` on both sides, [`semanticDiff`](diff.md) reads it as a **rename**.
 
-**書ける対象は `space` と `zone` の二つに閉じている。**境界にも開口にも `uid` は書けない — 境界の対応は両端の空間が継ぎ、開口の同一性は「含む対象 + その中で一意な名」から導かれるからである。
+**Only `space` and `zone` may carry one.** Neither boundaries nor openings can: a boundary inherits its correspondence from the spaces at its ends, and an opening's identity comes from its container plus a name unique within it.
 
-## 綴り
+## The spelling
 
-**接頭辞 `u-` + 16字、合わせて18字。**
+**The prefix `u-` plus 16 characters — 18 in all.**
 
-字母は Crockford base32 の小文字 — `0123456789abcdefghjkmnpqrstvwxyz` で、`i` `l` `o` `u` を持たない。**接頭辞の `u` は字母に無い**ので、生成された uid は必ず一つだけ `u` を持ち、それが先頭である。
+The alphabet is lowercase Crockford base32 — `0123456789abcdefghjkmnpqrstvwxyz` — which has no `i`, `l`, `o` or `u`. **The `u` in the prefix is not in the alphabet**, so a generated uid contains exactly one `u`, at the front.
 
-16字 × 5ビット = **80ビット**の乱数である。
+16 characters × 5 bits is **80 bits** of randomness.
 
-接頭辞があるのは、**数字だけの綴りを構造的に不可能にするため**である。数字だけの uid は数値化でトークンの区別が失われる (`UID01` がそれを咎める)。**種別は綴りに入らない** — uid は不透明であり、綴りから何かが読めてはならない。
+The prefix exists to make **a token of digits alone structurally impossible**: an all-digit uid loses its distinctness the moment something converts it to a number (which is what `UID01` objects to). **The kind is not in the spelling** — a uid is opaque, and nothing should be readable from it.
 
-## 導出しない
+## It is not derived
 
-**パスからも、モデルの中身からも導出しない。**導出すれば改名でトークンが変わり、uid の意味 — 改名を跨ぐこと — が消える。
+**Not from the path, and not from the contents of the model.** Derive it and a rename changes the token, which destroys the one thing a uid is for.
 
 ```ts
 import { newUids } from "@kensnzk/koyu";
@@ -50,9 +50,9 @@ u-8f46209ddmchp1s3 18
 [ 'u-bhg27d8dj7t99yem', 'u-nx4qx6byyffnjn25', 'u-07ezg6wz054k33tk' ]
 ```
 
-**乱数なので、実行のたびに違うトークンが出る。**上の出力もその一回ぶんである。
+**They are random, so every run gives different tokens.** The output above is one such run.
 
-`count` は正の整数でなければならない。
+`count` has to be a positive integer.
 
 ```ts
 try { newUids(m, 0); } catch (e) { console.log((e as Error).name + ": " + (e as Error).message); }
@@ -62,26 +62,26 @@ try { newUids(m, 0); } catch (e) { console.log((e as Error).name + ": " + (e as 
 RangeError: count is a positive integer: 0
 ```
 
-## 保証は二段である
+## The guarantee has two tiers
 
-1. **合成済みのこのモデルとは衝突しない。**モデルの中の既存の `uid` (空間とゾーンの両方) を集めて検査してから返すので、これは確実である。
-2. **まだ合成されていない層・他のリポジトリとは、確率でしか衝突しない。**80ビットの乱数なので、100万個を集めても衝突確率は 10⁻¹² を下回る。
+1. **No collision with this composed model.** Every existing `uid` in it (spaces and zones alike) is collected and checked before a token is returned, so this is certain.
+2. **Collision with a layer not yet composed, or another repository, is only improbable.** With 80 bits of randomness, a million tokens collide with probability below 10⁻¹².
 
-**確実さが要るなら、合成して検査する。**一意性を実際に証明するのは `UID03` だけである。
+**When you need certainty, compose and check.** `UID03` is the only thing that actually proves uniqueness.
 
-## 付与は明示の行為である
+## Assigning one is a deliberate act
 
-**この関数を呼ばないかぎり、どのツールも uid を書かない。**自動で振られることは無い。改名を跨ぐ必要が出た要素にだけ、書き手が付ける。
+**No tool writes a uid unless this function is called.** Nothing is assigned automatically. You add one to the elements whose identity has to survive a rename, and to no others.
 
-## 検査
+## Checking
 
-`uid` は三つの診断が守っている。
+Three diagnostics guard `uid`.
 
-| コード | 何を咎めるか |
+| Code | What it objects to |
 |---|---|
-| `UID01` | 数字だけの uid |
-| `UID02` | 空白を含む uid |
-| `UID03` | uid の重複 |
+| `UID01` | a uid of digits alone |
+| `UID02` | a uid containing whitespace |
+| `UID03` | a duplicate uid |
 
 ```ts
 import { checkDiagnostics, parse } from "@kensnzk/koyu";
@@ -99,9 +99,9 @@ ATT03 error /L1/b carries uid2:, which is not in the ledger (check the spelling,
 UID01 error A uid cannot be a token of digits alone: uid:12345 (write something like sp-12345)
 ```
 
-**`u-abc` は咎められない。**`newUids` の綴りは生成の規則であって、受理の条件ではない — 手で書いた短いトークンも、数字だけでなく空白を含まず重複しなければ通る。
+**`u-abc` is not objected to.** The spelling `newUids` produces is a rule of generation, not a condition of acceptance — a short token written by hand passes as long as it is not all digits, contains no whitespace, and is not duplicated.
 
-## 使う
+## Using it
 
 ```ts
 import { newUids } from "@kensnzk/koyu";
@@ -116,10 +116,10 @@ for (const [i, path] of targets.entries()) {
 }
 ```
 
-出た行を `.muro` に書き足したら、**合成して検査する** — そこで初めて `UID03` が一意性を証明する。
+Once the lines are written into the `.muro`, **compose and check** — that is where `UID03` proves uniqueness for the first time.
 
-## 関連
+## See also
 
-- [意味差分](diff.md) — uid が改名として読まれる場所
-- [空間を書く](../muro/space.md) — `uid:` の書き方
-- [診断リファレンス](../diagnostics/uid.md) — `UID01`〜`UID04` の直し方
+- [Semantic diff](diff.md) — where a uid is read as a rename
+- [Writing spaces](../muro/space.md) — how to write `uid:`
+- [Diagnostics reference](../diagnostics/uid.md) — fixing `UID01` through `UID04`

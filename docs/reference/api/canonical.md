@@ -1,9 +1,9 @@
 ---
-title: 正準JSON
+title: Canonical JSON
 mode: reference
 ---
 
-# 正準JSON
+# Canonical JSON
 
 ```ts
 import { toCanonical } from "@kensnzk/koyu";
@@ -11,7 +11,7 @@ import { toCanonical } from "@kensnzk/koyu";
 function toCanonical(model: Model): string
 ```
 
-模型を機械形式へ落とす。**同じ構成なら同じバイトが出る** — これが差分とレイヤー合成の土台である。
+Writes a model out as a machine format. **The same composition produces the same bytes** — which is what diff and layer composition are built on.
 
 ```ts
 import { toCanonical } from "@kensnzk/koyu";
@@ -37,36 +37,36 @@ console.log("bytes:", Buffer.byteLength(toCanonical(a)));
 bytes: 2164
 ```
 
-インデントは空白2、**末尾に改行が付く。**
+Indentation is two spaces, and **there is a trailing newline.**
 
-## 何が出て、何が出ないか
+## What is in it, and what is not
 
-**出るのは書かれた構成だけである。**
+**Only the written composition comes out.**
 
-| 出るもの | 出ないもの |
+| Present | Absent |
 |---|---|
-| 通り座標・レベル・アセット・敷地形状・柱の宣言・ゾーン・空間・境界 | `import` (合成の跡は残らない) |
-| 空間の割付 (`at`) — 書かれたグリッド参照の綴り | 導出された凸片 (`pieces`) |
-| 宣言された境界 | 既定境界 (`derived`) |
-| 描かれた線の綴り | その `effect` (切ったかどうか) |
-| 属性 | `over` / `drop` の跡 |
+| grid coordinates, levels, assets, site polygons, column declarations, zones, spaces, boundaries | `import` — no trace of composition survives |
+| a space's allocation (`at`), spelled as the grid references written | the derived convex pieces (`pieces`) |
+| declared boundaries | default (`derived`) boundaries |
+| the spelling of a drawn line | its `effect` (whether it cut anything) |
+| attributes | any trace of `over` / `drop` |
 
-**既定境界が出ないのは、それが書かれた構成ではないからである。**正準JSONから `Model` を組み立て直すときは [`deriveDefaultBoundaries`](derive.md#derivedefaultboundaries) を通す — そうしないと意味 (既定の壁) が読めない。
+**Default boundaries are absent because they are not written composition.** When you rebuild a `Model` from canonical JSON, run [`deriveDefaultBoundaries`](derive.md#derivedefaultboundaries) — without it the meaning (the default walls) cannot be read back.
 
-同じ理由で、`over` や `drop` が書かれたかどうかも残らない。**上書きの跡は機械形式に残らない** — 残せば「どう書いたか」が「何を書いたか」に混ざる。
+For the same reason, whether `over` or `drop` was written does not survive. **No trace of an override reaches the machine format** — leaving one would mix *how it was written* into *what was written*.
 
-## トップの並び
+## The order at the top
 
 ```text
 format → koyu → name → unit → grid → levels → assets → polygons → columns → zones → spaces → boundaries
 ```
 
-**文書が最初に名乗るのは自分の綴りの版である。**`format` は `"koyu-canonical/1.1"` で、これは**言語版でもツール版でもない** — 数えるのは綴りだけである。
+**The first thing a document announces is the version of its own spelling.** `format` is `"koyu-canonical/1.1"`, and that is **neither the language version nor the tool version** — it counts spelling and nothing else.
 
-- minor が上がるのはキーが増えたとき。増えたキーを持たない文書のバイトは変わらない。
-- major が上がるのは既存のキーの名前・並び・照合順・正規化・数の綴りが変わったとき。既存の文書のバイトが変わる。
+- The minor rises when a key is added. The bytes of a document that has no such key do not change.
+- The major rises when the name, order, collation, normalisation or number spelling of an existing key changes. Existing documents change bytes.
 
-`koyu` は**書かれた版宣言の素通し**なので、版を宣言していないファイルには出ない。
+`koyu` is **the written version declaration passed straight through**, so it is absent from a file that declares no version.
 
 ```ts
 import { parse, toCanonical } from "@kensnzk/koyu";
@@ -113,52 +113,54 @@ console.log(toCanonical(m));
 }
 ```
 
-**既定を書き足していない。**書いていない版を書いたことにすれば、ツールの既定が動いた日に同じ入力のバイトが変わる。決定性は形式の側の約束なので、ツールの既定に預けない。
+**The default was not written in.** Recording a version the author never wrote would mean the bytes of the same input change on the day the tool's default moves. Determinism is a promise of the format, so it is not entrusted to a tool default.
 
-空の集合 (`assets` `polygons` `columns` `zones`) はキーごと落ちる。`spaces` と `boundaries` は空でも必ず出る。
+Empty collections (`assets`, `polygons`, `columns`, `zones`) drop out entirely. `spaces` and `boundaries` are always present, empty or not.
 
-## 並べ替えの規則
+## The rules of sorting
 
-**並べ替えてよいのは、順序に意味の無い集合だけである。**掛ける前に問う — この配列の順序を入れ替えたら別の構成になるか。なるなら掛けてはならない。並べ替えは整形ではなく「順序に意味が無い」ことの表明である。
+**Only a collection whose order carries no meaning may be sorted.** Ask before sorting: would swapping two entries make it a different composition? If so, do not sort. Sorting is not tidying — it is an assertion that order means nothing here.
 
-| 対象 | 並び |
+| What | Order |
 |---|---|
-| オブジェクトのキー (属性・レベル名など) | 照合順 |
-| 空間・ゾーン・アセット・敷地形状 (パスで引くもの) | パスの照合順 |
-| 境界 | 正準エントリを直列化した文字列の照合順 |
-| 開口・`seg`・`area`・空間の複数割付 | 同上 |
-| **柱の宣言** | **宣言順のまま** |
-| 柱宣言の中の通り名 | 通りの並び順 |
+| object keys (attributes, level names) | collation |
+| spaces, zones, assets, site polygons (things keyed by path) | collation of the path |
+| boundaries | collation of the canonical entry serialised |
+| openings, `seg`s, `area`s, a space's several allocations | the same |
+| **column declarations** | **declaration order, untouched** |
+| grid names inside a column declaration | the order of the grid |
 
-**柱だけ並べ替えない。**同じ交点に二本は立たず先の宣言が勝つので、並べ替えると別の建物が同一のバイトになってしまう。並べ替えてよいのは宣言の**中**の、順序に意味の無い通り名の列だけである。
+**Columns alone are not sorted.** Two columns never share an intersection and the earlier declaration wins, so sorting would give two different buildings identical bytes. Only the list of grid names *inside* a declaration — where order means nothing — may be sorted.
 
-境界の `between` は二つのパスを照合順に並べたもので、書かれた向きは `a` キーが別に保つ — `edge` と `swing` は a 側から読まれるからである。
+A boundary's `between` is the two paths in collation order; the direction as written is kept separately in the `a` key, because `edge` and `swing` are read from the a side.
 
-描かれた線の端点は**解決座標の昇順**に並ぶ。線分は向きを持たないので、書き順は綴りの揺れである。**綴り自体は通り参照のまま保たれる。**
+The endpoints of a drawn line are ordered by **ascending resolved coordinate**. A segment has no direction, so writing order is a variation in spelling. **The spelling itself is preserved** as the grid references written.
 
-## 照合順
+## Collation
 
-**Unicode 符号位置の昇順であり、これは出力される UTF-8 バイトの昇順に等しい。**
+**Ascending Unicode code point, which is the same as ascending UTF-8 bytes.**
 
-**JavaScript の `<` と既定の `sort` は使えない。**あれは UTF-16 コード単位順で、符号位置順と一致しない。𠮟 (U+20B9F) は代用対 D842,DF9F なので `<` では 﨑 (U+FA11) より小さいが、UTF-8 では F0 A0 AE 9F と EF A8 91 で 﨑 が先である。どちらも日本語の実在の字なので、差は理論上のものではない。
+**JavaScript's `<` and default `sort` cannot be used.** They order by UTF-16 code unit, which does not agree with code point order. 𠮟 (U+20B9F) is the surrogate pair D842,DF9F, so `<` places it before 﨑 (U+FA11); in UTF-8 they are F0 A0 AE 9F and EF A8 91, so 﨑 comes first. Both are real characters in Japanese, so the difference is not theoretical.
 
-**規則を「JS の既定」ではなく「この形式自身のバイト」に置いてある** — 別の言語で書かれた実装が素直に書けば同じ並びになる側を選んである。
+**The rule is anchored to the bytes of this format, not to a JavaScript default** — the side an implementation in another language reaches by writing the obvious thing.
 
-## 不変量
+## The invariant
+
+When
 
 ```ts
 toCanonical(a) === toCanonical(b)
 ```
 
-が成り立つとき、[`semanticDiff(a, b)`](diff.md) は空である。逆に差分が空なら二つのバイトは一致する。**この二つの面は同じ「構成が同じ」の定義を共有している。**
+holds, [`semanticDiff(a, b)`](diff.md) is empty; and when the diff is empty, the bytes match. **The two surfaces share one definition of "the same composition".**
 
-同じことが形にも言える。**正準JSONがバイト同一なら、導出される形も同一である。**だから [`derive`](derive.md) の中で境界を読む順序も、切り分けの順序も、正準の並びを使う — 宣言順で読むと、同じ正準JSONから違う面積が出てしまう。
+The same holds for form. **Byte-identical canonical JSON means identical derived form.** That is why the order in which [`derive`](derive.md) reads boundaries, and the order in which lines cut regions, is the canonical order — reading in declaration order would produce different areas from the same canonical JSON.
 
-## 使いどころ
+## Where to use it
 
-- **版管理**。`.muro` を書き換えたが構成は変わっていない、を機械で言える。
-- **合成の確認**。層に割った建物が、一枚に書いたものと同じかを比べられる。
-- **golden test**。図と違って、これはバイトの安定が約束されている面である。
+- **Version control.** "The `.muro` changed but the composition did not" becomes something a machine can say.
+- **Checking composition.** A building split into layers can be compared with the same building written on one page.
+- **Golden tests.** Unlike drawings, this is the surface where byte stability is promised.
 
 ```ts
 import { toCanonical } from "@kensnzk/koyu";
@@ -169,8 +171,8 @@ const digest = (p: string) =>
   createHash("sha256").update(toCanonical(parseFile(p))).digest("hex").slice(0, 12);
 ```
 
-## 関連
+## See also
 
-- [意味差分](diff.md) — 同じ「同じ」の定義を、人の読む言葉で
-- [形の導出](derive.md) — この並びを読んでいる導出
-- [`koyu json`](../cli/json.md) — 同じ出力をコマンドラインから
+- [Semantic diff](diff.md) — the same definition of "the same", in words a person reads
+- [Deriving form](derive.md) — the derivation that reads this order
+- [`koyu json`](../cli/json.md) — the same output from the command line

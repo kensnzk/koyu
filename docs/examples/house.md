@@ -1,36 +1,36 @@
 ---
-title: house — 敷地・半屋外・レイヤー合成
+title: house — site, semi-outdoor, layer composition
 mode: explanation
 ---
 
-# house — 敷地・半屋外・レイヤー合成
+# house — site, semi-outdoor, layer composition
 
-小さな戸建住宅を**二通りに書いた**同じ一棟である。`examples/house.muro` が89行の単一ファイル版、`examples/house/` が102行5ファイルの合成版。どちらも空間13 / 境界31 / 屋内床面積 92.75㎡ / 半屋外 73.24㎡ で、`stats` も `light` も `site` も出力が完全に一致する。
+The same small detached house **written two ways**. `examples/house.muro` is one file of 89 lines; `examples/house/` is five files of 102 lines. Both give 13 spaces / 31 boundaries / 92.75 m² of interior floor area / 73.24 m² semi-outdoor, and the output of `stats`, `light` and `site` is identical between them.
 
 ![house L1](../img/house-L1.svg)
 
 ![house L2](../img/house-L2.svg)
 
-## 初めて示すもの
+## What it shows first
 
-- **`level:` 属性** — パスが `/home/…` なので階はパスの先頭から読めない。階を属性で明示する。**パスの第一義は集計の階層であって階ではない**、という帰結がここに出る。
-- **[`zone`](../reference/muro/zone.md)** — `/home` (住戸) と `/site` (敷地)。幾何を持たず、パス接頭辞で束ねる。
-- **敷地** — `zone /site … site:1 area:126.24` と `space /out/road exterior … road:6000`。`/out` が方角・性格ごとの複数の exterior に割れる。
-- **地上の外部空間** — 庭・通路が L1 上の実在の空間として建物の周りをタイルする。**L1 の平面図がそのまま配置図を兼ねる。**
-- **半屋外の導出** — 庭は宣言していないのに半屋外になる。外部に対して `air:1` (ブロック塀) の境界を持つからである。
-- **L字の合併** — `X1..X2 Y1..Y3 + X2..X3 Y1..Y2`。
-- **`hinge:` / `swing:`** — 扉の開き勝手。
-- **部分吹抜け** — `boundary /home/ldk /home/void type:void`。被覆が小さいので LDK の天井高は階高内のままに保たれる。
+- **The `level:` attribute** — the paths run `/home/…`, so the storey cannot be read off the first segment. It is stated as an attribute instead. **The first meaning of a path is the hierarchy of aggregation, not the storey**, and this is the consequence.
+- **[`zone`](../reference/muro/zone.md)** — `/home` (the dwelling) and `/site`. No geometry; they bundle by path prefix.
+- **The site** — `zone /site … site:1 area:126.24` and `space /out/road exterior … road:6000`. `/out` splits into several exteriors by orientation and character.
+- **Exterior spaces on the ground** — the garden and the paths are real spaces on L1 that tile around the building. **The L1 plan doubles as the site plan.**
+- **Semi-outdoor by derivation** — the garden is never declared semi-outdoor. It becomes so because it carries an `air:1` boundary (a block wall) with the outside.
+- **L-shaped unions** — `X1..X2 Y1..Y3 + X2..X3 Y1..Y2`.
+- **`hinge:` / `swing:`** — the hand of a door.
+- **A partial void** — `boundary /home/ldk /home/void type:void`. The coverage is small, so the ceiling height of the LDK stays within the storey.
 
-合成版が加えて示すもの:
+What the composed version adds:
 
-- **[`import`](../reference/muro/import.md)** — `main.muro` が base 層として `koyu` / `name` / `unit` / `grid` / `level` を一度だけ宣言し、`assets` / `site` / `L1` / `L2` を重ねる。階を跨ぐ境界 (階段・吹抜け) は base 層が持つ。
-- **[`asset`](../reference/muro/asset.md)** — 建具の型を一箇所に宣言し、開口が名前で参照する。インスタンス側の属性が上書きする。
-- **通り芯基準の明示位置** — `at:X2` `at:Y2+1820`。比率と違ってクランプされず、はみ出せばエラーになる。
+- **[`import`](../reference/muro/import.md)** — `main.muro` is the base layer, declaring `koyu` / `name` / `unit` / `grid` / `level` once, and stacking `assets` / `site` / `L1` / `L2` on top. Boundaries that cross storeys (the stair, the void) live in the base layer.
+- **[`asset`](../reference/muro/asset.md)** — door and window types declared in one place, referenced by name from the openings, with instance attributes overriding.
+- **Explicit grid-based positions** — `at:X2`, `at:Y2+1820`. Unlike a ratio these are not clamped; overshoot and it is an error.
 
-## 抜粋
+## Excerpts
 
-塀は境界の `spec` 語彙であり、門扉はその境界の扉である。**物 (塀・フェンス) が要素ではなく関係の属性になる**、という転回がここに出る。
+A wall is a value in the `spec` vocabulary of a boundary, and the gate is a door on that boundary. **The turn is here: the thing (a wall, a fence) becomes an attribute of a relation rather than an element.**
 
 ```muro-part
 boundary /site/garden /out/road edge:S t:120 spec:ブロック塀+フェンス air:1 h:1200
@@ -38,9 +38,9 @@ boundary /site/garden /out/road edge:S t:120 spec:ブロック塀+フェンス a
 boundary /site/garden /out/w edge:W t:120 spec:ブロック塀 air:1 h:1200
 ```
 
-`air:1` は「物はあるが外気と光を遮らない」。この一語のせいで庭は**半屋外**として導出され、屋内床面積から外れて別掲される。同時に、庭越しの窓には採光の減衰がかからない。
+`air:1` means "something is there but it blocks neither outside air nor light". That one word makes the garden **semi-outdoor** by derivation, so it drops out of the interior floor area and is reported separately. It also means a window looking across the garden takes no daylight penalty.
 
-合成版の base 層。ここが一貫性を持ち、層が重なる。
+The base layer of the composed version. Consistency lives here, and layers stack on top.
 
 ```muro-part
 grid X 0 3640 7280
@@ -56,7 +56,7 @@ import ./L1.muro
 import ./L2.muro
 ```
 
-アセットの層は9行しかない。
+The asset layer is nine lines.
 
 ```muro-part
 asset D1  door   w:900  h:2100 style:hinged  name:玄関ドア
@@ -67,7 +67,7 @@ asset W2  window w:1650 h:1100 sill:900      name:腰窓
 asset W3  window w:2600 h:1100 sill:1100     name:高窓
 ```
 
-1階の層はこれを名前で引く。`window W1 at:X2` は「掃き出し窓を X2 通り芯の位置に」としか言っていない。
+The first-floor layer pulls them in by name. `window W1 at:X2` says only "the full-height window, at grid line X2".
 
 ```muro-part
 boundary /home/ldk /site/garden t:150 spec:EW
@@ -76,11 +76,11 @@ boundary /home/hall1 /site/east t:150 spec:EW
   door D1 at:Y2+1820 name:玄関
 ```
 
-## 投げる問い
+## Questions worth putting to it
 
-### 敷地の数字は合っているか
+### Do the site figures agree
 
-`area:126.24` は測量値の宣言である。導出値と突き合わされる。
+`area:126.24` is a declared survey figure. It is reconciled against the derived one.
 
 ```sh
 npx tsx src/cli.ts site examples/house.muro
@@ -94,9 +94,9 @@ Site /site (敷地)
   Total floor area: 92.75 m2 → floor area ratio 73.5%
 ```
 
-接道長 10280mm は、敷地ゾーン配下の空間と `road:` を持つ外部空間との境界線分長の合計である。**建物の外壁が道路に面していても接道ではない。**建蔽率・容積率の意味は[日本の建築・法規の用語](../glossary/japanese-building-terms.md)にある。
+The frontage of 10280 mm is the sum of the boundary segment lengths between spaces under the site zone and exterior spaces carrying `road:`. **An external wall of the building facing the road is not frontage.** What coverage ratio and floor area ratio mean is in [Japanese building and regulatory terms](../glossary/japanese-building-terms.md).
 
-### 採光は足りているか
+### Is there enough daylight
 
 ```sh
 npx tsx src/cli.ts light examples/house.muro
@@ -108,11 +108,11 @@ npx tsx src/cli.ts light examples/house.muro
 ✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
-LDK の 7.54㎡ は掃き出し窓 (2.6×2.2 = 5.72㎡) と腰窓 (1.65×1.1 = 1.815㎡) の和である。庭は上が開いているので係数 1.0 がかかった。
+The LDK's 7.54 m² is the full-height window (2.6 × 2.2 = 5.72 m²) plus the sill window (1.65 × 1.1 = 1.815 m²). The garden is open to the sky, so the coefficient applied was 1.0.
 
-### 二つの書き方はどう違うか
+### How do the two ways of writing it differ
 
-`stats` / `light` / `site` の出力は完全に一致する。違うのは開口の書き方だけで、それを [`diff`](../reference/cli/diff.md) が構成の言葉で言う。
+`stats`, `light` and `site` agree exactly. The only difference is how the openings are written, and [`diff`](../reference/cli/diff.md) says so in the language of composition.
 
 ```sh
 npx tsx src/cli.ts diff examples/house.muro examples/house/main.muro
@@ -135,9 +135,9 @@ npx tsx src/cli.ts diff examples/house.muro examples/house/main.muro
 ± boundary /out/road | /site/garden edge:S: + door at:X2 GT1 w:900 h:1200 style:hinged name:門扉 / − door 門扉 (w:900 name:門扉)
 ```
 
-差分に出るのは「アセットが増えたこと」と「開口の位置が比率から通り芯基準になったこと」であって、行の順序でも書式でもない。**ファイルを五つに分けたこと自体は差分ではない。**
+What shows up is that assets appeared, and that opening positions moved from ratios to grid references. Not line order, not formatting. **Splitting the file into five is not itself a difference.**
 
-## 次に読む
+## Read next
 
-- 基準階を一度だけ書く — [mansion](mansion.md)
-- 分担して書いたレイヤーを一棟としてビルドする — [tower](tower.md)
+- Writing the typical floor once — [mansion](mansion.md)
+- Layers written separately, built as one building — [tower](tower.md)

@@ -1,35 +1,35 @@
 ---
-title: column — 位置を書かない柱
+title: column — the element whose position is not written
 mode: reference
 ---
 
-# column — 位置を書かない柱
+# column — the element whose position is not written
 
 ```text
-column <一辺mm> <レベル範囲|レベル名> [d:奥行] [x:通り,…] [y:通り,…] [属性…]
+column <size mm> <level range|level name> [d:depth] [x:grid,…] [y:grid,…] [attributes…]
 ```
 
-**柱の位置はどこにも書かれない。**書くのは「どの階に・どれだけの寸法で・どの通りに」だけである。柱は**通り芯の交点のうち、そのレベルに床のある所**に立つ — 壁が「二つの空間が接する所」に現れるのと同型の規則である。
+**A column's position is written nowhere.** What is written is which storeys, at what size, on which grid lines. A column stands **at the grid intersections that have a floor on that level** — the same shape of rule that puts a wall where two spaces touch.
 
 ```muro-part
 column 800 L1..L6
 column 900 B2..L6 x:X2,X3 y:Y2 d:1200 spec:SRC
 ```
 
-第一位置引数が一辺mm (正の数)、第二位置引数がレベル範囲かレベル名である。階の範囲を分けて三行書けば、上へ行くほど細くなる柱が出る。
+The first positional argument is the side in mm (a positive number), the second a level range or a level name. Write three lines splitting the storeys and you get a column that thins as it rises.
 
-## 床とは何か
+## What counts as a floor
 
-柱が立つ「床」の母集団は、そのレベルにあって次をすべて満たす空間である。
+The population of "floors" a column stands on is every space on that level satisfying all of the following.
 
-- 領域を持つ
-- `outside:1` ではない
-- `void:1` ではない
-- **半屋外であって、かつ上にどのレベルの床も重なっていない、のではない**
+- it has a region
+- it is not `outside:1`
+- it is not `void:1`
+- it is **not** the case that it is semi-outdoor **and** no floor on any level lies above it
 
-最後の一つが**空しか支えない床には柱を立てない**という規則である。露天のテラスや屋上庭園に柱は立たない — 柱が持ち上げるものが無いからである。上階が張り出したバルコニーの下には立つ。
+That last clause is the rule that **a floor holding up nothing but sky gets no column**. An open terrace or a roof garden takes no columns — there is nothing for a column to hold up. Under a balcony with a storey cantilevered over it, columns do stand.
 
-半屋外かどうかは宣言ではなく導出である (外部に対して `open` か `air:1` の境界を持つ領域つき空間)。上が覆われているかどうかも導出である (どのレベルであれ、平面が重なる空間が上にあるか)。
+Whether a space is semi-outdoor is derived, not declared (a space with a region meeting the outside across an `open` or `air:1` boundary). Whether it is covered from above is derived too (does any space on any level above overlap it in plan).
 
 ```muro
 koyu 1.1
@@ -49,7 +49,7 @@ boundary /L1/terrace /out type:open
 column 800 L1
 ```
 
-テラスは `open` で外部に接するので半屋外であり、その上に L2 の空間は重なっていない。だから X3 通りには柱が立たない。
+The terrace meets the outside across an `open` boundary, so it is semi-outdoor, and no L2 space overlaps it. So no column stands on grid line X3.
 
 ```ts
 import { parseFile } from "@kensnzk/koyu/node";
@@ -66,7 +66,7 @@ X2/Y1 800 800
 X2/Y2 800 800
 ```
 
-`/L2/room` の割付を `X1..X3` に広げてテラスの上を覆うと、同じ宣言から六本になる。
+Widen `/L2/room` to `X1..X3` so it covers the terrace and the same declaration yields six.
 
 ```text
 X1/Y1 800 800
@@ -77,62 +77,62 @@ X3/Y1 800 800
 X3/Y2 800 800
 ```
 
-床の判定に使うのも**導出された形**である。[描かれた線](line.md)で切り落とされた側に交点が落ちれば、そこに柱は立たない。交点が形の辺の上にあれば内側として数える。
+The floor test reads the **derived form** too. Where an intersection falls on the side cut away by a [drawn line](line.md), no column stands there. An intersection lying on an edge of the form counts as inside.
 
-## 属性
+## Attributes
 
-| 属性 | 層 | 意味 |
+| Attribute | Tier | Meaning |
 |---|---|---|
-| `d` | 構造 | 正の数値 mm — 矩形断面の奥行。既定は一辺と同じ (角柱) |
-| `x` / `y` | 構造 | 立てる通りの限定。カンマ区切り。未指定は全通り |
-| `name` | 解釈 | 表示名。`drop column` が指す名でもある |
-| `spec` | 運搬 | 物の名 — 運ぶだけ |
+| `d` | structure | a positive number, mm — the depth of a rectangular section. Defaults to the side (a square column) |
+| `x` / `y` | structure | restrict which grid lines to stand on, comma separated. Unwritten means all of them |
+| `name` | interpreted | display name, and what `drop column` points at |
+| `spec` | carried | the name of the thing — carried and nothing more |
 
-台帳に無いキーはドットを含む名前空間を持たなければ書けない (ATT03)。`x:` / `y:` に未宣言の通り名を書けば parse がその場で止める。
+A key outside the ledger needs a namespace containing a dot or it is ATT03. An undeclared grid name in `x:` / `y:` stops parse there and then.
 
-通り名の列は順序を持たない — `x:X2,X1` と `x:X1,X2` は同じ構成であり、正準JSONでは通りの並び順に整えられる。
+A list of grid names has no order — `x:X2,X1` and `x:X1,X2` are the same composition, and the canonical JSON sorts them into grid order.
 
-## 宣言の順序は意味である
+## Declaration order is meaning
 
-**同じ交点に二本は立たない。先に書かれた宣言が勝つ。**だから柱の宣言の並びを入れ替えると別の建物になる。正準JSONは柱の宣言を並べ替えない — 並べ替えれば、別の建物が同一バイトの正準JSONを持つことになる。
+**Two columns never stand at one intersection; the earlier declaration wins.** So reordering the column declarations gives a different building. The canonical JSON does not reorder them — reordering would let two different buildings produce byte-identical canonical JSON.
 
-一本も立たない宣言は、理由を二つに割って報告される。**狙う交点に床が無い**のか、床はあるが**先の宣言に取られた**のかで、直す手が正反対だからである。
+A declaration that stands nowhere is reported with its reason split in two. Either **the intersections it aims at have no floor**, or there is a floor but **an earlier declaration took it** — and the two want opposite fixes.
 
 ```text
 ⚠ Not one column stands for this declaration (the grid intersections have no floor): L1 800mm square
 ⚠ This column declaration (L1 700mm square) stands nowhere because an earlier declaration took the same intersections (at the same intersection the earlier declaration wins)
 ```
 
-`drop column <名>` で宣言を消せる。**名が一意でなければ拒む** — どちらを消すのかが決まらないまま片方を消したりはしない。
+`drop column <name>` removes a declaration. **It refuses when the name is not unique** — it will not delete one of two and leave you guessing which.
 
 ```text
 ✖ The column name C1 is not unique
 ```
 
-## 柱は空間でも境界でもない
+## A column is neither a space nor a boundary
 
-だから柱は**面積にも `koyu doors` のグラフにも現れない**。床面積は空間の壁芯面積の合計であって、柱の断面は差し引かれない。動線は空間と境界の網であって、柱はそこに節点も辺も持たない。
+So a column appears **neither in area nor in the graph `koyu doors` walks**. Floor area is the sum of the centerline areas of spaces, and column sections are not deducted. Circulation is a web of spaces and boundaries, and a column is neither a node nor an edge in it.
 
-柱が現れるのは形の側だけである — 平面の断面、立体の角柱、そして検証の `column.blocksdoor` (violation) である。導出された柱が導出された扉と重なれば、それが言葉になる。
+A column shows up only on the side of form — the section in plan, the prism in three dimensions, and the validation rule `column.blocksdoor` (violation), which speaks when a derived column overlaps a derived door.
 
-柱の z 範囲はそのレベルの FL から FL + 階高までである。階高は「上のレベルがあればその差、無ければその階の最大天井高 + 屋根版の厚さ」で、**天井高が一つも決まらなければ階高も決まらず、そのレベルには柱も壁も立たない** (SUF01 が error として言う)。
+A column's z range runs from the FL of its level to FL plus the storey height. Storey height is the difference to the level above, or, where there is none, the greatest ceiling height on that storey plus the roof slab thickness. **If no ceiling height can be determined, neither can the storey height, and that level gets neither columns nor walls** — SUF01 says so as an error.
 
-## 診断
+## Diagnostics
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| COL01 | warning | この宣言に対して一本も立たない — 狙う交点に床が無い |
-| COL02 | warning | この宣言に対して一本も立たない — 先の宣言が同じ交点を取った |
-| ATT03 | error | 台帳に無い属性キー |
+| COL01 | warning | not one column stands for this declaration — the intersections have no floor |
+| COL02 | warning | not one column stands for this declaration — an earlier one took the same intersections |
+| ATT03 | error | an attribute key outside the ledger |
 
-母集団は**宣言**である。「このレベルに何本立ったか」ではなく「この宣言から何本立ったか」を問う — 前者を数えると、同じ階の別の宣言が一本でも立てた瞬間に、一本も立たない宣言が黙って通る。
+The population is **the declaration**. The question is not "how many stood on this level" but "how many stood from this declaration" — count the former and a declaration that stands nowhere passes in silence the moment some other declaration on the same storey stands even once.
 
-コードから原因と直し方を引くなら [診断コードの一覧](../diagnostics/index.md) がある。
+To look a code up by cause and cure, there is [the list of diagnostic codes](../diagnostics/index.md).
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [space](space.md) — 柱が立つ床を与えるもの
-- [grid](grid.md) — 交点を与えるもの
-- [boundary](boundary.md) — 半屋外を導出する `open` と `air:1`
-- [line](line.md) — 床の形を切る
-- [koyu validate](../cli/validate.md) — 柱が扉を塞いでいないかを言う
+- [space](space.md) — what gives a column its floor
+- [grid](grid.md) — what gives it its intersections
+- [boundary](boundary.md) — `open` and `air:1`, which derive semi-outdoor space
+- [line](line.md) — what cuts the shape of the floor
+- [koyu validate](../cli/validate.md) — says whether a column blocks a door

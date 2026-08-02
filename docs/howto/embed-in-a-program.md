@@ -1,44 +1,44 @@
 ---
-title: プログラムに組み込む
+title: Embed koyu in a program
 mode: howto
 ---
 
-# プログラムに組み込む
+# Embed koyu in a program
 
-`.muro` を自分のプログラムから読み、検査し、問う手順である。面積表を吐く社内ツール、コミット時に回る門番、ブラウザで動く編集器 — どれも同じ四段でできている。
+How to read, check and question `.muro` files from your own program. An in-house tool that emits an area schedule, a gatekeeper that runs on commit, an editor running in a browser — all three are the same four steps.
 
-**CLI が答えるものはすべて API が答える。**`koyu` コマンド・`koyu-mcp`・この API は同じ導出の三つの入口であり、どれかにしか無い答えというものは無い。だから CLI を子プロセスで呼んで出力を正規表現で剥がす必要は無い。
+**Everything the CLI answers, the API answers.** The `koyu` command, `koyu-mcp` and this API are three entrances to the same derivation; there is no answer that only one of them has. So there is no need to shell out to the CLI and strip its output with regular expressions.
 
-面の一覧 — どの名が出ていてどの型を持つか — は[TypeScript API](../reference/api/index.md)にある。この頁は組み込みの**順序と判断**である。
+The surface itself — which names are exported and what types they carry — is on [TypeScript API](../reference/api/index.md). This page is the **order and the judgement calls** of embedding.
 
-以下の出力は実際に走らせて得たものである。
+Every output below was actually run.
 
-## 1. 入れる
+## 1. Install
 
 ```sh
 npm install @kensnzk/koyu
 ```
 
-**実行時依存はゼロである。**パッケージが引くのは Node の標準モジュールだけで、それも `@kensnzk/koyu/node` の中に閉じている。動作環境は Node 22 以上。
+**Zero runtime dependencies.** The package pulls in nothing but Node's own modules, and even those are confined to `@kensnzk/koyu/node`. It needs Node 22 or newer.
 
-## 2. モデルがどこから来るかを決める
+## 2. Decide where the model comes from
 
-ここが最初の設計判断で、後から変えると入口が全部動く。
+This is the first design decision, and changing it later moves every entrance in your program.
 
-| 建物の在り処 | 使う関数 | 入口 |
+| Where the building lives | Function | Entrance |
 |---|---|---|
-| ファイルシステム | `parseFile` | `@kensnzk/koyu/node` |
-| メモリ上のバッファ (エディタ・ブラウザ) | `parseFiles` | `@kensnzk/koyu` |
-| HTTP・DB・その他 | `parseWith` | `@kensnzk/koyu` |
-| 一枚のテキスト (`import` 無し) | `parse` | `@kensnzk/koyu` |
+| The file system | `parseFile` | `@kensnzk/koyu/node` |
+| Buffers in memory (editor, browser) | `parseFiles` | `@kensnzk/koyu` |
+| HTTP, a database, anything else | `parseWith` | `@kensnzk/koyu` |
+| A single text with no `import` | `parse` | `@kensnzk/koyu` |
 
-**ルートの入口は `node:fs` を引かない。**ブラウザ・Web Worker・エッジランタイムでそのまま動く。ファイルシステムを触るものだけが `/node` に分けてある。
+**The root entrance does not pull in `node:fs`.** It runs as-is in a browser, a Web Worker or an edge runtime. Only the file-system entrance is split off into `/node`.
 
-どれを選んでも**出てくる `Model` は同じ形である。**合成 (`import` の解決) は「レイヤーをどう読むか」という関数を外から受け取る形になっていて、fs はその実装の一つでしかない。
+Whichever you pick, **the `Model` that comes out has the same shape.** Composition — resolving `import` — takes "how to read a layer" as a function from outside, and fs is only one implementation of it.
 
-## 3. 一巡させる
+## 3. Make one full pass
 
-読み込み、検査し、判定を出し、面積を合計する。これで一巡している。
+Load, check, judge, sum the areas. That is the whole cycle.
 
 ```ts
 import { areaM2, checkDiagnostics, isIndoor } from "@kensnzk/koyu";
@@ -64,29 +64,29 @@ process.exit(errors.length > 0 ? 1 : 0);
 total floor: 92.75 m2
 ```
 
-`model.spaces` は `Map<string, Space>`、`model.boundaries` は `Boundary[]` である。**パスが空間の同一性**であり、境界はどちらの空間にも属さない第一級の関係として配列に並ぶ。
+`model.spaces` is a `Map<string, Space>` and `model.boundaries` is a `Boundary[]`. **The path is a space's identity**, and boundaries sit in an array as first-class relations belonging to neither space.
 
-面積を自分で足し直しているのは、**合計の定義がプログラムごとに違うから**である。半屋外を入れるか、吹抜けをどう扱うか、`use` ごとに割るか — そこは呼ぶ側の判断で、`areaM2` はその材料を返すところまでを受け持つ。
+The area is summed by hand because **what the total means differs per program.** Whether semi-outdoor counts, how voids are treated, whether it splits by `use` — those are the caller's decisions, and `areaM2` supplies the material for them.
 
-## 4. 二つの答えを混ぜない
+## 4. Do not mix the two answers
 
-**組み込みで最も起きやすい事故がこれである。**
+**This is the mistake embedding invites most.**
 
 ```ts
 const errors = checkDiagnostics(model).filter((d) => d.severity === "error");
 for (const f of validate(model)) console.log(`${f.level} [${f.rule}] ${f.message}`);
 ```
 
-- `checkDiagnostics` が返すのは `Diagnostic { code, severity }` — **書かれたものがデータとして矛盾していないか**だけを言う。
-- `validate` が返すのは `Finding { rule, level }` — **建築として妥当か**を言う。
+- `checkDiagnostics` returns `Diagnostic { code, severity }` — it speaks only to **whether what is written contradicts itself as data.**
+- `validate` returns `Finding { rule, level }` — it speaks to **whether it is sound as architecture.**
 
-**フィールド名からして別の型である。**連結しようとすれば型が落ちる。`check` が緑でも建物が使えるとは限らない — 扉を一枚も宣言しない建物は、緑のまま完全に密封される。緑を根拠に「動く」と主張しない。それぞれが何を約束するかは[約束の範囲](../reference/scope.md)にある。
+**The field names alone make them different types.** Try to concatenate the arrays and the type falls apart. A green `check` does not mean a usable building — a building with no declared doors stays green and completely sealed. Never claim it works because it is green. What each one promises is on [The scope of the promise](../reference/scope.md).
 
-**終了コードもこれに従って分ける。**構成が壊れているのと、建築的な指摘が出ているのは、呼ぶ側にとって別の事件である。
+**Split your exit codes the same way.** A broken composition and an architectural finding are two different events for the caller.
 
-## 5. 読み込みの失敗を捕まえる
+## 5. Catch the load failure
 
-構文エラーと合成エラーは診断ではなく**例外**として飛ぶ。モデルが組み上がる前に止まるからである。
+Syntax and composition errors do not arrive as diagnostics. They are thrown, because they stop before a model exists at all.
 
 ```ts
 import { SourceError } from "@kensnzk/koyu";
@@ -112,13 +112,13 @@ console.log(model.spaces.size);
 <absolute path>/broken.muro:2: Undefined grid line name: X1
 ```
 
-`SourceError` は `line` と `raw` (位置接頭辞を除いた本文) と `file` (合成しているとき) を持つ。`message` は三つを繋いだ文字列なので、自前の書式で出したいときは `raw` を使う。
+`SourceError` carries `line`, `raw` (the message without the position prefix) and `file` (when composing). Its `message` is the three joined together, so use `raw` when you want your own format.
 
-**ここを握り潰さない。**捕まえないまま上げると、利用者に生のスタックトレースが出る。
+**Do not swallow it.** Letting it escape uncaught puts a raw stack trace in front of your user.
 
-## ブラウザで動かす
+## Run it in a browser
 
-ファイルシステムが無いところでは、内容の対応表をそのまま渡す。
+Where there is no file system, hand it the contents directly.
 
 ```ts
 import { parseFiles, checkDiagnostics } from "@kensnzk/koyu";
@@ -138,21 +138,21 @@ console.log(svgPlan(model, { level: "L1" }).slice(0, 60));
 <svg xmlns="http://www.w3.org/2000/svg" width="528" height="
 ```
 
-`import` はこのキー空間の中で解決される。エディタのバッファをそのまま渡せるので、**一文字打つたびに再合成して検査する**という作りがそのまま書ける。合成は毎回ゼロからやり直すが、同梱の最大の例 (11 層・1,808 空間・延床 141,448.56 ㎡) でも 0.1 秒台なので、キャッシュから始める必要は無い。
+`import` resolves inside that key space. Editor buffers can go straight in, so **re-composing and re-checking on every keystroke** is a design you can simply write. Composition starts from zero every time, but the largest bundled example (11 layers, 1,808 spaces, 141,448.56 m2 of floor) takes a fraction of a second, so there is no need to start with a cache.
 
-読み方そのものを差し替えたいときは `parseWith` にローダーを渡す。HTTP から引く、DB から引く、といった入口はここに載る。
+To replace the reading itself, hand a loader to `parseWith`. HTTP, a database, and anything else, enter there.
 
-## 形は導出する — 自分で計算し直さない
+## Derive form — never recompute it
 
-壁の四辺形、柱の矩形、階段の角柱、開口の位置。**これらを自分で計算するプログラムは書かない。**同じ規則の実装が二つできた瞬間に、二つは必ずずれる。
+The quadrilateral of a wall, the rectangle of a column, the prism of a stair, the position of an opening. **Do not write a program that computes these itself.** The moment the same rule has two implementations, the two drift apart.
 
-形の入口は一つで、`derive` がそれである。SVG を吐くだけなら `svgPlan` / `svgAxo` がその上に載っている。何がどの形で返るかは[形](../reference/form/index.md)にある。
+There is one entrance to form and it is `derive`. If all you want is SVG, `svgPlan` and `svgAxo` sit on top of it. What comes back in what shape is on [Form](../reference/form/index.md).
 
-同じことが導出全般に言える — 到達可能性は `doorsBetween`、隣接は `neighbors`、床と屋根は `slabs`、採光の入力は `daylightInputs`、敷地は `siteReport`。**答えの定義を二箇所に持たない。**
+The same holds for derivation generally — reachability is `doorsBetween`, adjacency is `neighbors`, floors and roofs are `slabs`, daylight inputs are `daylightInputs`, the site is `siteReport`. **Never keep the definition of an answer in two places.**
 
-## 版を固定する
+## Pin the version
 
-読む相手の言語版は `model.version` にある。受理される版は `SUPPORTED_LANGUAGE_VERSIONS` が持ち、版宣言を省いたファイルは `DEFAULT_LANGUAGE_VERSION` の意味論で読まれる。
+The language version of what you read is on `model.version`. The accepted versions are in `SUPPORTED_LANGUAGE_VERSIONS`, and a file that declares no version is read with the semantics of `DEFAULT_LANGUAGE_VERSION`.
 
 ```ts
 import { DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS } from "@kensnzk/koyu";
@@ -163,19 +163,19 @@ console.log(DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS);
 1.0 [ '0.1', '0.2', '0.3', '0.4', '0.5', '1.0' ]
 ```
 
-**言語の版と実装の版は別々に動く。**`package.json` の版は実装のもので、`.muro` が名乗るのは言語のものである。何を壊さないと約束しているかは[凍る面](../reference/stability.md)にある。
+**The language version and the implementation version move separately.** The version in `package.json` is the implementation's; what a `.muro` file declares is the language's. What is promised not to break is on [The frozen surfaces](../reference/stability.md).
 
-## 外に出すなら正準 JSON で
+## Send it out as canonical JSON
 
-自分のプログラムの内側では `Model` をそのまま持てばよいが、**外へ渡すもの・保存するもの・比べるものは `toCanonical` を通す。**バイト安定な単一の文字列になるので、ハッシュも差分も比較も成り立つ。
+Inside your own program, hold the `Model` as it is. But **anything you hand out, store or compare goes through `toCanonical`.** It produces one byte-stable string, which is what makes hashing, diffing and comparison work at all.
 
-正準 JSON には**書かれた構成だけ**が入る。導出された既定の壁は入らないので、読み戻して意味を取る側は `deriveDefaultBoundaries` を適用してから読む。形式の全部は[正準 JSON](../reference/json/index.md)にある。
+Canonical JSON carries **only what was written.** Derived default walls are not in it, so a reader taking meaning back out applies `deriveDefaultBoundaries` first. The whole format is on [Canonical JSON](../reference/json/index.md).
 
-## 関連
+## Related
 
-- [TypeScript API](../reference/api/index.md) — 入口と、面に載っている名の全部
-- [約束の範囲](../reference/scope.md) — `check` が緑であることの意味
-- [判定 — koyu validate](../reference/validate/index.md) — 15 の規則
-- [形](../reference/form/index.md) — 導出された形の入口
-- [正準 JSON](../reference/json/index.md) — 外部との接続の地面
-- [CI で門番にする](../reference/cli/ci.md) — コマンドで済ませるときの終了コードの設計
+- [TypeScript API](../reference/api/index.md) — the entrances and every name on the surface
+- [The scope of the promise](../reference/scope.md) — what a green `check` means
+- [Judgement — koyu validate](../reference/validate/index.md) — the fifteen rules
+- [Form](../reference/form/index.md) — the entrance to derived form
+- [Canonical JSON](../reference/json/index.md) — the ground for external connections
+- [Gatekeeping in CI](../reference/cli/ci.md) — designing exit codes when commands are enough

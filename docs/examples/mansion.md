@@ -1,11 +1,11 @@
 ---
-title: mansion — 基準階を一度だけ書く
+title: mansion — writing the typical floor once
 mode: explanation
 ---
 
-# mansion — 基準階を一度だけ書く
+# mansion — writing the typical floor once
 
-`examples/mansion.muro`。192行 / 空間122 / 境界332 / 屋内床面積 2,366.40㎡ / 半屋外 162.16㎡。10階建て43戸の内廊下型集合住宅。**122の空間が192行で書けている**のは、基準階を一度しか書いていないからである。
+`examples/mansion.muro`. 192 lines / 122 spaces / 332 boundaries / 2,366.40 m² of interior floor area / 162.16 m² semi-outdoor. A ten-storey apartment building of 43 dwellings with interior corridors. **122 spaces fit into 192 lines** because the typical floor is written exactly once.
 
 ![mansion L1](../img/mansion-L1.svg)
 
@@ -13,19 +13,19 @@ mode: explanation
 
 ![mansion L10](../img/mansion-L10.svg)
 
-## 初めて示すもの
+## What it shows first
 
-- **レベルの範囲宣言** — `level L3..L9 6700 pitch:2900 h:2400 slab:500`。等差の7レベルが1行。
-- **パスのスパン展開** — 先頭セグメントが `L2..L9` なら、宣言済みレベルの z 順に展開される。`space` も `zone` も `boundary` も展開され、**字下げの扉も展開先すべてに付く**。
-- **[`stack`](../reference/muro/stack.md)** — `stack ev L1..L10 type:shaft` が連続レベル対に垂直境界を一括で張る。EV9本・階段9本が2行。
-- **粒度の混在** — A タイプだけ間取りまで割り、B〜E は住戸のまま。`zone /L2..L9/A` が専有面積の言葉を保つので、割った住戸も割らない住戸も同じ土俵で数えられる。
-- **バルコニー越しの採光** — バルコニーの上に空間があれば係数 0.7、無ければ 1.0。**同じ一行から、階ごとに違う答えが出る。**
-- **屋外階段** — `spec:手すり air:1` の境界だけで半屋外になり、階段室が屋内床面積から別掲へ移る。
-- **開口の分解** — 掃き出しサッシを引違い部 (`door`) と FIX 部 (`window`) に分けて書く。開口は通行か採光のどちらかで、一つが両方を担うとは言わない。
+- **Range declaration of levels** — `level L3..L9 6700 pitch:2900 h:2400 slab:500`. Seven levels in arithmetic progression on one line.
+- **Span expansion of paths** — a first segment of `L2..L9` expands across the declared levels in z order. `space`, `zone` and `boundary` all expand, and **indented doors come along to every expansion**.
+- **[`stack`](../reference/muro/stack.md)** — `stack ev L1..L10 type:shaft` draws vertical boundaries across every consecutive level pair at once. Nine lift shafts and nine stair connections in two lines.
+- **Mixed granularity** — only type A is divided into rooms; B through E stay whole dwellings. `zone /L2..L9/A` keeps the vocabulary of net floor area, so divided and undivided dwellings are counted on the same footing.
+- **Daylight across a balcony** — a coefficient of 0.7 if something sits above the balcony, 1.0 if nothing does. **One line produces a different answer on different storeys.**
+- **An external stair** — a single boundary of `spec:手すり air:1` makes it semi-outdoor, and the stair moves out of the interior floor area into a separate line.
+- **Openings decomposed** — a full-height sliding assembly is written as a sliding leaf (`door`) and a fixed light (`window`). An opening is for passage or for daylight; one opening never claims both.
 
-## 抜粋
+## Excerpts
 
-基準階8フロアぶんの記述はここから始まる。`/L2..L9/` が8回展開される。
+Eight typical floors start here. `/L2..L9/` expands eight times.
 
 ```muro-part
 zone /L2..L9/A name:Aタイプ use:exclusive
@@ -35,16 +35,16 @@ space /L2..L9/A/balcony balcony X1..X2 Y1-1400..Y1 name:バルコニー
 space /L2..L9/B unit X2..X3 Y1..Y2               name:Bタイプ use:exclusive
 ```
 
-垂直は最後の2行だけである。
+Vertical circulation is the last two lines.
 
 ```muro-part
 stack ev L1..L10 type:shaft
 stack stair L1..L10 type:stair
 ```
 
-`stack ev L1..L10 type:shaft` は「L1↔L2, L2↔L3, …, L9↔L10 の9対すべてに、`/L?/ev` 同士を結ぶ `shaft` の境界を張れ」と読まれる。屋外階段も同様に9対。**2行で18本の垂直境界が立つ。**
+`stack ev L1..L10 type:shaft` reads as "for all nine pairs L1↔L2, L2↔L3, …, L9↔L10, draw a `shaft` boundary between the `/L?/ev` spaces". The external stair likewise. **Two lines raise eighteen vertical boundaries.**
 
-バルコニーへの開口は、通行と採光を別々に書く。
+The opening onto the balcony is written as passage and daylight separately.
 
 ```muro-part
 boundary /L2..L9/A/ldk /L2..L9/A/balcony t:180 spec:EW fire:60
@@ -53,13 +53,13 @@ boundary /L2..L9/A/ldk /L2..L9/A/balcony t:180 spec:EW fire:60
 boundary /L2..L9/A/balcony /out t:120 spec:手すり air:1 h:1100
 ```
 
-最後の一行 (`spec:手すり air:1`) がバルコニーを半屋外にする。手すりは物としてそこにあるが、外気も光も遮らない。
+That last line (`spec:手すり air:1`) is what makes the balcony semi-outdoor. The railing is physically there and blocks neither air nor light.
 
-## 投げる問い
+## Questions worth putting to it
 
-### 5階のLDKから外へ、扉は何枚か
+### How many doors from the fifth-floor LDK to the outside
 
-屋外階段は `type:stair` で通行可、しかも扉を持たないので、何階分を降りても扉は増えない。
+The external stair is `type:stair`, so it is passable, and it carries no doors — so descending any number of storeys adds none.
 
 ```sh
 npx tsx src/cli.ts doors examples/mansion.muro /L5/A/ldk /out
@@ -69,11 +69,11 @@ npx tsx src/cli.ts doors examples/mansion.muro /L5/A/ldk /out
 3 doors — /L5/A/ldk → /L5/A/hall → /L5/corridor → /L5/stair → /L4/stair → /L3/stair → /L2/stair → /L1/stair → /out
 ```
 
-経路は8つの空間を通るが、扉は3枚である。
+The route passes through eight spaces and three doors.
 
-### 同じ一行の窓が、階によって違う答えを出すか
+### Can one written line give different answers on different storeys
 
-出す。基準階の窓は一度しか書かれていないが、判定は展開後の全51室に対して出る。
+It can. The typical-floor window is written once, but the verdict is issued for all 51 rooms after expansion.
 
 ```sh
 npx tsx src/cli.ts light examples/mansion.muro
@@ -90,13 +90,13 @@ npx tsx src/cli.ts light examples/mansion.muro
 ✔ /L9/A/ldk	LDK	window 5.72 m2 / floor 17.08 m2 = 1/3.0 (needs 1/7 ≈ 2.44 m2)
 ```
 
-(上は A タイプの LDK の8行だけを抜いたもの。全体は52行で、末尾に `✔ Every room meets 1/7 — 51 rooms in scope` が出る。)
+(Only the eight type-A LDK lines are shown. The full output is 52 lines, ending in `✔ Every room meets 1/7 — 51 rooms in scope`.)
 
-掃き出し窓は 2.6×2.2 = 5.72㎡ である。2〜8階では 4.00㎡ に減っていて、9階だけ 5.72㎡ のまま。**9階のバルコニーの上に何も無いからである。**屋根を書く場所はどこにも無く、「上に何が重なっているか」は上階の空間の並びから読まれる。
+The full-height window is 2.6 × 2.2 = 5.72 m². On floors 2 through 8 it counts as 4.00 m²; on the ninth it stays at 5.72. **Nothing sits above the ninth-floor balcony.** There is nowhere to write a roof, and "what is above" is read off the arrangement of spaces on the levels overhead.
 
-### 割った住戸と割らない住戸を、同じ土俵で数えられるか
+### Can a divided and an undivided dwelling be counted together
 
-数えられる。ゾーンが「一戸」の言葉を保つ。
+They can. The zone keeps the word "one dwelling".
 
 ```sh
 npx tsx src/cli.ts stats examples/mansion.muro
@@ -114,9 +114,9 @@ By zone (counted aggregation):
   /L9/A	Aタイプ	34.80 m2
 ```
 
-A タイプは LDK・洋室・水回り・玄関の4空間に割れているが、ゾーンとして 34.80㎡ の一戸である。B〜E は割っていないので空間そのものが一戸になる。集計の側からは区別が要らない。
+Type A is split into four spaces — LDK, bedroom, wet core, entrance hall — but as a zone it is one dwelling of 34.80 m². Types B to E are not split, so the space itself is the dwelling. From the counting side the difference does not arise.
 
-末尾の総計はこうなる。
+The totals at the end read:
 
 ```text
 Total 2366.40 m2 (indoor floor area)
@@ -124,9 +124,9 @@ Semi-outdoor 162.16 m2 (balconies, external stairs and the like — whether they
 By use: common 662.40 m2 (28.0%) / exclusive 1704.00 m2 (72.0%)
 ```
 
-半屋外 162.16㎡ はバルコニーと屋外階段である。**算入するかどうかは制度の細部の話なので、合計には混ぜず別掲する。**
+The 162.16 m² of semi-outdoor is the balconies and the external stair. **Whether they count is a matter of regulatory detail, so they are never folded into the total.**
 
-## 次に読む
+## Read next
 
-- 敷地形状と例外階の差分レイヤー — [tower](tower.md)
-- 縦動線を書く — [basement](basement.md)
+- Site polygons and exception floors written as a difference — [tower](tower.md)
+- Writing vertical circulation — [basement](basement.md)

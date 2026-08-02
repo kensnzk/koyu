@@ -1,21 +1,21 @@
 ---
-title: name / unit — 建物名と単位
+title: name / unit — the building name and the unit
 mode: reference
 ---
 
-# name / unit — 建物名と単位
+# name / unit — the building name and the unit
 
-どちらも任意である。一行も書かなくても `check` は緑になる。書くなら**一度だけ**で、二度目の意見は黙って上書きされずエラーになる。
+Both are optional; a file with neither still passes `check`. If you write one, you write it **once** — a second, different opinion is an error rather than a silent overwrite.
 
-## name — 建物名
+## name — the building name
 
 ```muro-part
 name 街角の複合ビル
 ```
 
-`name` はキーワードのあとの**行の残り全体**を値にとる。位置引数にも `key:value` にも割らないので、空白を含む名をそのまま書ける。`name 3F改修 h:2600` と書けば `h:2600` まで建物名の一部になる — この行に属性は無い。
+`name` takes **the whole rest of the line** as its value. The rest is split into neither positionals nor `key:value`, so a name with spaces in it is written as-is. Write `name 3F改修 h:2600` and the `h:2600` is part of the building's name — there are no attributes on this line.
 
-行の読まれ方は他の行と同じで、`#` 以降はコメントとして落ち、引用符 `"` は取り除かれ、連続する空白は一つにつぶれる。
+The line is read like any other line: everything after `#` is a comment, quotation marks `"` are stripped, and runs of whitespace collapse to one space.
 
 ```muro
 name  街角の  複合ビル # 仮称
@@ -26,7 +26,7 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
-このファイルの建物名は `街角の 複合ビル` である。
+The building's name here is `街角の 複合ビル`.
 
 ```text
 $ npx tsx src/cli.ts json nm.muro
@@ -36,15 +36,15 @@ $ npx tsx src/cli.ts json nm.muro
   "unit": "mm",
 ```
 
-値が空ならエラーになる。
+An empty value is an error.
 
 ```text
 ✖ nm.muro:line 1: name takes a value
 ```
 
-### 一度だけ
+### Once
 
-建物名はモデルに一つである。**同じ文字列の再宣言は通り、違う文字列はエラーになる** — 後勝ちを黙認すると、どちらが建物の名だったのかが読めなくなる。
+A model has one building name. **Re-declaring the identical string is accepted; a different string is an error** — letting the later line win silently would make it unreadable which of the two was the building's name.
 
 ```muro-bad
 name A
@@ -57,47 +57,47 @@ grid Y 0 4000
 ✖ n2.muro:line 2: name is declared once (already "A" — in the base layer when composing)
 ```
 
-合成しているときも規律は同じで、**層を跨いで一度**である。entry に書いても `import` した層に書いてもよいが、二つの層が違う名を主張すればエラーになり、後から読まれた側の出所が指される。基盤の宣言 (`koyu` / `name` / `unit` / [grid](grid.md) / [level](level.md)) は entry にまとめておくのが読みやすい。
+The discipline is the same when composing: **once across all layers**. It may sit in the entry or in an imported layer, but if two layers claim different names it is an error, and the provenance of the later one is shown. Keeping the foundation declarations (`koyu` / `name` / `unit` / [grid](grid.md) / [level](level.md)) together in the entry is the readable arrangement.
 
-### 属性の `name:` とは別物である
+### The declaration `name` is not the attribute `name:`
 
-宣言の `name` は**建物**の名で、モデルに一つ。属性の `name:` は[空間](space.md)・[ゾーン](zone.md)・[分節](area.md)・開口などの**表示名**で、要素ごとに持つ。綴りが似ているだけで、書ける場所も数も違う。
+The declaration `name` is the name of the **building**, and there is one per model. The attribute `name:` is the display name of a [space](space.md), a [zone](zone.md), a [subdivision](area.md), an opening, and so on — one per element. They merely look alike; where they can be written and how many there are both differ.
 
 ```muro-part
-name 街角の複合ビル                      # 建物の名 — 行の残り全体
-space /L1/hall hall X1..X2 Y1..Y2 name:エントランスホール   # 空間の表示名 — 属性
+name 街角の複合ビル                      # the building's name — the whole rest of the line
+space /L1/hall hall X1..X2 Y1..Y2 name:エントランスホール   # a space's display name — an attribute
 ```
 
-正準JSONでは前者はトップレベルの `"name"`、後者は要素の `attrs.name` に出る。書かなければどちらも鍵ごと出ない。
+In the canonical JSON the first is the top-level `"name"` and the second is the element's `attrs.name`. Neither key is emitted when it was not written.
 
-## unit — 単位
+## unit — the unit
 
 ```muro-part
 unit mm
 ```
 
-単位は mm だけである。他の語を書けばエラーになる。
+The only unit is mm. Any other word is an error.
 
 ```text
 ✖ n3.muro:line 1: The only unit in v0 is mm: m
 ```
 
-この行は宣言というより**表明**であって、書いても書かなくてもモデルは変わらない。正準JSONは `unit` 行の有無にかかわらず `"unit": "mm"` を出す。
+This line is an assertion rather than a declaration: writing it or omitting it leaves the model identical. The canonical JSON emits `"unit": "mm"` either way.
 
-単位の規約はこの一つに集約されている。
+The whole unit convention is this one table.
 
-| 量 | 単位 |
+| Quantity | Unit |
 |---|---|
-| 長さ (座標・寸法・壁厚・天井高・開口幅) | mm |
-| 線分上の位置 | 0..1 の比率 |
-| 面積の出力 | ㎡ (壁芯) |
-| 角度 | 書けない — 方向は[通り芯](grid.md)と辺の名 (N/E/S/W) が持つ |
+| Length (coordinates, dimensions, wall thickness, ceiling height, opening width) | mm |
+| A position along a segment | a ratio in 0..1 |
+| Reported area | m² (to the wall centerline) |
+| Angle | not writable — direction is carried by the [grid](grid.md) and the edge names (N/E/S/W) |
 
-`0.1` のような小数を長さに書くことはできるが、[通り参照](positions.md)のオフセットは整数のみである (`X2+600.5` は未定義の通り名として弾かれる)。
+A decimal such as `0.1` may appear in a length, but the offset in a [grid reference](positions.md) is an integer only (`X2+600.5` is rejected as an undefined grid line name).
 
-## 書く場所
+## Where they go
 
-どちらの行も字下げしない。`name` と `unit` は他の宣言の前後どこに置いてもよいが、`grid` と `level` は**使用より前**に置かなければ効かないので、実務上は次の順に並べることになる。
+Neither line is indented. `name` and `unit` may sit anywhere among the other declarations, but `grid` and `level` have to precede their **use**, which in practice fixes the opening of a file to this order.
 
 ```muro-part
 koyu 1.1
@@ -108,4 +108,4 @@ grid Y 0 5600
 level L1 0 h:3600 slab:600
 ```
 
-版の行については [koyu &lt;版&gt;](version.md) を見る。
+For the version line, see [koyu &lt;version&gt;](version.md).

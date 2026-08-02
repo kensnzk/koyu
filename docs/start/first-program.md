@@ -1,17 +1,17 @@
 ---
-title: プログラムから建物を読む
+title: Reading a building from a program
 mode: tutorial
 ---
 
-# プログラムから建物を読む
+# Reading a building from a program
 
-`.muro` を TypeScript から読み、診断を取り、正準JSONに落とすところまでを 20行で通す。CLI が答えることは API も答える — CLI はこの API の一つの入口にすぎない。
+Read a `.muro` from TypeScript, take its diagnostics, and drop it to canonical JSON — twenty lines end to end. Everything the CLI answers, the API answers too; the CLI is just one entrance to it.
 
-前提は Node.js 22 以上だけである。[チュートリアル](index.md)を通していると、読ませる建物が手元にあって都合がよい。
+All you need is Node.js 22 or newer. If you have been through [the tutorial](index.md) you already have a building to feed it, which is convenient.
 
-## 用意する
+## Setting up
 
-作業ディレクトリを作り、koyu と `tsx` を入れる。
+Make a working directory and install koyu plus `tsx`.
 
 ```sh
 mkdir koyu-first && cd koyu-first
@@ -20,7 +20,7 @@ npm install @kensnzk/koyu
 npm install --save-dev tsx
 ```
 
-`package.json` に `"type": "module"` を入れておく。読ませる建物として `house.muro` を置く — 中身は[チュートリアル](index.md)第6段の30行そのままでよい。
+Put `"type": "module"` in `package.json`. For the building to read, drop in `house.muro` — the thirty lines from stage 6 of [the tutorial](index.md) will do exactly as they are.
 
 ```muro-part
 koyu 1.1
@@ -35,9 +35,9 @@ space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク daylight:1
 ...
 ```
 
-## 20行
+## Twenty lines
 
-`read.ts` を作る。
+Create `read.ts`.
 
 ```ts
 import { parseFile } from "@kensnzk/koyu/node";
@@ -62,7 +62,7 @@ const canonical = JSON.parse(toCanonical(model));
 console.log(canonical.spaces["/L1/ldk"]);
 ```
 
-走らせる。
+Run it.
 
 ```sh
 npx tsx read.ts
@@ -82,21 +82,21 @@ consistent
 }
 ```
 
-## 20行の中身
+## What those twenty lines do
 
-**入口は二つある。**`@kensnzk/koyu/node` の `parseFile` はファイルシステムから読む入口で、`import` の相対パスをディスク上で解決する。`@kensnzk/koyu` 本体は純粋で、ファイルシステムを知らない — ブラウザで動かすときは、そちらの `parseFiles` に仮想のファイル群を渡す。
+**There are two entrances.** `parseFile` from `@kensnzk/koyu/node` is the filesystem entrance: it resolves the relative paths of `import` against the disk. The main `@kensnzk/koyu` entry point is pure and knows nothing about a filesystem — in a browser you hand a set of virtual files to its `parseFiles` instead.
 
-**`parseFile` が返す `Model` が、書かれた構成そのものである。**`model.spaces` はパスをキーにした `Map`、`model.boundaries` は配列で、どちらも書かれた宣言をそのまま持っている。判定は入っていない。
+**The `Model` that `parseFile` returns is what was written, and nothing more.** `model.spaces` is a `Map` keyed by path and `model.boundaries` is an array; both hold the declarations as authored. No judgement is baked in.
 
-**面積は `areaM2` が答える。**壁芯で、単位は㎡である。`isOutside` の空間を飛ばしているのは、外部が領域を持たなくてよく、領域が無ければ面積も無いからである。**型では飛ばせない** — 型の位置は自由なラベルで、koyu はそこを一切読まない ([space](../reference/muro/space.md))。
+**`areaM2` answers areas**, measured to wall centrelines, in square metres. The loop skips spaces where `isOutside` holds, because the outside need not carry a region at all and without a region there is no area. **The type cannot do that job** — the type position is a free label and koyu never reads it ([space](../reference/muro/space.md)).
 
-**診断は `checkDiagnostics` が配列で返す。**要素は `code` (`OPN05` のような台帳の記号)、`severity` (`"error"` か `"warning"`)、`message`、`line`、合成しているときは `file` を持つ。**severity はコードの属性であって、状況では動かない** — 同じコードが場合によってエラーになったり警告になったりはしない。だから「エラーが一つでもあるか」は `severity` を見れば決まる。
+**`checkDiagnostics` returns an array.** Each element carries a `code` (a symbol like `OPN05`), a `severity` (`"error"` or `"warning"`), a `message`, a `line`, and, under composition, a `file`. **Severity is a property of the code and does not move with circumstance** — one code is never an error here and a warning there. That is why "is there any error?" is decided by looking at `severity` alone.
 
-**`toCanonical` は文字列を返す。**JSON そのものではなく、整形済みの文字列である — バイト列として安定していることに意味があるからで、`JSON.parse` して使えばよい。書かれた構成だけが入っていて、導出された既定の境界は入っていない。
+**`toCanonical` returns a string**, not an object — formatted, and stable byte for byte, which is the whole point of it. `JSON.parse` it to use it. It contains only what was written; the derived default boundaries are not in there.
 
-## 壊れたファイルを読ませる
+## Feeding it a broken file
 
-`house.muro` の窓から `edge:S` を一つ落として `broken.muro` を作り、同じプログラムに渡す。
+Drop one `edge:S` from a window in `house.muro` to make `broken.muro`, and hand it to the same program.
 
 ```sh
 npx tsx read.ts broken.muro
@@ -117,9 +117,9 @@ not consistent
 }
 ```
 
-**診断が出てもモデルは返ってくる。**構造整合の診断は解析を止めない — 面積も正準JSONも、そのまま出てくる。
+**A diagnostic does not stop the model coming back.** Structural-consistency diagnostics do not halt parsing — areas and canonical JSON come out regardless.
 
-解析そのものが立たないのは、行が読めないときだけである。そのとき `parseFile` は `SourceError` を投げる。行番号と、合成しているときは出所のファイルが載っている。型を落とした `space /L1/a` だけのファイルを読ませてみる。
+What does stop parsing is a line that cannot be read at all. There `parseFile` throws a `SourceError`, carrying the line number and, under composition, the file it came from. Feed it a file whose `space /L1/a` has lost its type.
 
 ```ts
 import { SourceError } from "@kensnzk/koyu";
@@ -135,11 +135,11 @@ try {
 …/syntaxerr.muro:line 4: space /L1/a requires a type (a word from the vocabulary)
 ```
 
-## この先
+## Onward
 
-- 空間グラフ、動線、採光、敷地など、CLI が答えるものを API から呼ぶ道は [TypeScript API](../reference/api/index.md) にすべて並んでいる。
-- 平面図や立体を SVG で出すなら [図の生成](../reference/api/draw.md)。
-- 芯線・厚み・柱・縦動線の立体まで降りるなら [形 — derive(model)](../reference/form/index.md)。
-- 診断コードの意味を引くなら [診断コード索引](../reference/diagnostics/index.md) — 全65コードが載っている。
-- 正準JSONの構造は [正準 JSON](../reference/json/index.md)。
-- LLM エージェントに読み書きさせるなら、同じ導出を12個の道具として出す [koyu-mcp](../reference/mcp/index.md) がある。
+- The space graph, circulation, daylight, the site — everything the CLI answers is callable from the API, and it is all laid out in [TypeScript API](../reference/api/index.md).
+- To emit plans and axonometrics as SVG, see [Drawing](../reference/api/draw.md).
+- To go down to centrelines, thicknesses, columns and the solids of vertical runs, see [Form — derive(model)](../reference/form/index.md).
+- To look a diagnostic code up, see [The diagnostic code index](../reference/diagnostics/index.md) — all 65 of them.
+- The shape of the canonical JSON is in [Canonical JSON](../reference/json/index.md).
+- To let an LLM agent read and write buildings, [koyu-mcp](../reference/mcp/index.md) exposes the same derivations as 12 tools.

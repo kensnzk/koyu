@@ -1,25 +1,25 @@
 ---
-title: 記述できる粒度
+title: Level of detail
 mode: explanation
 ---
 
-# 記述できる粒度
+# Level of detail
 
-`.muro` に書けないことは多い。納まりも、下地も、接合部も、曲面も、機器の型番も書けない。
+There is a lot a `.muro` file cannot say. Junctions, substrates, connections, curved surfaces, equipment model numbers — none of them.
 
-**これは省略ではなく、抽象度の選択である。**そして「まだ足りていない」でもない — 足せば機械の視野から外れ、目的が壊れる。**カバー率は価値ではない。**
+**That is not omission but a choice of abstraction level.** Nor is it "not enough yet" — add and you fall out of the machine's field of view, and the goal breaks. **Coverage percentage is not a value.**
 
-## 図面が数百年運んできた抽象度
+## The abstraction level drawings have carried for centuries
 
-構成のほとんどは二次元で決まる。平面の割り付け、隣接、動線。そこにレベルと高さ、吹抜けや階をまたぐ関係が乗る。**これで直交グリッドの建物は決まる。**
+Most of the composition is settled in two dimensions: the planar layout, adjacency, circulation. Onto that go levels, heights, voids and relations that cross storeys. **That settles an orthogonal-grid building.**
 
-重要なのは、これが新しい抽象化ではないことである。**実務の成果物が今なお図面であり、確認申請が図面で行われているのは、建築の決定がこの抽象度でなされているからである。**
+The important point is that this is not a new abstraction. **That practice still delivers drawings, and that permits are still granted on drawings, is because architectural decisions are made at this level of abstraction.**
 
-koyu がやっているのは、その抽象度を紙から機械可読なテキストへ移すことだけである。**解像度を落としたのではなく、決定がなされている解像度をそのまま採った。**
+All koyu does is move that level from paper to machine-readable text. **The resolution was not lowered; the resolution at which decisions are made was adopted as it is.**
 
-## この解像度で言えること
+## What can be said at this resolution
 
-同梱の 11 階建て複合ビルに、次を問える。
+Of the bundled eleven-storey mixed-use building you can ask this.
 
 ```sh
 npx tsx src/cli.ts site examples/tower/main.muro
@@ -35,81 +35,81 @@ Site /site (敷地)
   Total floor area: 4785.92 m2 → floor area ratio 436.0%
 ```
 
-面積、用途別の集計、専有と共用の比、接道と建蔽率と容積率、採光の入力、扉の数で測った動線、段数と踏面と勾配、柱の立地、外皮の穴。**基本計画で決めることは、この解像度でほとんど答えられる。**
+Areas, totals by use, the ratio of net to common, frontage and coverage and floor area ratios, daylight inputs, circulation measured in doors, riser counts and treads and slopes, where columns stand, holes in the envelope. **Nearly everything decided at scheme design can be answered at this resolution.**
 
 ```text
 By use: rentable 558.08 m2 (11.7%) / common 1611.52 m2 (33.7%) / exclusive 2616.32 m2 (54.7%)
 ```
 
-## この解像度では言えないこと
+## What cannot be said at this resolution
 
-| 言えないこと | どこに属すか |
+| Not sayable | Where it belongs |
 |---|---|
-| 納まり・下地・接合部 | 実施設計。物の言語 |
-| 材料の層構成 (`spec` は名前だけ) | 実施設計。合成の後段レイヤーの候補ではある |
-| 曲面と自由形状 | 対象外。直交グリッドで足りる建物に絞る |
-| 構造解析 (応力・断面算定) | 構造は物の別の層 |
-| 設備の計算 (負荷・風量・配管) | 対象外。PS・EV・機械室は空間として書ける |
-| 勾配屋根・庇・パラペット | 未対応。陸屋根は導出される |
-| 鉛直方向の複合プロファイル (立ち上がり + 笠木手摺) | 未対応 |
-| 熱計算の 2nd Level 空間境界 | 対象外 |
-| 建具の枠・金物・折戸 | 未対応 |
-| 真北と測地座標 | 未対応。都市データ接続の前提 |
+| junctions, substrates, connections | detailed design. The language of things |
+| material layer build-ups (`spec` is a name only) | detailed design; a candidate for a later composition layer |
+| curved and free-form geometry | out of scope. This targets buildings an orthogonal grid suffices for |
+| structural analysis (stresses, member sizing) | structure is a separate layer of things |
+| services calculations (loads, air volumes, pipe sizing) | out of scope. Risers, lifts and plant rooms are writable as spaces |
+| pitched roofs, eaves, parapets | not yet. Flat roofs are derived |
+| composite vertical profiles (upstand plus coping handrail) | not yet |
+| 2nd-level space boundaries for thermal analysis | out of scope |
+| door and window frames, ironmongery, folding leaves | not yet |
+| true north and geodetic coordinates | not yet. A prerequisite for city-data connections |
 
-**「未対応」と「対象外」を分けて書いてあることが要である。**未対応は五つの問いに掛けて判断する候補であり、対象外は方針として持たないと決めたものである ([属性の拡張](open-vocabulary.md))。
+**Writing "not yet" and "out of scope" as separate things is the crux.** "Not yet" is a candidate to be judged by the five questions; "out of scope" is something decided as policy not to hold ([Extending attributes](open-vocabulary.md)).
 
-一覧は [IFC4 対応表](ifc4-coverage.md) と [持たないもの](../reference/not-held.md)。
+The lists are [IFC4 coverage](ifc4-coverage.md) and [What koyu does not hold](../reference/not-held.md).
 
-## 足すと目的が壊れる
+## Adding breaks the goal
 
-**実務解像度の追求をしない**理由は、単に手が足りないからではない。
+**Not pursuing production-drawing resolution** is not merely a matter of not having the hands.
 
-延床 31,606 ㎡ の複合建築が原本 12,685 トークンである。**一棟が丸ごと LLM の一つのコンテキストに載る。**同じ場面を IFC で書けば十数倍になり、実務のオーサリングツールが書き出すもの (数十 MB) はどのコンテキストにも載らない ([IFC・USD との比較](vs-ifc.md))。
+A 31,606 m² mixed-use complex is 12,685 tokens of source. **A whole building fits inside one LLM context.** The same scene in IFC is an order of magnitude larger, and what a production authoring tool exports (tens of megabytes) fits in no context at all ([Comparison with IFC and USD](vs-ifc.md)).
 
-**軽さは目的ではなく、役割から出る結果である。**そして役割は「書くしかないものを持つ」ことである — 意味と関係と同一性。形は現実側から取れるようになる ([導出される情報](source-and-derived.md))。
+**Smallness is not the goal but a consequence of the role.** And the role is to hold what can only be written — meaning, relation, identity. Form is about to become available from reality ([Derived information](source-and-derived.md)).
 
-納まりを足せば、軽さが消える。軽さが消えれば、一棟が視野に入らなくなる。**視野に入らなければ、エージェントが編集できず、差分が読めず、都市に載らない。**カバー率を上げる操作は、この四つを同時に壊す。
+Add junctions and the smallness goes. Lose the smallness and the building no longer fits in the field of view. **Out of the field of view, an agent cannot edit it, diffs cannot be read, and it does not scale to the city.** Raising coverage breaks all four at once.
 
-## 解像度は「粗い」ではなく「そこで決まる」
+## Resolution is not "coarse" but "where it gets decided"
 
-粒度を細かくすることはできて、しかも安い。同じ複合建築で、基壇の層は 140 行で 92 空間を、ホテルの層は 117 行で 84 空間を出している — **1 空間あたり 2 行に満たない。**テナント区画を細かく割り直しても、増えるのはこの割合である。
+Granularity can be made finer, and it is cheap. In the same complex, the podium layer produces 92 spaces from 140 lines and the hotel layer 84 spaces from 117 — **under two lines per space.** Re-cutting tenancies finer adds at that rate.
 
-**解像度の選択は、記法の限界ではなく設計判断である。**駐車場を区画で数えず一つの空間として持つか、区画ごとに持つか。事務所の基準階を三つの貸室として持つか、レイアウトまで割るか。**どちらも書ける。**
+**Choosing the resolution is a design decision, not a limit of the notation.** Hold the car park as one space or as bays. Hold the office typical floor as three tenancies or divide it down to layout. **Both are writable.**
 
-そして書かれた原本の大きさは、**建物の大きさではなく設計判断の数に比例する。**
+And the size of the written source is proportional **not to the size of the building but to the number of design decisions.**
 
-## check は整合を守るが、寸法の現実性は守らない
+## check guards consistency, not the realism of dimensions
 
-ここは間違えやすい。
+This is easy to get wrong.
 
-**幅 2m のエレベーターも、奥行 30m の貸室も、`check` は緑にする。**構成として矛盾していないからである ([check の保証範囲](green-is-not-a-building.md))。
+**A 2 m-wide lift and a 30 m-deep tenancy both come out green.** They are not contradictions in the composition ([What check guarantees](green-is-not-a-building.md)).
 
-だから基本計画の解像度で「それらしい」建物を書くには、**寸法を実在から取る**必要がある。参考までに、実務の慣行と実在の製品から取った値をいくつか挙げる。
+So writing a building that is *plausible* at scheme-design resolution means **taking dimensions from reality**. For reference, a few values taken from Japanese practice and from real products.
 
-| 部位 | 値 | 根拠 |
+| Element | Value | Basis |
 |---|---|---|
-| 事務所・商業の基本スパン | 8,400 | 日本の大規模オフィスの最頻値。駐車 3 台 (2,800×3) とも割り切れる |
-| エレベーター昇降路 (1600kg 級・1 台) | 2,800W × 2,400D | かご 2,150×1,600 + カウンターウェイト + 躯体余裕 |
-| 事務所基準階の階高 | 4,200 | 天井 2,800 + 懐 1,400 |
-| 事務所貸室デプス (コア → 窓) | 8.4〜12.6m | 18m を超すと執務環境も構造も破綻する |
-| ホテル客室 | 幅 4,200 × 奥行 8,400 ≈ 35 ㎡ | 幅 = スパンの 1/2 で割り切る |
-| 中廊下 | 2,400 | ホテル・住宅の標準 |
+| basic span, offices and retail | 8,400 | the modal value for large Japanese offices; also divides into three parking bays (2,800 × 3) |
+| lift shaft, 1600 kg class, one car | 2,800 W × 2,400 D | a 2,150 × 1,600 car plus counterweight plus structural allowance |
+| office typical storey height | 4,200 | 2,800 ceiling plus 1,400 void |
+| office tenancy depth (core to window) | 8.4–12.6 m | beyond 18 m both the working environment and the structure break down |
+| hotel guest room | 4,200 wide × 8,400 deep ≈ 35 m² | width is half a span |
+| double-loaded corridor | 2,400 | the standard for hotels and housing |
 
-**寸法を先に決めてから空間を書く。**逆にすると `check` は通るが建物にならない。これは規範ではなく設計の知見である — **koyu が守るのは整合であって、現実性ではない。**
+**Decide the dimensions, then write the spaces.** Do it the other way round and `check` passes but you do not have a building. This is design knowledge, not a norm — **what koyu guards is consistency, not realism.**
 
-## 上流と下流
+## Upstream and downstream
 
-この解像度は孤立していない。**上流と下流の両方に伸びる余地がある。**
+This resolution is not isolated. **There is room to extend both up and downstream.**
 
-**下流へ** — 決まった構成の上に、人が線を足して詳細度を上げる。位置の導出を減らし、ピンを増やす方向である。
+**Downstream** — on top of a settled composition, a person adds lines and raises the level of detail. Less derivation of position, more pins.
 
-**上流へ** — 敷地と企画だけを与え、構成そのものを生成させる。ピンが敷地と企画しかない方向である。この向きでは、書かれた原本は**解の記録**になる。確率的なのはエージェントの選択であって、**書かれた原本は決定的な不動点である** — ビルドは何度でも同じ建物を出す。
+**Upstream** — give only the site and the brief, and have the composition itself generated. Only the site and the brief are pinned. In that direction the written source becomes **a record of a solution.** What is probabilistic is the agent's choice, and **the written source is a deterministic fixed point** — the build yields the same building every time.
 
-**どちらも同じ記法の上に載る。**現在の解像度 (解決済みの構成) を中点として、規定の語彙を細部側と企画側へ伸ばす同じ運動である。
+**Both ride on the same notation.** Taking the present resolution (a resolved composition) as the midpoint, both are the same movement, extending the vocabulary of what is stipulated towards detail on one side and towards the brief on the other.
 
-## この先
+## Next
 
-- [IFC4 対応表](ifc4-coverage.md) — 何が書けて、何を書かないか
-- [持たないもの](../reference/not-held.md)
-- [check の保証範囲](green-is-not-a-building.md)
-- [IFC・USD との比較](vs-ifc.md)
+- [IFC4 coverage](ifc4-coverage.md) — what can be written, and what will not be
+- [What koyu does not hold](../reference/not-held.md)
+- [What check guarantees](green-is-not-a-building.md)
+- [Comparison with IFC and USD](vs-ifc.md)

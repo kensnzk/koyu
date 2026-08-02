@@ -1,11 +1,11 @@
 ---
-title: 意味差分
+title: Semantic diff
 mode: reference
 ---
 
-# 意味差分
+# Semantic diff
 
-二つの模型を**構成の言葉で比べる。**行順・書式・素の `wall` 宣言と省略 (既定壁) の違いは差分にしない。
+Compares two models **in the language of composition.** Line order, formatting, and the difference between a bare `wall` declaration and its omission (a default wall) are not differences.
 
 ```ts
 import { renderDiff, semanticDiff } from "@kensnzk/koyu";
@@ -18,7 +18,7 @@ import type { ModelDiff } from "@kensnzk/koyu";
 function semanticDiff(a: Model, b: Model): ModelDiff
 ```
 
-**不変量が一つある** — [`toCanonical(a) === toCanonical(b)`](canonical.md) なら差分は空である。
+**There is one invariant**: if [`toCanonical(a) === toCanonical(b)`](canonical.md) then the diff is empty.
 
 ```ts
 import { renderDiff, semanticDiff } from "@kensnzk/koyu";
@@ -54,19 +54,19 @@ interface ModelDiff {
 }
 ```
 
-**`columns` を忘れないこと。**柱の宣言は順序が意味を持つので、集合だけでなく**順位も差分の対象である** — 二行を入れ替えると実際に立つ柱が変わる。
+**Do not forget `columns`.** Order carries meaning for column declarations, so **rank is part of the diff**, not just membership — swapping two lines changes which columns actually stand.
 
-構成する型は次の通り。
+The constituent types:
 
 ```ts
 interface FieldChange {
   field: string;
-  from?: string;    // 片方が無ければ、その側に無かった (追加/削除)
+  from?: string;    // a missing side means it was absent there (added / removed)
   to?: string;
 }
 
 interface ChangedItem {
-  path: string;     // 新しい側 (b) の名
+  path: string;     // the name on the new (b) side
   fields: FieldChange[];
 }
 
@@ -104,12 +104,12 @@ interface BoundaryChange {
 }
 
 interface ColumnItem {
-  at: number;       // 宣言の順位 (1始まり)
+  at: number;       // rank of the declaration, 1-based
   label: string;
 }
 ```
 
-**空の差分でも構造は全部出る。**キーが欠けることは無いので、`d.columns.added.length` のような読み方が安全である。
+**An empty diff still has the whole structure.** No key ever goes missing, so reading `d.columns.added.length` is safe.
 
 ```ts
 console.log(JSON.stringify(semanticDiff(a, a), null, 1));
@@ -158,17 +158,17 @@ console.log(JSON.stringify(semanticDiff(a, a), null, 1));
 }
 ```
 
-`version` と `name` だけは、変化が無ければキーごと出ない。
+Only `version` and `name` drop out entirely when unchanged.
 
-## 対応付けの規則
+## How things are matched
 
-**二段構えである。**
+**Two passes.**
 
-1. **`uid` の一致**で対にする (両側から消費する)
-2. 残りを**パスの一致**で対にする
-3. それでも残ったものが追加・削除
+1. Match by **equal `uid`** (consumed from both sides).
+2. Match the rest by **equal path**.
+3. What is still left over is an addition or a deletion.
 
-**uid が一致してパスが違えば改名である。**境界の対応は uid が継ぐので、一つの改名が境界の洪水にならない。
+**Equal uid with a different path is a rename.** Boundaries inherit their correspondence from the uid, so one rename does not turn into a flood of boundary changes.
 
 ```ts
 import { parse, renderDiff, semanticDiff } from "@kensnzk/koyu";
@@ -205,21 +205,21 @@ console.log(renderDiff(semanticDiff(r1, r2)));
 [ 'renamed /L1/a → /L1/study (uid:u-0123456789abcdef)' ]
 ```
 
-uid が片側で重複している模型 (`UID03` のエラーが出る模型) では、その uid はパス照合へ落ちる。**検査でエラーの出る模型でも差分は落ちない。**
+Where a uid is duplicated on one side (a model that raises the `UID03` error), that uid falls back to path matching. **A model that fails checking still diffs.**
 
-### 開口と `seg` の対応
+### Matching openings and `seg`s
 
-**名があれば名が優先である。**名の付いた扉を動かせば「同じ扉の `at` が変わった」であって「消えて生えた」ではない。名が無ければ位置で対応づける他にない — 開口は `(kind, edge, at)`、`seg` は `(edge, at, w)`。
+**A name wins if there is one.** Move a named door and it is "the `at` of the same door changed", not "one disappeared and another grew". Without a name there is nothing but position to go on: `(kind, edge, at)` for an opening, `(edge, at, w)` for a `seg`.
 
-名のある開口と無い開口は別のキー空間に落ちるので、**名を後から書き足した編集は追加/削除に見える。**名を書く行為そのものが同一性の宣言なので、それでよい。
+Named and unnamed openings fall into different key spaces, so **adding a name afterwards shows up as a deletion plus an addition.** Writing the name is itself the declaration of identity, so that is correct.
 
-### 境界の向き
+### The direction of a boundary
 
-`a` の向きが意味を持つのは `edge` と開口の `swing` / `hinge` と `seg` があるときだけである。**それ以外では向きを比べない** — 二空間を書く順を入れ替えただけの編集は差分にならない。
+The direction of `a` matters only where there is an `edge`, an opening with `swing` / `hinge`, or a `seg`. **Otherwise direction is not compared** — swapping the order the two spaces were written is not a difference.
 
-`derived` の印も比較の直列に出ないので、**素の `wall` 宣言と既定壁は同一の直列になる。**「明示的に `boundary /L1/a /L1/b` と書き足した」は差分にならない。
+The `derived` mark does not reach the comparison either, so **a bare `wall` declaration and a default wall serialise identically.** "I spelled out `boundary /L1/a /L1/b`" is not a difference.
 
-## 柱
+## Columns
 
 ```ts
 const head = `koyu 1.0
@@ -269,11 +269,11 @@ console.log(renderDiff(d));
 ]
 ```
 
-**宣言そのものは変わっていないのに `rank` の変化が出ている。**先に一行入ったので、その宣言が交点を取る順が変わった — つまり実際に立つ柱が変わりうる。これが「宣言順は意味である」ということである。
+**The declaration itself is unchanged, and yet a change of `rank` is reported.** A line went in ahead of it, so it now claims intersections later — which may change which columns actually stand. That is what "declaration order is meaning" amounts to.
 
-## 敷地形状の比較
+## Comparing site polygons
 
-多角形は**巡回正規化**して比べる。回転 (始点の書き替え) と反転 (逆回り) で最小になる直列を取るので、**同じ形を違う頂点から書き始めた編集は差分にならない。**
+Polygons are compared after **cyclic normalisation**: the smallest serialisation over rotations (a different starting vertex) and reversal (the opposite winding). So **rewriting the same shape from a different starting point is not a difference.**
 
 ## renderDiff
 
@@ -281,22 +281,22 @@ console.log(renderDiff(d));
 function renderDiff(d: ModelDiff): string[]
 ```
 
-差分を読める行にして返す。**語は英語である** — 日本語が出るのは模型に書かれた値 (室名など) のときだけである。**並びは `semanticDiff` が決めた正準順のまま**で、空なら空配列である。
+Returns the difference as readable lines. **The wording is English** — the only text that is not is a value written in the model, such as a room name. **The order is the canonical order `semanticDiff` fixed**, and an empty diff gives an empty array.
 
-記号は三つ。
+Three signs:
 
-| 記号 | 意味 |
+| Sign | Meaning |
 |---|---|
-| `+` | 追加 |
-| `−` | 削除 |
-| `±` | 変化 |
+| `+` | added |
+| `−` | removed |
+| `±` | changed |
 
-改名だけは記号を持たず、`renamed <前> → <後> (uid:…)` の形になる。
+Only a rename has no sign; it reads `renamed <before> → <after> (uid:…)`.
 
-空間のパスは**レベル順に並ぶ** — 先頭セグメントがレベルなら「残りのパス、レベルの序数」で並べるので、スパン展開で生まれた同名の空間 (`/L4/A/ldk` … `/L10/A/ldk`) が隣接して階順に出る。
+Space paths **come out in level order**: where the first segment is a level, they sort by (the rest of the path, the ordinal of the level), so spaces born from a span expansion (`/L4/A/ldk` … `/L10/A/ldk`) sit together, storey by storey.
 
-## 関連
+## See also
 
-- [正準JSON](canonical.md) — 差分が空であることと同値な形式
-- [同一性の生成](identity.md) — 改名を跨ぐための `uid`
-- [`koyu diff`](../cli/diff.md) — 同じ差分をコマンドラインから
+- [Canonical JSON](canonical.md) — the format whose equality is equivalent to an empty diff
+- [Generating identity](identity.md) — the `uid` that survives a rename
+- [`koyu diff`](../cli/diff.md) — the same diff from the command line

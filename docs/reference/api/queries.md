@@ -1,11 +1,11 @@
 ---
-title: モデルへの問い
+title: Questions about a model
 mode: reference
 ---
 
-# モデルへの問い
+# Questions about a model
 
-同じ記述を違う読み方で読む関数群である。**どれも合否を言わない。**数と形と経路を返すところまでで、「足りているか」を言うのは [`validate`](validate.md) である。
+Functions that read the same description in different ways. **None of them passes judgement.** They stop at numbers, shapes and routes; whether something is *enough* is [`validate`](validate.md)'s sentence.
 
 ```ts
 import {
@@ -15,16 +15,16 @@ import {
 } from "@kensnzk/koyu";
 ```
 
-この頁の出力はすべて `examples/house/main.muro` を読んだ模型に対して実行したものである。
+Every piece of output on this page was produced against the model read from `examples/house/main.muro`.
 
 ```ts
 import { parseFile } from "@kensnzk/koyu/node";
 const m = parseFile("examples/house/main.muro");
 ```
 
-## 空間グラフ
+## The space graph
 
-節点が空間、辺が境界である。**「この室とこの室は繋がっているか」がそのままグラフへの問いになる** — 変換は要らない。
+Nodes are spaces, edges are boundaries. **"Are these two rooms connected?" is already a question about the graph** — nothing needs converting.
 
 ### doorsBetween
 
@@ -34,9 +34,9 @@ function doorsBetween(model: Model, from: string, to: string): Route | undefined
 interface Route { doors: number; path: string[] }
 ```
 
-最少の扉数で結ぶ経路を返す。`open` 境界と階段は費用0、扉のある `wall` 境界は費用1、それ以外は通れない。
+Returns the route joining two spaces through the fewest doors. An `open` boundary and a stair cost nothing, a `wall` boundary with a door costs one, and everything else cannot be passed.
 
-**到達できないときも、パスが存在しないときも `undefined` が返る。**区別したいなら `model.spaces.has(path)` を先に見る。
+**`undefined` comes back both when the target is unreachable and when the path does not exist.** To tell those apart, check `model.spaces.has(path)` first.
 
 ```ts
 console.log(doorsBetween(m, "/home/bed1", "/out/road"));
@@ -58,7 +58,7 @@ console.log(doorsBetween(m, "/home/bed1", "/home/nope"));
 undefined
 ```
 
-`path` は節点の列で、`doors` はその上で通る扉の数である。**節点の数と扉の数は一致しない** — 階段と `open` 境界は費用を持たないからである。
+`path` is the list of nodes and `doors` is how many doors the route passes. **The two counts do not match**, because stairs and `open` boundaries cost nothing.
 
 ### neighbors
 
@@ -69,11 +69,11 @@ interface NeighborInfo {
   space: Space;
   boundary: Boundary;
   passable: boolean;
-  doors: number;      // その境界に載る door の数
+  doors: number;      // how many doors sit on that boundary
 }
 ```
 
-**導出された既定境界も含めて返る。**「隣に何があるか」の答えは、宣言された境界だけではないからである。
+**Derived default boundaries come back too.** What is next door is not answered by the declared boundaries alone.
 
 ```ts
 import { displayName, neighbors } from "@kensnzk/koyu";
@@ -90,7 +90,7 @@ for (const n of neighbors(m, "/home/hall1")) {
 /home/hall2	2階ホール	stair	passable=true	doors=0
 ```
 
-最後の一件は階段である。**垂直の隣も同じ配列に出る** — グラフは平面のものではない。
+The last row is a stair. **Vertical neighbours arrive in the same array** — the graph is not a plan.
 
 ### passable
 
@@ -98,17 +98,17 @@ for (const n of neighbors(m, "/home/hall1")) {
 function passable(b: Boundary): boolean
 ```
 
-境界一つの通行可能性を言う。
+Whether one boundary can be passed.
 
-| kind | 通れるか |
+| kind | Passable? |
 |---|---|
-| `open` | 常に通れる |
-| `stair` | 常に通れる |
-| `wall` | `door` の開口があるときだけ |
-| `shaft` | 通れない |
-| `void` | 通れない |
+| `open` | always |
+| `stair` | always |
+| `wall` | only with a `door` opening |
+| `shaft` | never |
+| `void` | never |
 
-`air:1` は**遮蔽の話であって通行の話ではない。**扉の無い手すり壁は `air:1` でも通れない。
+`air:1` is **about enclosure, not passage.** A handrail wall with no door is impassable, `air:1` or not.
 
 ```ts
 console.log(passable(m.boundaries.find((b) => b.kind === "stair")!));
@@ -118,7 +118,7 @@ console.log(passable(m.boundaries.find((b) => b.kind === "stair")!));
 true
 ```
 
-## 面積
+## Areas
 
 ### areaM2
 
@@ -126,9 +126,9 @@ true
 function areaM2(s: Space): number | undefined
 ```
 
-空間の壁芯面積を ㎡ で返す。**導出された凸片の合計である** — 線で切られていればその形の面積になる。領域を持たない空間 (`exterior` など) では `undefined`。
+The wall-centre area of a space, in m². **It is the sum over the derived convex pieces**, so a space cut by a drawn line reports the area of that shape. A space with no region (an `exterior`) gives `undefined`.
 
-小数第2位で丸められる。
+The value is rounded to two decimals.
 
 ### zoneAreaM2
 
@@ -136,7 +136,7 @@ function areaM2(s: Space): number | undefined
 function zoneAreaM2(model: Model, zonePath: string): number
 ```
 
-パス接頭辞で束ねた空間の面積の合計である。**吹抜けと半屋外は数えない** — 専有面積の言葉だからである。
+The sum of the areas of the spaces gathered by path prefix. **Voids and semi-outdoor spaces are not counted** — this is the language of net saleable area.
 
 ### unionAreaM2
 
@@ -144,7 +144,7 @@ function zoneAreaM2(model: Model, zonePath: string): number
 function unionAreaM2(rects: Rect[]): number
 ```
 
-矩形集合の合併面積である。**重なりを一度だけ数える** — 座標圧縮による厳密計算で、水平投影 (建築面積の導出) に使う。
+The union area of a set of rectangles. **Overlaps are counted once** — computed exactly by coordinate compression. This is the horizontal projection used to derive building footprint.
 
 ```ts
 import { areaM2, unionAreaM2, zoneAreaM2 } from "@kensnzk/koyu";
@@ -157,9 +157,9 @@ console.log(areaM2(m.spaces.get("/home/ldk")!), zoneAreaM2(m, "/home"),
 39.75 92.75 53
 ```
 
-## 屋内・半屋外・被覆
+## Indoor, semi-outdoor, covered
 
-**どれも宣言ではなく導出である。**
+**All three are derived, none is declared.**
 
 ### isIndoor
 
@@ -167,9 +167,9 @@ console.log(areaM2(m.spaces.get("/home/ldk")!), zoneAreaM2(m, "/home"),
 function isIndoor(model: Model, s: Space): boolean
 ```
 
-屋内の床面積に数えるか。領域を持ち、`exterior` でも `void` でもなく、半屋外でもない空間が真になる。
+Whether the space counts towards indoor floor area. True for a space that has a region, is neither `exterior` nor `void`, and is not semi-outdoor.
 
-**「延べ面積」を問う場所はすべてこの一つの答えを使う。**母集団を場所ごとに決めることはしない。
+**Every place that asks about gross floor area uses this one answer.** The population is never decided locally.
 
 ### isSemiOutdoor
 
@@ -177,7 +177,7 @@ function isIndoor(model: Model, s: Space): boolean
 function isSemiOutdoor(model: Model, s: Space): boolean
 ```
 
-半屋外か。**`type:exterior` の空間に対して `open` または `air:1` の境界を持つ、領域つきの空間**が半屋外である。バルコニー・テラス・庭がこれになる。
+**A space with a region that has an `open` or `air:1` boundary to a `type:exterior` space** is semi-outdoor. Balconies, terraces and gardens land here.
 
 ### isCoveredAbove
 
@@ -185,7 +185,7 @@ function isSemiOutdoor(model: Model, s: Space): boolean
 function isCoveredAbove(model: Model, s: Space): boolean
 ```
 
-上に (どのレベルであれ) 空間が重なっているか。**屋根の有無すら宣言ではない。**採光の半屋外係数 (庇下 0.7 / 上が開いていれば 1.0) がこの二つを読む。
+Whether a space on any higher level overlaps it. **Even having a roof is not declared.** The semi-outdoor daylight factor (0.7 under a soffit, 1.0 where the sky is open) reads these two.
 
 ```ts
 import { isCoveredAbove, isIndoor, isSemiOutdoor } from "@kensnzk/koyu";
@@ -202,9 +202,9 @@ for (const p of ["/home/ldk", "/site/garden", "/out/road"]) {
 /out/road	indoor=false	semi=false	covered=false
 ```
 
-`/home/ldk` が `covered=true` なのは、上に2階の空間が重なっているからである。`/site/garden` は空に開いているので偽になる。
+`/home/ldk` is `covered=true` because the first-floor spaces sit over it. The garden is open to the sky, so it is false.
 
-## 高さとレベル
+## Height and levels
 
 ### heff
 
@@ -212,7 +212,7 @@ for (const p of ["/home/ldk", "/site/garden", "/out/road"]) {
 function heff(model: Model, s: Space): number | undefined
 ```
 
-空間の有効天井高 mm。**空間自身の `h:` があればそれ、無ければ所属レベルの `h`。**どちらも無ければ `undefined` で、そのとき天井も屋根も生成されない (`SUF01` が error として言う)。
+The effective ceiling height of a space, in mm. **The space's own `h:` if it has one, otherwise the `h` of its level.** With neither, `undefined` — and then no ceiling and no roof are generated (`SUF01` says so as an error).
 
 ### levelsSorted
 
@@ -220,7 +220,7 @@ function heff(model: Model, s: Space): number | undefined
 function levelsSorted(model: Model): Level[]
 ```
 
-レベルを `z` の昇順で返す。`model.levels` は `Record` なので順序を約束しない — 階の並びが要るときは必ずこれを通す。
+Levels in ascending `z`. `model.levels` is a `Record` and promises no order, so go through this whenever you need storeys in sequence.
 
 ```ts
 import { heff, levelsSorted } from "@kensnzk/koyu";
@@ -231,7 +231,7 @@ console.log(heff(m, m.spaces.get("/home/ldk")!), levelsSorted(m).map((l) => `${l
 2400 [ 'L1@0', 'L2@2900', 'R@5800' ]
 ```
 
-## 採光の入力
+## Daylight inputs
 
 ### daylightInputs
 
@@ -240,17 +240,17 @@ function daylightInputs(model: Model): DaylightInput[]
 
 interface DaylightInput {
   space: Space;
-  floor: number;      // 床面積 m²
-  window: number;     // 有効窓面積 m² (係数適用後)
-  missingH: boolean;  // h 未指定で数えられなかった窓があるか
+  floor: number;      // floor area, m²
+  window: number;     // effective window area, m² (factor applied)
+  missingH: boolean;  // was a window skipped because it had no h?
 }
 ```
 
-**対象は `daylight:1` を書いた空間だけで、型は見ない。**「どの室に採光の問いを掛けるか」は書き手の宣言である。
+**Only spaces carrying `daylight:1` are considered; type is never consulted.** Which rooms the daylight question applies to is the author's declaration.
 
-係数は「窓の先が何か」の導出である。外部に直接面すれば 1.0、庇下の半屋外 (上に空間がある) 越しなら 0.7、上が開いた半屋外越しなら 1.0、それ以外は 0 (数えない)。**この係数は形の導出であって判定ではない。**
+The factor is a derivation of what lies beyond the window: 1.0 straight to the exterior, 0.7 through a semi-outdoor space with something above it, 1.0 through a semi-outdoor space open to the sky, and 0 otherwise (not counted). **The factor is a derivation of form, not a judgement.**
 
-**返るのは数だけで、`ok` も `need` も無い。**1/7 という線を引くのは建築の側の判断であり、[`validate`](validate.md) の `daylight.ratio` が言う。
+**Only numbers come back — no `ok`, no `need`.** Drawing the 1/7 line is architecture's call, made by `daylight.ratio` in [`validate`](validate.md).
 
 ```ts
 import { daylightInputs } from "@kensnzk/koyu";
@@ -265,9 +265,9 @@ for (const d of daylightInputs(m)) {
 /home/bed1 floor=26.5 window=5.72 missingH=false
 ```
 
-**対象が一つも無ければ空配列が返る。**「全部合格」と区別が付かないので、`length` を見ること。`missingH` が真なら窓面積は数え切れていない — その数を判定に使ってはならない。
+**With no eligible space you get an empty array**, which is indistinguishable from "everything passed" — so look at `length`. When `missingH` is true the window area is incomplete, and that number must not be used for a judgement.
 
-## 敷地
+## The site
 
 ### siteReport
 
@@ -277,27 +277,27 @@ function siteReport(model: Model): SiteReport
 interface SiteReport {
   siteZone?: Zone;
   polygon?: SitePolygon;
-  declaredArea?: number;  // ゾーンの area: (測量値) m²
-  derivedArea: number;    // 導出 m²
-  footprint: number;      // 建築面積 (水平投影) m²
-  totalFloor: number;     // 延べ面積 m²
+  declaredArea?: number;  // the zone's area: (surveyed), m²
+  derivedArea: number;    // derived, m²
+  footprint: number;      // building footprint (horizontal projection), m²
+  totalFloor: number;     // gross floor area, m²
   roads: RoadFrontage[];
 }
 
 interface RoadFrontage {
   road: Space;
-  width: number;      // 幅員 mm (road: 属性)
-  frontage: number;   // 接道長 mm (導出)
+  width: number;      // carriageway width, mm (the road: attribute)
+  frontage: number;   // length of frontage, mm (derived)
 }
 ```
 
-敷地は **`site:1` を持つゾーン**、道路は **`road:<幅員mm>` を持つ `exterior` の空間**である。
+The site is **the zone carrying `site:1`**; a road is **an `exterior` space carrying `road:<width in mm>`**.
 
-`derivedArea` は敷地形状 (`polygon`) があればその多角形の面積、無ければ敷地内空間と屋内空間の水平投影の合併である。`footprint` は屋内空間の**導出された形**の水平投影の合併 — 割付から数えると、隅切りで落とした分まで数えてしまう。
+`derivedArea` is the area of the site polygon if there is one, otherwise the union of the horizontal projections of the spaces inside the site and the indoor spaces. `footprint` is the union of the horizontal projections of the **derived shapes** of the indoor spaces — counting the written allocation instead would include what a splayed corner cut away.
 
-**接道長は敷地と道路の境界線分の長さの合計である。**建物の外壁が道路に面していても、それは接道ではない。
+**Frontage is the total length of the boundary segments between the site and the road.** An external wall facing the road is not frontage.
 
-**建蔽率も容積率も返らない。**それらはこの数の商であり、分母をどう取るかは制度の側の話だからである。
+**Neither site coverage nor plot ratio comes back.** Those are quotients of these numbers, and what goes in the denominator is a question for the regulation, not for the model.
 
 ```ts
 import { siteReport } from "@kensnzk/koyu";
@@ -319,9 +319,9 @@ console.log({ zone: r.siteZone?.path, declared: r.declaredArea, derived: r.deriv
 }
 ```
 
-`declaredArea` と `derivedArea` の食い違いを咎めるのは判定の側 (`site.area`) である。ここは二つの数を並べるだけである。
+Objecting to a mismatch between `declaredArea` and `derivedArea` is validation's job (`site.area`). Here the two numbers simply sit side by side.
 
-## 柱
+## Columns
 
 ### columnsFor
 
@@ -329,11 +329,11 @@ console.log({ zone: r.siteZone?.path, declared: r.declaredArea, derived: r.deriv
 function columnsFor(model: Model, level: string): Column[]
 ```
 
-そのレベルに立つ柱を導く。**位置はどこにも書かれていない** — 通り芯の交点のうち、床のある空間 (`exterior` と `void` を除く) の内側にあるものへ柱が置かれる。
+Derives the columns standing on that level. **The position is written nowhere** — a column stands at each grid intersection that falls inside a space with floor (`exterior` and `void` excluded).
 
-**空しか支えない床には柱を立てない。**半屋外で、かつ上に床も無い空間 — 屋上庭園やテラス — は母集団から外れる。柱が持ち上げるものを持たないからである。
+**No column stands where it would carry only sky.** A space that is semi-outdoor *and* has no floor above it — a roof garden, a top-level terrace — is out of the population, because there is nothing for a column to hold up.
 
-**同じ交点に二本は立たない。**複数の宣言が同じ交点を狙ったら、先の宣言が勝つ。
+**Two columns never share an intersection.** When several declarations aim at the same one, the earlier declaration wins.
 
 ```ts
 import { columnsFor } from "@kensnzk/koyu";
@@ -357,9 +357,9 @@ console.log(cols.length, cols[0]);
 }
 ```
 
-`grid` は立っている通りの組で、図面の言葉そのままである。`decl` は `model.columns` の添字で、**どの宣言から立ったか**を言う — これがあるので「この宣言に対して一本も立たない」を問える。
+`grid` is the pair of grid lines it stands on, in the language of the drawing. `decl` indexes `model.columns` and says **which declaration raised it** — which is what makes "this declaration raises no column at all" a question you can ask.
 
-## 表示のための小物
+## Small things for display
 
 ### effectiveUse
 
@@ -367,7 +367,7 @@ console.log(cols.length, cols[0]);
 function effectiveUse(model: Model, s: Space): string | undefined
 ```
 
-実効の `use` 属性。空間自身に無ければ、**最も深いゾーンの祖先**から継承する。
+The effective `use` attribute. If the space has none, it is inherited from **the deepest zone ancestor** that has one.
 
 ### displayName
 
@@ -375,7 +375,7 @@ function effectiveUse(model: Model, s: Space): string | undefined
 function displayName(s: Space): string
 ```
 
-`name:` 属性、無ければパスの末尾セグメントを返す。**必ず文字列が返る。**
+The `name:` attribute, or the last segment of the path. **A string always comes back.**
 
 ```ts
 import { displayName, effectiveUse } from "@kensnzk/koyu";
@@ -386,9 +386,9 @@ console.log(effectiveUse(m, m.spaces.get("/home/ldk")!), displayName(m.spaces.ge
 exclusive LDK
 ```
 
-## 関連
+## See also
 
-- [Model と構成型](model.md) — 問いが読んでいる型
-- [検証](validate.md) — この数に閾値を掛ける面
-- [形の導出](derive.md) — 数ではなく形が要るとき
-- [`koyu doors`](../cli/doors.md) / [`koyu light`](../cli/light.md) / [`koyu site`](../cli/site.md) — 同じ問いをコマンドラインから
+- [Model and its types](model.md) — the types these questions read
+- [Validation](validate.md) — the surface that puts thresholds on these numbers
+- [Deriving form](derive.md) — when you need shape rather than number
+- [`koyu doors`](../cli/doors.md) / [`koyu light`](../cli/light.md) / [`koyu site`](../cli/site.md) — the same questions from the command line

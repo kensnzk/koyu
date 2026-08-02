@@ -1,88 +1,88 @@
 ---
-title: 凍る面 — 何を壊さないか
+title: Stability — what will not break
 mode: reference
 ---
 
-# 凍る面 — 何を壊さないか
+# Stability — what will not break
 
-**1.0 は機能の完成ではない。壊さないと約束する面の確定である。**
+**1.0 is not the completion of features. It is the fixing of the surfaces promised not to break.**
 
-## 三つの版
+## Three version lines
 
-版は互いに独立に数えられる三本ある。混ぜると、どちらの約束が破られたのか言えなくなる。
+There are three versions, counted independently. Mixing them makes it impossible to say which promise was broken.
 
-| 版 | 何に付くか | 現在 |
+| Version | What it attaches to | Currently |
 |---|---|---|
-| **muro の版** | **言語と意味論と合成の規則。**「このように書かれたファイルは、この意味であり続ける」 | **1.0** |
-| **koyu の版** | **実装。**「この実装の面を壊さない」。どの muro を実装するかを宣言する | **0.17.0** |
-| **正準 JSON の形式版** | **綴り。**キーの集合・並び・照合順・正規化・数の表記 | `koyu-canonical/1.1` |
+| **The muro version** | **the language, its semantics and the rules of composition.** "A file written this way keeps meaning this" | **1.0** |
+| **The koyu version** | **the implementation.** "This implementation's surfaces will not break." It declares which muro it implements | **0.17.0** |
+| **The canonical JSON format version** | **the spelling.** The set of keys, their order, collation, normalisation, number notation | `koyu-canonical/1.1` |
 
-`.muro` のファイルが名乗るのは[言語の版](muro/version.md)だけである。処理系の出来を名乗るのではない。
+A `.muro` file declares only [the language version](muro/version.md). It announces semantics, not the maturity of a processor.
 
 ```muro-part
 koyu 1.1
 ```
 
-**形式版が別に要るのは、同じ意味論を別のキーで綴り直すことがありうるからである。**境界の向きを保存する `a` キーの追加は、言語を一語も変えずに綴りを変えた。逆に、言語版が上がっても綴りが変わらないことはある。
+**A separate format version is needed because the same semantics can be respelled with different keys.** Adding the `a` key, which preserves the written direction of a boundary, changed the spelling without changing one word of the language. The converse also happens: a language version can rise without the spelling moving.
 
-## 二本は同時に到達しなくてよい
+## The two lines need not arrive together
 
-現に **muro は 1.0 に到達し、koyu は 0.x のままである。**
+As things stand, **muro has reached 1.0 and koyu is still 0.x.**
 
-これは遅れではなく、二つが別の約束だからである。muro の 1.0 は「この版で読めたものは、以後も同じ意味で読める」を言い、koyu の 1.0 は「この実装の面を壊さない」を言う。**言語は確定し、実装はまだ何も凍結を約束していない** — 前者だけが先に確定できるし、実際に確定した。
+That is not a lag; it is what having two promises means. muro 1.0 says "what could be read at this version stays readable with the same meaning"; koyu 1.0 would say "this implementation's surfaces will not break". **The language is settled and the implementation has promised no freeze at all** — the first can settle first, and it did.
 
-外部のビュアーは独立に版を持ち、従う muro の版を宣言する。検証の面は版を持たず、追加的に増える。
+Outside viewers carry their own versions and declare which muro they follow. The validation face has no version and grows by addition.
 
-## 「意味保存」の定義
+## What "meaning-preserving" means
 
-言語の版を上げるかどうかは、変更が**意味保存であるか**で決まる。この語の意味は固定されている。
+Whether a change raises the language version depends on whether it is **meaning-preserving**. The word has a fixed meaning here.
 
-> **意味保存とは、導出物 — 正準 JSON・グラフ・集計・SVG — が不変であることを指し、診断の増減は含まない。**
+> **Meaning-preserving means the derived artefacts — canonical JSON, the graph, the tallies, the SVG — are unchanged. It does not cover the number of diagnostics.**
 
-だから**検査を足しても言語の版は動かない。**曖昧でない原本の導出物が 1 バイトも変わらないなら、その変更は意味保存の内側にある。逆に、同じ綴りが別の建物を意味するようになる変更は、必ず版を上げる。
+So **adding a check never moves the language version.** If the derived artefacts of an unambiguous source do not change by a single byte, the change is inside the definition. Conversely, a change that makes the same text mean a different building always raises the version.
 
-旧版の宣言は**意味が保たれる場合だけ受理される**。同じ文字列が別の建物を意味してしまう組み合わせは [VER01–04](diagnostics/ver.md) が error で止め、二つの選択肢(意味を明示的に書き足す / 版を上げる)を示す。
+An older declared version is **accepted only where the meaning is preserved**. Combinations where the same text would mean a different building are stopped as errors by [VER01–04](diagnostics/ver.md), which offer two ways out: write the meaning explicitly, or raise the version.
 
-## 凍結する八つの面
+## The eight surfaces that freeze
 
-| 面 | 約束の内容 |
+| Surface | What is promised |
 |---|---|
-| **muro 1.0 の文法と意味論** | この版で読めたものは、以後も同じ意味で読める |
-| **合成の規則** | 層の強度順序・単一値の解決・集合の編集・出所。同じ入力からは常に同じ結果が出る |
-| **[同一性](identity.md)** | uid が同じなら同じものである。パスと名の規則 |
-| **[属性の三層と名前空間](scope.md)** | 運搬層は見ない、という約束を含む |
-| **[機械形式](json/index.md)** | **形式版を名乗る。**同じ入力からは同じバイト列が出る — 照合順と正規化が定まっている。合成の結果を持ち、形を持たない |
-| **[導出規則](form/index.md)** | 明文であり、参照実装が API として提供される |
-| **構造整合の診断** | コードと severity。緑の意味が[約束の範囲](scope.md)の定義と一致する |
-| **公開 API と CLI** | 解析・合成・正準化・問い・導出。コマンド(14 個)、引数、終了コード |
+| **The grammar and semantics of muro 1.0** | what could be read at this version stays readable with the same meaning |
+| **The rules of composition** | layer strength order, resolution of single values, editing of sets, provenance. The same input always gives the same result |
+| **[Identity](identity.md)** | same uid, same thing. The rules for paths and names |
+| **[The three attribute tiers and namespaces](scope.md)** | including the promise that the carried tier is not read |
+| **[The machine format](json/index.md)** | **it announces its format version.** The same input gives the same bytes — collation and normalisation are fixed. It holds the result of composition and holds no shape |
+| **[The derivation rules](form/index.md)** | written out, with a reference implementation offered as API |
+| **Structural diagnostics** | codes and severities. The meaning of green matches [the definition of scope](scope.md) |
+| **The public API and the CLI** | parse, compose, canonicalise, question, derive. Commands (14 of them), arguments, exit codes |
 
-診断について一つ念を押す。**severity はコードの不変属性である。**同じコードが場合によって error になったり warning になったりはしない。重さを変えるときは新しいコードを切り、古い綴りは欠番になる。
+One point about diagnostics deserves emphasis. **Severity is an immutable property of a code.** The same code is never an error in one case and a warning in another. To change the weight, a new code is cut and the old spelling is retired.
 
-## 凍結の対象でないもの
+## What does not freeze
 
-**存在してよいが、凍結対象でないことが明示されている。**
+**These may exist; it is explicit that they are outside the freeze.**
 
-- **形の生成と描画** — `svgPlan` / `svgAxo`、CLI の `plan` `axo`、MCP の `plan_svg`。CLI の**面**(サブコマンド名・引数・終了コード)は凍るが、**SVG の中身は凍らない**
-- **[建築的な判定](validate/index.md)** — 15 の規則と `koyu validate` の出力。増える面である
-- **MCP のツール群**(12 個)— 追加的に増える面として扱う
-- **外部形式との往復と取り込み**
-- **人のための面** — エディタ支援・オーサリング
-- **運搬層の属性の意味**
+- **Shape generation and drawing** — `svgPlan`, `svgAxo`, the CLI `plan` and `axo`, the MCP `plan_svg`. The CLI **surface** (subcommand names, arguments, exit codes) freezes; **the contents of the SVG do not**
+- **[Architectural judgement](validate/index.md)** — the fifteen rules and the output of `koyu validate`. This face grows
+- **The MCP toolset** (12 tools) — treated as a face that grows by addition
+- **Round-tripping with and importing external formats**
+- **Surfaces for people** — editor support, authoring
+- **The meaning of carried-tier attributes**
 
-### 変わってはならないのは SVG ではなく Form である
+### What must not change is the Form, not the SVG
 
-描画は [`Form`](form/index.md) を描くだけである。だから **SVG の見た目はいつ変わってもよい。**色も線幅も線種も、記号の作図慣習も、紙面の余白も、凍る面には無い。
+Drawing only draws [`Form`](form/index.md). So **the look of the SVG may change at any time.** Colour, line weight, line style, drafting conventions for symbols, page margins — none of that is on a frozen surface.
 
-**凍るのは `Form` の側である** — 座標・厚み・z 範囲・向き・対象の同一性・平面の分類。同じ構成から違う `Form` が出ることは欠陥であり、同じ `Form` から違う SVG が出ることは欠陥ではない。
+**What freezes is `Form`** — coordinates, thickness, z ranges, direction, subject identity, plan classification. Two `Form`s out of one composition is a defect; two SVGs out of one `Form` is not.
 
-「描くだけ」であることは機械が縛る。描画側が形を組み立てる部品を一つも引いていないこと、[導出定数](form/constants.md)が描画側に綴られていないこと、平面に出た黒帯が `Form` の「切られた区間」そのものであることを、テストが検査する。
+That drawing only draws is machine-enforced. Tests check that the drawing side pulls in none of the parts that assemble shape, that no [derivation constant](form/constants.md) is spelled inside the drawing code, and that the black bands in a plan are exactly the "cut intervals" of `Form`.
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [約束の範囲](scope.md) — `check` が緑であることの意味
-- [同一性](identity.md) — uid の保証の段階
-- [持たないもの](not-held.md) — 凍らせない代わりに持たないもの
-- [形](form/index.md) — 凍る側の実体
-- [正準 JSON](json/index.md) — 形式版を名乗る面
-- [koyu 版の宣言](muro/version.md) — ファイルが名乗る版
-- [VER の診断](diagnostics/ver.md) — 旧版の受理条件
+- [Scope](scope.md) — what a green `check` means
+- [Identity](identity.md) — the two tiers of the uid guarantee
+- [What koyu does not hold](not-held.md) — what is given up instead of frozen
+- [Form](form/index.md) — the thing on the frozen side
+- [Canonical JSON](json/index.md) — the face that announces a format version
+- [The koyu version line](muro/version.md) — the version a file declares
+- [VER diagnostics](diagnostics/ver.md) — when an older version is accepted

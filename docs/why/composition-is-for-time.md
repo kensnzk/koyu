@@ -1,41 +1,41 @@
 ---
-title: ファイル分割と重ね合わせ
+title: Splitting and layering files
 mode: explanation
 ---
 
-# ファイル分割と重ね合わせ
+# Splitting and layering files
 
-複数のファイルを重ねて一つの模型にする仕組みを、koyu は持っている。**しかしそれは「一棟が大きいから分ける」ための道具ではない。**
+koyu has a mechanism for stacking several files into one model. **It is not a tool for "splitting because the building is large".**
 
-延床 31,606 ㎡ の複合建築が原本 646 行である。分割しなくても一つのファイルに収まる。**それでも合成がある理由は三つで、どれも大きさとは関係がない。**
+A 31,606 m² mixed-use complex is 646 lines of source. It would fit in one file without splitting at all. **Composition exists for three reasons, and none of them is size.**
 
-1. **分担して書く** — 意匠・構造・設備、あるいは階ごとに、別々の人と別々のエージェントが書く
-2. **例外を差分として書く** — 基準階の上に、その階だけの違いを重ねる
-3. **時間を重ねる** — 計画の上に as-built を、設計値の上に実測値を重ねる
+1. **Writing in parallel** — architecture, structure and services, or storey by storey, written by different people and different agents
+2. **Writing exceptions as differences** — laying the deviations of one storey over the typical floor
+3. **Stacking time** — as-built over the plan, measured values over design values
 
-書き方は [合成](../reference/muro/composition.md) と [over / drop](../reference/muro/over-drop.md) にある。この頁が言うのは、なぜこの形なのかである。
+The notation is in [Composition](../reference/muro/composition.md) and [over / drop](../reference/muro/over-drop.md). This page explains why it takes that shape.
 
-## 六つの規則が揃ってはじめて使える
+## Six rules, and it only works when all six hold
 
-合成の問題は、合成があること自体ではない。**解決の順序が暗黙であることである。**暗黙の解決は、同じ入力から違う結果を生みうる。それは原本ではない。
+The problem with composition is not that composition exists. **It is that the order of resolution is implicit.** Implicit resolution can produce different results from the same input. That is not a source of truth.
 
-だから六つを定めてある。
+So six rules are laid down.
 
-**1. 層は明示された強度順序を持つ。**`import` 行の並びが強度の宣言であり、後の層ほど強い。**強度は走査の順ではない** — entry の行が `import` より後ろにあっても、entry は最も弱いままである。順序を走査で決めていたら、`import` 行を上下に動かしただけで結果が変わってしまう。
+**1. Layers have an explicitly declared strength order.** The sequence of `import` lines *is* the declaration, and later layers are stronger. **Strength is not scan order** — the entry file stays weakest even if its own lines come after the `import`s. If scanning decided the order, moving an `import` line up or down would change the result.
 
-**2. 単一の値は、最も強い層の意見が勝つ。**厚みも仕様も用途も階高も、上書きは一つの規則で説明される。
+**2. For a single value, the strongest layer's opinion wins.** Thickness, specification, use, storey height — every overwrite is explained by one rule.
 
-**3. 集合は、明示された編集で合成する。**暗黙のマージをしない。同じ座に複数の意見がありうるもの — 開口・柱・分節 — はすべてここに属す。
+**3. Sets compose through explicit edits.** No implicit merging. Everything that can carry several opinions at the same seat — openings, columns, subdivisions — belongs here.
 
-**4. 定義と上書きを区別する。**新たに定義する層と、既にあるものへ意見だけを足す層は、別の書き方を持つ。
+**4. Definition and overwrite are distinguished.** A layer that defines something new and a layer that only adds an opinion to something existing are written differently.
 
-**5. 同じ入力からは常に同じ結果が出る。**入力には層とその順序の宣言を含む。
+**5. The same input always yields the same result.** The input includes the declaration of layers and their order.
 
-**6. 出所が追える。**最終的な値を、どの層のどの行が与えたかを示せる。
+**6. Provenance is traceable.** Any final value can be traced to the layer and line that gave it.
 
-## 実際にやってみる
+## Doing it
 
-三枚重ねる。`main.muro` が与件を、`plan.muro` が計画を、`as-built.muro` が実測を持つ。
+Three layers. `main.muro` holds the given, `plan.muro` the plan, `as-built.muro` the measurements.
 
 ```muro-part
 koyu 1.1
@@ -68,7 +68,7 @@ over /L1/a /out
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-**設計値と実測値の差分そのものが品質記録である。**そしてどの値がどこから来たかは、常に問える。
+**The difference between design values and measured values is itself the quality record.** And where any value came from can always be asked.
 
 ```sh
 npx tsx src/cli.ts layers main.muro --attrs
@@ -86,32 +86,32 @@ Attribute provenance:
   space:/L1/a:h	← 2 as-built.muro
 ```
 
-## 集合に専用構文を作らない
+## No bespoke syntax for sets
 
-規則 3 が、これまで特殊扱いされてきたものを普通にする。
+Rule 3 makes ordinary what has traditionally been special-cased.
 
-同じ壁に窓を足したいとき、同じ柱の宣言を一本消したいとき、住戸の分節を差し替えたいとき — **どれも「集合の編集」という一つの規則で書ける。**
+Adding a window to a wall, removing one column declaration, replacing a dwelling's subdivision — **all of them are written with the one rule of set editing.**
 
 ```muro-part
 over /L5/A/hall /L5/corridor
-  - door D2                              # 削除
-  = door D1 w:1000                       # 置換 (書いた属性だけを差し替える)
-  + window w:600 h:1200 at:0.9 name:W1   # 追加
-drop /L5/A/store                         # 空間 (その関係も一緒に消える)
-drop /L5/a /L5/b                         # 境界
-drop column C1                           # 柱の宣言
+  - door D2                              # remove
+  = door D1 w:1000                       # replace (only the attributes written are swapped)
+  + window w:600 h:1200 at:0.9 name:W1   # add
+drop /L5/A/store                         # a space (its relations go with it)
+drop /L5/a /L5/b                         # a boundary
+drop column C1                           # a column declaration
 ```
 
-**特殊なのは値の種類であって、規則ではない。**
+**What is special is the kind of value, not the rule.**
 
-編集には同一性が要る。同一性は「含む対象 + その中で一意な名」なので、**`name:` を持たない要素は編集の対象にできない** — 指す言葉が無いからである。そして名が二つを指す状態は同一性の破れなので、`drop column C1` のような編集は**名が一意でなければ拒む。**
+Editing requires identity. Identity is "the containing object plus a name unique within it", so **an element without `name:` cannot be edited** — there is no word for it. And a name pointing at two things is a break in identity, so an edit like `drop column C1` **refuses when the name is not unique.**
 
-## 定義と上書きは別の文である
+## Definition and overwrite are different statements
 
-| | 文 | 対象が既にあるとき | 対象が無いとき |
+| | Statement | If the target exists | If it does not |
 |---|---|---|---|
-| **定義** | `space` `boundary` `zone` `asset` `level` `polygon` | **エラー** (重複) | 定義する |
-| **上書き** | `over` | 上書きする | **エラー** |
+| **definition** | `space` `boundary` `zone` `asset` `level` `polygon` | **error** (duplicate) | defines it |
+| **overwrite** | `over` | overwrites it | **error** |
 
 ```text
 ✖ bad.muro:line 6: No such target for over: /L1/z (place it after the layer that defines it)
@@ -121,32 +121,32 @@ drop column C1                           # 柱の宣言
 ✖ bad2.muro:line 6: Duplicate space path: /L1/a (first seen in bad2.muro at line 5)
 ```
 
-**存在しないものに意見だけを足すのは、たいてい綴り違いか、層の順序の思い違いである。**黙って新しい空間を作ってしまえば、その思い違いは緑のまま埋もれる。
+**Adding an opinion to something that does not exist is usually a misspelling or a mistake about layer order.** Silently creating a new space would bury that mistake under a green check.
 
-## 上書きの跡は機械形式に残らない
+## Traces of overwriting do not survive into the machine format
 
-`over` で `h:2380` にした模型と、最初から `h:2380` と書いた模型は、**同じ正準 JSON を与える。**
+A model whose `h:2380` came from an `over`, and a model that wrote `h:2380` from the start, **produce the same canonical JSON.**
 
-正準形が答えるのは「同じ建物か」であって「どう書かれたか」ではない。書き方の履歴を持ちたければ、それは git が持つ ([正準 JSON](../reference/json/index.md))。
+Canonical form answers "is this the same building", not "how was it written". If you want the history of how it was written, git has it ([Canonical JSON](../reference/json/index.md)).
 
-## 合成しないもの
+## What is not composed
 
-- **バリアント (案の分岐)** — 分岐は git のブランチが持つ。設計案の比較はブランチの比較である
-- **アセットの入れ子参照** — アセットはアセットを参照しない
-- **層ごとの名前空間接頭辞** — パスの階層がすでに名前空間である ([パスと面積集計](paths.md))
-- **層の部分的な読み込み** — 層は丸ごと合成される
+- **variants (branching options)** — branching is what git branches are for. Comparing design options is comparing branches
+- **nested asset references** — an asset does not reference an asset
+- **per-layer namespace prefixes** — the path hierarchy is already a namespace ([Paths and area aggregation](paths.md))
+- **partial loading of a layer** — a layer is composed whole
 
-どれも「合成が解けなくなる」方向の機能である。**六つの規則を守れる範囲だけを持つ**というのが、この一覧の意味である。
+Every one of these pushes towards composition becoming unresolvable. **Holding only what keeps the six rules** is what this list means.
 
-## 大きさのためではない、の実際
+## "Not for size", in practice
 
-とはいえ、分けると副次的な効果はある。同梱の複合建築は 646 行が 10 ファイルに分かれていて、事務所階を持つ層は 41 行 — **全体の 6% ほど**である。エージェントに事務所階を書き換えさせるとき、渡すべき文脈はその一枚で足りる。
+That said, splitting does have a side effect. The bundled complex has 646 lines across ten files, and the layer holding the office storeys is 41 lines — **about 6% of the whole.** To have an agent rewrite the office storeys, that one file is all the context it needs.
 
-**これは合成の目的ではなく、時間と分担のために分けた結果として付いてきたものである。**目的と結果を取り違えると、「大きくなったら分ければよい」という運用になり、層の強度順序が設計されなくなる。
+**That is not the purpose of composition but something that came along with splitting for time and division of labour.** Confuse purpose with consequence and you end up with a practice of "split it when it gets big", in which the strength order of layers stops being designed at all.
 
-## この先
+## Next
 
-- [合成](../reference/muro/composition.md) — `import` の書き方
-- [over / drop](../reference/muro/over-drop.md) — 上書きと集合の編集
+- [Composition](../reference/muro/composition.md) — writing `import`
+- [over / drop](../reference/muro/over-drop.md) — overwriting and set editing
 - [koyu layers](../reference/cli/layers.md)
-- [パスと面積集計](paths.md)
+- [Paths and area aggregation](paths.md)

@@ -1,27 +1,27 @@
 ---
-title: window — 採光する開口
+title: window — the opening that brings in light
 mode: reference
 ---
 
-# window — 採光する開口
+# window — the opening that brings in light
 
 ```text
 boundary /pathA /pathB …
-  window [アセット名] w:1650 h:1100 [at:…] [edge:…] [name:…] [sill:…]
+  window [AssetName] w:1650 h:1100 [at:…] [edge:…] [name:…] [sill:…]
 ```
 
-`window` は [境界](boundary.md)の直下に**字下げ一段**で書く。位置の書き方 (`at` の比率と通り参照、`edge` による辺の選択) は[扉](door.md)とまったく同じ規則に従う。
+A `window` is written **one level of indentation** under a [boundary](boundary.md). How its position is written — the ratio and grid-reference forms of `at`, choosing a side with `edge` — follows exactly the same rules as a [door](door.md).
 
-違うのは二つである。**窓は通行しない**ので、`koyu doors` のグラフに辺を張らない — 窓だけの壁は通れない壁のままである。そして**窓は採光を数える**。
+Two things differ. **A window is not passable**, so it adds no edge to the graph `koyu doors` walks; a wall with nothing but windows is still a wall you cannot get through. And **a window counts toward daylight**.
 
-## w と h の両方を書く
+## Write both w and h
 
-| 属性 | 要否 | 意味 |
+| Attribute | Required | Meaning |
 |---|---|---|
-| `w` | **必須** | 線分に沿った幅mm。参照した[アセット](asset.md)が与えてもよい |
-| `h` | 形の上では任意 / 採光には**必須** | 高さmm |
+| `w` | **yes** | width in mm along the segment. A referenced [asset](asset.md) may supply it |
+| `h` | optional for form / **required** for daylight | height in mm |
 
-`w` が無ければ parse が止める。`h` は書かなくても `check` は緑になる — だが**採光の数え上げから丸ごと落ちる**。窓面積は `h` を持つ窓の `w × h` の合計だからである。
+Without `w`, parse stops. Without `h`, `check` still comes back green — but the window **drops out of the daylight count entirely**, because window area is the sum of `w × h` over the windows that have an `h`.
 
 ```muro
 koyu 1.1
@@ -48,71 +48,71 @@ boundary /L1/a /out t:150 edge:W
 ✔ /L1/a	居室	window 7.54 m2 / floor 24.00 m2 = 1/3.2 (needs 1/7 ≈ 3.43 m2)
 ```
 
-腰窓から `h:1100` を落とすだけで、数は 7.54 から 5.72 に落ちる。
+Drop `h:1100` from the low window and the number falls from 7.54 to 5.72.
 
 ```text
 ✔ /L1/a	居室	window 5.72 m2 / floor 24.00 m2 = 1/4.2 (needs 1/7 ≈ 3.43 m2) ⚠ windows without h: are not counted
 ```
 
-`koyu check` は緑のままである。言葉にするのは検証の側で、規則の名は **`daylight.unknown`** (caution) である。
+`koyu check` stays green. What puts it into words is validation, under the rule **`daylight.unknown`** (caution).
 
 ```text
 ⚠ [daylight.unknown] win.muro:line 9: Window area is not fully counted: /L1/a has a window without h: (write h: on it)
 ```
 
-**「窓が足りない」ではなく「数え切れていない」と言う。**足りているかどうかを言えるだけの情報が原本に無い、という報告である。
+**It does not say "there is not enough window"; it says "the count is not complete".** The report is that the source does not carry enough to answer the question either way.
 
-## 腰高は書かれない — まぐさを揃えた結果である
+## Sill height is not written — it is what aligning the head leaves behind
 
-**開口の頭はまぐさ高 2000mm に揃う。**扉は床から立ち上がってそこに達し、扉以外の開口はそこから高さのぶん下がる。
+**The head of an opening sits at the lintel height of 2000mm.** A door rises from the floor to meet it; every other opening drops from it by its own height.
 
-| 書いたもの | 開口の z 範囲 (FL からの高さ) |
+| Written | z range of the opening (above FL) |
 |---|---|
 | `window w:1650 h:1100` | 900 … 2000 |
 | `window w:2600 h:2200` | −200 … 2000 |
-| `window w:1650` (`h` 無し) | 800 … 2000 (既定の高さ 1200) |
+| `window w:1650` (no `h`) | 800 … 2000 (default height 1200) |
 
-一行目の腰高 900mm は、どこにも書かれていない。**2000 − 1100 の結果である。**そして二行目のように `h` をまぐさ高より大きく取れば、開口の下端は床より下へ落ちる。掃き出し窓を書きたいなら、まぐさ高との差が意味を持つことを承知のうえで `h` を選ぶ。
+The 900mm sill on the first line is written nowhere. **It is what 2000 − 1100 leaves.** And as the second line shows, take `h` above the lintel height and the bottom of the opening falls below the floor. If you want a full-height window, choose `h` knowing that the difference from the lintel height is what does the work.
 
-`sill:` は**運搬層**である — 台帳には載っているが、core は一度も読まない。書けば正準JSONに運ばれ、外部のツールが使える。だが形は動かない。上の例で `sill:900` を `sill:400` に書き換えても、窓は 900 … 2000 のままである。
+`sill:` is a **carried** attribute — it is in the ledger, but the core never reads it once. Write it and it travels into the canonical JSON for another tool to use. It moves no geometry. Change `sill:900` to `sill:400` in the example above and the window still runs 900 … 2000.
 
-## 採光の係数
+## The daylight coefficient
 
-`light` の対象は **`daylight:1` を書いた領域つき空間だけ**である。型からは推定しない — `room` と書いても `bedroom` と書いても、宣言が無ければ対象外である。
+`light` looks only at **spaces with a region that carry `daylight:1`**. Nothing is inferred from the type — write `room` or write `bedroom`, and without the declaration the space is out of scope.
 
-有効窓面積は、窓の**先に何があるか**で割り引かれる。
+Effective window area is discounted by **what lies beyond the window**.
 
-| 窓の相手 | 係数 |
+| What the window faces | Coefficient |
 |---|---|
-| 外部 (`outside:1`) | 1.0 |
-| 半屋外で、上に空間が重なっている (バルコニー下・庇下) | 0.7 |
-| 半屋外で、上が開いている (庭・最上階のバルコニー) | 1.0 |
-| それ以外 (屋内同士) | 0 — 数えない |
+| the outside (`outside:1`) | 1.0 |
+| semi-outdoor with a space above it (under a balcony, under an eave) | 0.7 |
+| semi-outdoor open to the sky (a garden, a top-floor balcony) | 1.0 |
+| anything else (indoors to indoors) | 0 — not counted |
 
-半屋外かどうかも、上が覆われているかどうかも、宣言ではなく導出である。外部に対して `open` か `air:1` の境界を持つ領域つき空間が半屋外になる。
+Whether a space is semi-outdoor, and whether it is covered from above, are both derived rather than declared. A space with a region that meets the outside across an `open` or `air:1` boundary is semi-outdoor.
 
-判定 (有効窓面積 ≥ 床面積 ÷ 7) を下すのは `koyu validate` の **`daylight.ratio`** (violation) であって、`check` ではない。採光補正係数を掛けない粗い早期警報であり、用途別の割合も適用建築物の別も見ない。1/7 を掛ける先は `daylight:1` を書く位置として書き手が決める。
+The judgement itself — effective window area ≥ floor area ÷ 7 — is passed by `koyu validate` under **`daylight.ratio`** (violation), not by `check`. It is a rough early warning with no correction factor applied, and it looks at neither use-class proportions nor which buildings the rule applies to. Where the 1/7 lands is decided by the author, in choosing where to write `daylight:1`.
 
-## 属性の層
+## Attribute tiers
 
-| 属性 | 層 |
+| Attribute | Tier |
 |---|---|
-| `w` `h` `at` `edge` `hinge` `swing` | 構造 |
-| `style` `name` | 解釈 |
-| `sill` `spec` `fire` | 運搬 |
+| `w` `h` `at` `edge` `hinge` `swing` | structure |
+| `style` `name` | interpreted |
+| `sill` `spec` `fire` | carried |
 
-窓は扉と同じ台帳を使う。`hinge` も `swing` も `style` も書けるが、通行しないので軌跡は描かれない。台帳に無いキーはドットを含む名前空間 (`acme.glazing:Low-E`) を持たなければ ATT03 である。
+A window uses the same ledger as a door. `hinge`, `swing` and `style` may all be written, but as a window is not passable no arc is drawn. A key outside the ledger needs a namespace containing a dot (`acme.glazing:low-e`) or it is ATT03.
 
-## 診断
+## Diagnostics
 
-診断は扉と共通である — OPN01 から OPN08、VRT05、UID04。ただし OPN03 (`open` 境界の上の開口) は扉と同じく「通行に影響しない」と言うだけで、窓にとってはもとより無関係である。
+The diagnostics are shared with the door: OPN01 through OPN08, VRT05, UID04. OPN03 (an opening on an `open` boundary) says the same thing it says for a door — no effect on passage — which for a window was never in question.
 
-コードから原因と直し方を引くなら [診断コードの一覧](../diagnostics/index.md) がある。
+To look a code up by cause and cure, there is [the list of diagnostic codes](../diagnostics/index.md).
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [boundary](boundary.md) — 窓が載る関係
-- [door](door.md) — 位置の書き方は共通、通行するのはこちらだけ
-- [asset](asset.md) — 窓の既定値を一箇所に置く
-- [koyu light](../cli/light.md) — 採光の数を返す
-- [koyu validate](../cli/validate.md) — 1/7 の判定を下す
+- [boundary](boundary.md) — the relation a window sits on
+- [door](door.md) — same rules for position; only this one is passable
+- [asset](asset.md) — putting the defaults of a window in one place
+- [koyu light](../cli/light.md) — returns the daylight numbers
+- [koyu validate](../cli/validate.md) — passes the 1/7 judgement

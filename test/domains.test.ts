@@ -114,7 +114,7 @@ test("domains: the ledgers do not intersect (no spelling appears on both faces)"
 
 // The page checked is the **published documentation**; `spec/` is an internal tree on its way out.
 // Rows read `| [`envelope.gap`](envelope.md#envelope-gap) | caution | … |`
-for (const page of ["docs/reference/validate/index.md", "docs/en/reference/validate/index.md"]) {
+for (const page of ["docs/reference/validate/index.md"]) {
   test(`ledger: VALIDATION_RULES and the table in ${page} agree as sets`, () => {
     const md = readFileSync(join(root, page), "utf8");
     const inDocs = new Map<string, string>();
@@ -134,7 +134,7 @@ for (const page of ["docs/reference/validate/index.md", "docs/en/reference/valid
 
 // Every rule must also have its own section, with its level stated there. The family pages of the
 // published documentation carry them as `## `rule` — … {#anchor}` followed by `` `violation` ``.
-for (const dir of ["docs/reference/validate", "docs/en/reference/validate"]) {
+for (const dir of ["docs/reference/validate"]) {
   test(`ledger: the sections under ${dir} agree with VALIDATION_RULES as sets, and the levels match too`, () => {
     const found = new Map<string, string>();
     for (const f of readdirSync(join(root, dir)).sort()) {

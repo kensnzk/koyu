@@ -1,24 +1,24 @@
 ---
-title: SUF — 充足性
+title: SUF — sufficiency
 mode: reference
 ---
 
-# SUF — 充足性
+# SUF — sufficiency
 
-SUF は四つある。どれも「その値が正しいか」ではなく、**「形を作るのに要る値が書かれているか」**を言う。
+There are four SUF codes. None of them asks whether a value is *right*; each asks **whether the value needed to make a shape is written at all**.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| SUF01 | error | 天井高が決まらない — 天井も屋根も生成できない |
-| SUF02 | error | 領域はあるがレベルが決まらない — 立体が一つも生成できない |
-| SUF03 | warning | レベルに `slab:` が無い — その階の床が一枚も生成されない |
-| SUF04 | warning | 縦動線の宣言に対して形が一つも生成されない |
+| SUF01 | error | The ceiling height cannot be determined — no ceiling and no roof can be generated |
+| SUF02 | error | It has a region but no determinable level — not one solid can be generated |
+| SUF03 | warning | The level has no `slab:` — not one floor is generated on that storey |
+| SUF04 | warning | A vertical circulation is declared but no shape is generated for it |
 
-**形を作らないことと、形を作れないことは違う。**koyu の導出の規則は決定的で、値が無いときに既定値を捏造しない — 天井高が書かれていなければ、勝手に 2400 を入れたりせず、天井を作らない。同じ構成からは常に同じ形が出る。だが**形が痩せていることは知らされなければならない**。SUF はそのための検査である。
+**Not making a shape and not being able to make one are different things.** koyu's derivation rules are deterministic and never invent a default: with no ceiling height written, nothing quietly substitutes 2400 — no ceiling is made. The same composition always yields the same shape. But **that the shape came out thin has to be told**. That is what SUF is for.
 
-**妥当性の判定ではない。**「その天井高でよいか」は言わない。「天井高が書かれていない」とだけ言う。
+**These are not validity judgements.** SUF never says "that ceiling height is wrong". It says only "no ceiling height is written".
 
-## SUF01 — 天井高が決まりません
+## SUF01 — the ceiling height cannot be determined
 
 `error`
 
@@ -33,24 +33,24 @@ space /L1/a room X1..X2 Y1..Y2
 The ceiling height of /L1/a cannot be determined (neither the space's h: nor level L1's h: is there)
 ```
 
-**原因** — 空間に `h:` が無く、その空間が載るレベルにも `h:` が無い。有効天井高が決まらない。
+**Cause** — the space has no `h:`, and neither does the level it sits on. The effective ceiling height is undetermined.
 
-天井高は一つの数ではなく、**多くのものが読む数**である。決まらないと次が全部落ちる。
+A ceiling height is not one number used once; it is a number **many things read**. When it is undetermined, all of the following fall away.
 
-- **天井が生成されない。**天井は有効天井高が与えるものだから。
-- **屋根が生成されない。**最上階の屋根の頂点は `レベルの z + 有効天井高 + 200mm` である。
-- **高さの不変量が立式できない。**[HGT01](./hgt.md) が黙る — 階を貫く天井高が緑のまま通る。
-- **そのレベルに上のレベルが無ければ、階高が決まらない。**壁と柱は階高いっぱいに立つ。上にレベルがあれば階高は z の差だが、**最上階の階高は「そのレベルの `h:` と、そこに載る空間の有効天井高のうち最も高いもの + 200mm」で決まる**。天井高が一件も決まらなければこの数が無く、そのレベルには**壁も柱も一つも立たない**。
+- **No ceiling is generated.** A ceiling is what the effective ceiling height gives.
+- **No roof is generated.** The top storey's roof apex sits at `the level's z + effective ceiling height + 200mm`.
+- **The height invariant cannot be formed.** [HGT01](./hgt.md) goes quiet, and a storey-piercing ceiling height passes green.
+- **If there is no level above, the storey height is undetermined too.** Walls and columns rise the full storey height. With a level above, the storey height is the difference in `z` — but **the top storey's height is fixed by "the tallest of the level's own `h:` and the effective ceiling heights of the spaces on it, plus 200mm"**. If not one ceiling height is determined, that number does not exist and **not one wall and not one column stands on that level**.
 
-最後の一点は目に見える。上の四行のファイル (最上階しか無い) に外壁と柱を足しても、立体は一つも出ない。上に `level L2 3000 h:2400 slab:150` を足すと、`h:` を一つも書かないまま壁と柱が立つ — 階高が z の差から決まるからである。
+That last point is visible. Add exterior walls and columns to the four-line file above (which has only a top storey) and not one solid comes out. Add `level L2 3000 h:2400 slab:150` on top and walls and columns stand without a single `h:` being written — because the storey height now comes from the difference in `z`.
 
-**咎めないものが三つある。**この三つは天井高に依らずに形が決まる。
+**Three kinds are not blamed.** For these the shape is settled without a ceiling height.
 
-- 吹抜け (`void:1`) — 床も天井も無いことが定義である
-- 外部 (`outside:1`) — 地面である
-- 半屋外 — 外部に `type:open` か `air:1` で接する領域つき空間。バルコニーに天井高は無い
+- Voids (`void:1`) — having neither floor nor ceiling is what a void is
+- The exterior (`outside:1`) — it is the ground
+- Semi-outdoor spaces — a space with a region meeting the exterior across `type:open` or `air:1`. A balcony has no ceiling height
 
-**直し方** — レベルに基準天井高を書く。
+**Fix** — write a base ceiling height on the level.
 
 ```muro
 grid X 0 3600
@@ -59,9 +59,9 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
-個別に違う室だけ、空間側に書く (`space /L1/a room X1..X2 Y1..Y2 h:2700`)。空間の `h` がレベルの `h` に勝つ。
+Write `h:` on the space for rooms that differ (`space /L1/a room X1..X2 Y1..Y2 h:2700`). A space's `h` beats its level's.
 
-## SUF02 — レベルが特定できません
+## SUF02 — its level cannot be determined
 
 `error`
 
@@ -76,18 +76,18 @@ space /house/a room X1..X2 Y1..Y2
 /house/a has a region, but its level cannot be determined (give it at the head of the path or with level:)
 ```
 
-**原因** — 空間がレベルに載るのは、次のどちらかのときである。
+**Cause** — a space sits on a level under one of two conditions.
 
-- パスの**先頭セグメント**が、宣言済みのレベル名と一致する (`/L1/a` に対して `level L1 0`)
-- `level:` 属性を持つ (`space /house/a room X1..X2 Y1..Y2 level:L1`)
+- The **first segment of its path** matches a declared level name (`/L1/a` together with `level L1 0`)
+- It carries a `level:` attribute (`space /house/a room X1..X2 Y1..Y2 level:L1`)
 
-上の例はパスを集計の階層 (`/house/…`) で切っているので、先頭セグメント `house` はレベル名ではない。
+The example cuts its path by an aggregation hierarchy (`/house/…`), so the first segment `house` is not a level name.
 
-**逆向きの取り違えのほうが多い。**`/L1/a` と書いていてこれが出るなら、**`level L1 0` の行が無い**。パスに `/L1/` と書いただけではレベルは宣言されない。
+**The opposite mistake is the more common one.** If you wrote `/L1/a` and still get this, **the `level L1 0` line is missing**. Writing `/L1/` in a path does not declare a level.
 
-**なぜエラーか** — z が決まらないので、この空間からは**立体が一つも生成されない**。床も天井も屋根も壁も無く、平面図にも現れない。`koyu plan` がそのレベルに領域を持つ空間が無いと言って落ちるのは、この状態である。
+**Why it is an error** — z is undetermined, so **not one solid is generated** from this space. No floor, no ceiling, no roof, no walls, and nothing in the plan drawing. This is the state in which `koyu plan` dies saying there is no space with a region on that level.
 
-**直し方** — 二つのどちらかである。
+**Fix** — one of two.
 
 ```muro
 grid X 0 3600
@@ -96,9 +96,9 @@ level L1 0 h:2400 slab:150
 space /house/a room X1..X2 Y1..Y2 level:L1
 ```
 
-集計の階層でパスを切りたい (住戸・棟・用途で束ねたい) ならこちら。パスの先頭でレベルを言いたいなら、`level L1 0 h:2400 slab:150` の行を base 層に足して `space /L1/a …` と書く。
+Use this when you want the path cut by an aggregation hierarchy (bundling by dwelling, wing or use). If you want the head of the path to state the level, add a `level L1 0 h:2400 slab:150` line to the base layer and write `space /L1/a …`.
 
-## SUF03 — slab が無く、床が生成されません
+## SUF03 — no slab, so no floor is generated
 
 `warning`
 
@@ -113,13 +113,13 @@ space /L1/a room X1..X2 Y1..Y2
 Level L1 has no slab:, so not one floor is generated on this storey
 ```
 
-**原因** — 床を与えるのは `level` の `slab:` (床組み厚 — スラブ + 懐 + 仕上) だけである。床を置く操作は無く、**`slab:` を書いたことが床を宣言したことである**。書かなければ、その階に床は一枚も生成されない。
+**Cause** — the only thing that gives a floor is a `level`'s `slab:` (floor-construction thickness — structural slab, plenum and finish). There is no operation that places a floor; **writing `slab:` *is* declaring the floor**. Leave it out and not one floor is generated on that storey.
 
-**巻き添えがある。**[高さの不変量](./hgt.md) は上階の `slab` が無いと立式できないので、`slab:` を書き忘れた階の**下**の階も検査されなくなる。SUF03 を無視すると HGT01 が黙る。
+**There is collateral damage.** The [height invariant](./hgt.md) cannot be formed without the slab of the level above, so forgetting `slab:` on one level also stops the level **below** it from being checked. Ignore SUF03 and HGT01 goes silent.
 
-**なぜ警告どまりか** — 形そのものは定まっているからである。「`slab` が無ければ床要素を作らない」は決定的な規則であって、同じ構成から複数の形が出るわけではない。ただし**床の無い建物になることは知らされるべきである**。
+**Why it stops at a warning** — because the shape itself is settled. "No `slab`, no floor element" is a deterministic rule; it is not a case of several shapes coming out of one composition. But **that the building ends up with no floors ought to be told.**
 
-**直し方** — レベルに `slab:` を書く。
+**Fix** — write `slab:` on the level.
 
 ```muro
 grid X 0 3600
@@ -128,9 +128,9 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
-**出ない場合がある。**床を持ちうる空間 (`void` でも `exterior` でもない領域つき空間) がそのレベルに一つも載っていなければ、SUF03 は出ない。最上階の上限を与えるためだけの屋上レベル (`level R 5800 slab:500`) がまさにそれで、生成されなかった床が無いのだから言うことも無い。
+**Sometimes it does not fire.** If a level carries no space that could have a floor (a space with a region that is neither `void` nor `exterior`), SUF03 stays quiet. A roof level that exists only to give the top storey its upper bound (`level R 5800 slab:500`) is exactly that case — there is no floor that failed to be generated, so there is nothing to say.
 
-## SUF04 — 上にレベルが無いため形が生成されません
+## SUF04 — no level above, so no shape is generated
 
 `warning`
 
@@ -147,11 +147,11 @@ space /L2/s stair X1..X2 Y1..Y2 stair:N
 No level sits above L2, so no form is generated for /L2/s
 ```
 
-**原因** — 縦動線の形は「自レベルの床上面から次のレベルの床上面まで」で決まる。最上階の階段には上る先が無いので、段は一段も生成されない。その階の平面には、下階から上ってくる走りだけが現れる。宣言はあるのに形が無い、という充足性の話である。
+**Cause** — a vertical circulation's shape runs "from this level's finished floor to the next level's finished floor". A stair on the top storey has nowhere to climb, so not one step is generated. On that storey's plan only the flight arriving from below appears. The declaration is there and the shape is not: a matter of sufficiency.
 
-昇降機 (`lift:`) は例外で、SUF04 の対象にならない — 形が段割りではないからである。
+A lift (`lift:`) is exempt from SUF04 — its shape is not a division into steps.
 
-**直し方** — 屋上へ抜ける階段なら、屋根面を `level R` として宣言する。
+**Fix** — if the stair goes out to the roof, declare the roof surface as a level.
 
 ```muro
 grid X 0 3000 6000
@@ -163,10 +163,10 @@ space /L1/a room X1..X2 Y1..Y2
 space /L2/s stair X1..X2 Y1..Y2 stair:N
 ```
 
-抜けないなら、その階の宣言を外す。
+If it does not go out to the roof, drop the declaration on that storey.
 
-## 関連
+## Related
 
-- [HGT — 高さの不変量](./hgt.md) — 値が**書かれていて矛盾している**ときはこちら
-- [RUN — 縦動線](./run.md) — 宣言そのものが読めないときの四つのコード
+- [HGT — the height invariant](./hgt.md) — for when values **are** written and contradict each other
+- [RUN — vertical circulation](./run.md) — the four codes for a declaration that cannot be read
 - [koyu check](../cli/check.md)

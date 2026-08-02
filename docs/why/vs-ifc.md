@@ -1,50 +1,50 @@
 ---
-title: IFC・USD との比較
+title: Comparison with IFC and USD
 mode: explanation
 ---
 
-# IFC・USD との比較
+# Comparison with IFC and USD
 
-空間をノード、境界を関係とするモデルは新しくない。W3C BOT の `bot:Space` と `bot:Interface`、IndoorGML のセル空間と双対グラフ、IFC の `IfcSpace` と `IfcRelSpaceBoundary` は、どれも近い形をしている。合成の仕組みは USD が持つ。
+A model with spaces as nodes and boundaries as relations is not new. W3C BOT's `bot:Space` and `bot:Interface`, IndoorGML's cellular space and its dual graph, IFC's `IfcSpace` and `IfcRelSpaceBoundary` all have a similar shape. The composition mechanism belongs to USD.
 
-**近さは隠すべき弱点ではなく、設計上の狙いである。**近い形をしているからこそ、それらへの射影が自明になる。新規性は個々の要素にではなく、**それらを同時に備えていること**にある。
+**The closeness is not a weakness to hide but the design intent.** It is because the shapes are close that projections onto them are trivial. The novelty is not in any single element but in **holding them all at once**.
 
-用語に馴染みが無ければ [BIM・IFC・USD の基礎](bim-ifc-usd.md) を先に読む。
+If the terminology is unfamiliar, read [BIM, IFC and USD basics](bim-ifc-usd.md) first.
 
-## 立ち位置の違い
+## Where each one stands
 
-| | 既存の形式 | koyu |
+| | Existing formats | koyu |
 |---|---|---|
-| **立ち位置** | 部材モデルや CAD から派生する射影・交換形式 | **人と機械が直接書く原本。**派生元を持たない |
-| **大きさ** | 一棟が機械の視野に入らない | **一棟が丸ごと入る** |
-| **合成** | 建築の意味論を持つ形式は合成を持たず、合成を持つ形式は建築の意味論を持たない | **両方を持つ** |
-| **同一性** | ファイル内の識別子。時点をまたぐ保証は形式の外 | **不変の同一性が第一級** |
+| **Standing** | projections and exchange formats derived from component models or CAD | **a source written directly by humans and machines.** It has nothing upstream |
+| **Size** | a whole building does not fit in a machine's field of view | **a whole building fits** |
+| **Composition** | formats with architectural semantics have no composition; formats with composition have no architectural semantics | **it has both** |
+| **Identity** | identifiers within a file; guarantees across time live outside the format | **immutable identity is first class** |
 
-## 同じ二室を三つの世界で書く
+## The same two rooms in three worlds
 
-同じ場面 — 3.6m×4.5m の室二つ、界壁の扉、玄関、腰窓 — を、IFC4 (SPF) と IFCX (IFC5 alpha) でも書いた。すべて同梱してある。
+The same scene — two rooms of 3.6 m × 4.5 m, a door in the party wall, an entrance door, sill windows — written also in IFC4 (SPF) and IFCX (IFC5 alpha). All three are bundled.
 
-トークンは o200k_base で実測した。**LLM が読み書きする単位で測り直すのがこの表の目的である。**
+Tokens were measured with o200k_base. **Measuring in the unit an LLM reads and writes is the point of this table.**
 
-| 形式 | バイト | 行 | トークン | 対 DSL |
+| Format | Bytes | Lines | Tokens | vs DSL |
 |---|---:|---:|---:|---:|
-| koyu DSL (原本、注釈込み) | 916 | 26 | **359** | 1.0x |
-| koyu DSL (注釈を除いた本文) | 496 | 16 | 220 | 0.6x |
-| koyu 正準 JSON (機械形式) | 2,164 | 140 | 729 | 2.0x |
-| IFC4 (理想化最小、手書き) | 7,291 | 152 | **3,379** | **9.4x** |
+| koyu DSL (source, with comments) | 916 | 26 | **359** | 1.0x |
+| koyu DSL (body, comments removed) | 496 | 16 | 220 | 0.6x |
+| koyu canonical JSON (machine format) | 2,164 | 140 | 729 | 2.0x |
+| IFC4 (idealised minimum, hand-written) | 7,291 | 152 | **3,379** | **9.4x** |
 | IFCX (IFC5 alpha) | 20,111 | 1,030 | **6,034** | **16.8x** |
 
-**IFC4 の 152 行は徹底的にごまかした理想化最小である。**プロパティセット・材料・スタイル・所有履歴・接合処理を全部落とし、形状は矩形押し出しのみ、名前は ASCII のみ。それでもこの量になるのは、壁 5 枚・開口 2・扉 2 をそれぞれ物として置き、**プロファイル → 押し出し → 形状表現 → 配置**の階段を要素ごとに登る必要があるからである。空間は `IfcSpace` として 2 つ入れ、`IfcRelSpaceBoundary` を 8 本手で張ったが、境界の接続ジオメトリは省略した — 実務の書き出しで最も欠落しやすいのがまさにここである。
+**The 152 lines of IFC4 are a thoroughly cheated idealised minimum.** Property sets, materials, styles, owner history and junction handling are all dropped, the geometry is rectangular extrusions only, and names are ASCII only. It still comes to this much because five walls, two openings and two doors are each placed as things, and each one has to climb the ladder of **profile → extrusion → shape representation → placement**. Two `IfcSpace` entities are present and eight `IfcRelSpaceBoundary` relations were strung by hand, but the connection geometry of those boundaries was omitted — which is exactly the thing most often missing from real exports.
 
-**IFCX の 1,030 行のうち大半はメッシュ座標である。**形式は JSON になり、レイヤー合成という強力な機構を得たが、**場面の原本がビルド成果物を抱えて肥大する構造は変わらない。**主語も依然 `IfcWall` である。
+**Most of IFCX's 1,030 lines are mesh coordinates.** The format has become JSON and has gained a powerful layering mechanism, but **the structure in which the source of a scene bloats by carrying its own build output is unchanged.** The subject is still `IfcWall`.
 
-**どちらも、トークンの過半が「形は生成物」が原本から追放した層に費やされている。**
+**In both cases the majority of the tokens go to the layer that "form is generated" evicts from the source.**
 
-参考として、buildingSMART の IFC5 開発リポジトリにある hello-wall は、壁 1 枚 + 窓 2 つの場面で `.ifc` が 79KB、`.ifcx` が 43KB ある (オーサリングツール経由の現実的な出力)。実務モデルなら数十 MB になる。
+For reference, hello-wall in buildingSMART's IFC5 development repository — one wall and two windows — is 79 KB as `.ifc` and 43 KB as `.ifcx` (realistic output through an authoring tool). A production model runs to tens of megabytes.
 
-### 問いに答えられるか
+### Can it answer the question?
 
-「a から外へ扉をいくつ通るか」に IFC で答えるには、`IfcSpace` → `IfcRelSpaceBoundary` → `IfcWall` → `IfcRelVoidsElement` → `IfcOpeningElement` → `IfcRelFillsElement` → `IfcDoor` と 5 段以上の関係を辿り、**なお「その扉がどの空間とどの空間を繋ぐか」はデータに無いので幾何から推定する。**
+To answer "how many doors from a to the outside" in IFC you walk `IfcSpace` → `IfcRelSpaceBoundary` → `IfcWall` → `IfcRelVoidsElement` → `IfcOpeningElement` → `IfcRelFillsElement` → `IfcDoor`, five or more hops, and **then still infer from geometry which two spaces that door connects, because the data does not say.**
 
 ```sh
 npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
@@ -54,69 +54,69 @@ npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
 2 doors — /L1/a → /L1/b → /out
 ```
 
-**構成が原本なので、グラフへの問いと差分と生成が無料になる。**代わりに形は直交グリッドの生成規則が届く範囲しか出せない。**これは対称なトレードオフではない** — 設計の決定は構成の側でなされ、形は決定の帰結だから、というのがこの賭けである。
+**Because composition is the source, graph queries, diffs and generation come for free.** In exchange, form can only be produced as far as the orthogonal-grid generation rules reach. **This is not a symmetric trade-off** — the bet is that design decisions are made on the composition side, and that form is a consequence of the decisions.
 
-## 桁を上げて測る
+## Measuring an order of magnitude up
 
-同じ物差しで、同梱のショーケースを測った。
+The bundled showcases, on the same yardstick.
 
 | | tower | complex | twin |
 |---|---:|---:|---:|
-| 延床 (屋内) | 4,785.92 ㎡ | 31,606.24 ㎡ | 141,448.56 ㎡ |
-| 空間 | 178 | 425 | 1,808 |
-| 境界 | 543 | 1,364 | 5,973 |
-| 原本の行 | 453 | 646 | 1,220 |
-| 原本のバイト | 21,227 | 33,284 | 64,961 |
-| **原本のトークン (o200k)** | **8,574** | **12,685** | **26,630** |
-| 正準 JSON のトークン | 74,704 | 137,913 | — |
+| Indoor floor area | 4,785.92 m² | 31,606.24 m² | 141,448.56 m² |
+| Spaces | 178 | 425 | 1,808 |
+| Boundaries | 543 | 1,364 | 5,973 |
+| Source lines | 453 | 646 | 1,220 |
+| Source bytes | 21,227 | 33,284 | 64,961 |
+| **Source tokens (o200k)** | **8,574** | **12,685** | **26,630** |
+| Canonical JSON tokens | 74,704 | 137,913 | — |
 
-**床面積が 6.6 倍になって、原本は 1.48 倍にしかならない。**
+**Floor area goes up 6.6×; the source goes up 1.48×.**
 
-理由は建築そのものの性質にある。複合建築は**繰り返しでできている**ので、レベルスパン (`/B2..L19/`) と帯 (`band`) が繰り返しを丸ごと畳む。complex では、コア (2 階段・2 EV バンク・便所・PS・給湯) の B2 から L19 まで 21 レベル分が **9 本の `space` 行**、ホテルの 84 空間が **13 本の帯の要素**、基壇の 92 空間が **16 本の帯の要素**、事務所 7 層の 21 空間が **3 行**である。
+The reason lies in architecture itself. A mixed-use complex is **made of repetition**, and level spans (`/B2..L19/`) and bands (`band`) fold repetition away wholesale. In `complex`, the core (two stairs, two lift banks, WCs, risers, pantries) covers 21 levels from B2 to L19 in **9 `space` lines**; the hotel's 84 spaces come from **13 band members**; the podium's 92 spaces from **16 band members**; and the 21 spaces of seven office storeys from **3 lines**.
 
-> **原本の大きさは「建物の大きさ」ではなく「設計判断の数」に比例する。**
+> **The size of a source is proportional not to the size of the building but to the number of design decisions.**
 
-これは記法の性能ではない。**大きい建物が大きいのは、違うものがたくさんあるからではなく、同じものがたくさんあるからである。**
+That is not a property of the notation. **A large building is large not because there are many different things but because there are many of the same thing.**
 
-上の倍率をそのまま当てれば、complex 相当のものは IFC4 で約 12 万トークン、IFCX で約 21 万トークンになる。**しかもこの倍率は「徹底的にごまかした理想化最小の IFC」に対するものである。**実務のオーサリングツールがこの規模で書き出す IFC (数十 MB) は、どのコンテキストにも載らない。
+Apply the ratios above and something the size of `complex` would be about 120,000 tokens as IFC4 and about 210,000 as IFCX. **And those ratios are against a thoroughly cheated idealised minimum IFC.** The IFC a production authoring tool exports at this scale (tens of megabytes) fits in no context at all.
 
-## BOT — 形が近いので射影が自明になる
+## BOT — the shape is close, so the projection is trivial
 
-W3C の Building Topology Ontology は、koyu と同じ形をしている。`bot:Space`、`bot:adjacentZone`、そして **`bot:Interface` — 二つの Zone の界面**。
+The W3C Building Topology Ontology has the same shape as koyu: `bot:Space`, `bot:adjacentZone`, and **`bot:Interface` — the interface between two zones**.
 
-**koyu の `boundary` は、`bot:Interface` の、人が書ける表面記法だと言ってよい。**空間 = `bot:Space`、垂直の階層 = `bot:Storey`、境界 = `bot:Interface`、隣接 = `bot:adjacentZone` へ、正準 JSON から一方向に射影できる。
+**koyu's `boundary` can fairly be described as an authorable surface notation for `bot:Interface`.** Spaces map to `bot:Space`, the vertical hierarchy to `bot:Storey`, boundaries to `bot:Interface`, adjacency to `bot:adjacentZone` — a one-way projection out of canonical JSON.
 
-**これは「乗り換える」話ではなく「説明させる」話である。**W3C 系の既存語彙に自分を説明させることが、オントロジー上の位置づけそのものになる。
+**This is not about migrating but about being explained.** Letting an established W3C vocabulary describe you *is* your ontological position.
 
-## USD — 借りるのは機構だけ
+## USD — borrow the mechanism only
 
-OpenUSD からは**機構だけ**を借りている。
+From OpenUSD, **the mechanism only** is borrowed.
 
-| 借りるもの | 借りないもの |
+| Borrowed | Not borrowed |
 |---|---|
-| パス名前空間を背骨にしたレイヤーの非破壊的な重ね合わせ | UUID を主キーにした同一性 (koyu は人間可読パス) |
-| 名前空間つきの語彙 | メッシュの同梱 (形は生成物) |
-| 外部レイヤー参照の発想 | バリアント (案の分岐は git のブランチが持つ) |
+| non-destructive layering on a path-namespace backbone | identity keyed on UUIDs (koyu uses human-readable paths) |
+| namespaced vocabulary | shipping meshes inside the source (form is generated) |
+| the idea of referencing external layers | variants (branching options belong to git branches) |
 
-そして **USD には建築の意味論が無い。**空間と境界と用途と階を、USD の側から与えることはできない。
+And **USD has no architectural semantics.** Space, boundary, use and storey cannot be supplied from the USD side.
 
-> **建築の意味論を持つ形式は合成を持たず、合成を持つ形式は建築の意味論を持たない。**
+> **Formats with architectural semantics have no composition; formats with composition have no architectural semantics.**
 
-koyu の主張は、**両方を持てる**というところにある ([ファイル分割と重ね合わせ](composition-is-for-time.md))。
+koyu's claim is that **you can have both** ([Splitting and layering files](composition-is-for-time.md)).
 
-## 相互運用の方針 — 出口は作る。往復は作らない
+## The interoperability policy — build an exit, not a round trip
 
-**作る** — 安定した機械形式 (版つき)、外部参照の鍵としての同一性、グラフの出力、読み取り専用の射影。
+**Built** — a stable versioned machine format, identity as a key for external references, graph output, read-only projections.
 
-**作らない** — 往復互換、外部形式の完全な取り込み、カバレッジの主張、他形式との大きさの比較の追求。**必要なのは「一棟が入る」という絶対値であって、比較ではない。**
+**Not built** — round-trip fidelity, complete import of external formats, coverage claims, or the pursuit of size comparisons against other formats. **What is needed is the absolute fact that a whole building fits, not a comparison.**
 
-**外に置く** — 既存資産からの取り込みは、一方向の変換として核の外に置く。
+**Kept outside** — import from existing assets is a one-way conversion living outside the core.
 
-**IFC が肥大化したのは、どのツールが吐いたものも失わずに戻せることを要求されたからである。**その要求を受けない、というのがこの方針である。
+**IFC grew as it did because it was required to give back whatever any tool emitted, losing nothing.** The policy here is to decline that requirement.
 
-## 再現
+## Reproducing this
 
-比較のファイルは同梱してある。
+The comparison files are bundled.
 
 ```sh
 npx tsx examples/comparison/gen-ifc4.ts > examples/comparison/two-rooms.ifc
@@ -124,11 +124,11 @@ npx tsx examples/comparison/gen-ifcx.ts > examples/comparison/two-rooms.ifcx
 npx tsx examples/comparison/validate-ifc.ts examples/comparison/two-rooms.ifc
 ```
 
-UUID と GUID は名前から決定的に導いているので、生成し直しても差分は出ない。
+UUIDs and GUIDs are derived deterministically from names, so regenerating produces no diff.
 
-## この先
+## Next
 
-- [IFC4 対応表](ifc4-coverage.md) — 何が書けて、何を方針として書かないか
-- [記述できる粒度](resolution.md)
-- [記法形式の比較](dsl-not-yaml.md)
-- [正準 JSON](../reference/json/index.md)
+- [IFC4 coverage](ifc4-coverage.md) — what can be written, and what is deliberately not
+- [Level of detail](resolution.md)
+- [Notation format comparison](dsl-not-yaml.md)
+- [Canonical JSON](../reference/json/index.md)

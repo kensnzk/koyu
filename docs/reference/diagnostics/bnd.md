@@ -1,28 +1,28 @@
 ---
-title: BND — 境界の診断
+title: BND — boundary diagnostics
 mode: reference
 ---
 
-# BND — 境界の診断
+# BND — boundary diagnostics
 
-境界は物ではなく、**二つの空間のあいだの関係**である。壁芯の線分はその関係と両空間の割付から導出されるので、関係が成り立たない書き方をすると線分が出ない。BND の六つはそこを咎める。
+A boundary is not a thing but **a relation between two spaces**. The wall centerline segment is derived from that relation and the layout of both spaces, so a way of writing under which the relation does not stand produces no segment at all. These six catch that.
 
-接する二つの空間の境界は**書かなくても壁として導出される**。`boundary` を書くのは、例外 (`type:open` や `air:1`) を宣言するときと、属性・開口・`seg` を載せるときだけである。
+A boundary between two touching spaces **is derived as a wall whether or not you write it**. You write a `boundary` to declare an exception (`type:open`, `air:1`) or to hang an attribute, an opening or a `seg` on it.
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [BND01](#bnd01) | error | 同じ空間同士の境界は書けません |
-| [BND02](#bnd02) | error | 境界が重複しています |
-| [BND03](#bnd03) | error | 異なるレベルの空間に壁境界は書けません |
-| [BND04](#bnd04) | error | 空間が接していないため境界を導けません |
-| [BND05](#bnd05) | warning | 同じ空間対に edge 限定つきと無しの境界が併存しています |
-| [BND06](#bnd06) | warning | 外周に残る辺が無く、境界線分がゼロです |
+| [BND01](#bnd01) | error | A boundary between a space and itself |
+| [BND02](#bnd02) | error | A duplicate boundary |
+| [BND03](#bnd03) | error | A wall boundary to a space on a different level |
+| [BND04](#bnd04) | error | The spaces do not touch, so no boundary can be derived |
+| [BND05](#bnd05) | warning | Edge-restricted and unrestricted boundaries coexist on one pair |
+| [BND06](#bnd06) | warning | No edge remains on the perimeter, so the segment is of zero length |
 
-`BND07` は[欠番](retired.md)である。コードの手に入れ方は[診断を読む](reading.md)にある。
+`BND07` is a [retired number](retired.md). How to get a code is on [Reading a diagnostic](reading.md).
 
-以下の誤り例はどれも `koyu check --strict` で終了コード1になり、**そのコードちょうど1件**を出す。手元に貼って確かめられる。
+Every wrong example below exits 1 under `koyu check --strict`, producing **exactly one** instance of that code. Paste them and confirm.
 
-## BND01 — 同じ空間同士の境界は書けません {#bnd01}
+## BND01 — a boundary between a space and itself {#bnd01}
 
 `error`
 
@@ -37,11 +37,11 @@ boundary /out /out
 
 `A boundary between a space and itself cannot be written: /out`
 
-**原因** — 境界は二つの**異なる**空間を結ぶ関係である。同じパスを二度書いた。コピーして片方だけ直し忘れた、というのがほぼ全部である。
+**Cause** — a boundary is a relation joining two **different** spaces. The same path was written twice. Copying a line and forgetting to fix one side is almost the whole of it.
 
-**直し方** — 二つめのパスを本来の相手に直す。
+**Fix** — correct the second path to its intended partner.
 
-## BND02 — 境界が重複しています {#bnd02}
+## BND02 — a duplicate boundary {#bnd02}
 
 `error`
 
@@ -57,13 +57,13 @@ boundary /L1/a /L1/b type:open
 
 `Duplicate boundary: /L1/a | /L1/b (first seen at <absolute path>/bad.muro:line 6)`
 
-**原因** — 同じ空間対 (`edge` 限定まで同一) に境界が二本ある。並び順に意味は無いから、どちらが勝つとも決められない。この例のように `wall` と `open` が食い違っていても、黙って後勝ちにはしない。診断の `related` に既出側の位置が入る。
+**Cause** — there are two boundaries on the same pair of spaces, identical down to the `edge` restriction. Since the order carries no meaning, neither can be said to win. Even when `wall` and `open` contradict as they do here, the later one is not silently taken. The diagnostic's `related` carries the position of the earlier one.
 
-**直し方** — 一本に統合する。辺ごとに違う仕様を与えたいなら、両方に `edge:` を付けて別の辺に限定する — `edge` が異なれば重複ではない。
+**Fix** — consolidate into one. To give different specifications per edge, put `edge:` on both and restrict them to different edges — differing `edge`s are not a duplicate.
 
-**注** — 線 (`line`) を持つ境界は、線の綴りまで含めて同一性が決まる。同じ空間対に二本の線を引く (二箇所の隅切りなど) のは重複ではない。
+**Note** — for a boundary carrying a `line`, the spelling of the line is part of its identity. Drawing two lines on the same pair of spaces — two splayed corners, say — is not a duplicate.
 
-## BND03 — 異なるレベルの空間に壁境界は書けません {#bnd03}
+## BND03 — a wall boundary to a space on a different level {#bnd03}
 
 `error`
 
@@ -79,11 +79,11 @@ boundary /L1/a /L2/a t:120
 
 `A wall boundary cannot be written to a space on a different level (vertical takes type:stair/shaft/void): /L1/a | /L2/a`
 
-**原因** — 階を跨いで壁は立たない。上下階を繋ぐつもりで `boundary` を書いたが、`type:` を省いたため既定の `wall` になった。
+**Cause** — a wall does not stand across storeys. A `boundary` was written meaning to connect two storeys, but `type:` was omitted so it defaulted to `wall`.
 
-**直し方** — 上下階の関係を書くなら `type:stair` (階段) / `type:shaft` (EV等) / `type:void` (吹抜け) のいずれかを付ける。**床は書かない** — 上下階の隣接は平面の重なりから自動的に導かれ、既定は床である。垂直境界そのものの診断は [VRT](vrt.md) にある。
+**Fix** — to write a relation between storeys, add `type:stair` (a stair), `type:shaft` (a lift and the like) or `type:void` (a void). **Floors are not written** — adjacency between storeys is derived automatically from overlap in plan, and the default is a floor. The diagnostics for vertical boundaries themselves are on [VRT](vrt.md).
 
-## BND04 — 空間が接していないため境界を導けません {#bnd04}
+## BND04 — the spaces do not touch, so no boundary can be derived {#bnd04}
 
 `error`
 
@@ -98,11 +98,11 @@ boundary /L1/a /L1/b t:120
 
 `The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b`
 
-**原因** — 壁芯線分は両空間の割付から導出される。導出できる形で接していなければ、境界という関係が成立しない。もっとも多いのは**角でしか触れていない**場合である。上の例の `/L1/a` は `X1..X2 Y1..Y2`、`/L1/b` は `X2..X3 Y2..Y3` で、点 (X2, Y2) を共有するだけで長さを持つ辺を共有していない。**長さのある辺を共有していなければ「接している」ことにならない。**座標が単にずれている (`Y2..Y3` と書くべきところを `Y3..Y4` と書いた) 場合も同じ症状になる。
+**Cause** — the wall centerline segment is derived from the layout of the two spaces. Unless they touch in a way from which it can be derived, the boundary relation does not stand up. The commonest case is **touching only at a corner**. Here `/L1/a` is `X1..X2 Y1..Y2` and `/L1/b` is `X2..X3 Y2..Y3`; they share only the point (X2, Y2) and no edge of any length. **Without a shared edge of nonzero length, they are not "touching".** Coordinates that are simply off — writing `Y3..Y4` where `Y2..Y3` was meant — give the same symptom.
 
-**直し方** — 二室の矩形を紙に描いて、共有する辺があるか確かめる。無ければ割付を直す。本当に離れている二室を繋ぎたいのなら、間の空間 (廊下・ホール) を宣言して二本の境界に分ける。
+**Fix** — draw the two rectangles on paper and confirm whether they share an edge. If not, correct the layout. If you really want to connect two rooms that are apart, declare the space between them (a corridor, a hall) and split it into two boundaries.
 
-**`edge:` を付けているときは本文が変わる。**辺の限定を外せば接している場合、メッセージは実際に接している辺を名指す。
+**With `edge:` the body changes.** When the pair does touch once the restriction is lifted, the message names the edge on which they actually touch.
 
 ```muro-bad
 grid X 0 3600 7200
@@ -115,9 +115,9 @@ boundary /L1/a /L1/b edge:N t:120
 
 `No shared edge on edge:N: /L1/a | /L1/b (they actually touch on E)`
 
-このときは割付ではなく**方角一語**が誤りである。`edge:` は先に書いた空間の矩形から見た向きで、**N=+Y・S=−Y・E=+X・W=−X**。X は東が正、Y は北が正である。
+Here the mistake is not the layout but **one word of compass**. `edge:` is read from the rectangle of the space written first: **N=+Y, S=−Y, E=+X, W=−X**. X is east-positive and Y is north-positive.
 
-## BND05 — 同じ空間対に edge 限定つきと無しの境界が併存しています {#bnd05}
+## BND05 — edge-restricted and unrestricted boundaries coexist on one pair {#bnd05}
 
 `warning`
 
@@ -133,13 +133,13 @@ boundary /L1/a /L1/b edge:E t:150
 
 `The same pair of spaces carries both an edge-restricted and an unrestricted boundary (the segments overlap): /L1/a | /L1/b`
 
-**原因** — `edge` 無しの境界はその対の**全線分**を指す。`edge:E` の境界はそのうちの E 辺を指す。両方書くと、E 辺には二本の境界が重なって載る。壁厚 (`t`) も仕様も二重になる。[BND02](#bnd02) の重複エラーをすり抜けるが、意図した状態ではまずない。
+**Cause** — a boundary with no `edge` points at **all** the segments of that pair; one with `edge:E` points at the E side among them. Write both and two boundaries ride on the E side, doubling both the thickness (`t`) and the specification. It slips past the [BND02](#bnd02) duplicate error, but is almost never the intended state.
 
-**直し方** — 全辺に共通の指定なら `edge` 無しの一本に寄せる。辺ごとに変えたいなら、**すべて** `edge:` 付きに書き分ける。
+**Fix** — if the specification is common to every side, consolidate into the one without `edge`. To vary per side, write **every** one with `edge:`.
 
-**注** — 診断の `line` は集合を作った宣言のうち一本 (`edge` 無しの側が優先) を指し、残りが `related` に入る。「どこかで併存している」とだけ言われても直す場所が無いからである。
+**Note** — the diagnostic's `line` points at one of the declarations that made the set (the unrestricted one for preference), with the rest in `related`. Being told only that something coexists *somewhere* leaves nowhere to go and fix it.
 
-## BND06 — 外周に残る辺が無く、境界線分がゼロです {#bnd06}
+## BND06 — no edge remains on the perimeter, so the segment is of zero length {#bnd06}
 
 `warning`
 
@@ -159,8 +159,8 @@ boundary /L1/b /out t:150
 
 `No edge remains on the perimeter for edge:E, so the boundary segment is of zero length: /L1/a | /out`
 
-**原因** — 領域を持たない空間 (`exterior` など) との境界は、部屋の外周から**他の空間と接する区間を除いた残り**である。上の例の `/L1/a` の E 辺は `/L1/b` が丸ごと占めているので、`/out` に面する残りが無い。書いた境界は何も指していない。
+**Cause** — a boundary with a space that has no region (an `exterior`, say) is **what remains of the room's perimeter after removing the intervals that touch other spaces**. Here `/L1/a`'s E side is occupied entirely by `/L1/b`, so nothing remains facing `/out`. The boundary you wrote points at nothing.
 
-**直し方** — 辺の取り違えである。`edge:` の方角は**先に書いた空間 (a側) の矩形から見た向き**で、**N=+Y (北)・S=−Y (南)・E=+X (東)・W=−X (西)**。この例なら `edge:W` が正しい。方角を消して `edge` 無しにすると、残る三辺すべてを指す境界になる。
+**Fix** — the edge was mistaken. The compass of `edge:` is **read from the rectangle of the space written first (the a side)**: **N=+Y (north), S=−Y (south), E=+X (east), W=−X (west)**. Here `edge:W` is correct. Remove the compass entirely and the boundary points at all three remaining sides.
 
-**注** — この境界に開口や `seg` を載せていれば、置き先の線分が無いので [OPN04](opn.md#opn04) / [SEG04](seg.md#seg04) が同時に出る。
+**Note** — if that boundary carries an opening or a `seg`, there is no segment to place it on, so [OPN04](opn.md#opn04) / [SEG04](seg.md#seg04) come out alongside.

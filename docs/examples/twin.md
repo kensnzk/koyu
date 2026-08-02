@@ -1,38 +1,38 @@
 ---
-title: twin — 双塔再開発
+title: twin — a twin-tower redevelopment
 mode: explanation
 ---
 
-# twin — 双塔再開発
+# twin — a twin-tower redevelopment
 
-`examples/twin/`。1,220行 / 11ファイル / 空間1,808 / 境界5,973 / 屋内床面積 141,448.56㎡ / 半屋外 6,534.08㎡。地下2階＋地上34階、宣言されたレベルは39。**一棟がレベルを共有したまま二つの塔に分かれる**、この記法で最大の例である。
+`examples/twin/`. 1,220 lines / 11 files / 1,808 spaces / 5,973 boundaries / 141,448.56 m² of interior floor area / 6,534.08 m² semi-outdoor. Two basement levels and thirty-four above; thirty-nine levels declared. **One building that splits into two towers while sharing its levels** — the largest example in this notation.
 
 ![twin L1](../img/twin-L1.svg)
 
-構成はこうなっている。
+The composition:
 
-| 帯 | 階 | 中身 |
+| Band | Floors | Content |
 |---|---|---|
-| 基壇 | L1〜L4 | 物販・飲食。段々にセットバックし、退いた屋根がテラス緑化になる |
-| L5 | L5 | ホテルエントランス・宴会・屋上庭園 (基壇の屋上) |
-| A棟 | L6〜L34 | オフィス。板 67.2m × 33.6m。中央コア帯 12.6m |
-| B棟 | L6〜L18 | 下がホテル (L6〜L12)、上がレジデンス (L13〜L18)。板 42.0m × 25.2m |
-| 機械階 | M1 / M2 | **客の階数に現れない。**宴会場直上と中間 |
-| 地下 | B1〜B2 | 駐車場・熱源・受変電・中央監視・MDF・ごみ処理 |
+| Podium | L1–L4 | Retail and food, stepping back as it rises; the setback roofs become planted terraces |
+| L5 | L5 | Hotel entrance, banqueting, roof garden on the podium |
+| Tower A | L6–L34 | Offices. A 67.2 m × 33.6 m plate with a 12.6 m central core band |
+| Tower B | L6–L18 | Hotel below (L6–L12), residences above (L13–L18). A 42.0 m × 25.2 m plate |
+| Plant | M1 / M2 | **Absent from the floor numbers the public sees.** Above the banqueting hall, and at mid-height |
+| Basement | B1–B2 | Parking, heat source, substation, control room, MDF, waste |
 
-ホテル98室、レジデンス36戸。どちらも実数で、帯の展開から数えられる。
+98 hotel rooms and 36 residential units — both real counts, obtained from the band expansion.
 
-## 初めて示すもの
+## What it shows first
 
-- **一つのレベルに二つの塔が載る。**`level L6..L20 …` は一度しか宣言されず、A棟のオフィスと B棟のホテルが同じレベルの上で別の板になる。**「棟」という要素は無い** — パスの接頭辞 (`/L8/aoff1` と `/L8/hs01`) と、板が平面上で離れている事実だけがそれを言う。
-- **客の階数に現れない階。**`level M1` `level M2` は L5 と L6 の間、L20 と L21 の間に挟まる。エレベーターのボタンにも案内にも無い層が、階高の積み上げには確かに存在する。
-- **EVのゾーニングを、ホールの有無で書く。**B棟の客用シャフト (`bev1..3`) は B1..L18 を貫くが、乗場ホール (`bhall1` / `bhall2`) は B1..L1 と L5..L18 にしか無い。**基壇の3層を通過することが、ホールという空間の不在として表現される。**
-- **同じ板・同じコア・同じ階高で用途だけが変わる。**B棟の L6〜L12 はホテル、L13〜L18 はレジデンス。変わるのは割りと `daylight:` の宣言だけである。
-- **14頂点の敷地**と三方接道。
+- **Two towers on one level.** `level L6..L20 …` is declared once, and the offices of tower A and the hotel of tower B sit on the same levels as different plates. **There is no "tower" element** — only the path prefixes (`/L8/aoff1` versus `/L8/hs01`) and the fact that the plates are apart in plan say so.
+- **Floors absent from the public numbering.** `level M1` and `level M2` are inserted between L5 and L6, and between L20 and L21. A level that appears on no lift button nonetheless exists in the height stack-up.
+- **Lift zoning written as the presence or absence of a lobby.** The guest shafts of tower B (`bev1..3`) run B1..L18, but the lift lobbies (`bhall1` / `bhall2`) exist only on B1..L1 and L5..L18. **Passing through the three podium levels is expressed as the absence of a lobby space.**
+- **The same plate, core and floor-to-floor with only the use changing.** L6–L12 of tower B is hotel, L13–L18 residential. What changes is the division and the `daylight:` declaration.
+- **A fourteen-vertex site** with frontage on three roads.
 
-## 抜粋
+## Excerpts
 
-base 層のレベル宣言。機械階が客の階数の外側に挟まる。
+The level declarations in the base layer. Plant levels are wedged outside the public numbering.
 
 ```muro-part
 level L5 21300 h:5500 slab:900
@@ -43,7 +43,7 @@ level L21..L34 100000 h:2800 slab:1400 pitch:4200
 level R1 158800 h:3000 slab:900
 ```
 
-縦動線のトポロジー。29行で二つの塔の全シャフトが立つ。
+The topology of vertical circulation. Twenty-nine lines raise every shaft in both towers.
 
 ```muro-part
 stack aevLs1 B1..L20 type:shaft
@@ -54,9 +54,9 @@ stack bst1 B2..L18 type:stair
 stack ramp B2..L1 type:stair
 ```
 
-A棟の低層バンク (`aevL…`) は B1..L20、高層バンク (`aevH…`) は L1..L34 で、**基壇と低層帯を通過する**。通過は「シャフトはあるが乗場ホールが無い」として書かれる — 装置の運転計画ではなく、空間の有無で表現される。
+The low-rise bank of tower A (`aevL…`) runs B1..L20 and the high-rise bank (`aevH…`) runs L1..L34, **passing through the podium and the low-rise band**. Passing is written as "the shaft is there but no lift lobby is" — not as an operating plan for the equipment, but as the presence or absence of a space.
 
-B棟のホテル階とレジデンス階は、同じ帯の形で別の判断を持つ。
+The hotel floors and the residential floors of tower B carry different judgements in the same shape of band.
 
 ```muro-part
 band X X14..X19 Y6..Y7
@@ -70,9 +70,9 @@ band X X14..X19 Y6..Y7
   space /L13..L18/rs02 unit w:8400 name:住戸S02 use:exclusive daylight:1
 ```
 
-同じ幅5スパンの帯で、上はホテル客室10室、下は住戸5戸。**`daylight:` の値が逆になっているのは、用途が変われば採光の対象かどうかが変わるからである。**
+The same five-bay band: ten hotel rooms above, five dwellings below. **The `daylight:` values are opposite because whether a room is in scope for daylight changes with its use.**
 
-A棟の基準階は二度だけ書かれる — M2 を挟んで低層帯と高層帯に分かれるため。
+The typical office floor of tower A is written twice — the low band and the high band are separated by M2.
 
 ```muro-part
 space /L6..L20/aoff1 room X3..X11 Y6..Y7 name:貸室南 use:rentable
@@ -81,9 +81,9 @@ space /L21..L34/aoff1 room X3..X11 Y6..Y7 name:貸室南 use:rentable
 
 ![twin L8](../img/twin-L8.svg)
 
-## 投げる問い
+## Questions worth putting to it
 
-### 30階のオフィスから南側道路まで
+### From a thirtieth-floor office to the south road
 
 ```sh
 npx tsx src/cli.ts doors examples/twin/main.muro /L30/aoff1 /road-s
@@ -93,9 +93,9 @@ npx tsx src/cli.ts doors examples/twin/main.muro /L30/aoff1 /road-s
 5 doors — /L30/aoff1 → /L30/aoffW → /L30/ahall → /L30/ast1 → /L29/ast1 → /L28/ast1 → /L27/ast1 → /L26/ast1 → /L25/ast1 → /L24/ast1 → /L23/ast1 → /L22/ast1 → /L21/ast1 → /M2/ast1 → /L20/ast1 → /L19/ast1 → /L18/ast1 → /L17/ast1 → /L16/ast1 → /L15/ast1 → /L14/ast1 → /L13/ast1 → /L12/ast1 → /L11/ast1 → /L10/ast1 → /L9/ast1 → /L8/ast1 → /L7/ast1 → /L6/ast1 → /M1/ast1 → /L5/ast1 → /L4/ast1 → /L3/ast1 → /L2/ast1 → /L1/ast1 → /L1/ahall → /L1/alobby → /site/plazaW → /road-s
 ```
 
-**経路に `/M2/ast1` と `/M1/ast1` が現れる。**機械階は客の階数に無いが、避難階段は当然そこを通る。書かれていない事実は導出されない — 機械階の階段を書いたから、経路にそれが出た。
+**`/M2/ast1` and `/M1/ast1` appear on the route.** The plant levels are absent from the public floor numbers, but the escape stair naturally passes through them. Nothing is derived that was not written — the stairs on the plant levels were written, so they show up on the route.
 
-### 収益床はどれだけか
+### How much of the floor area earns
 
 ```sh
 npx tsx src/cli.ts stats examples/twin/main.muro
@@ -107,11 +107,11 @@ Semi-outdoor 6534.08 m2 (balconies, external stairs and the like — whether the
 By use: common 60487.47 m2 (42.8%) / parking 14868.00 m2 (10.5%) / rentable 63462.21 m2 (44.9%) / exclusive 2630.88 m2 (1.9%)
 ```
 
-(末尾3行。)
+(The last three lines.)
 
-`rentable` 44.9% ＋ `exclusive` 1.9% ＝ 収益床 46.7%。**巨大複合はコア・機械階・ホール・テラス緑化が床を食う。**この数字は宣言ではなく `use:` の集計から出ていて、コアを細く描けば上がるが、そのときは便所も PS も入らなくなる。
+`rentable` 44.9% plus `exclusive` 1.9% gives 46.7% earning floor area. **A very large mixed-use building has its floor eaten by cores, plant levels, halls and planted terraces.** That figure is not declared; it falls out of the `use:` aggregation. Draw a thinner core and it rises — and then the lavatories and the risers no longer fit.
 
-### 敷地はどう読まれるか
+### How is the site read
 
 ```sh
 npx tsx src/cli.ts site examples/twin/main.muro
@@ -128,9 +128,9 @@ Site /site (敷地)
   Total floor area: 141448.56 m2 → floor area ratio 610.5%
 ```
 
-三方接道で、宣言した測量値 23,167.40㎡ と14頂点のシューレース面積が一致している。
+Frontage on three roads, and the declared survey figure of 23,167.40 m² matches the shoelace area of the fourteen vertices.
 
-### 建築的な判定は通るか
+### Does it pass the architectural verdicts
 
 ```sh
 npx tsx src/cli.ts validate examples/twin/main.muro
@@ -140,17 +140,17 @@ npx tsx src/cli.ts validate examples/twin/main.muro
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
 ```
 
-1,808空間・5,973境界の全体に対して、到達不能・外皮の穴・柱と扉の重なり・斜路の勾配・接道長を含む15の規則が走った。**それでも「使える建物である」とは言っていない** — [`validate`](../reference/cli/validate.md) は判定であって保証ではない。
+Fifteen rules — unreachability, gaps in the envelope, columns fouling doors, ramp slope, road frontage among them — ran across all 1,808 spaces and 5,973 boundaries. **It still does not say the building works.** [`validate`](../reference/cli/validate.md) delivers judgements, not guarantees.
 
-## 桁の意味
+## What the order of magnitude means
 
-原本の11ファイル合計は 26,630トークン (o200k_base) である。**延床141,449㎡・地上34階の一棟が、どのモデルの文脈にも丸ごと載る。**しかも一つの階を書き換えるのに触るのは一枚のレイヤーだけで済む。
+The eleven source files total 26,630 tokens (o200k_base). **A single building of 141,449 m² and thirty-four storeys fits whole into any model's context** — and rewriting one floor touches exactly one layer.
 
-展開後の[正準JSON](../reference/json/index.md)は 450,040トークンになる。**原本と機械形式の間には17倍の開きがあり、その差が「繰り返しを畳む」ということの実体である。**
+The expanded [canonical JSON](../reference/json/index.md) is 450,040 tokens. **There is a seventeen-fold gap between the source and the machine format, and that gap is what "folding the repetition" actually is.**
 
-同じ物差しで IFC4 / IFCX を測った結果は [koyu と IFC の実測比較](vs-ifc.md)にある。
+IFC4 and IFCX measured on the same scale are in [koyu measured against IFC](vs-ifc.md).
 
-## 次に読む
+## Read next
 
-- 一桁下の複合建築 — [complex](complex.md)
-- 書きたい機能から例を引く — [書きたいものから引く](by-pattern.md)
+- One order of magnitude down — [complex](complex.md)
+- Find the example that has the feature you need — [Look it up by what you want to write](by-pattern.md)

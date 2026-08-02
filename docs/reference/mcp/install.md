@@ -1,53 +1,53 @@
 ---
-title: クライアントに登録する
+title: Registering it with a client
 mode: howto
 ---
 
-# クライアントに登録する
+# Registering it with a client
 
-`koyu-mcp` をエージェントのクライアントに繋ぐ。所要は一行から数行で、環境変数も認証鍵も要らない。
+Connect `koyu-mcp` to your agent's client. It takes one line, or a few lines of JSON. No environment variables, no credentials.
 
-## 前提
+## Before you start
 
-- **Node 22 以上と `npx`。**サーバー自身は実行時依存を持たない。
-- **`.muro` が git 管理下にあること。**[`write_layer`](tools-write.md#write_layer) は全置換で書き、取り消しを持たない。巻き戻しは git で行う。
-- **エージェントに書かせる前にコミットしておくこと。**
+- **Node 22 or later, and `npx`.** The server itself has no runtime dependencies.
+- **Your `.muro` files under git.** [`write_layer`](tools-write.md#write_layer) replaces files wholesale and has no undo. Rollback is git's job.
+- **Commit before you let an agent write.**
 
-## 起動コマンドは二択
+## Two launch commands
 
-どのクライアントでも、koyu 側が指定するのはこの一つだけである。
+Whatever the client, this is the only thing koyu asks you to specify.
 
-**npm から使う。**
+**From npm.**
 
 ```sh
 npx -p @kensnzk/koyu koyu-mcp
 ```
 
-**リポジトリをクローンして開発版を使う。**先に `npm install && npm run build` を通す。`dist/mcp.js` は実行時依存を持たないので、`node` から直接起動できる。
+**From a clone, using a development build.** Run `npm install && npm run build` first. `dist/mcp.js` has no runtime dependencies, so `node` can launch it directly.
 
 ```sh
 node /path/to/koyu/dist/mcp.js
 ```
 
-transport は stdio、環境変数なし、認証なし、ネットワークアクセスなし。**クライアントに教えることはこの四点と起動コマンドだけである。**
+Transport is stdio; no environment variables, no authentication, no network access. **Those four facts and the launch command are all a client needs to be told.**
 
 ## Claude Code (CLI)
 
-一行で登録する。
+One line.
 
 ```sh
 claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp
 ```
 
 ```sh
-claude mcp add koyu -- node /path/to/koyu/dist/mcp.js   # 開発版
+claude mcp add koyu -- node /path/to/koyu/dist/mcp.js   # development build
 ```
 
-`claude mcp list` が登録済みのサーバーと接続状態を並べる。セッション中は `/mcp` でツール 12 個の一覧まで見える。
+`claude mcp list` lists the registered servers with their connection status. During a session, `/mcp` shows all 12 tools.
 
-## リポジトリで共有する (プロジェクトスコープ)
+## Sharing it through the repository (project scope)
 
-リポジトリ直下に `.mcp.json` を置いてコミットすると、クローンした全員が同じ登録を持つ。`.muro` をリポジトリに置いている企てでは、これが既定にしてよい。
+Commit a `.mcp.json` at the root of the repository and everyone who clones gets the same registration. For a project that keeps its `.muro` files in the repository, make this the default.
 
 ```json
 {
@@ -60,45 +60,45 @@ claude mcp add koyu -- node /path/to/koyu/dist/mcp.js   # 開発版
 }
 ```
 
-`.mcp.json` 由来のサーバーは初回に承認を挟む。承認するまで接続されず、一覧には保留として出る。
+A server that comes from `.mcp.json` needs approval the first time. Until you approve it, it does not connect and shows as pending in the listing.
 
 ## Claude Desktop
 
-「設定 → 開発者 → 構成を編集」で `claude_desktop_config.json` を開き、上と同じ `mcpServers` の形を書いてアプリを再起動する。
+Settings → Developer → Edit config opens `claude_desktop_config.json`. Write the same `mcpServers` shape as above and restart the app.
 
-| OS | 置き場所 |
+| OS | Location |
 |---|---|
 | macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
 | Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
 
-**デスクトップアプリはシェルの PATH を継がないことがある。**`npx` や `node` は絶対パス (`which node` / `where node` の結果) で書くほうが確実である。
+**The desktop app does not always inherit your shell's PATH.** Writing `npx` or `node` as an absolute path (whatever `which node` / `where node` prints) is the reliable choice.
 
-## その他の MCP クライアント
+## Any other MCP client
 
-多くは同じ `mcpServers` 形の JSON を読む。キー名と置き場所はそのクライアントの流儀に従えばよい。
+Most read the same `mcpServers` JSON shape. Follow that client's conventions for the key name and the file location.
 
-koyu 側が要求するのは次の四点だけである。
+What koyu requires is only:
 
-- transport は **stdio** (HTTP でも SSE でもない)
-- 起動コマンドは上の二択のどちらか
-- 環境変数は不要
-- 認証は不要
+- **stdio** transport (not HTTP, not SSE)
+- one of the two launch commands above
+- no environment variables
+- no authentication
 
-サーバーは標準入力の行区切り JSON を読み、標準出力へ行区切り JSON を書く。標準入力が閉じたら終了コード 0 で終わる。詳しい面は[プロトコル](protocol.md)にある。
+The server reads line-delimited JSON from stdin and writes line-delimited JSON to stdout. When stdin closes, it exits 0. The full surface is on [The protocol](protocol.md).
 
-## entry は絶対パスで渡す
+## Pass the entry as an absolute path
 
-ツールの `file` 引数が相対パスのとき、それは**サーバープロセスのカレントディレクトリ**を基準に解決される。クライアントがどのディレクトリでサーバーを起動するかはクライアント次第なので、**絶対パスで渡すのが確実である。**
+When a tool's `file` argument is relative, it resolves against **the server process's working directory** — and which directory the client starts the server in is up to the client. **An absolute path is the reliable choice.**
 
-外すとこう返る。カレントディレクトリが `/tmp` だったときの例である。
+Get it wrong and you get this. Here the working directory was `/tmp`.
 
 ```text
 line 0: Cannot read file: /private/tmp/examples/two-rooms.muro
 ```
 
-## クライアント無しで確かめる
+## Checking it without a client
 
-登録が疑わしいときは、エージェントを介さず stdio へ JSON-RPC を直接流す。リポジトリのルートで実行する。
+When a registration looks doubtful, skip the agent and push JSON-RPC into stdio directly. Run this at the root of the repository.
 
 ```sh
 printf '%s\n' \
@@ -112,13 +112,13 @@ printf '%s\n' \
 {"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"{\n \"doors\": 2,\n \"path\": [\n  \"/L1/a\",\n  \"/L1/b\",\n  \"/out\"\n ]\n}"}]}}
 ```
 
-インストール済みのパッケージで確かめるなら、末尾を `npx -p @kensnzk/koyu koyu-mcp` に、ファイルパスを絶対パスに差し替える。
+To check an installed package instead, swap the last line for `npx -p @kensnzk/koyu koyu-mcp` and make the file path absolute.
 
-同じ形で `{"jsonrpc":"2.0","id":3,"method":"tools/list"}` を投げると、12 件が `name` / `description` / `inputSchema` つきで返る。
+Send `{"jsonrpc":"2.0","id":3,"method":"tools/list"}` the same way and all 12 tools come back with `name`, `description` and `inputSchema`.
 
-## 関連
+## See also
 
-- [koyu-mcp](index.md) — 無状態であること・標準ループ・12 のツール
-- [プロトコル](protocol.md) — `initialize` が名乗るもの、エラーの返り方
-- [書く — write_layer / new_uids](tools-write.md) — 書き込みの爆発半径
-- [koyu コマンド](../cli/index.md) — 同じ導出を人の手で呼ぶ
+- [koyu-mcp](index.md) — statelessness, the standard loop, the 12 tools
+- [The protocol](protocol.md) — what `initialize` announces, how errors come back
+- [Writing — write_layer / new_uids](tools-write.md) — the blast radius of a write
+- [The koyu command](../cli/index.md) — the same derivations by hand
