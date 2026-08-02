@@ -16,6 +16,7 @@ import {
   displayName,
   doorsBetween,
   effectiveUse,
+  isOutside,
   isSemiOutdoor,
   isVoid,
   levelsSorted,
@@ -130,10 +131,15 @@ function summarize(model: Model, file: string): unknown {
 function spaceInfo(model: Model, s: Space): unknown {
   return {
     path: s.path,
-    type: s.type,
+    // 型は任意の自由なラベルなので、書かれていなければ鍵ごと出ない。
+    // **構成の事実はこの語ではなく下の二つが答える** — 型が無い空間について
+    // 「外部か」「吹抜けか」を消費側が推測できてしまうと、廃止した推定が戻る
+    ...(s.type !== undefined ? { type: s.type } : {}),
     name: displayName(s),
     level: s.level,
     areaM2: areaM2(s),
+    ...(isOutside(s) ? { outside: true } : {}),
+    ...(isVoid(s) ? { void: true } : {}),
     semiOutdoor: isSemiOutdoor(model, s),
     ...(s.file ? { layer: s.file } : {}),
   };

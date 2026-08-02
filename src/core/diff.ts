@@ -702,11 +702,14 @@ export function renderDiff(d: ModelDiff): string[] {
   for (const p of d.zones.removed) out.push(`− zone ${p}`);
   for (const c of d.zones.changed) out.push(`± zone ${c.path}: ${fmtFields(c.fields)}`);
   for (const r of d.spaces.renamed) out.push(`renamed ${r.from} → ${r.to} (uid:${r.uid})`);
+  // 型は任意なので、書かれていない空間もある。`${undefined}` が "undefined" と刷られると
+  // 型がそう綴られたように読めるので、集計の見出しと同じ形で言う (cli.ts と同じ構え)
+  const label = (t?: string) => t ?? "(untyped)";
   for (const s of d.spaces.added) {
-    out.push(`+ space ${s.path} (${s.type}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)} m2` : ""})`);
+    out.push(`+ space ${s.path} (${label(s.type)}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)} m2` : ""})`);
   }
   for (const s of d.spaces.removed) {
-    out.push(`− space ${s.path} (${s.type}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)} m2` : ""})`);
+    out.push(`− space ${s.path} (${label(s.type)}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)} m2` : ""})`);
   }
   for (const c of d.spaces.changed) out.push(`± ${c.path}: ${fmtFields(c.fields)}`);
   for (const x of d.boundaries.added) {
