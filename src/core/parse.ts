@@ -25,7 +25,7 @@ import {
 } from "./model.js";
 import { deriveDefaultBoundaries, derivePieces } from "./graph.js";
 
-/** 境界のトポロジー語 — 増やすのは最後の手段である (spec/vocabulary.md 規則1) */
+/** 境界のトポロジー語 — 増やすのは最後の手段である (docs/reference/muro/attributes.md 規則1) */
 const BOUNDARY_KINDS = new Set(["wall", "open", "stair", "shaft", "void"]);
 
 const EDGES = new Set(["N", "E", "S", "W"]);
@@ -90,7 +90,7 @@ export function parse(source: string): Model {
   // Put the region spellings into canonical order before cutting — both the cutting and the
   // default boundaries read `rects`, so without this the written order of `+` stays in the shape
   normalizeRegionOrder(model);
-  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / spec/derivation.md §1)。
+  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / docs/reference/form/index.md)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
   // 出所の無い BND04 が出る — 書いていない関係を責めることになる
   derivePieces(model);
@@ -111,7 +111,7 @@ export function parseWith(loader: LayerLoader, entry: string): Model {
   // Put the region spellings into canonical order before cutting — both the cutting and the
   // default boundaries read `rects`, so without this the written order of `+` stays in the shape
   normalizeRegionOrder(model);
-  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / spec/derivation.md §1)。
+  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / docs/reference/form/index.md)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
   // 出所の無い BND04 が出る — 書いていない関係を責めることになる
   derivePieces(model);
@@ -157,7 +157,7 @@ function ingestLayer(
 ): void {
   if (seen.has(key)) return; // 同じレイヤーは一度だけ合成される (USDのsublayerと同じ)
   seen.add(key);
-  // **この push の順序が層の強度順序である** (spec/composition.md 規則1)。
+  // **この push の順序が層の強度順序である** (docs/reference/muro/import.md 規則1)。
   // entry が添字0で最も弱く、後の層ほど強い。同じ層が二度 import されても最初の位置を保つ
   model.layers.push(key);
   ingest(model, src, key, seen, loader);
@@ -1436,7 +1436,7 @@ function applyBoundaryAttr(
  *   - door D9                          削除 (名で指す)
  *   = door D9 w:1200                   置換 (名で指し、書いた属性だけを差し替える)
  *
- * 同一性は「含む対象 + その中で一意な名」である (spec/scope.md §5)。
+ * 同一性は「含む対象 + その中で一意な名」である (docs/reference/scope.md)。
  * 名を持たない要素は編集の対象にできない — 指す言葉が無いからである。
  */
 function applySetEdit(

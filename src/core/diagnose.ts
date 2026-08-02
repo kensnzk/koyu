@@ -55,7 +55,7 @@ export interface Diagnostic {
 }
 
 /**
- * 診断コードの台帳 — 全コードと規範severity。specの表 (semantics.md §5) とテストで一致を守る。
+ * 診断コードの台帳 — 全コードと規範severity。公開文書の表 (docs/reference/diagnostics/index.md) とテストで一致を守る。
  * BND07 は欠番 — 「接しているのに境界が無い」警告はADR-0014 (既定境界) で廃止された。
  * HGT03・HGT04・HGT05・RUN04 も欠番 — この四つは「高さがどうか」「縦動線がどうか」ではなく
  * 「形を作るのに必要な情報が書かれていない」という一つの話であり、SUF01-04 へ合流した (ADR-0034)。
@@ -473,7 +473,7 @@ function checkDaylightScope(ctx: Ctx): void {
 /** 解釈される属性の値 — ATT01 / ATT02 */
 function checkAttrValues(ctx: Ctx): void {
   const { model, emit } = ctx;
-  // 属性の三層 (spec/scope.md §7)。**書いたのに解釈されなかったものを、黙って落とさない。**
+  // 属性の三層 (docs/reference/scope.md)。**書いたのに解釈されなかったものを、黙って落とさない。**
   //
   // ADR-0028 は値を守った — `site:yes` は敷地の判定を、`h:35OO` は高さ不変量を、
   // それぞれ丸ごと無音にしていた。だが**キー**は無防備のままだった。
@@ -761,7 +761,7 @@ function checkUids(ctx: Ctx): void {
     }
   }
 
-  // 開口・内包物の同一性は「含む対象 + その中で一意な名」から導かれる (spec/scope.md §5)。
+  // 開口・内包物の同一性は「含む対象 + その中で一意な名」から導かれる (docs/reference/scope.md)。
   // 名が重複していれば、その同一性は成り立たない — `over ... = door D1` はどちらを指すのか
   // 決められず、`drop column C1` は二本まとめて消してしまう。**推測せずに拒む** (ADR-0039)。
   // 名を書かない要素は同一性を主張していないので、母集団に入らない
@@ -1117,7 +1117,7 @@ function checkHeights(ctx: Ctx): void {
 /**
  * 充足性 — 領域を持つ空間の走査 (SUF02 / SUF01)。
  *
- * **妥当性の判定ではなく、完全性の検査である** (spec/scope.md §6-2)。形を作らないことと
+ * **妥当性の判定ではなく、完全性の検査である** (docs/reference/scope.md-2)。形を作らないことと
  * 形を作れないことは違う — 天井高が決まらなければ押し出す高さが無く、レベルが決まらなければ
  * z が無い。どちらも「書いてある構成から一意な形が出る」という契約 (ADR-0034) の破れである。
  *

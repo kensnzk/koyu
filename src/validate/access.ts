@@ -8,11 +8,11 @@
 //
 // 直したことと再発しないことは別なので、その四つと「外部へ到達できない室」
 // 「柱が塞ぐ扉」を判定として置く。**判定は MCP から呼べなければ、機械にとって
-// 存在しないに等しい** (spec/validation.md) — スクリプトの中に閉じている限り、
+// 存在しないに等しい** (docs/reference/validate/index.md) — スクリプトの中に閉じている限り、
 // 同じ誤りは別の建物で何度でも起きる。
 //
 // core が持つのは経路そのもの (`doorsBetween` / `passable` / `placeOpening`) で、
-// **どの到達不能が問題かを言うのはここである** (spec/scope.md §4)。
+// **どの到達不能が問題かを言うのはここである** (docs/reference/scope.md)。
 
 import { passable, placeOpening } from "../core/graph.js";
 import {

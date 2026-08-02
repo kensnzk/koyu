@@ -262,7 +262,7 @@ export interface Model {
   /** 柱の宣言 (ADR-0023)。位置は書かれない — 通り芯の交点から導出される */
   columns: ColumnDecl[];
   /**
-   * 合成に参加したレイヤー (ローダーのキー)。**この並びが層の強度順序である** (spec/composition.md)。
+   * 合成に参加したレイヤー (ローダーのキー)。**この並びが層の強度順序である** (docs/reference/muro/import.md)。
    * entry が添字0で最も弱く、**後の層ほど強い**。単一ソースの parse では空。
    *
    * 並びは import 行を深さ優先で平坦化した順で、同じ層が二度現れれば最初の位置を保つ。
@@ -419,7 +419,7 @@ export class SourceError extends Error {
 }
 
 /**
- * 空間の導出された領域 (ADR-0022 / spec/derivation.md §1)。**形を読むときの唯一の入口**。
+ * 空間の導出された領域 (ADR-0022 / docs/reference/form/index.md)。**形を読むときの唯一の入口**。
  * parse の出口で必ず埋まるので、割付への退避は「未parseのModelを手で組んだとき」だけに効く。
  * この式が各所に散っていたことが、rects と pieces の取り違えを四度生んだ根である。
  */
@@ -638,7 +638,7 @@ export function displayName(s: Space): string {
 /**
  * 開口が主張する同一性の名 (ADR-0039)。
  *
- * 開口の同一性は「含む対象 + その中で一意な名」から導かれる (spec/scope.md §5)。だが
+ * 開口の同一性は「含む対象 + その中で一意な名」から導かれる (docs/reference/scope.md)。だが
  * `name:` はアセットからも流れ込む — そしてアセットの `name` は**型の名**である
  * (`asset W1 window … name:掃き出し窓`)。同じ建具を一枚の壁に二枚並べるのは
  * ごく普通の設計であり、型の名を同一性の主張として読めば、それが衝突になってしまう。

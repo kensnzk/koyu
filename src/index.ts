@@ -2,20 +2,20 @@
 //
 // **ここに書き下された名だけが約束である。**`export *` は使わない — モジュールに
 // export を足した瞬間に、誰も宣言していない約束が凍る面に増えてしまうからである。
-// 凍らせる面は、書き下されていなければならない (spec/scope.md §8)。
+// 凍らせる面は、書き下されていなければならない (docs/reference/scope.md)。
 //
 // 載せる基準は一つ — **面の外に利用者がいること。**
 //   1. パッケージの外 (ugatsu / eval / scripts / editors) が実際に呼ぶ
 //   2. CLI か MCP が答えるものを API からも答えるために要る
-//      (「CLIが答えるものはすべてこのAPIが答える」— guide/api.md)
-//   3. spec が名指しで約束する導出 (scope.md §4・§6 / semantics.md)
+//      (「CLIが答えるものはすべてこのAPIが答える」— docs/reference/api/index.md)
+//   3. 公開文書が名指しで約束する導出 (docs/reference/scope.md)
 //   4. test が契約として固定している
 // core のモジュール同士が引き合うだけの配管は面ではない。型は、載せた値の署名を
 // 書き下すのに要るものだけを載せる。
 //
-// この一覧と spec/tools.md の一覧は集合として一致する — test/public-api.test.ts が縛る。
+// この一覧と docs/reference/cli/index.md の一覧は集合として一致する — test/public-api.test.ts が縛る。
 
-// ---- 解析と合成 (spec/composition.md) ----
+// ---- 解析と合成 (docs/reference/muro/import.md) ----
 export { parse, parseFiles, parseWith, tokenize, type LayerLoader } from "./core/parse.js";
 
 // ---- モデルの語彙 — 書かれた構成の型 ----
@@ -44,7 +44,7 @@ export type {
 } from "./core/model.js";
 
 // ---- モデルへの問い・導出・機械形式 ----
-// **合否は言わない** (spec/scope.md §4)。数と形を返すところまでが core である
+// **合否は言わない** (docs/reference/scope.md)。数と形を返すところまでが core である
 export {
   areaM2,
   canonicalBoundaryOrder,
@@ -102,7 +102,7 @@ export {
 } from "./core/graph.js";
 
 // ---- 形の参照実装 (ADR-0040) — **これが形の唯一の入口である** ----
-// Form は見た目を持たない (spec/scope.md §6)。規則は spec/derivation.md が持つ
+// Form は見た目を持たない (docs/reference/scope.md)。規則は docs/reference/form/index.md が持つ
 // 実体の構成子 (thicken / bandLine / band / columnRect / runPrism) も core が唯一の実装を
 // 持つ — 芯線と厚みから四辺形や角柱を起こす規則も導出の一部だからである
 export {
@@ -195,12 +195,12 @@ export {
   type AttrTier,
 } from "./core/vocabulary.js";
 
-// ---- 生成 — **凍らない** (spec/scope.md §8)。SVGの中身は約束の外にある ----
+// ---- 生成 — **凍らない** (docs/reference/scope.md)。SVGの中身は約束の外にある ----
 // 領域としては `@kensnzk/koyu/draw` にも分けてある
 export { svgPlan, type PlanOptions } from "./draw/plan.js";
 export { svgAxo, type AxoOptions } from "./draw/axo.js";
 
-// ---- 検証 — **core ではない。**凍らない・増える・合否を言う (spec/scope.md §3) ----
+// ---- 検証 — **core ではない。**凍らない・増える・合否を言う (docs/reference/scope.md) ----
 // Finding は Diagnostic と別の型で、フィールド名から違う (rule/level と code/severity)。
 // 領域としては `@kensnzk/koyu/validate` にも分けてある
 export {

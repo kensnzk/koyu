@@ -1,8 +1,9 @@
-// koyu core — 属性の台帳 (spec/vocabulary.md の写しであり、実装の唯一の出所)
+// koyu core — 属性の台帳 (docs/reference/muro/attributes.md の写しであり、実装の唯一の出所)
 //
-// # 属性の三層 (spec/scope.md §7)
+// # 属性の三層 (docs/reference/scope.md)
 //
-//   構造 (structure)     パス・型・区画・レベル・関係の相手・kind。**必ず見る**。
+//   構造 (structure)     パス・区画・レベル・関係の相手・kind。**必ず見る**。
+//                        空間の**型は入らない** — 自由なラベルであり core は読まない (ADR-0051)
 //                        parse が typed field へ持ち上げるので、check の時点では attrs に残らない
 //   解釈 (interpreted)   台帳が値域を定義し、**見る**。h / at / daylight / road / style …
 //   運搬 (carry)         **見ない。**運ぶだけ。spec / fire / sound / floor / sill …
@@ -147,7 +148,7 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
 
     // 解釈
     style: one("hinged", "sliding", "auto"), // 平面の建具表現が変わる
-    name: free(), // **境界の中で一意な名** — 開口の同一性の鍵 (spec/scope.md §5)
+    name: free(), // **境界の中で一意な名** — 開口の同一性の鍵 (docs/reference/scope.md)
 
     // 運搬
     sill: carry(), // 窓台高

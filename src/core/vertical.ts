@@ -516,7 +516,7 @@ export interface Seg2 {
 
 /**
  * 進む向きを指す線分。**文字列は持たない** — "UP" と "DN" は言葉であって形ではない
- * (spec/scope.md §6)。この面で人が上るかどうかを `up` が言い、注記は描画側が組む
+ * (docs/reference/scope.md)。この面で人が上るかどうかを `up` が言い、注記は描画側が組む
  */
 export interface RunArrow extends Seg2 {
   /** この面でこの走りを進むと上るか */
@@ -525,7 +525,7 @@ export interface RunArrow extends Seg2 {
 
 /**
  * そのレベルで切った縦動線の作図。平面図とビュアーが共有する唯一の答え。
- * **色も線種も注記文字列も持たない** (spec/scope.md §6 / spec/derivation.md §5)
+ * **色も線種も注記文字列も持たない** (docs/reference/scope.md / docs/reference/form/index.md)
  */
 export interface RunDraw {
   path: string;

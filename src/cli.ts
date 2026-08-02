@@ -203,14 +203,14 @@ function main(argv: string[]): number {
             (warnings.length ? ` (${qty(warnings.length, "warning", "warnings")})` : ""),
         );
         // **緑の意味を、緑を出す場所で言う。**構造整合が成り立っただけであって、
-        // 建築として妥当かはここでは何も言っていない (spec/scope.md §3)
+        // 建築として妥当かはここでは何も言っていない (docs/reference/scope.md)
         console.log("  Structural consistency only — architectural validity is what koyu validate says, separately");
         return strict && warnings.length > 0 ? 1 : 0;
       }
       return 1;
     }
     case "validate": {
-      // 建築的な判定 (spec/scope.md §3)。**check の保証ではない** — 型もコードの綴りも別で、
+      // 建築的な判定 (docs/reference/scope.md)。**check の保証ではない** — 型もコードの綴りも別で、
       // 終了コードだけが同じ流儀 (0=違反なし / 1=違反あり)
       const findings = validate(model);
       if (rest.includes("--json")) {
@@ -232,7 +232,7 @@ function main(argv: string[]): number {
       return violations > 0 ? 1 : 0;
     }
     case "layers": {
-      // 合成の規則1と6 (spec/composition.md) — 強度順序を見せ、最終値の出所を言う。
+      // 合成の規則1と6 (docs/reference/muro/import.md) — 強度順序を見せ、最終値の出所を言う。
       // **暗黙の解決はどこにも無い**ことを、目で確かめられるようにするための面である
       if (model.layers.length === 0) {
         console.log("No layers (parsing a single file involves no composition)");
@@ -382,7 +382,7 @@ function main(argv: string[]): number {
     }
     case "light": {
       // 採光は**判定**である — core が返すのは床面積と有効窓面積という数だけで、
-      // 1/7 の合否は検証の面 (validate) が言う (spec/scope.md §4)
+      // 1/7 の合否は検証の面 (validate) が言う (docs/reference/scope.md)
       const inputs = daylightInputs(model);
       if (inputs.length === 0) {
         console.log("Nothing is in daylight scope (write daylight:1 on the rooms to be judged)");

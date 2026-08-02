@@ -1,4 +1,4 @@
-// koyu — 凸片の幾何 (ADR-0022 / spec/derivation.md §1)
+// koyu — 凸片の幾何 (ADR-0022 / docs/reference/form/index.md)
 //
 // 空間の形は**凸片の集合** (`Pt[][]`) である (ADR-0022)。矩形はその入口の綴りにすぎない。
 // この層が存在しなかったあいだ、面積・被覆・切り分けの計算が model / graph / fabric /
