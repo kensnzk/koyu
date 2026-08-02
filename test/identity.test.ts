@@ -18,7 +18,7 @@ import { ATTR_LEDGER } from "../src/core/vocabulary.js";
 import * as api from "../src/index.js";
 
 const BASE = [
-  "koyu 1.0",
+  "koyu 1.1",
   "unit mm",
   "grid X 0 3600 7200",
   "grid Y 0 4500",
@@ -31,7 +31,7 @@ const codes = (src: string) => checkDiagnostics(parse(`${BASE}\n${src}`)).map((d
 const TWO_ROOMS = [
   "space /L1/a room X1..X2 Y1..Y2",
   "space /L1/b room X2..X3 Y1..Y2",
-  "space /out exterior",
+  "space /out outside:1",
 ].join("\n");
 
 // ---- (1) uid を書ける対象は閉じている ----
@@ -50,7 +50,7 @@ test("identity: the ledger holds uid on space and zone and on nothing else (the 
 
 test("identity: a uid written on a space or a zone is accepted", () => {
   assert.deepEqual(
-    codes(`zone /L1/z name:Z uid:zn-1\nspace /L1/z/a room X1..X2 Y1..Y2 uid:sp-a\nspace /out exterior`),
+    codes(`zone /L1/z name:Z uid:zn-1\nspace /L1/z/a room X1..X2 Y1..Y2 uid:sp-a\nspace /out outside:1`),
     [],
   );
 });
@@ -73,7 +73,7 @@ for (const [what, body] of [
 
 test("identity: a uid written on a level is refused by the parser (level carries no free attributes)", () => {
   assert.throws(
-    () => parse("koyu 1.0\nunit mm\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0 h:2400 uid:lv-1"),
+    () => parse("koyu 1.1\nunit mm\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0 h:2400 uid:lv-1"),
     (e: unknown) => e instanceof SourceError && /not in the ledger/.test(e.message),
   );
 });

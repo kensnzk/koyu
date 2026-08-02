@@ -1,52 +1,52 @@
 ---
-title: 採光 — daylight.ratio / daylight.unknown
+title: Daylight — daylight.ratio / daylight.unknown
 mode: reference
 ---
 
-# 採光 — daylight.ratio / daylight.unknown
+# Daylight — daylight.ratio / daylight.unknown
 
-| 規則 | level |
+| rule | level |
 |---|---|
 | [`daylight.ratio`](#daylight-ratio) | violation |
 | [`daylight.unknown`](#daylight-unknown) | caution |
 
-**採光の対象は宣言である。**型からは推定しない — `room` だからといって居室とは限らないし、`storage` に窓を要求されることもある。`daylight:1` を書いた空間だけに、床面積の 1/7 という判定が掛かる。どの粒度に判定を掛けるか — 住戸まるごとか、割った室ごとか — は `daylight:1` を書く位置として書き手が決める。
+**The scope of the daylight question is declared, never inferred.** A `room` is not necessarily a habitable room, and a `storage` may well be required to have a window. The one-seventh judgement applies to the spaces you wrote `daylight:1` on, and nowhere else. At what grain the question is asked — a whole dwelling, or each room it is divided into — is decided by where you write `daylight:1`.
 
-`daylight:` に書けるのは `1` (対象) と `0` (対象外) だけである。`daylight:yes` と書くと [`koyu check`](../cli/check.md) がその場でエラーにする — 解釈できない値を黙って既定へ落として、判定ごと消えるのを防ぐためである。
+The only values `daylight:` accepts are `1` (in scope) and `0` (out of scope). Write `daylight:yes` and [`koyu check`](../cli/check.md) makes it an error on the spot — a value it cannot interpret must not fall silently back to a default, taking the judgement with it.
 
-## 数と、閾値の分かれ目
+## The numbers, and where the threshold enters
 
-床面積と有効窓面積は**数**であって判定ではない。[`koyu light`](../cli/light.md) はその数を返し、判定を掛けるのはこの巻である。
+Floor area and effective window area are **numbers**, not judgements. [`koyu light`](../cli/light.md) returns those numbers; this volume applies the threshold.
 
-- **床面積** — 壁芯で測った領域の面積 (㎡)。
-- **有効窓面積** — その空間に接する境界の上に書かれた `window` について、`w × h × 係数` を合計した面積 (㎡)。
-- **必要面積** — 床面積 ÷ 7。
+- **Floor area** — the area of the region, measured to wall centrelines (m²).
+- **Effective window area** — for every `window` written on a boundary of that space, `w × h × factor`, summed (m²).
+- **Required area** — floor area ÷ 7.
 
-係数は**窓の先が何か**で決まる。これは形の導出であって、建築の判断ではない。
+The factor depends on **what the window faces**. That is a derivation of form, not an architectural judgement.
 
-| 窓の先 | 係数 |
+| what the window faces | factor |
 |---|---|
-| 外部空間 (`exterior`) | 1.0 |
-| 上に床がある半屋外 — 庇下・下階のバルコニー | 0.7 |
-| 上が開いた半屋外 — 庭・最上階のバルコニー | 1.0 |
-| 屋内の隣室 | 0 (数えない) |
+| an exterior space (`exterior`) | 1.0 |
+| a semi-outdoor space with a floor above it — under an eave or an upper balcony | 0.7 |
+| a semi-outdoor space open to the sky — a garden, a top-floor balcony | 1.0 |
+| an indoor neighbour | 0 (not counted) |
 
-半屋外かどうかも導出である — 外部に対して `type:open` の境界か `air:1` の境界 (手すりなど、遮蔽しない物) で接する空間が半屋外になる。「上に床があるか」は、どのレベルであれ上に空間が重なっているかで決まる。
+Being semi-outdoor is derived too: a space that meets an exterior across a `type:open` boundary, or across an `air:1` boundary (a railing or anything else that does not screen), is semi-outdoor. "Has a floor above" means some space on any level overlaps it from above.
 
-**判定は甘い。**採光補正係数を掛けず、用途別の割合も適用建築物の別も見ない。基本計画の解像度に合わせた早期警報であって、法適合の判定ではない。
+**The judgement is coarse.** No correction factor is applied, no use-based proportions are considered, and no distinction is drawn between buildings the rule applies to and those it does not. It is an early warning at the resolution of a scheme design, not a compliance verdict.
 
-## `daylight.ratio` — 採光が足りない {#daylight-ratio}
+## `daylight.ratio` — insufficient daylight {#daylight-ratio}
 
 `violation`
 
-有効窓面積が床面積の 1/7 に足りない。
+The effective window area is below one seventh of the floor area.
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
   window w:600 h:600 edge:S
@@ -58,23 +58,23 @@ boundary /L1/a /out t:150
 Validation — 1 violation / 0 cautions
 ```
 
-600×600 の窓は 0.36㎡、床は 3600×4500 = 16.20㎡ なので必要面積は 2.31㎡。**一桁足りない。**
+A 600×600 window is 0.36 m²; the floor is 3600×4500 = 16.20 m², so 2.31 m² is required. **It is short by an order of magnitude.**
 
-**直し方** — 窓を大きくするか増やす。`h:` を書き忘れていないか確かめる (下の `daylight.unknown` が出ていればそれである)。採光を問う必要のない空間なら `daylight:1` を外す。
+**Fix** — enlarge the windows or add more. Check that `h:` has not been forgotten (if it has, the `daylight.unknown` below will be there too). If the space does not need the question asked of it, drop `daylight:1`.
 
-数がどれだけ足りないかは [`koyu light`](../cli/light.md) が室ごとに並べる。
+[`koyu light`](../cli/light.md) lays the numbers out room by room so you can see how far short you are.
 
-### 庇下は 0.7 になる
+### Under a balcony the factor is 0.7
 
-同じ窓でも、上に床のあるバルコニー越しなら 0.7 が掛かる。
+The same window through a balcony with a floor above it is multiplied by 0.7.
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 3600 5400
 grid Y 0 4500
 level L1 0 h:2400 slab:150
 level L2 2550 h:2400 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 space /L1/b balcony X2..X3 Y1..Y2
 space /L2/a room X2..X3 Y1..Y2
@@ -92,20 +92,20 @@ boundary /L2/a /out t:150
 Validation — 1 violation / 0 cautions
 ```
 
-窓は 2400×1200 = 2.88㎡ だが、`/L2/a` がバルコニーの上に載っているので 2.88 × 0.7 = 2.02㎡ になり、2.31㎡ に届かない。上階の `/L2/a` を消せば同じ窓が 2.88㎡ として数えられ、判定は通る — **バルコニーの上に何が載るかが、下階の採光を決める。**
+The window is 2400×1200 = 2.88 m², but `/L2/a` sits on top of the balcony, so 2.88 × 0.7 = 2.02 m², short of the 2.31 m² required. Remove `/L2/a` and the same window counts as 2.88 m² and the judgement passes — **what sits above the balcony decides the daylight of the room below it.**
 
-## `daylight.unknown` — 窓面積を数え切れていない {#daylight-unknown}
+## `daylight.unknown` — the window area is not fully counted {#daylight-unknown}
 
 `caution`
 
-`h:` を持たない `window` があり、その面積が合計から落ちている。
+A `window` without `h:` has dropped out of the sum.
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
   window w:2400 h:1200 edge:S
@@ -118,15 +118,15 @@ boundary /L1/a /out t:150
 Validation — 0 violations / 1 caution
 ```
 
-`h:` の無い窓は高さが決まらないので面積が出ず、黙って合計から落ちる。**落ちたことを黙っていると、足りているのか数えていないのかが区別できない。**この caution はその区別のためだけにある。
+A window with no `h:` has no height, therefore no area, and it falls silently out of the sum. **Silence there makes "it is enough" indistinguishable from "it was not counted."** This caution exists solely to keep those two apart.
 
-ここでは南面の窓 (2.88㎡) だけで 1/7 を超えているので `daylight.ratio` は出ていない。両方出ることもあるし、`h:` の無い窓しか無ければ有効窓面積 0.00㎡ として `daylight.ratio` も同時に出る。
+Here the south window alone (2.88 m²) already clears one seventh, so no `daylight.ratio` appears. Both can appear together, and if every window lacks `h:` the effective area is 0.00 m² and `daylight.ratio` comes with it.
 
-数えるのは**係数が 0 でない境界の窓だけ**である。屋内の隣室に向いた窓に `h:` が無くても、そもそも採光に数えない窓なので何も言わない。
+Only windows on boundaries **whose factor is not zero** are counted. A window facing an indoor neighbour without `h:` says nothing, because it was never going to be counted.
 
-**直し方** — その窓に `h:` を書く。採光に関係しない窓 (物入れの点検口など) なら、その空間から `daylight:1` を外す。
+**Fix** — write `h:` on that window. If it has nothing to do with daylight (an inspection hatch in a cupboard, say), drop `daylight:1` from the space instead.
 
-## 関連
+## See also
 
-- [`koyu light`](../cli/light.md) — 床面積と有効窓面積という数そのもの
-- [判定の台帳](index.md) — 15規則と、`Finding` が `Diagnostic` と別である理由
+- [`koyu light`](../cli/light.md) — the floor and effective window areas themselves
+- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`

@@ -6,8 +6,9 @@
 // over every other spec page. Make the class impossible rather than fixing it
 // once. Same shape as `npm run check:examples` in the repository root.
 //
-// Also checks ja/en parity: a locale missing a page silently drops it for
-// half the readers.
+// The two-locale parity check that used to live here went with the Japanese
+// mirror: there is one tree now, so there is no half of the readership to
+// silently drop a page for.
 
 import {readdir} from 'node:fs/promises';
 import path from 'node:path';
@@ -17,19 +18,7 @@ const websiteDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
 );
-const localeRoots = {
-  ja: path.join(websiteDir, '.generated', 'docs'),
-  en: path.join(
-    websiteDir,
-    'i18n',
-    'en',
-    'docusaurus-plugin-content-docs',
-    'current',
-  ),
-};
-
-// Pages deliberately published in one locale only.
-const LOCALE_EXEMPT = new Set();
+const contentRoot = path.join(websiteDir, '.generated', 'docs');
 
 async function documentIds(root) {
   const ids = new Set();
@@ -86,37 +75,19 @@ function sidebarIds(sidebars) {
 
 const {default: sidebars} = await import('../sidebars.js');
 const navigable = sidebarIds(sidebars);
-const published = {
-  ja: await documentIds(localeRoots.ja),
-  en: await documentIds(localeRoots.en),
-};
+const published = await documentIds(contentRoot);
 
 const problems = [];
 
-for (const [locale, ids] of Object.entries(published)) {
-  for (const id of [...ids].sort()) {
-    if (!navigable.has(id)) {
-      problems.push(
-        `orphan     [${locale}] ${id} is published but appears in no sidebar`,
-      );
-    }
+for (const id of [...published].sort()) {
+  if (!navigable.has(id)) {
+    problems.push(`orphan     ${id} is published but appears in no sidebar`);
   }
 }
 
 for (const id of [...navigable].sort()) {
-  if (!published.ja.has(id)) {
-    problems.push(`dangling   [ja] sidebar references ${id}, which has no file`);
-  }
-}
-
-for (const id of [...published.ja].sort()) {
-  if (!published.en.has(id) && !LOCALE_EXEMPT.has(id)) {
-    problems.push(`ja only    ${id} has no English counterpart`);
-  }
-}
-for (const id of [...published.en].sort()) {
-  if (!published.ja.has(id) && !LOCALE_EXEMPT.has(id)) {
-    problems.push(`en only    ${id} has no Japanese counterpart`);
+  if (!published.has(id)) {
+    problems.push(`dangling   sidebar references ${id}, which has no file`);
   }
 }
 
@@ -124,11 +95,11 @@ if (problems.length > 0) {
   console.error(`Navigation gate failed — ${problems.length} problem(s):\n`);
   for (const problem of problems) console.error(`  ${problem}`);
   console.error(
-    '\nEvery published page must be reachable from a sidebar in both locales.',
+    '\nEvery published page must be reachable from a sidebar.',
   );
   process.exit(1);
 }
 
 console.log(
-  `Navigation gate passed — ${published.ja.size} ja / ${published.en.size} en pages, all reachable.`,
+  `Navigation gate passed — ${published.size} pages, all reachable.`,
 );

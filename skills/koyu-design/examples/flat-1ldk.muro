@@ -1,4 +1,4 @@
-koyu 1.0
+koyu 1.1
 name 1LDK on an 8 by 6 metre site
 unit mm
 
@@ -17,7 +17,7 @@ band X X1..X2 Y2..Y3
   space /L1/ldk ldk  w:rest  name:LDK daylight:1
   space /L1/bed room w:2800  name:Bedroom daylight:1
 
-space /out exterior name:Outside
+space /out name:Outside outside:1
 
 boundary /L1/entry /out t:120 spec:EW
   door w:900 edge:S name:Front

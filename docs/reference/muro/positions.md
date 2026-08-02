@@ -1,16 +1,16 @@
 ---
-title: 位置と領域の書き方
+title: Positions and regions
 mode: reference
 ---
 
-# 位置と領域の書き方
+# Positions and regions
 
-**座標の直書きは無い。**位置は常に通り芯の言葉で書かれる — `X2`、`X2+600`、`Y3-150`。生の mm を書けるのは敷地形状 (`polygon`) だけで、それは測量由来の所与だからである。
+**Coordinates are never written directly.** A position is always spelled in the language of grid lines — `X2`, `X2+600`, `Y3-150`. The only place raw millimetres are allowed is the site shape (`polygon`), because a site outline is survey data, not a design product.
 
-この頁は、通り参照・オフセット・範囲・領域・点の綴りを書く。方位 (`N` `E` `S` `W`) は [方位と a 側](orientation.md)、行そのものの読まれ方は [一行の読まれ方](lines.md) にある。
+This page covers grid references, offsets, ranges, regions and points. Compass words (`N` `E` `S` `W`) are in [orientation and the a side](orientation.md); how a line is tokenised is in [how a line is read](lines.md).
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 位置の例
 unit mm
 
@@ -22,103 +22,103 @@ level L1 0 h:2700 slab:200
 space /L1/ldk  ldk  X1..X2 Y1..Y2 + X2..X3 Y1..Y1+2800 name:LDK
 space /L1/hall hall X2..X3 Y1+2800..Y2 name:廊下
 space /L1/room room X1..X3 Y2..Y3 name:寝室
-space /out     exterior name:外部
+space /out     name:外部 outside:1
 ```
 
-## 通り芯
+## Grid lines
 
-**`grid` が座標系を与える。**軸ごとに一度だけ、mm の座標を昇順に2つ以上並べる。名は自動で `X1` `X2` … / `Y1` `Y2` … になり、書き手は付けない。
+**`grid` gives the coordinate system.** Once per axis, two or more millimetre coordinates in ascending order. The names are assigned automatically — `X1`, `X2`, … and `Y1`, `Y2`, … — never by the author.
 
 ```muro-part
 grid X 0 6400 12800 19200
 grid Y 0 5600 7600 13200
 ```
 
-- 昇順でなければエラー (`grid coordinates are written in ascending order`)
-- 2つ未満はエラー
-- 同じ軸を二度宣言すればエラー — 層を重ねているときは、どの層で宣言してもよいが全体で一度だけである
-- **使う行より前に置かなければならない。**`grid` の後ろで宣言された通り名を前の行が参照すると `Undefined grid line name` になる
+- Out of order is an error (`grid coordinates are written in ascending order`)
+- Fewer than two is an error
+- Declaring an axis twice is an error — when layers are composed, any layer may declare it, but only once across all of them
+- **It must come before any line that uses it.** A grid name referenced above its `grid` line gives `Undefined grid line name`
 
-X は東が正、Y は北が正、z は上が正である。長さは mm、線分上の比率位置は `0..1`、面積の出力は㎡ (壁芯) である。
+X is positive east, Y is positive north, z is positive up. Lengths are millimetres, a ratio along a segment is `0..1`, and areas are reported in m² measured to wall centrelines.
 
-## 通り参照とオフセット
+## Grid references and offsets
 
-| 綴り | 意味 |
+| Spelling | Meaning |
 |---|---|
-| `X2` | 通り芯 `X2` の座標そのもの |
-| `X2+600` | `X2` から東へ 600mm |
-| `Y3-150` | `Y3` から南へ 150mm |
+| `X2` | the coordinate of grid line `X2` |
+| `X2+600` | 600 mm east of `X2` |
+| `Y3-150` | 150 mm south of `Y3` |
 
-綴りの規則は厳密である — **軸の文字 + 通り番号 + 省略可能な符号つき整数**で、それ以外は通らない。
+The spelling is strict: **axis letter, grid number, and an optional signed integer.** Nothing else passes.
 
-| 書いたもの | 結果 |
+| Written | Result |
 |---|---|
 | `X2+600` | 6400 + 600 |
-| `X2 + 600` | 三つのトークンに割れて読めない |
-| `X2+600.5` | `Undefined grid line name: X2+600.5` — **オフセットは整数の mm だけ** |
-| `X2+600-100` | 同上 — オフセットは一つだけ |
-| `X9` | `Undefined grid line name: X9` — 宣言されていない通り |
+| `X2 + 600` | three tokens; unreadable |
+| `X2+600.5` | `Undefined grid line name: X2+600.5` — **offsets are whole millimetres** |
+| `X2+600-100` | the same — there is exactly one offset |
+| `X9` | `Undefined grid line name: X9` — no such grid line |
 
-**オフセットは隣の通りを越えてよい。**`X1..X2+6000` は `X3` より東へ届いていても構わない — 通り芯は座標の名前であって、区画の枠ではない。
+**An offset may run past the next grid line.** `X1..X2+6000` is fine even if it reaches beyond `X3` — a grid line is a name for a coordinate, not the edge of a bay.
 
-## 範囲
+## Ranges
 
-`A..B` の形で、**両端が同じ軸の通り参照でなければならない。**
+A range is `A..B`, and **both ends must be grid lines on the same axis.**
 
-| 書いたもの | 結果 |
+| Written | Result |
 |---|---|
-| `X1..X2+3200` | 0 から 9600 までの X 区間 |
+| `X1..X2+3200` | the X interval from 0 to 9600 |
 | `X1..Y2` | `Both ends of a range are grid lines on the same axis` |
-| `X2..X2` | `The region has zero width` — 幅ゼロの範囲は書けない |
-| `X2..X1` | `X1..X2` と同じ矩形。**昇順に正規化して保存される** |
+| `X2..X2` | `The region has zero width` |
+| `X2..X1` | the same rectangle as `X1..X2`. **Stored normalised to ascending order** |
 
-逆順が同じ矩形の別綴りに畳まれるのは、それが同じ形だからである。機械形式にも差分にも昇順の綴りだけが現れる。
+A reversed range folds into the ascending spelling because it is the same shape. Only the ascending spelling appears in the machine format and in diffs.
 
-**この正規化には例外が一つある — `band` の範囲は昇順で書かなければならない。**帯では要素の並びが意味を持つので、逆順は別綴りではなく間違いとして扱われる (`A band range is written in ascending order`)。
+**There is one exception: a `band` range must be written ascending.** Inside a band the order of the members carries meaning, so a reversed range is not another spelling but a mistake (`A band range is written in ascending order`).
 
-## 領域
+## Regions
 
-**領域は X の範囲と Y の範囲、ちょうど二つのトークンである。**並びは自由で、`Y1..Y2 X1..X2` も同じ矩形になる。
+**A region is exactly two tokens: one X range and one Y range.** Their order is free, so `Y1..Y2 X1..X2` is the same rectangle.
 
 ```muro-part
 space /L1/room room X1..X3 Y2..Y3 name:寝室
 ```
 
-三つ以上並べても、一つしか無くても `A region is given as two ranges, X?..X? and Y?..Y?` になる。
+Give three, or one, and you get `A region is given as two ranges, X?..X? and Y?..Y?`.
 
-### 矩形の合併
+### Unions of rectangles
 
-**`+` は独立したトークンである** — 前後に空白を置く。L 字も凹型も、矩形をいくつ並べても書ける。
+**`+` is a token of its own** — put whitespace around it. L shapes, U shapes, any number of rectangles.
 
 ```muro-part
 space /L1/ldk ldk X1..X2 Y1..Y2 + X2..X3 Y1..Y1+2800 name:LDK
 ```
 
-`+` の左右はそれぞれ「X の範囲と Y の範囲」の対である。**同じ空間の中で矩形が重なればエラー**であり (`GEO01`)、同じレベルの別の空間と重なってもエラーである (`GEO02`)。合併の内部の継ぎ目に壁は立たない — 二つの矩形で書いた L 字は、一つの部屋として振る舞う。
+Each side of `+` is its own pair of X and Y ranges. **Rectangles that overlap inside one space are an error** (`GEO01`), and so is an overlap with another space on the same level (`GEO02`). No wall stands on the internal seam of a union — an L written as two rectangles behaves as one room.
 
-**領域を持たない空間も書ける。**`space /out exterior name:外部` のように、外部や集約のための空間は領域を省く。ただし領域を持つ空間はレベルと天井高が決まらなければならない (`SUF02` / `SUF01`)。
+**A space may have no region at all.** `space /out name:外部` is how exteriors and aggregation-only spaces are written. But a space that does have a region must have a determinable level and ceiling height (`SUF02` / `SUF01`).
 
-## 点
+## Points
 
-`line` の端点だけは、X と Y の通り参照を `,` で繋いだ**点**として書く。
+Only the endpoints of a `line` are written as **points** — an X reference and a Y reference joined by a comma.
 
 ```muro-part
 boundary /L1/a /L1/b
   line X3,Y1 X3+600,Y2-900
 ```
 
-- **X の通りを先に、Y の通りを後に**書く。逆にすれば `A point is written X grid line first, then Y`
-- 両端が同じ点ならエラー
-- **生の座標も角度も書けない。**線の端点は必ず通りの言葉である
+- **X first, then Y.** The other order gives `A point is written X grid line first, then Y`
+- Both ends at the same point is an error
+- **Neither raw coordinates nor angles can be written.** The endpoints of a line are always grid language
 
-## 領域を書かずに位置を決める
+## Deciding a position without writing a region
 
-寸法と並びを書いて位置を導かせる書き方が二つある。
+Two constructs give dimensions and let the position follow.
 
-**`band` は帯の範囲を与え、要素は幅 `w:` だけを持つ。**切り位置は足し算で導かれ、書かれた寸法の合計が帯の幅と一致しなければエラーになる。
+**`band` supplies the extent, and its members carry only a width `w:`.** The cut positions are derived by addition, and the widths must sum to the extent of the band or the file stops.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3600 5400
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -127,31 +127,31 @@ band X X1..X3 Y1..Y2
   space /L1/b room w:rest
 ```
 
-導かれた切り位置は**その座標以下で最も大きい通り芯からのオフセット**として綴られる (床規則)。上の例の切り位置 2000 は `X1+2000` になり、`X3-3400` にはならない。帯の両端と直交方向の両端は書かれた綴りがそのまま使われる。
+A derived cut is spelled as **an offset from the largest grid line at or below that coordinate** (the floor rule). The cut at 2000 above becomes `X1+2000`, never `X3-3400`. The two ends of the band, and both ends across it, keep the spelling that was written.
 
-**`column` は位置をどこにも書かない。**柱は通り芯の交点のうち、そのレベルに床のある所に立つ。`x:` / `y:` はその交点を通りの名で絞るだけである。
+**`column` writes no position at all.** A column stands at each grid intersection that has floor on that level; `x:` and `y:` only narrow which intersections by grid name.
 
-## 生の座標が書ける唯一の場所
+## The one place raw coordinates are allowed
 
 ```muro-part
 polygon /site -2600,-7000 38000,-7000 38000,19600 2000,21000 -2600,15000
 ```
 
-**`polygon` だけが、格子に載らない自由頂点で形を書く。**敷地の形は測量由来の所与であって設計の生成物ではないので、例外として認められている。頂点は `x,y` の mm 座標を3つ以上で、グリッドと同じ座標系に載る。
+**`polygon` is the only line that writes a shape from free vertices off the grid.** A site outline is given by survey, not produced by design, so it is admitted as an exception. Three or more `x,y` vertices in millimetres, in the same coordinate system as the grid.
 
-## 通り参照で位置を指す属性
+## Attributes that point at a position
 
-開口と `seg` の `at:` は、比率でも通り参照でも書ける。
+The `at:` of an opening or a `seg` can be written either way.
 
-| 綴り | 意味 |
+| Spelling | Meaning |
 |---|---|
-| `at:0.3` | 線分長に対する比率。**線分に収まるようクランプされる** (診断は出ない) |
-| `at:X2+450` | 絶対位置。**クランプしない** |
+| `at:0.3` | a ratio along the segment. **Clamped to fit** (no diagnostic) |
+| `at:X2+450` | an absolute position. **Not clamped** |
 
-絶対位置は軸が線分と合っていなければならない — 水平の線分は X 系、垂直の線分は Y 系である。合わなければ `OPN07` / `SEG07`、はみ出せば `OPN08` / `SEG08` になる。
+An absolute position must be on the segment's axis — X references on horizontal segments, Y references on vertical ones. The wrong axis is `OPN07` / `SEG07`; running off the end is `OPN08` / `SEG08`.
 
 ```text
 At X1+200 the door (width 900) runs off the boundary segment (segment 0-6400mm, center allowed 450-5950mm)
 ```
 
-比率と絶対位置の違いは、**黙って動くか、止まるか**である。図面上の寸法として位置を決めたなら通り参照で書く。
+The difference between the two spellings is **whether it moves silently or stops.** If the position was decided as a dimension on a drawing, write it as a grid reference.

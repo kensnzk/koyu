@@ -1,32 +1,32 @@
 ---
-title: check の保証範囲
+title: What check guarantees
 mode: explanation
 ---
 
-# check の保証範囲
+# What check guarantees
 
 ```text
 ✔ Consistent — 3 spaces / 3 boundaries
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-この一行が言っているのは、**書かれたものがデータとして矛盾していない**ということだけである。壊れた JSON を JSON パーサが弾くのと同じ層にある。**判定ではなく読解の一部である。**
+That line says one thing only: **what is written does not contradict itself as data.** It sits at the same layer at which a JSON parser rejects broken JSON. **It is not a judgement but part of reading.**
 
-この頁は、その線を実例で示す。約束の正確な一覧は [約束の範囲](../reference/scope.md) にある。
+This page draws that line with a worked example. The exact list of promises is in [Scope](../reference/scope.md).
 
-## 密封された二階建て
+## A sealed two-storey house
 
-次の 11 行は緑になる。
+These eleven lines are green.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:300
 level L2 3000 h:2400 slab:300
 space /L1/hall hall X1..X2 Y1..Y2
 space /L2/bed bedroom X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/hall /out t:150
 boundary /L2/bed /out t:150
 boundary /L1/hall /L2/bed type:stair
@@ -37,7 +37,7 @@ boundary /L1/hall /L2/bed type:stair
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-外壁があり、階段があり、レベルが揃い、高さの不変量も成り立っている。**しかし外へ出られない。**
+There are external walls, there is a stair, the levels line up, and the height invariant holds. **And there is no way out.**
 
 ```sh
 npx tsx src/cli.ts doors sealed.muro /L2/bed /out
@@ -47,13 +47,13 @@ npx tsx src/cli.ts doors sealed.muro /L2/bed /out
 Cannot reach /out from /L2/bed
 ```
 
-理由は単純である。**接する空間の既定は壁であり、扉の無い壁は通れない。**扉を一枚も宣言しなければ、二階建ては緑のまま完全に密封される ([既定の境界](silence.md))。
+The reason is simple. **The default between touching spaces is a wall, and a wall without a door cannot be passed.** Declare not one door and a two-storey house is perfectly sealed while staying green ([Default boundaries](silence.md)).
 
-「接しているのに境界が宣言されていない」という警告はかつて存在したが、既定が壁になったことで役目を終え、廃止された。**沈黙が既定の壁を意味する体系では、沈黙は欠落ではない。**
+There used to be a warning for "these touch but no boundary is declared". Once the default became a wall it had no work left to do and was retired. **In a system where silence means a default wall, silence is not an omission.**
 
-## 判定は、別のコマンドが言う
+## Judgement is said by a different command
 
-密封は見逃されているのではない。**別の面が捕まえる。**
+The seal is not overlooked. **A different surface catches it.**
 
 ```sh
 npx tsx src/cli.ts validate sealed.muro
@@ -65,51 +65,51 @@ npx tsx src/cli.ts validate sealed.muro
 Validation — 2 violations / 0 cautions
 ```
 
-`check` と `validate` は**別のコマンドで、別の型を返し、別の凍結状態にある。**この分け方そのものが設計判断であり、[check と validate の違い](two-kinds-of-green.md) が扱う。
+`check` and `validate` are **different commands, returning different types, in different states of freeze**. That split is itself a design decision, and [check and validate](two-kinds-of-green.md) takes it up.
 
-## 空のファイルも緑である
+## An empty file is green too
 
-極端な場合として、空のファイルも `check` は緑にする。
+At the extreme, `check` passes an empty file.
 
 ```text
 ✔ Consistent — 0 spaces / 0 boundaries
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-終了コードは 0 である。**成立していない構成が無いのだから、それは正しい。**
+Exit code 0. **There is no composition that fails to hold, so this is correct.**
 
-`check` は「書かれたものに矛盾が無い」ことの検査であって、「必要なものが書かれている」ことの検査ではない。**この非対称は欠陥ではなく、定義である。**
+`check` tests that what is written contains no contradiction; it does not test that what is needed has been written. **That asymmetry is not a defect but the definition.**
 
-## 緑が保証すること・しないこと
+## What green does and does not guarantee
 
-**保証する** — パスと同一性の一意性、参照先の存在、レベルの定義、区画の平面と断面の重なり、合成の解決が定まること、形を作るのに必要な情報の充足、関係の健全性、導出の一意性、解釈される属性の値域、与件の健全性。
+**Guaranteed** — uniqueness of paths and identity, existence of referents, definition of levels, overlap of regions in plan and in section, that composition resolves, sufficiency of the information needed to make a form, soundness of relations, uniqueness of derivation, value ranges of interpreted attributes, soundness of the given.
 
-**保証しない** — 採光・面積率・容積率・外皮の連続・階段の登りやすさ・扉の設置可能性・避難・接道、その他あらゆる建築的な妥当性。そして運搬層の属性の意味。
+**Not guaranteed** — daylight, coverage ratio, floor area ratio, continuity of the envelope, whether a stair is climbable, whether a door can physically be installed, egress, road frontage, and every other kind of architectural validity. Plus the meaning of carried-tier attributes.
 
-線の引き方は一貫している。**「そこから一意な形が作れるか」までが `check` で、「その形が建築として妥当か」は `validate` である。**
+The line is drawn consistently. **`check` goes as far as "can a unique form be made from this"; "is that form architecturally valid" is `validate`.**
 
-だから断面の重なり (下階の天井と上階の床が同じ z を占める) は `check` にある — それは二つの空間の領域が重なるのと同じ種類の矛盾であって、そこからは一意な形が作れない。一方「階高・軒高・斜線」のような高さの判断は `check` に無い。
+That is why overlap in section — a ceiling below and a floor above occupying the same z — is in `check`: it is the same kind of contradiction as two regions overlapping in plan, and no unique form comes out of it. Whereas height judgements like storey height, eaves height and setback envelopes are not in `check`.
 
-一覧と診断コードの対応は [約束の範囲](../reference/scope.md) にある。
+The full list, mapped to diagnostic codes, is in [Scope](../reference/scope.md).
 
-## 緑を根拠に何を主張してよいか
+## What green entitles you to claim
 
-| 主張 | 緑を根拠にできるか |
+| Claim | Can green support it? |
 |---|---|
-| このファイルは読める | **できる** |
-| このファイルから一意な形が作れる | **できる** |
-| このファイルの正準 JSON は安定している | **できる** |
-| 外へ出られる | できない → `doors` / `validate` |
-| 外皮が閉じている | できない → `validate` の `envelope.gap` |
-| 採光が足りている | できない → `light` / `validate` |
-| 階段が登れる | できない → `runs` / `validate` |
-| 建物として使える | **できない** |
+| This file can be read | **yes** |
+| A unique form can be made from this file | **yes** |
+| This file's canonical JSON is stable | **yes** |
+| You can get out of the building | no → `doors` / `validate` |
+| The envelope is closed | no → `validate`'s `envelope.gap` |
+| There is enough daylight | no → `light` / `validate` |
+| The stair is climbable | no → `runs` / `validate` |
+| It works as a building | **no** |
 
-**緑を根拠に「動く」と主張しない。**これは慎重さの表明ではなく、`check` の意味の定義そのものである。
+**Never claim "it works" on the strength of green.** That is not an expression of caution; it is the definition of what `check` means.
 
-## この先
+## Next
 
-- [check と validate の違い](two-kinds-of-green.md) — なぜ二つに分かれているか
-- [約束の範囲](../reference/scope.md) — 保証の完全な一覧
-- [判定 — koyu validate](../reference/validate/index.md)
+- [check and validate](two-kinds-of-green.md) — why there are two
+- [Scope](../reference/scope.md) — the complete list of guarantees
+- [Judgement — koyu validate](../reference/validate/index.md)
 - [koyu doors](../reference/cli/doors.md)

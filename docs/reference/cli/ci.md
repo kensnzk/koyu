@@ -1,26 +1,26 @@
 ---
-title: CI で門番にする
+title: Gating CI
 mode: howto
 ---
 
-# CI で門番にする
+# Gating CI
 
-`.muro` を git に置いているなら、コミットのたびに koyu を回せる。ここでは**どのコマンドをどの終了コードで落とすか**を決める。
+If your `.muro` files live in git, you can run koyu on every commit. What this page settles is **which command fails the build, at which exit code**.
 
-## check だけの CI は、判定を黙って見なくなる
+## A check-only CI quietly stops looking at the judgement
 
-最初に置きたくなるのはこれである。
+This is the first thing anyone reaches for.
 
 ```sh
 koyu check building/main.muro
 ```
 
-**これだけでは足りない。**`check` が保証するのは「書かれたものがデータとして矛盾していない」までで、建物として使えるかは一言も見ていない。
+**It is not enough.** What `check` guarantees stops at "what is written holds together as data". It says nothing about whether the building is usable.
 
-接する空間の既定は壁で、壁は扉が無ければ通れない。だから扉を一枚も書かない建物は、完全に密封されたまま `check` が緑になる。
+The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no doors at all comes out green.
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -28,7 +28,7 @@ grid Y 0 4500
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 ```
 
 ```sh
@@ -40,7 +40,7 @@ npx tsx src/cli.ts check sealed.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-終了コード 0 である。同じファイルを [`koyu validate`](validate.md) に渡すとこうなる。
+Exit 0. Hand the same file to [`koyu validate`](validate.md):
 
 ```sh
 npx tsx src/cli.ts validate sealed.muro
@@ -53,18 +53,18 @@ npx tsx src/cli.ts validate sealed.muro
 Validation — 3 violations / 0 cautions
 ```
 
-終了コード 1 である。**`check` だけを CI に置くと、この三件は永久に誰にも見られない。**
+Exit 1. **Put only `check` in CI and those three findings are never seen by anyone.**
 
-## 二本を並べる
+## Run the two together
 
-最小の門番はこれである。
+The minimum gate is this.
 
 ```sh
 koyu check    building/main.muro --strict
 koyu validate building/main.muro
 ```
 
-`--strict` を付ける理由は、警告が緑のまま通り抜けるからである。「床が一枚も生成されない」「縦動線の形が生成されない」は警告なので、付けなければ終了コード 0 で通る。
+`--strict` is there because warnings otherwise pass through green. "Not one floor is generated on this storey" and "the vertical run's form is not generated" are warnings, so without it they exit 0.
 
 ```sh
 npx tsx src/cli.ts check warn.muro
@@ -76,29 +76,29 @@ npx tsx src/cli.ts check warn.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-終了コードは 0 で、`--strict` を付けると 1 になる。同じファイル、同じ警告、違う終了コードである。
+Exit 0; with `--strict` it becomes 1. Same file, same warning, different exit code.
 
-## どのコマンドがどの終了コードで落ちるか
+## Which command fails at which exit code
 
-| コマンド | 0 | 1 | 2 | CI に置くか |
+| Command | 0 | 1 | 2 | Put it in CI? |
 |---|---|---|---|---|
-| [`check`](check.md) | エラーなし (`--strict` なら警告も) | エラー / 警告 (`--strict`) / 読めない | 引数不足 | **必ず。`--strict` 付き** |
-| [`validate`](validate.md) | 違反なし (**疑いは 0 のまま**) | 違反あり / 読めない | 引数不足 | **必ず** |
-| [`doors`](doors.md) | 到達できる | 到達できない | パスが二つ揃わない | 特定の避難経路を守りたいとき |
-| [`light`](light.md) | 全室が 1/7 を満たす / **対象が無い** | 不足あり | 引数不足 | `validate` があれば不要 |
-| [`site`](site.md) | 敷地レポートが出た | 敷地が無い | 引数不足 | 敷地の宣言を必須にしたいとき |
-| [`levels`](levels.md) | 出せた | レベルが一つも無い | 引数不足 | ほぼ不要 (`check` が先に落ちる) |
-| [`diff`](diff.md) | **差分なし** | **差分あり** | 入力が壊れている | 生成物の凍結を守りたいとき |
-| [`plan`](plan.md) / [`axo`](axo.md) | 書き出した | 描けなかった | 未宣言のレベル名など | 図が生成できることを守りたいとき |
-| [`graph`](graph.md) / [`stats`](stats.md) / [`runs`](runs.md) / [`layers`](layers.md) / [`json`](json.md) | 常に 0 | 読めない | 引数不足 | **門番にならない** — 合否を言わないコマンドである |
+| [`check`](check.md) | No errors (nor warnings under `--strict`) | Errors / warnings under `--strict` / unreadable | Missing argument | **Always, with `--strict`** |
+| [`validate`](validate.md) | No violations (**cautions stay 0**) | Violations / unreadable | Missing argument | **Always** |
+| [`doors`](doors.md) | Reachable | Unreachable | Two paths not given | When you want to protect one specific escape route |
+| [`light`](light.md) | All rooms meet 1/7 / **nothing in scope** | Some fall short | Missing argument | Redundant if `validate` is there |
+| [`site`](site.md) | The site report came out | No site | Missing argument | When the site declaration must exist |
+| [`levels`](levels.md) | It came out | No level defined | Missing argument | Rarely useful (`check` fails first) |
+| [`diff`](diff.md) | **No differences** | **There are differences** | The input is broken | When you want to freeze a generated file |
+| [`plan`](plan.md) / [`axo`](axo.md) | Written | Could not be drawn | Undeclared level name and the like | When the drawings must keep generating |
+| [`graph`](graph.md) / [`stats`](stats.md) / [`runs`](runs.md) / [`layers`](layers.md) / [`json`](json.md) | Always 0 | Unreadable | Missing argument | **Not gates** — these commands pass no judgement |
 
-三つの落とし穴がある。
+Three traps.
 
-**`diff` の 0/1 は逆向きに読む。**`check` の 0 は「整合している」、`diff` の 0 は「同じ」である。`diff` を CI に置くのは「この生成物が変わっていないこと」を守りたいときで、意味が反転する。
+**`diff`'s 0/1 reads the other way round.** `check`'s 0 is "it holds together"; `diff`'s 0 is "they are the same". You put `diff` in CI to protect "this generated file has not changed", and the sense inverts.
 
-**`light` は対象が無くても 0 を返す。**`daylight:1` を一つも書いていないモデルで `light` を CI に置くと、何も見ていないまま緑が返る。採光を守りたいなら `validate` を使うほうが安全である — `daylight.ratio` は違反として 1 を返す。
+**`light` returns 0 with nothing in scope.** Put `light` in CI for a model that writes no `daylight:1` and green comes back having looked at nothing. To protect daylight, `validate` is safer — `daylight.ratio` is a violation and exits 1.
 
-**`validate` は疑い (caution) では落ちない。**`envelope.gap` も `stair.proportion` も `site.area` も caution なので、終了コードは 0 のままである。疑いも落としたいなら `--json` を読んで自分で数える。
+**`validate` does not fail on cautions.** `envelope.gap`, `stair.proportion` and `site.area` are all cautions, so the exit code stays 0. To fail on cautions too, read `--json` and count them yourself.
 
 ```sh
 koyu validate building/main.muro --json | node -e '
@@ -107,9 +107,9 @@ koyu validate building/main.muro --json | node -e '
 '
 ```
 
-## 複数の建物を回す
+## Running several buildings
 
-`.muro` の entry が複数あるなら、一つでも落ちたら止める。
+With several entries, stop as soon as one fails.
 
 ```sh
 for f in building/*/main.muro; do
@@ -118,9 +118,9 @@ for f in building/*/main.muro; do
 done
 ```
 
-シェルの `for` は最後のコマンドの終了コードしか返さないので、`|| exit 1` を各行に付ける。
+A shell `for` returns only the last command's exit code, so put `|| exit 1` on each line.
 
-## GitHub Actions に置く
+## In GitHub Actions
 
 ```yaml
 name: koyu
@@ -141,11 +141,11 @@ jobs:
           done
 ```
 
-Node は 22 以上が要る。
+Node 22 or later is required.
 
-## 落ちたときにコードを手に入れる
+## Getting the codes when it fails
 
-CI のログには人向けの出力が出る。**人向けの出力に診断コードは出ない。**コードから原因を引きたいなら `--json` を足す。
+The CI log carries the human-facing output. **Codes never appear in the human output.** To look one up, add `--json`.
 
 ```sh
 koyu check building/main.muro --json
@@ -167,11 +167,11 @@ koyu check building/main.muro --json
 ]
 ```
 
-構文エラーで読めなかったファイルも `--json` なら有効な JSON を返す (`SYN01` の一件に写される) ので、CI のログを機械で読む仕組みを作っても壊れない。
+A file that could not be read because of a syntax error still returns valid JSON under `--json` (copied into a single `SYN01`), so a machine reader built on top of the CI log does not break.
 
-## 関連
+## See also
 
-- [koyu check](check.md) — `--strict` と `--json`
-- [koyu validate](validate.md) — 15 規則と level
-- [診断コード](../diagnostics/index.md) — 65 コードの原因と直し方
-- [koyu コマンド](index.md) — 終了コードの共通の約束
+- [koyu check](check.md) — `--strict` and `--json`
+- [koyu validate](validate.md) — the 15 rules and their levels
+- [Diagnostics](../diagnostics/index.md) — cause and fix for all 65 codes
+- [The koyu command](index.md) — the shared promises about exit codes

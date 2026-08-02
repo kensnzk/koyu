@@ -1,0 +1,74 @@
+{
+  "format": "koyu-canonical/1.1",
+  "koyu": "1.1",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      4000
+    ],
+    "Y": [
+      0,
+      5000
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2400,
+      "slab": 150
+    }
+  },
+  "spaces": {
+    "/L1/a": {
+      "type": "room",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "居室"
+      }
+    },
+    "/L1/hole": {
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ],
+      "attrs": {
+        "name": "吹抜け",
+        "void": 1
+      }
+    },
+    "/out": {
+      "attrs": {
+        "name": "南側道路",
+        "outside": 1,
+        "road": 6000
+      }
+    }
+  },
+  "boundaries": [
+    {
+      "between": [
+        "/L1/a",
+        "/out"
+      ],
+      "a": "/L1/a",
+      "kind": "wall",
+      "t": 120,
+      "edge": "S",
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "at": 0.5
+        }
+      ]
+    }
+  ]
+}

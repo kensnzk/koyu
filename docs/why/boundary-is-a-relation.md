@@ -1,30 +1,30 @@
 ---
-title: 境界による壁の表現
+title: Walls as boundaries
 mode: explanation
 ---
 
-# 境界による壁の表現
+# Walls as boundaries
 
-`boundary /L1/a /L1/b` は壁を置く行ではない。**二つの空間の間に「境界という関係がある」と宣言する行**である。壁芯の線分そのものはどこにも書かれない — 二つの領域の共有辺として導かれる。
+`boundary /L1/a /L1/b` is not a line that places a wall. It is a line that declares **that a relation — a boundary — exists between two spaces**. The wall centerline itself is written nowhere; it is derived as the shared edge of the two regions.
 
-この一つの事実から、覚えるべき規則がまとめて出てくる。三つを別々に暗記する必要はない。**関係であることを覚えれば足りる。**書き方は [boundary](../reference/muro/boundary.md) にある。
+From that single fact a set of rules falls out together. There is no need to memorise three separate things. **Remember that it is a relation and the rest follows.** The notation is in [boundary](../reference/muro/boundary.md).
 
-## 実体は関係に乗る
+## Substance rides on the relation
 
-境界は二つの空間の**共有面という座**を与え、実体はその座に乗る。
+A boundary grants **the seat of a shared surface** between two spaces, and substance sits on that seat.
 
-- **水平** — 壁・カーテンウォール・手すり・ガラス間仕切り・開放
-- **垂直** — 床・天井・スラブ・屋根・吹抜け・階段・スロープ・昇降機・エスカレーター
+- **Horizontally** — wall, curtain wall, railing, glass partition, open
+- **Vertically** — floor, ceiling, slab, roof, void, stair, ramp, lift, escalator
 
-厚み、仕様、耐火、遮音、勾配、天端高 — 実体に属する値はすべて関係が持つ。開口は関係の上の区間として置かれる。
+Thickness, specification, fire rating, sound rating, slope, top height — every value belonging to the substance is held by the relation. Openings are placed as intervals along it.
 
-**なぜ空間の側に置かないのか。**関係は座を与えるが、空間の属性は座を与えないからである。実体を空間側に置けば、どの面に乗るかを導出側の規則で補うことになり、そこが曖昧さの入口になる。上下のスラブを、下の空間が天井として、上の空間が床として別々に主張できる状態は原本ではない。**関係なら所有者が一つに定まる。**
+**Why not put it on the space?** Because a relation grants a seat and a space's attributes do not. Put substance on the space side and the derivation has to work out which surface it lands on, and that is where ambiguity enters. A state in which the slab between two storeys can be claimed separately by the space below as its ceiling and by the space above as its floor is not a source of truth. **With a relation, the owner is uniquely determined.**
 
-この決定には帰結がある。**外部は空間でなければならない。**屋根が関係であるためには空が、接地する床が関係であるためには地盤が、相手の空間として存在しなければならない。だから `.muro` には `space /out exterior` が現れる。
+That decision has a consequence. **The exterior must be a space.** For a roof to be a relation the sky must exist as the other space; for a ground-bearing floor to be a relation the ground must. This is why `space /out outside:1` appears in `.muro` files.
 
-## 規則1 — 接していない空間の間には境界を書けない
+## Rule 1 — no boundary may be written between spaces that do not touch
 
-関係の宣言だけがあって線分が導けない状態は、成立していない。
+A relation declared where no segment can be derived is not a state that holds.
 
 ```muro-bad
 grid X 0 3600 7200
@@ -39,20 +39,20 @@ boundary /L1/a /L1/b
 ✖ b1.muro:line 6: The spaces do not touch, so no boundary can be derived: /L1/a | /L1/b
 ```
 
-この二室は角で触れているが、koyu の「接する」は**長さのある辺を共有すること**を意味する。角の一点は接触ではない。
+These two rooms meet at a corner, but "touch" in koyu means **sharing an edge that has length**. A single corner point is not contact.
 
-## 規則2 — 一つの関係が複数の線分に割れることがある
+## Rule 2 — one relation may split into several segments
 
-領域を持たない空間 — 外部など — との境界は、部屋の外周から他の空間と接する区間を除いた残りである。たいてい複数の辺に分かれる。**関係は一つ、線分は複数。**
+A boundary with a space that has no region — the exterior, typically — is the perimeter of the room minus the stretches where it meets other spaces. That usually falls on several sides. **One relation, several segments.**
 
-だから外壁に開口を置くときは、どの辺かを選ぶ必要がある。
+So an opening in an external wall must say which side it is on.
 
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/living room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/living /out
   door w:900
 ```
@@ -61,23 +61,23 @@ boundary /L1/living /out
 ✖ b2.muro:line 7: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/living | /out)
 ```
 
-方位は座標系から決まる。**X は東が正、Y は北が正。したがって N=+Y、S=−Y、E=+X、W=−X。**そして `edge` は **a 側 — 先に書いた空間 — の矩形から見た辺**である。
+Compass directions come from the coordinate system. **X is positive east, Y is positive north, so N=+Y, S=−Y, E=+X, W=−X.** And `edge` is **the side as seen from the rectangle of `a`** — the space written first.
 
 ```muro
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/living room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/living /out t:150
   door w:900 edge:S
 ```
 
-書く順を入れ替えれば `edge:S` の指す辺が変わる。方位の規約は [向き](../reference/muro/orientation.md) に、辺の選び方は [edge を含む位置の書き方](../reference/muro/positions.md) にある。
+Swap the order of the two paths and `edge:S` picks a different side. The convention is in [orientation](../reference/muro/orientation.md), and choosing an edge is covered in [positions](../reference/muro/positions.md).
 
-## 規則3 — 同じ空間対に境界を二度書けない
+## Rule 3 — the same pair of spaces may not carry two boundaries
 
-関係は同一性を持つ。一つの関係に二つの行があれば、一つの問いに二つの答えがあることになる。
+A relation has identity. Two lines for one relation means two answers to one question.
 
 ```muro-bad
 grid X 0 3600 7200
@@ -93,25 +93,25 @@ boundary /L1/a /L1/b type:open
 ✖ b3.muro:line 7: Duplicate boundary: /L1/a | /L1/b (first seen at b3.muro:line 6)
 ```
 
-後勝ちで黙って上書きすれば、**この壁が壁なのか開口なのかは行の並び順で決まってしまう。**それは原本ではない。
+Silently letting the later line win would mean **whether this is a wall or an opening is decided by line order**. That is not a source of truth.
 
-## 関係だから、同一性を書かなくてよい
+## Because it is a relation, its identity need not be written
 
-`uid` を書けるのは空間と集約 (`space` / `zone`) だけである。**関係に uid は書けない。**
+`uid` may be written only on spaces and aggregates (`space` / `zone`). **A relation cannot carry a uid.**
 
-理由は関係の性質そのものにある。関係は必ず二つの空間の間にあるので、**両端が定まれば関係も定まる。**外部が指したいのは空間であり、関係を指したければ両端の空間を指せばよい。
+The reason is in the nature of a relation. A relation always lies between two spaces, so **fix both ends and the relation is fixed.** What the outside world wants to point at is a space; to point at a relation, point at its two ends.
 
-そして数の問題がある。関係の数は空間の数を上回る — 同梱の複合建築は 425 空間に対して 1,364 境界を持つ。関係ごとに uid を書けば、「一棟が機械の視野に入る」という目的を自分で削ることになる。
+And there is a matter of count. Relations outnumber spaces — the bundled mixed-use complex has 425 spaces and 1,364 boundaries. Writing a uid per relation would erode the very goal of fitting a whole building into a machine's field of view.
 
-同一性の全体は [同一性](../reference/identity.md) にある。
+Identity as a whole is covered in [Identity](../reference/identity.md).
 
-## 書く順序の制約は小さい
+## Ordering constraints are small
 
-`boundary` は空間より先に書いてもよい — **関係の宣言は前方参照できる。**前後関係が要るのは `grid` と `level` だけで、これらは使う行より前になければならない。
+A `boundary` may be written before the spaces it names — **relation declarations may refer forward.** Only `grid` and `level` must precede the lines that use them.
 
-## この先
+## Next
 
-- [既定の境界](silence.md) — 接する空間の既定が壁であること
-- [平面図の生成](plan-is-not-a-section.md) — 関係から線分が出るところ
-- [boundary の書き方](../reference/muro/boundary.md)
-- [既定境界](../reference/muro/defaults.md)
+- [Default boundaries](silence.md) — why touching spaces default to a wall
+- [How plans are generated](plan-is-not-a-section.md) — where segments come out of relations
+- [Writing `boundary`](../reference/muro/boundary.md)
+- [Default boundaries](../reference/muro/defaults.md)

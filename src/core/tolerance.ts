@@ -6,7 +6,7 @@
 // あいだ、`poly.ts` の EPS と `graph.ts` の EPS は同じ 0.5 を別々に持ち、`vertical.ts` は
 // 1 を四箇所に直値で書き、`drawnShare` は軸平行の判定に graph の EPS ではなく直値の 0.5 を
 // 使っていた。どれも同じ値なので事故は起きていないが、**一つを動かしたときに何が動くのかを
-// 誰も言えない**状態だった。許容値は導出の規則の一部であり (spec/derivation.md §6)、
+// 誰も言えない**状態だった。許容値は導出の規則の一部であり (docs/reference/form/index.md)、
 // 規則が消費者ごとに違えば同じ原本から違う建物が出る。
 //
 // 座標は mm の整数が基本である。だから長さの許容は 0.5mm — 「これより細かい差は同一」の線が、
@@ -41,7 +41,7 @@ export const PARALLEL_EPS = 1e-9;
 export const POINT_EPS = 1;
 
 /**
- * 許容値の台帳。**spec/derivation.md §6 の表の唯一の出所である** —
+ * 許容値の台帳。**docs/reference/form/index.md の表の唯一の出所である** —
  * `test/derive.test.ts` が表とここの一致を縛る。
  */
 export const TOLERANCES: Readonly<Record<string, number>> = {

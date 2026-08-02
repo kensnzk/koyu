@@ -1,153 +1,153 @@
 ---
-title: 実体 — 壁・開口・柱・面
+title: Matter — walls, openings, columns, slabs
 mode: reference
 ---
 
-# 実体 — 壁・開口・柱・面
+# Matter — walls, openings, columns, slabs
 
-[境界線分](boundaries.md)は芯線である。そこに厚みと z が乗って壁になり、開口が壁を割り、通り芯と床の交わりから柱が立ち、レベルの宣言から床と天井と屋根が現れる。**どれも「置く操作」を持たない。**
+A [boundary segment](boundaries.md) is a centre line. Thickness and z land on it and it becomes a wall; openings split the wall; columns rise where a grid intersection meets a floor; floors, ceilings and roofs appear out of what the levels already declared. **None of it has a "place it" operation.**
 
-## 階高 — 壁と柱がどこまで立つか
+## Storey pitch — how far walls and columns rise
 
-境界が立つレベルは「a が領域を持てば a、でなければ b」の空間のレベルである。壁の下端はそのレベルの FL。
+The level a boundary stands on is that of "a if a has a region, otherwise b". The bottom of the wall is that level's FL.
 
-**階高**は次で決まる。
+**Storey pitch** is decided like this.
 
 ```text
-上のレベルがある : 階高 = 上のレベルの z − このレベルの z
-上のレベルが無い : 階高 = その階の最大天井高 + ROOF_T (200mm)
+there is a level above : pitch = z of the level above − z of this level
+there is none          : pitch = the tallest ceiling height on this storey + ROOF_T (200mm)
 ```
 
-上が無いときに屋根の頂点へ揃えるのは、屋根が同じ式で架かるからである。揃えなければ壁が屋根を突き抜けるか、下に隙間が空く。
+Aligning to the apex of the roof when nothing is above is required because the roof is pitched by the same formula. Without it the wall either punches through the roof or leaves a gap beneath it.
 
-**天井高が一つも決まらなければ階高も決まらず、そのレベルには壁も柱も立たない。**[SUF01](../diagnostics/suf.md) が既に error として言う。
+**If no ceiling height can be determined, neither can the pitch, and no wall and no column stands on that level.** [SUF01](../diagnostics/suf.md) already says so as an error.
 
-`levelPitch(model, level)` が単独でこれを答える。
+`levelPitch(model, level)` answers this on its own.
 
-## 壁の厚みと z 範囲
+## Wall thickness and z range
 
-| | 厚み | 上端 |
+| | Thickness | Top |
 |---|---|---|
-| 壁 (`type:wall`) | `t:` があればその値、無ければ `WALL_T` (100mm) | FL + 階高 |
-| 遮蔽しない境界 (`air:1`) | `t:` があればその値、ただし `RAIL_T_MAX` (80mm) で頭打ち。無ければ `RAIL_T` (60mm) | FL + 境界の `h:`、無ければ `RAIL_H` (1100mm) |
+| Wall (`type:wall`) | `t:` if written, otherwise `WALL_T` (100mm) | FL + pitch |
+| Non-enclosing boundary (`air:1`) | `t:` if written, capped at `RAIL_T_MAX` (80mm); otherwise `RAIL_T` (60mm) | FL + the boundary's `h:`, otherwise `RAIL_H` (1100mm) |
 
-厚みは**芯線に対して両側へ半分ずつ**振り分ける。斜めの線分でも同じで、単位法線へ ±t/2 だけ振った四辺形になる(`thicken`)。
+Thickness is distributed **half to each side of the centre line**. The same holds for a diagonal segment: the quadrilateral is the centre line offset by ±t/2 along the unit normal (`thicken`).
 
-`type:open` の境界は線分を持つが**材を持たない** — `FormBoundary.material` が無い。
+An `type:open` boundary has a segment but **no matter** — `FormBoundary.material` is absent.
 
-## 帯の位置 — 開口と seg
+## Placing a band — openings and segs
 
-開口も `seg` も「境界線分上の区間」であり、同じ規則で置かれる。**順序が意味を持つ。**
+An opening and a `seg` are both "an interval on a boundary segment", and both are placed by the same rule. **The order matters.**
 
-1. 境界の線分を取る(境界の `edge:` は既に適用済み)。帯にも `edge:` があればさらに絞る
-2. 線分が一つも無ければ置けない([OPN04](../diagnostics/opn.md) / [SEG04](../diagnostics/seg.md))
-3. 線分が二つ以上あれば辺を選ばなければ置けない(OPN05 / SEG05)
-4. 帯の幅が線分の長さを超えれば置けない(OPN06 / SEG06)。等しい場合は置ける
-5. **通り参照**(`at:X2+450`)なら、斜めの線分には置けず、水平の線分は X 系・垂直の線分は Y 系でなければならず(OPN07 / SEG07)、はみ出せば置けない(OPN08 / SEG08)
-6. **比率**(`at:0.2`、既定 0.5)なら、両端で中心が納まる範囲へ**クランプされる**(診断は出ない)
+1. Take the boundary's segments (the boundary's own `edge:` is already applied). If the band carries `edge:`, narrow further
+2. No segment at all: it cannot be placed ([OPN04](../diagnostics/opn.md) / [SEG04](../diagnostics/seg.md))
+3. Two or more segments: a face must be chosen (OPN05 / SEG05)
+4. Band wider than the segment: it cannot be placed (OPN06 / SEG06). Equal is fine
+5. **A grid reference** (`at:X2+450`) cannot be used on a diagonal segment; a horizontal segment takes an X grid and a vertical one takes a Y grid (OPN07 / SEG07); running off the end fails (OPN08 / SEG08)
+6. **A ratio** (`at:0.2`, default 0.5) is **clamped** so the centre fits at both ends. No diagnostic is emitted
 
-中心の座標は、線分の始点から終点へのパラメータで取る — 軸平行でも斜めでも同じ一つの式である。**したがって線分の向きが変われば同じ `at:` が別の場所を指す。**線分は導出されたものも描かれた線のものも**常に座標の昇順に向く**ので、`a`/`b` の書き順にも線の端点の書き順にも依らない。
+The centre is taken parametrically from the start of the segment to its end — one formula for axis-parallel and diagonal alike. **So if the direction of the segment changed, the same `at:` would point somewhere else.** Segments — derived and drawn alike — **always run in ascending coordinate order**, so the result depends on neither the a/b order nor the order the line's endpoints were written in.
 
-## 開口の z 範囲
+## The z range of an opening
 
-**開口の頭はまぐさ高に揃う。**扉は床から立ち上がってまぐさ高に達し、それ以外の開口はまぐさ高から高さのぶん下がる。
+**The head of an opening aligns with the lintel.** A door rises from the floor to the head; anything else drops from the head by its own height.
 
 ```text
 door    : z0 = FL                                     ; z1 = FL + (h ?? OPENING_HEAD)
 opening : z0 = FL + OPENING_HEAD − (h ?? OPENING_H)   ; z1 = FL + OPENING_HEAD
 ```
 
-`OPENING_HEAD` は 2000mm、`OPENING_H` は 1200mm。
+`OPENING_HEAD` is 2000mm, `OPENING_H` is 1200mm.
 
-**窓台の高さは書かない。頭を揃えた結果として決まる。**`sill` は[運搬層](../muro/attributes.md)なので core は見ない。`window w:2600 h:1100` を FL 0 の階に書けば、z は 900 から 2000 になる。
+**Sill height is never written. It falls out of aligning the head.** `sill` is a [carried attribute](../muro/attributes.md), so core does not read it. `window w:2600 h:1100` on a level at FL 0 lands at z 900 to 2000.
 
 ```text
 { kind: "window", w: 2600, z0: 900, z1: 2000, t: 150 }
 ```
 
-建具の見付け厚 `t` は**壁厚と同じ**である。
+The leaf thickness `t` **equals the wall thickness**.
 
-## 壁は、開口で割られた区間の列である
+## A wall is a list of intervals split by openings
 
-線分に載る開口を始点からの距離の順に並べ、開口の間には全高の区間を、開口の位置には腰壁(床から開口の下端まで)と垂れ壁(開口の上端から天端まで)を残す。長さか高さが `SPAN_EPS` 以下の区間は作らない。
+Openings on a segment are ordered by distance from its start. Between openings a full-height interval remains; at an opening a sill wall (floor up to the bottom of the opening) and a head wall (top of the opening up to the head of the wall) remain. Intervals whose length or height is at or below `SPAN_EPS` are not produced.
 
-`examples/two-rooms.muro` の間仕切り(`t:120`、`door w:780 h:2000`、階高 2600)は、実際にこう割れる。
+The partition in `examples/two-rooms.muro` (`t:120`, `door w:780 h:2000`, pitch 2600) really splits like this.
 
 ```text
 panels:
-  (3600,0)    → (3600,1860)   z 0 … 2600     全高
-  (3600,1860) → (3600,2640)   z 2000 … 2600  垂れ壁
-  (3600,2640) → (3600,4500)   z 0 … 2600     全高
+  (3600,0)    → (3600,1860)   z 0 … 2600     full height
+  (3600,1860) → (3600,2640)   z 2000 … 2600  head wall
+  (3600,2640) → (3600,4500)   z 0 … 2600     full height
 ```
 
-扉は床から立ち上がるので腰壁は出ない。窓なら腰壁と垂れ壁の二枚が出る。
+A door rises from the floor, so no sill wall appears. A window would produce both.
 
-**「壁の黒帯を紙の色で塗り潰して穴に見せる」という操作は、この規則があれば存在しない。**平面でも立体でも、壁は最初から穴の空いた区間の列である。
+**With this rule, "paint the black band of the wall in the paper colour so it reads as a hole" simply does not exist as an operation.** In plan and in solid alike, the wall is a list of intervals that already has the hole in it.
 
-## 扉の開く先と軌跡
+## Where a door opens, and its trace
 
-開く先は `swing:a/b`、書かれていなければ「a が領域を持てば a、でなければ b」である。
+The side it opens into is `swing:a/b`, or, unwritten, "a if a has a region, otherwise b".
 
-開く向きは、**開く先の導出された形**のうち開口に最も近い凸片の外接矩形の中心へ向かう成分で決める。割付ではなく形を読む — 描かれた線で切られた空間では、最も近い割付の中心が線の反対側に落ちうる。
+The direction is decided by the component pointing at the centre of the bounding box of **the derived piece** nearest the opening, on the side it opens into. It reads shape, not allocation — in a space cut by a drawn line, the centre of the nearest allocation can land on the wrong side of the line.
 
-吊元は次で決まる。
+The hinge is decided like this.
 
-| 線分 | 吊元 |
+| Segment | Hinge |
 |---|---|
-| 水平 | `hinge:E` で東端、でなければ西端 |
-| 垂直 | `hinge:N` で北端、でなければ南端 |
-| 斜め | **始端側に固定**。`hinge` の N/E/S/W は軸の言葉なので斜めには当たらない |
+| horizontal | east end with `hinge:E`, west end otherwise |
+| vertical | north end with `hinge:N`, south end otherwise |
+| diagonal | **pinned to the start point.** `hinge`'s N/E/S/W are words about axes and do not apply to a diagonal |
 
-軌跡は吊元を中心とする**半径 = 開口の幅**の 1/4 円で、葉の先端(吊元から開く側へ幅のぶん)から開口の反対の側柱(吊元から線分に沿って幅のぶん)へ回る。掃く向きは、この二点と吊元の外積の符号が決める。
+The trace is a quarter circle centred on the hinge with **radius equal to the opening width**, sweeping from the leaf tip (the opening width from the hinge, into the swing side) to the far jamb (the opening width from the hinge, along the segment). The sweep direction is the sign of the cross product of those two points about the hinge.
 
 ```ts
 swing: { into: "/L1/b", hinge: {...}, leaf: {...}, jamb: {...}, ccw: false }
 ```
 
-`style:sliding` / `style:auto` の開口は**軌跡を持たない** — 吊元の側へ引き込まれる。`FormOpening.sliding` が立つ。
+An opening with `style:sliding` or `style:auto` has **no trace** — it retracts towards the hinge side. `FormOpening.sliding` is set.
 
-## 柱
+## Columns
 
-柱の位置はどこにも書かれない。**通り芯の交点と床の交わりから現れる。**
+The position of a column is written nowhere. **It emerges where a grid intersection meets a floor.**
 
-母集団の床は、そのレベルにあり、`exterior` でも `void` でもなく、領域を持ち、**空しか支えない半屋外ではない**空間である。最後の条件は、屋上庭園やテラスのように半屋外で上に床も無い空間を外す — 柱が持ち上げるものを持たないからである。
+The population of floors is: on that level, neither `exterior` nor `void`, has a region, and **is not a semi-outdoor space that holds up nothing but sky**. The last clause excludes roof gardens and terraces — semi-outdoor with no floor above — because a column there has nothing to hold up.
 
-宣言が通りを名指していればその通りだけを、していなければすべての通りを見る。走査は X が外側、Y が内側。交点が床のいずれかの凸片の内側(辺の上も `POINT_EPS` の幅で内側に数える)にあれば、そこに柱が立つ。
+If the declaration names grids, only those are considered; otherwise all of them. The scan runs X outer, Y inner. If the intersection lies inside one of the floors' pieces (points on an edge count as inside, within `POINT_EPS`), a column stands there.
 
-**同じ交点に二本は立たない — 先に書かれた宣言が勝つ。**だから柱の宣言順は意味であり、正準 JSON も並べ替えない。
+**Two columns never stand on the same intersection — the earlier declaration wins.** That is why declaration order is meaning, and why canonical JSON does not reorder columns.
 
-柱の z 範囲は、そのレベルの FL から FL + 階高までである。
+A column's z range runs from that level's FL to FL + pitch.
 
-## 床・天井・屋根
+## Floors, ceilings and roofs
 
-母集団はレベルを z の昇順に、その中で空間を**パスの照合順**に、一空間の中で床 → 天井 → 屋根の順に走査する。宣言順は正準形が捨てる情報なので読まない ([形の約束 1](index.md))。輪郭はすべて導出された凸片である。
+The scan goes level by level in ascending z, spaces in **path collation order** within a level, and floor → ceiling → roof within a space. Declaration order is information the canonical form discards, so it is never read ([promise 1 of shape](index.md)). Every outline is a derived piece.
 
-| 面 | 生成の条件 | z 範囲 |
+| Slab | Condition | z range |
 |---|---|---|
-| **床** | `void` でも `exterior` でもなく、レベルに `slab` がある | FL − slab … FL |
-| **天井** | `ceiling:0` でなく、`void`・`exterior`・半屋外・縦動線のいずれでもなく、天井高が決まる | FL + h − `CEILING_T` … FL + h |
-| **屋根** | `exterior` でも半屋外でもない。**上に空間が重なっていない範囲だけ** | 頂点 − 厚さ … 頂点 |
+| **Floor** | not `void`, not `exterior`, and the level has `slab` | FL − slab … FL |
+| **Ceiling** | not `ceiling:0`, not `void` / `exterior` / semi-outdoor / vertical circulation, and a ceiling height is determined | FL + h − `CEILING_T` … FL + h |
+| **Roof** | not `exterior`, not semi-outdoor. **Only over the part with no space above** | apex − thickness … apex |
 
-**床の不在は屋根の不在ではない** — 吹抜けにも屋根は架かる。上に何も無い吹抜けは、天窓で塞がれた竪穴か、空に開いた中庭かのどちらかであり、後者は半屋外として導出される。逆に**覆っている側には吹抜けも半屋外も数える**。覆いは直上のレベルだけでなく**上のすべてのレベル**から取り、導出された形で引く。割付で引くと、上階を斜めに切った範囲まで「覆われている」と数えてしまい、その真下に屋根が架からない。
+**The absence of a floor is not the absence of a roof** — a void is roofed too. A void with nothing above it is either a shaft closed by a skylight or a courtyard open to the sky, and the latter is derived as semi-outdoor. So only exterior and semi-outdoor are excluded. Conversely, **voids and semi-outdoor spaces count as coverers**. Coverage is taken from **every level above**, not only the one directly above, and subtracted using derived shape. Subtracting allocations would count a slice of an obliquely cut upper storey as "covered" and leave no roof beneath it.
 
-屋根の頂点と厚さは上のレベルの有無で式が切り替わる。
+The apex and thickness switch on whether there is a level above.
 
 ```text
-上のレベルがある : 頂点 = 上のレベルの z          ; 厚さ = 上のレベルの slab ?? ROOF_T
-上のレベルが無い : 頂点 = FL + h + ROOF_T         ; 厚さ = ROOF_T
+a level above : apex = z of that level     ; thickness = its slab ?? ROOF_T
+none          : apex = FL + h + ROOF_T     ; thickness = ROOF_T
 ```
 
-**上のレベルがあるときは天井高を読まない。**したがって天井高が決まらなくても屋根は生成される。上が無く天井高も決まらなければ形は痩せるが、その状態は SUF01 が error として塞いでいる。
+**When there is a level above, the ceiling height is never read.** So a roof is generated even where no ceiling height is determined. With nothing above and no ceiling height, the shape comes out thin — but SUF01 already blocks that state as an error.
 
-引いた残りの面積が `AREA_EPS` 以下のタイルは屋根にしない。
+Tiles whose remaining area is at or below `AREA_EPS` do not become roof.
 
-基壇の上に塔屋が載る建物では、この規則がそのまま**基壇屋上**として現れる。書いていない。
+In a building where a tower sits on a podium, this rule produces **the podium roof** without anyone writing it.
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [境界線分](boundaries.md) — 厚みが乗る前の芯線
-- [導出定数と公差](constants.md) — ここに出た 100 / 2000 / 1200 / 30 / 200 の出どころ
-- [平面](plan.md) — この実体が切断面でどう分類されるか
-- [door](../muro/door.md) / [window](../muro/window.md) — 開口をどう書くか
-- [column](../muro/column.md) — 柱の宣言
-- [level](../muro/level.md) — `h:` と `slab:`
+- [Boundary segments](boundaries.md) — the centre line before thickness
+- [Constants and tolerances](constants.md) — where 100 / 2000 / 1200 / 30 / 200 come from
+- [The plan](plan.md) — how this matter is classified at the cut
+- [door](../muro/door.md) / [window](../muro/window.md) — writing openings
+- [column](../muro/column.md) — declaring columns
+- [level](../muro/level.md) — `h:` and `slab:`

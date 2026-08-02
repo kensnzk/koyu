@@ -148,3 +148,29 @@ test("MCP: initialize → tools/list → questions about tower → the write_lay
     c.kill();
   }
 });
+
+// The structural fact used to ride on the type word, and the `spaces` tool projected the
+// type. With the type gone from an outside space, an agent enumerating spaces to total
+// floor area or find what the envelope faces had **no signal at all** that /out is outside
+// — it read `"type": "exterior"` before and nothing after. The projection now carries the
+// declaration itself, so the fact stays observable through the surface agents actually use.
+test("mcp: spaces says outside and void, now that the type no longer can", async () => {
+  const c = new McpClient();
+  try {
+    await c.request("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "test", version: "0" } });
+    const spaces = JSON.parse((await c.call("spaces", { file: "examples/two-rooms.muro" })).text) as Array<
+      Record<string, unknown>
+    >;
+    const out = spaces.find((s) => s.path === "/out")!;
+    assert.ok(out, "the example declares an outside space");
+    assert.equal(out.outside, true, "an agent can still tell this space is outside the building");
+    assert.equal("type" in out, false, "and no type is fabricated to carry it");
+
+    const room = spaces.find((s) => s.path === "/L1/a")!;
+    assert.equal(room.type, "room", "a written label is still passed through");
+    assert.equal("outside" in room, false, "the key appears only where the fact holds");
+    assert.equal("void" in room, false);
+  } finally {
+    c.kill();
+  }
+});

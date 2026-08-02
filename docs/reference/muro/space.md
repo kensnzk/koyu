@@ -1,82 +1,86 @@
 ---
-title: space — 空間
+title: space — spaces
 mode: reference
 ---
 
-# space — 空間
+# space — spaces
 
 ```muro-part
 space /L5/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク
-space /out/road-s exterior name:南側道路 road:12000
+space /out/road-s name:南側道路 road:12000 outside:1
 ```
 
-`space <パス> <型> [領域...] [属性...]` は空間を宣言する。**空間が一次要素である** — 壁は空間の持ち物ではなく二つの空間の関係であり ([boundary](boundary.md))、平面図も面積も動線も空間の並びから導出される。
+`space <path> <type> [regions...] [attributes...]` declares a space. **Space is the primary element** — a wall is not a possession of a space but a relation between two of them ([boundary](boundary.md)), and plans, areas and circulation are all derived from how spaces are laid out.
 
-## パス — 同一性
+## Path — identity
 
-第1位置引数は `/` で始まるパスで、これがモデルの中の同一性である。
+The first positional is a path beginning with `/`, and that is the space's identity in the model.
 
 ```muro-part
 space /L5/A/ldk ldk X1..X2 Y1..Y2
 ```
 
-- **パスは集計の階層でもある。**接頭辞で束ねるのが[ゾーン](zone.md)の仕事で、`/L5/A` というゾーンは `/L5/A/` で始まる空間をすべて配下に持つ。
-- **先頭セグメントが宣言済みの[レベル](level.md)名なら、その空間はそのレベルに属する。**`/L5/A/ldk` は L5 に載る。レベル名でなければ (`/site/bldg` など) レベルは決まらないので、`level:` で明示する。
-- パスの重複はエラーである。合成しているときは両者の出所が示される。
+- **A path is also the hierarchy of aggregation.** Grouping by prefix is the job of a [zone](zone.md): the zone `/L5/A` has every space whose path begins `/L5/A/` beneath it.
+- **If the first segment is a declared [level](level.md) name, the space belongs to that level.** `/L5/A/ldk` sits on L5. If it is not a level name (`/site/bldg`, say), the level is undetermined and must be stated with `level:`.
+- A duplicate path is an error. Under composition, the provenance of both is shown.
 
 ```text
 Duplicate space path: /L1/a (first seen in floors/L1.muro at line 12)
 ```
 
-パスは改名で変わる。改名を跨いで外部の台帳と突き合わせたいときは `uid:` を使う。
+Paths change when things are renamed. To join against an external register across a rename, use `uid:`.
 
-## 型 — 開かれた語彙
+## Type — an open vocabulary
 
-第2位置引数は型で、**必須**である。省略すると領域の一つ目が型として読まれ、領域が一つしか無いという別のエラーになる。
+The second positional is the type, and it is **optional**. `room`, `ldk`, `厨房`, `tenant` are all fine, and so is writing nothing at all.
 
-```text
-✖ t1.muro:line 4: A region is given as two ranges, X?..X? and Y?..Y?
+```muro-part
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b X1..X2 Y1..Y2
 ```
 
-型も領域も無い行 (`space /L1/a` だけ) は、もっと直接に `space /L1/a requires a type (a word from the vocabulary)` で止まる。
+**koyu never reads the type position.** The word appears in the aggregation axis ([stats](../cli/stats.md) subtotals by type) and in the lettering on a plan, and is the entrance to no verdict. Misspelling it therefore does nothing: write `bedrom` for `bedroom` and you get no error, just one more row under a new type. That is acceptable precisely because no meaning is kept there.
 
-型の語彙は開いている。`room` も `ldk` も `厨房` も `tenant` も書ける。**構造として解釈されるのは二語だけ**である。
+Write no type and the canonical form carries no `type` key. **No default word is fabricated.**
 
-| 型 | 解釈 |
+### Facts of composition live in the declaration
+
+Being outside, and being a void, are written as [attributes](attributes.md) rather than as a type.
+
+| Declaration | Meaning |
 |---|---|
-| `exterior` | 外部。領域を持たなくてよい。`/out/road-s` のように複数に割れる |
-| `void` | 吹抜け。床面積に算入せず、通行できず、床も天井も生成されない |
+| `outside:1` | Outside the building. May have no region. Add `road:` and it takes part in street frontage |
+| `void:1` | A void through the floor. Not counted in floor area, not passable, and neither floor nor ceiling is generated |
 
-それ以外の型は運ばれるだけで、判定の入口にはならない。採光の対象かどうかも型からは推定しない — `light` が見るのは `daylight:1` と書いた空間である。
-
-構造として解釈される二語には**綴りの見張り**がある。一字違いの語は拒まれる — `exteriorr` と書けた瞬間にその空間は外部でなくなり、延床が黙って倍になるからである。
-
-```text
-✖ s2.muro:line 4: The type exteriorr looks like a misspelling of exterior (exterior is read structurally — if a different word was meant, spell it further away)
+```muro-part
+space /out name:南側道路 road:6000 outside:1
+space /L2/hole X1..X2 Y1..Y2 name:吹抜け void:1
 ```
 
-遠い語 (`room` `yard` `ldk`) には何も言われない。
+These two used to be written in the type position. That position is an open vocabulary, so the moment one extra character was typed — `exteriorr` — the space stopped being outside and the **gross floor area went from 16.20 m2 to 32.40 m2 while `check` stayed green**. The guard against that was a watch that refused words one edit away from either, which is a hunch standing in for a rule; it could not even be widened, because two edits from `void` reaches `road` and `wood`, words a person may legitimately write.
 
-## 領域 — 矩形の合併
+Moved into the attribute position, the spelling is guarded by the ledger instead ([ATT03](../diagnostics/att.md#att03) refuses an unknown key, [ATT02](../diagnostics/att.md#att02) refuses a value outside the domain). `outsid:1` is an error; `acme.outside:1` passes as carrier tier — because that is **the author spelling out "this word is mine and the tool does not read it"**. Being open and being trustworthy hold together as long as the boundary is declared ([scope](../scope.md)).
 
-領域は `X?..X? Y?..Y?` の**二トークン**で、X 系の範囲と Y 系の範囲を一つずつ書く。`+` を独立したトークンとして挟めば、複数の矩形の合併になる (L 字など)。
+## Regions — a union of rectangles
+
+A region is **two tokens**, `X?..X? Y?..Y?`: one range on X and one on Y. A `+` written as its own token joins several rectangles into a union (an L shape, for instance).
 
 ```muro-part
 space /L1/L ldk X1..X3 Y1..Y2 + X1..X2 Y2..Y3 name:L字
 ```
 
-- 逆順表記 (`X2..X1`) は同じ矩形の別綴りで、昇順に正規化して保存される。
-- 幅ゼロの領域はエラーになる。
-- **同一空間の中で矩形が重なれば [GEO01](../diagnostics/geo.md)、同じレベルの空間同士が重なれば [GEO02](../diagnostics/geo.md)** で、どちらもエラーである。
-- 領域は省略してよい。`exterior` の空間や、幾何を持たない読み替えのための空間は領域なしで書ける。ただし領域を持たない空間には[分節](area.md)を書けない。
+- A descending spelling (`X2..X1`) is another way of writing the same rectangle and is normalized to ascending order.
+- A zero-width region is an error.
+- **Rectangles overlapping within one space is [GEO01](../diagnostics/geo.md); spaces on the same level overlapping is [GEO02](../diagnostics/geo.md)**, both errors.
+- The region may be omitted. `exterior` spaces, and spaces that exist only to be aggregated, are written without one. A space with no region cannot carry a [subdivision](area.md).
 
-領域を持つ空間には[レベル](level.md)と天井高が要る。どちらかが決まらなければ立体が一つも作れないので、[SUF02](../diagnostics/suf.md) / [SUF01](../diagnostics/suf.md) のエラーになる。
+A space with a region needs a [level](level.md) and a ceiling height. Without either, not one solid can be produced, which is the error [SUF02](../diagnostics/suf.md) or [SUF01](../diagnostics/suf.md).
 
-通り参照とオフセットの綴り方は [位置と領域](positions.md) にある。
+How grid references and offsets are spelled is in [positions and regions](positions.md).
 
-## 寸法で書く — 帯の要素
+## Writing by dimension — band members
 
-領域の代わりに寸法と並びで割るなら [band](band.md) を使う。帯の直下に字下げした `space` 行が、領域ではなく `w:` を持つ。
+To divide by dimension and order rather than position, use [band](band.md). A `space` line indented under a band carries `w:` in place of a region.
 
 ```muro-part
 band X X1..X3 Y1..Y2
@@ -84,66 +88,66 @@ band X X1..X3 Y1..Y2
   space /L1/hall hall w:1800 name:玄関
 ```
 
-字下げしていない `space` に `w:` は書けない。字下げを落とした要素が「領域を持たない空間」として黙って通るのを防ぐためである。
+`w:` may not be written on an unindented `space`. That refusal is what stops a member whose indentation was lost from passing silently as "a space with no region".
 
 ```text
 ✖ b5.muro:line 4: w: may not be written on space (a space written by width sits indented under band)
 ```
 
-## 字下げの分節 — area
+## The indented subdivision — area
 
-`space` の直下に字下げした `area` は、室内の数えない分節である。床材の切替のような、面積にも室数にもグラフにも現れない情報を運ぶ。[area](area.md) を見る。
+An `area` indented under a `space` is an uncounted subdivision of the room: a change of floor finish, say, that appears in no area total, no room count and no graph. See [area](area.md).
 
-## レベルスパン
+## Level spans
 
-パスの**先頭セグメント**が `L3..L10` の形なら、宣言済みレベルの z 順の並びに展開される。基準階を一度だけ書くための綴りである。
+If the **first segment** of the path has the form `L3..L10`, the line expands over the declared levels in ascending z. This is how a typical floor is written once.
 
 ```muro-part
 space /L2..L9/B unit X2..X3 Y1..Y2 name:Bタイプ use:exclusive
 ```
 
-一行の中の複数パスは同じスパンを指していなければならない。展開された空間には、字下げした `area` も同じように付く。
+Several paths on one line must name the same span. Indented `area` lines are attached to every expanded space.
 
-## 属性の一覧
+## The attributes
 
-空間に書ける鍵はここに挙げたものと、ドットを含む名前空間つきの鍵 (`acme.sensor:23`) だけである。**台帳に無い鍵で名前空間も無いものは [ATT03](../diagnostics/att.md) のエラーになる** — `heigh:2400` が黙って読み飛ばされて緑になる、という事故を塞ぐためである。
+The keys writable on a space are the ones listed here plus any namespaced key containing a dot (`acme.sensor:23`). **A key that is in neither category is the error [ATT03](../diagnostics/att.md)** — the point is to stop `heigh:2400` from being read past in silence while `check` stays green.
 
 ```text
 ✖ s1.muro:line 4: /L1/a carries heigh:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.heigh:2400)
 ```
 
-三つの層に分かれる。**構造層**は parse が型のついたフィールドへ持ち上げるもの、**解釈層**は core が値を読むもの、**運搬層**は core が一切見ずに運ぶだけのものである。層の考え方は [属性の三層](attributes.md) にまとめてある。
+They fall into three tiers. **Structure** is lifted into typed fields by the parser, **interpreted** is read for its value by core, and **carry** is never looked at and only transported. The tiers are set out in [the three tiers of attributes](attributes.md).
 
-### 構造層
+### Structure
 
-| 鍵 | 値 | 意味 |
+| Key | Value | Meaning |
 |---|---|---|
-| `level:` | 宣言済みのレベル名 | 所属レベルの明示。既定はパスの先頭セグメント。階を跨ぐくくり (メゾネット) や、パスの先頭がレベル名でないとき (`/site/bldg`) に要る。未宣言のレベルを指せば `Undeclared level: level:L9` で止まる |
-| `w:` | 正の整数 mm / `rest` | [帯](band.md)の要素の寸法。帯の外の `space` には書けない |
+| `level:` | a declared level name | States the level. The default is the first path segment. Needed for a grouping that spans levels (a maisonette) and whenever the path does not start with a level name (`/site/bldg`). An undeclared level stops with `Undeclared level: level:L9` |
+| `w:` | positive integer mm / `rest` | The dimension of a [band](band.md) member. Not writable on a `space` outside a band |
 
-### 解釈層
+### Interpreted
 
-| 鍵 | 値 | 意味 |
+| Key | Value | Meaning |
 |---|---|---|
-| `h:` | 正の数値 mm | 天井高。既定はレベルの `h:`。高さ不変量と矩計が読む |
-| `use:` | 自由語 | 集計の軸 (`rentable` `exclusive` `common` …)。[ゾーン](zone.md)から継承され、空間側の宣言が勝つ |
-| `road:` | 正の数値 mm | `exterior` 空間の幅員 — 道路の印。`site` が接道長を導出する |
-| `daylight:` | `0` / `1` | 採光判定の対象の宣言。`1` を書いた空間にだけ `light` が 1/7 を掛ける。既定は対象外。継承しない |
-| `ceiling:` | `0` / `1` | `0` で天井を張らない (現し天井)。既定は張る |
-| `uid:` | 不透明トークン | 改名を跨ぐ永続同一性。数字だけの形と空白はエラー。モデル全体 (space と zone を横断) で一意 |
-| `name:` | 自由語 | 表示名。図面と一覧に出る。書かなければパスの末尾セグメントが使われる |
-| `stair:` `ramp:` `escalator:` | `N` / `E` / `S` / `W` | 縦動線の宣言。キーが装置を、値が上る向きを名指す |
-| `lift:` | `1` | 昇降機の宣言 (向きを持たない) |
-| `form:` | `straight` / `return` | 縦動線の折返し。既定は `straight` |
-| `turn:` | `R` / `L` | 折返しの回る向き。既定は `R` |
-| `entry:` | 正の数値 mm | 乗り込みの床の奥行。既定 1100 |
-| `landing:` | 正の数値 mm | 折返しの中間踊り場の奥行。既定は導出 (目標踏面からの残余) |
-| `riser:` | 正の数値 mm | 蹴上げの上限。既定 180 |
-| `tread:` | 正の数値 mm | 目標踏面。既定 300 |
-| `lane:` | 正の数値 mm | 一台・一車線の幅。エスカレーターの既定 1200 |
-| `slope:` | 正の数値 | 斜路の許容勾配の分母 (`slope:6` = 1/6 まで)。書く勾配ではなく検査の上限 |
+| `h:` | positive number, mm | Ceiling height. Defaults to the level's `h:`. Read by the height invariant and the section stack-up |
+| `use:` | free word | The aggregation axis (`rentable`, `exclusive`, `common`, …). Inherited from a [zone](zone.md); a declaration on the space wins |
+| `road:` | positive number, mm | The width of an `exterior` space — the mark of a road. `site` derives frontage from it |
+| `daylight:` | `0` / `1` | Declares that the daylight check applies. Only a space with `1` gets `light`'s 1/7 test. Out of scope by default. Not inherited |
+| `ceiling:` | `0` / `1` | `0` hangs no ceiling (an exposed soffit). One is hung by default |
+| `uid:` | opaque token | Persistent identity across renames. Digits alone, or whitespace, is an error. Unique across the whole model, spanning space and zone |
+| `name:` | free word | Display name, shown in drawings and listings. Without it, the last path segment is used |
+| `stair:` `ramp:` `escalator:` | `N` / `E` / `S` / `W` | A vertical-circulation declaration. The key names the device, the value the direction of ascent |
+| `lift:` | `1` | A lift declaration (it has no direction) |
+| `form:` | `straight` / `return` | Whether the run turns back. Default `straight` |
+| `turn:` | `R` / `L` | Which way it turns back. Default `R` |
+| `entry:` | positive number, mm | The depth of the boarding floor. Default 1100 |
+| `landing:` | positive number, mm | The depth of an intermediate landing. Derived by default (the remainder from the target going) |
+| `riser:` | positive number, mm | The maximum riser. Default 180 |
+| `tread:` | positive number, mm | The target going. Default 300 |
+| `lane:` | positive number, mm | The width of one unit or lane. 1200 by default for an escalator |
+| `slope:` | positive number | The denominator of the permitted ramp gradient (`slope:6` = up to 1/6). A limit for the check, not a gradient to build |
 
-**値も検査される。**数値でなければ [ATT01](../diagnostics/att.md)、決まった語彙の外なら [ATT02](../diagnostics/att.md) である (`daylight` は [DAY01](../diagnostics/day.md)、`form` と縦動線の向きは [RUN](../diagnostics/run.md) 族が守る)。書いたのに解釈されなかった値は、黙って既定へ落ちない。
+**Values are checked too.** A non-number is [ATT01](../diagnostics/att.md) and a word outside the ledger's set is [ATT02](../diagnostics/att.md) (`daylight` is guarded by [DAY01](../diagnostics/day.md), and `form` and the directions of ascent by the [RUN](../diagnostics/run.md) family). What you wrote and the tool failed to interpret does not fall silently back to the default.
 
 ```text
 $ npx tsx src/cli.ts check s3.muro --json
@@ -155,31 +159,31 @@ $ npx tsx src/cli.ts check s3.muro --json
   "message": "turn on /L1/a is one of R / L: turn:X",
 ```
 
-### 運搬層
+### Carry
 
-| 鍵 | 意味 |
+| Key | Meaning |
 |---|---|
-| `floor:` | 床仕上げ。[area](area.md) が区間上書きできる |
-| `spec:` | 物の名。ツールは解釈せず運ぶだけ |
-| `<名前空間>.<鍵>:` | ドットを含む鍵は誰でも書けて、core は中身に一切の意味を与えない (`acme.sensor:23` `bems.temp:22.5`) |
+| `floor:` | Floor finish. An [area](area.md) may override it over an interval |
+| `spec:` | The name of the thing. Carried, never interpreted |
+| `<namespace>.<key>:` | Anyone may write a dotted key, and core gives its content no meaning at all (`acme.sensor:23`, `bems.temp:22.5`) |
 
-### 空間に書けない鍵
+### Keys a space may not carry
 
-紛らわしい三つを名指しておく。
+Three worth naming.
 
-- `site:` と `area:` は[ゾーン](zone.md)の鍵である。空間に書けば ATT03 になる。
-- `underground:` は[レベル](level.md)の鍵である。空間に書けば ATT03 になる。
-- `type:` は[境界](boundary.md)の鍵である。空間の型は属性ではなく第2位置引数である。
+- `site:` and `area:` belong to a [zone](zone.md). On a space they are ATT03.
+- `underground:` belongs to a [level](level.md). On a space it is ATT03.
+- `type:` belongs to a [boundary](boundary.md). A space's type is the second positional, not an attribute.
 
-## daylight — 採光の対象は宣言する
+## daylight — the scope is declared
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150
 space /L1/living living X1..X2 Y1..Y2 daylight:1 name:居間
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/living /out edge:S t:120
   window w:2400 h:1800
 ```
@@ -190,15 +194,15 @@ $ npx tsx src/cli.ts light d1.muro
 ✔ Every room meets 1/7 — 1 room in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
-`daylight:` を書かなければその室は判定の外である。**属性は法の概念ではなくツールの振る舞いを名指している** — 何に 1/7 を掛けるかは書き手が決める。
+A room without `daylight:` is outside the test. **The attribute names what the tool does, not a legal category** — what the 1/7 applies to is the author's call.
 
-## ceiling — 天井は近似である
+## ceiling — the ceiling is an approximation
 
-天井面は室の輪郭を `h:` の高さで写したものとして導出される。
+The ceiling surface is derived as the room's outline at the height `h:` fixes.
 
-**この輪郭は、実際の天井と必ずしも一致しない。**折上げ天井も、梁型の下がり天井も、数室にまたがる連続天井も、カーテンウォール手前の見切りも、この解像度の外にある。導出は基本計画の粗さでの近似であって、作図された天井ではない。
+**That outline does not necessarily match the real ceiling.** A coffered ceiling, a bulkhead under a beam, a ceiling running continuously across several rooms, a shadow gap in front of a curtain wall — all of these are outside this resolution. The derivation is an approximation at the resolution of scheme design, not a drawn ceiling.
 
-天井そのものが無い室 — 現し天井 — だけは宣言できる。
+Only the absence of a ceiling — an exposed soffit — can be declared.
 
 ```muro
 grid X 0 3600 7200
@@ -208,7 +212,7 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2 ceiling:0
 ```
 
-このモデルから生成される面は次のとおりで、`/L1/b` には天井が無い。
+The surfaces this model generates are these; `/L1/b` has no ceiling.
 
 ```text
 floor /L1/a -150 0
@@ -218,11 +222,11 @@ floor /L1/b -150 0
 roof /L1/b 2400 2600
 ```
 
-吹抜け・外部・半屋外・縦動線の空間にはもともと天井が張られないので、`ceiling:0` は要らない。
+Voids, the outside, semi-outdoor spaces and vertical circulation never get a ceiling in the first place, so `ceiling:0` is unnecessary there.
 
-## 縦動線
+## Vertical circulation
 
-階段・斜路・エスカレーター・昇降機は、装置を名指す鍵と上る向きだけで宣言する。**段数も踏面も踊り場も勾配も書かない** — 領域と階高から導出される。
+Stairs, ramps, escalators and lifts are declared with the key that names the device and the direction of ascent. **No riser count, going, landing or gradient is written** — they are derived from the region and the storey height.
 
 ```muro-part
 space /B2..B1/ramp ramp X3..X5 Y1..Y2 name:車路 use:parking ramp:E form:return slope:6
@@ -237,17 +241,17 @@ B2→B1	ramp	車路	rise 3700mm	return	slope 1/7.2	going 26800mm	/B2/ramp
 B2→B1	stair	避難階段	rise 3700mm	return	21 risers of 176mm, tread 300mm	going 6000mm	/B2/st
 ```
 
-一つの空間に装置は一つだけである (二つ書けば [RUN01](../diagnostics/run.md))。領域は矩形一つでなければならない。**どの階と繋がるかは空間ではなく垂直の[境界](boundary.md)が持つ** — 装置の宣言は形の生成規則であって、トポロジーではない。規則の全体は [縦動線](vertical-circulation.md) にある。
+One space carries one device (two is [RUN01](../diagnostics/run.md)), and its region must be a single rectangle. **Which storeys it connects belongs to the vertical [boundary](boundary.md), not to the space** — the device declaration is a rule for generating form, not a topology. The whole set of rules is in [vertical circulation](vertical-circulation.md).
 
-## 空間から導かれるもの
+## What a space produces
 
-書いた `space` から、書かずに出てくるものがある。
+Writing a `space` produces things you did not write.
 
-- **面積** — 壁芯で算定され、`void` と `exterior` は延床から外れる。
-- **境界** — 同じレベルで平面が接する領域つき空間の組には、宣言が無ければ壁の境界が導かれる。
-- **半屋外** — `open` または `air:1` の境界で `exterior` に接する空間は半屋外として扱われ、天井も屋根も架からない。
-- **柱** — 通り芯の交点のうち、床のある空間の内側に立つ。
-- **床・天井・屋根** — レベルの `slab:` と `h:` から生成される。
+- **Area** — measured to wall centerlines; `void` and `exterior` are outside the gross floor area.
+- **Boundaries** — spaces on the same level whose regions touch get a `wall` boundary derived for them unless one was declared.
+- **Semi-outdoor** — a space touching an `exterior` across an `open` or `air:1` boundary is treated as semi-outdoor, and neither ceiling nor roof is laid over it.
+- **Columns** — they stand at grid intersections that fall inside a space with floor.
+- **Floors, ceilings, roofs** — generated from the level's `slab:` and `h:`.
 
 ```text
 $ npx tsx src/cli.ts stats v1.muro
@@ -264,9 +268,9 @@ Total 43.20 m2 (indoor floor area)
   room: 28.80 m2
 ```
 
-## 子で割るときは親をゾーンにする
+## To subdivide, make the parent a zone
 
-領域つきの `space` の下に領域つきの `space` を置くと、二つの領域が重なって [GEO02](../diagnostics/geo.md) になる。
+Putting a `space` with a region beneath a `space` with a region makes their regions overlap, which is [GEO02](../diagnostics/geo.md).
 
 ```muro-bad
 grid X 0 3600 7200
@@ -280,4 +284,4 @@ space /L1/A/ldk ldk X1..X2 Y1..Y2
 ✖ z1.muro:line 4: Space regions overlap: /L1/A and /L1/A/ldk
 ```
 
-住戸を室に割るなら、親を[ゾーン](zone.md)にする。ゾーンは幾何を持たず、パス接頭辞で配下を束ねるだけだからである。
+To divide a dwelling into rooms, make the parent a [zone](zone.md). A zone has no geometry; it only groups by path prefix.

@@ -13,10 +13,9 @@ import {
   placeOpening,
   planOverlap,
   segmentsFor,
-  drawnCut,
   spacesOverlap,
 } from "./graph.js";
-import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type Attrs, type Boundary, type Edge, type Level, type Model, type Pt, type Rect, type Space,
+import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type Attrs, type Boundary, type Edge, type Level, type Model, type Space,
   columnSites,
   openingIdentity,
   regionOf,
@@ -25,8 +24,9 @@ import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type At
   rectToPoly,
   srcRef,
   polygonSelfIntersection,
+  isOutside,
+  isVoid
 } from "./model.js";
-import { cutsInWindow } from "./poly.js";
 import { ASSET_ELEM, attrSpec, isNamespaced } from "./vocabulary.js";
 import { runDecls, runIssues } from "./vertical.js";
 
@@ -53,7 +53,7 @@ export interface Diagnostic {
 }
 
 /**
- * 診断コードの台帳 — 全コードと規範severity。specの表 (semantics.md §5) とテストで一致を守る。
+ * 診断コードの台帳 — 全コードと規範severity。公開文書の表 (docs/reference/diagnostics/index.md) とテストで一致を守る。
  * BND07 は欠番 — 「接しているのに境界が無い」警告はADR-0014 (既定境界) で廃止された。
  * HGT03・HGT04・HGT05・RUN04 も欠番 — この四つは「高さがどうか」「縦動線がどうか」ではなく
  * 「形を作るのに必要な情報が書かれていない」という一つの話であり、SUF01-04 へ合流した (ADR-0034)。
@@ -124,6 +124,7 @@ export const DIAGNOSTIC_CODES = {
   VER02: "error", // koyu 0.3以前で採光の推定対象だった型に daylight が無い (ADR-0020)
   VER03: "error", // koyu 0.4以前のファイルに0.5の語 (縦動線・線・柱・地下)
   VER04: "error", // koyu 0.5以前のファイルに1.0の語 (over・drop・集合編集 — ADR-0035/0038)
+  VER05: "error", // koyu 1.0以前のファイルの型の位置に exterior / void (ADR-0051)
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
 } as const satisfies Record<string, "error" | "warning">;
 
@@ -141,6 +142,16 @@ const EPS_SITE = 1;
 const VERTICAL = new Set(["stair", "shaft", "void"]);
 /** 0.3以前が採光の対象と推定していた型 (ADR-0020で廃止)。旧版の受理条件の判定にだけ使う — 意味論には効かない */
 const LEGACY_DAYLIT = new Set(["unit", "room", "ldk", "bedroom", "living"]);
+
+/**
+ * 1.0以前が型の位置から構造として読んでいた二語 (ADR-0051で廃止)。
+ * **VER05 の受理条件の判定にだけ使う — 意味論には効かない。**
+ * 型を読む場所がここにしか無いことは test/vocabulary.test.ts が守っている
+ */
+const RETIRED_STRUCTURAL_TYPES: Record<string, { decl: string; loses: string }> = {
+  exterior: { decl: "outside:1", loses: "stops being outside (it becomes indoor floor area)" },
+  void: { decl: "void:1", loses: "stops being a void (a floor is generated in it)" },
+};
 
 /**
  * 版の新旧は `SUPPORTED_LANGUAGE_VERSIONS` の並びで決まる。**辞書順で比べてはならない** —
@@ -460,7 +471,7 @@ function checkDaylightScope(ctx: Ctx): void {
 /** 解釈される属性の値 — ATT01 / ATT02 */
 function checkAttrValues(ctx: Ctx): void {
   const { model, emit } = ctx;
-  // 属性の三層 (spec/scope.md §7)。**書いたのに解釈されなかったものを、黙って落とさない。**
+  // 属性の三層 (docs/reference/scope.md)。**書いたのに解釈されなかったものを、黙って落とさない。**
   //
   // ADR-0028 は値を守った — `site:yes` は敷地の判定を、`h:35OO` は高さ不変量を、
   // それぞれ丸ごと無音にしていた。だが**キー**は無防備のままだった。
@@ -589,7 +600,7 @@ function checkColumns(ctx: Ctx): void {
   }
 }
 
-/** 言語版の受理条件 — VER01〜VER04 */
+/** 言語版の受理条件 — VER01〜VER05 */
 function checkLanguageVersion(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 言語版の受理条件 (ADR-0017): 旧版は意味保存の場合のみ受理する。
@@ -610,12 +621,48 @@ function checkLanguageVersion(ctx: Ctx): void {
   // 書かれていなければ、0.4では判定から黙って外れる — 意味が変わるのでエラーで二択を示す
   if (["0.1", "0.2", "0.3"].includes(model.version)) {
     for (const s of model.spaces.values()) {
-      if (!LEGACY_DAYLIT.has(s.type) || s.attrs["daylight"] !== undefined) continue;
+      if (s.type === undefined || !LEGACY_DAYLIT.has(s.type) || s.attrs["daylight"] !== undefined) continue;
       emit(
         "VER02",
         `A koyu ${model.version} file has a ${s.type} with no daylight: ${s.path} — 0.4 does not infer the daylight scope from the type, so it falls out of the check. Write daylight:1 (in scope) or daylight:0 (out of scope), then raise the version to koyu 0.4`,
         { line: s.line, file: s.file, path: [s.path] },
       );
+    }
+  }
+
+  // 1.0 以前は型の位置に書かれた `exterior` と `void` が構造として読まれていた (ADR-0051 で廃止)。
+  // 1.1 の処理系はそこを一切読まないので、**書き換えないまま版を上げないと黙って別の建物になる** —
+  // 外部が屋内の床になり、吹抜けに床が生成される。実測で複合用途の例は延床 31,606.24㎡ が
+  // 33,004.00㎡ に増えながら check は緑で通った。ADR-0020 が `daylight` で下したのと同じ判断で、
+  // エラーにして二択を示す。
+  if (olderThan(model.version, "1.1")) {
+    for (const s of model.spaces.values()) {
+      const retired = RETIRED_STRUCTURAL_TYPES[s.type ?? ""];
+      if (!retired) continue;
+      emit(
+        "VER05",
+        `A koyu ${model.version} file writes ${s.type} in the type position: ${s.path} — 1.1 reads no meaning from the type, so this space silently ${retired.loses}. Write ${retired.decl} instead, then raise the version to koyu 1.1`,
+        { line: s.line, file: s.file, path: [s.path] },
+      );
+    }
+    // 逆向きも同じ境界である — 1.1 で入った語を古い版で書けば、知らない処理系は
+    // ATT03 で拒む。版の宣言と語彙は一致していなければならない (VER03/VER04 と同型)
+    for (const s of model.spaces.values()) {
+      if (s.type === undefined) {
+        emit(
+          "VER05",
+          `A koyu ${model.version} file writes a space with no type: ${s.path} — the type became optional in 1.1, and an older processor refuses the line. Write a type, or raise the version to koyu 1.1`,
+          { line: s.line, file: s.file, path: [s.path] },
+        );
+      }
+      for (const key of ["outside", "void"]) {
+        if (s.attrs[key] === undefined) continue;
+        emit(
+          "VER05",
+          `A koyu ${model.version} file carries ${key}: on ${s.path} — that word arrives in 1.1. Raise the version to koyu 1.1`,
+          { line: s.line, file: s.file, path: [s.path] },
+        );
+      }
     }
   }
 
@@ -712,7 +759,7 @@ function checkUids(ctx: Ctx): void {
     }
   }
 
-  // 開口・内包物の同一性は「含む対象 + その中で一意な名」から導かれる (spec/scope.md §5)。
+  // 開口・内包物の同一性は「含む対象 + その中で一意な名」から導かれる (docs/reference/scope.md)。
   // 名が重複していれば、その同一性は成り立たない — `over ... = door D1` はどちらを指すのか
   // 決められず、`drop column C1` は二本まとめて消してしまう。**推測せずに拒む** (ADR-0039)。
   // 名を書かない要素は同一性を主張していないので、母集団に入らない
@@ -810,8 +857,8 @@ function checkVerticalBoundary(ctx: Ctx, b: Boundary, sa: Space, sb: Space, bAt:
   }
   if (b.kind === "void") {
     const upper = (ia ?? 0) > (ib ?? 0) ? sa : sb;
-    if (upper.type !== "void") {
-      emit("VRT04", `The space above a void boundary is expected to be type:void: ${upper.path}`, bAt);
+    if (!isVoid(upper)) {
+      emit("VRT04", `The space above a void boundary is expected to declare void:1: ${upper.path}`, bAt);
     }
   }
   // 咎めているのは字下げされた door / window / seg の行そのものなので、
@@ -1068,7 +1115,7 @@ function checkHeights(ctx: Ctx): void {
 /**
  * 充足性 — 領域を持つ空間の走査 (SUF02 / SUF01)。
  *
- * **妥当性の判定ではなく、完全性の検査である** (spec/scope.md §6-2)。形を作らないことと
+ * **妥当性の判定ではなく、完全性の検査である** (docs/reference/scope.md-2)。形を作らないことと
  * 形を作れないことは違う — 天井高が決まらなければ押し出す高さが無く、レベルが決まらなければ
  * z が無い。どちらも「書いてある構成から一意な形が出る」という契約 (ADR-0034) の破れである。
  *
@@ -1084,7 +1131,7 @@ function checkSpaceSufficiency(ctx: Ctx): void {
       emit("SUF02", `${s.path} has a region, but its level cannot be determined (give it at the head of the path or with level:)`, at);
       continue; // z が決まらない空間には、天井高を問う意味が無い
     }
-    if (s.type === "void" || s.type === "exterior" || isSemiOutdoor(model, s)) continue;
+    if (isVoid(s) || isOutside(s) || isSemiOutdoor(model, s)) continue;
     if (heff(model, s) === undefined) {
       emit(
         "SUF01",
@@ -1109,7 +1156,7 @@ function checkLevelSufficiency(ctx: Ctx): void {
     // 床を持ちうる空間が一つも載っていない階 (最上階の上限を与えるだけの屋上レベルなど) には
     // 言うことが無い — 生成されなかった床が無いのだから
     const n = withRect.filter(
-      (s) => s.level === l.name && s.type !== "void" && s.type !== "exterior",
+      (s) => s.level === l.name && !isVoid(s) && !isOutside(s),
     ).length;
     if (n === 0) continue;
     emit("SUF03", `Level ${l.name} has no slab:, so not one floor is generated on this storey`, {

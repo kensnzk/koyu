@@ -1,2 +1,2 @@
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out edge:W t:200

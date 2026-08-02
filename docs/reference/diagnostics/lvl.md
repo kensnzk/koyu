@@ -1,19 +1,19 @@
 ---
-title: LVL — レベル
+title: LVL — levels
 mode: reference
 ---
 
-# LVL — レベル
+# LVL — levels
 
-LVL は一つだけである。
+There is only one LVL code.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| LVL01 | error | 二つのレベルの `z` が同じ |
+| LVL01 | error | Two levels share the same `z` |
 
-レベルは名前と `z` (基準面からの高さ mm) の対である。`z` は**順序を与える唯一の値**であり、そこから階高・上下関係・垂直の隣接・柱と壁の伸び — 断面のすべてが導かれる。二つのレベルが同じ `z` にあると、その順序が決まらない。
+A level is a name paired with a `z` — a height in mm above the datum. `z` is **the only value that gives order**, and everything in section is derived from it: storey heights, what is above what, vertical adjacency, how far walls and columns rise. When two levels sit at the same `z`, that order is undetermined.
 
-## LVL01 — レベルの z が同じです
+## LVL01 — the levels have the same z {#lvl01}
 
 `error`
 
@@ -28,17 +28,17 @@ level L2 0
 Levels L1 and L2 have the same z
 ```
 
-**原因** — 二つのレベルが同じ高さにある。判定は `z` の差が **0.5mm 未満**かどうかで、`level A 0` と `level B 0.4` も同じ扱いになる。
+**Cause** — two levels are at the same height. The test is whether the difference in `z` is **less than 0.5mm**, so `level A 0` and `level B 0.4` count as the same too.
 
-`z` が並ばないと、次が全部決まらない。
+Without an order in `z`, none of the following is settled.
 
-- **階高。**階高は書かれない。次のレベルの `z` との差である。同じ `z` の隣どうしでは階高が 0 になる。
-- **上下関係。**`type:stair` / `shaft` / `void` の垂直境界は「隣り合うレベルの間」にしか張れない ([VRT02](./vrt.md))。隣り合うとは `z` 順で隣という意味である。
-- **柱と壁が伸びる高さ。**階高そのものである。
+- **Storey height.** It is never written; it is the difference to the next level's `z`. Between neighbours at the same `z` it comes out as 0.
+- **What is above what.** A `type:stair` / `shaft` / `void` boundary may only be written between **adjacent** levels ([VRT02](./vrt.md)), and adjacent means adjacent in `z` order.
+- **How far walls and columns rise.** That is the storey height itself.
 
-**診断の位置** — メッセージは `z` 順で隣り合う二つを名指し、行は**後ろ側**を指す。`related` に前側の行が入る。三つのレベルが同じ `z` にあれば、隣接の対ごとに二件出る。
+**Where the diagnostic points** — the message names the two neighbours in `z` order, and the line points at the **later** one; `related` carries the line of the earlier one. Three levels at the same `z` produce two diagnostics, one per adjacent pair.
 
-**直し方** — `z` を直す。
+**Fix** — correct the `z`.
 
 ```muro
 grid X 0 3600
@@ -47,9 +47,9 @@ level L1 0
 level L2 3000
 ```
 
-## 範囲宣言との衝突
+## Clashing with a range declaration
 
-`level` は範囲でも書ける。`level L1..L3 0 pitch:3000` は `L1` `L2` `L3` を 0 / 3000 / 6000 に置く。個別の宣言がその途中の `z` にぶつかると LVL01 が出る。
+`level` can also be written as a range. `level L1..L3 0 pitch:3000` places `L1`, `L2` and `L3` at 0, 3000 and 6000. An individual declaration landing on one of the intermediate values raises LVL01.
 
 ```muro-bad
 grid X 0 3600
@@ -62,7 +62,7 @@ level M 3000
 Levels L2 and M have the same z
 ```
 
-範囲宣言は `z` を書かせないので、衝突は見えにくい。`koyu levels` を回すと積み上がりが出て、どこが潰れているかが分かる。
+A range declaration writes no intermediate `z`, so the clash is hard to see. Run `koyu levels` and the stack-up shows where it collapsed.
 
 ```text
 L3	z:6000	h:2600	slab:400
@@ -74,23 +74,23 @@ L1	z:0	h:2600	slab:400
   ↑ storey height 3000 = ceiling 2600 + slab 400
 ```
 
-`storey height 0` の行が、潰れた階である。
+The `storey height 0` line is the collapsed storey.
 
-**直し方** — 中間階に別の名を与えたいだけなら、レベルではなく `zone` で束ねる。ゾーンは `z` を持たないので断面の順序を乱さない。ほんとうに中二階が要るなら、`z` を実際の高さ (`level M 1500`) にする。
+**Fix** — if you only wanted another name for the same floor, bundle it with a `zone` instead of a level. Zones carry no `z`, so they never disturb the order in section. If you really want a mezzanine, give it its actual height (`level M 1500`).
 
-## 同じ名前を二度書いた場合
+## Writing the same name twice
 
-これは LVL01 ではない。合成前の構文の誤りなので、パーサがその場で止める。
+That is not LVL01. It is a syntax error, caught by the parser before composition.
 
 ```text
 Duplicate level: L1
 ```
 
-範囲宣言が既存の名前を再び作った場合も同じ本文になる。`check --json` ではこれは [SYN01](./syn.md) として出る。
+A range declaration that re-creates an existing name produces the same body. Under `check --json` it appears as [SYN01](./syn.md).
 
-## 関連
+## Related
 
-- [SUF — 充足性](./suf.md) — レベルが特定できない空間 (SUF02)、`slab:` の無いレベル (SUF03)
-- [HGT — 高さの不変量](./hgt.md) — `z` から導かれる階高との突き合わせ
-- [SYN — 構文と合成](./syn.md) — レベル名の重複・未宣言のレベル
+- [SUF — sufficiency](./suf.md) — a space with no determinable level (SUF02), a level with no `slab:` (SUF03)
+- [HGT — the height invariant](./hgt.md) — the storey height derived from `z`
+- [SYN — syntax and composition](./syn.md) — duplicate and undeclared level names
 - [koyu check](../cli/check.md)

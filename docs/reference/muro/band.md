@@ -1,9 +1,9 @@
 ---
-title: band — 寸法と並びで空間を割る
+title: band — dividing a space by dimension and order
 mode: reference
 ---
 
-# band — 寸法と並びで空間を割る
+# band — dividing a space by dimension and order
 
 ```muro
 grid X 0 3600 5400
@@ -14,43 +14,43 @@ band X X1..X3 Y1..Y2
   space /L1/hall hall w:1800 name:玄関
 ```
 
-`band <軸> <X?..X?> <Y?..Y?>` と、その直下に字下げした `space` 行。**帯は位置ではなく寸法と並びを書く記法である。**位置はそこから導出される。
+`band <axis> <X?..X?> <Y?..Y?>`, with indented `space` lines beneath it. **A band writes dimension and order rather than position.** The position is derived from them.
 
-[レベル](level.md)の積み上げが垂直の矩計であるのと同じことを、水平で行うものだと考えるとよい。`level L1 0` `level L2 3400` と書くかわりに階高を積み上げるように、`X1..X2` `X2..X3` と書くかわりに幅を並べる。
+It helps to see it as the horizontal counterpart of stacking up [levels](level.md). Just as a section is built by stacking storey heights instead of writing `level L1 0` and `level L2 3400`, a band is built by listing widths instead of writing `X1..X2` and `X2..X3`.
 
-領域で書く書き方と併存し、どちらで書くかは強制されない。上の 6 行は、次の書き方と**同じモデル**を与える。
+Bands coexist with regions and neither is imposed. The six lines above give **the same model** as this.
 
 ```muro-part
 space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK
 space /L1/hall hall X2..X3 Y1..Y2 name:玄関
 ```
 
-## 帯の行
+## The band line
 
-| 位置 | 意味 |
+| Position | Meaning |
 |---|---|
-| 第1位置引数 | 割る向き。`X` = 西→東 / `Y` = 南→北。`grid X 0 6400 …` と同じ綴り方である |
-| 第2・第3位置引数 | 帯の範囲。`X?..X?` と `Y?..Y?` を一つずつ。[空間](space.md)の領域と同じ字句で、順不同 |
+| 1st positional | The direction of division. `X` = west to east, `Y` = south to north. The same spelling as in `grid X 0 6400 …` |
+| 2nd and 3rd positionals | The extent of the band: one `X?..X?` and one `Y?..Y?`, in either order, with the same lexis as a [space](space.md) region |
 
-**この行に `key:value` は書けない。**帯はモデルに残らないので、属性の運び先が無い。属性は要素の `space` 行に書く。
+**No `key:value` may be written on this line.** A band does not survive into the model, so there is nowhere for an attribute to live. Attributes go on the member `space` lines.
 
 ```text
 ✖ b4.muro:line 4: Only the axis and the extent may be written on a band line (attributes go on the member space lines): name:帯
 ```
 
-`+` による領域の合併も書けない。帯は一つの矩形を一方向へ割るものである。
+A `+` union cannot be written either. A band divides one rectangle in one direction.
 
-### 範囲は昇順で書く
+### The extent is written ascending
 
-空間の領域では `X2..X1` は同じ矩形の別綴りとして昇順に正規化されるが、**帯では逆順が拒まれる**。要素の並びが意味を持つ — 先に書いた要素が低座標の側に来る — ので、綴りの向きを黙って直せば並びが黙って逆になるからである。
+On a space region, `X2..X1` is another spelling of the same rectangle and is normalized to ascending order. **On a band, a descending spelling is refused.** The order of the members carries meaning — the one written first lands on the low-coordinate side — so quietly normalizing the spelling would quietly reverse the order.
 
 ```text
 ✖ b1.muro:line 4: A band range is written in ascending order (members run west to east / south to north): X3..X1
 ```
 
-## 要素
+## Members
 
-字下げした `space` 行が帯の要素である。領域の代わりに幅 `w:` を持つほかは、通常の `space` 行と同じで、パス・型・属性・レベルスパンをそのまま書ける。
+An indented `space` line is a member of the band. Apart from carrying a width `w:` in place of a region, it is an ordinary `space` line: path, type, attributes and level spans are all written as usual.
 
 ```muro-part
 band X X1+3200..X2+3200 Y1+4000..Y2
@@ -58,27 +58,27 @@ band X X1+3200..X2+3200 Y1+4000..Y2
   space /L3..L10/A/hall hall w:1600 name:玄関
 ```
 
-- `w:` は**帯の向きの寸法 mm** である。軸相対であって、常に幅でも常に奥行でもない。値は正の整数か `rest` で、小数は書けない。
-- 要素に `level:` は書けない。帯は一つのレベルの上の一続きだからである。
-- 要素に [area](area.md) は書けない。要素の領域は導出されるものなので、その中の範囲を先に書くことはできない。
-- レベルスパンを書くときは、**帯の中で同じレベルに展開されなければならない**。
+- `w:` is **the dimension along the band's direction**, in mm. It is relative to the axis, so it is neither always a width nor always a depth. The value is a positive integer or `rest`; decimals cannot be written.
+- A member cannot carry `level:`. A band is one run on one level.
+- A member cannot carry an [area](area.md). A member's region is derived, so an extent inside it cannot be written in advance.
+- When a member carries a level span, **all members must expand onto the same level**.
 
 ```text
 ✖ b8.muro:line 5: level: may not be written on a band member (a band is a run on one level): level:L1
 ✖ b9.muro:line 6: area may not be written on a band member (its region is derived — write a room that needs area by position)
 ```
 
-帯の外の `space` に `w:` は書けない。字下げを落とした要素が「領域を持たない空間」として黙って通るのを防ぐためである。
+`w:` cannot be written on a `space` outside a band. That refusal is what stops a member whose indentation was lost from passing silently as "a space with no region".
 
 ```text
 ✖ b5.muro:line 4: w: may not be written on space (a space written by width sits indented under band)
 ```
 
-## 閉じた帯が既定である
+## A closed band is the default
 
-**全要素に寸法を書き、合計が帯の幅と一致することを parse が照合する。**図面の「部分寸法の合計 = 総寸法」と同じ検算であり、寸法の打ち間違いをその場で捕まえる唯一の防御である。
+**Every member carries a dimension, and the parser reconciles their sum against the width of the band.** It is the same arithmetic as "the partial dimensions sum to the overall" on a drawing, and it is the only defence that catches a mistyped dimension where it was typed.
 
-合計が足りなければエラーになる。
+A sum that falls short is an error.
 
 ```muro-bad
 grid X 0 3600 5400
@@ -95,7 +95,7 @@ band X X1..X3 Y1..Y2
   /L1/hall w:1000
 ```
 
-超えてもエラーになる。
+A sum that overshoots is an error too.
 
 ```text
 ✖ b3.muro:line 4: The dimensions sum to 6000mm against a band width of 5400mm, 600mm over
@@ -103,11 +103,11 @@ band X X1..X3 Y1..Y2
   /L1/hall w:2000
 ```
 
-**ソルバーは無い。**足し算と一回の引き算だけで、順序は宣言順、向きは常に低座標から高座標へである。
+**There is no solver.** Additions and a single subtraction, in declaration order, always running from the low coordinate to the high one.
 
-### w:rest — 残りを吸収する
+### w:rest — absorbing the remainder
 
-残りが設計判断でないときに限って、`w:rest` を書ける。帯に高々一つで、位置は問わない。
+Where the remainder is not a design decision, and only there, a member may be `w:rest`. At most one per band, at any position.
 
 ```muro-part
 band X X1..X3 Y1..Y2
@@ -115,25 +115,25 @@ band X X1..X3 Y1..Y2
   space /L1/b room w:rest
 ```
 
-二つ書けばエラーになる。
+Two is an error.
 
 ```text
 ✖ b6.muro:line 7: Only one member per band absorbs the remainder (w:rest): /L1/b, /L1/c
 ```
 
-他の寸法が帯を使い切っていて `rest` に残りが無いときもエラーになる — 幅ゼロの空間は形にならないからである。
+So is a `rest` with nothing left for it, because a space of zero width is not a form.
 
 ```text
 The other dimensions use up the band width of 5400mm, leaving zero for /L1/b (w:rest)
 ```
 
-## 破れはすべて parse のエラーである
+## Every fault is a parse error
 
-帯が壊れていれば矩形が一つも作れない。形の問題なので、帯の破れに専用の診断コードは無く、すべて parse のエラーとして止まる。`check --json` では [SYN01](../diagnostics/syn.md) として現れる。
+A broken band produces not one rectangle. That is a problem of form, so no diagnostic code is reserved for it: a broken band stops in the parse. In `check --json` it surfaces as [SYN01](../diagnostics/syn.md).
 
-## 帯はモデルに残らない
+## A band does not survive into the model
 
-帯は parse のときに通常の空間へ展開され、**モデルにも正準JSONにも残らない**。帯で書いた版と位置で書いた版は同じ正準JSONを与えるので、書き方を変えただけの差分は差分として出ない。
+A band is expanded into ordinary spaces at parse time and **survives neither in the model nor in the canonical JSON**. A version written with bands and one written with positions give the same canonical JSON, so changing only the way it is written produces no difference.
 
 ```text
 $ npx tsx src/cli.ts json band.muro
@@ -165,11 +165,11 @@ $ npx tsx src/cli.ts json band.muro
   },
 ```
 
-## 導出される切り位置の綴り — 床規則
+## How a derived cut is spelled — the floor rule
 
-展開された空間は通り参照で綴られる。**帯の両端と直交方向の両端は書かれた綴りがそのまま使われ、内側の切り位置だけが綴られる。**
+The expanded spaces are spelled as grid references. **Both ends of the band, and both ends across it, keep the spelling as written; only the interior cuts are spelled out.**
 
-内側の綴りの規則は一つで、「その座標**以下**で最も大きい通り芯からのオフセット」である。オフセットが 0 なら通り名だけになり、先頭の通り芯より手前なら負のオフセットになる。
+There is one rule for the interior: the offset from the largest grid line **at or below** the coordinate. An offset of zero leaves just the grid name, and a coordinate before the first grid line takes a negative offset.
 
 ```muro
 grid X 0 6400 12800
@@ -180,7 +180,7 @@ band X X1..X3 Y1..Y2
   space /L1/b room w:rest
 ```
 
-切り位置 8000 は `X2+1600` と綴られる。
+The cut at 8000 is spelled `X2+1600`.
 
 ```text
 $ npx tsx src/cli.ts json b7.muro
@@ -206,6 +206,6 @@ $ npx tsx src/cli.ts json b7.muro
   },
 ```
 
-**上の通り芯から引く綴り (`Y2-1800`) は導出では生じない。**その流儀で領域を書いていたファイルを帯に書き直すと、幾何は同一でも綴りが変わり、意味の差分に現れる。
+**A spelling that subtracts from the grid line above (`Y2-1800`) never arises from derivation.** Rewrite a region written in that idiom as a band and the geometry is identical while the spelling changes, which shows up in the semantic diff.
 
-導かれた切り位置が mm の整数にならない場合もエラーになる — 通り参照で綴れない位置は書けないからである。
+A derived cut that is not an integer number of millimetres is an error too — a position that cannot be spelled as a grid reference cannot be written.

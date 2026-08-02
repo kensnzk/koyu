@@ -224,8 +224,7 @@ test("band errors: a missing width and an invalid width", () => {
   }
 });
 
-test("band errors: the member type, region, and level:", () => {
-  bad("band X X1..X2 Y1..Y2\n  space /L1/a w:1600\n", /The band member \/L1\/a requires a type \(a word from the vocabulary\)/);
+test("band errors: the member region and level: (the type is optional, as it is on space)", () => {
   bad(
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:rest X1..X2\n",
     /A region may not be written on a band member/,
@@ -234,6 +233,16 @@ test("band errors: the member type, region, and level:", () => {
     "band X X1..X2 Y1..Y2\n  space /L1/a room w:rest level:L1\n",
     /level: may not be written on a band member/,
   );
+});
+
+// The type used to be required here, and the parser had a special error for "a k:v landed in
+// the type position" so that a forgotten type was not misreported as a missing width. With the
+// type optional that shape is simply a member that carries no label, and it is legal.
+test("band: a member may carry no type at all", () => {
+  const m = parse("koyu 1.1\ngrid X 0 3200\ngrid Y 0 4000\nlevel L1 0\nband X X1..X2 Y1..Y2\n  space /L1/a w:rest\n");
+  const s = m.spaces.get("/L1/a")!;
+  assert.equal(s.type, undefined);
+  assert.equal(s.rects.length, 1);
 });
 
 test("band errors: no members, an indented space outside a band, and area under a band", () => {

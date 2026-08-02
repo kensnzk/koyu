@@ -28,7 +28,7 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "type", "pieces", "indoor"],
+        "required": ["id", "pieces", "indoor"],
         "additionalProperties": false,
         "properties": {
           "id": { "type": "string", "pattern": "^/" },

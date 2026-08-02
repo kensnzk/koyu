@@ -1,37 +1,37 @@
 ---
-title: koyu と IFC の実測比較
+title: koyu measured against IFC
 mode: explanation
 ---
 
-# koyu と IFC の実測比較
+# koyu measured against IFC
 
-同じ二室 — 3.6m×4.5m の室が二つ、界壁の扉一枚、玄関一枚 — を、`.muro` と IFC4 (SPF) と IFCX (IFC5 alpha) で書いたものが `examples/comparison/` にある。**形式の巧拙を競う比較ではない。**記述の主語を「建築物 (物)」から「建築 (空間)」に取り替えると何が起きるかを、行数とバイト数とトークン数で測るためのものである。
+The same two rooms — two 3.6 m × 4.5 m rooms, one door in the party wall, one entrance door — written in `.muro`, in IFC4 (SPF) and in IFCX (IFC5 alpha), all under `examples/comparison/`. **This is not a contest between formats.** It measures, in lines, bytes and tokens, what happens when the subject of the description changes from "a building (a thing)" to "architecture (space)".
 
-## 測った結果
+## What the measurements say
 
-LLM が読み書きする単位 (o200k_base) での実測。
+Measured in the units an LLM reads and writes (o200k_base).
 
-| 形式 | 主語 | 行 | バイト | トークン | 対 `.muro` |
+| Format | Subject | Lines | Bytes | Tokens | vs `.muro` |
 |---|---|---:|---:|---:|---:|
-| `.muro` (原本) | 空間と境界 | 18 | 394 | **178** | 1.0x |
-| koyu 正準JSON | 同上 | 116 | 1,696 | 587 | 3.3x |
-| IFC4 (理想化最小) | 部材 | 152 | 7,291 | **3,379** | **19.0x** |
-| IFCX (alpha) | 部材＋メッシュ同梱 | 1,030 | 20,111 | **6,034** | **33.9x** |
+| `.muro` (the source) | space and boundary | 18 | 394 | **178** | 1.0x |
+| koyu canonical JSON | same | 116 | 1,696 | 587 | 3.3x |
+| IFC4 (idealised minimum) | building elements | 152 | 7,291 | **3,379** | **19.0x** |
+| IFCX (alpha) | elements plus embedded mesh | 1,030 | 20,111 | **6,034** | **33.9x** |
 
-`.muro` の行は、IFC 版と**同じ場面に揃えた**ものを測っている。同梱の `examples/two-rooms.muro` は窓を二つと `daylight:1` を余分に持つので 26行 / 916バイト / 359トークンあり、IFC 版はそれらを持たない。**多く運んで、なお9分の1である。**
+The `.muro` row measures a file **trimmed to the same scene** as the IFC versions. The bundled `examples/two-rooms.muro` additionally carries two windows and `daylight:1`, which brings it to 26 lines / 916 bytes / 359 tokens; the IFC versions carry none of that. **It carries more and is still one ninth the size.**
 
-### トークンは何に費やされているか
+### Where the tokens go
 
-- **IFC4 の 57%** は幾何・配置系のエンティティである。プロファイル → 押し出し → 形状表現 → 配置という階段を、壁5枚・開口2・扉2それぞれについて登る必要がある。
-- **IFCX の 44%** は、数値しか載っていない行である。メッシュ座標配列がそれで、バイトで見れば7割を超える (JSON の構造キーの方がトークン単価が高いので、トークン比では下がる)。
+- **57% of IFC4** is geometry and placement entities. Profile → extrusion → shape representation → placement has to be climbed once per element, for five walls, two openings and two doors.
+- **44% of IFCX** is lines containing nothing but a number. Those are the mesh coordinate arrays; measured in bytes they are over 70% (JSON structural keys cost more per token, so the token share is lower).
 
-つまりどちらも、**トークンの過半が「形は生成物である」という立場が原本から追放した層に費やされている。**
+In other words, **in both formats the majority of the tokens go to the layer that "form is a generated artifact" removes from the source.**
 
-## 答えられる問いが違う
+## They can answer different questions
 
-「a から外へ扉を何枚通るか」を IFC4 に訊くには、Space → RelSpaceBoundary → Wall → RelVoids → Opening → RelFills → Door と5段の関係を辿った上で、なお「その扉がどの空間とどの空間を繋ぐか」がデータに無いので幾何から推定することになる。
+Asking IFC4 "how many doors does a pass from a to the outside go through" means walking Space → RelSpaceBoundary → Wall → RelVoids → Opening → RelFills → Door, five relations deep, and then inferring from geometry which two spaces the door actually connects, because that is not in the data.
 
-`.muro` では一行である。
+In `.muro` it is one line.
 
 ```sh
 npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
@@ -41,37 +41,37 @@ npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
 2 doors — /L1/a → /L1/b → /out
 ```
 
-**これは形式の優劣ではなく、主語の違いの帰結である。**IFC4 も IFCX も形が原本なので任意の形状を運べるが、構成 (どの空間がどう繋がるか) は関係の網から掘り出すか幾何から推定するしかない。koyu は構成が原本なのでグラフへの問いと差分と図の生成が無料になるが、**形は直交グリッドの生成規則が届く範囲しか出せない**。対称なトレードオフではない。
+**This is not a matter of one format being better; it follows from the change of subject.** IFC4 and IFCX have form as their source, so they can carry any shape, but composition — which space connects to which — has to be dug out of a web of relations or inferred from geometry. koyu has composition as its source, so graph questions, diffs and generated drawings come free, while **form can only be produced within reach of the orthogonal-grid generation rules**. The trade is not symmetric.
 
-## IFC4 版の中身
+## What is inside the IFC4 version
 
-`examples/comparison/two-rooms.ifc` の152行は、徹底的にごまかした理想化最小である。プロパティセット・材料・スタイル・OwnerHistory・接合処理を全部落とし、形状は矩形押し出しのみ、名前は ASCII のみ。空間は IfcSpace として2つ入れ、IfcRelSpaceBoundary を8本手で張ったが、境界の接続ジオメトリは省略した — **実務の書き出しで最も欠落しやすいのがまさにここ**で、IfcSpace 自体が書き出されないことも珍しくない。
+The 152 lines of `examples/comparison/two-rooms.ifc` are a thoroughly cheated idealised minimum. Property sets, materials, styles, OwnerHistory and joint processing are all dropped; shapes are rectangular extrusions only; names are ASCII only. Two spaces are included as IfcSpace and eight IfcRelSpaceBoundary were drawn by hand, but the connection geometry of the boundaries was omitted — **that is precisely what most often goes missing in real exports**, and it is not unusual for IfcSpace itself never to be written out at all.
 
-読めることは検証済みで、IfcWall×5 / IfcSpace×2 / IfcDoor×2 / IfcOpeningElement×2 / IfcRelSpaceBoundary×8 が取り出せ、ブーリアン込みで7つのメッシュが組み上がる。
+It has been verified as readable: IfcWall × 5, IfcSpace × 2, IfcDoor × 2, IfcOpeningElement × 2 and IfcRelSpaceBoundary × 8 come back out, and seven meshes assemble including the booleans.
 
-参考として、IFC5-development の hello-wall は壁1枚＋窓2つの場面で `.ifc` が79KB、`.ifcx` が43KB ある (オーサリングツール経由の現実的な出力)。実務モデルなら数十MBになる。
+For reference, the hello-wall of IFC5-development — one wall and two windows — is 79 KB as `.ifc` and 43 KB as `.ifcx` (realistic output through an authoring tool). A production model runs to tens of megabytes.
 
-## IFCX 版の中身
+## What is inside the IFCX version
 
-`examples/comparison/two-rooms.ifcx` は hello-wall.ifcx の流儀 (UUID パス、`children` による階層、`bsi::ifc::class` による分類、`usd::usdgeom::mesh` の同梱) に倣って生成した。形式は JSON になり、レイヤー合成という強力な機構を得たが、**場面の原本がビルド成果物 (メッシュ) を抱えて肥大する構造は変わらない**。主語も依然 IfcWall である。開口のブーリアンは省略し、扉を壁の子の箱として置いた近似なので、alpha 仕様への厳密な準拠は保証しない。
+`examples/comparison/two-rooms.ifcx` was generated in the manner of hello-wall.ifcx: UUID paths, hierarchy through `children`, classification through `bsi::ifc::class`, and `usd::usdgeom::mesh` embedded. The format becomes JSON and gains a powerful layer-composition mechanism, but **the structure in which the source of a scene bloats by carrying a build artifact (the mesh) is unchanged**. The subject is still IfcWall. The opening booleans are omitted and the doors placed as boxes parented to the wall, so strict conformance to the alpha specification is not claimed.
 
-## 桁を上げても載る
+## It still fits an order of magnitude up
 
-同じ物差しで大きい例を測る。
+The same measure on the larger examples.
 
-| 例 | 屋内床面積 | 空間 | 境界 | 原本トークン | 正準JSONトークン |
+| Example | Interior floor area | Spaces | Boundaries | Source tokens | Canonical JSON tokens |
 |---|---:|---:|---:|---:|---:|
-| [tower](tower.md) | 4,785.92㎡ | 178 | 543 | **8,574** | 74,704 |
-| [complex](complex.md) | 31,606.24㎡ | 425 | 1,364 | **12,685** | 137,913 |
-| [twin](twin.md) | 141,448.56㎡ | 1,808 | 5,973 | **26,630** | 450,040 |
+| [tower](tower.md) | 4,785.92 m² | 178 | 543 | **8,574** | 74,704 |
+| [complex](complex.md) | 31,606.24 m² | 425 | 1,364 | **12,685** | 137,913 |
+| [twin](twin.md) | 141,448.56 m² | 1,808 | 5,973 | **26,630** | 450,040 |
 
-**床面積が 6.6倍 になって、原本は 1.48倍 にしかならない** (tower → complex)。原本の大きさは建物の大きさではなく**設計判断の数**に比例するからで、複合建築は繰り返しでできている。レベルスパンと[帯](../reference/muro/band.md)と [`stack`](../reference/muro/stack.md) がその繰り返しを丸ごと畳む。
+**The floor area goes up 6.6 times and the source goes up 1.48 times** (tower to complex). The size of the source is proportional to **the number of design decisions**, not to the size of the building, because a mixed-use building is made of repetition — and level spans, [bands](../reference/muro/band.md) and [`stack`](../reference/muro/stack.md) fold that repetition whole.
 
-倍率をそのまま当てれば、complex 相当の一棟は IFC4 で約13万トークン、IFCX で約24万トークンになる。しかもこの倍率は「徹底的にごまかした理想化最小の IFC」に対するものであって、**実務のオーサリングツールが書き出すこの規模の IFC (数十MB) はどのコンテキストにも載らない**。
+Apply the ratios directly and a building the size of complex would be roughly 130,000 tokens in IFC4 and 240,000 in IFCX. And those ratios are against a thoroughly cheated idealised minimum: **the IFC an authoring tool actually exports at this scale (tens of megabytes) fits in no context at all.**
 
-**一棟を LLM の一つのコンテキストに置けるかどうかが、この主語の取り替えで桁ごと変わる。**しかも複合建築の全体が文脈に載ったうえで、一つの階を書き換えるのに触るのは一枚のレイヤーだけで済む。
+**Whether one building can be placed in a single LLM context changes by orders of magnitude with that change of subject** — and with the whole building in context, rewriting one floor still touches only one layer.
 
-## 再現
+## Reproducing it
 
 ```sh
 npx tsx examples/comparison/gen-ifc4.ts > examples/comparison/two-rooms.ifc
@@ -79,8 +79,8 @@ npx tsx examples/comparison/gen-ifcx.ts > examples/comparison/two-rooms.ifcx
 npx tsx examples/comparison/validate-ifc.ts examples/comparison/two-rooms.ifc
 ```
 
-UUID と GUID は名前から決定的に導いているので、生成し直しても差分は出ない。トークン数は o200k_base (GPT-4o 系トークナイザ) による実測で、cl100k_base でもほぼ同値になる。
+UUIDs and GUIDs are derived deterministically from names, so regenerating produces no diff. Token counts were measured with o200k_base (the GPT-4o family tokenizer); cl100k_base gives near-identical figures.
 
-## 用語
+## Terms
 
-IFC・IfcSpace・IFC5 / IFCX・OpenUSD・BIM といった koyu の外の語の定義は[用語集](../glossary.md)の末尾にある。「建築」と「建築物」を日本語が区別することの意味も、そこに書いてある。
+Definitions of the words outside koyu — IFC, IfcSpace, IFC5 / IFCX, OpenUSD, BIM — are at the end of the [glossary](../glossary.md), along with what it means that Japanese distinguishes 建築 (architecture) from 建築物 (a building as a legal object).

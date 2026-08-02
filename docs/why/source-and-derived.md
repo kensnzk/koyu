@@ -1,79 +1,79 @@
 ---
-title: 導出される情報
+title: Derived information
 mode: explanation
 ---
 
-# 導出される情報
+# Derived information
 
-**`.muro` に形は無い。**平面図も面積も内外の別も動線も、原本には書かれず、すべて導出される。
+**There is no form in a `.muro` file.** Plans, areas, the inside/outside distinction, circulation — none of it is written in the source; all of it is derived.
 
-これは節約ではなく役割の定義である。**幾何は、これから現実側から取れる。**スキャン、SLAM、写真測量、splat — 形を得る手段は安くなり続ける。取れるようになるものを、わざわざ原本に書いて持つ理由はない。
+This is not thrift but a definition of role. **Geometry is about to become available from reality.** Scanning, SLAM, photogrammetry, splats — the means of acquiring form keep getting cheaper. There is no reason to hold in the source what you will be able to capture.
 
-**点群からは決して出てこないものがある。**ここが何の空間か。この境界は誰と誰の境か。この扉は通ってよいのか。いつからそうなのか。**意味と関係と同一性は、観測では得られない。書くしかない。**
+**And some things never come out of a point cloud.** What kind of space is this. Whose boundary is this, between which two spaces. May this door be used. Since when. **Meaning, relation and identity cannot be observed. They can only be written.**
 
-したがってこの記述は、書くしかないものを持つ。**形を原本に持たないことは妥協ではなく、役割の定義である。**そして書くしかないものだけを持てば軽い。軽ければ一棟が丸ごと機械の視野に入る — **軽さは目的ではなく、役割から出る結果である。**
+So this description holds what can only be written. **Not holding form in the source is not a compromise; it is the definition of the role.** And holding only what must be written makes it small. Small enough that a whole building fits into a machine's field of view — **smallness is not the goal but a consequence of the role.**
 
-## 一枚の表
+## One table
 
-左右は対応する組ではなく、それぞれ独立した一覧である。
+The two columns are not paired rows; each is an independent list.
 
-| 書かれるもの (原本) | 導出されるもの |
+| Written (the source) | Derived |
 |---|---|
-| 空間の領域 (通り参照の矩形合併) | 壁芯の線分 |
-| 境界の関係 (両端・種別・属性) | 既定境界 (水平の壁・垂直の床) |
-| 開口 (`door` / `window`) | 面積 (壁芯) と屋内床面積 |
-| `grid` と `level` | 垂直の隣接 |
-| 敷地形状 (`polygon`) | 半屋外・庇下 |
-| アセット・ゾーン | 通行可能性 |
-| 数えない分節 (`area` / `seg`)・`uid` | 平面図・採光の入力・接道と建蔽率・正準 JSON |
+| the region of a space (union of grid-referenced rectangles) | wall centerline segments |
+| the boundary relation (its two ends, kind, attributes) | default boundaries (horizontal walls, vertical floors) |
+| openings (`door` / `window`) | areas (to wall centerlines) and indoor floor area |
+| `grid` and `level` | vertical adjacency |
+| the site polygon (`polygon`) | semi-outdoor and covered-above |
+| assets and zones | passability |
+| uncounted subdivisions (`area` / `seg`), `uid` | the plan, daylight inputs, frontage and coverage ratio, canonical JSON |
 
-この表が、初学者の二つの疑問に同時に答える。
+That table answers two beginner questions at once.
 
-**「床はどこに書くのか」** — 書かない。上下のレベルで平面が重なる空間どうしは垂直に隣接し、既定の解釈は「床がある」である。例外 (階段・シャフト・吹抜け) だけを境界で宣言する。
+**"Where do I write the floor?"** — You do not. Spaces overlapping in plan on adjacent levels are vertically adjacent, and the default reading is that there is a floor. Only the exceptions (stair, shaft, void) are declared as boundaries.
 
-**「この空間を半屋外だと宣言したい」** — できない。半屋外は導出である。外部に対して `open` または `air:1` の境界を持つ、領域つきの空間が半屋外になる ([既定の境界](silence.md))。
+**"I want to declare this space semi-outdoor."** — You cannot. Semi-outdoor is derived. A space with a region that meets the exterior across an `open` or `air:1` boundary is semi-outdoor ([Default boundaries](silence.md)).
 
-## 座標を持つのは与件だけである
+## Only the given carries coordinates
 
-原本の中で層が三つに割れている。
+Inside the source there are three tiers.
 
-| 層 | 何か | 座標 | 実体 |
+| Tier | What it is | Coordinates | Substance |
 |---|---|---|---|
-| **与件** | 通り芯・レベル・敷地形状 | **持つ。唯一の絶対の出所** | 持たない |
-| **関係** | 二つの空間の間に何があるか | 与件から一意に決まる | **ここに宿る** |
-| **空間** | 名前・用途・意味を担う | 持たない。与件を参照して相対的に位置づく | 持たない |
+| **the given** | grid lines, levels, the site polygon | **yes — the one absolute origin** | no |
+| **relations** | what lies between two spaces | uniquely determined by the given | **lives here** |
+| **spaces** | carry name, use and meaning | none; positioned relative to the given | no |
 
-> **与件が座標を与え、関係が実体を持ち、空間は名を持つ。**
+> **The given grants coordinates, relations hold substance, spaces hold names.**
 
-**通り芯・レベル・敷地形状は測量と決めごとに由来する所与であり、設計の生成物ではない。**だから座標を持ってよい。逆に言えば、書かれるのは与件であり、書かれないのは設計の生成物である。これで「形は書かない」と「敷地形状は書く」が矛盾しなくなる。
+**Grid lines, levels and the site polygon come from survey and from decisions; they are not products of design.** That is why they may carry coordinates. Put the other way round: what is written is the given, and what is not written is the product of design. That is how "form is not written" and "the site polygon is written" stop contradicting each other.
 
 ```muro-part
-grid X 0 8400 16800 25200          # 与件 — 測量と構造計画が決める
-level L1 0 h:4200 slab:1400        # 与件
-polygon /site -2600,-7000 38000,-7000 38000,15600 2000,16800   # 与件 — 唯一、書かれる形
-space /L1/lobby hall X1..X3 Y1..Y2 # 与件を参照する。座標は持たない
+grid X 0 8400 16800 25200          # given — set by survey and structural planning
+level L1 0 h:4200 slab:1400        # given
+polygon /site -2600,-7000 38000,-7000 38000,15600 2000,16800   # given — the one written form
+space /L1/lobby hall X1..X3 Y1..Y2 # refers to the given; holds no coordinates
 ```
 
-空間の位置は常に通り参照 (`X2+450` の形) で書かれる。**生の座標を空間に書く道は無い。**
+The position of a space is always written as a grid reference (`X2+450` and the like). **There is no route by which a raw coordinate reaches a space.**
 
-## 位置を持たないものは、内包だけを持つ
+## What has no seat holds only containment
 
-関係に宿らない物 — 空間に置かれる機器のような — は、型への参照と、**どの空間に含まれるか**だけで持つ。内包からは形が作れない。
+Things that do not live on a relation — equipment placed in a space, for instance — are held by a reference to a type plus **which space contains them**. No form can be built from containment.
 
-**内包は意味であって場所ではない。**逆に内包から場所を導こうとすれば配置の仕組みが要る。そうなればこの記述は**配置の道具**になってしまう。内包が座を与えないと定めることが、その入口を閉じている。
+**Containment is meaning, not place.** Try to derive place from containment and you need a placement mechanism, and then this description becomes **a placement tool**. Ruling that containment grants no seat is what closes that door.
 
-柱はその中間にある。柱の位置はどこにも書かれず、**通り芯の交点と床の交わりから現れる** — 与件と与件の交わりだから、座を持つ。壁が境界から現れるのと同型の規則である ([column](../reference/muro/column.md))。
+Columns sit in between. A column's position is written nowhere; it **appears where a grid crossing meets a floor** — the given meeting the given, so it has a seat. It is the rule that makes walls appear from boundaries, applied to a point element ([column](../reference/muro/column.md)).
 
-## 導出と生成は違う
+## Derivation and generation are different
 
-導出のもう一段外側に**生成**がある。
+One step outside derivation lies **generation**.
 
-- **導出** — 書かれた構成から一意に決まるもの。面積・線分・柱・段数・床と屋根。同じ原本からは常に同じものが出る
-- **生成** — 導出された形をどう見せるか。線幅・色・記号・注記・縮尺
+- **Derivation** — what is uniquely determined by the written composition: areas, segments, columns, riser counts, floors and roofs. The same source always yields the same thing.
+- **Generation** — how the derived form is shown: line weight, colour, symbols, annotation, scale.
 
-**「同じ構成から複数の形が出る」ことは欠陥である。**複数あってよいのは見た目であって、形ではない。この線引きは機械が縛っている — [導出の決定性](form-must-be-unique.md)。
+**"The same composition yielding several forms" is a defect.** What may be plural is the appearance, not the form. That line is enforced by machine — see [Determinism of derivation](form-must-be-unique.md).
 
-段数を例に取る。原本に段数も踏面も勾配も書かれていない。**領域と階高と「上る向き」の宣言だけ**から導かれる。
+Take riser counts. Neither risers nor treads nor slope is written in the source. They are derived from **the region, the floor-to-floor height, and a declaration of which way is up**.
 
 ```sh
 npx tsx src/cli.ts runs examples/complex/main.muro
@@ -86,17 +86,17 @@ L1→L2	escalator	エスカレーター	rise 6600mm	straight	slope 1/1.5	going 9
 L1→L2	stair	階段1	rise 6600mm	return	37 risers of 178mm, tread 300mm	going 10800mm	/L1/st1
 ```
 
-同じ大きさの階段室に、階高に応じて 37 段・24 段が入る。**階高を変えれば段数が変わる。**原本の側で数え直す作業は無い。
+The same-sized stair enclosure takes 37 risers or 24 depending on the storey height. **Change the storey height and the riser count changes.** Nothing has to be recounted in the source.
 
-## 機械形式も導出を持たない
+## The machine format holds no derivation either
 
-正準 JSON が持つのは**合成の結果**であって、導出の結果ではない。導出された既定境界は書かれた構成ではないので、正準 JSON には出ない。
+Canonical JSON holds **the result of composition**, not the result of derivation. A derived default boundary is not part of the written composition, so it does not appear there.
 
-だから `check` の「境界 1」と `koyu json` の `"boundaries": []` は食い違って見える。**前者は導出後の意味を、後者は書かれた原本を数えている。**規則が仕様として明文であり、参照実装が API として提供される以上、消費者が意味を再実装する必要はない ([正準 JSON](../reference/json/index.md))。
+This is why `check` saying "1 boundary" and `koyu json` reporting `"boundaries": []` look like a contradiction. **The first counts meaning after derivation; the second counts the written source.** Because the rules are set out explicitly and a reference implementation is offered as an API, consumers never have to reimplement the meaning ([Canonical JSON](../reference/json/index.md)).
 
-## この先
+## Next
 
-- [導出の決定性](form-must-be-unique.md)
-- [平面図の生成](plan-is-not-a-section.md)
-- [形 — 導出が返すもの](../reference/form/index.md)
-- [記述できる粒度](resolution.md)
+- [Determinism of derivation](form-must-be-unique.md)
+- [How plans are generated](plan-is-not-a-section.md)
+- [Form — what derivation returns](../reference/form/index.md)
+- [Level of detail](resolution.md)

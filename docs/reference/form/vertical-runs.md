@@ -1,11 +1,11 @@
 ---
-title: 縦動線の算術
+title: The arithmetic of vertical runs
 mode: reference
 ---
 
-# 縦動線の算術
+# The arithmetic of vertical runs
 
-段数も踏面も勾配も書かれない。**領域と階高と「上る向き」の宣言だけから導かれる。**
+Riser count, going and slope are never written. **They are derived from the region, the storey pitch and one declared direction of rise.**
 
 ```muro-part
 space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 stair:N form:return
@@ -25,140 +25,140 @@ B1→L1	stair	避難階段	rise 3700mm	return	21 risers of 176mm, tread 300mm	go
 L1→R	lift	EV	/L1/ev
 ```
 
-21 段も 176mm も 300mm も 6000mm も、原本のどこにも書かれていない。以下がその算術である。
+The 21, the 176mm, the 300mm and the 6000mm appear nowhere in the source. Here is the arithmetic that produces them.
 
-## 局所座標
+## Local coordinates
 
-走りの局所座標は **t**(進む向きに 0 から)と **s**(**進行方向の左**から)で測る。上る向き `stair:N` が t の向きを決め、s の向きはそこから従う。折返しの左右がここで決まる。
+A run is measured in **t** (from 0 in the direction of travel) and **s** (from **the left of the direction of travel**). The direction of rise, `stair:N`, fixes t, and s follows from it. Which way a turn goes is decided here.
 
-`turn:` は **`L` と書かれたときだけ L** で、未記入も不正値も R である。
+`turn:` is L **only when `L` is written**; unwritten and invalid values are both R.
 
-## 形が一つも生成されない条件
+## When no shape is generated at all
 
-次のいずれかに当たると形は一つも生成されない。[RUN01–05 / SUF04](../diagnostics/run.md) が言葉にする。
+Any of these produces no shape whatsoever. [RUN01–05 / SUF04](../diagnostics/run.md) put it into words.
 
-- 縦動線の宣言が 0 個か 2 個以上
-- 領域が単一矩形でない
-- レベルが特定できない
-- 昇降機以外で値が N/E/S/W でない / 昇降機で値が `1` でない
-- `form:` が `straight`・`return` 以外
-- 階段と斜路以外に `form:return`
-- 上のレベルが無い(昇降機を除く)
-- 乗り込みが全長を食う
-- 折返しの走り長が残らない
+- Zero or two or more vertical-circulation declarations
+- The region is not a single rectangle
+- The level cannot be determined
+- A value other than N/E/S/W on anything but a lift, or a value other than `1` on a lift
+- `form:` other than `straight` or `return`
+- `form:return` on something other than a stair or a ramp
+- No level above (lifts excepted)
+- The entry landing consumes the full length
+- A turning run leaves no run length
 
-**昇降機は上のレベルが無くても形を持つ** — かごは同じレベルで閉じる。
+**A lift has a shape even with no level above** — the car closes on its own level.
 
-## 乗り込みと段割り
+## Entry landing and step division
 
-走りは領域の縁からは始まらない。近端に**乗り込みの帯**が残り、そこが扉の開く場所になる。直階段では遠端にも残る。
+A run does not start at the edge of its region. **An entry band** remains at the near end, and that is where the door opens. A straight run keeps one at the far end too.
 
-**乗り込みは踊り場ではなく階の床である。**縁から走りを始めると、階段室の扉が段板に直接ぶつかる。奥行は `entry:`、無ければ `ENTRY_LANDING`(1100mm)。
-
-```text
-usable = 全長 − entry            (form:return)
-usable = 全長 − entry × 2        (form:straight)
-
-段数    = max(2, ⌈階高 ÷ (riser: ?? 180)⌉)
-蹴上げ  = 階高 ÷ 段数
-踏面    = usable ÷ max(1, 段数 − 1)
-勾配    = レベル差 ÷ 走り長
-```
-
-`riser:` は**蹴上げの上限**であって蹴上げそのものではない。書いた値がそのまま出るのではなく、段数を決めるために使われ、蹴上げは階高を段数で割った実際の値になる。
-
-## 折返し
-
-幅を二分し、遠端に中間踊り場を置く。`turn:R` なら第一の走りが進行方向の左、`turn:L` なら右。二本の走りは**同じ t の区間を占め、s だけが違う**。
-
-段の分割は次で決まる。
+**The entry band is floor, not landing.** Starting a run at the edge means the stair-hall door hits a tread directly. Its depth is `entry:`, or `ENTRY_LANDING` (1100mm).
 
 ```text
-k        = min(段数 − 1, max(1, round(段数 ÷ 2)))
-踊り場の高さ = FL + k × 蹴上げ
+usable = length − entry            (form:return)
+usable = length − entry × 2        (form:straight)
+
+risers = max(2, ⌈rise ÷ (riser: ?? 180)⌉)
+riser  = rise ÷ risers
+going  = usable ÷ max(1, risers − 1)
+slope  = level difference ÷ run length
 ```
 
-**round は半数を切り上げるので、奇数段では下の走りが一段多い。**二本目は幾何としても逆向きで、t が小さい側が高い。斜路の折返しは踊り場を高さのちょうど半分に置く。
+`riser:` is **an upper bound on the riser**, not the riser itself. The value written decides the riser count; the actual riser is the storey rise divided by that count.
 
-### 中間踊り場は残余として決まる
+## Turning
 
-走り長・踏面・踊り場は一つの式で結ばれていて、書けるのは高々二つである。設計者が握りたいのは踏面の快適さなので、**既定では残余を踊り場へ寄せる**。
+The width is halved and an intermediate landing is placed at the far end. With `turn:R` the first flight runs on the left of the direction of travel, with `turn:L` on the right. **The two flights occupy the same interval of t and differ only in s.**
+
+The split of the steps is:
 
 ```text
-landing: が書かれている : max(LANDING_MIN, 書かれた値)
-斜路                    : max(LANDING_MIN, min(幅 ÷ 2, (全長 − entry) ÷ 3))
-階段                    : max(LANDING_MIN, min((全長 − entry) − 段数分の目標踏面,
-                                               (全長 − entry) − LANDING_MIN))
+k             = min(risers − 1, max(1, round(risers ÷ 2)))
+landing level = FL + k × riser
 ```
 
-階段の「段数分」は `max(1, max(k − 1, 段数 − k − 1))` 段、目標踏面は `tread:`、無ければ `TREAD_TARGET`(300mm)である。`landing:` を書けば踏面のほうが残余になる。導出値も書かれた値も、`LANDING_MIN`(1100mm)を下回れば最小奥行まで引き上げられる。
+**`round` rounds a half up, so with an odd riser count the lower flight has one step more.** The second flight is also geometrically reversed — the low-t side is the high one. A turning ramp puts its landing at exactly half the rise.
 
-### 実際に解く
+### The landing is the remainder
 
-`/B2/st` は 2600 × 5400 の矩形、`stair:N` なので長さ 5400・幅 2600、階高 3700。
+Run length, going and landing are tied by a single equation, and at most two of them can be written. What a designer wants to hold is the comfort of the going, so **by default the remainder goes to the landing**.
 
 ```text
-entry  = 1100                          (既定)
-段数    = max(2, ⌈3700 ÷ 180⌉) = 21
-蹴上げ  = 3700 ÷ 21 = 176.19mm         → "21 risers of 176mm"
-k      = min(20, round(21 ÷ 2)) = 11
-踏面段数 = max(1, max(11−1, 21−11−1)) = 10
-踊り場   = max(1100, min(4300 − 10×300, 4300 − 1100)) = 1300
-走り長   = 5400 − 1100 − 1300 = 3000
-一本目の踏面 = 3000 ÷ (11 − 1) = 300mm
-二本目の踏面 = 3000 ÷ (10 − 1) = 333.3mm
+landing: written : max(LANDING_MIN, the written value)
+ramp             : max(LANDING_MIN, min(width ÷ 2, (length − entry) ÷ 3))
+stair            : max(LANDING_MIN, min((length − entry) − n × target going,
+                                        (length − entry) − LANDING_MIN))
 ```
 
-集約の踏面は**最も窮屈な走り**なので 300mm、走り長の合計は 3000 × 2 = **6000mm**。CLI の一行がそのまま出る。
+For the stair, n is `max(1, max(k − 1, risers − k − 1))` and the target going is `tread:`, or `TREAD_TARGET` (300mm). Write `landing:` and the going becomes the remainder instead. Derived or written, a landing below `LANDING_MIN` (1100mm) is raised to the minimum.
 
-## 並列 — エスカレーター
+### Solve it
 
-一台の呼び幅は `lane:`、無ければ `LANE_ESCALATOR`(1200mm)。
+`/B2/st` is a 2600 × 5400 rectangle. `stair:N`, so the length is 5400 and the width 2600, over a storey rise of 3700.
 
 ```text
-台数   = max(1, ⌊幅 ÷ 呼び幅⌋)
-一台の幅 = min(呼び幅, 幅 ÷ 台数)
-余り    = (幅 − 一台の幅 × 台数) ÷ 2  を両端に等分
+entry       = 1100                             (default)
+risers      = max(2, ⌈3700 ÷ 180⌉) = 21
+riser       = 3700 ÷ 21 = 176.19mm             → "21 risers of 176mm"
+k           = min(20, round(21 ÷ 2)) = 11
+n           = max(1, max(11−1, 21−11−1)) = 10
+landing     = max(1100, min(4300 − 10×300, 4300 − 1100)) = 1300
+run length  = 5400 − 1100 − 1300 = 3000
+going, 1st  = 3000 ÷ (11 − 1) = 300mm
+going, 2nd  = 3000 ÷ (10 − 1) = 333.3mm
 ```
 
-**台ごとに走る向きが交互になる** — 上りの隣は上から降りてくる一台である。`lane:` は階段・斜路・昇降機では効かない(台数は常に一である)。
+The aggregate going is **the tightest flight**, so 300mm, and the total run length is 3000 × 2 = **6000mm**. That is the CLI line, exactly.
 
-`examples/complex/` の `/L1/es` は幅 3200 なので、
+## Side by side — escalators
+
+The nominal width of one unit is `lane:`, or `LANE_ESCALATOR` (1200mm).
 
 ```text
-台数 1 本目 : t 1100…10900, s 400…1600,  上り
-台数 2 本目 : t 1100…10900, s 1600…2800, 下り (幾何は同じ、進む向きだけが逆)
+units      = max(1, ⌊width ÷ nominal⌋)
+unit width = min(nominal, width ÷ units)
+remainder  = (width − unit width × units) ÷ 2  split evenly between the two edges
 ```
 
-`⌊3200 ÷ 1200⌋ = 2` 台、一台 1200mm、余り 800 を 400 ずつ両端へ。
+**Units alternate in direction of travel** — next to an up escalator is one coming down. `lane:` has no effect on stairs, ramps or lifts (the count is always one).
 
-## 集約値
+`/L1/es` in `examples/complex/` is 3200 wide, so:
 
-| 値 | 何を数えるか |
+```text
+unit 1 : t 1100…10900, s 400…1600,  up
+unit 2 : t 1100…10900, s 1600…2800, down (same geometry, opposite direction of travel)
+```
+
+`⌊3200 ÷ 1200⌋ = 2` units at 1200mm each, remainder 800 split 400 to each edge.
+
+## Aggregate values
+
+| Value | What it counts |
 |---|---|
-| `going`(走りの水平長の合計) | **一台目だけ**を数える。折返しの二本はどちらも数える |
-| `tread` | **最も窮屈な走り**が代表する |
-| `slope` | **最も急な走り**が代表する |
+| `going` (total horizontal run) | **the first unit only.** Both flights of a turning run count |
+| `tread` | **the tightest flight** represents it |
+| `slope` | **the steepest flight** represents it |
 
-この非対称は判定の前提である — 折返しの二本目は段数が多い分だけ細かいので、一本目だけを見ると窮屈な走りが [`stair.proportion`](../validate/runs.md) をすり抜ける。
+The asymmetry is what the judgements rely on — the second flight of a turning run has more steps and is therefore tighter, so looking only at the first would let a cramped flight slip past [`stair.proportion`](../validate/runs.md).
 
-## 立体
+## Solids
 
-| 部品 | 形 |
+| Part | Shape |
 |---|---|
-| 踊り場 | 版。上端が踊り場の高さ、厚さは `SLAB_T`(200mm) |
-| 階段の走り | 蹴上げ k 段に対して段板は **k − 1 枚**(最上段は上階の床が受ける)。i 段目の上端は 下端 + i × 蹴上げ、厚みは 蹴上げ + `TREAD_SOLID`(200mm) |
-| 斜路・エスカレーター | 傾いた版一枚、厚さ `SLAB_T` |
-| エスカレーターの欄干 | 一台に二枚。幅 `min(140, 台の幅 ÷ 8)`・厚さ 100mm、段板面から 900mm 持ち上げた傾いた薄板 |
-| 昇降機のかご | 四方から `min(300, 短辺 ÷ 6)` だけ内へ寄せた箱 — 寄せ量は辺ごとではなく**四方で同じ一つの値**。**階高に依らず一定**で、FL + 60 から FL + 2400 に立つ |
+| Landing | a slab; top at the landing level, thickness `SLAB_T` (200mm) |
+| Stair flight | for k risers there are **k − 1 tread boards** (the top step is carried by the floor above). The top of tread i is bottom + i × riser, thickness riser + `TREAD_SOLID` (200mm) |
+| Ramp, escalator | one inclined slab, thickness `SLAB_T` |
+| Escalator balustrade | two per unit; width `min(140, unit width ÷ 8)`, thickness 100mm, raised 900mm above the tread surface |
+| Lift car | a box inset `min(300, shorter side ÷ 6)` on all four sides — the inset is **one value shared by all four**, not solved per side. **Constant height regardless of storey pitch**, from FL + 60 to FL + 2400 |
 
-**傾きは z の大小が決める — 人の進む向きでは決めない。**下りのエスカレーターは幾何としては上りと同じ向きに傾いており、違うのは進む向きだけである。この一語を幾何の意味でも読んだために、下りの台が鏡像に傾き、矢印が上向きに描かれ、二台目が平面から消えていた。
+**The tilt is decided by the z values, never by the direction of travel.** A down escalator tilts geometrically the same way an up one does; only the direction people move differs. Reading that one word geometrically as well is what once tilted the down unit into a mirror image, drew its arrow pointing up, and made the second unit vanish from the plan.
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [平面](plan.md) — 上る走りと下りる走りが一枚の図でどう補い合うか
-- [導出定数と公差](constants.md) — 180 / 300 / 1100 / 1200 / 200 / 400 の出どころ
-- [vertical-circulation](../muro/vertical-circulation.md) — 縦動線をどう書くか
-- [RUN の診断](../diagnostics/run.md) — 形が生成されないとき
-- [runs の判定](../validate/runs.md) — 登りやすいか、勾配は許容内か
-- [koyu runs](../cli/runs.md) — この算術を一覧で見る
+- [The plan](plan.md) — how ascending and descending runs complement each other on one sheet
+- [Constants and tolerances](constants.md) — where 180 / 300 / 1100 / 1200 / 200 / 400 come from
+- [vertical-circulation](../muro/vertical-circulation.md) — how to write a run
+- [RUN diagnostics](../diagnostics/run.md) — when no shape is generated
+- [runs judgements](../validate/runs.md) — is it climbable, is the slope within bounds
+- [koyu runs](../cli/runs.md) — see the arithmetic as a table

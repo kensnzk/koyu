@@ -5,21 +5,21 @@ mode: reference
 
 # koyu json
 
-合成後のモデルを正準 JSON で標準出力に書く。差分と外部接続の土台であり、キーの並びは安定している。
+Writes the composed model to stdout as canonical JSON. It is the ground under diffing and external integration, and the key order is stable.
 
-## 引数
+## Arguments
 
 ```text
 koyu json <entry.muro>
 ```
 
-entry のパスを一つ取る。
+Takes one entry path.
 
-## 旗
+## Flags
 
-無い。出力は常に整形済みで、標準出力へ書かれる (末尾に改行が付く以外の装飾は無い)。
+None. The output is always pretty-printed and goes to stdout, with no decoration beyond the trailing newline.
 
-## 出力
+## Output
 
 ```sh
 npx tsx src/cli.ts json examples/two-rooms.muro
@@ -27,7 +27,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```text
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
@@ -65,9 +65,9 @@ npx tsx src/cli.ts json examples/two-rooms.muro
     },
 ```
 
-(先頭の一部である。)
+(The head of the output.)
 
-**最初の二つのキーは別の版を言う。**`format` はこの JSON 形式そのものの版で、`koyu` は原本に書かれた言語の版である。原本が `koyu <版>` の行を持たなければ `koyu` のキーは出ない。
+**The first two keys name different versions.** `format` is the version of this JSON format itself; `koyu` is the language version written in the source. A source with no `koyu <version>` line produces no `koyu` key.
 
 ```sh
 npx tsx src/cli.ts json derived.muro
@@ -75,11 +75,11 @@ npx tsx src/cli.ts json derived.muro
 
 ```text
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "unit": "mm",
 ```
 
-境界は配列で、両側のパス・種別・厚み・属性・開口を持つ。
+Boundaries are an array, each carrying both paths, the kind, the thickness, the attributes and the openings.
 
 ```text
   "boundaries": [
@@ -105,17 +105,17 @@ npx tsx src/cli.ts json derived.muro
     },
 ```
 
-開口の `at:0.5` は書かれていない値である。位置を書かなかった開口は境界の中央に置かれるので、正準 JSON はその決まった位置を書く。
+That opening's `at: 0.5` was never written. An opening with no position given sits at the middle of its boundary, so the canonical JSON writes the position that was settled.
 
-## import は残らない
+## import does not survive
 
-正準 JSON は**合成後の単一のモデル**である。層に割った建物でも、`import` も層の境目も出ない。同じ建物を一枚で書いても層に割って書いても、同じ正準 JSON が出る。
+Canonical JSON is **the single composed model**. Even for a building split into layers, neither the `import`s nor the layer seams appear. Writing the same building in one file or in ten produces the same canonical JSON.
 
-`over` の跡も残らない。`over` で `h:2400` にした模型と、最初から `h:2400` と書いた模型は同じである。正準形が答えるのは「同じ建物か」であって「どう書かれたか」ではない。
+Nor does the trace of `over`. A model set to `h:2400` by an `over` and a model written with `h:2400` from the start are identical. What the canonical form answers is "is it the same building", not "how was it written".
 
-## 既定境界は出ない
+## Default boundaries do not appear
 
-**正準 JSON が持つのは書かれた構成だけで、導出された意味は持たない。**接する二室だけを書き、`boundary` を一行も書いていないファイルで確かめられる。
+**Canonical JSON carries only what was written; it carries no derived meaning.** You can see this with a file that declares two touching rooms and not a single `boundary`.
 
 ```muro
 grid X 0 3600 7200
@@ -142,21 +142,21 @@ npx tsx src/cli.ts json derived.muro
   "boundaries": []
 ```
 
-[`check`](check.md) の「境界 1」は導出された既定の壁を数えた**意味**の側の数、`json` の空配列は**書かれた構成**の側の数である。矛盾ではない。正準 JSON の消費者は、既定境界を自分で導出してから意味を読む。
+[`check`](check.md)'s "1 boundary" is the count on the **meaning** side, after the default wall is derived; `json`'s empty array is the count on the **written** side. They do not contradict each other. A consumer of canonical JSON derives the default boundaries itself before reading meaning into it.
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 常に |
-| 1 | 構文・合成エラーで読めなかった |
-| 2 | ファイルパスを渡していない (使い方が印字される) |
+| 0 | Always |
+| 1 | It could not be read because of a syntax or composition error |
+| 2 | No file path was given (usage is printed) |
 
-**`json` は `check` を通さない。**整合していないモデルでも、合成さえ通れば正準 JSON は出る。
+**`json` does not run `check`.** An inconsistent model still yields canonical JSON, as long as composition succeeded.
 
-## 関連
+## See also
 
-- [正準 JSON](../json/index.md) — キーごとのリファレンスと安定性の規則
-- [koyu diff](diff.md) — 二つのモデルを構成の言葉で比べる
-- [koyu check](check.md) — 導出された境界を数える側
-- [公開 API](../api/index.md) — 同じ出力をプログラムから得る
+- [Canonical JSON](../json/index.md) — key-by-key reference and the stability rules
+- [koyu diff](diff.md) — comparing two models in the language of composition
+- [koyu check](check.md) — the side that counts derived boundaries
+- [The public API](../api/index.md) — getting the same output from a program

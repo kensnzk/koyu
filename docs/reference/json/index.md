@@ -1,13 +1,13 @@
 ---
-title: 正準 JSON
+title: Canonical JSON
 mode: reference
 ---
 
-# 正準 JSON
+# Canonical JSON
 
-**これは「同じ建物とは何か」の定義を書き下したものである。**
+**This is the definition of "what makes two buildings the same", written down.**
 
-原本 (`.muro`) は行順も綴りも自由なので、二つのファイルが同じ建物かどうかはテキストでは決まらない。正準形はその問いに一意な答えを与える — **同じ構成なら常に同じバイト列、違う構成なら必ず違うバイト列。**
+A source file (`.muro`) is free in its line order and its spelling, so whether two files are the same building is not decided by the text. The canonical form gives that question one answer — **the same composition always yields the same bytes; a different composition always yields different bytes.**
 
 ```sh
 npx tsx src/cli.ts json examples/two-rooms.muro
@@ -15,7 +15,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```json
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
@@ -55,104 +55,104 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 }
 ```
 
-(実際の出力は続きを持つ。キーごとの一覧は[スキーマ](schema.md)にある。)
+(The real output continues. The key-by-key listing is in [the schema](schema.md).)
 
-## 使い道は二つ
+## Two uses
 
-**一つ。意味差分が正しいことを確かめる物差しである。**`koyu diff` 自身に「あなたは正しいか」と聞いても意味が無いので、独立した判定が要る。テストはこれで書かれている。
+**One: a yardstick for checking that the semantic diff is right.** Asking `koyu diff` whether it is correct proves nothing, so an independent judgement is needed. The tests are written against this.
 
-**二つ。`.muro` のパーサを持たないプログラムへの出口である。**外部のビュアーやエクスポータ、MCP の `canonical_json` がここを読む。
+**Two: an exit for programs that have no `.muro` parser.** Outside viewers, exporters, and the MCP tool `canonical_json` read it.
 
-**土台ではない。**意味差分は Model を受け取り、正準形を経由しない。層の合成は `.muro` の層に対して行われ、正準化はその後である。**読み込む側は無く、系への入口は `parse` だけである** — 原本は一つでよい、という選択である。
+**It is not a foundation.** The semantic diff takes a Model and never goes through the canonical form. Layer composition happens over the layers of `.muro`, and canonicalisation comes after. **There is no reader, and the only way into the system is `parse`** — a deliberate choice that there be one original.
 
-## 二つの版 — 形式の版と言語の版
+## Two versions — of the format and of the language
 
-文書が最初に名乗るのは**この形式自身の版**である。`koyu` はその次に来る[言語の版](../muro/version.md)であって、形式の版ではない。
+The first thing the document announces is **the version of the format itself**. `koyu` comes next, and it is [the version of the language](../muro/version.md), not of the format.
 
-| キー | 何の版か | 上がるとき |
+| Key | Version of what | Raised when |
 |---|---|---|
-| `format` | **正準 JSON の綴り** — キーの集合・並び・照合順・正規化・数の綴り。現在は `koyu-canonical/1.0` | minor はキーが増えたとき(増えたキーを持たない文書のバイトは変わらない)、major は既存の綴りが変わったとき |
-| `koyu` | **原本の言語版**の素通し。**書かれていなければ出ない** | 言語の意味論が変わったとき |
+| `format` | **the spelling of canonical JSON** — the set of keys, their order, the collation, the normalisation, the spelling of numbers. Currently `koyu-canonical/1.1` | minor when a key is added (documents without the new key keep their bytes); major when an existing spelling changes |
+| `koyu` | **the language version of the source**, passed through. **Absent if it was not written** | when the semantics of the language change |
 
-二つが別なのは、**同じ意味論を別のキーで綴り直すことがありうる**からである。境界の向きを保存する `a` キーの追加は、言語を一語も変えずに綴りを変えた。逆に、言語版が上がっても綴りが変わらないことはある。
+They are separate because **the same semantics can be respelled with different keys**. Adding the `a` key, which preserves the written direction of a boundary, changed the spelling without changing one word of the language. The converse also happens: a language version can rise without the spelling moving.
 
-**版宣言の無い原本には版を刻まない。**言語版の既定は「そのツールの最新版」なので、刻めば著者の書いていない版を名乗ることになり、しかもツールの既定が動いた日に**同じ入力のバイトが変わる**。決定性はこの形式の側の約束であって、ツールの既定に預けるものではない。意味を固定したい原本は `koyu 1.0` と書く。
+**A source with no version declaration gets no version stamped.** The default language version is "the newest this tool knows", so stamping it would claim a version the author never wrote — and the bytes of the same input would change the day the tool's default moved. Determinism is a promise this format makes, not one it delegates to a tool's default. A source whose meaning must stay fixed writes `koyu 1.0`.
 
-## 三つの安定性の規則
+## Three stability rules
 
-### 1. 同じ構成からは常にバイト同一の JSON が出る
+### 1. The same composition always yields byte-identical JSON
 
-記録の形のキー(最上位・レベル・空間・境界・開口・`seg`・柱)は**このスキーマが定める固定順**で、原本に由来するキー(レベル名・パス・アセット名・属性キー)は**照合順**に並ぶ。
+Keys of record shape (top level, level, space, boundary, opening, `seg`, column) sit in **a fixed order this schema defines**; keys that come from the source (level names, paths, asset names, attribute keys) sit in **collation order**.
 
-- `spaces` — パス順
-- `boundaries` — `between` の辞書順(同一 `between` は内容の正準順)
-- `zones` / `assets` / `polygons` — キー順
+- `spaces` — by path
+- `boundaries` — lexicographic by `between`, ties broken by canonical content order
+- `zones` / `assets` / `polygons` — by key
 
-**宣言順に意味の無い配列も内容の正準順に並ぶ** — 開口・`seg`・領域の合併・描かれた線の端点。同じ構成を別の行順で書いても同じバイト列になる。
+**Arrays whose declaration order carries no meaning are also sorted by canonical content** — openings, `seg`s, the union of regions, the endpoints of a drawn line. Writing the same composition with the lines in another order yields the same bytes.
 
-**柱の狙う通り名 `x`/`y` だけは通りの並び順である** ([schema](schema.md))。照合順ではないので、`x:X11,X2,X10` は `["X2","X10","X11"]` になる — 通り芯は宣言された並びが位置であって、名の綴りではない。宣言されていない通り名だけが照合順で安定する。
+**A column's grid names `x`/`y` are the one exception: they go in grid order** ([schema](schema.md)), not collation order. So `x:X11,X2,X10` becomes `["X2","X10","X11"]` — for a grid line, position is the order it was declared in, not the spelling of its name. Only names that were never declared fall back to collation order.
 
-**例外は `columns` である。柱の宣言順は意味だから並べ替えない。**同じ通りの交点に二本は立たず先の宣言が勝つので、二行を入れ替えると実際に立つ柱が変わる。並べ替えると別の建物が同一のバイト列になり、この形式の存在理由が柱について失われる。**順序が意味を持つ配列の正準順は、宣言順そのものである。**
+**`columns` is the exception. The declaration order of columns is meaning, so it is never sorted.** Two columns never stand on the same grid intersection and the earlier declaration wins, so swapping two lines changes which columns actually stand. Sorting them would give two different buildings identical bytes, and the whole reason this format exists would be lost for columns. **For an array whose order carries meaning, the canonical order is the declaration order itself.**
 
-並べ替えを掛ける前に問うべきことは一つである — **この配列の順序を入れ替えたら別の構成になるか。**なるなら掛けてはならない。並べ替えは整形ではなく「順序に意味が無い」ことの表明である。
+There is one question to ask before sorting anything: **would reordering this array make it a different composition?** If yes, do not sort. Sorting is not tidying; it is a claim that the order has no meaning.
 
-### 2. 合成後の、書かれた構成である
+### 2. It is the written composition, after composition
 
-`import`・スパン・`stack`・帯は展開済みで残らない。
+`import`, spans, `stack` and bands are expanded and do not remain.
 
-**既定境界は出ない。**接する空間の既定は壁だが、正準 JSON は書かれた構成のみを持ち、意味(既定壁を含む)は導出後のモデルが持つ。**消費者は `deriveDefaultBoundaries` を適用してから意味を読むこと。**
+**Default boundaries do not appear.** Touching spaces default to a wall, but canonical JSON holds only the written composition; the meaning — including the default wall — belongs to the derived model. **Consumers must apply `deriveDefaultBoundaries` before reading meaning.**
 
-だから `koyu check` の「境界 1」と `koyu json` の `"boundaries": []` は矛盾しない。前者は導出された意味の側の数、後者は書かれた構成の側の数である。
+So "1 boundary" from `koyu check` and `"boundaries": []` from `koyu json` do not contradict each other. The first counts derived meaning, the second counts written composition.
 
-### 3. 書かれた表記を保存する
+### 3. Written notation is preserved
 
-位置は通り参照のまま(`"at": "Y2+1820"`)、領域は通り名 4 つ組、境界の向きは `a` キー(先に書いた空間 — `edge`/`swing` はこの側から読む)。**正準形は語り直さない。**
+Positions stay as grid references (`"at": "Y2+1820"`), regions stay as four grid names, and the direction of a boundary is kept as the `a` key — the space written first, from whose side `edge` and `swing` are read. **The canonical form does not retell.**
 
-例外は意味を持たない綴りだけである。
+The only exceptions are spellings that carry no meaning.
 
-- 領域の逆順表記(`X2..X1`)は座標昇順に正規化される
-- 描かれた線の端点の対は解決座標の昇順に正準化される(**線分は向きを持たない**)。綴りは通り参照のまま保つ
-- `polygon` の頂点列は幾何(巡回)なので並べ替えない
+- A reversed region (`X2..X1`) is normalised to ascending coordinates
+- The endpoint pair of a drawn line is canonicalised to ascending resolved coordinates (**a segment has no direction**). The spelling stays a grid reference
+- The vertex list of a `polygon` is geometry (cyclic) and is never reordered
 
-帯が導出する内側の切り位置は、書かれた綴りが存在しないため**床規則**で綴られる — その座標以下で最も大きい通り芯からのオフセット(オフセット 0 なら通り名だけ)。帯の両端と直交方向の両端は書かれた綴りのままである。
+The interior split positions a band derives have no written spelling, so they are spelled by **the floor rule**: the offset from the largest grid line at or below that coordinate (just the grid name when the offset is 0). Both ends of the band, and both ends across it, stay exactly as written.
 
-## バイトの規範
+## The byte-level norms
 
-規則 1 の「バイト同一」は、次の四つが定まっていて初めて意味を持つ。**別の言語で書かれた実装も、これに従えば同じバイト列を出す。**
+"Byte-identical" in rule 1 only means something once these four are fixed. **An implementation written in another language emits the same bytes by following them.**
 
-### 符号化
+### Encoding
 
-**UTF-8、改行は LF、字下げは空白 2 つ、文書の末尾に改行が一つ。**非 ASCII はエスケープせず生のまま出る(`"name": "居室"`)。エスケープするのは JSON が要求するもの(`"` `\` 制御文字)だけである。
+**UTF-8, LF line endings, two-space indent, one newline at the end of the document.** Non-ASCII is emitted raw, never escaped (`"name": "居室"`). The only escapes are the ones JSON demands (`"`, `\`, control characters).
 
-### 照合順
+### Collation
 
-**符号位置の昇順であり、これは出力される UTF-8 バイトの昇順に等しい。**ロケールの照合(`localeCompare` の類)は使わない。
+**Ascending code point, which equals ascending order of the emitted UTF-8 bytes.** Locale collation (`localeCompare` and friends) is not used.
 
-**JavaScript の `<` と既定の `sort` はここでは使えない。**あれは UTF-16 コード単位順で、符号位置順と一致しない。
+**JavaScript's `<` and default `sort` cannot be used here.** They order by UTF-16 code unit, which does not agree with code point order.
 
 ```text
-𠮟 (U+20B9F)  代用対 D842 DF9F   UTF-8: F0 A0 AE 9F
-﨑 (U+FA11)   単一の単位          UTF-8: EF A8 91
+𠮟 (U+20B9F)  surrogate pair D842 DF9F   UTF-8: F0 A0 AE 9F
+﨑 (U+FA11)   single unit                UTF-8: EF A8 91
 ```
 
-`<` では 𠮟 が 﨑 より小さいが、UTF-8 では 﨑 が前である。どちらも日本語の実在の字であり、差は理論上のものではない。基準を「この形式自身のバイト」に置くのは、**素直に書かれた他言語の実装と一致する側だから**である。実装は `compareCanonical`。
+Under `<`, 𠮟 sorts before 﨑; in UTF-8, 﨑 comes first. Both are real Japanese characters, so the difference is not theoretical. The reference is placed on **this format's own bytes** because that is the side an implementation written plainly in another language will agree with. The implementation is `compareCanonical`.
 
-**JavaScript の罠はもう一つある。**オブジェクトは整数に見えるキー (`"2"` `"10"`) を、挿入した順に関わらず他のキーより前へ、しかも数値の昇順に並べる。だから `2` と `10` という名のレベルは、正しく照合順に並べた後でも `2` が先に出てしまう — 照合順なら `10` が先である。**照合順を保つ容器は、キーの並びに規則を持たないものでなければならない** (実装は `Map` を使い、直列化はその並びを写す)。この形式は他言語で実装されることを前提にしているので、罠は言語ごとに違う。**規則は「言語の既定に従う」ではなく「符号位置の昇順」だと読むこと。**
+**JavaScript has a second trap.** An object keeps integer-like keys (`"2"`, `"10"`) ahead of all others, in ascending numeric order, whatever order they were inserted in. So levels named `2` and `10` come out with `2` first even after a correct collation sort — collation order puts `10` first. **A container that preserves collation order must be one with no rule of its own about key order** (the implementation uses a `Map` and the serialiser follows its order). This format is meant to be implemented in other languages, and the traps differ by language. **Read the rule as "ascending code point", never as "whatever the language does by default".**
 
-### 正規化
+### Normalisation
 
-**文字は NFC である。**原本は読み込みのときに NFC へ正規化され、**同一性(パス・uid・名)もそこで決まる** — `が` を「か + 濁点」と綴った空間は、合成済みの `が` と綴った空間と同じ空間であり、両方書けばパスの重複エラーになる。正規化しなければ、見分けのつかない二つのキーが並ぶ文書が出る。
+**Text is NFC.** Sources are normalised to NFC on read, and **identity — paths, uids, names — is decided there**: a space spelled `が` as "か + dakuten" is the same space as one spelled with the composed `が`, and writing both is a duplicate-path error. Without normalisation, documents would carry two indistinguishable keys side by side.
 
-**NFKC は採らない。**`㎡` を `m2` に、`①` を `1` に書き換えてしまい、それは規則 3(書かれた表記の保存)に反する。
+**NFKC is not used.** It would rewrite `㎡` to `m2` and `①` to `1`, which violates rule 3.
 
-### 数
+### Numbers
 
-**最短往復表記で綴る。**`0.30` は `0.3` として出る。丸めも桁揃えも単位変換もしない。指数が要る大きさ(`1e+23`・`1e-7`)は指数表記になる。
+**The shortest round-tripping representation.** `0.30` comes out as `0.3`. Nothing is rounded, padded, or unit-converted. Magnitudes that need an exponent (`1e+23`, `1e-7`) come out in exponent form.
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [スキーマ](schema.md) — キーごとのリファレンス
-- [koyu json](../cli/json.md) — 出力の取り方
-- [koyu diff](../cli/diff.md) — 構成の言葉で比べる側
-- [koyu 版の宣言](../muro/version.md) — `koyu` キーの出どころ
-- [凍る面](../stability.md) — 三つの版の分離
+- [The schema](schema.md) — key by key
+- [koyu json](../cli/json.md) — how to get the output
+- [koyu diff](../cli/diff.md) — comparing in the language of composition
+- [The koyu version line](../muro/version.md) — where the `koyu` key comes from
+- [Stability](../stability.md) — the three version lines kept apart

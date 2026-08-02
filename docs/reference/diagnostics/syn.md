@@ -1,19 +1,19 @@
 ---
-title: SYN — 構文と合成
+title: SYN — syntax and composition
 mode: reference
 ---
 
-# SYN — 構文と合成
+# SYN — syntax and composition
 
-SYN は一つだけである。
+There is only one SYN code.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| SYN01 | error | 構文または合成のエラー |
+| SYN01 | error | A syntax or composition error |
 
-**SYN01 は個別のコードではない。**パーサが投げた例外を、ひとまとめに写したものである。ファイルがモデルにならなかったのだから、意味の検査は一件も走っていない — 構文エラーが一つでもあれば、`check` の結果は「SYN01 が1件」だけになる。
+**SYN01 is not an individual code.** It is a copy, gathered into one, of the exception the parser threw. Since the file never became a model, not one semantic check ran — with even a single syntax error, the result of `check` is exactly "one SYN01".
 
-## 出るのは --json のときだけ
+## It appears only under --json
 
 ```muro-bad
 grid X 0 3600
@@ -38,7 +38,7 @@ koyu check bad.muro --json
 ]
 ```
 
-`--json` を付けない `check` も、他のサブコマンドも、例外をそのまま印字して終了コード 1 で終わる。
+A `check` without `--json`, and every other subcommand, print the exception as-is and exit 1.
 
 ```sh
 koyu check bad.muro
@@ -48,73 +48,73 @@ koyu check bad.muro
 ✖ <absolute path>/bad.muro:line 4: Undefined grid line name: X9
 ```
 
-`--json` のときだけ SYN01 の一件に写されるのは、**有効な JSON を返すため**である。機械が `check --json` を回すとき、構文エラーだけが別の形で返ってきては困る。
+The single SYN01 exists only **so that valid JSON can still be returned**. A machine running `check --json` should not have syntax errors come back in a different shape from everything else.
 
-## よく出る本文と直し方
+## Common bodies and their fixes
 
-### 通りとレベル
+### Grids and levels
 
-| 本文 | 原因 | 直し方 |
+| Body | Cause | Fix |
 |---|---|---|
-| `Undefined grid line name: X1` | `grid X` がまだ書かれていない | `grid X` / `grid Y` を、通りを使う行より**前**に書く。`grid` と `level` は前方参照できない (`boundary` はできる) |
-| `Undefined grid line name: X9` | その通りが grid の本数を超えている | `grid X 0 3600 7200` なら使えるのは X1〜X3 |
-| `grid coordinates are written in ascending order` | 座標が降順 | 昇順に並べ直す |
-| `grid X is declared once (in the base layer when composing)` | 複数のレイヤーに `grid X` がある | base 層 (entry) に一本化する |
-| `Undeclared level: level:L9` | `level:` の指す先が無い | `level L9 …` を宣言するか、綴りを直す |
-| `Duplicate level: L2` | 同じレベル名を二度宣言した (範囲宣言との衝突を含む) | どちらかを消す |
-| `The level height (z) is not a number:` | `level L1` のように z を書いていない | `level L1 0` |
-| `A level range requires pitch: (the storey height in mm): L1..L3` | 範囲宣言に階高が無い | `level L1..L3 0 pitch:3000` |
-| `level carries spec:, which is not in the ledger (level reads h / slab / pitch / underground)` | `level` に未知のキー | `level` は四つしか読まない。他の情報は空間かゾーンへ |
-| `The range includes an undeclared level (declare level first): L1..L2` | `stack` / `column` が未宣言のレベルを指す | 先に `level` を書く |
+| `Undefined grid line name: X1` | `grid X` has not been written yet | Write `grid X` / `grid Y` **before** any line that uses a grid line. `grid` and `level` cannot be forward-referenced (a `boundary` can) |
+| `Undefined grid line name: X9` | That grid line exceeds the number in the grid | With `grid X 0 3600 7200` only X1–X3 exist |
+| `grid coordinates are written in ascending order` | The coordinates descend | Reorder them ascending |
+| `grid X is declared once (in the base layer when composing)` | Several layers carry `grid X` | Consolidate into the base layer (the entry) |
+| `Undeclared level: level:L9` | What `level:` points at does not exist | Declare `level L9 …`, or fix the spelling |
+| `Duplicate level: L2` | The same level name declared twice (including a clash with a range declaration) | Delete one |
+| `The level height (z) is not a number:` | No z was written, as in `level L1` | `level L1 0` |
+| `A level range requires pitch: (the storey height in mm): L1..L3` | A range declaration with no storey height | `level L1..L3 0 pitch:3000` |
+| `level carries spec:, which is not in the ledger (level reads h / slab / pitch / underground)` | An unknown key on `level` | `level` reads only those four. Put other information on a space or a zone |
+| `The range includes an undeclared level (declare level first): L1..L2` | A `stack` or `column` naming an undeclared level | Write the `level` first |
 
-### 空間・境界・ゾーン
+### Spaces, boundaries, zones
 
-| 本文 | 原因 | 直し方 |
+| Body | Cause | Fix |
 |---|---|---|
-| `A region is given as two ranges, X?..X? and Y?..Y?` | **型 (第2位置引数) を書き忘れた** — `space /L1/a X1..X2 Y1..Y2` | 型を足す: `space /L1/a room X1..X2 Y1..Y2`。本文は領域の話をするが、原因は型の欠落であることが多い |
-| `space /L1/a requires a type (a word from the vocabulary)` | 型も領域も無い | 型を足す |
-| `Duplicate space path: /L1/a (first seen …)` | 同じパスの空間が二つ | パスは同一性である。片方のパスを変える |
-| `boundary takes the form boundary /pathA /pathB [attributes...]` | 相手のパスが無い | 境界は二つの空間を結ぶ関係である |
-| `zone takes the form zone /path [attributes...]` | パスが無い | |
-| `Unknown keyword: wall` | そのキーワードは存在しない | 壁は物ではなく関係である。`boundary` を使う |
-| `The attribute h is written as a number: 24OO` | `level` の数値属性が読めない | 単位のない数値にする |
+| `A region is given as two ranges, X?..X? and Y?..Y?` | A region needs **two** ranges, one on X and one on Y, and only one is written | Write the other axis: `space /L1/a room X1..X2 Y1..Y2`. **A forgotten type is not the cause** — the type is optional |
+| `space /L1/a requires a type (a word from the vocabulary)` | Neither type nor region | Add the type |
+| `Duplicate space path: /L1/a (first seen …)` | Two spaces at the same path | The path is the identity. Change one of them |
+| `boundary takes the form boundary /pathA /pathB [attributes...]` | The second path is missing | A boundary is a relation joining two spaces |
+| `zone takes the form zone /path [attributes...]` | No path | |
+| `Unknown keyword: wall` | That keyword does not exist | A wall is a relation, not a thing. Use `boundary` |
+| `The attribute h is written as a number: 24OO` | A numeric attribute on `level` does not read as a number | Write a number with no unit |
 
-### 字下げ
+### Indentation
 
-開口・`seg`・`line` は境界の下、`area` と帯の要素は空間の下に、**字下げして**書く。
+Openings, `seg` and `line` are written **indented** under a boundary; `area` and band members under a space.
 
-| 本文 | 原因 | 直し方 |
+| Body | Cause | Fix |
 |---|---|---|
-| `Unknown keyword: door` | `door` の行に字下げが無い | 行頭に空白を入れて `boundary` に従属させる |
-| `door is written indented directly under boundary` | 字下げはあるが、直前の非字下げ行が `boundary` ではない | 親を `boundary` にする (上の例は `space` の下に置いていた) |
-| `area is written indented directly under space` | 字下げの `area` の親が `space` でない | |
-| `Only door / window / seg / line / area / space (a band member) may sit on an indented line: note` | 字下げの行に別の語 | 字下げできるのはこの六つだけ |
-| `Only + (add) / - (remove) / = (replace) may sit directly under over: door` | `over` の下に集合編集以外 | `- door D1` のように書く |
-| `One boundary carries one line: /L1/a \| /L1/b` | 一つの境界に二本目の `line` | 境界を二つに分ける |
+| `Unknown keyword: door` | The `door` line is not indented | Put whitespace at the head of the line so it is subordinate to its `boundary` |
+| `door is written indented directly under boundary` | It is indented, but the preceding unindented line is not a `boundary` | Make the parent a `boundary` (the case above had it under a `space`) |
+| `area is written indented directly under space` | The indented `area`'s parent is not a `space` | |
+| `Only door / window / seg / line / area / space (a band member) may sit on an indented line: note` | Some other word on an indented line | Only those six may be indented |
+| `Only + (add) / - (remove) / = (replace) may sit directly under over: door` | Something other than a set edit under `over` | Write it as `- door D1` |
+| `One boundary carries one line: /L1/a \| /L1/b` | A second `line` under one boundary | Split it into two boundaries |
 
-### 開口と属性
+### Openings and attributes
 
-| 本文 | 原因 | 直し方 |
+| Body | Cause | Fix |
 |---|---|---|
-| `door requires a width w:(mm) (the asset may supply it)` | 開口に `w:` が無い | `door w:800` と書くか、幅を持つアセットを参照する (`door SD1`) |
-| `Duplicate attribute key: name` | 同じ行に同じキーが二度 | 一つに寄せる。後勝ちの黙認はしない |
-| `Unclosed quote` | `"` が奇数個 | 閉じる |
-| `An attribute is written key:value: 居室` | `:` の無いトークンが属性の位置にある | `key:value` にする。値に空白を含めるなら `"…"` で囲む |
+| `door requires a width w:(mm) (the asset may supply it)` | The opening has no `w:` | Write `door w:800`, or reference an asset that carries a width (`door SD1`) |
+| `Duplicate attribute key: name` | The same key twice on one line | Consolidate into one. The later one is never silently taken |
+| `Unclosed quote` | An odd number of `"` | Close it |
+| `An attribute is written key:value: 居室` | A token with no `:` is in an attribute position | Make it `key:value`. To include whitespace in a value, wrap it in `"…"` |
 
-### 版と合成
+### Versions and composition
 
-| 本文 | 原因 | 直し方 |
+| Body | Cause | Fix |
 |---|---|---|
-| `Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0)` | 存在しない版 | 六つのどれかにする |
-| `The koyu version is declared only in the base layer (the entry)` | `import` した層に版がある | base 層へ移す |
-| `The koyu version is declared once (already 1.0)` | 版を二度書いた | 一つ消す |
-| `Cannot read file: ./assets.muro` | `import` の相対パスが違う | パスは**書かれたファイルからの相対**で解決される |
+| `Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0)` | A version that does not exist | Use one of the six |
+| `The koyu version is declared only in the base layer (the entry)` | A version in an imported layer | Move it to the base layer |
+| `The koyu version is declared once (already 1.0)` | The version written twice | Delete one |
+| `Cannot read file: ./assets.muro` | The `import`'s relative path is wrong | A path is resolved **relative to the file it is written in** |
 
-## 綴り間違いはどこまで捕まるか
+## How far misspellings are caught
 
-**属性キーの綴り間違いは捕まる。**`nmae:居室A` は自由な属性として運ばれたりせず、[ATT03](./att.md) のエラーになる。台帳に無いキーは、ドット区切りの名前空間 (`acme.nmae`) を持たなければ書けない。
+**A misspelled attribute key is caught.** `nmae:居室A` is not carried through as a free attribute; it is an [ATT03](./att.md) error. A key not in the ledger cannot be written without a dot-separated namespace (`acme.nmae`).
 
-**型 (第2位置引数) の綴り間違いは捕まらない。**型は開かれた語彙なので、`bedroom` を `bedrom` と書いてもエラーにはならない。
+**A misspelled type (the second positional) is not caught.** The type is an open vocabulary, so writing `bedroom` as `bedrom` is not an error.
 
 ```muro
 grid X 0 3600
@@ -123,21 +123,25 @@ level L1 0 h:2400 slab:150
 space /L1/a bedrom X1..X2 Y1..Y2
 ```
 
-このファイルは緑である。型は面積の集計軸と描画の淡さくらいにしか使われず、判定の入口ではないので、閉じていない。**採光の対象は型ではなく `daylight:1` が決める** ([DAY01](./day.md)) ので、型の綴りで判定が消えることは無い。
+That file is green. A type is used for little more than an aggregation axis and the paleness of a drawing, and **core never reads that position at all**, so there is nothing to close.
 
-## 構文が通ってからが本番
+**Facts of composition are not kept in the type position.** Outside, void and daylight all live in a declaration — `outside:1`, `void:1`, `daylight:1` are keys in the [ledger](../muro/attributes.md), so one character off stops at [ATT03](./att.md#att03). `outsid:1` is an error; nothing quietly stops being outside. It used to be otherwise: `exterior` sat in the type position, and `exteriorr` doubled the gross floor area while passing green.
 
-SYN01 が消えたということは、ファイルがモデルになったということでしかない。そこから意味の検査 (他の 64 のコード) が走る。
+The [validation](../validate/index.md) face does read a few type words when it judges. That face **does not freeze**, and its spellings are not guarded ([scope](../scope.md)).
+
+## The real work starts once syntax passes
+
+SYN01 disappearing means only that the file became a model. From there the semantic checks — the other 64 codes — run.
 
 ```sh
 koyu check house.muro --strict
 ```
 
-`--strict` は警告も終了コード 1 にする。CI の門番に置くのはこちらである。
+`--strict` makes warnings exit 1 as well. That is the one to put in a CI gate.
 
-## 関連
+## Related
 
-- [ATT — 属性](./att.md) — 属性キーの綴り間違い (ATT03)
-- [VER — 言語の版](./ver.md) — 版が受理されたあとに走る四つの検査
-- [LIN — 描かれた線](./lin.md) — 二本目の `line`
+- [ATT — attributes](./att.md) — misspelled attribute keys (ATT03)
+- [VER — the language version](./ver.md) — the four checks that run once the version is accepted
+- [LIN — drawn lines](./lin.md) — a second `line`
 - [koyu check](../cli/check.md)

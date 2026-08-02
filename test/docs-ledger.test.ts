@@ -35,11 +35,11 @@ function markdown(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-/** ja と en の両方。片側だけ古くなるのが最も見つけにくい。 */
+/** 公開文書の一区画をひと続きのテキストとして読む。 */
 function corpus(...segments: string[]): string {
-  const ja = markdown(join(DOCS, ...segments));
-  const en = markdown(join(DOCS, "en", ...segments));
-  return [...ja, ...en].map((p) => readFileSync(p, "utf8")).join("\n");
+  return markdown(join(DOCS, ...segments))
+    .map((p) => readFileSync(p, "utf8"))
+    .join("\n");
 }
 
 const CLI_SUBCOMMANDS = [
@@ -106,11 +106,9 @@ test("判定規則は15件すべてが見出しを持つ", { skip: !canonical },
 });
 
 test("CLI は14サブコマンドすべてがページを持つ", { skip: !canonical }, () => {
-  for (const locale of ["", "en"]) {
-    const dir = locale ? join(DOCS, "en", "reference", "cli") : join(DOCS, "reference", "cli");
-    const missing = CLI_SUBCOMMANDS.filter((cmd) => !existsSync(join(dir, `${cmd}.md`)));
-    assert.deepEqual(missing, [], `${locale || "ja"}: ページの無いサブコマンド: ${missing.join(", ")}`);
-  }
+  const dir = join(DOCS, "reference", "cli");
+  const missing = CLI_SUBCOMMANDS.filter((cmd) => !existsSync(join(dir, `${cmd}.md`)));
+  assert.deepEqual(missing, [], `ページの無いサブコマンド: ${missing.join(", ")}`);
 });
 
 test("MCP は12ツールすべてが見出しを持つ", { skip: !canonical }, () => {
@@ -138,10 +136,7 @@ test("公開APIの全エクスポートがどこかに書かれている", { ski
 test("欠番のコードを生きた診断として説明していない", { skip: !canonical }, () => {
   // retired.md は欠番を述べることが仕事なので対象外。ほかの頁でコードが見出しに
   // 立っていれば、それは生きた診断として扱われているということである。
-  const text = [
-    ...markdown(join(DOCS, "reference", "diagnostics")),
-    ...markdown(join(DOCS, "en", "reference", "diagnostics")),
-  ]
+  const text = markdown(join(DOCS, "reference", "diagnostics"))
     .filter((p) => !p.endsWith("retired.md"))
     .map((p) => readFileSync(p, "utf8"))
     .join("\n");
@@ -184,19 +179,3 @@ const INTERNAL_FILES = [
   "writing-architecture.md",
 ];
 
-test("ja と en のページ集合が一致している", { skip: !canonical }, () => {
-  const strip = (paths: string[], base: string) =>
-    paths.map((p) => p.slice(base.length + 1)).sort();
-  const ja = strip(
-    markdown(DOCS).filter(
-      (p) =>
-        !p.startsWith(join(DOCS, "en")) &&
-        !INTERNAL_DIRS.some((d) => p.startsWith(join(DOCS, d))),
-    ),
-    DOCS,
-  ).filter((p) => !INTERNAL_FILES.includes(p));
-  const en = strip(markdown(join(DOCS, "en")), join(DOCS, "en"));
-  const onlyJa = ja.filter((p) => !en.includes(p));
-  const onlyEn = en.filter((p) => !ja.includes(p));
-  assert.deepEqual({ onlyJa, onlyEn }, { onlyJa: [], onlyEn: [] });
-});

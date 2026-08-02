@@ -1,25 +1,25 @@
 ---
-title: 既定の境界
+title: Default boundaries
 mode: explanation
 ---
 
-# 既定の境界
+# Default boundaries
 
-koyu の記法が短いのは、覚えることが少ないからではなく、**書かないことが多い**からである。何が書かれず、書かれないことが何を意味するのかを知らないまま構文表を読むと、行が足りないのか多いのかが判断できない。
+koyu's notation is short not because there is little to learn but because **there is much that goes unwritten**. Read the syntax tables without knowing what is left out, and what leaving it out means, and you cannot tell whether a file has too few lines or too many.
 
-**「書かない」は三通りあり、意味が違う。**
+**There are three kinds of "not writing", and they mean different things.**
 
-| 接触の種類 | 書かなかったときの意味 | では宣言は何のためにあるか |
+| Kind of contact | What silence means | So what is a declaration for |
 |---|---|---|
-| 同一レベルで平面が接する、領域つきの空間どうし | **壁** (導出される) | 例外 (`type:open` / `air:1`) と、属性・開口のため |
-| 上下のレベルで平面が重なる空間どうし | **床** (導出される) | 例外 (`stair` / `shaft` / `void`) のため |
-| 領域を持たない空間 (`exterior` など) との接触 | **何も無い** | 外皮そのもののため |
+| Two spaces with regions touching in plan on the same level | **a wall** (derived) | exceptions (`type:open` / `air:1`), and attributes and openings |
+| Spaces on adjacent levels overlapping in plan | **a floor** (derived) | exceptions (`stair` / `shaft` / `void`) |
+| Contact with a space that has no region (`exterior` and the like) | **nothing at all** | the envelope itself |
 
-規則の綴りは [既定境界](../reference/muro/defaults.md) にある。この頁が言うのは、なぜこの三段構えなのかである。
+The rules as written are in [Default boundaries](../reference/muro/defaults.md). What this page explains is why the three tiers are shaped this way.
 
-## 上の二つは対称である
+## The first two are symmetrical
 
-**水平は壁、垂直は床。どちらも書かない。**
+**Horizontally a wall, vertically a floor. Neither is written.**
 
 ```muro
 grid X 0 3600 7200
@@ -34,27 +34,27 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-二室の間に壁がある。上下階が重なっていれば、その間に床がある。**どちらも建築の既定であり、例外の方が珍しい。**
+There is a wall between the two rooms. Where storeys overlap, there is a floor between them. **Both are the architectural default; the exception is the rare case.**
 
-既定を逆にしたらどうなるかを考えると、この選択の理由が見える。接する二室の間に壁があると書かせるなら、`space` 行の数だけ `boundary` 行が要る。425 空間の建物なら 1,364 本である。それは記述ではなく**書き取り**であって、設計判断を一つも運んでいない。
+Invert the default and the reason for this choice becomes visible. If a wall between two touching rooms had to be written, a file would need roughly as many `boundary` lines as it has spaces — 1,364 of them for a 425-space building. That is not description but **dictation**, and it carries not one design decision.
 
-**宣言が要るのは、既定から外れるときと、既定の実体に値を与えるときだけである。**
+**A declaration is needed only to depart from the default, or to give the defaulted substance a value.**
 
 ```muro-part
-boundary /L1/a /L1/b type:open          # 例外 — 壁ではなく開放
-boundary /L1/a /L1/b t:120 spec:PW1     # 既定の壁に、厚みと仕様を与える
-boundary /L1/hall /L2/bed type:stair    # 例外 — 床ではなく階段
+boundary /L1/a /L1/b type:open          # exception — open, not a wall
+boundary /L1/a /L1/b t:120 spec:PW1     # give the defaulted wall a thickness and a spec
+boundary /L1/hall /L2/bed type:stair    # exception — a stair, not a floor
 ```
 
-「接しているのに境界が宣言されていない」という警告はかつて存在したが、既定が壁になったことで役目を終え、廃止された。**書かないことが積極的な意味を持つ以上、それは欠落ではない。**
+There used to be a warning for "these touch but no boundary is declared". Once the default became a wall it had no work left to do, and it was retired. **Where silence carries positive meaning, it is not an omission.**
 
-## 三つ目だけが違う
+## Only the third is different
 
-**内壁は自動、外壁は手動。**この非対称は既定値の表を眺めていても出てこない。ここを見落とすと図面が壊れる。
+**Internal walls are automatic; external walls are manual.** This asymmetry does not show up in a table of default values. Miss it and the drawing breaks.
 
-上のファイルは `check` が緑で、しかし**外壁が一本も無い。**黒く描かれるのは中央の一本 — 導出された既定の壁 — だけで、外周には何も無い。
+The file above passes `check`, and yet **it has no external walls at all**. The only thing drawn in black is the one line in the middle — the derived default wall. The perimeter has nothing.
 
-外部空間と、外部との境界を書いて初めて外皮ができる。
+An envelope appears only once an exterior space and boundaries to it are written.
 
 ```muro
 grid X 0 3600 7200
@@ -62,20 +62,20 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out t:150 spec:EW
 boundary /L1/b /out t:150 spec:EW
 ```
 
-**理由はある。**どの外部か — 道路・隣地・庭・共用廊下 — の名指しがそれ自体情報であり、既定では導けない。外部を一枚岩の `/out` にするか、方角ごとに割るかは設計の判断である。接道長は「道路として宣言された外部空間」に接する長さから出るので、その割り方が数値に効く。
+**There is a reason.** *Which* exterior — street, neighbouring plot, garden, common corridor — is itself information, and no default can derive it. Whether the exterior is one monolithic `/out` or is split by orientation is a design decision. Road frontage is measured against exterior spaces declared as roads, so how you split it changes the numbers.
 
-**境目は「`exterior` かどうか」ではなく「領域を持つかどうか」である。**`space /out/garden exterior X2..X3 Y1..Y2 level:L1` のように領域とレベルを持つ外部空間なら、接する室との間に既定の壁が導出される。
+**The dividing line is not "is it `exterior`" but "does it have a region".** An exterior space that does have a region and a level — `space /out/garden exterior X2..X3 Y1..Y2 level:L1` — gets a derived default wall against the rooms it touches.
 
-## 外皮の欠落は、緑では捕まらない — 判定では捕まる
+## A missing envelope is not caught by green — it is caught by judgement
 
-`check` は外皮の欠落を見ない。それは構成の矛盾ではないからである。
+`check` does not look at envelope gaps, because a gap is not a contradiction in the composition.
 
-見るのは判定の側である。
+Judgement does.
 
 ```sh
 npx tsx src/cli.ts validate gap.muro
@@ -85,11 +85,11 @@ npx tsx src/cli.ts validate gap.muro
 ⚠ [envelope.gap] gap.muro:line 6: Perimeter not faced by any envelope: /L1/b — S 3600mm / E 4000mm / N 3600mm (11200mm over 3 run(s)). Write a boundary to the exterior
 ```
 
-この判定は粗い — **外部への境界を一本でも書いたレベルだけ**を見る。外皮をまだ模型にしていない階を「穴が開いている」とは言わない。「書き始めたなら閉じきる」という整合の要求であって、完全性の要求ではない。粗さが許されるのは、判定が凍らない領域にあるからである ([check と validate の違い](two-kinds-of-green.md))。規則は [envelope.gap](../reference/validate/envelope.md)。
+The rule is deliberately coarse — it looks only at **levels where at least one boundary to the exterior has been written**. It will not call a storey whose envelope has not been modelled yet "full of holes". It demands "if you started, finish"; it does not demand completeness. Coarseness is allowed because judgement lives in a domain that does not freeze ([check and validate](two-kinds-of-green.md)). The rule is [envelope.gap](../reference/validate/envelope.md).
 
-## 沈黙が導出を生む — 半屋外
+## Silence generates derivation — semi-outdoor
 
-三段構えの効き目が最もよく出るのが半屋外である。**半屋外は宣言できない。導出される。**
+The three tiers pay off most clearly in semi-outdoor space. **Semi-outdoor cannot be declared. It is derived.**
 
 ```muro
 grid X 0 3600 5400
@@ -97,13 +97,13 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/room ldk X1..X2 Y1..Y2
 space /L1/balcony balcony X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/room /L1/balcony t:150
   window w:1600 h:2000
 boundary /L1/balcony /out type:open
 ```
 
-最後の一行がバルコニーを半屋外にする。`type:terrace` と書いても、`type:balcony` と書いても、半屋外にはならない — **半屋外にするのは境界の側である。**
+The last line is what makes the balcony semi-outdoor. Writing `type:terrace`, or `type:balcony`, does not — **it is the boundary that makes it so.**
 
 ```text
 L1
@@ -114,19 +114,19 @@ Total 14.40 m2 (indoor floor area)
 Semi-outdoor 7.20 m2 (balconies, external stairs and the like — whether they count is a matter of regulatory detail, so it is reported separately)
 ```
 
-外部に対して `open` または `air:1` の境界を持つ、領域つきの空間が半屋外である。手すりで囲われたテラスは `air:1` — 物はあるが外気と光を遮らない — で書き、それがそのまま半屋外の条件を満たす。**性質を宣言するのではなく、性質を生む構成を書く。**
+A space with a region that meets the exterior across an `open` or `air:1` boundary is semi-outdoor. A terrace enclosed by a railing is written with `air:1` — there is a thing, but it blocks neither air nor light — and that alone satisfies the condition. **You do not declare the property; you write the composition that produces it.**
 
-## 沈黙は「空でよい」ではない
+## Silence is not licence to be empty
 
-書かなくてよいことと、書かなくても形になることは別である。**形を作るのに必要な情報が欠けていれば、`check` はエラーを出す。**
+Not having to write something is different from getting a form without it. **If information needed to make a form is missing, `check` errors.**
 
-天井高が決まらなければそのレベルには壁も柱も立たないので、これはエラー (SUF01) である。レベルが決まらない領域つきの空間もエラー (SUF02) である。**既定を勝手に捏造して形を作ることはしない** — 作れないなら、その要素を作らずに「作れない」と言葉にする。
+If no ceiling height can be determined, no wall and no column stands on that level, so this is an error (SUF01). A space that has a region but no determinable level is an error too (SUF02). **koyu does not invent a default and press on** — if a thing cannot be made, it is not made, and the fact is put into words.
 
-一覧は [SUF — 充足性](../reference/diagnostics/suf.md) にある。
+The list is in [SUF — sufficiency](../reference/diagnostics/suf.md).
 
-## この先
+## Next
 
-- [導出される情報](source-and-derived.md)
-- [check の保証範囲](green-is-not-a-building.md)
-- [既定境界](../reference/muro/defaults.md)
-- [導出の定数](../reference/form/constants.md) — 書かれなかったときに何を導くか
+- [Derived information](source-and-derived.md)
+- [What check guarantees](green-is-not-a-building.md)
+- [Default boundaries](../reference/muro/defaults.md)
+- [Derivation constants](../reference/form/constants.md) — what is derived when nothing is written

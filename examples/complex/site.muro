@@ -6,12 +6,12 @@
 zone /site name:敷地 site:1
 polygon /site -6000,-8000 26000,-8000 34000,-11000 64000,-11000 68000,-5000 68000,22000 60000,34000 44000,48000 6000,48000 -6000,28000
 
-space /out exterior name:外部
-space /road-s exterior road:22000 name:南側道路
-space /road-e exterior road:16000 name:東側道路
-space /site/walk exterior X1..X8 Y1-6000..Y1 level:L1 name:歩道状空地
-space /site/plaza exterior X1-4000..X1 Y1..Y6 level:L1 name:西側広場
-space /site/east exterior X8..X8+6000 Y1..Y6 level:L1 name:東側歩道状空地
+space /out name:外部 outside:1
+space /road-s road:22000 name:南側道路 outside:1
+space /road-e road:16000 name:東側道路 outside:1
+space /site/walk X1..X8 Y1-6000..Y1 level:L1 name:歩道状空地 outside:1
+space /site/plaza X1-4000..X1 Y1..Y6 level:L1 name:西側広場 outside:1
+space /site/east X8..X8+6000 Y1..Y6 level:L1 name:東側歩道状空地 outside:1
 
 # 接道は「敷地と道路が接する長さ」— 建物の外壁が道路に面していても接道ではない
 boundary /site/walk /road-s edge:S type:open

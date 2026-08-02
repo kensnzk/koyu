@@ -1,22 +1,22 @@
 ---
-title: GEO — 領域の重なりの診断
+title: GEO — overlapping-region diagnostics
 mode: reference
 ---
 
-# GEO — 領域の重なりの診断
+# GEO — overlapping-region diagnostics
 
-空間は平面のどこを占めるかを通り参照の矩形で書く。二つの矩形が同じ場所を占めれば、床面積が二重に数えられ、壁芯線分も一意に決まらない。GEO の二つは重なりを咎める — 一つの空間の内側の重なりと、二つの空間のあいだの重なりである。
+A space says which part of the plan it occupies as rectangles of grid references. When two rectangles occupy the same place, floor area is counted twice and the wall centerline segment is no longer determined. The two GEO codes catch overlap — inside one space, and between two spaces.
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [GEO01](#geo01) | error | 一つの空間の領域同士が重なっています |
-| [GEO02](#geo02) | error | 二つの空間の領域が重なっています |
+| [GEO01](#geo01) | error | The regions of one space overlap each other |
+| [GEO02](#geo02) | error | The regions of two spaces overlap |
 
-断面の重なり (下階の天井が上階の床に食い込む) は同じ構えの別の族で、[HGT](hgt.md) が言う。コードの手に入れ方は[診断を読む](reading.md)にある。
+Overlap in section — a ceiling below colliding into the floor above — is the same idea in a different family, and [HGT](hgt.md) says it. How to get a code is on [Reading a diagnostic](reading.md).
 
-以下の誤り例はどちらも `koyu check` で終了コード1になり、**そのコードちょうど1件**を出す。
+Both wrong examples below exit 1 under `koyu check`, producing **exactly one** instance of that code.
 
-## GEO01 — 一つの空間の領域同士が重なっています {#geo01}
+## GEO01 — the regions of one space overlap each other {#geo01}
 
 `error`
 
@@ -29,13 +29,13 @@ space /L1/a room X1..X3 Y1..Y2 + X2..X3 Y1..Y2
 
 `Regions within /L1/a overlap: X1..X3 Y1..Y2 and X2..X3 Y1..Y2`
 
-**原因** — 一つの空間が `+` で束ねた矩形同士が重なっている。L字を書こうとして二つめの矩形の始点を間違えた場合に出る。重なった分は面積が二重に数えられてしまうので、通さない。
+**Cause** — the rectangles one space bundles with `+` overlap each other. It appears when you meant to write an L and got the start of the second rectangle wrong. The overlapping part would be counted twice in the area, so it is not let through.
 
-**直し方** — `+` で足す矩形は**互いに重ならない**ように割る。L字なら、縦長の一枚と、その横に足りない分だけの一枚に分ける。
+**Fix** — split the rectangles you add with `+` so that they **do not overlap each other**. For an L, take one tall rectangle plus one that covers only what is missing beside it.
 
-**注 — メッセージは書かれた通り語で組を名指す。**三枚が互いに重なる空間では、`X1..X3 Y1..Y2 and X2..X3 Y1..Y2` のように**どの二枚か**が組ごとに出る。同じ本文が並ぶことはない。
+**Note — the message names the pair in the words you wrote.** On a space where three rectangles overlap each other, each pair comes out separately as `X1..X3 Y1..Y2 and X2..X3 Y1..Y2`. You never get identical bodies stacked up.
 
-## GEO02 — 二つの空間の領域が重なっています {#geo02}
+## GEO02 — the regions of two spaces overlap {#geo02}
 
 `error`
 
@@ -49,11 +49,11 @@ space /L1/b room X2..X3 Y1..Y2
 
 `Space regions overlap: /L1/a and /L1/b`
 
-**原因** — 同じレベルの二つの空間が同じ場所を占めている。診断の `related` に後から書いた側の位置が入る。
+**Cause** — two spaces on the same level occupy the same place. The diagnostic's `related` carries the position of the one written later.
 
-**注** — 検査は**同じレベルの空間同士**に限られる。上下階の空間が平面で重なるのは当たり前であって、それは重なりではなく上下の隣接である。
+**Note** — the check is confined to **spaces on the same level**. Spaces on different storeys overlapping in plan is the ordinary case; that is not overlap but vertical adjacency.
 
-**直し方** — 割付を直す。ただし、**住戸や部門を室に割ろうとしてこれが出たのなら、直し方は割付ではない。**大きいほうを `space` ではなく `zone` にする。`zone` は幾何を持たず、パス接頭辞で配下の空間を束ねて面積を合計する集約であり、これが「全体と部分」を書く道具である。
+**Fix** — correct the layout. However, **if this appeared while trying to subdivide a dwelling or a department into rooms, the fix is not the layout.** Make the larger thing a `zone` rather than a `space`. A `zone` has no geometry; it is an aggregation that bundles the spaces beneath it by path prefix and totals their area, and it is the tool for writing "the whole and its parts".
 
 ```muro
 grid X 0 3600 7200
@@ -64,4 +64,4 @@ space /L1/home/ldk ldk X1..X2 Y1..Y2 name:LDK
 space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
 ```
 
-住戸そのものを `space` として書き、その中にさらに `space` を並べる書き方は成立しない。**空間は重ならない**というのが平面の規則であり、階層は幾何ではなくパスが持つ。ゾーンの診断は [ZON](zon.md) にある。
+Writing the dwelling itself as a `space` and nesting further `space`s inside it does not stand up. **Spaces do not overlap** is the rule of the plan, and hierarchy is carried by the path, not by geometry. Zone diagnostics are on [ZON](zon.md).

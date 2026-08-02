@@ -1,96 +1,96 @@
 ---
-title: 導出の決定性
+title: Determinism of derivation
 mode: explanation
 ---
 
-# 導出の決定性
+# Determinism of derivation
 
-形を作らないことと、形を作れないことは違う。**この記述からは、一意な形が作れなければならない。**
+Not making form and not being able to make form are different things. **A unique form must be derivable from this description.**
 
-導出の規則が消費者ごとに違えば、同じ原本から違う建物が出る。**それは原本ではない。**だから規則は仕様として明文であり、参照実装が API として提供される。
+If the rules of derivation differ per consumer, the same source yields different buildings. **Then it is not a source of truth.** So the rules are set out explicitly and a reference implementation is offered as an API.
 
-**「同じ構成から複数の形が出る」ことは欠陥である。**複数あってよいのは**見た目**であって、形ではない。
+**"The same composition yielding several forms" is a defect.** What may be plural is the **appearance**, not the form.
 
-## 一意性は文ではなく述語である
+## Uniqueness is a predicate, not a sentence
 
-「一意である」は約束の文としては弱い。誰も検算できないからである。koyu はそれを**機械が縛れる含意**として書く。
+"It is unique" is a weak promise, because nobody can check it. koyu writes it instead as **an implication a machine can enforce**.
 
 ```text
 toCanonical(a) === toCanonical(b)  ⟹  derive(a) ≡ derive(b)
 ```
 
-**形は正準形の関数である。**
+**Form is a function of canonical form.**
 
-正準形は「同じ建物とは何か」の定義である。したがって**正準形が捨てる情報は、形を変えてはならない。**
+Canonical form is the definition of "the same building". Therefore **information that canonical form discards must not change the form.**
 
-- 線の端点の書き順
-- 境界の宣言順
-- 行の並び
-- `boundary /L1/a /out` と `boundary /out /L1/a` の向き
+- the order in which a line's endpoints were written
+- the declaration order of boundaries
+- the order of lines in the file
+- the direction of `boundary /L1/a /out` versus `boundary /out /L1/a`
 
-これらを変えても正準 JSON はバイト同一である。だから形も一致していなければならない。**変えてしまうなら、捨ててよいものを捨てていないか、捨ててはいけないものを捨てているかのどちらかである。**
+Change any of those and the canonical JSON is byte-identical. So the form must be identical too. **If it is not, then either something discardable was not discarded, or something essential was.**
 
-この含意はテストが縛っている。正準形が等しいことを**前提として確かめてから**形の一致を主張するので、前提が崩れれば「この組は何も証明していない」と落ちる。
+The implication is enforced by tests. They **first confirm that the canonical forms are equal** and only then assert that the forms match, so if the premise fails the test fails with "this pair proves nothing".
 
-## 担保は第一に構造による
+## Structure carries the guarantee first
 
-規則を並べる前に、構造そのものが一意性を担保している。
+Before any rules are listed, the structure itself carries uniqueness.
 
-**与件が座標を与え、関係が共有面という座を与え、実体はその座に乗る。実体は座を持って生まれる。**
+**The given grants coordinates, a relation grants the seat of a shared surface, and substance sits on that seat. Substance is born with a seat.**
 
-これが効いている場面を三つ挙げる。
+Three places where this pays off.
 
-**壁。**壁は「置かれる」のではなく、二つの領域の共有辺として現れる。置く操作が無いので、置き場所の曖昧さも無い ([境界による壁の表現](boundary-is-a-relation.md))。
+**Walls.** A wall is not *placed*; it appears as the shared edge of two regions. With no placing operation, there is no ambiguity about where it was placed ([Walls as boundaries](boundary-is-a-relation.md)).
 
-**柱。**柱の位置はどこにも書かれない。通り芯の交点と床の交わりから現れる。**同じ交点に二本は立たない** — 先に書かれた宣言が勝つ、という決定的な規則がある。
+**Columns.** A column's position is written nowhere. It appears where a grid crossing meets a floor. **Two columns never stand at the same crossing** — a deterministic rule says the earlier declaration wins.
 
-**縦動線。**段数も踏面も勾配も書かれない。領域と階高と「上る向き」の宣言だけから導かれる。同じ大きさの階段室に、階高に応じて 37 段が入ったり 24 段が入ったりする — **どちらも決定的である。**
+**Vertical circulation.** Riser count, tread and slope are never written. They are derived from the region, the storey height and a declaration of which way is up. The same-sized stair enclosure takes 37 risers or 24 depending on the height — **both deterministically.**
 
-## 導出の規則にも順序がある
+## Derivation rules carry order too
 
-構造だけでは足りない場面がある。そこでは**順序そのものが規範の一部になる。**
+Structure alone is not always enough. Where it is not, **order itself becomes part of the norm.**
 
-一例。空間に「描かれた線」(斜めの分割線) があると、領域が切り直される。切り直しは複数の線が順に効くので、**どの順で効くかで結果が変わりうる。**
+An example. When a boundary carries a "drawn line" (a diagonal splitting line), regions are re-cut. Several lines apply in sequence, so **the order in which they apply could change the result.**
 
-だから規則はこう定める。**切り分けは宣言順ではなく、正準の境界順に効く。**
+So the rule says: **cutting applies in canonical boundary order, not declaration order.**
 
-正準 JSON は境界の宣言順を捨てる。もし宣言順に切っていたら、同じ正準形から違う面積が出ることになる — つまり上の含意に反する。**捨てられる情報が形に効いてはならない**という要請が、そのまま実装の走査順を決めている。
+Canonical JSON discards the declaration order of boundaries. Had cutting followed declaration order, the same canonical form could yield different areas — which contradicts the implication above. **The requirement that discarded information must not affect form is what fixes the scan order in the implementation.**
 
-同じ理由で、**線分は向きを持たない。**同じ二点を結ぶ線は、どちらの端から書いても同じ線である。導出は切り分けの前に端点を昇順へ揃える。揃えなければ、正準 JSON がバイト同一のまま**扉が別の位置に出る。**
+For the same reason, **a segment has no direction.** A line between the same two points is the same line whichever end it was written from. Derivation sorts the endpoints into ascending order before cutting. Without that, canonical JSON stays byte-identical while **a door comes out somewhere else.**
 
-## 既定値を捏造しない
+## No invented defaults
 
-必要な値が書かれていなければ、既定を勝手に置くのではなく**その要素を作らない。**
+If a needed value is not written, no default is quietly supplied — **the element is simply not made.**
 
-天井高が一つも決まらなければ階高も決まらず、そのレベルには壁も柱も立たない。**そして充足性の診断がそれを言葉にする** (SUF01)。黙って 2400 を置いて図面を出すことはしない。
+If no ceiling height can be determined, no storey height can be either, and no wall and no column stands on that level. **The sufficiency diagnostic then puts that into words** (SUF01). It does not quietly assume 2400 and emit a drawing.
 
-例外は、仕様が定めた導出の既定である — 壁厚 100mm、まぐさ高 2000mm、蹴上げの上限 180mm など。**これは捏造ではなく規則である。**書かれた値があれば必ず書いた値が勝つ。一覧は [導出の定数](../reference/form/constants.md)。
+The exception is the derivation defaults laid down by the specification — 100 mm wall thickness, 2000 mm head height, a 180 mm maximum riser, and so on. **Those are rules, not inventions.** A written value always wins. The list is [Derivation constants](../reference/form/constants.md).
 
-**この区別が要る。**「規則として定めた既定」と「その場でこしらえた既定」は、前者が仕様に書かれて再現できるのに対し、後者は実装ごとに違う。後者を許せば一意性は消える。
+**The distinction matters.** A default laid down as a rule is written down and reproducible; a default made up on the spot differs per implementation. Permit the latter and uniqueness evaporates.
 
-## 形は見た目を持たない
+## Form carries no appearance
 
-参照実装 `derive(model)` が返す `Form` は、**見た目を一つも持たない。**
+The `Form` returned by the reference implementation `derive(model)` **holds not one item of appearance.**
 
-**持つもの** — 座標 (領域の凸片・境界線分・開口の中心・柱の断面・段板の矩形)・厚み・z 範囲・向き・対象の同一性・平面の分類。
+**It holds** — coordinates (convex pieces of regions, boundary segments, opening centres, column sections, tread rectangles), thicknesses, z ranges, orientations, the identity of the object, and the plan classification.
 
-**持たないもの** — 色・書体・文字寸・線幅・線種・注記の言葉 (`UP` も「12段 蹴上175/踏面300」も)・作図の記号 (吹抜けの対角線・切断線の二本の斜線・通り芯の丸・矢印の頭)・縮尺と紙面の余白・描く順序と重ね順と陰影・何を描き何を省くかの判断。
+**It does not hold** — colour, typeface, text size, line weight, line style, annotation wording (neither `UP` nor "12 risers at 175, 300 tread"), drawing symbols (void diagonals, the paired oblique cut marks, grid bubbles, arrowheads), scale and page margins, draw order and stacking and shading, or the judgement of what to draw and what to omit.
 
-**この線引きがあるから、「見た目は複数あってよい」と「形は一つでなければならない」が両立する。**描画は `Form` を描くだけであり、SVG の中身はいつ変わってもよい。**変わってはならないのは SVG ではなく `Form` である。**
+**That line is what lets "there may be several appearances" and "there must be exactly one form" hold together.** Drawing only draws the `Form`, and the contents of the SVG may change at any time. **What must not change is not the SVG but the `Form`.**
 
-これも機械が縛っている。描画のコードが形を組み立てる部品を一つも引いていないこと、導出の定数が描画側に綴られていないこと、平面に出た黒帯が `Form` の「切られた区間」そのものであること — どれも検査される。
+This too is machine-enforced: the drawing code is checked to import none of the form-assembling parts, the derivation constants are checked not to be spelled out on the drawing side, and the black bands that come out in plan are checked to be exactly the `Form`'s cut intervals.
 
-## 「複数の形が出てよい」は誤りである
+## "Several forms may come out" is wrong
 
-この立場は一度は逆だった。**「生成は一意ではない。同じ構成から複数の形が出る。それは欠陥ではない」**と書かれていた時期がある。
+This position was once the opposite. There was a time when it read **"generation is not unique; the same composition yields several forms; that is not a defect."**
 
-その立場を捨てた理由は単純である。**複数の形が出るなら、原本は建物を決めていない。**面積が消費者ごとに違い、壁の位置が実装ごとに違い、平面図が版ごとに違う。それは交換形式としてすら成り立たない。
+The reason for abandoning it is simple. **If several forms come out, the source has not determined the building.** Areas differ per consumer, wall positions differ per implementation, plans differ per release. That does not hold up even as an exchange format.
 
-**残ったのは「見た目は複数あってよい」だけである。**そしてそれは形の話ではない。
+**What survives is only "there may be several appearances."** And that is not a statement about form.
 
-## この先
+## Next
 
-- [形 — 導出が返すもの](../reference/form/index.md)
-- [導出の定数](../reference/form/constants.md)
-- [平面図の生成](plan-is-not-a-section.md)
-- [正準 JSON](../reference/json/index.md)
+- [Form — what derivation returns](../reference/form/index.md)
+- [Derivation constants](../reference/form/constants.md)
+- [How plans are generated](plan-is-not-a-section.md)
+- [Canonical JSON](../reference/json/index.md)

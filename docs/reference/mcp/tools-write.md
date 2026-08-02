@@ -1,15 +1,15 @@
 ---
-title: 書く — write_layer / new_uids
+title: Writing — write_layer / new_uids
 mode: reference
 ---
 
-# 書く — write_layer / new_uids
+# Writing — write_layer / new_uids
 
-`write_layer` は**サーバーの中で唯一ディスクに触れるツール**である。`new_uids` は何も書かないが、書くために呼ぶ。
+`write_layer` is **the only tool in the server that touches the disk.** `new_uids` writes nothing, but you call it in order to write.
 
-**エージェントに書かせる前にコミットしておくこと。**`write_layer` は全置換で書き、取り消しを持たない。サーバーは過去の版を一つも保存しない。
+**Commit before you let an agent write.** `write_layer` replaces files wholesale and has no undo. The server keeps not one previous version.
 
-この頁の出力はすべて実際に走らせて得たものである。絶対パスは `<abs>` に縮めてある。
+Every piece of output on this page was obtained by actually running it. Absolute paths are shortened to `<abs>`.
 
 ---
 
@@ -17,35 +17,35 @@ mode: reference
 
 > Checks a layer (.muro file) before replacing it. Content that would make the composition unparsable is never written (the original stays intact). Check errors are returned but the write still happens, so that an edit spanning several layers can be made in steps — fix it and write again. History is left to git
 
-### 引数
+### Arguments
 
-| 引数 | 必須 | 中身 |
+| Argument | Required | Contents |
 |---|---|---|
-| `file` | ○ | entry の `.muro` パス。**書き込み先ではない** — 合成の起点であり、書き込みが許される範囲の基準でもある |
-| `layer` | ○ | 書き込み先の `.muro` パス。**entry のあるディレクトリからの相対**、または絶対 |
-| `content` | ○ | そのファイルの全文。**差分ではない** |
+| `file` | yes | The entry `.muro` path. **Not the write target** — it is where composition starts, and the yardstick for what may be written |
+| `layer` | yes | The `.muro` path to write. **Relative to the entry's directory**, or absolute |
+| `content` | yes | The whole text of that file. **Not a diff** |
 
-`layer` に entry 自身を渡してもよい。base 層を書き換える正規の方法がそれである。
+`layer` may be the entry itself; that is the proper way to edit the base layer.
 
-書き込み先の候補は [`spaces`](tools-read.md#spaces) の `layer` と [`layers`](tools-read.md#layers) の `file` に出ている。**そこに出たパスをそのまま渡すのが確実である。**
+Candidate targets are already in front of you: the `layer` field of [`spaces`](tools-read.md#spaces) and the `file` field of [`layers`](tools-read.md#layers). **Passing a path printed there is the reliable move.**
 
-### 何が順に起きるか
+### What happens, in order
 
-1. `file` のあるディレクトリを基準に `layer` を解決する。
-2. **`.muro` で終わらなければ拒否する。**
-3. **解決先が entry のディレクトリの外なら拒否する** (相対パスによる脱出の検査)。
-4. **`content` を差し替えたつもりで建物全体を合成する。**parse できなければ**原本に一切触れずに**返る。
-5. 合成できたら `check` を回す。
-6. 書き込み先のディレクトリを (無ければ) 作る。
-7. **symlink の実体まで解決し直して、もう一度 entry のディレクトリ配下かを検査する。**
-8. 同じディレクトリに一時ファイルを書き、`rename` で置き換える。
-9. `written` と、直後の `check` の結果を返す。
+1. Resolve `layer` against the directory `file` lives in.
+2. **Refuse anything that does not end in `.muro`.**
+3. **Refuse a target that resolves outside the entry's directory** (the relative-path escape check).
+4. **Compose the whole building as if `content` were already in place.** If that will not parse, return **without touching the original**.
+5. If it composes, run `check` on it.
+6. Create the target's directory if it does not exist.
+7. **Resolve symlinks to their real paths and check containment again.**
+8. Write a temporary file in the same directory, then `rename` it over the target.
+9. Return `written` plus the `check` result from immediately after.
 
-**門番は書き込みの前にある。**壊れた合成がファイルシステムに着地することはない。
+**The gatekeeper stands before the write.** A broken composition never lands on the filesystem.
 
-### 返り
+### The result
 
-書けたとき。
+A successful write.
 
 ```text
 {
@@ -57,32 +57,32 @@ mode: reference
 }
 ```
 
-| フィールド | 中身 |
+| Field | Contents |
 |---|---|
-| `written` | 書けたときは書き込み先の絶対パス。書かなかったときは `false` |
-| `ok` | 書いた後の合成に `check` のエラーが無いか |
-| `spaces` | 書いた後の合成の空間数 |
-| `errors` `warnings` | 出所レイヤー:行つきの文字列の配列 |
-| `parseError` | parse できなかったときだけ。原本は変わっていない |
-| `target` | parse できなかったときだけ。書こうとしていたパス |
+| `written` | The absolute path written, or `false` when nothing was written |
+| `ok` | Whether the composition after the write is free of `check` errors |
+| `spaces` | How many spaces the composition has after the write |
+| `errors` `warnings` | Arrays of strings tagged `layer:line` |
+| `parseError` | Only when it would not parse. The original is unchanged |
+| `target` | Only when it would not parse. The path it was going to write |
 
-**`diagnostics` は返らない。**診断コードが要るなら、書いた後に [`check`](tools-verify.md#check) を別に呼ぶ。
+**No `diagnostics` array comes back.** If you need diagnostic codes, call [`check`](tools-verify.md#check) separately after the write.
 
 ---
 
-### 安全契約
+### The safety contract
 
-#### 取り消しは無い
+#### There is no undo
 
-サーバーは版を一つも保存しない。**巻き戻し・分岐・レビューはすべて git の仕事である。**エージェントに書かせる作業を始める前にコミットする。
+The server stores no versions. **Rollback, branching and review are all git's job.** Commit before starting work that lets an agent write.
 
-#### 全置換である
+#### It is a whole-file replacement
 
-`content` はそのファイルの全文になる。部分置換も追記も無い。**書く前に [`layers`](tools-read.md#layers) で原本を読み、全文を組み立ててから渡す。**
+`content` becomes the entire file. There is no partial replacement and no append. **Read the original with [`layers`](tools-read.md#layers), assemble the full text, then send it.**
 
-#### parse 不能な内容は書かれない
+#### Content that will not parse is never written
 
-差し替え後の内容で仮想的に合成し、parse できなければ**原本に一切触れない。**
+The replacement is composed virtually first, and if it will not parse **the original is not touched at all.**
 
 ```text
 {
@@ -93,11 +93,11 @@ mode: reference
 }
 ```
 
-`written` が `false` である。ファイルは元のままなので、`parseError` を読んで組み立て直し、もう一度呼ぶ。
+`written` is `false`. The file is exactly as it was, so read `parseError`, rebuild the text and call again.
 
-#### check エラーの内容は書かれる — これは意図である
+#### Content with check errors IS written — deliberately
 
-parse は通るが `check` がエラーを出す内容は、**書かれる。**複数のレイヤーにまたがる編集を段階的に行えるようにするための約束である。片方の層に空間を足し、もう片方の層でそれを参照する、という編集は、途中で必ず赤くなる。
+Content that parses but makes `check` report errors **does get written.** This is the promise that lets an edit spanning several layers be made in steps: add a space in one layer and reference it from another, and the middle of that edit is necessarily red.
 
 ```text
 {
@@ -111,33 +111,33 @@ parse は通るが `check` がエラーを出す内容は、**書かれる。**�
 }
 ```
 
-`written` にはパスが入り、`ok` が `false` になる。**赤いまま置き去りにしない** — 次の呼び出しで直し切る。
+`written` carries the path and `ok` is `false`. **Do not leave it red** — finish the fix on the next call.
 
-#### 書き込みは atomic
+#### The write is atomic
 
-同じディレクトリに `<書き込み先>.tmp-<プロセスID>` を書き、`rename` で置き換える。**中途半端な内容のファイルが残ることはない。**書き込みの途中でプロセスが死んでも、原本は原本のままか、新しい内容の全部かのどちらかである。
+It writes `<target>.tmp-<pid>` in the same directory and `rename`s it over the target. **No half-written file is ever left behind.** If the process dies mid-write, the original is either untouched or completely replaced — never something in between.
 
-#### `.muro` しか書けない
+#### Only `.muro` can be written
 
 ```text
 Only .muro files can be written
 ```
 
-拡張子だけの検査である。`.md` も `.json` も `.ts` も書けない。**サーバーは記法のファイル以外を一つも触らない。**
+It is an extension check. No `.md`, no `.json`, no `.ts`. **The server never touches a file that is not the notation.**
 
-#### entry のディレクトリ配下しか書けない
+#### Only under the entry's directory
 
 ```text
 Cannot write outside the entry's directory
 ```
 
-検査は二段ある。**相対パスによる脱出** (`../secrets.muro`) は解決の直後に止まる。**symlink による脱出** — ディレクトリ配下にある symlink が外を指している場合 — は、書き込み直前に実体パスまで解決し直して止める。どちらも同じ本文を返す。
+There are two checks. **A relative-path escape** (`../secrets.muro`) is stopped right after resolution. **A symlink escape** — a symlink inside the directory pointing out of it — is stopped just before the write, by resolving to real paths and checking containment again. Both return the same message.
 
-だから `write_layer` の爆発半径は、**entry と同じディレクトリ木の中の `.muro` ファイル**である。エージェントに触らせたくないものを entry の隣に置かない。
+So the blast radius of `write_layer` is **the `.muro` files inside the entry's directory tree.** Do not keep anything you would not let an agent touch next to the entry.
 
-#### 合成に参加しないファイルの内容は検査されない
+#### Content of a file outside the composition is not checked
 
-門番が回すのは**差し替え後の合成**である。どこからも `import` されていないファイルは合成に入らないので、その中身は誰も読まない。
+The gatekeeper composes **the replaced composition**. A file no `import` reaches is not part of it, so nobody reads its contents.
 
 ```text
 {
@@ -149,11 +149,11 @@ Cannot write outside the entry's directory
 }
 ```
 
-これは `sub/new.muro` に記法として成立しない文字列を書き込んだときの返りである。**`ok: true` が返る** — 合成が変わっていないからである。
+That is the result of writing a string that is not valid notation at all into `sub/new.muro`. **`ok: true` comes back**, because the composition did not change.
 
-**新しいレイヤーを作るときは、`import` 行の追加を同じ作業単位に含める。**entry に `import ./sub/new.muro` を書いて `write_layer` を呼び直すまで、その中身は一度も検査されない。
+**When you create a new layer, put the `import` line in the same unit of work.** Until the entry says `import ./sub/new.muro` and `write_layer` runs again, that file's contents are never checked once.
 
-書き込み先のディレクトリは、無ければ作られる (`sub/` が上の例で作られた)。
+The target's directory is created if missing (`sub/` was created above).
 
 ---
 
@@ -161,12 +161,12 @@ Cannot write outside the entry's directory
 
 > Mints fresh identity tokens (uid) to write onto spaces or zones with write_layer. They collide with nothing already composed into this model, and 80 bits of randomness keeps them apart from layers that are not composed here. **Nothing assigns a uid on its own** — call this only when a space has to be pointed at across renames (sensors, registers, long-running operations), and run check afterwards, because UID03 is the only thing that proves uniqueness
 
-### 引数
+### Arguments
 
-| 引数 | 必須 | 中身 |
+| Argument | Required | Contents |
 |---|---|---|
-| `file` | ○ | entry の `.muro` パス |
-| `count` | — | 作る個数。既定は 1。**1 以上 1000 以下の整数** |
+| `file` | yes | The entry `.muro` path |
+| `count` | no | How many to mint. Default 1. **An integer between 1 and 1000** |
 
 ```json
 {"name": "new_uids", "arguments": {"file": "<abs>/examples/two-rooms.muro", "count": 3}}
@@ -183,41 +183,41 @@ Cannot write outside the entry's directory
 }
 ```
 
-綴りは `u-` に続く 16 文字で、文字種は数字と、見間違いやすい `i` `l` `o` `u` を抜いた小文字である。乱数は 80 ビット。
+The spelling is `u-` followed by 16 characters drawn from the digits and the lowercase letters minus the easily-confused `i`, `l`, `o` and `u`. That is 80 bits of randomness.
 
-範囲を外すと書かずに返る。
+Out of range, it writes nothing and says so.
 
 ```text
 count is an integer between 1 and 1000
 ```
 
-### このツールは何も書かない
+### This tool writes nothing
 
-**返るのは文字列だけである。**モデルには何も起きない。使うには [`write_layer`](#write_layer) で `uid:` として空間かゾーンの行に書き込む。
+**All that comes back is strings.** Nothing happens to the model. To use them, write one as `uid:` on a space or zone line with [`write_layer`](#write_layer).
 
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2 name:居室A uid:u-msnnsna335w4nr50
 ```
 
-**`uid` を受け付けるのは `space` と `zone` の二つだけである。**境界にも開口にもアセットにも書けない — 書けば属性の台帳が拒否する。
+**Only `space` and `zone` accept `uid`.** Not boundaries, not openings, not assets — the attribute ledger rejects it there.
 
-### 呼ぶのは同一性が要るときだけ
+### Call it only when identity is actually needed
 
-**何も自分から uid を付けない。**パスがそのまま同一性であって、`uid` はその上に載せる別の同一性である。改名を跨いで同じ空間を指し続ける必要が出たとき — センサーの台帳、外部の登録簿、長く走る運用 — にだけ呼ぶ。
+**Nothing mints a uid on its own.** The path is already the identity; `uid` is a second identity laid on top of it. Call this only when something has to keep pointing at the same space across a rename — a sensor ledger, an external registry, a long-running operation.
 
-改名のとき `uid` を持ち越すのは手の仕事である。**その行為そのものが「これは同じ空間である」という設計判断の記録になる。**
+Carrying a `uid` through a rename is a manual act. **That act is itself the record of the design decision that this is the same space.**
 
-### 呼んだあとは check を通す
+### Run check afterwards
 
-`new_uids` が保証するのは、**いまこのモデルに合成されている uid とは衝突しない**ことだけである。まだ合成されていない層にある uid との非衝突は 80 ビットの乱数による確率的なものにすぎない。
+What `new_uids` guarantees is only that the tokens **do not collide with the uids already composed into this model.** Non-collision with uids in layers that are not composed here is merely probabilistic, resting on 80 bits of randomness.
 
-**一意性を実際に証明するのは `UID03` だけである。**書き込んだら [`check`](tools-verify.md#check) を呼ぶ。
+**The only thing that actually proves uniqueness is `UID03`.** After writing, call [`check`](tools-verify.md#check).
 
-## 関連
+## See also
 
-- [読む — model_summary / layers / spaces / canonical_json](tools-read.md) — 書く前に原本を読む
-- [確かめる — check / validate](tools-verify.md) — 書いた後の門番と、その先の判定
-- [プロトコル](protocol.md) — `isError` で返る失敗と、`result` で返る失敗の別
-- [import](../muro/import.md) — 新しいレイヤーを合成に載せる
-- [over / drop](../muro/over-drop.md) — 層をまたいで既存の宣言を上書き・削除する
-- [診断コード](../diagnostics/index.md) — `check` が返すコードの読み方
+- [Reading — model_summary / layers / spaces / canonical_json](tools-read.md) — read the original before writing
+- [Verifying — check / validate](tools-verify.md) — the gatekeeper after a write, and the judgement beyond it
+- [The protocol](protocol.md) — failures that come back as `isError` versus failures inside a `result`
+- [import](../muro/import.md) — putting a new layer into the composition
+- [over / drop](../muro/over-drop.md) — overriding or removing an existing declaration from another layer
+- [Diagnostic codes](../diagnostics/index.md) — how to read what `check` returns

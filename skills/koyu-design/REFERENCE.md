@@ -27,7 +27,7 @@ before the opening that references it. Boundaries may name spaces declared later
 ## The version line
 
 ```muro
-koyu 1.0
+koyu 1.1
 ```
 
 Optional. If you write it, it goes in the ENTRY layer only, exactly once — never
@@ -76,7 +76,7 @@ spaces is legal and idiomatic for a roof.
 space /L1/entry room X1..X2 Y1..Y2 name:Entrance
 space /L1/hall hall X2..X4 Y1..Y2 name:"Entrance hall" daylight:1
 space /L1/big ldk X1..X3 Y1..Y2 + X1..X2 Y2..Y3 name:L-shaped
-space /out exterior name:Outside
+space /out name:Outside outside:1
 ```
 
 `space <path> <type> [region] [attrs]`.
@@ -84,14 +84,17 @@ space /out exterior name:Outside
 - The PATH is identity. `/L1/entry` — the first segment binds the space to the
   declared level `L1`. Segments are single tokens: use [a-z0-9-] (Japanese is
   also fine). Never put `..` or `:` or whitespace in a segment.
-- The TYPE is required and the vocabulary is OPEN: room, ldk, corridor, hall,
-  stair, ev, shaft, wc, office, unit, balcony, garden — any word. Only two words
-  are structural: `exterior` (outside; may be split, e.g. /out/road) and `void`
-  (an atrium: no floor, no area, impassable).
+- The TYPE is OPTIONAL and the vocabulary is OPEN: room, ldk, corridor, hall,
+  stair, ev, shaft, wc, office, unit, balcony, garden — any word, or none.
+  **koyu reads no type word at all**: it is a label for aggregation and for the
+  lettering on a plan. Facts of composition are attributes instead — `outside:1`
+  (outside the building; may be split, e.g. /out/road) and `void:1` (an atrium:
+  no floor, no area, impassable). Misspell one of those and it is an error
+  (ATT03), which is the point of putting them there.
 - The REGION is exactly two range tokens, one X and one Y, in either order.
   Offsets are allowed (`X1-1500..X3+1500`). Unions for L-shapes use `+` as a
   standalone token between rectangle pairs. Ranges may be written descending but
-  emit them ascending. A region is optional (an `exterior` space needs none).
+  emit them ascending. A region is optional (an `outside:1` space needs none).
 - Never nest two spaces with regions — overlapping regions are a GEO02 error.
   To subdivide, make the parent a `zone` (which has no geometry).
 - Attributes: `name:` `h:` `use:` `daylight:`(0/1) `ceiling:`(0/1) `level:`
@@ -173,7 +176,7 @@ derived from where the two spaces touch; you never give it coordinates.
 supplied by an asset). A door without `h:` reaches 2000. Position with
 `at:0.4` (a ratio along the segment, default 0.5) or `at:X2+450` (a grid
 reference on the segment's own axis). Use `edge:N|E|S|W` when the boundary has
-more than one segment — against an `exterior` space it is effectively required,
+more than one segment — against an `outside:1` space it is effectively required,
 and omitting it is an OPN05 error.
 
 ```muro
@@ -202,7 +205,7 @@ cannot appear in a boundary. Keys: `name:` `use:` `site:`(0/1, one per model)
 
 ```muro
 # main.muro — the entry
-koyu 1.0
+koyu 1.1
 name Corner building
 unit mm
 grid X 0 6400 12800
@@ -238,13 +241,13 @@ A layer is not independently checkable — always check the entry.
 ## The site, when you need one
 
 A site is not a rectangle attribute. It is a `zone` marked `site:1`, the
-outside split into named `exterior` spaces (a road carries `road:<mm>`), and —
+outside split into named `outside:1` spaces (a road carries `road:<mm>`), and —
 optionally — real outdoor spaces under `/site` which need an explicit
 `level:` because `/site` is not a level name:
 
 ```muro
-space /out/road exterior name:South road road:6000
-space /out/n exterior name:North neighbour
+space /out/road name:South road road:6000 outside:1
+space /out/n name:North neighbour outside:1
 zone /site name:Site site:1 area:48.00
 space /site/approach yard X1..X3 Y1-1200..Y1 level:L1 name:Approach
 boundary /site/approach /out/road edge:S t:120 spec:Fence air:1 h:1200

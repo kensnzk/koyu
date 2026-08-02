@@ -30,7 +30,7 @@ function sameForm(a: string, b: string, what: string): void {
   assert.equal(form(a), form(b), `${what}: canonically equal but the derived form differs`);
 }
 
-const BASE = `koyu 1.0
+const BASE = `koyu 1.1
 grid X 0 3000 6000 9000
 grid Y 0 6000
 level L1 0 h:2700 slab:300
@@ -41,7 +41,7 @@ level L1 0 h:2700 slab:300
 test("uniqueness: the written order of a line's endpoints does not move the form", () => {
   const src = (line: string) => `${BASE}space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /L1/b
 ${line}
   door w:900 at:0.25 name:D1
@@ -60,7 +60,7 @@ test("uniqueness: a reversed line does not move the opening on it", () => {
   // 始端が書き順で決まっていた頃はここが (1500,2500) と (4500,3500) に割れていた
   const src = (line: string) => `${BASE}space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /L1/b
 ${line}
   door w:900 at:0.25 name:D1
@@ -82,7 +82,7 @@ test("uniqueness: the declaration order of boundaries carrying a line does not m
   const src = (first: string, second: string) => `${BASE}space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /L1/c room X3..X4 Y1..Y2
-space /out exterior
+space /out outside:1
 ${first}
 ${second}
 boundary /L1/a /out edge:S
@@ -95,7 +95,7 @@ test("uniqueness: crossing lines give each space the same area whichever is decl
   const src = (first: string, second: string) => `${BASE}space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /L1/c room X3..X4 Y1..Y2
-space /out exterior
+space /out outside:1
 ${first}
 ${second}
 boundary /L1/a /out edge:S
@@ -148,7 +148,7 @@ test("uniqueness: a derived boundary takes its a/b from the canonical order, not
 
 test("uniqueness: the written order of a region union does not move the form", () => {
   const src = (union: string) => `${BASE}space /L1/L room ${union}
-space /out exterior
+space /out outside:1
 boundary /L1/L /out edge:N
 `;
   // The canonical form sorts `at` into canonical spelling order, discarding the written order of
@@ -170,7 +170,7 @@ boundary /L1/L /out edge:N
 
 test("uniqueness: which space is written first does not flip which side a line keeps", () => {
   const src = (bnd: string) => `${BASE}space /L1/room room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/room /out edge:S
 boundary /L1/room /out edge:E
 boundary /L1/room /out edge:N

@@ -1,22 +1,22 @@
 ---
-title: 読む — model_summary / layers / spaces / canonical_json
+title: Reading — model_summary / layers / spaces / canonical_json
 mode: reference
 ---
 
-# 読む — model_summary / layers / spaces / canonical_json
+# Reading — model_summary / layers / spaces / canonical_json
 
-建物を読むだけの四つ。**どれも何も書かない。**引数はすべて entry の `.muro` パス `file` で、呼ぶたびにゼロから合成される。
+Four tools that only read. **None of them writes anything.** Each takes `file`, the path of the entry `.muro`, and composes from scratch on every call.
 
-この頁の出力はすべて実際に走らせて得たものである。絶対パスは `<abs>` に縮めてある。
+Every piece of output on this page was obtained by actually running it. Absolute paths are shortened to `<abs>`.
 
-## ざっと
+## At a glance
 
-| ツール | 何を返すか | いつ呼ぶか |
+| Tool | What comes back | When to call it |
 |---|---|---|
-| [`model_summary`](#model_summary) | 建物一棟の要約 | **最初に一度。**次に何を読むかを決めるため |
-| [`layers`](#layers) | 全レイヤーの全文 | 書き換える前に、原本を読むため |
-| [`spaces`](#spaces) | 空間の一覧 | パス・面積・出所層を数え上げるため |
-| [`canonical_json`](#canonical_json) | 合成後の単一モデル | 機械に渡す・外と繋ぐ・差分を取るため |
+| [`model_summary`](#model_summary) | A summary of the whole building | **First, once.** It tells you what to read next |
+| [`layers`](#layers) | The full text of every layer | Before editing, to read the original |
+| [`spaces`](#spaces) | The list of spaces | To enumerate paths, areas and originating layers |
+| [`canonical_json`](#canonical_json) | One composed model | To hand to a machine, connect outward, or diff |
 
 ---
 
@@ -28,7 +28,7 @@ mode: reference
 {"name": "model_summary", "arguments": {"file": "<abs>/examples/two-rooms.muro"}}
 ```
 
-`file` のみ、必須。
+`file` only, required.
 
 ```text
 {
@@ -68,30 +68,30 @@ mode: reference
 }
 ```
 
-| フィールド | 中身 |
+| Field | Contents |
 |---|---|
-| `name` `unit` | 書かれた建物名と単位 |
-| `layers` | 合成に参加した全レイヤーの絶対パス。**強度順序**である — 添字 0 が entry ([`layers`](#layers) と同じ並び) |
-| `levels` | 宣言順ではなく `z` の昇順。`h` と `slab` は**書かれたときだけ**出る |
-| `spaces` | 空間の数 (領域を持たない空間・`exterior`・`void` も含む) |
-| `boundaries` | **導出後**の境界の本数 |
-| `zones` | `path`・`name` (書かれたときだけ)・`site: true` (敷地ゾーンのときだけ)・`areaM2` |
-| `assets` | 建具アセットの `name` / `kind` (`door` または `window`) / `attrs` 全部 |
-| `totalFloorM2` | 屋内の延べ床面積 |
-| `semiOutdoorM2` | 半屋外の面積。**延べ床には入っていない** |
-| `floorsM2` | レベル別の `{rooms, subtotalM2}` |
-| `byUseM2` | `use` 別の面積。`use` が決まらない空間は `(unspecified)` に寄る |
-| `check` | `{errors, warnings}` の件数だけ。本文は返らない |
-| `sitePolygons` | `polygon` を持つゾーンのパス。**一つも無ければキーごと出ない** |
-| `hint` | エージェント向けの固定文 |
+| `name` `unit` | The building name and unit as written |
+| `layers` | Absolute paths of every composed layer, **in strength order** — index 0 is the entry (same order as [`layers`](#layers)) |
+| `levels` | Ascending by `z`, not declaration order. `h` and `slab` appear **only when written** |
+| `spaces` | How many spaces (including region-less spaces, `exterior` and `void`) |
+| `boundaries` | How many boundaries **after derivation** |
+| `zones` | `path`, `name` (only when written), `site: true` (only for the site zone), `areaM2` |
+| `assets` | Each door/window asset's `name`, `kind` (`door` or `window`) and all its `attrs` |
+| `totalFloorM2` | Indoor floor area |
+| `semiOutdoorM2` | Semi-outdoor area. **Not part of the floor area** |
+| `floorsM2` | `{rooms, subtotalM2}` per level |
+| `byUseM2` | Area by `use`. Spaces with no determinable `use` fall into `(unspecified)` |
+| `check` | Just the `{errors, warnings}` counts. No messages |
+| `sitePolygons` | Paths of zones that have a `polygon`. **The key is absent when there are none** |
+| `hint` | A fixed sentence aimed at the agent |
 
-### 数え方の約束
+### How the counting works
 
-**`boundaries` は導出後の本数である。**接する空間の既定は壁なので、`boundary` を一行も書かなくても境界は現れる。だから `layers` が返す原本の `boundary` 行数より多くなることがある。書かれた構成の側の数を見たいときは [`canonical_json`](#canonical_json) を使う。
+**`boundaries` is the count after derivation.** The default between touching spaces is a wall, so boundaries appear even where no `boundary` line was written — which means the count can exceed the number of `boundary` lines `layers` gives you. For the written side of the composition, use [`canonical_json`](#canonical_json).
 
-**`totalFloorM2` は屋内だけを数える。**`exterior` と `void`、および半屋外と判定された空間は入らない。半屋外の分は `semiOutdoorM2` に別掲される。`floorsM2` に出るのも屋内の室だけで、屋内の室を一つも持たないレベルはキーごと出ない。
+**`totalFloorM2` counts indoor only.** `exterior`, `void`, and anything judged semi-outdoor are excluded; the semi-outdoor share is reported separately in `semiOutdoorM2`. `floorsM2` likewise lists indoor rooms only, and a level with no indoor room gets no key at all.
 
-**`zones[].areaM2` は二通りある。**敷地ゾーン (`site:1`) に `polygon` が書かれていれば、その多角形の面積である。それ以外は、そのパスの下にある**屋内**空間の床面積の合計である。だから庭と通路だけを従えた敷地ゾーンは `0` と出る。
+**`zones[].areaM2` means two different things.** For a site zone (`site:1`) that has a `polygon`, it is the polygon's area. Otherwise it is the sum of the **indoor** floor areas of the spaces under that path. So a site zone whose members are gardens and paths reads `0`.
 
 ```text
  "zones": [
@@ -109,9 +109,9 @@ mode: reference
  ],
 ```
 
-(`examples/house/main.muro` に掛けた同じ出力の `zones` の部分。`/site` の下は庭と通路だけなので、屋内の合計は 0 になる。敷地面積そのものを問うなら [`site`](tools-ask.md#site) を呼ぶ — そちらは `126.24` を返す。)
+(The `zones` portion of the same output against `examples/house/main.muro`. Everything under `/site` is garden and path, so the indoor sum is 0. To ask for the site area itself, call [`site`](tools-ask.md#site) — it returns `126.24`.)
 
-`polygon` を持つ例に掛ければ、多角形の面積がそのまま出て `sitePolygons` も現れる。
+Run it against an example that has a `polygon` and the polygon's area comes straight through, along with `sitePolygons`.
 
 ```text
  "zones": [
@@ -129,7 +129,7 @@ mode: reference
  ],
 ```
 
-(`examples/tower/main.muro` に掛けた同じ出力の抜粋。)
+(Excerpts of the same output against `examples/tower/main.muro`.)
 
 ---
 
@@ -141,13 +141,13 @@ mode: reference
 {"name": "layers", "arguments": {"file": "<abs>/main.muro"}}
 ```
 
-`file` のみ、必須。返るのは `{file, source}` の配列で、`source` はそのファイルの全文をそのまま持つ。
+`file` only, required. What comes back is an array of `{file, source}`, where `source` is the file's full text, unaltered.
 
-次の二枚を合成した場合。
+Take these two files.
 
 ```muro-part
 # main.muro — entry
-koyu 1.0
+koyu 1.1
 name 二層
 unit mm
 
@@ -162,13 +162,13 @@ import ./L1.muro
 # L1.muro
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/b /out t:150
   door w:900 h:2100 edge:S name:玄関
 ```
 
-`main.muro` を entry にして呼ぶと、こう返る。
+Calling it with `main.muro` as the entry gives this.
 
 ```text
 [
@@ -178,16 +178,16 @@ boundary /L1/b /out t:150
  },
  {
   "file": "<abs>/tiny/L1.muro",
-  "source": "# L1.muro\nspace /L1/a room X1..X2 Y1..Y2 name:居室A\nspace /L1/b room X2..X3 Y1..Y2 name:居室B\nspace /out exterior name:外部\n\nboundary /L1/b /out t:150\n  door w:900 h:2100 edge:S name:玄関\n"
+  "source": "# L1.muro\nspace /L1/a room X1..X2 Y1..Y2 name:居室A\nspace /L1/b room X2..X3 Y1..Y2 name:居室B\nspace /out name:外部\n\nboundary /L1/b /out t:150\n  door w:900 h:2100 edge:S name:玄関\n"
  }
 ]
 ```
 
-### 並びは強度順序である
+### The order is strength order
 
-**返る配列は合成の強度順序に並ぶ** — 添字 0 が entry で最も弱く、後の層ほど強い。並べ替えはしない。上の例で `main.muro` が先に来るのはそれが entry だからで、絶対パスの辞書順なら `L1.muro` が先になる。
+**The array is in composition strength order** — index 0 is the entry and the weakest; later layers are stronger. Nothing is sorted. `main.muro` comes first above because it is the entry; by absolute path `L1.muro` would come first.
 
-**どの層の意見が勝つかを決めるのはこの並びである**ので、エージェントが必要とするのはこちらである ([合成の六規則](../muro/composition.md))。同じ並びを人向けに印字するのが [`koyu layers`](../cli/layers.md) で、同じ二枚に対してこう出る。
+**This order is what decides whose opinion wins**, so it is the one an agent needs ([the rules of composition](../muro/composition.md)). [`koyu layers`](../cli/layers.md) prints the same order for a human, and on the same two files it says:
 
 ```text
 Layers (weakest first — later layers are stronger):
@@ -195,13 +195,13 @@ Layers (weakest first — later layers are stronger):
   1	<abs>/tiny/L1.muro
 ```
 
-どの層がどの属性の最終値を与えたかは `koyu layers --attrs` が見せる。**この面は MCP に無い。**
+Which layer supplied the winning value of which attribute is what `koyu layers --attrs` shows. **That surface does not exist over MCP.**
 
-### 見えるのは合成に参加した層だけ
+### Only composed layers are visible
 
-`import` で辿り着けないファイルは返らない。ディレクトリに `.muro` が転がっていても、誰も `import` していなければ `layers` には現れず、[`check`](tools-verify.md#check) も中身を見ない。
+A file no `import` reaches does not come back. A `.muro` sitting in the directory that nobody imports never appears in `layers`, and [`check`](tools-verify.md#check) never looks inside it either.
 
-entry 自身は必ず含まれる。
+The entry itself is always included.
 
 ---
 
@@ -213,10 +213,10 @@ entry 自身は必ず含まれる。
 {"name": "spaces", "arguments": {"file": "<abs>/examples/two-rooms.muro"}}
 ```
 
-| 引数 | 必須 | 中身 |
+| Argument | Required | Contents |
 |---|---|---|
-| `file` | ○ | entry の `.muro` パス |
-| `level` | — | レベル名。書けばそのレベルの空間だけに絞る |
+| `file` | yes | The entry `.muro` path |
+| `level` | no | A level name. Given, it narrows the list to that level |
 
 ```text
 [
@@ -248,21 +248,21 @@ entry 自身は必ず含まれる。
 ]
 ```
 
-| フィールド | 中身 |
+| Field | Contents |
 |---|---|
-| `path` | 空間のパス |
-| `type` | 書かれた型 (`room` `ldk` `hall` `exterior` `void` …) |
-| `name` | `name:` があればその値、無ければパスの最終要素 |
-| `level` | 所属レベル。**決まっていなければキーごと出ない** |
-| `areaM2` | 壁芯の床面積。**領域を持たない空間ではキーごと出ない** |
-| `semiOutdoor` | 半屋外と判定されたか |
-| `layer` | その空間を宣言した層の絶対パス |
+| `path` | The space's path |
+| `type` | The type as written (`room`, `ldk`, `hall`, `exterior`, `void`, …) |
+| `name` | The value of `name:` if there is one, otherwise the last path segment |
+| `level` | Its level. **The key is absent when there is none** |
+| `areaM2` | Floor area to wall centrelines. **The key is absent for a space with no region** |
+| `semiOutdoor` | Whether it was judged semi-outdoor |
+| `layer` | Absolute path of the layer that declared it |
 
-上の `/out` がその両方を見せている — `exterior` に領域もレベルも無いので、`level` も `areaM2` も出ない。
+`/out` above shows both absences at once: an `exterior` with neither a region nor a level gets neither `level` nor `areaM2`.
 
-**母集団は絞られていない。**`exterior` も `void` も領域を持たない空間も、全部が並ぶ。屋内かどうかで数えたいなら `semiOutdoor` と `type` を自分で見る。面積の合計が要るだけなら [`model_summary`](#model_summary) のほうが早い。
+**Nothing is filtered out.** `exterior`, `void` and region-less spaces are all in the list. If you want to count what is indoor, read `semiOutdoor` and `type` yourself. If all you want is the totals, [`model_summary`](#model_summary) is faster.
 
-`level` で絞ると、外部と敷地をまたいで同じレベルの空間が並ぶ。
+Narrowing by `level` puts site and building spaces side by side.
 
 ```text
 [
@@ -277,9 +277,9 @@ entry 自身は必ず含まれる。
  },
 ```
 
-(`{"file": "<abs>/examples/house/main.muro", "level": "L1"}` の返りの先頭。同じ呼び出しは 6 件を返す。)
+(The head of the result for `{"file": "<abs>/examples/house/main.muro", "level": "L1"}`; the same call returns six entries.)
 
-`layer` は編集の宛先を決める鍵である。ここに出たパスが、そのまま [`write_layer`](tools-write.md#write_layer) の `layer` 引数になる。
+`layer` is the key to deciding where an edit goes. The path printed there is exactly what [`write_layer`](tools-write.md#write_layer) takes as its `layer` argument.
 
 ---
 
@@ -291,11 +291,11 @@ entry 自身は必ず含まれる。
 {"name": "canonical_json", "arguments": {"file": "<abs>/examples/two-rooms.muro"}}
 ```
 
-`file` のみ、必須。合成後の一棟を、機械が読む単一の JSON にして返す。
+`file` only, required. Returns the composed building as one JSON document a machine can read.
 
 ```text
 {
- "format": "koyu-canonical/1.0",
+ "format": "koyu-canonical/1.1",
  "koyu": "1.0",
  "name": "二室",
  "unit": "mm",
@@ -319,17 +319,17 @@ entry 自身は必ず含まれる。
  },
 ```
 
-(先頭の抜粋。同じ呼び出しは `spaces` と `boundaries` を続けて返す。)
+(The head of it; the same call goes on to return `spaces` and `boundaries`.)
 
-**書かれた構成だけが入る。**導出された既定の壁は入らない。扉を一枚も書かない二室の例で、[`check`](tools-verify.md#check) は `"boundaries": 1` と答えるが、`canonical_json` の `boundaries` は空である。**「何が書かれたか」を数えたいときはこちらを見る。**
+**Only what was written goes in.** Derived default walls do not. For the two-room example with no doors written, [`check`](tools-verify.md#check) answers `"boundaries": 1` while `canonical_json`'s `boundaries` is empty. **This is where you count what was actually written.**
 
-**字下げは空白 1 個で、[`koyu json`](../cli/json.md) が書くファイルとはバイト列が一致しない。**MCP のツール応答はすべて空白 1 個で書かれるからである。キーの順序と値はどちらも同じなので、読み込んで比べるぶんには一致する。バイト単位で安定した形が要るときは CLI 側を使う。
+**The indent is one space, so it is not byte-identical to the file [`koyu json`](../cli/json.md) writes** — every MCP tool response is written with a one-space indent. Key order and values are the same, so parsing both and comparing agrees. When you need a byte-stable form, use the CLI.
 
-## 関連
+## See also
 
-- [書く — write_layer / new_uids](tools-write.md) — ここで読んだ層を書き換える
-- [確かめる — check / validate](tools-verify.md) — 書いた後の門番
-- [問う — doors / light / site / plan_svg](tools-ask.md) — 帰結を確かめる
-- [koyu layers](../cli/layers.md) — 層の強度順序と属性の出所
-- [koyu json](../cli/json.md) — バイト列まで安定した正準 JSON
-- [koyu stats](../cli/stats.md) — 同じ面積を人向けに並べる
+- [Writing — write_layer / new_uids](tools-write.md) — editing the layers you read here
+- [Verifying — check / validate](tools-verify.md) — the gatekeeper after a write
+- [Asking — doors / light / site / plan_svg](tools-ask.md) — confirming the consequences
+- [koyu layers](../cli/layers.md) — strength order and attribute provenance
+- [koyu json](../cli/json.md) — the byte-stable canonical JSON
+- [koyu stats](../cli/stats.md) — the same areas laid out for a human

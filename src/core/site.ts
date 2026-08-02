@@ -8,7 +8,6 @@ import { segmentLength, segmentsFor } from "./graph.js";
 import {
   areaM2,
   isIndoor,
-  isSemiOutdoor,
   polygonAreaM2,
   regionOf,
   unionAreaM2,
@@ -16,6 +15,7 @@ import {
   type SitePolygon,
   type Space,
   type Zone,
+  isOutside
 } from "./model.js";
 
 export interface RoadFrontage {
@@ -67,7 +67,7 @@ export function siteReport(model: Model): SiteReport {
   // 建物の外壁が道路に面していても、それは接道ではない
   const roads: RoadFrontage[] = [];
   for (const road of spaces) {
-    if (road.type !== "exterior" || typeof road.attrs["road"] !== "number") continue;
+    if (!isOutside(road) || typeof road.attrs["road"] !== "number") continue;
     let frontage = 0;
     for (const b of model.boundaries) {
       const otherPath = b.a === road.path ? b.b : b.b === road.path ? b.a : undefined;

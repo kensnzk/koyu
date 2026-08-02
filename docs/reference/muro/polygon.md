@@ -1,34 +1,34 @@
 ---
-title: polygon — 敷地形状
+title: polygon — the shape of the site
 mode: reference
 ---
 
-# polygon — 敷地形状
+# polygon — the shape of the site
 
 ```text
-polygon /ゾーンパス x,y x,y x,y …
+polygon /zone-path x,y x,y x,y …
 ```
 
-`polygon` は敷地の形を、mm 座標の頂点列としてそのまま書く。**この記法で唯一、格子に載らない自由な頂点で「書かれる形」である。**
+`polygon` writes the shape of the site directly, as a list of vertices in mm. **It is the one place in the notation where a shape is written out of free vertices that do not ride the grid.**
 
-koyu では形はふつう生成物である — 空間の領域は通り参照の矩形として書かれ、壁も柱も屋根もそこから導かれる。だが**敷地の形は測量に由来する所与**であって、設計の生成物ではない。だから例外として認める。
+In koyu a shape is normally something generated — the region of a space is written as rectangles of grid references, and walls, columns and roofs all follow from it. But **the shape of a site is a given, coming from survey**, not something the design produces. So it is admitted as the exception.
 
 ```muro-part
 polygon /site -2600,-7000 38000,-7000 38000,19600 2000,21000 -2600,15000
 ```
 
-頂点は `x,y` の対を3つ以上。座標系はグリッドと同じで、単位は mm、X は東が正、Y は北が正である。負の値も書ける。
+Three or more `x,y` pairs. The coordinate system is the grid's: millimetres, X east-positive, Y north-positive. Negative values are fine.
 
-## site:1 のゾーンに対応させる
+## It corresponds to a zone with site:1
 
-第一位置引数は[ゾーン](zone.md)のパスである。そのゾーンが `site:1` を持っていれば、`koyu site` の問いの対象になる。対応するゾーンが無ければ警告になる。
+The first positional argument is the path of a [zone](zone.md). Where that zone carries `site:1`, the polygon becomes the subject of the `koyu site` question. Where no such zone exists, you get a warning.
 
 ```text
 ⚠ No zone corresponds to polygon /siteX
 ```
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 敷地の最小例
 unit mm
 grid X 0 8000
@@ -37,7 +37,7 @@ level L1 0 h:2700 slab:200
 
 zone /site name:敷地 site:1 area:154.00
 space /site/house room X1..X2 Y1..Y2 level:L1 name:建物
-space /out/road exterior name:前面道路 road:6000
+space /out/road name:前面道路 road:6000 outside:1
 
 polygon /site -2000,-2000 12000,-2000 12000,9000 -2000,9000
 
@@ -57,61 +57,61 @@ Site /site (敷地)
   Total floor area: 48.00 m2 → floor area ratio 31.2%
 ```
 
-## ここから何が出るか
+## What comes out of it
 
-| 導出 | 何に使われるか |
+| Derivation | What it feeds |
 |---|---|
-| 面積 (シューレース) | 敷地面積。ゾーンの `area:` (測量値㎡) と照合される |
-| 敷地の外形 | 建物のはみ出しの検査 |
-| 敷地境界線 | 配置図 — 最下階の平面が二点鎖線で描く (通り芯は一点鎖線) |
+| area (shoelace) | site area, reconciled against the zone's `area:` (the surveyed figure in m2) |
+| the outline | the check for a building escaping the site |
+| the site boundary line | the site plan — drawn on the lowest storey's plan as a dash-double-dot line (grid lines are dash-dot) |
 
-`polygon` が無くても `site` の問いは答えを返す — そのときの敷地面積は「敷地内の空間と屋内投影の合併」から導かれる。`polygon` はそれを測量値で置き換える。
+The `site` question still answers without a `polygon` — the site area is then derived from the union of the spaces inside the site and the indoor footprint. A `polygon` replaces that with the surveyed shape.
 
-## 形の健全さは check が、建物との関係は validate が言う
+## check speaks for the shape, validate for its relation to the building
 
-**形そのものが壊れていれば形が作れない**ので、それは読解の一部として `check` が見る。
+**A broken shape cannot produce a form**, so that much belongs to reading the source, and `check` sees it.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| SIT01 | error | 敷地形状の重複頂点 |
-| SIT02 | error | 敷地形状の自己交差 |
-| SIT04 | warning | 対応するゾーンの無い `polygon` |
+| SIT01 | error | a duplicate vertex in the site shape |
+| SIT02 | error | the site shape is self-intersecting |
+| SIT04 | warning | a `polygon` with no corresponding zone |
 
 ```text
 ✖ The site shape has a duplicate vertex (12000,-2000)
 ✖ The site shape is self-intersecting (near 5000,3500)
 ```
 
-**建物と敷地の関係についての判断**は、別の面が持つ。`koyu validate` の二つの規則である。
+**Judgements about the building's relation to the site** live on the other side, as two rules of `koyu validate`.
 
-| 規則 | level | 何を言うか |
+| Rule | Level | What it says |
 |---|---|---|
-| `site.escape` | violation | 建物が敷地形状からはみ出している |
-| `site.area` | caution | 宣言面積と導出面積が食い違う (許容 ±0.05㎡) |
+| `site.escape` | violation | the building escapes the site shape |
+| `site.area` | caution | the declared and derived areas disagree (tolerance ±0.05 m2) |
 
 ```text
 ✖ [site.escape] esc.muro:line 8: /L1/house escapes the site shape (near 0,0)
 ⚠ [site.area] site.muro:line 8: Declared and derived site areas disagree: declared 150 m2 / derived 154.00 m2
 ```
 
-はみ出しの照合に使うのは割付ではなく**導出された領域**である。だから[描かれた線](line.md)で敷地なりに切り落とした外形はここを通る。`type:exterior` の空間と、その `polygon` のゾーンパスの配下にある空間は照合から外れる。
+The escape test reads the **derived region**, not the written allocation. So an outline cut back to follow the site with a [drawn line](line.md) passes here. Spaces declaring `outside:1`, and spaces beneath that polygon's own zone path, are left out of the test.
 
-## 隔離レイヤーに置く
+## Keep it in its own layer
 
-敷地形状は別のファイルに置き、`import` で重ねる運用が標準である。測量由来の所与と設計の判断は、層として分かれているほうが履歴を追いやすい。
+The standard practice is to put the site shape in its own file and stack it with `import`. Survey givens and design decisions are easier to follow through history when they are separate layers.
 
 ```muro-part
 import ./site-geometry.muro
 ```
 
-同じパスに `polygon` を二度書くとビルドエラーになる。合成の層をまたいでも同じである。
+Writing `polygon` twice for one path is a build error, across composed layers as well as within one file.
 
-コードから原因と直し方を引くなら [診断コードの一覧](../diagnostics/index.md) がある。
+To look a code up by cause and cure, there is [the list of diagnostic codes](../diagnostics/index.md).
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [zone](zone.md) — `polygon` が対応する先
-- [space](space.md) — 敷地の中に置かれるもの
-- [line](line.md) — もう一つの「書かれる形」
-- [koyu site](../cli/site.md) — 敷地の問いを返す
-- [koyu validate](../cli/validate.md) — はみ出しと面積の食い違いを言う
+- [zone](zone.md) — what a `polygon` corresponds to
+- [space](space.md) — what is placed inside the site
+- [line](line.md) — the other written shape
+- [koyu site](../cli/site.md) — answers the site question
+- [koyu validate](../cli/validate.md) — speaks about escapes and area disagreements

@@ -1,17 +1,17 @@
 ---
-title: import — 層を読む
+title: import — reading a layer
 mode: reference
 ---
 
-# import — 層を読む
+# import — reading a layer
 
-`import` は一棟を複数のファイルに分けて書くための一語である。一行が一つの層を読み、読まれた層は一棟のモデルへ合成される。
+`import` is the one word for writing a single building across several files. Each line reads one layer, and the layers it reads are composed into a single model.
 
 ```text
-import <相対パス>
+import <relative path>
 ```
 
-パスは**それを書いたファイルからの相対**であり、実行時のカレントディレクトリからではない。拡張子まで書く。
+The path is **relative to the file it is written in**, not to the working directory the command runs from. The extension is written out.
 
 ```muro-part
 import ./assets.muro
@@ -20,21 +20,21 @@ import ./L1.muro
 import ./L2.muro
 ```
 
-## 一つのファイルが一つの層である
+## One file is one layer
 
-koyu には「層の宣言」という文が無い。**ファイルがそのまま層である。**`import` はファイルを読む文であり、同時に層を一つ積む文でもある。
+koyu has no statement that declares a layer. **A file simply is a layer.** `import` is the statement that reads a file, and at the same time the statement that pushes one layer onto the stack.
 
-読み込みの起点になるファイルを **entry** と呼ぶ。`koyu check` や `koyu plan` に渡すのは常に entry であり、`import` は自動でたどられる。
+The file the reading starts from is the **entry**. `koyu check` and `koyu plan` are always given the entry; the `import` lines are followed automatically.
 
-`examples/house/` は一棟を 5 ファイルに割っている。
+`examples/house/` splits one house across five files.
 
-| ファイル | 持つもの |
+| File | What it holds |
 |---|---|
-| `main.muro` | entry — 版・建物名・単位・グリッド・レベル、`import` の並び、階を跨ぐ関係 |
-| `assets.muro` | 建具アセット — 建具表にあたる層 |
-| `site.muro` | 敷地と外部空間、塀・門扉 |
-| `L1.muro` | 1階の空間と境界 |
-| `L2.muro` | 2階の空間と境界 |
+| `main.muro` | The entry — version, building name, unit, grid, levels, the `import` lines, and the relations that cross storeys |
+| `assets.muro` | Door and window assets — the layer that corresponds to a door schedule |
+| `site.muro` | The site and the exterior spaces, the wall and the gate |
+| `L1.muro` | The spaces and boundaries of the ground floor |
+| `L2.muro` | The spaces and boundaries of the first floor |
 
 ```text
 $ koyu check examples/house/main.muro
@@ -42,16 +42,16 @@ $ koyu check examples/house/main.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-## 層の並びは深さ優先で平らにした列である
+## The layer order is the tree flattened depth-first
 
-`import` は入れ子にできる — 読まれた層がさらに `import` を書いてよい。**その木を深さ優先の先行順で平らにした列が、層の並びである。**
+`import` nests — a layer that has been read may itself write `import`. **The layer order is that tree flattened in depth-first pre-order.**
 
-親は子より先に列へ入る。ある `import` 行が読んだ層の内側の層は、その行の**次の** `import` 行より前に来る。
+A parent enters the list before its children. Everything reached through one `import` line comes before the **next** `import` line beside it.
 
 ```muro-part
 # main.muro
-import ./a.muro     # a は自身の中で b を import している
-import ./c.muro     # c も b を import している
+import ./a.muro     # a imports b from inside itself
+import ./c.muro     # c imports b as well
 ```
 
 ```text
@@ -63,25 +63,25 @@ Layers (weakest first — later layers are stronger):
   3	c.muro
 ```
 
-添字 0 は entry である。entry はどのファイルよりも先に列へ入る。
+Index 0 is the entry. The entry enters the list before any file it reads.
 
-**同じ層が二度 import されても、最初の位置を保つ。**上の例で `b.muro` は `a.muro` からも `c.muro` からも読まれるが、列に一度しか現れず、その位置は最初に読まれた添字 2 である。二重 import も循環も冪等で、エラーにはならない — 層は一度だけ合成される。
+**A layer imported twice keeps its first position.** Above, `b.muro` is read from both `a.muro` and `c.muro`, but appears once, at the index it first reached — 2. Double imports and cycles are idempotent and are not errors: a layer is composed exactly once.
 
-**「同じ層」はファイルシステム上の同一性で決まる。**綴りではない。symlink を経た綴りも、大文字小文字を区別しないファイルシステム上の別の綴り (`b.muro` と `B.muro`) も、指しているファイルが同じなら同じ層である。綴りで数えていれば、同じファイルが二度合成されて `grid X` の一度だけの宣言に衝突する — 書き方を変えただけで冪等が破れることになる。
+**"The same layer" is decided by filesystem identity, not by spelling.** A path that goes through a symlink, and a different spelling on a case-insensitive filesystem (`b.muro` and `B.muro`), are the same layer as long as they name the same file. Counting by spelling would compose one file twice and collide with the once-only declaration of `grid X` — idempotence would break on nothing more than how the path was written.
 
-この並びは飾りではない。**後の層ほど強く、添字がそのまま強度である。**同じ属性に二つの層が意見を持ったとき、どちらが勝つかはこの添字で決まる。強度の規則は [合成の六規則](composition.md) にある。
+This order is not decoration. **Later layers are stronger, and the index is the strength.** When two layers hold an opinion about the same attribute, the index decides which wins. The rules of strength are in [the rules of composition](composition.md).
 
-## entry が一度だけ宣言するもの
+## What is declared exactly once
 
-一棟の一貫性にあたる宣言は、合成のどこかで**一度だけ**現れなければならない。
+The declarations that express the consistency of the building as a whole must appear **exactly once** somewhere in the composition.
 
-| 宣言 | 規律 |
+| Declaration | Discipline |
 |---|---|
-| `koyu <版>` | **entry でのみ**、一度だけ。同じ版での再宣言もエラー |
-| `name` | 一度だけ。**同じ文字列なら再宣言してよい** |
-| `unit mm` | 何度書いてもよい (値が `mm` かどうかだけを見る) |
-| `grid X` / `grid Y` | 軸ごとに一度だけ |
-| `level` | 名の重複はエラー。**どの層に書いてもよい** |
+| `koyu <version>` | **In the entry only**, once. Re-declaring it is an error even with the same version |
+| `name` | Once. **Re-declaring it with the same string is allowed** |
+| `unit mm` | May be written any number of times (only the value is checked) |
+| `grid X` / `grid Y` | Once per axis |
+| `level` | A duplicate name is an error. **It may live in any layer** |
 
 ```text
 $ koyu check main.muro
@@ -93,75 +93,75 @@ $ koyu check main.muro
 ✖ l.muro:line 1: grid Y is declared once (in the base layer when composing)
 ```
 
-`grid` と `level` は entry に置かなくても通る。効いているのは場所ではなく**順序**で、どちらも**使用より前**に合成されていなければならない。慣行としては entry に置くか、entry が最初に import する基盤の層に集める。
+`grid` and `level` pass even when they are not in the entry. What matters is not the place but the **order**: both must be composed **before anything that uses them**. By convention they sit in the entry, or in the one base layer the entry imports first.
 
-## 層は単独では読めない
+## A layer cannot be read on its own
 
-分担して書かれた層は `grid` も `level` も持たないので、そのファイルだけを `check` に渡しても読めない。
+A layer written as a share of the work has neither `grid` nor `level`, so handing that file alone to `check` cannot work.
 
 ```text
 $ koyu check examples/house/L1.muro
 ✖ examples/house/L1.muro:line 3: Undeclared level: level:L1
 ```
 
-**検査はつねに entry に対して行う。**`check` `plan` `stats` `json` — どれも entry を渡せば合成後のモデルを見る。
+**Checking is always done against the entry.** `check`, `plan`, `stats`, `json` — give any of them the entry and they see the composed model.
 
-## 前方参照
+## Forward references
 
-`boundary` は空間を**前方参照してよい**。階を跨ぐ関係を entry に書き、それが指す空間を後から import しても通る。
+`boundary` **may reference a space forward**. A relation that crosses storeys can be written in the entry and still resolve against spaces imported afterwards.
 
 ```muro-part
-# main.muro — 空間はこの後の import で入ってくる
+# main.muro — the spaces arrive with the imports below
 boundary /home/hall1 /home/hall2 type:stair
 
 import ./L1.muro
 import ./L2.muro
 ```
 
-一方で `over` と `drop` は**対象が既に合成されていなければならない**。上書きと削除は定義ではないので、対象の無い行はエラーになる。詳しくは [over / drop](over-drop.md) を見る。
+`over` and `drop` are the opposite: **their target must already be composed.** An override is not a definition, so a line with no target is an error. See [over / drop](over-drop.md).
 
-## 何が層に置けるか
+## What may live in a layer
 
-空間・境界・ゾーン・アセット・敷地形状・柱・`stack` — 定義はどの層に置いてもよい。切り口は分担の単位で決める。階で割ってもよいし、建具・敷地・設備で割ってもよい。
+Spaces, boundaries, zones, assets, the site shape, columns, `stack` — every definition may live in any layer. Cut the files along the division of labour. By storey works; so does by doors, by site, by services.
 
-敷地形状 (`polygon`) は測量由来の所与であって設計の生成物ではないので、宣言 1 行だけの層に隔離するのが標準の書き方である。`examples/tower/site-geometry.muro` がその形をしている。
+The site shape (`polygon`) is a survey given rather than a product of design, so the standard way to write it is to isolate it in a layer that holds nothing but that one line. `examples/tower/site-geometry.muro` has exactly that shape.
 
-## import は残らない
+## import does not survive
 
-正準JSON は合成後の単一のモデルであり、**`import` の跡は残らない。**5 ファイルに割って書いた建物と、同じ内容を 1 ファイルに書いた建物は、同じ正準JSONを与える。層の分け方は書き手の都合であって、建物の性質ではない。
+The canonical JSON is the single composed model, and **no trace of `import` remains in it**. A building written across five files and the same content written in one file yield the same canonical JSON. How the layers were cut is the author's business, not a property of the building.
 
-## エラー
+## Errors
 
-| 状態 | 出るもの |
+| State | What comes out |
 |---|---|
-| ファイルが読めない | `Cannot read file: ./missing.muro` |
-| 空間パス・ゾーンパス・アセット名の重複 | エラー。**両者の出所を `ファイル:行` で言う** |
-| `grid` / `name` / `koyu` の再宣言 | エラー |
-| 二重 import・循環 | エラーではない (一度だけ合成される) |
+| The file cannot be read | `Cannot read file: ./missing.muro` |
+| A duplicate space path, zone path or asset name | An error that **names the provenance of both, as `file:line`** |
+| Re-declaring `grid` / `name` / `koyu` | An error |
+| A double import, or a cycle | Not an error (composed once) |
 
 ```text
 $ koyu check main.muro
 ✖ e4.muro:line 1: Duplicate space path: /L1/a (first seen in plan.muro at line 1)
 ```
 
-パスは同一性そのものである。別の空間なら別のパスを与える。アセット名が衝突したときは、アセットを一つの層にまとめるか、別の名を与えるか、参照する側で属性を上書きする。
+A path is identity itself. A different space gets a different path. When an asset name collides, either gather the assets into one layer, give the second one another name, or override the attributes at the point of reference.
 
-これらは**モデルが組み上がる前に止まる**。壊れた JSON を JSON パーサが弾くのと同じ層にあり、診断として後から報告されるものではない。
+These stop **before the model is assembled**. They sit at the same layer as a JSON parser rejecting broken JSON, and are not reported afterwards as diagnostics.
 
-## API から
+## From the API
 
-`import` はファイル合成の文である。単一の文字列を読む `parse()` には読み込み口が無いので、`import` を書いた文字列を渡すとエラーになる。
+`import` is a statement of file composition. `parse()`, which reads a single string, has no loader, so a string containing `import` is rejected.
 
 ```text
 import is available only in file composition (parseFile / parseFiles / CLI)
 ```
 
-ファイルシステムから読むなら `parseFile`、仮想のファイル群 (ブラウザ等) から読むなら `parseFiles` を使う。後者はキーが POSIX 風の相対パスで、`import` はそのキー空間の中で解決される。
+Read from the filesystem with `parseFile`; read from a set of virtual files (a browser, say) with `parseFiles`, whose keys are POSIX-style relative paths and whose `import` resolves inside that key space.
 
-## 関連
+## See also
 
-- [合成の六規則](composition.md) — 層の強度と、合成が守る六つの規則
-- [over / drop](over-drop.md) — 上書きと削除、集合の編集
-- [stack](stack.md) — 階を跨ぐ関係の一括宣言とスパン展開
-- [koyu check](../cli/check.md) — entry を渡す門番
-- [koyu layers](../cli/layers.md) — 層の並びと属性の出所を印字する
+- [The rules of composition](composition.md) — layer strength and the six rules composition keeps
+- [over / drop](over-drop.md) — overriding, removing, and editing sets
+- [stack](stack.md) — declaring relations across storeys at once, and span expansion
+- [koyu check](../cli/check.md) — the gate, given the entry
+- [koyu layers](../cli/layers.md) — prints the layer order and attribute provenance

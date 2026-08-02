@@ -96,18 +96,8 @@ const config = {
     },
   },
   i18n: {
-    defaultLocale: 'ja',
-    locales: ['ja', 'en'],
-    localeConfigs: {
-      ja: {
-        label: '日本語',
-        htmlLang: 'ja-JP',
-      },
-      en: {
-        label: 'English',
-        htmlLang: 'en',
-      },
-    },
+    defaultLocale: 'en',
+    locales: ['en'],
   },
   presets: [
     [

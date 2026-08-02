@@ -1,36 +1,36 @@
 ---
-title: 柱 — column.blocksdoor
+title: Columns — column.blocksdoor
 mode: reference
 ---
 
-# 柱 — column.blocksdoor
+# Columns — column.blocksdoor
 
-| 規則 | level |
+| rule | level |
 |---|---|
 | [`column.blocksdoor`](#column-blocksdoor) | violation |
 
-**位置を書かない要素が二つあると、衝突は導出でしか分からない。**
+**When two elements both refuse to write their position, the collision shows up only in the derivation.**
 
-柱は座標を持たない。書くのは断面寸法と階と、限定するなら通りの名前だけで、立つ位置は**通り芯の交点**から導かれる。扉も座標を持たない。書くのは幅と、置く位置の指定 (`at:` の比率か通り参照) だけで、実際の点は境界線分の上で決まる。
+A column carries no coordinate. You write its section, its levels, and — if you want to narrow it — the names of the grid lines; where it stands comes from **the grid intersections**. A door carries no coordinate either. You write its width and where to put it (a ratio in `at:`, or a grid reference); the actual point lands on the boundary segment.
 
-どちらも書かれていない以上、二つがぶつかっているかどうかは**図を描くまで誰にも分からない**。この規則はそれを言葉にする。
+Since neither is written, **nobody can tell whether the two collide until something is drawn**. This rule puts it into words.
 
-## 柱はどこに立つか
+## Where columns stand
 
-通り芯の交点のうち、**その階に床のある交点**に一本ずつ立つ。床とは、そのレベルの、領域を持つ、`type:exterior` でも `type:void` でもない空間である。
+One column stands at each grid intersection **that has a floor on that level**. A floor means a space on that level, with a region, that is neither `outside:1` nor `void:1`.
 
-ただし例外が一つある。**半屋外で、しかも上に何も載っていない空間は床に数えない。**屋上庭園や最上階のテラスは、柱が持ち上げるものを持たないからである。半屋外かどうかは導出で決まる — 外部に対して `type:open` か `air:1` の境界で接する空間が半屋外になる。
+There is one exception. **A space that is semi-outdoor and has nothing above it does not count as a floor.** A roof garden or a top-floor terrace gives a column nothing to hold up. Being semi-outdoor is derived: a space that meets an exterior across a `type:open` or `air:1` boundary is semi-outdoor.
 
-同じ交点に二本は立たない。宣言が重なったときは**先に書いた宣言が勝つ**。宣言に対して一本も立たなければ、[`koyu check`](../cli/check.md) が警告を出す。
+No intersection carries two columns. When declarations overlap, **the earlier declaration wins**. If a declaration raises no column at all, [`koyu check`](../cli/check.md) warns.
 
-`x:` と `y:` は**通り芯の名前**を並べて、柱を立てる通りを限定する。オフセットではない。
+`x:` and `y:` take **grid line names** and restrict which lines carry columns. They are not offsets.
 
-## `column.blocksdoor` — 柱が扉を塞いでいる {#column-blocksdoor}
+## `column.blocksdoor` — a column blocks a door {#column-blocksdoor}
 
 `violation`
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150
@@ -46,20 +46,20 @@ boundary /L1/a /L1/b
 Validation — 1 violation / 0 cautions
 ```
 
-`/L1/a` と `/L1/b` の境界は Y2 の線上にある。柱は X2/Y2 の交点に 600mm 角で立つ。扉を `at:X2` — つまり X2 の通りの真上 — に置いたので、幅 900mm の扉の中心と柱の中心が同じ点になった。**通り芯の交点は、境界線分の上でもある。**扉を通りに寄せると必ずぶつかる。
+The boundary between `/L1/a` and `/L1/b` runs along Y2. A 600mm column stands at the X2/Y2 intersection. The door was placed at `at:X2` — directly on the X2 line — so its centre and the column's centre are the same point. **A grid intersection also sits on the boundary segment.** Push a door towards a grid line and it always collides.
 
-判定は素朴な矩形の重なりである。扉は線分に沿って `w` の幅を持ち、線分に直交する向きには厚みを持たない。柱は交点を中心とする `size × size` (`d:` を書けば `size × d`) の矩形である。**線分に沿って重なり、かつ線分が柱の内側を通る**ときに衝突とする。
+The test is a plain rectangle overlap. The door has width `w` along the segment and no thickness across it; the column is a `size × size` rectangle centred on the intersection (`size × d` if `d:` is written). A collision is **overlap along the segment together with the segment passing through the column's interior**.
 
-置けない開口 — 境界の上に載らない `at:` を書いた扉など — は対象外である。それは構成の側の誤りとして [`koyu check`](../cli/check.md) が既に言っている。
+Openings that cannot be placed at all — a door whose `at:` does not land on the boundary, say — are out of scope. That is an error in the composition, and [`koyu check`](../cli/check.md) has already said so.
 
-violation にしてあるのは、物と物が同じ場所を占めているからである。読み方によって許される衝突ではない。
+It is a violation because two physical things occupy one place. No reading permits it.
 
-### 直し方は二つある
+### There are two fixes
 
-**扉を通りからずらす。**`at:` にオフセットを足す。
+**Shift the door off the line.** Add an offset in `at:`.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150
@@ -74,10 +74,10 @@ boundary /L1/a /L1/b
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
 ```
 
-**あるいは、その通りに柱を立てない。**`x:` / `y:` に通り芯の名前を並べて、柱の宣言のほうを限定する。
+**Or keep columns off that line.** Name the grid lines in `x:` / `y:` and narrow the column declaration instead.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150
@@ -92,9 +92,9 @@ boundary /L1/a /L1/b
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
 ```
 
-三つ目は壁そのものを動かすことだが、それは平面の決め直しである。結果は [`koyu plan`](../cli/plan.md) の平面図で確かめられる — **導出でしか見えない衝突は、導出を描いて見るのが一番早い。**
+A third is to move the wall, but that is re-deciding the plan. Either way, [`koyu plan`](../cli/plan.md) shows the result — **a collision visible only in the derivation is quickest to settle by drawing the derivation.**
 
-## 関連
+## See also
 
-- [到達](access.md) — 扉が開いていても行き先が無い場合
-- [判定の台帳](index.md) — 15規則と、`Finding` が `Diagnostic` と別である理由
+- [Reachability](access.md) — when the door is open but there is nowhere to go
+- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`

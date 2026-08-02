@@ -77,7 +77,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 test("an area on a space with no region is an error", () => {
   const m = parse(`${BASE}
-space /out exterior
+space /out outside:1
   area X1..X2 Y1..Y2 floor:砂利
 `);
   const r = check(m);

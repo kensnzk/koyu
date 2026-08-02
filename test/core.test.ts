@@ -134,7 +134,8 @@ boundary /L1/a /L1/b type:open
 });
 
 test("notation errors come back in words with a line number", () => {
-  assert.throws(() => parse("space /L1/a"), SourceError);
+  assert.throws(() => parse("space"), SourceError);
+  assert.throws(() => parse("space L1/a"), /space takes the form/);
   assert.throws(
     () =>
       parse(`
@@ -163,7 +164,7 @@ test("canonical JSON is stable", () => {
   const j2 = toCanonical(parse(exampleSrc));
   assert.equal(j1, j2);
   assert.ok(j1.includes('"between"'));
-  assert.ok(j1.includes('"koyu": "1.0"'));
+  assert.ok(j1.includes('"koyu": "1.1"'));
 });
 
 test("a plan SVG is generated", () => {

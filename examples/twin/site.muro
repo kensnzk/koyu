@@ -4,21 +4,21 @@
 # この規模の容積を積む再開発は、公開空地が制度の裏づけになる (総合設計・都市再生特区)。
 # 基壇の四隅の斜めは、この敷地の辺の振れをそのまま建物に写した隅切りである。
 
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 zone /site name:敷地 site:1 area:23167.40
 
 polygon /site 0,24000 14000,6000 46000,0 92000,3000 126000,0 158000,9000 168000,38000 164000,80000 168000,118000 152000,144000 104000,151200 58000,149000 16000,142000 0,100000
 
-space /road-s exterior X1..X21 Y1-22000..Y1 level:L1 name:南側道路 road:25000
-space /road-e exterior X21..X21+18000 Y1..Y19 level:L1 name:東側道路 road:18000
-space /road-n exterior X1..X21 Y19..Y19+16000 level:L1 name:北側道路 road:16000
+space /road-s X1..X21 Y1-22000..Y1 level:L1 name:南側道路 road:25000 outside:1
+space /road-e X21..X21+18000 Y1..Y19 level:L1 name:東側道路 road:18000 outside:1
+space /road-n X1..X21 Y19..Y19+16000 level:L1 name:北側道路 road:16000 outside:1
 
 # 外構。北の大きな広場が公開空地の主体
-space /site/plazaS exterior X2..X19 Y1..Y4 level:L1 name:南側広場
-space /site/plazaE exterior X19..X21 Y1..Y12 level:L1 name:東側広場
-space /site/plazaW exterior X1..X2 Y1..Y12 level:L1 name:西側広場
-space /site/green exterior X1..X21 Y12..Y19 level:L1 name:北側広場・緑地
+space /site/plazaS X2..X19 Y1..Y4 level:L1 name:南側広場 outside:1
+space /site/plazaE X19..X21 Y1..Y12 level:L1 name:東側広場 outside:1
+space /site/plazaW X1..X2 Y1..Y12 level:L1 name:西側広場 outside:1
+space /site/green X1..X21 Y12..Y19 level:L1 name:北側広場・緑地 outside:1
 
 boundary /site/plazaS /road-s type:open
 boundary /site/plazaE /road-e type:open

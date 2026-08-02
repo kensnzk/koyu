@@ -8,11 +8,11 @@
 //
 // 直したことと再発しないことは別なので、その四つと「外部へ到達できない室」
 // 「柱が塞ぐ扉」を判定として置く。**判定は MCP から呼べなければ、機械にとって
-// 存在しないに等しい** (spec/validation.md) — スクリプトの中に閉じている限り、
+// 存在しないに等しい** (docs/reference/validate/index.md) — スクリプトの中に閉じている限り、
 // 同じ誤りは別の建物で何度でも起きる。
 //
 // core が持つのは経路そのもの (`doorsBetween` / `passable` / `placeOpening`) で、
-// **どの到達不能が問題かを言うのはここである** (spec/scope.md §4)。
+// **どの到達不能が問題かを言うのはここである** (docs/reference/scope.md)。
 
 import { passable, placeOpening } from "../core/graph.js";
 import {
@@ -22,21 +22,32 @@ import {
   type Boundary,
   type Model,
   type Space,
+  isOutside,
+  isVoid
 } from "../core/model.js";
 import { finding, type Finding } from "./index.js";
 
 /** 車が通れる開口の最小幅 mm。人の扉 (900) では車は出られない */
 export const CAR_WIDTH_MIN = 2400;
 
-/** 空間としては連続するが人も車も通り抜けられない型 — どの到達性の問いでも常に避ける */
-const IMPASSABLE = new Set(["shaft", "void"]);
+/**
+ * 空間としては連続するが人も車も通り抜けられない — どの到達性の問いでも常に避ける。
+ *
+ * 二つの出所が混ざっている。`void:1` は**宣言**であり、core が構造として読む二語の一つで、
+ * 綴りは台帳が守る。`shaft` は**型の語**であり、型の位置は開かれた語彙なので `shaftt` と
+ * 書けば黙って通り抜けられるようになる — この面 (検証) は凍らないので当面それでよい、
+ * というのが領域の分離の帰結である (docs/reference/scope.md)。core にはもうこの読みは無い。
+ */
+function impassable(s: Space): boolean {
+  return isVoid(s) || s.type === "shaft";
+}
 
 /** 境界を通れるかの判定。人 (passable) と車 (carPassable) で通れる境界が違うので差し替える */
 type CanPass = (b: Boundary) => boolean;
 
 /**
  * from (複数可) から toSet のどれかへ、avoid が真になる空間を**通らずに**辿り着けるか。
- * 到達先そのものは avoid を問わない (外部は exterior だが、着いた時点で目的は果たされている)。
+ * 到達先そのものは avoid を問わない (外部は `outside:1` だが、着いた時点で目的は果たされている)。
  */
 function reachableAvoiding(
   model: Model,
@@ -62,7 +73,7 @@ function reachableAvoiding(
       if (!v || seen.has(v)) continue;
       if (toSet.has(v)) return true;
       const s = model.spaces.get(v);
-      if (!s || IMPASSABLE.has(s.type) || avoid(s)) continue;
+      if (!s || impassable(s) || avoid(s)) continue;
       seen.add(v);
       queue.push(v);
     }
@@ -72,7 +83,7 @@ function reachableAvoiding(
 
 /** 外部の空間パスの集合。空なら到達性は問えない (外部が書かれていない模型に穴は無い) */
 function exteriorSet(model: Model): Set<string> {
-  return new Set([...model.spaces.values()].filter((s) => s.type === "exterior").map((s) => s.path));
+  return new Set([...model.spaces.values()].filter(isOutside).map((s) => s.path));
 }
 
 /**
@@ -126,7 +137,7 @@ export function accessFindings(model: Model): Finding[] {
   if (outs.size > 0) {
     const reached = reachableFromExterior(model);
     for (const s of model.spaces.values()) {
-      if (s.rects.length === 0 || s.type === "exterior" || IMPASSABLE.has(s.type)) continue;
+      if (s.rects.length === 0 || isOutside(s) || impassable(s)) continue;
       if (reached.has(s.path)) continue;
       out.push(
         finding(
@@ -139,10 +150,10 @@ export function accessFindings(model: Model): Finding[] {
   }
 
   // ---- 吹抜けにしか扉が開かない区画 ----
-  // 通れる境界を持つのに行き先が全部 type:void なら、扉は床の無い穴に向かって開いている。
+  // 通れる境界を持つのに行き先が全部 void:1 なら、扉は床の無い穴に向かって開いている。
   // violation — 出入りしたつもりでどこへも行けない。旗艦例はこれを20区画抱えたまま緑だった。
   for (const s of model.spaces.values()) {
-    if (s.rects.length === 0 || s.type === "exterior" || IMPASSABLE.has(s.type)) continue;
+    if (s.rects.length === 0 || isOutside(s) || impassable(s)) continue;
     let doors = 0;
     let allVoid = true;
     for (const b of model.boundaries) {
@@ -150,7 +161,8 @@ export function accessFindings(model: Model): Finding[] {
       const other = b.a === s.path ? b.b : b.b === s.path ? b.a : undefined;
       if (!other) continue;
       doors++;
-      if (model.spaces.get(other)?.type !== "void") allVoid = false;
+      const o = model.spaces.get(other);
+      if (!o || !isVoid(o)) allVoid = false;
     }
     if (doors > 0 && allVoid) {
       out.push(
@@ -188,7 +200,7 @@ export function accessFindings(model: Model): Finding[] {
   if (outs.size > 0) {
     const canPass = carPassable(model);
     for (const s of model.spaces.values()) {
-      if (s.rects.length === 0 || s.type === "exterior" || IMPASSABLE.has(s.type)) continue;
+      if (s.rects.length === 0 || isOutside(s) || impassable(s)) continue;
       if (effectiveUse(model, s) !== "parking") continue;
       if (reachableAvoiding(model, [s.path], outs, () => false, canPass)) continue;
       out.push(

@@ -11,7 +11,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check, checkDiagnostics, DIAGNOSTIC_CODES, type Diagnostic } from "../src/core/diagnose.js";
 import { validate } from "../src/validate/index.js";
-import { areaM2, isIndoor, srcRef } from "../src/core/model.js";
+import { areaM2, isIndoor, srcRef, isOutside } from "../src/core/model.js";
 import { siteReport } from "../src/core/site.js";
 import { slabs } from "../src/core/fabric.js";
 import { parseFile } from "../src/parse-file.js";
@@ -179,7 +179,7 @@ test("population: one place answers \"total floor area\" — stats, site and MCP
   // かつては CLI stats だけが exterior を屋内床に数え、site と 160㎡ 食い違っていた
   assert.equal(Math.round(total * 100) / 100, siteReport(m).totalFloor);
   assert.ok(
-    [...m.spaces.values()].some((s) => s.type === "exterior" && s.rects.length > 0),
+    [...m.spaces.values()].some((s) => isOutside(s) && s.rects.length > 0),
     "the example under test has an exterior carrying a region",
   );
 });
@@ -224,8 +224,8 @@ level L1 0 slab:150
 level L2 3000 h:2400 slab:150
 space /L1/liv living X1..X2 Y1..Y2 h:2400
 space /L1/bal balcony X2..X3 Y1..Y2
-space /L2/v void X1..X2 Y1..Y2
-space /out exterior
+space /L2/v X1..X2 Y1..Y2 void:1
+space /out outside:1
 boundary /L1/bal /out type:open`);
   // h を持たないのは balcony (半屋外) と void と exterior だけ — SUF01 は一件も出ない
   assert.deepEqual(checkDiagnostics(m).map((d) => d.code), []);
@@ -254,7 +254,7 @@ test("order: the order of diagnostics is the order of the traversal — the seve
   // ここで効く模型は「一本の境界が複数のコードを出す」もの — 15行目の境界は
   // BND04・OPN04・SEG04 を続けて出す。checkDiagnostics を**コード族**で節に割ると
   // この三つが他の境界の診断で分断され、並びが崩れる。走査単位で割れば崩れない。
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 3600 7200 10800
 grid Y 0 4000 8000
 level L1 0 h:2400 slab:300
@@ -263,7 +263,7 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /L1/far room X3..X4 Y2..Y3
 space /L2/a room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:900 at:0.4
   door w:900 at:0.5
@@ -443,7 +443,7 @@ function indexLedger(page: string): Record<string, string> {
 // The pages checked are the **published documentation**. `spec/` is an internal tree on its way
 // out and has in fact gone stale; while two trees both claim to be normative, the machine must
 // bind the one that is canonical.
-for (const page of ["docs/reference/diagnostics/index.md", "docs/en/reference/diagnostics/index.md"]) {
+for (const page of ["docs/reference/diagnostics/index.md"]) {
   test(`ledger: DIAGNOSTIC_CODES and the table in ${page} agree as sets, and BND07 is retired`, () => {
     assert.deepEqual(indexLedger(page), DIAGNOSTIC_CODES);
     // A retired code leaves the ledger but keeps a headstone in the index

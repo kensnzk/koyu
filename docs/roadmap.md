@@ -1,86 +1,86 @@
 ---
-title: 1.0 まで残っていること
+title: What is left before 1.0
 mode: explanation
 ---
 
-# 1.0 まで残っていること
+# What is left before 1.0
 
-**1.0.0 は機能の完成ではない。壊さないと約束する面の確定である。**したがってこの行程は「何を作るか」ではなく「何を凍らせられる状態にするか」で切ってある。
+**1.0.0 is not the completion of features. It is the settling of the surfaces we promise not to break.** So this road is cut by "what can be frozen", not by "what will be built".
 
-現在は **koyu 0.16.0 / muro 1.0** である。
+The present state is **koyu 0.17.0 / muro 1.1**.
 
-## 版は二本ある
+## There are two version lines
 
-**言語の版と実装の版は切り離してある。**
+**The version of the language and the version of the implementation are kept apart.**
 
-| 版 | いま | 意味 |
+| Line | Now | What it means |
 |---|---|---|
-| 言語 (muro) | **1.0** | 原本の文法と意味論。`koyu 1.0` と書く。ここは確定している |
-| 実装 (npm パッケージ) | **0.16.0** | ライブラリ・CLI・MCP サーバー。0.x である間は**何が変わっても破壊的変更ではない** |
+| Language (muro) | **1.0** | The grammar and semantics of the source. Written `koyu 1.0`. This is settled |
+| Implementation (the npm package) | **0.17.0** | The library, the CLI and the MCP server. While it is 0.x, **nothing that changes is a breaking change** |
 
-二本を分けたのは、言語が固まったあとも実装を動かし続けられるようにするためである。`koyu 1.0` と書いたファイルは、実装が 0.16 でも 1.0 でも 2.0 でも同じ意味に読まれる。
+They were separated so that the implementation can keep moving after the language has settled. A file that says `koyu 1.0` reads the same whether the implementation is 0.16, 1.0 or 2.0.
 
-**原本の版を省略すると最新版として読まれる。**受理される言語版は `0.1` `0.2` `0.3` `0.4` `0.5` `1.0` の六つで、古い版で書かれたファイルは、その版の受理条件で検査される。
+**Omitting the version in the source reads the file as the latest.** The accepted language versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5` and `1.0`, and a file written in an older version is checked under the acceptance conditions of that version.
 
-## 凍らせる八つの面
+## The eight surfaces to be frozen
 
-1.0.0 で「壊さない」と約束するのは、次の八つである。**八つすべてが凍らせられる状態になった。**
+These are the eight things 1.0.0 promises not to break. **All eight now stand in a state where they can be frozen.**
 
-| 面 | 何を約束するか | 状態 |
+| Surface | What is promised | State |
 |---|---|---|
-| muro 1.0 の文法と意味論 | 原本の読み方が変わらないこと | ✅ 言語版 `1.0` を切った。属性の名前空間と合成の規則が最後の破壊的変更だった |
-| 合成の規則 | 層の重ね方 — 強度・衝突・冪等性・`over` / `drop` の解決 | ✅ 六つすべて実装済み |
-| 同一性 | `uid` は空間とゾーンに閉じ、生成は乱数。開口と内包物は「含む対象 + 一意な名」で同定され、重複は診断が止める | ✅ |
-| 属性の三層と名前空間 | 構造層 / 解釈層 / 運搬層の区別と、ドットを含むキーが運搬層になる規則 | ✅ 台帳が実装の唯一の出所 |
-| 機械形式 | 正準JSON の綴り — 形式版・キーの照合順 (符号位置の昇順)・NFC 正規化 | ✅ |
-| 導出規則 | 書かれた構成から一つに決まるもの (壁線分・面積・隣接・通行可能性) の定義 | ✅ 参照実装が立ち、一意性が機械の縛れる述語になった |
-| 構造整合の診断 | 65のコードと、その severity がコードの不変属性であること | ✅ 判定を別の領域へ分け、緑の意味が定義と一致した |
-| 公開 API と CLI | TypeScript の名前 (実行時59・型77) と、14のサブコマンドの契約 | ✅ 面を書き下し、実装との集合一致をテストが縛る |
+| The grammar and semantics of muro 1.0 | That the reading of the source does not change | ✅ Language version `1.0` was cut. Attribute namespaces and the composition rules were the last breaking changes |
+| The composition rules | How layers stack — strength, collision, idempotence, and the resolution of `over` / `drop` | ✅ All six implemented |
+| Identity | `uid` closed to spaces and zones, generated at random. Openings and contained items are identified by "what contains them plus a unique name", and duplicates are stopped by a diagnostic | ✅ |
+| The three attribute tiers and namespaces | The distinction between structural, interpreted and carry tiers, and the rule that a key containing a dot lands in the carry tier | ✅ The ledger is the single source for the implementation |
+| The machine format | The spelling of the canonical JSON — format version, key collation (ascending code point), NFC normalisation | ✅ |
+| The derivation rules | The definition of what is uniquely determined by the authored composition (wall segments, areas, adjacency, passability) | ✅ A reference implementation stands, and uniqueness became a predicate a machine can hold |
+| Structural-consistency diagnostics | 65 codes, with severity as an invariant property of the code | ✅ Verdicts were moved to a separate domain, and the meaning of green now matches the definition |
+| The public API and CLI | The TypeScript names and the contract of the CLI subcommands | ✅ The surface was written down, and tests hold it in set-equality with the implementation |
 
-## 残っている作業 — 通しで見ること
+## What is left — looking at it end to end
 
-**面が立ったことと、面を見たことは違う。**テストが緑であることは、テストが縛っている範囲について言えるだけである。1.0.0 は引き返せないので、**縛っていない範囲を人が通しで見る**。0.16.0 はそのための版である。
+**A surface standing and a surface being looked at are different things.** That the tests are green says something only about what the tests hold. 1.0.0 cannot be walked back, so **a person looks end to end at what the tests do not hold**. 0.17.0 is the version for doing that.
 
-見るのは四つ。
+There are four.
 
-| 面 | 何を見るか | なぜテストで足りないか |
+| Surface | What to look at | Why tests do not suffice |
 |---|---|---|
-| **MCP** | 12のツールを実際に stdio で叩き、入出力と失敗時の挙動を見る | 外へ出している面なのに、通しで動かした記録が無い |
-| **文書** | この文書群が**現在**を語っているか。貼られた出力が実物か | 文の正しさは機械が読めない |
-| **描画** | ブラウザで実際に描かれるもの — 平面・立体・テーマ・編集 | 形の一致は縛れるが、**見た目**は縛っていない (それが設計である) |
-| **公開面** | `npm pack` に何が入るか、14のサブコマンドが実際に動くか | パッケージの中身と実行は、テストの外にある |
+| **MCP** | Drive all 12 tools over stdio for real; watch the inputs, the outputs and the failure behaviour | It is a surface exposed outward, and there is no record of it having been driven end to end |
+| **Documentation** | Whether this body of writing describes **the present**, and whether the pasted output is real | The truth of a sentence is not machine-readable |
+| **Drawing** | What is actually drawn in a browser — plans, axonometrics, themes, editing | The agreement of form can be held; **appearance** is not (that is by design) |
+| **The public surface** | What goes into `npm pack`, and whether all 14 subcommands really run | The contents of a package and its execution live outside the tests |
 
-**確認して直したものは 0.16.x で出し、通ったら 1.0.0 を切る。**
+**What gets found and fixed ships as 0.16.x, and when it comes through clean, 1.0.0 is cut.**
 
-## 直近で閉じたもの — 描かれた線が絡む四つの不整合
+## Recently closed — four inconsistencies around drawn lines
 
-**規則を書き下したことが、規則の破れを見せた。**導出規則を全部書き出す過程で、同じ原本から二つの形が出る経路が四つ見つかり、**形は正準形の関数である**という一つの原理に畳んで閉じた。
+**Writing the rules down showed where the rules broke.** In the course of writing out the derivation rules, four routes were found by which one source produced two different forms, and they were folded shut under one principle: **form is a function of the canonical form.**
 
-| # | 経路 | 直す前 → 直した後 |
+| # | The route | Before → after |
 |---|---|---|
-| 1 | 外皮を切る線で、`boundary` の a/b を入れ替えると**残す側が反転する** | 16.00㎡ ↔ 14.00㎡ → **一致** |
-| 2 | 線の端点の**書き順**が開口の `at:` の起点を決めるのに、正準JSON は書き順を捨てる | 正準JSON がバイト同一のまま扉 (750, 2500) ↔ (2250, 3500) → **一致** |
-| 3 | `line` を持つ境界の**宣言順**で導出面積が変わる | 正準JSON がバイト同一のまま 27.00㎡ ↔ 22.50㎡ → **一致** |
-| 4 | 診断が線の効きを計算し直すため母集団が食い違い、実際に切った線に「何も切っていない」が誤報される | 4.5㎡ を落とした線に LIN03 → **出ない** |
+| 1 | On a line cutting the envelope, swapping the a/b of the `boundary` **reversed which side was kept** | 16.00 m² ↔ 14.00 m² → **agree** |
+| 2 | The **order in which the endpoints of a line were written** fixed the origin of an opening's `at:`, but the canonical JSON discards that order | Byte-identical canonical JSON, door at (750, 2500) ↔ (2250, 3500) → **agree** |
+| 3 | The **declaration order** of boundaries carrying a `line` changed the derived area | Byte-identical canonical JSON, 27.00 m² ↔ 22.50 m² → **agree** |
+| 4 | Diagnostics recomputed the effect of a line, so the population diverged and a line that really did cut was falsely reported as "cut nothing" | LIN03 on a line that removed 4.5 m² → **gone** |
 
-テストは含意そのものを縛る — **正準形が等しいことを前提として確かめてから**形の一致を主張するので、前提が崩れれば「この組は何も証明していない」と落ちる。
+The tests hold the implication itself — they **confirm the canonical forms are equal as a precondition** before asserting the forms agree, so if the precondition collapses the test fails with "this pair proves nothing".
 
-## 1.0 の後 — 伸ばす領域
+## After 1.0 — where growth happens
 
-**コアはもう動かない。**伸ばすのは判定と表現である。
+**The core no longer moves.** What grows is verdicts and expression.
 
-- **判定** — 区画・避難距離・排煙・用途別の面積率。管轄が二つ目を持ったら章を割る。規則を一つ足すのに要るのは台帳の一行と文書の一節で、**言語の版は動かない**。
-- **表現** — 寸法線・通り芯記号・建具の作図表現・縮尺・勾配屋根。**図面の精度は凍結の対象ではない。**
-- **外部との接続** — RDF/BOT 出力、測地、IFC からの一方向の取り込み。**コアの外に置く。**
+- **Verdicts** — compartments, travel distance, smoke control, area ratios by use. When a second jurisdiction arrives, it gets its own chapter. Adding a rule costs one line in the ledger and one section of prose, and **the language version does not move**.
+- **Expression** — dimension lines, grid bubbles, door and window drafting conventions, scale, pitched roofs. **Drawing accuracy is not among the things being frozen.**
+- **External connections** — RDF/BOT output, geodesy, one-way import from IFC. **These stay outside the core.**
 
-## 扱わないこと
+## What is not being taken on
 
-- 原本における幾何 (例外は所与 — 敷地形状)
-- 配置の仕組み (内包は座を与えない)
-- 建築的な判定を原本の契約に含めること
-- 実務解像度の追求 — **カバー率は価値ではない**
-- 往復互換
-- 曲面と自由形状
-- オーサリングツール
+- Geometry in the source (the exception is given input — the site shape)
+- A placement mechanism (containment grants no seat)
+- Folding architectural verdicts into the contract of the source
+- Chasing the resolution of practice — **coverage is not a value**
+- Round-trip compatibility
+- Curved and freeform surfaces
+- An authoring tool
 
-何を約束し何を約束しないかの全体は[約束の範囲](reference/scope.md)にある。凍結の対象と対象外の切れ目は[安定性](reference/stability.md)、明示的に持たないものは[持たないもの](reference/not-held.md)が持つ。
+The whole of what is and is not promised is in [the scope of the promise](reference/scope.md). Where the freeze starts and stops is in [stability](reference/stability.md), and what is deliberately not held is in [what is not held](reference/not-held.md).

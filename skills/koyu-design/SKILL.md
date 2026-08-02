@@ -32,7 +32,7 @@ Two rules decide whether a plan works:
 ## A whole small building
 
 ```muro
-koyu 1.0
+koyu 1.1
 name Flat on a tight site
 unit mm
 
@@ -51,7 +51,7 @@ band X X1..X2 Y2..Y3
   space /L1/ldk ldk  w:rest name:LDK daylight:1
   space /L1/bed room w:2800 name:Bedroom daylight:1
 
-space /out exterior name:Outside
+space /out name:Outside outside:1
 
 boundary /L1/entry /out t:120
   door w:900 edge:S name:Front
@@ -83,8 +83,9 @@ why the bedroom has one. Everything else above generalises:
 - Grid lines are auto-named X1, X2… west→east and Y1, Y2… south→north. Offsets
   like `Y2+1800` are legal wherever a grid reference is.
 - The path `/L1/name` binds the space to that level. The type word (`room`,
-  `ldk`, `hall`, `wc`…) is free vocabulary; only `exterior` and `void` are
-  structural.
+  `ldk`, `hall`, `wc`…) is free vocabulary and **optional** — koyu never reads
+  it. Facts of composition are declared: `outside:1` (outside the building; may
+  have no region) and `void:1` (no floor, no area, impassable).
 - Openings sit indented under a boundary and need `w:`. Against `/out` the
   boundary always has several segments, so give `edge:N|E|S|W`. Two openings on
   one boundary both default to the centre — separate them with `at:0.3` (a

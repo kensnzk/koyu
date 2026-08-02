@@ -1,122 +1,122 @@
 ---
-title: 用語集
+title: Glossary
 mode: reference
 ---
 
-# 用語集
+# Glossary
 
-koyu の語を引き当てるための表である。**ここに書かれた一文が、その語の定義である。**より長い説明が要るときは右端の頁へ行く。
+A table for looking up the words of koyu. **The sentence written here is the definition of the word.** When you need more than a sentence, follow the link on the right.
 
-用語は六つの群に分けてある — 骨格 / 要素 / 属性 / 導出される性質 / ファイルと版 / 検査と問い。最後に koyu の外の語を置いた。
+The terms fall into six groups — the skeleton, the elements, attributes, derived properties, files and versions, and checking and questions — followed by the words that live outside koyu. The Japanese term is given alongside each English one, because the bundled examples are written in Japanese.
 
-## 骨格 — 位置を決めるもの
+## The skeleton — what fixes position
 
-| 語 | 定義 | 詳しく |
+| Term | Definition | More |
 |---|---|---|
-| 通り芯 (grid) | 軸ごとに一度だけ宣言する座標の昇順の列。`X1`, `X2`… と自動命名され、以後の位置はすべてこの名で書かれる | [grid](reference/muro/grid.md) |
-| 通り参照 | 位置の書き方。`X2`・`X2+600`・`Y3-150` のように、常に通り芯からの言葉で書く。**座標の直書きは無い** | [位置の書き方](reference/muro/positions.md) |
-| レベル (level) | 階。名前と FL の高さ z を持ち、任意で基準天井高 `h` と床組み厚 `slab` を持つ | [level](reference/muro/level.md) |
-| 範囲宣言 | `level L4..L10 11000 pitch:3000` — 等差のレベルを一行で宣言する形 | [level](reference/muro/level.md) |
-| スパン展開 | 空間パスの**先頭セグメント**が `L3..L10` の形のとき、宣言済みレベルの z 順の並びに展開されること。基準階を一度だけ書くための仕組みで、`space` も `zone` も `boundary` も展開され、字下げの開口も展開先すべてに付く | [level](reference/muro/level.md) |
-| 積層 (stack) | `stack ev L1..L11 type:shaft` — 連続するレベル対のすべてに、同名の空間どうしを結ぶ垂直境界を一括で張る宣言 | [stack](reference/muro/stack.md) |
-| 帯 (band) | `band X X1..X3 Y1..Y2` と字下げした `space` 行 — 位置ではなく寸法と並びを書き、位置を導出させる記法。解析時に通常の空間へ展開され、モデルにも正準JSONにも残らない | [band](reference/muro/band.md) |
-| 閉じた帯 | 全要素に寸法を書き、その合計が帯幅と一致する帯。`w:rest` を使わないのが既定で、合計の照合が寸法の打ち間違いを捕まえる | [band](reference/muro/band.md) |
-| 方位 (N/E/S/W) | X は東が正、Y は北が正。したがって N=+Y, S=-Y, E=+X, W=-X。`edge` はこの方位を **a側 (先に書いた空間) の矩形から見て**指す | [方位](reference/muro/orientation.md) |
-| 壁芯 | 面積算定と壁線分の基準となる線。壁厚 `t` は芯から両側へ等分に振り分けられる | [boundary](reference/muro/boundary.md) |
+| grid line, 通り芯 | The ascending list of coordinates declared once per axis. `X1`, `X2`, … are named automatically, and every position afterwards is written in those names | [grid](reference/muro/grid.md) |
+| grid reference, 通り参照 | How position is written. `X2`, `X2+600`, `Y3-150` — always in words measured from a grid line. **Coordinates are never written directly** | [positions](reference/muro/positions.md) |
+| level, レベル | A storey. It has a name and a floor level z, and optionally a base ceiling height `h` and a slab thickness `slab` | [level](reference/muro/level.md) |
+| range declaration, 範囲宣言 | `level L4..L10 11000 pitch:3000` — levels in arithmetic progression declared on one line | [level](reference/muro/level.md) |
+| span expansion, スパン展開 | That when the **first segment** of a space path has the form `L3..L10`, it expands across the declared levels in z order. The mechanism for writing a typical floor once: `space`, `zone` and `boundary` all expand, and indented openings come along to every expansion | [level](reference/muro/level.md) |
+| stack, 積層 | `stack ev L1..L11 type:shaft` — one declaration drawing a vertical boundary between the like-named spaces of every consecutive level pair | [stack](reference/muro/stack.md) |
+| band, 帯 | `band X X1..X3 Y1..Y2` plus indented `space` lines — the notation that writes dimension and order rather than position, and lets position be derived. Expanded into ordinary spaces at parse time, surviving neither in the model nor in the canonical JSON | [band](reference/muro/band.md) |
+| closed band, 閉じた帯 | A band where every member carries a dimension and their sum equals the width of the band. Using no `w:rest` is the default, and reconciling the sum catches a mistyped dimension | [band](reference/muro/band.md) |
+| compass, 方位 (N/E/S/W) | X is east-positive and Y is north-positive, so N=+Y, S=-Y, E=+X, W=-X. `edge` points in this compass **as seen from the rectangle of the a side, the space written first** | [orientation](reference/muro/orientation.md) |
+| wall centerline, 壁芯 | The line that area measurement and wall segments are based on. The thickness `t` is split evenly from the centerline to either side | [boundary](reference/muro/boundary.md) |
 
-## 要素 — 書かれるもの
+## The elements — what is written
 
-| 語 | 定義 | 詳しく |
+| Term | Definition | More |
 |---|---|---|
-| 空間 (space) | 一次要素。パス・型・領域 (矩形の合併) を持つ。室・ゾーン内の一区画・外部の領域がこれになる | [space](reference/muro/space.md) |
-| パス | `/L1/A/ldk` — 空間とゾーンの同一性であり、同時に集計の階層。先頭セグメントは、同名の `level` が宣言されていればレベルになる | [space](reference/muro/space.md) |
-| 型 (type) | `space` の第2位置引数 (必須)。開かれた語彙で、構造として解釈されるのは `exterior` と `void` の二語だけである。採光判定の対象かどうかは型から推定されない | [space](reference/muro/space.md) |
-| 外部 (exterior) | 建物の外の領域を表す型。領域を持たなくてよい。`road:幅員` を付けると接道の対象になる | [space](reference/muro/space.md) |
-| 吹抜け (void) | 床の不在。空間の型としては床面積不算入かつ通行不可、境界の kind としては上下階の床が無いことを表す | [boundary](reference/muro/boundary.md) |
-| 境界 (boundary) | 二つの空間を結ぶ第一級の**関係**。壁芯の線分は書かず、両空間の矩形から導出される。壁は物ではなくこれである | [boundary](reference/muro/boundary.md) |
-| kind (境界の型) | 関係のトポロジーだけを言う語。水平は `wall` / `open`、垂直は `stair` / `shaft` / `void` | [boundary](reference/muro/boundary.md) |
-| 開口 (opening) | 境界に字下げで従属する `door` / `window`。`door` は通行、`window` は採光 (通行しない)。幅 `w` は必須 | [door](reference/muro/door.md) / [window](reference/muro/window.md) |
-| アセット (asset) | `asset SD1 door w:800 …` — 開口が名前で参照する既定値の束。第4の要素ではなく、属性の出所を一箇所にまとめるだけの仕組みで、インスタンス側の属性が上書きする | [asset](reference/muro/asset.md) |
-| ゾーン (zone) | 幾何を持たず、パス接頭辞で配下の空間を束ねる**数える**集約。領域つきの空間を子に持ちたいときは、親をこれにする | [zone](reference/muro/zone.md) |
-| 数えない分節 (area / seg) | 面積・室数・グラフ・通行のどれにも影響しない区分。`area` は空間の中の領域、`seg` は境界の上の区間で、どちらも属性の上書きだけを運ぶ | [area](reference/muro/area.md) / [seg](reference/muro/seg.md) |
-| 敷地形状 (polygon) | `polygon /site x,y x,y …` — この記法で唯一、格子に載らない自由頂点で書かれる形。測量由来の所与として例外的に認められている | [polygon](reference/muro/polygon.md) |
-| 線 (line) | 境界に字下げで従属し、その境界を通り参照の言葉で引いた直線に沿わせる宣言。斜めはこれで書く。頂点座標は原本に現れない | [line](reference/muro/line.md) |
-| 柱 (column) | `column 900 B2..L6` — 寸法と階だけを書く要素。位置は書かれず、通り芯の交点のうちその階に床のあるところに立つ | [column](reference/muro/column.md) |
-| uid | 空間とゾーンに付けられる不透明な永続同一性トークン。モデル全体で一意で、パスからは導出しない。**改名を跨ぐ外部台帳との突き合わせのためにあり**、リポジトリ内の参照はパスのままでよい。書ける対象はこの二つに閉じていて、生成は乱数である | [同一性](reference/identity.md) |
+| space, 空間 | The primary element. It has a path, a type, and a region (a union of rectangles). A room, a portion within a zone, or an exterior region is one of these | [space](reference/muro/space.md) |
+| path, パス | `/L1/A/ldk` — the identity of a space or zone, and at the same time the hierarchy of aggregation. The first segment becomes a level if a `level` of that name has been declared | [space](reference/muro/space.md) |
+| type, 型 | The second positional of `space` (**optional**). An open vocabulary that **core never reads** — a free label appearing only in aggregation and in the lettering on a plan. Facts of composition (outside, void, daylight) live in the declarations `outside:` `void:` `daylight:` | [space](reference/muro/space.md) |
+| exterior, 外部 | The type denoting a region outside the building. It need not have a region. Adding `road:<width>` makes it a subject of road frontage | [space](reference/muro/space.md) |
+| void, 吹抜け | The absence of a floor. As a space type it is excluded from floor area and is not passable; as a boundary kind it says there is no floor between the levels | [boundary](reference/muro/boundary.md) |
+| boundary, 境界 | A first-class **relation** joining two spaces. The wall centerline segment is not written; it is derived from the rectangles of the two spaces. A wall is this, not a thing | [boundary](reference/muro/boundary.md) |
+| kind (of a boundary) | The word that states only the topology of the relation. Horizontally `wall` / `open`; vertically `stair` / `shaft` / `void` | [boundary](reference/muro/boundary.md) |
+| opening, 開口 | A `door` or `window` subordinate to a boundary by indentation. `door` is for passage, `window` for daylight (it does not admit passage). The width `w` is required | [door](reference/muro/door.md) / [window](reference/muro/window.md) |
+| asset, アセット | `asset SD1 door w:800 …` — a bundle of defaults referenced by name from openings. Not a fourth element; it only puts the source of attributes in one place, and instance attributes override | [asset](reference/muro/asset.md) |
+| zone, ゾーン | A **counted** aggregation with no geometry, bundling the spaces beneath it by path prefix. Make the parent one of these when you want children that have regions | [zone](reference/muro/zone.md) |
+| uncounted subdivision, 数えない分節 | A division that affects neither area, room count, graph, nor passage. `area` is a region inside a space and `seg` an interval along a boundary; both carry only attribute overrides | [area](reference/muro/area.md) / [seg](reference/muro/seg.md) |
+| site polygon, 敷地形状 | `polygon /site x,y x,y …` — the one shape in this notation written with free vertices off the grid. Admitted as an exception, being surveyed input | [polygon](reference/muro/polygon.md) |
+| line, 線 | A declaration subordinate to a boundary that makes it follow a straight line drawn in grid references. Diagonals are written this way, and no vertex coordinate appears in the source | [line](reference/muro/line.md) |
+| column, 柱 | `column 900 B2..L6` — an element that carries only a size and a range of levels. No position is written; columns stand at grid intersections that have a floor on that level | [column](reference/muro/column.md) |
+| uid | An opaque persistent identity token attached to a space or a zone. Unique across the whole model and never derived from the path. **It exists for joining against an external register across a rename**; references inside the repository stay on paths. Those two are the closed list of what can carry one, and generation is random | [identity](reference/identity.md) |
 
-## 属性 — 三つの層
+## Attributes — the three tiers
 
-**すべての属性キーは台帳に載っているか、名前空間を持つかのどちらかである。**台帳に無く名前空間も持たないキーは診断 ATT03 (エラー) になる。「見ていない」と「見て問題がない」を区別するための境界である。
+**Every attribute key is either in the ledger or carries a namespace.** A key that is in neither is diagnostic ATT03 (an error). The boundary exists to keep "not looked at" distinct from "looked at and fine".
 
-| 語 | 定義 | 詳しく |
+| Term | Definition | More |
 |---|---|---|
-| 構造層 | 意味を変える属性。書き換えると面積・通行・判定の母集団が動く (`level` `air` `road` `site` `daylight` など) | [属性](reference/muro/attributes.md) |
-| 解釈層 | 読まれて数値や表示に効く属性 (`w` `h` `t` `sill` `use` `name` `at` など)。値の形が検査され、書いたのに解釈されなかった値は診断になる | [属性](reference/muro/attributes.md) |
-| 運搬層 | 処理系が解釈せず、そのまま運ぶだけの属性 (`spec` `fire` `sound` `floor` など)。IFC で要素クラスにあたるものが、ここでは属性の値になる | [属性](reference/muro/attributes.md) |
-| 名前空間 | 運搬層を自由に拡張するための綴り。ドットを一つでも含むキー (`acme.sensor` `bems.temp`) は名前空間つきとみなされ、台帳に無くても書ける | [属性](reference/muro/attributes.md) |
-| `spec` 語彙 | 物の名を運ぶ運搬層のキー (RC・LGS・手すり・カーテンウォール…)。処理系は解釈しない | [属性](reference/muro/attributes.md) |
-| `air` | `air:1` = 物はあるが外気と光を遮らないもの (手すり・柵・フェンス)。半屋外の導出・採光の係数・細線での描画に効く | [属性](reference/muro/attributes.md) |
-| `edge` | 境界の線分を a側矩形の特定の辺 (N/E/S/W) に限定する属性。線分が複数に割れる外皮で開口を置くときに要る | [boundary](reference/muro/boundary.md) |
-| `daylight` | 採光判定の母集団に入るかどうかの宣言。`daylight:1` で対象、`daylight:0` で対象外。**型からは推定されない** | [採光](reference/validate/daylight.md) |
+| structural tier, 構造層 | Attributes that change meaning. Rewrite one and area, passage or the population of a verdict moves (`level`, `air`, `road`, `site`, `daylight`, …) | [attributes](reference/muro/attributes.md) |
+| interpreted tier, 解釈層 | Attributes that are read and affect numbers or display (`w`, `h`, `t`, `sill`, `use`, `name`, `at`, …). Their value form is checked, and a value written but not interpreted becomes a diagnostic | [attributes](reference/muro/attributes.md) |
+| carry tier, 運搬層 | Attributes the tools never interpret, only carry (`spec`, `fire`, `sound`, `floor`, …). What IFC makes an element class is an attribute value here | [attributes](reference/muro/attributes.md) |
+| namespace, 名前空間 | The spelling that opens the carry tier to free extension. Any key containing a dot (`acme.sensor`, `bems.temp`) counts as namespaced and may be written without being in the ledger | [attributes](reference/muro/attributes.md) |
+| the `spec` vocabulary | The carry-tier key holding the name of a thing (RC, LGS, railing, curtain wall…). The tools do not interpret it | [attributes](reference/muro/attributes.md) |
+| `air` | `air:1` = something is there but it blocks neither outside air nor light (a railing, a fence, a balustrade). It affects the derivation of semi-outdoor, the daylight coefficient, and thin-line drawing | [attributes](reference/muro/attributes.md) |
+| `edge` | The attribute restricting a boundary's segment to a particular side (N/E/S/W) of the a-side rectangle. Needed when placing an opening on an envelope whose segment splits in several | [boundary](reference/muro/boundary.md) |
+| `daylight` | The declaration of whether a space joins the daylight population. `daylight:1` is in scope, `daylight:0` is out. **It is never inferred from the type** | [daylight](reference/validate/daylight.md) |
 
-## 導出される性質 — 書かれないもの
+## Derived properties — what is not written
 
-| 語 | 定義 | 詳しく |
+| Term | Definition | More |
 |---|---|---|
-| 導出 | 書かれた構成から機械的に**一つ**決まるもの (壁線分・面積・隣接・半屋外・通行可能性)。原本には現れない | [形](reference/form/index.md) |
-| 生成 | 一つに決まらないもの。平面図がこれで、同じ構成から複数の図が出ることは欠陥ではない | [平面](reference/form/plan.md) |
-| 共有辺 | 二つの空間の矩形合併どうしが、同一直線上で重なる区間。境界の壁芯線分はこれとして導かれ、共線の区間は一本にマージされる | [境界の形](reference/form/boundaries.md) |
-| 既定境界 | 同一レベルで平面が接する領域つき空間の組に、境界の宣言が一つも無いとき、**合成後に導出される** `wall` の境界。扉を持たないので通れない。正準JSONには現れない — 書かれた構成ではないからである | [既定](reference/muro/defaults.md) |
-| 垂直の隣接 | 上下のレベルで平面が重なる空間どうしの関係。宣言せず、既定の解釈は「床がある」。例外 (`stair` / `shaft` / `void`) だけを書く | [縦動線](reference/form/vertical-runs.md) |
-| 半屋外 | 外部に対して `open` または `air:1` の境界を持つ、領域つきの空間。**宣言ではなく導出**で、屋内床面積には算入されず別掲される。バルコニー・屋外階段・テラスがこれになる | [領域](reference/form/regions.md) |
-| 庇下 (covered above) | その空間の上に、どのレベルであれ空間が重なっているか。屋根の有無すら宣言ではなく導出で、採光の半屋外係数 0.7 がこれを読む | [領域](reference/form/regions.md) |
-| 通行可能性 (passable) | `wall` は扉があるときだけ通行可、`open` と `stair` は常に通行可、`shaft` と `void` は通行不可。`air:1` は遮蔽の話であって通行の話ではない | [境界の形](reference/form/boundaries.md) |
-| 高さの不変量 | 各空間について「天井高 + 上階の床組み厚 ≤ 階高」であること。破れば診断 HGT01 になる | [高さの診断](reference/diagnostics/hgt.md) |
-| 屋内床面積 | 領域とレベルを持ち、`void` でも `exterior` でも半屋外でもない空間の、壁芯面積の合計 | [stats](reference/cli/stats.md) |
-| 描かれた線の効き (`effect`) | `line` を持つ境界について、その線が実際に何をしたか。`"cut"` は領域を切った、`"nothing"` は何も切らなかった、`"undetermined"` は決められなかった、を表す | [境界の形](reference/form/boundaries.md) |
+| derivation, 導出 | Something determined mechanically and **uniquely** from the authored composition (wall segments, areas, adjacency, semi-outdoor, passability). Absent from the source | [form](reference/form/index.md) |
+| generation, 生成 | Something *not* uniquely determined. The plan drawing is one, and that several drawings come from one composition is not a defect | [plan](reference/form/plan.md) |
+| shared edge, 共有辺 | The interval where the rectangle unions of two spaces overlap on the same line. A boundary's wall centerline segment is derived as this, and collinear intervals are merged into one | [boundaries](reference/form/boundaries.md) |
+| default boundary, 既定境界 | The `wall` boundary **derived after composition** where a pair of touching spaces with regions on the same level carries no boundary declaration at all. It has no door, so it is not passable. It never appears in the canonical JSON, because it is not part of what was written | [defaults](reference/muro/defaults.md) |
+| vertical adjacency, 垂直の隣接 | The relation between spaces overlapping in plan on consecutive levels. Never declared; the default reading is "there is a floor". Only the exceptions (`stair` / `shaft` / `void`) are written | [vertical runs](reference/form/vertical-runs.md) |
+| semi-outdoor, 半屋外 | A space with a region that carries an `open` or `air:1` boundary with the outside. **Derived rather than declared**; not counted in the interior floor area but reported separately. Balconies, external stairs and terraces become this | [regions](reference/form/regions.md) |
+| covered above, 庇下 | Whether a space is overlapped from above by a space on any level. Even the presence of a roof is derived rather than declared, and the 0.7 semi-outdoor daylight coefficient reads it | [regions](reference/form/regions.md) |
+| passability, 通行可能性 | A `wall` is passable only with a door, `open` and `stair` are always passable, and `shaft` and `void` never are. `air:1` is about shielding, not passage | [boundaries](reference/form/boundaries.md) |
+| height invariant, 高さの不変量 | That for every space, ceiling height + the slab above ≤ the floor-to-floor height. Breaking it is diagnostic HGT01 | [height diagnostics](reference/diagnostics/hgt.md) |
+| interior floor area, 屋内床面積 | The sum of the wall-centerline areas of spaces that have a region and a level and are neither `void`, `exterior`, nor semi-outdoor | [stats](reference/cli/stats.md) |
+| the effect of a drawn line | For a boundary carrying a `line`, what that line actually did. `"cut"` means it cut the region, `"nothing"` means it cut nothing, `"undetermined"` means it could not be settled | [boundaries](reference/form/boundaries.md) |
 
-## ファイルと版
+## Files and versions
 
-| 語 | 定義 | 詳しく |
+| Term | Definition | More |
 |---|---|---|
-| author 形式 (.muro) | 人と LLM が読み書きする原本のテキスト形式。一行が一文で、字下げが従属を表す | [記法](reference/muro/index.md) |
-| 合成 (import) | `import ./L1.muro` — 書かれたファイルからの相対パスで層を読み込むこと。二重 import と循環は冪等に扱われる | [import](reference/muro/import.md) |
-| 層 (レイヤー) | 合成に参加する一ファイル。分担の単位であり、**層には強度がある** — 後に読まれた層のほうが強い。衝突 (パス・アセット名・grid の重複) は出所つきのビルドエラーになり、黙った上書きは無い | [合成](reference/muro/composition.md) |
-| base 層 (entry) | 合成の入口となるファイル。`koyu` / `name` / `unit` / `grid` / `level` を宣言できるのはここだけである | [composition](reference/muro/composition.md) |
-| `over` / `drop` | 強い層が弱い層の宣言を上書き (`over`) / 撤回 (`drop`) する形。名前が一意に定まらないときは拒まれる | [over / drop](reference/muro/over-drop.md) |
-| 出所 (file:行) | 診断が指す位置。合成に参加した層の名前と行番号で表される | [診断の読み方](reference/diagnostics/reading.md) |
-| 言語版 | `koyu 1.0` — 記法の意味論の版。受理されるのは `0.1` `0.2` `0.3` `0.4` `0.5` `1.0` の六つで、**宣言を省略すると最新版として読まれる**。base 層で一度だけ書ける | [版](reference/muro/version.md) |
-| 形式版 | 正準JSON の綴りの版 (`format` フィールド)。言語版とは別に動く | [機械形式](reference/json/index.md) |
-| 正準JSON | `koyu json` が出す機械形式。**同じ構成からは常にバイト同一**で、キーは符号位置の昇順、文字は NFC 正規化されている。持つのは**書かれた構成だけ**で、既定境界のような導出物は入らない。差分・ハッシュ・外部接続の土台である | [機械形式](reference/json/index.md) |
-| 意味差分 (semantic diff) | `koyu diff` が出す、構成の言葉による差分。**行順・書式・素の `wall` 宣言と省略の違いは差分にせず**、改名は `uid` の一致で検出する。ファイルを分けたこと自体は差分にならない | [diff](reference/cli/diff.md) |
+| author format (.muro) | The textual source format that people and LLMs read and write. One line is one sentence, and indentation expresses subordination | [notation](reference/muro/index.md) |
+| composition, 合成 (import) | `import ./L1.muro` — loading a layer by a path relative to the file that wrote it. Double imports and cycles are idempotent | [import](reference/muro/import.md) |
+| layer, レイヤー | One file taking part in composition. It is the unit of division of labour, and **layers have strength** — a layer read later is stronger. Collisions (duplicate paths, asset names or grids) become build errors carrying provenance. Nothing is ever silently overwritten | [composition](reference/muro/composition.md) |
+| base layer, base層 (entry) | The file that is the entry point of composition. It is the only place `koyu` / `name` / `unit` / `grid` / `level` may be declared | [composition](reference/muro/composition.md) |
+| `over` / `drop` | The forms by which a stronger layer overrides (`over`) or withdraws (`drop`) a declaration from a weaker one. Refused when the name does not resolve to exactly one target | [over / drop](reference/muro/over-drop.md) |
+| provenance, 出所 (file:line) | The position a diagnostic points at, expressed as the name of a layer that took part in composition and a line number | [reading diagnostics](reference/diagnostics/reading.md) |
+| language version, 言語版 | `koyu 1.0` — the version of the semantics of the notation. The accepted versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5` and `1.0`, and **omitting the declaration reads the file as the latest**. It may be written once, in the base layer | [version](reference/muro/version.md) |
+| format version, 形式版 | The version of the spelling of the canonical JSON (the `format` field). It moves independently of the language version | [machine format](reference/json/index.md) |
+| canonical JSON, 正準JSON | The machine format emitted by `koyu json`. **Byte-identical for the same composition every time**, with keys in ascending code-point order and text NFC-normalised. It holds **only what was written** — derived artifacts such as default boundaries never appear. It is the ground for diffs, hashes and external connections | [machine format](reference/json/index.md) |
+| semantic diff, 意味差分 | The difference `koyu diff` reports, in the language of composition. **Line order, formatting, and the difference between a bare `wall` declaration and its omission are not differences**, and renames are detected by matching `uid`. Splitting a file is not itself a difference | [diff](reference/cli/diff.md) |
 
-## 検査と問い
+## Checking and questions
 
-**三つの領域がある。**構成の整合を言う `check`、建築的な判定を言う `validate`、形を出す描画である。型からして別で、混ざらない。
+**There are three domains**: `check`, which speaks to the consistency of the composition; `validate`, which delivers architectural verdicts; and drawing, which produces form. They are separate down to the types, and they do not mix.
 
-| 語 | 定義 | 詳しく |
+| Term | Definition | More |
 |---|---|---|
-| 診断 (Diagnostic) | `check` の一次形式。`code` / `severity` / `message` / 出所 / 対象パス / 関連位置からなる構造化された一件 | [診断](reference/diagnostics/index.md) |
-| 診断コード | `BND04` のような識別子。全65個ある。**severity はコードの不変属性**で、同じコードが場合によってエラーになったり警告になったりはしない。重さを変えるときは新しいコードを切る。人向けの出力には現れず、`check --json` にだけ出る | [診断](reference/diagnostics/index.md) |
-| エラー / 警告 | エラーは構成が成立していないこと、警告は疑わしいことを言う。`--strict` を付けると警告でも終了コード 1 になる | [check](reference/cli/check.md) |
-| 判定 (Finding) | `validate` の一次形式。`rule` / `level` / `message` / 出所からなる。**診断とは別の型である** — 混ぜられないことがこの型の仕事である | [判定](reference/validate/index.md) |
-| 判定規則 | `site.escape` のような名前。全15個あり、`level` は `violation` (守られなかった) と `caution` (疑わしい) の二つ。**建築の側の重さ**であって、構成の壊れ方ではない | [判定](reference/validate/index.md) |
-| 問い | 同じ記述の異なる読み方。`doors` (動線) / `stats` (面積) / `light` (採光) / `site` (敷地) / `levels` (矩計) / `runs` (段数・勾配) / `graph` (隣接) | [CLI](reference/cli/index.md) |
-| 到達不能 | `doors` が空間グラフ上に経路を見つけられない状態。**`check` が緑でも起きる** — 扉の無い壁は通れないためで、扉を一枚も宣言しない建物は緑のまま完全に密封される | [到達](reference/validate/access.md) |
-| 採光 | 対象の居室について「有効窓面積 ≥ 床面積 / 7」を見る粗い判定。窓の先が庇下の半屋外なら係数 0.7 がかかる | [採光](reference/validate/daylight.md) |
-| 接道 | 敷地ゾーン配下の空間と、`road:幅員` を持つ外部空間との境界線分長の合計。**建物の外壁が道路に面する分は数えない** | [敷地](reference/validate/site.md) |
-| MCP サーバー | `koyu-mcp` — エージェント向けの入口。依存ゼロの stdio サーバーで、ツールは12個。`model_summary` → `layers` → `write_layer` → `check` が標準のループ | [MCP](reference/mcp/index.md) |
-| 公開面 | TypeScript API として書き下されている名前の集合。実行時の値が59、型が77 | [API](reference/api/canonical.md) |
+| diagnostic, 診断 | The primary form of `check`. One structured item consisting of `code`, `severity`, `message`, provenance, target paths and related positions | [diagnostics](reference/diagnostics/index.md) |
+| diagnostic code | An identifier such as `BND04`. There are 65 of them. **Severity is an invariant property of the code** — the same code is never an error in one case and a warning in another. To change the weight, cut a new code. It never appears in output for people, only under `check --json` | [diagnostics](reference/diagnostics/index.md) |
+| error / warning | An error says the composition does not stand; a warning says something is suspect. `--strict` makes a warning exit 1 as well | [check](reference/cli/check.md) |
+| finding, 判定 | The primary form of `validate`, consisting of `rule`, `level`, `message` and provenance. **It is a different type from a diagnostic** — being impossible to confuse is what this type is for | [validation](reference/validate/index.md) |
+| validation rule | A name such as `site.escape`. There are 15, and `level` is one of `violation` (it was not met) or `caution` (it is suspect). **That is architectural weight**, not a way the composition is broken | [validation](reference/validate/index.md) |
+| question, 問い | A different reading of the same description. `doors` (circulation) / `stats` (area) / `light` (daylight) / `site` / `levels` (section stack-up) / `runs` (risers and slope) / `graph` (adjacency) | [CLI](reference/cli/index.md) |
+| unreachable, 到達不能 | The state where `doors` finds no route through the space graph. **It happens with a green `check`** — a wall with no door cannot be passed, so a building that declares not one door stays green while being perfectly sealed | [access](reference/validate/access.md) |
+| daylighting, 採光 | The rough judgement that effective window area ≥ floor area / 7, for rooms in scope. A coefficient of 0.7 applies when the window looks onto covered semi-outdoor space | [daylight](reference/validate/daylight.md) |
+| road frontage, 接道 | The sum of the boundary segment lengths between spaces under the site zone and exterior spaces carrying `road:<width>`. **An external wall of the building facing the road does not count** | [site](reference/validate/site.md) |
+| MCP server | `koyu-mcp` — the entrance for agents. A dependency-free stdio server with 12 tools. The standard loop is `model_summary` → `layers` → `write_layer` → `check` | [MCP](reference/mcp/index.md) |
+| public surface, 公開面 | The set of names written down as the TypeScript API | [API](reference/api/index.md) |
 
-## 隣接する語 (koyu の外)
+## Neighbouring words (outside koyu)
 
-| 語 | 定義 |
+| Term | Definition |
 |---|---|
-| BIM | 建物の三次元形状と属性情報を一体で扱う手法。原本は各オーサリングツールの独自データベースの中にある |
-| IFC | buildingSMART の交換用オープン標準。標準形式 (SPF) は行番号で相互参照するため、書き出し直すだけで差分が壊れる |
-| IfcSpace | IFC で室や領域を表すエンティティ。規格上は存在するが、多くの現場では部材が囲んだ結果として導かれる二次的な情報として扱われる |
-| IFC5 / IFCX | 開発中の次世代規格と、その JSON 形式。テキストと composition を採るが、運ぶ中身は依然として建築物のオントロジーである |
-| OpenUSD | シーン記述の枠組み。koyu はここから機構だけを借りている — パス名前空間と、レイヤーの非破壊的な重ね合わせ |
-| 建築 / 建築物 | 日本語はこれを区別する。建築物は建築基準法上の物としてのカテゴリで、IFC も CityGML もこちら側のオントロジーである。**koyu が書くのは建築の側** — 空間の分節・接続・序列である |
+| BIM | The practice of handling a building's three-dimensional geometry and attribute information together. The source lives inside each authoring tool's proprietary database |
+| IFC | buildingSMART's open standard for exchange. Its standard form (SPF) cross-references by line number, so simply re-exporting destroys the diff |
+| IfcSpace | The IFC entity for a room or a region. It exists in the standard, but on many projects it is treated as secondary information derived from what the elements happen to enclose |
+| IFC5 / IFCX | The next-generation standard under development and its JSON form. It adopts text and composition, but what it carries is still the ontology of a building as an object |
+| OpenUSD | A framework for scene description. koyu borrows only mechanism from it — the path namespace, and the non-destructive layering of overrides |
+| 建築 / 建築物 | Japanese distinguishes the two. 建築物 is the category of a building as a legal object, and IFC and CityGML are ontologies of that side. **What koyu writes is the other side, 建築** — the articulation, connection and hierarchy of space |
 
-日本の建築・法規の語 (建蔽率・容積率・接道・居室・矩計など) は[日本の建築・法規の用語](glossary/japanese-building-terms.md)に分けてある。IFC との実測比較は[koyu と IFC の実測比較](examples/vs-ifc.md)にある。
+Japanese building and regulatory terms — coverage ratio, floor area ratio, frontage, habitable room, section stack-up — are in [Japanese building and regulatory terms](glossary/japanese-building-terms.md). The measured comparison with IFC is in [koyu measured against IFC](examples/vs-ifc.md).

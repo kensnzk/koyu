@@ -1,25 +1,25 @@
 ---
-title: koyu とは何か
+title: What koyu is
 mode: explanation
 ---
 
-# koyu とは何か
+# What koyu is
 
-建築のデータは、図面から CAD、BIM に至るまで、一貫して**建てるべき物**の記述だった。壁・床・柱・梁を並べ、室はその囲みの結果として後から導かれる。物のデータは三十年かけて何度もデジタル化されたが、**建築そのもの — 空間の分節・接続・序列 — は、いまだに機械可読になっていない。**
+From drawings through CAD to BIM, architectural data has consistently described **the things to be built**. Walls, slabs, columns, beams are laid out, and rooms are derived afterwards as whatever those things happen to enclose. The data of things has been digitised over and over for thirty years, but **architecture itself — how space is divided, connected and ordered — has never become machine-readable.**
 
-koyu はその順序を逆にする。空間を一次要素とするテキスト (`.muro`) を建築の原本とし、形はそこから必要に応じて導く。これは BIM の改良ではなく、**記述する対象の取り替え**である。建築物 (物) から建築 (空間) へ。
+koyu reverses the order. A text in which space is the primary element (`.muro`) is the authored source, and form is derived from it when needed. This is not an improvement to BIM; it is **a change of subject** — from the building (a thing) to architecture (space).
 
-対象を替えると、建物一棟のデータが桁ごと縮む。延床 4,786 ㎡・11 階建ての複合ビルが、原本 9 ファイル・453 行・8,574 トークンで書ける。延床 31,606 ㎡・地下 2 階＋地上 19 階の複合建築が 646 行・12,685 トークンである。**一棟が丸ごと機械の視野に入る。**
+Change the subject and a building's data shrinks by an order of magnitude. An eleven-storey mixed-use building of 4,786 m² is written in nine source files, 453 lines, 8,574 tokens. A 31,606 m² complex with two basement levels and nineteen storeys above ground takes 646 lines and 12,685 tokens. **A whole building fits inside a machine's field of view.**
 
-## 三行で
+## In three lines
 
-**空間が一次で、壁は物ではなく二つの空間の関係である。**だから室を数え上げれば壁は付いてくる。
+**Space is primary, and a wall is not a thing but a relation between two spaces.** Enumerate the rooms and the walls come with them.
 
-**原本は意味を持ち、形を持たない。**平面図も面積も動線も、書かれるのではなく導かれる。
+**The source carries meaning, not form.** Plans, areas and circulation are not written; they are derived.
 
-**軽さは目的ではなく、役割から出る結果である。**書くしかないもの — 意味・関係・同一性 — だけを持てば、一棟が LLM の一つのコンテキストに載る。
+**Smallness is not the goal but a consequence of the role.** Hold only what must be written — meaning, relation, identity — and a whole building fits in one LLM context.
 
-## 何が書かれ、何が計算されるか
+## What is written, what is computed
 
 ```muro
 grid X 0 3600 7200
@@ -29,20 +29,20 @@ space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
 ```
 
-この 5 行に壁は一本も書かれていない。それでも `koyu check` は境界を 1 本数える。
+Not one wall is written in those five lines. `koyu check` nonetheless counts one boundary.
 
 ```text
 ✔ Consistent — 2 spaces / 1 boundary
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-二つの室が接しているので、その間の壁が**導かれている**。壁を置く操作は koyu に存在しない。詳しくは [空間中心のモデル](space-is-primary.md) と [境界による壁の表現](boundary-is-a-relation.md)。
+The two rooms touch, so the wall between them is **derived**. There is no operation in koyu that places a wall. See [The space-centred model](space-is-primary.md) and [Walls as boundaries](boundary-is-a-relation.md).
 
-## 五分で「自分に向いているか」を確かめる
+## Five minutes to decide whether this is for you
 
-順に打つ。どれも同梱の例で動く。
+Run these in order. They all work on the bundled examples.
 
-**1. 整合を見る。**
+**1. Look at consistency.**
 
 ```sh
 npx tsx src/cli.ts check examples/two-rooms.muro
@@ -53,7 +53,7 @@ npx tsx src/cli.ts check examples/two-rooms.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-**2. 構成にそのまま問う。**部材モデルなら抽出作業が要る問いが、変換なしに答えになる。
+**2. Ask the composition directly.** Questions that would require an extraction pass over a component model are answers here, with no conversion.
 
 ```sh
 npx tsx src/cli.ts graph examples/two-rooms.muro
@@ -71,7 +71,7 @@ npx tsx src/cli.ts graph examples/two-rooms.muro
   — 1 door → /L1/b  (spec:EW1 fire:60)
 ```
 
-**3. 動線を数える。**
+**3. Count the doors on a route.**
 
 ```sh
 npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
@@ -81,7 +81,7 @@ npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
 2 doors — /L1/a → /L1/b → /out
 ```
 
-**4. 一棟の規模で同じことをする。**
+**4. Do the same at the scale of a whole building.**
 
 ```sh
 npx tsx src/cli.ts site examples/tower/main.muro
@@ -97,19 +97,19 @@ Site /site (敷地)
   Total floor area: 4785.92 m2 → floor area ratio 436.0%
 ```
 
-接道長も建築面積も延床も、どこにも書かれていない。敷地形状と空間の領域から導かれている。
+Frontage, footprint and gross floor area are written nowhere. They are derived from the site polygon and the regions of the spaces.
 
-**5. 「緑」の意味を確かめる。**次の 11 行は `check` が緑で、しかも外へ出られない。
+**5. Find out what "green" means.** The following eleven lines pass `check` — and you cannot get out of the building.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:300
 level L2 3000 h:2400 slab:300
 space /L1/hall hall X1..X2 Y1..Y2
 space /L2/bed bedroom X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/hall /out t:150
 boundary /L2/bed /out t:150
 boundary /L1/hall /L2/bed type:stair
@@ -125,51 +125,51 @@ $ npx tsx src/cli.ts doors sealed.muro /L2/bed /out
 Cannot reach /out from /L2/bed
 ```
 
-ここで納得できるかどうかが分かれ目である。`check` は「書かれたものがデータとして矛盾していない」までしか言わない — [check の保証範囲](green-is-not-a-building.md)。建築としての判定は `koyu validate` が別に言う。
+Whether that strikes you as right is the dividing line. `check` says only that **what is written does not contradict itself as data** — see [What check guarantees](green-is-not-a-building.md). Architectural judgement is what `koyu validate` says, separately.
 
-### 向いている
+### It suits you if
 
-- 基本計画の段階で、**構成の決定**を versioning したい
-- 面積・動線・区画・採光を、抽出作業なしに問いたい
-- LLM やエージェントに建物を直接編集させたい
-- 設計案の比較を git のブランチ比較にしたい
-- 実測・センサー・都市データと、建物の**空間**の側で繋ぎたい
+- you want to version the **decisions of the composition** at the scheme-design stage
+- you want to ask about area, circulation, compartmentation and daylight without an extraction pass
+- you want LLMs and agents to edit buildings directly
+- you want comparing design options to be comparing git branches
+- you want to join survey data, sensors and city data to a building on the **space** side
 
-### 向いていない
+### It does not suit you if
 
-- 施工図の解像度が要る (納まり・下地・接合部)
-- 曲面・自由形状が主題である
-- 構造解析・設備計算のモデルが欲しい
-- 既存の IFC 資産と往復させたい (出口は作るが往復は作らない)
+- you need construction-drawing resolution (junctions, substrates, connections)
+- curved and free-form geometry is the subject
+- you want a model for structural or MEP analysis
+- you want a round trip with existing IFC assets (there is an exit, but no round trip)
 
-境界線の引き方は [記述できる粒度](resolution.md) にある。
+Where the line is drawn is set out in [Level of detail](resolution.md).
 
-## この巻の読み方
+## How to read this volume
 
-**記法の考え方**
+**How the notation thinks**
 
-- [空間中心のモデル](space-is-primary.md) — 出発点
-- [境界による壁の表現](boundary-is-a-relation.md)
-- [既定の境界](silence.md)
-- [導出される情報](source-and-derived.md)
-- [パスと面積集計](paths.md)
-- [属性の拡張](open-vocabulary.md)
+- [The space-centred model](space-is-primary.md) — the starting point
+- [Walls as boundaries](boundary-is-a-relation.md)
+- [Default boundaries](silence.md)
+- [Derived information](source-and-derived.md)
+- [Paths and area aggregation](paths.md)
+- [Extending attributes](open-vocabulary.md)
 
-**約束の形**
+**The shape of the promise**
 
-- [check の保証範囲](green-is-not-a-building.md)
-- [check と validate の違い](two-kinds-of-green.md)
-- [言語・判定・描画の分離](three-domains.md)
-- [ファイル分割と重ね合わせ](composition-is-for-time.md)
-- [導出の決定性](form-must-be-unique.md)
-- [平面図の生成](plan-is-not-a-section.md)
+- [What check guarantees](green-is-not-a-building.md)
+- [check and validate](two-kinds-of-green.md)
+- [Separating language, checks and drawing](three-domains.md)
+- [Splitting and layering files](composition-is-for-time.md)
+- [Determinism of derivation](form-must-be-unique.md)
+- [How plans are generated](plan-is-not-a-section.md)
 
-**既存の世界との関係**
+**Relation to the existing world**
 
-- [BIM・IFC・USD の基礎](bim-ifc-usd.md) — この分野の語彙を持たない読者へ
-- [IFC・USD との比較](vs-ifc.md) — トークン実測つき
-- [IFC4 対応表](ifc4-coverage.md)
-- [記法形式の比較](dsl-not-yaml.md) — YAML/JSON との書き比べ
-- [記述できる粒度](resolution.md)
+- [BIM, IFC and USD basics](bim-ifc-usd.md) — for readers without the vocabulary of this field
+- [Comparison with IFC and USD](vs-ifc.md) — with measured token counts
+- [IFC4 coverage](ifc4-coverage.md)
+- [Notation format comparison](dsl-not-yaml.md) — written out in YAML and JSON for comparison
+- [Level of detail](resolution.md)
 
-約束の正確な範囲は [約束の範囲](../reference/scope.md) にある。
+The exact extent of the promise is in [Scope](../reference/scope.md).

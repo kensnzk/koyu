@@ -1,87 +1,87 @@
 ---
-title: 窓を開けて採光を通す
+title: Open windows and pass the daylight check
 mode: howto
 ---
 
-# 窓を開けて採光を通す
+# Open windows and pass the daylight check
 
-居室に窓を書き、[`koyu light`](../reference/cli/light.md) の 1/7 判定 — 有効窓面積 ≥ 床面積 ÷ 7 — を通す。
+Put windows into habitable rooms and pass [`koyu light`](../reference/cli/light.md)'s one-seventh test — effective window area ≥ floor area ÷ 7.
 
-以下の出力例のファイルパスは、実際には絶対パスで出る。読みやすさのためファイル名だけに縮めてある。
+File paths in the output below are absolute when you actually run these commands. They are shortened to bare filenames here for readability.
 
-## 前提
+## Before you start
 
-- [`koyu check`](../reference/cli/check.md) がエラー0で通っていること。
-- どの室に採光の判定を掛けたいかが決まっていること。**koyu は推し量らない。**
+- [`koyu check`](../reference/cli/check.md) passes with zero errors.
+- You have decided which rooms are to be judged. **koyu does not guess.**
 
-## 1. 判定に掛けると宣言する
+## 1. Declare that a room is in scope
 
-`light` が見るのは `daylight:1` を書いた空間**だけ**である。**型は一切見ない。**判定を掛けるかどうかは書き手が宣言することであって、室の名前から推し量るものではない。既定は対象外なので、`daylight` を一つも書かなければ何も判定されない。
+`light` looks **only** at spaces carrying `daylight:1`. **It never looks at the type.** Whether a room is judged is something the author declares, not something inferred from what the room is called. The default is out of scope, so with no `daylight` anywhere nothing is judged.
 
 ```muro-part
-space /L1/a bedroom X1..X2 Y1..Y2 name:寝室 daylight:1     # 判定に入る
-space /L1/b wet     X2..X3 Y1..Y2 name:洗面脱衣            # 既定は対象外
-space /L1/c wet     X3..X4 Y1..Y2 name:浴室 daylight:1     # 型は wet のまま判定する
+space /L1/a bedroom X1..X2 Y1..Y2 name:Bedroom daylight:1  # in scope
+space /L1/b wet     X2..X3 Y1..Y2 name:Washroom            # default: out of scope
+space /L1/c wet     X3..X4 Y1..Y2 name:Bathroom daylight:1 # type stays wet; judged anyway
 ```
 
-`daylight:0` は既定と同じ意味だが、「意図して対象から外した」と読み手に伝えるために書いてよい。値は 0 か 1 だけである。
+`daylight:0` means the same as the default, but writing it tells the reader that the exclusion was deliberate. The only values are 0 and 1.
 
 ```text
-✖ scope.muro:line 10: daylight is either 1 (in scope for the daylight check) or 0 (out of scope): /L1/a carries daylight:yes
-✖ scope.muro:line 11: daylight is either 1 (in scope for the daylight check) or 0 (out of scope): /L1/b carries daylight:yes
+✖ daylight-yes.muro:line 10: daylight is either 1 (in scope for the daylight check) or 0 (out of scope): /L1/a carries daylight:yes
+✖ daylight-yes.muro:line 11: daylight is either 1 (in scope for the daylight check) or 0 (out of scope): /L1/b carries daylight:yes
 ```
 
-**判定の分母をどの粒度に置くかも、`daylight:1` を書く位置で決まる。**住戸を割らずに `unit` の行に書けば住戸まるごとが一室として判定され、LDK・洋室に割って書けば室ごとに判定される。どちらも正しく、基本計画の解像度をどこに置くかの選択である。
+**Where you put `daylight:1` also decides the grain of the denominator.** Put it on an undivided `unit` and the whole dwelling is judged as one room; put it on the living room and bedrooms and each is judged separately. Both are correct — it is a choice about the resolution of the scheme.
 
-**対象が一つも無いとき `light` は終了コード 0 を返す** — 「全室合格」と見分けが付かない。判定されるはずの室が出てこないときは、まず `daylight:1` の書き忘れを疑う。
+**With nothing in scope, `light` exits 0** — indistinguishable from "every room passes". When a room you expected does not appear, suspect a missing `daylight:1` first.
 
 ```text
 $ npx tsx src/cli.ts light daylight-noscope.muro
 Nothing is in daylight scope (write daylight:1 on the rooms to be judged)
 ```
 
-## 2. 外に面する境界に `window` を書く
+## 2. Write `window` on a boundary that faces out
 
-窓が数えられるのは、その境界の相手が**外部 (`exterior`) か半屋外の空間**のときだけである。室と室のあいだの窓は採光に算入されない (0 として扱われる)。
+A window counts only when the other side of that boundary is **the exterior (`exterior`) or a semi-outdoor space**. A window between two rooms contributes nothing (it is treated as zero).
 
 ```muro-part
 boundary /L1/a /out t:150 spec:EW
-  window w:2600 h:2200 edge:S name:掃き出し窓
+  window w:2600 h:2200 edge:S name:Sliding-window
 ```
 
-`window` に置ける属性は [window](../reference/muro/window.md) にある。
+The attributes a window accepts are in [window](../reference/muro/window.md).
 
-## 3. `w:` と `h:` の両方を書く
+## 3. Write both `w:` and `h:`
 
-幅 `w:` は文法上の必須で、無ければ読み込みの時点で止まる。
+Width `w:` is required by the grammar; without it reading stops.
 
 ```text
 ✖ daylight-now.muro:line 17: window requires a width w:(mm) (the asset may supply it)
 ```
 
-高さ `h:` は文法上は任意だが、**`light` は `h:` を持つ窓しか数えない。**`h:` を落とした窓はエラーにならないまま面積 0 として扱われ、`light` が行末に注記を出す。
+Height `h:` is optional to the grammar, but **`light` counts only windows that have one.** A window without `h:` is not an error; it is treated as zero area, and `light` appends a note.
 
 ```text
-✖ /L1/a	居室A	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2) ⚠ windows without h: are not counted
+✖ /L1/a	Room-A	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2) ⚠ windows without h: are not counted
 ```
 
-建具アセットを参照するなら `h:` はアセット側にあってよい ([asset](../reference/muro/asset.md))。
+If the opening references a joinery asset, the `h:` may live on the asset ([asset](../reference/muro/asset.md)).
 
-## 4. 外周の線分が複数あるときは `edge:` で辺を選ぶ
+## 4. Pick the edge with `edge:` when the perimeter breaks into pieces
 
-領域を持たない空間 (`/out` など) との境界は、部屋の外周から他の空間と接する区間を除いた残りであり、たいてい複数の辺に分かれる。どの辺に置くかは `edge:N/E/S/W` で指定する。方角は N が +Y、S が −Y、E が +X、W が −X で、境界の行に**先に書いた空間**の矩形から見る。
+A boundary with a space that has no region — `/out` and its like — is whatever is left of the room's perimeter after the parts touching other spaces are removed, and it usually falls on several sides. Say which with `edge:N/E/S/W`. N is +Y, S is −Y, E is +X, W is −X, read from the rectangle of the space **written first** on the boundary line.
 
 ```text
 ✖ daylight-noedge.muro:line 17: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)
 ```
 
-## 確かめる
+## Check it
 
-`light` を走らせる。全室が満たせば終了コード 0、一室でも足りなければ 1 である。
+Run `light`. Exit 0 if every room in scope passes, 1 if any falls short.
 
 ```muro
-koyu 1.0
-name 採光の稽古
+koyu 1.1
+name Daylight practice
 unit mm
 
 grid X 0 3600 7200
@@ -89,52 +89,52 @@ grid Y 0 4500
 level L1 0 h:2400 slab:150
 level R 2700 slab:150
 
-space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
-space /L1/b room X2..X3 Y1..Y2 name:居室B daylight:1
-space /out exterior name:外部
+space /L1/a room X1..X2 Y1..Y2 name:Room-A daylight:1
+space /L1/b room X2..X3 Y1..Y2 name:Room-B daylight:1
+space /out name:Outside outside:1
 
 boundary /L1/a /L1/b t:120
   door w:780 h:2000
 boundary /L1/a /out t:150 spec:EW
-  window w:2600 h:2200 edge:S name:掃き出し窓
+  window w:2600 h:2200 edge:S name:Sliding-window
 boundary /L1/b /out t:150 spec:EW
-  door w:900 h:2100 edge:S at:X2+900 name:玄関
-  window w:2600 h:1100 edge:E name:腰窓
+  door w:900 h:2100 edge:S at:X2+900 name:Front-door
+  window w:2600 h:1100 edge:E name:High-window
 ```
 
 ```text
 $ npx tsx src/cli.ts light daylight.muro
-✔ /L1/a	居室A	window 5.72 m2 / floor 16.20 m2 = 1/2.8 (needs 1/7 ≈ 2.31 m2)
-✔ /L1/b	居室B	window 2.86 m2 / floor 16.20 m2 = 1/5.7 (needs 1/7 ≈ 2.31 m2)
+✔ /L1/a	Room-A	window 5.72 m2 / floor 16.20 m2 = 1/2.8 (needs 1/7 ≈ 2.31 m2)
+✔ /L1/b	Room-B	window 2.86 m2 / floor 16.20 m2 = 1/5.7 (needs 1/7 ≈ 2.31 m2)
 ✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
-行の読み方は左から、判定・空間パス・名前・**係数をかけた後の**有効窓面積・床面積・その比・必要面積である。窓を一枚も持たない室は `no window` と出る。
+Read a line left to right: verdict, path, name, **effective** window area (after the coefficient), floor area, their ratio, the area required. A room with no window at all reads `no window`.
 
-窓を落としたままの同じ二室はこうなる。
+The same two rooms with the windows removed:
 
 ```text
-✖ /L1/a	居室A	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2)
-✖ /L1/b	居室B	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2)
+✖ /L1/a	Room-A	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2)
+✖ /L1/b	Room-B	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2)
 ✖ Short of 1/7: 2 of 2 rooms (this is a validation judgement)
 ```
 
-同じことは [`koyu validate`](../reference/cli/validate.md) が `daylight.ratio` (violation) として言う。CI で止めるならこちらを使う。
+[`koyu validate`](../reference/cli/validate.md) says the same thing as `daylight.ratio` (a violation). Use that one in CI.
 
 ```text
 ✖ [daylight.ratio] daylight-none.muro:line 10: Insufficient daylight: /L1/a — effective window 0.00 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
 ✖ [daylight.ratio] daylight-none.muro:line 11: Insufficient daylight: /L1/b — effective window 0.00 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
 ```
 
-## 半屋外越しに採るとき
+## Daylight borrowed through a semi-outdoor space
 
-バルコニー・テラス・庭を介した窓には係数がかかる。**その半屋外の上に空間が重なっていれば 0.7、上が開いていれば 1.0** である。屋根の有無も宣言ではなく導出されるので、上階にバルコニーを足した時点で下階の係数が落ちる。
+A window that faces a balcony, a terrace or a garden is discounted. **If a space overlaps that semi-outdoor space from above, the coefficient is 0.7; if the sky is open, it is 1.0.** Whether there is a roof is itself derived, so adding a balcony on the storey above drops the coefficient below it.
 
-上が開いたテラス越しの掃き出し窓 (2600×2200 = 5.72㎡) は、そのまま 5.72㎡ と数えられる。
+A sliding window (2600×2200 = 5.72 m²) onto an open terrace counts in full.
 
 ```muro
-koyu 1.0
-name 半屋外越しの採光
+koyu 1.1
+name Daylight through a terrace
 unit mm
 
 grid X 0 4000
@@ -142,24 +142,24 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 level R 2700 slab:150
 
-space /L1/liv living  X1..X2 Y1..Y2      name:居間 daylight:1
-space /L1/bal balcony X1..X2 Y1-1500..Y1 name:テラス
-space /out exterior name:外部
+space /L1/liv living  X1..X2 Y1..Y2      name:Living-room daylight:1
+space /L1/bal balcony X1..X2 Y1-1500..Y1 name:Terrace
+space /out name:Outside outside:1
 
-boundary /L1/liv /L1/bal t:100 spec:サッシ
+boundary /L1/liv /L1/bal t:100 spec:Sash
   window w:2600 h:2200
-boundary /L1/bal /out edge:S t:120 spec:手すり air:1 h:1100
+boundary /L1/bal /out edge:S t:120 spec:Balustrade air:1 h:1100
 ```
 
 ```text
-✔ /L1/liv	居間	window 5.72 m2 / floor 16.00 m2 = 1/2.8 (needs 1/7 ≈ 2.29 m2)
+✔ /L1/liv	Living-room	window 5.72 m2 / floor 16.00 m2 = 1/2.8 (needs 1/7 ≈ 2.29 m2)
 ```
 
-同じ位置に上階のバルコニーを足すと、テラスは庇下になり 0.7 がかかる。**窓も床も一切変えていない。**
+Put a balcony on the storey above, in the same position, and the terrace is under cover: 0.7 applies. **Neither the window nor the floor has changed.**
 
 ```muro
-koyu 1.0
-name 半屋外越しの採光
+koyu 1.1
+name Daylight through a terrace
 unit mm
 
 grid X 0 4000
@@ -168,41 +168,41 @@ level L1 0 h:2400 slab:500
 level L2 2900 h:2400 slab:500
 level R 5800 slab:500
 
-space /L1/liv living  X1..X2 Y1..Y2      name:居間 daylight:1
-space /L1/bal balcony X1..X2 Y1-1500..Y1 name:テラス
-space /L2/bal balcony X1..X2 Y1-1500..Y1 name:上階バルコニー
-space /out exterior name:外部
+space /L1/liv living  X1..X2 Y1..Y2      name:Living-room daylight:1
+space /L1/bal balcony X1..X2 Y1-1500..Y1 name:Terrace
+space /L2/bal balcony X1..X2 Y1-1500..Y1 name:Balcony-above
+space /out name:Outside outside:1
 
-boundary /L1/liv /L1/bal t:100 spec:サッシ
+boundary /L1/liv /L1/bal t:100 spec:Sash
   window w:2600 h:2200
-boundary /L1/bal /out edge:S t:120 spec:手すり air:1 h:1100
-boundary /L2/bal /out edge:S t:120 spec:手すり air:1 h:1100
+boundary /L1/bal /out edge:S t:120 spec:Balustrade air:1 h:1100
+boundary /L2/bal /out edge:S t:120 spec:Balustrade air:1 h:1100
 ```
 
 ```text
-✔ /L1/liv	居間	window 4.00 m2 / floor 16.00 m2 = 1/4.0 (needs 1/7 ≈ 2.29 m2)
+✔ /L1/liv	Living-room	window 4.00 m2 / floor 16.00 m2 = 1/4.0 (needs 1/7 ≈ 2.29 m2)
 ```
 
-**空間が半屋外と判定されるのは、外部に対して `open` か `air:1` の境界を持つ領域つき空間のときだけである。**手すりの `air:1` を書き忘れたバルコニーは半屋外にならず、そこを介した窓は 0 になる。
+**A space is semi-outdoor only when it has a region and has an `open` or `air:1` boundary to the exterior.** A balcony whose balustrade is missing its `air:1` is not semi-outdoor, and a window borrowing through it counts as zero.
 
 ```text
-✖ /L1/liv	居間	window 0.00 m2 / floor 16.00 m2 = no window (needs 1/7 ≈ 2.29 m2)
+✖ /L1/liv	Living-room	window 0.00 m2 / floor 16.00 m2 = no window (needs 1/7 ≈ 2.29 m2)
 ✖ Short of 1/7: 1 of 1 room (this is a validation judgement)
 ```
 
-## 足りないとき
+## When it falls short
 
-`✖` の行は必要面積をそのまま出す。有効窓面積がそこに届くまで、次のいずれかを取る。
+Every `✖` line prints the area required. Reach it by one of:
 
-- **窓を大きくする、または枚数を増やす。**有効窓面積は同じ空間に接する全境界上の窓の合計である。
-- **半屋外越しなら、直接外部に面する境界へ窓を移す。**係数が 1.0 になる。
-- **そもそも判定を要さない室なら `daylight:1` を外す。**意図を残すなら `daylight:0` と明記する。
-- **床を小さくする。**1/7 は面積比なので、奥行の深い室は幅いっぱいの窓でも届かないことがある。寸法の当たりは [書く前に寸法を決める](choose-dimensions.md) にある。
+- **Enlarge the window, or add more of them.** Effective window area is the sum over every boundary of that space.
+- **If it borrows through a semi-outdoor space, move the window onto a boundary that faces the exterior directly.** The coefficient becomes 1.0.
+- **If the room need not be judged, drop `daylight:1`.** Write `daylight:0` to keep the intent visible.
+- **Make the floor smaller.** One-seventh is a ratio of areas, so a deep room can fail even with glazing across its whole face. [Choose dimensions before you write](choose-dimensions.md) has the rules of thumb.
 
-`light` は補正係数を掛けない粗い早期警報であって、法適合の判定ではない。何を保証し何を保証しないかは [採光の判定](../reference/validate/daylight.md) にある。
+`light` is a rough early warning with no correction factors. It is not a compliance judgement. What it does and does not claim is in [the daylight rule](../reference/validate/daylight.md).
 
-## 次に
+## Next
 
-- [住戸を室に割る](subdivide-a-unit.md) — 割ると採光の宣言も動く
-- [敷地と外構を書く](describe-a-site.md) — 庭が「上が開いている」ことが係数に効く
-- [到達できない空間を見つける](find-unreachable.md) — 窓しか無いバルコニーには出られない
+- [Subdivide a dwelling into rooms](subdivide-a-unit.md) — subdividing moves the daylight declaration too
+- [Describe a site](describe-a-site.md) — a garden being open to the sky is what sets the coefficient
+- [Find spaces you cannot reach](find-unreachable.md) — a balcony with only a window cannot be stepped onto

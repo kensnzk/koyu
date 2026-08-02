@@ -1,22 +1,22 @@
 ---
-title: 階を足す
+title: Add a storey
 mode: howto
 ---
 
-# 階を足す
+# Add a storey
 
-一階建ての記述に上階を足し、階高が矛盾していないことと、上階から外へ出られることを確かめる。
+Put an upper storey onto a single-storey description, then confirm that the section adds up and that the new rooms can reach the outside.
 
-以下の出力例のファイルパスは、実際には絶対パスで出る。読みやすさのためファイル名だけに縮めてある。
+File paths in the output below are absolute when you actually run these commands. They are shortened to bare filenames here for readability.
 
-## 前提
+## Before you start
 
-- 一階分の `.muro` が [`koyu check`](../reference/cli/check.md) エラー0で通っていること。
-- `grid` と `level` を宣言しているファイルがどれか分かっていること。複数ファイルに割っているなら [層に割る](split-into-layers.md) を先に読む。
+- One storey of `.muro` passes [`koyu check`](../reference/cli/check.md) with zero errors.
+- You know which file declares `grid` and `level`. If the building is split across files, read [Split a building into layers](split-into-layers.md) first.
 
-## 1. レベルを足す
+## 1. Declare the level
 
-`level` は建物全体の一貫性であり、複数ファイルに割っていても **entry (base層) が一度だけ**宣言する。位置引数の `z` は基準面からの mm、`h:` は基準天井高、`slab:` はその階の床組み厚である。
+`level` is a fact about the whole building, and the **entry file (the base layer) declares it exactly once**, even when the building is split across files. The positional `z` is millimetres above datum, `h:` is the standard ceiling height, `slab:` is the thickness of the floor construction on that storey.
 
 ```muro-part
 level L1 0    h:2400 slab:150
@@ -24,59 +24,59 @@ level L2 2900 h:2400 slab:500
 level R  5800 slab:500
 ```
 
-**空間を持たない最上位のレベルも宣言する。**上の `R` がそれで、L2 の階高 (= R の z − L2 の z) はこの行があってはじめて決まる。無ければ最上階には上限が無く、天井が階をまたいで伸びていても何も言われない。
+**Declare the topmost level too, even though no space sits on it.** `R` above is that level: L2's storey height (R's z minus L2's z) only exists because that line exists. Without it the top storey has no ceiling above it, and a ceiling running straight through the roof draws no complaint.
 
-宣言の順は使用より前でなければならない。`level` を書く前に `/L2/…` の空間を書けば、その空間のレベルは決まらない。文法と属性の一覧は [level](../reference/muro/level.md) にある。
+A level must be declared before it is used. Write `/L2/…` spaces above the `level` line and their level is undetermined. The grammar and the attributes it accepts are in [level](../reference/muro/level.md).
 
-## 2. 上階の空間を書く
+## 2. Write the spaces on the new storey
 
-**パスの先頭セグメントが宣言済みのレベル名なら、その空間はそのレベルに属する。**
-
-```muro-part
-space /L2/bed  bedroom X1..X2 Y1..Y3 name:主寝室
-space /L2/hall hall    X2..X3 Y2..Y3 name:2階ホール
-```
-
-パスにレベル名を使わない流儀 — `/home/bed1` のように住戸を根に置く書き方 — のときは `level:` で明示する。
+**If the first segment of the path is a declared level name, the space belongs to that level.**
 
 ```muro-part
-space /home/bed1 bedroom X1..X2 Y1..Y3 level:L2 name:主寝室
+space /L2/bed  bedroom X1..X2 Y1..Y3 name:Main-bedroom
+space /L2/hall hall    X2..X3 Y2..Y3 name:Upper-hall
 ```
 
-どちらも書かなければ、領域を持つ空間のレベルが決まらず **SUF02 のエラー**になる。
+If you keep level names out of paths — rooting paths at the dwelling, `/home/bed1` — say it with `level:`.
+
+```muro-part
+space /home/bed1 bedroom X1..X2 Y1..Y3 level:L2 name:Main-bedroom
+```
+
+Write neither, and a space that has a region has no determinable level. That is **SUF02, an error**.
 
 ```text
 ✖ nolevel.muro:line 10: /home/a has a region, but its level cannot be determined (give it at the head of the path or with level:)
 ```
 
-`/L2/…` というパスを書くこと自体はレベルの宣言ではない — `level L2 2900` の行が別に要る。
+Writing the path `/L2/…` is not itself a declaration of the level — the `level L2 2900` line is still required.
 
-## 3. 上下をつなぐ
+## 3. Connect the storeys
 
-上下に重なる空間のあいだの既定は**床**である。書かなければ階段も吹抜けも無く、上階は宙に浮いたまま `check` を通る。階段・シャフト・吹抜けの書き方は [階をつなぐ](connect-storeys.md) にある。ここでは一行だけ足しておく。
+The default between two spaces stacked on top of each other is a **floor**. Write nothing and there is no stair and no void: the upper storey floats, and `check` stays green. Stairs, shafts and voids are covered in [Connect storeys](connect-storeys.md). One line is enough for now.
 
 ```muro-part
 boundary /L1/hall /L2/hall type:stair
 ```
 
-階を跨ぐ関係は特定の階の層に属さない。複数ファイルに割っているなら base層に置く。
+A relation that spans storeys belongs to no single storey's layer. Put it in the base layer if the building is split across files.
 
-## 4. 上階の室から階段室へ扉を書く
+## 4. Write doors from the new rooms to the stair
 
-接する空間の既定は**扉のない壁**である。上階に部屋を足しただけでは、その部屋はどこにもつながっていない。
+The default between two spaces that touch is a **wall with no door in it**. Adding rooms upstairs connects them to nothing.
 
 ```muro-part
 boundary /L2/bed /L2/hall t:120
   door w:800
 ```
 
-## 確かめる
+## Check it
 
-ここまでを一つのファイルにまとめると次になる。
+All of the above in one file:
 
 ```muro
-koyu 1.0
-name 二階建ての稽古
+koyu 1.1
+name Two storeys
 unit mm
 
 grid X 0 3640 7280
@@ -87,16 +87,16 @@ level L2 2900 h:2400 slab:500
 level R  5800 slab:500
 
 space /L1/ldk  ldk     X1..X2 Y1..Y3 + X2..X3 Y1..Y2 name:LDK
-space /L1/hall hall    X2..X3 Y2..Y3 name:玄関・階段
-space /L2/bed  bedroom X1..X2 Y1..Y3 name:主寝室
-space /L2/hall hall    X2..X3 Y2..Y3 name:2階ホール
-space /L2/void void    X2..X3 Y1..Y2 name:リビング上部
-space /out exterior name:外部
+space /L1/hall hall    X2..X3 Y2..Y3 name:Entry-and-stair
+space /L2/bed  bedroom X1..X2 Y1..Y3 name:Main-bedroom
+space /L2/hall hall    X2..X3 Y2..Y3 name:Upper-hall
+space /L2/void         X2..X3 Y1..Y2 name:Over-the-living-room void:1
+space /out name:Outside outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 edge:E
 boundary /L1/hall /out edge:E t:150 spec:EW
-  door w:900 name:玄関
+  door w:900 name:Front-door
 boundary /L2/bed /L2/hall t:120
   door w:800
 
@@ -113,7 +113,7 @@ npx tsx src/cli.ts check two.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-[`koyu levels`](../reference/cli/levels.md) が階高の積み上がりをテキストの矩計として返す。天井高と床組み厚の和が階高に収まっているかは、この行を読めば分かる。
+[`koyu levels`](../reference/cli/levels.md) prints the section as text. Whether ceiling plus slab fits inside the storey height is right there on the arrow line.
 
 ```text
 $ npx tsx src/cli.ts levels two.muro
@@ -124,16 +124,16 @@ L1	z:0	h:2400	slab:150
   ↑ storey height 2900 = ceiling 2400 + slab 500
 ```
 
-上階まで通れることは [`koyu doors`](../reference/cli/doors.md) が答える。上階の部屋から外部までの最少扉数と経路が出る。
+Whether you can actually get upstairs is [`koyu doors`](../reference/cli/doors.md)'s question. It prints the fewest doors and the route.
 
 ```text
 $ npx tsx src/cli.ts doors two.muro /L2/bed /out
 2 doors — /L2/bed → /L2/hall → /L1/hall → /out
 ```
 
-## check が緑でも上階に行けないことがある
+## Green does not mean you can get upstairs
 
-`check` が言うのは「書かれたものがデータとして矛盾していない」までである。垂直境界を宣言し忘れると、上階は宙に浮いたまま緑で通る。次は手順3の一行だけを抜いた同じファイルの出力である。
+`check` says that what is written does not contradict itself as data. Forget the vertical boundary and the upper storey floats, still green. Here is the same file with the one line from step 3 removed.
 
 ```text
 $ npx tsx src/cli.ts check two-sealed.muro
@@ -144,31 +144,31 @@ $ npx tsx src/cli.ts doors two-sealed.muro /L2/bed /out
 Cannot reach /out from /L2/bed
 ```
 
-**階を足したら必ず `doors` か [`koyu validate`](../reference/cli/validate.md) を通すこと。**閉じ込められた空間を機械的に洗い出す手順は [到達できない空間を見つける](find-unreachable.md) にある。
+**Run `doors` or [`koyu validate`](../reference/cli/validate.md) every time you add a storey.** [Find spaces you cannot reach](find-unreachable.md) sweeps for sealed rooms mechanically.
 
-## 落ちるところ
+## Where it goes wrong
 
-### 上階に食い込む — HGT01 (error)
+### The ceiling eats into the storey above — HGT01 (error)
 
-天井高と上階の床組み厚の合計が階高を超えると、高さの不変量に触れる。たとえば玄関ホールの天井だけを上げると、
+If ceiling height plus the slab of the storey above exceeds the storey height, the height invariant is broken. Raise the entry hall's ceiling alone:
 
 ```muro-part
-space /L1/hall hall X2..X3 Y2..Y3 name:玄関・階段 h:2600
+space /L1/hall hall X2..X3 Y2..Y3 name:Entry-and-stair h:2600
 ```
 
 ```text
 ✖ two.muro:line 13: /L1/hall collides into the floor above: ceiling height 2600 + L2's slab 500 = 3100 > storey height 2900
 ```
 
-天井高を下げるか、`level L2` の `z` を上げて階高を確保するか、`slab:` を薄くする。ほぼ全面が吹抜けの下階だけは、例外として階をまたぐ天井高を宣言できる。
+Lower the ceiling, raise `level L2`'s `z` to buy storey height, or thin the slab. Only a lower storey that is almost entirely void may declare a ceiling height that crosses a storey.
 
-### 床も天井も生まれない — SUF03 (warning) / SUF01 (error)
+### No floor, no ceiling — SUF03 (warning) / SUF01 (error)
 
-上階レベルの `slab:` を書き忘れるとその階に床が一枚も生成されず、`h:` も落とすと天井高が決まらない。**値の無いところに既定値は捏造されない** — 痩せた形が黙って出ないよう、充足性の検査が言う。
+Forget `slab:` on the upper level and not one floor is generated on that storey; drop `h:` as well and the ceiling height is undetermined. **No default is invented where a value is missing** — the sufficiency checks say so out loud rather than letting a thin model ship silently.
 
 ```muro-bad
-koyu 1.0
-name 段の欠け
+koyu 1.1
+name Missing pieces
 unit mm
 
 grid X 0 3640
@@ -176,9 +176,9 @@ grid Y 0 3640
 level L1 0 h:2400 slab:400
 level L2 2900
 
-space /L1/a room X1..X2 Y1..Y2 name:一階
-space /L2/b room X1..X2 Y1..Y2 name:二階
-space /out exterior name:外部
+space /L1/a room X1..X2 Y1..Y2 name:Downstairs
+space /L2/b room X1..X2 Y1..Y2 name:Upstairs
+space /out name:Outside outside:1
 boundary /L1/a /out edge:S t:150
   door w:900
 ```
@@ -188,10 +188,10 @@ boundary /L1/a /out edge:S t:150
 ✖ thin.muro:line 11: The ceiling height of /L2/b cannot be determined (neither the space's h: nor level L2's h: is there)
 ```
 
-診断コードは `check --json` に出る。コードから原因を引く表は [診断リファレンス](../reference/diagnostics/index.md) にある。
+Diagnostic codes come out of `check --json`. The table from code to cause is the [diagnostics reference](../reference/diagnostics/index.md).
 
-## 次に
+## Next
 
-- [階をつなぐ](connect-storeys.md) — 階段・シャフト・吹抜けの書き分け
-- [基準階を一度だけ書く](typical-floors.md) — 同じ階が何層も続くとき
-- [到達できない空間を見つける](find-unreachable.md) — 足した階が閉じていないことの確認
+- [Connect storeys](connect-storeys.md) — stairs, shafts and voids
+- [Write a typical floor once](typical-floors.md) — when the same plan repeats
+- [Find spaces you cannot reach](find-unreachable.md) — confirm the new storey is not sealed

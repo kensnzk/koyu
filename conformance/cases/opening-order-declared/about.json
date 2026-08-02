@@ -1,5 +1,8 @@
 {
-  "pins": ["docs/reference/form/index.md#1-形は正準形の関数である", "docs/reference/json/index.md"],
-  "why": "一つの境界に載る開口の宣言順は正準形が捨てる (開口は内容の正準順に並ぶ)。捨てられた順が形に残れば、開口の同一性の綴り (境界の ref + 境界の中の添字) が別の開口を指す — 同じ @4/0 が一方では扉、他方では窓になる。生成した対が見つけた破れであり、手で書いた witness も他のケースも一つの境界の上で二つの開口を入れ替えていなかった",
-  "sameBuildingAs": "opening-order-swapped"
+ "pins": [
+  "docs/reference/form/index.md#four-promises",
+  "docs/reference/json/index.md"
+ ],
+ "why": "一つの境界に載る開口の宣言順は正準形が捨てる (開口は内容の正準順に並ぶ)。捨てられた順が形に残れば、開口の同一性の綴り (境界の ref + 境界の中の添字) が別の開口を指す — 同じ @4/0 が一方では扉、他方では窓になる。生成した対が見つけた破れであり、手で書いた witness も他のケースも一つの境界の上で二つの開口を入れ替えていなかった",
+ "sameBuildingAs": "opening-order-swapped"
 }

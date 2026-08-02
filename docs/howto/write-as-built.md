@@ -1,30 +1,30 @@
 ---
-title: 実測を計画に重ねる
+title: Lay measurements over the plan
 mode: howto
 ---
 
-# 実測を計画に重ねる
+# Lay measurements over the plan
 
-図面は 120mm の間仕切りで描かれている。現場を測ったら 150mm だった。扉は 900 のはずが 850 で入っていて、図面にあった物置は結局作られなかった。
+The drawing says the partition is 120mm. On site it measured 150mm. The door was meant to be 900 and went in at 850, and the store room in the drawing was never built at all.
 
-**このとき、計画のファイルを書き換えてはならない。**書き換えた瞬間、「設計はこう決めた」と「現場はこうなった」の区別が消える。二つは別の事実で、別の日付を持ち、別の責任を持つ。
+**Do not edit the plan file.** The moment you do, the distinction between "this is what the design decided" and "this is what the site did" disappears. They are two different facts, with different dates and different responsibility attached.
 
-koyu の合成はこれのためにある。**計画は計画のまま置き、実測を上に重ねる。**
+This is what composition in koyu is for. **Leave the plan as the plan, and lay the measurements on top.**
 
-以下の出力は実際に走らせて得たものである。絶対パスは `<dir>/` と略した。
+Every output below was actually run. Absolute paths are abbreviated to `<dir>/`.
 
-## 三つのファイル
+## Three files
 
 ```text
-main.muro       ← 入口。グリッド・レベルと、重ねる順序を宣言する
-  plan.muro     ← 層1: 設計
-  as-built.muro ← 層2: 実測 (強い)
+main.muro       ← the entry: grid, levels, and the order the layers stack in
+  plan.muro     ← layer 1: the design
+  as-built.muro ← layer 2: the measurements (stronger)
 ```
 
-**`import` 行の並びが強度の宣言である。**後に書いた層ほど強い。入口は最も弱い層 (添字 0) になる。
+**The order of the `import` lines is the declaration of strength.** A later layer is stronger. The entry is the weakest layer (index 0).
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 name 実測を重ねた事務所
 unit mm
 
@@ -37,13 +37,13 @@ import ./plan.muro
 import ./as-built.muro
 ```
 
-計画の層。**この頁の最後まで、この内容は一文字も変わらない。**
+The plan layer. **Not one character of it changes for the rest of this page.**
 
 ```muro-part
 space /L1/office office X1..X2 Y1..Y2 name:事務室
 space /L1/hall   hall   X2..X3 Y1..Y2 name:玄関
 space /L1/store  store  X3..X4 Y1..Y2 name:物置
-space /out       exterior name:外部
+space /out       name:外部 outside:1
 
 boundary /L1/office /L1/hall t:120 spec:LGS
   door w:800 h:2000 name:D1
@@ -52,9 +52,9 @@ boundary /L1/hall /out t:150 spec:EW edge:S
   door w:900 h:2100 name:D2
 ```
 
-## 実測の層を書く
+## Write the as-built layer
 
-現場で分かった四つのことを、四つの書き方で重ねる。
+Four things the site turned up, in four different ways of writing.
 
 ```muro-part
 over /L1/office /L1/hall t:150 spec:LGS150-実測
@@ -67,22 +67,22 @@ over /L1/hall /out
 drop /L1/store
 ```
 
-一行ずつ何が起きているかを見る。綴りと制約の一覧は[over / drop](../reference/muro/over-drop.md)にある。
+Line by line. The full spelling and the constraints are on [over / drop](../reference/muro/over-drop.md).
 
-### 単一の値は `over` で差し替える
+### Single values are replaced with `over`
 
 ```muro-part
 over /L1/office /L1/hall t:150 spec:LGS150-実測
 over level L1 h:2660
 ```
 
-**対象の種別は行の形で決まる。**パスが二つなら境界、`level` に続けて名を書けばレベル、パス一つなら空間 (無ければゾーン) である。「これは境界だ」と言う語は要らない。
+**The shape of the line decides what kind of thing is being targeted.** Two paths means a boundary; `level` followed by a name means a level; one path means a space (or a zone, if no space has that path). No word is needed to say "this is a boundary".
 
-**比較は属性ごとに行われる。**上の境界行は `t` と `spec` にだけ意見を持っている。計画側が書いた他の属性は、強い層が黙っていればそのまま残る。
+**The comparison runs per attribute.** The boundary line above holds an opinion about `t` and `spec` only. Anything else the plan wrote survives, because the stronger layer said nothing about it.
 
-### 集合は明示された編集で書く
+### Sets are edited explicitly
 
-扉や窓のように、同じ座に複数の層が意見を持ちうるものは**暗黙にマージしない。**`over` の直下に字下げして、足す・消す・差し替えるを明示する。
+Things several layers can hold an opinion about at the same place — doors, windows — **are not merged implicitly.** Indent under `over` and state the addition, the removal or the replacement.
 
 ```muro-part
 over /L1/hall /out
@@ -90,11 +90,11 @@ over /L1/hall /out
   + window w:1200 h:900 at:0.8 name:W1
 ```
 
-- `=` は**全置換ではない。**名は残り、書いた属性だけが差し替わる。上の行は D2 の幅だけを 850 にし、高さ 2100 はそのままにする。
-- `+` で足す要素には `name:` が要る。後から指す言葉が要るからである。
-- 消すなら `- door D2` と書く。
+- `=` is **not a whole replacement.** The name stays and only the written attributes change. The line above sets D2's width to 850 and leaves its height of 2100 alone.
+- An element added with `+` needs a `name:` — later statements need something to point at.
+- To remove one, write `- door D2`.
 
-**位置 (`at:`) と辺 (`edge:`) は `=` では動かない。**扉が別の場所に入っていたときは、消して書き直す。
+**Position (`at:`) and edge (`edge:`) do not move under `=`.** When a door went in somewhere else entirely, remove it and write it again.
 
 ```muro-part
 over /L1/hall /out
@@ -102,17 +102,17 @@ over /L1/hall /out
   + door w:850 h:2100 at:0.3 name:D2
 ```
 
-### 作られなかったものは `drop` で消す
+### What was never built is removed with `drop`
 
 ```muro-part
 drop /L1/store
 ```
 
-**空間が消えれば、その空間を端に持つ境界も一緒に消える。**境界は二つの空間の**間**にしか存在しないからである。他の境界は無傷で残る。
+**When a space goes, the boundaries that had it at one end go with it.** A boundary exists only *between* two spaces. Every other boundary is untouched.
 
-`drop` が取れるのは空間・ゾーン・境界・柱の四つで、対象が無ければエラーになる。黙って何もしないということはない。
+`drop` takes spaces, zones, boundaries and columns, and errors when the target does not exist. It never silently does nothing.
 
-## 合成した結果を見る
+## Look at the composed result
 
 ```sh
 koyu check main.muro
@@ -123,7 +123,7 @@ koyu check main.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-物置が消えて 3 空間になっている。階高は実測の値になっている。
+The store room is gone, leaving three spaces. The storey height carries the measured value.
 
 ```sh
 koyu levels main.muro
@@ -133,9 +133,9 @@ koyu levels main.muro
 L1	z:0	h:2660	slab:200
 ```
 
-## どの層が勝ったかを見る
+## See which layer won
 
-**これが as-built を層で書く最大の見返りである。**最終値の出所が機械で引ける。
+**This is the main return on writing as-built as a layer.** The origin of every final value can be read by machine.
 
 ```sh
 koyu layers main.muro --attrs
@@ -153,14 +153,14 @@ Attribute provenance:
   level:L1:h	← 2 <dir>/as-built.muro
 ```
 
-出所の鍵は `<種別>:<対象>:<属性キー>` である。上に出ているのは実測が奪った三つだけで、**計画が与えたままの属性はここに出ない。**「何が現場で変わったか」の一覧がそのまま出てくる。
+The provenance key is `<kind>:<target>:<attribute>`. Only the three values the measurements took away appear here — **attributes still supplied by the plan are not listed.** The list of what changed on site falls out of it directly.
 
-## 何が変わったかを差分で見る
+## See the change as a difference
 
-計画だけを重ねた入口をもう一つ作ると、二つのモデルを直接比べられる。
+Make a second entry that composes the plan alone, and the two models can be compared directly.
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 name 実測を重ねた事務所
 unit mm
 
@@ -184,11 +184,11 @@ koyu diff plan-only.muro main.muro
 ± boundary /L1/hall | /out edge:S: door D2 w 900 → 850 / + window W1 w:1200 h:900 name:W1
 ```
 
-**竣工報告がそのまま出ている。**終了コードは差分があれば 1、無ければ 0 なので、CI で「実測層がまだ空である」ことを門番にもできる。
+**That is the completion report, written out.** The exit code is 1 when there are differences and 0 when there are none, so CI can gate on "the as-built layer is still empty".
 
-## 上書きの跡は残らない
+## The overrides leave no trace
 
-合成後のモデルにも[正準 JSON](../reference/json/index.md) にも `over` と `drop` は現れない。`over` で `t:150` にした境界と、最初から `t:150` と書いた境界は、同じ正準 JSON を与える。
+Neither `over` nor `drop` appears in the composed model or in the [canonical JSON](../reference/json/index.md). A boundary set to `t:150` by an override and a boundary written as `t:150` from the start give the same canonical JSON.
 
 ```text
       "kind": "wall",
@@ -198,42 +198,42 @@ koyu diff plan-only.muro main.muro
       },
 ```
 
-**正準形が答えるのは「同じ建物か」であって「どう書かれたか」ではない。**どう書かれたかを知りたいときが、`layers --attrs` を引くときである。
+**The canonical form answers "is this the same building", not "how was it written".** When you need to know how it was written, that is when you reach for `layers --attrs`.
 
-## 踏みやすい三つの穴
+## Three holes that are easy to step in
 
-### `over` の対象が無い
+### The target of `over` does not exist
 
 ```text
 ✖ <dir>/miss.muro:line 1: No such target for over: /L1/nowhere (place it after the layer that defines it)
 ```
 
-**存在しないものに意見だけを足すことはできない。**原因はほぼ二つに絞れる — パスの綴り違いか、層の順序の思い違いである。`over` は定義しない。定義するのは `space` や `boundary` の側で、二つは別の文である。
+**You cannot add an opinion to something that is not there.** The cause is almost always one of two things: a misspelled path, or a mistaken idea about the layer order. `over` does not define. Defining is what `space` and `boundary` do, and the two are different statements.
 
-### 同じ層が同じ属性に二度意見を持つ
+### One layer holds two opinions about one attribute
 
 ```text
 ✖ <dir>/bad.muro:line 2: One layer holds two opinions about t on boundary /L1/office|/L1/hall
 ```
 
-どちらが勝つかが決まらないので止まる。**上書きは別の層から行うものである。**同じ層の中で定義と `over` が同じ属性に触れた場合も同じエラーになる。
+Which one wins is undetermined, so it stops. **Overriding is something you do from another layer.** A definition and an `over` touching the same attribute inside one layer gives the same error.
 
-### 既定の壁は上書きできない
+### Default walls cannot be overridden
 
-接する空間の間には、宣言が無くても壁が導かれる。この既定の境界は**すべての層を合成し終えてから**作られるので、合成の途中である `over` からは見えない。
+Where two spaces touch, a wall is derived even with nothing declared. That default boundary is built **after every layer has been composed**, so an `over`, which runs during composition, cannot see it.
 
-実測で厚みや仕様を与えたい壁は、計画の層で `boundary` として宣言しておく。既定に頼っている壁は、実測層から触れない。
+Any wall you intend to give a measured thickness or spec must be declared as a `boundary` in the plan layer. Walls left to the default cannot be touched from the as-built layer.
 
-## 実測層を捨てる
+## Throw the as-built layer away
 
-`import ./as-built.muro` の一行を消せば、計画がそのまま戻る。**実測は計画に触れていないので、戻すのに復元作業が要らない。**
+Delete the `import ./as-built.muro` line and the plan is back exactly as it was. **The measurements never touched the plan, so there is nothing to restore.**
 
-同じ形で層を足せる — 改修の層、テナント工事の層、設備更新の層。並びが強度なので、後から足した層が前の層に勝つ。
+Layers stack the same way for anything else — a renovation layer, a fit-out layer, a services-replacement layer. Order is strength, so a layer added later beats the ones before it.
 
-## 関連
+## Related
 
-- [over / drop](../reference/muro/over-drop.md) — 上書き・削除・集合編集の綴りと制約
-- [合成 — 層の強度と六つの規則](../reference/muro/composition.md) — 強度・定義と上書きの区別・決定性・出所
-- [import](../reference/muro/import.md) — 層を読む一語と、層の並びの作られ方
-- [koyu layers](../reference/cli/layers.md) — 層の並びと属性の出所を印字する
-- [koyu diff](../reference/cli/diff.md) — 構成の言葉で二つのモデルを比べる
+- [over / drop](../reference/muro/over-drop.md) — spelling and constraints of override, removal and set editing
+- [Composition — layer strength and six rules](../reference/muro/composition.md) — strength, definition versus override, determinism, provenance
+- [import](../reference/muro/import.md) — the one word that reads a layer, and how the layer order is built
+- [koyu layers](../reference/cli/layers.md) — prints the layer order and the provenance of each attribute
+- [koyu diff](../reference/cli/diff.md) — compares two models in the language of composition

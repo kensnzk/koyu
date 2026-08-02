@@ -4,7 +4,7 @@
 # 外部に対し open または air:1 (手すり等、遮蔽しない物) の境界を持つ空間として導出される)。
 # 基準階は一度だけ書く — /L2..L9/ のスパンが8フロアに展開される。
 
-koyu 1.0
+koyu 1.1
 name 内廊下型集合住宅
 unit mm
 
@@ -17,7 +17,7 @@ level L3..L9 6700 pitch:2900 h:2400 slab:500
 level L10 27000 h:2600 slab:500      # ペントハウスは天井高2600
 level R 30200 slab:600               # 屋上 (陸屋根)。L10の上限を与える
 
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 # ============ 1階 — 共用部・機械室 ============
 space /L1/hall     hall     X1..X2 Y1..Y3        name:エントランスホール use:common floor:タイル

@@ -1,45 +1,46 @@
 ---
-title: VER — 言語の版
+title: VER — the language version
 mode: reference
 ---
 
-# VER — 言語の版
+# VER — the language version
 
-VER は四つある。すべてエラーである。
+There are four VER codes. All are errors.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| VER01 | error | koyu 0.1 のファイルに、境界の宣言が無い接触ペアがある |
-| VER02 | error | koyu 0.3 以前のファイルに、`daylight` の無い居室型の空間がある |
-| VER03 | error | koyu 0.4 以前のファイルに 0.5 の語がある |
-| VER04 | error | koyu 0.5 以前のファイルに 1.0 の語がある |
+| VER01 | error | A koyu 0.1 file has a touching pair with no boundary declared |
+| VER02 | error | A koyu 0.3-or-earlier file has a habitable-room type with no `daylight` |
+| VER03 | error | A koyu 0.4-or-earlier file uses 0.5 vocabulary |
+| VER04 | error | A koyu 0.5-or-earlier file uses 1.0 vocabulary |
+| VER05 | error | a koyu 1.0-or-earlier file writes exterior / void in the type position |
 
-## 版の宣言
+## Declaring the version
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 ```
 
-受理される版は **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0** の六つ。これ以外を書くと、意味の検査に入る前にパーサが止める。
+Six versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0**. Anything else stops at the parser, before any semantic check runs.
 
 ```text
 Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0)
 ```
 
-宣言は base 層 (entry) で**一度だけ**書く。慣例として一行目に置く。`import` した層に書くとエラーになる — 合成順による黙った上書きを禁じるためである。
+The declaration is written **once**, in the base layer (the entry). By convention it goes on the first line. Writing it in an imported layer is an error — silent overwriting by composition order is forbidden.
 
-**版を書かなければ、そのファイルは最新版 (1.0) の意味論で読まれる。**だから VER のコードは一件も出ない。VER を見るのは、意味を固定するために版を明示したファイルだけである。
+**A file with no version declaration is read under the latest semantics (1.0).** So no VER code ever fires for it. VER only concerns files that declare a version in order to pin their meaning.
 
-## 旧版が受理される条件
+## When an older version is accepted
 
-**旧版は意味が保存される場合にだけ受理される。**古い版を書いたファイルを新しい処理系が読むとき、道は二つしかない。
+**An older version is accepted only where the meaning is preserved.** When a newer implementation reads a file written against an older version, there are only two roads.
 
-- 新旧で同じ意味になる — そのまま読む
-- 意味が変わる — **黙って新しい意味で読まない**。エラーにして二択を示す
+- Old and new mean the same thing — read it as written
+- The meaning changes — **never read it silently under the new meaning**. Raise an error and present the two choices
 
-VER の四つは、この二番目の場所に立っている。だからメッセージは必ず「これを直すか、版を上げるか」の形をしている。
+The four VER codes stand at that second place. That is why every message takes the form "fix this, or raise the version".
 
-## VER01 — 0.1 に既定境界が導出される
+## VER01 — a default boundary is derived under 0.1 {#ver01}
 
 `error`
 
@@ -56,16 +57,16 @@ space /L1/b hall X2..X3 Y1..Y2
 A koyu 0.1 file has a touching pair with no declared boundary: /L1/a | /L1/b — in 0.2 a default wall is derived and the meaning changes. Declare the boundary, or raise the version to koyu 0.2
 ```
 
-**原因** — 0.1 では「接しているのに境界が無い」は警告どまりで、境界は生えなかった。0.2 からは、平面で接する空間の組に宣言境界が一つも無ければ **`wall` の既定境界が導出される**。未宣言の接触は「未定義」ではなく「壁」を意味するようになった。同じファイルが版によって違う建物になる。
+**Cause** — under 0.1, "these touch but no boundary is declared" was a warning and no boundary grew. From 0.2 on, a pair of spaces touching in plan with no declared boundary between them derives **a default `wall` boundary**. An undeclared contact came to mean "wall" rather than "undefined". The same file becomes a different building depending on the version.
 
-**直し方** — メッセージが示す二択のどちらかを選ぶ。
+**Fix** — take one of the two choices the message presents.
 
-- 新しい意味で読ませる → 一行目を `koyu 0.2` にする
-- 0.1 の意味を保つ → 指摘された対に `boundary` を明示的に書く
+- Read it under the new meaning → make the first line `koyu 0.2`
+- Keep 0.1's meaning → write an explicit `boundary` for the pair named
 
-このコードの本文が `0.2` を挙げるのは、これが 0.1 と 0.2 の境目の規定だからである。
+This code's body mentions `0.2` because it is the rule that sits on the seam between 0.1 and 0.2.
 
-## VER02 — 0.3 以前に daylight の無い居室型がある
+## VER02 — a habitable-room type with no daylight under 0.3 {#ver02}
 
 `error`
 
@@ -81,17 +82,17 @@ space /L1/a room X1..X2 Y1..Y2
 A koyu 0.3 file has a room with no daylight: /L1/a — 0.4 does not infer the daylight scope from the type, so it falls out of the check. Write daylight:1 (in scope) or daylight:0 (out of scope), then raise the version to koyu 0.4
 ```
 
-**原因** — 0.3 以前は五つの型 — `unit` `room` `ldk` `bedroom` `living` — を採光の対象と**推定**して判定に載せていた。0.4 からは型から推定しない ([DAY01](./day.md))。`daylight` を書かないまま版を上げると、その空間は黙って対象から外れ、`koyu light` は「全室合格」と区別の付かない出力を返す。
+**Cause** — up to 0.3, five types — `unit`, `room`, `ldk`, `bedroom`, `living` — were **inferred** to be in the daylight scope. From 0.4 nothing is inferred from the type ([DAY01](./day.md)). Raise the version without writing `daylight` and the space drops silently out of scope, and `koyu light` returns output indistinguishable from "every room passes".
 
-**直し方** — 指摘された空間を判定するかどうかを書き、そのうえで版を上げる。
+**Fix** — say whether the space named is tested, then raise the version.
 
-- 採光を判定する → `daylight:1` を足す
-- 判定しない (納戸・物置・非居室として書いていた) → `daylight:0` を足す
-- どちらの場合も、書き終えたら一行目を `koyu 0.4` にする
+- It is tested → add `daylight:1`
+- It is not (you meant a store, a closet, a non-habitable room) → add `daylight:0`
+- Either way, make the first line `koyu 0.4` once you are done
 
-`daylight` が既に書かれている空間は新旧で意味が同じなので、このコードは出ない。
+A space that already carries `daylight` means the same thing in both versions, so this code does not fire for it.
 
-## VER03 — 0.4 以前に 0.5 の語がある
+## VER03 — 0.5 vocabulary in a 0.4-or-earlier file {#ver03}
 
 `error`
 
@@ -110,18 +111,18 @@ stack s L1..L2 type:stair
 A koyu 0.4 file uses a 0.5 word: /L1/s carries stair: (a vertical circulation) — raise the version to koyu 0.5
 ```
 
-**原因** — 0.5 で入った四つの語を、0.4 以前の処理系は知らない。知らない処理系ではその語が読み飛ばされ、**形が黙って生成されない**。
+**Cause** — an implementation at 0.4 or earlier does not know the four words introduced in 0.5. It skips them, and **the shape is silently not generated**.
 
-| 0.5 の語 | 本文の言い方 |
+| 0.5 word | How the body names it |
 |---|---|
-| 縦動線の宣言 (`stair:` `ramp:` `escalator:` `lift:`) | `/L1/s carries stair: (a vertical circulation)` |
-| 描かれた線 (`line`) | `/L1/a \| /L1/b carries line (a drawn line)` |
-| 柱 (`column`) | `column` |
-| 地下 (`underground:`) | `level B1 carries underground:` |
+| A vertical-circulation declaration (`stair:` `ramp:` `escalator:` `lift:`) | `/L1/s carries stair: (a vertical circulation)` |
+| A drawn line (`line`) | `/L1/a \| /L1/b carries line (a drawn line)` |
+| A column (`column`) | `column` |
+| A basement (`underground:`) | `level B1 carries underground:` |
 
-**直し方** — 一行目を `koyu 0.5` にする。新しい語を使わないなら 0.4 のままでよい。
+**Fix** — make the first line `koyu 0.5`. If you are not using the new words, 0.4 is fine as it is.
 
-## VER04 — 0.5 以前に 1.0 の語がある
+## VER04 — 1.0 vocabulary in a 0.5-or-earlier file {#ver04}
 
 `error`
 
@@ -132,7 +133,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
-space /out exterior
+space /out yard
 boundary /L1/a /out t:150
   door w:800 edge:S name:D1
 drop /L1/b
@@ -146,29 +147,61 @@ A koyu 0.5 file uses a 1.0 word: over /L1/a /out (a composition override) — ra
 A koyu 0.5 file uses a 1.0 word: - door D1 (a set edit under over) — raise the version to koyu 1.0
 ```
 
-**原因** — 1.0 で入った合成の編集を、0.5 以前の処理系は知らない。
+**Cause** — an implementation at 0.5 or earlier does not know the composition edits introduced in 1.0.
 
-| 1.0 の語 | 本文の言い方 |
+| 1.0 word | How the body names it |
 |---|---|
-| 上書き (`over`) | `a composition override` |
-| 削除 (`drop`) | `a composition removal` |
-| `over` 直下の集合編集 (`+` `-` `=`) | `a set edit under over` |
+| An override (`over`) | `a composition override` |
+| A removal (`drop`) | `a composition removal` |
+| A set edit under `over` (`+` `-` `=`) | `a set edit under over` |
 
-VER03 と同型だが、帰結はもっと悪い。知らない処理系ではその行が語として読めず、**上書きも削除も起きないまま、黙って別の建物になる**。
+The reasoning matches VER03, but the consequence is worse. An older implementation cannot read the line as a word at all: neither the override nor the removal happens, and **the file silently becomes a different building**.
 
-**診断は編集ごとに一件出る。**上の例は三行が編集なので三件である。
+**One diagnostic per edit.** The example has three edit lines, so three diagnostics.
 
-**直し方** — 一行目を `koyu 1.0` にする。合成の編集を使わないなら 0.5 のままでよい。
+**Fix** — make the first line `koyu 1.0`. If you are not using composition edits, 0.5 is fine as it is.
 
-## 版を書く意味
+## VER05 — a 1.0-or-earlier file writes `exterior` / `void` in the type position {#ver05}
 
-版を書かなければ最新版で読まれるので、VER は一度も出ない。**版を書くのは、そのファイルの意味を過去の一点に固定したいときである。**固定した以上、新しい語を混ぜれば止められる — それがこの四つのコードの仕事である。
+`error`
 
-逆に言えば、**新しい記法を使いたくなったら、版を上げるのが正しい直し方である。**メッセージが毎回その一行を示している。
+```muro-bad
+koyu 1.0
+grid X 0 3600
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /out exterior name:外部
+boundary /L1/a /out edge:S t:120
+  door w:900
+```
 
-## 関連
+```text
+A koyu 1.0 file writes exterior in the type position: /out — 1.1 reads no meaning from the type, so this space silently stops being outside (it becomes indoor floor area). Write outside:1 instead, then raise the version to koyu 1.1
+```
 
-- [DAY — 採光の対象](./day.md) — VER02 が指す `daylight` の宣言
-- [RUN — 縦動線](./run.md) / [LIN — 描かれた線](./lin.md) / [COL — 柱](./col.md) — VER03 が指す 0.5 の語
-- [SYN — 構文と合成](./syn.md) — 受理されない版、二度の宣言、base 層でない宣言
+**Cause** — up to 1.0, `exterior` and `void` written in the type position were read structurally. 1.1 **never reads the type position** ([space](../muro/space.md)). So the same bytes mean a different building: the exterior becomes indoor floor area, and a floor is generated in the void. Measured on the mixed-use example, the gross floor area went from 31,606.24 m2 to 33,004.00 m2.
+
+That happens silently, which is why it is **an error and not a warning** — the same reasoning as the four codes before it.
+
+**The fix** — the message offers two.
+
+| Rewrite it | Or raise the version |
+|---|---|
+| `space /out exterior` → `space /out yard` | make the first line `koyu 1.1` |
+| `space /L2/hole void X1..X2 Y1..Y2` → `space /L2/hole X1..X2 Y1..Y2 void:1` | |
+
+The same code watches the other direction. Writing `outside:` / `void:`, or omitting the type, in a 1.0-or-earlier file is 1.1 spelling and is stopped just the same — the declared version and the vocabulary have to agree.
+
+## Why declare a version at all
+
+With no declaration a file is read under the latest semantics, and VER never fires. **You declare a version when you want a file's meaning pinned to a point in the past.** Having pinned it, mixing in newer vocabulary gets stopped — which is what these four codes are for.
+
+Put the other way round: **when you want to use newer notation, raising the version is the correct fix.** Every message shows you that one line.
+
+## Related
+
+- [DAY — the daylight scope](./day.md) — the declaration VER02 points at
+- [RUN — vertical circulation](./run.md) / [LIN — drawn lines](./lin.md) / [COL — columns](./col.md) — the 0.5 words VER03 points at
+- [SYN — syntax and composition](./syn.md) — unsupported versions, declaring twice, declaring outside the base layer
 - [koyu check](../cli/check.md)

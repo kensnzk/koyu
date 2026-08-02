@@ -8,10 +8,10 @@
 # 縁は手すり (air:1) — 床の無い所に扉は開かない。
 
 # ---- 吹抜けとエスカレーター (L2〜L4 で共有) ----
-space /L2/avoid void X12+3200..X13 Y5..Y11 + X12..X12+3200 Y5..Y6+5600 + X12..X12+3200 Y8+3600..Y11 name:吹抜け
-space /L3/avoid void X12+3200..X13 Y5..Y11 + X12..X12+3200 Y5..Y7 + X12..X12+3200 Y8+3600..Y11 name:吹抜け
+space /L2/avoid X12+3200..X13 Y5..Y11 + X12..X12+3200 Y5..Y6+5600 + X12..X12+3200 Y8+3600..Y11 name:吹抜け void:1
+space /L3/avoid X12+3200..X13 Y5..Y11 + X12..X12+3200 Y5..Y7 + X12..X12+3200 Y8+3600..Y11 name:吹抜け void:1
 # L4 の吹抜けは基壇のセットバックに合わせて短い — 段々は吹抜けにも及ぶ
-space /L4/avoid void X12+3200..X13 Y6..Y10 + X12..X12+3200 Y6..Y7 + X12..X12+3200 Y8+3600..Y10 name:吹抜け
+space /L4/avoid X12+3200..X13 Y6..Y10 + X12..X12+3200 Y6..Y7 + X12..X12+3200 Y8+3600..Y10 name:吹抜け void:1
 space /L2..L4/es2 escalator X12..X12+3200 Y7..Y7+12000 name:エスカレーター use:common escalator:N
 space /L2/es1 corridor X12..X12+3200 Y6+5600..Y7 name:エスカレーター乗降 use:common
 boundary /L1/atrium /L2/avoid type:void
@@ -30,7 +30,7 @@ space /L2/s04 shop X14..X19 Y4..Y5 name:南区画03 use:rentable
 space /L2/mallSw corridor X2..X11 Y5..Y6 name:南モール西 use:common floor:石張り
 space /L2/mallSe corridor X14..X19 Y5..Y6 name:南モール東 use:common floor:石張り
 # 西の1スパン (X2..X3) はエントランス吹抜け — 1階の大開口の上をガラスが2層で立つ
-space /L2/alvoid void X2..X3 Y7..Y9 name:エントランス吹抜け
+space /L2/alvoid X2..X3 Y7..Y9 name:エントランス吹抜け void:1
 space /L2/es4 corridor X2..X3 Y6..Y7 name:下りエスカレーター乗り場 use:common
 space /L2/es3 corridor X2..X3 Y9..Y10 name:上りエスカレーター降り場 use:common
 space /L2/w01 corridor X3..X4 Y6..Y7 name:西通路南 use:common

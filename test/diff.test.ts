@@ -46,14 +46,14 @@ test("diff: line order, the + order of merged regions and opening order are not 
   const a = parse(
     `${BASE}
 space /L1/a room X1..X2 Y1..Y2 + X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:150
   door w:800 at:0.25
   window w:600 at:0.75 h:1200`,
   );
   const b = parse(
     `${BASE}
-space /out exterior
+space /out outside:1
 space /L1/a room X2..X3 Y1..Y2 + X1..X2 Y1..Y2
 boundary /L1/a /out t:150
   window w:600 at:0.75 h:1200
@@ -225,7 +225,7 @@ test("diff: the three words of 0.5 — column, drawn line and underground all sh
 
   // 描かれた線: 面積が変わらない移動 (隅切りを反対の隅へ) でも見える
   const line = (spell: string) =>
-    parse(`${B}\nspace /L1/a room X1..X2 Y1..Y2\nspace /out exterior\nboundary /L1/a /out edge:S t:120\n  line ${spell}`);
+    parse(`${B}\nspace /L1/a room X1..X2 Y1..Y2\nspace /out outside:1\nboundary /L1/a /out edge:S t:120\n  line ${spell}`);
   const moved = semanticDiff(line("X1+1000,Y1 X1,Y1+1000"), line("X2-1000,Y1 X2,Y1+1000"));
   assert.equal(moved.boundaries.changed.length, 1);
   assert.deepEqual(moved.boundaries.changed[0]!.fields, [

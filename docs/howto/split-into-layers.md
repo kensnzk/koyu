@@ -1,29 +1,29 @@
 ---
-title: 建物を層に割って import で合成する
+title: Split a building into layers
 mode: howto
 ---
 
-# 建物を層に割って import で合成する
+# Split a building into layers
 
-一棟の `.muro` を層に切り出し、`import` で合成する。分担して書き、例外を差分として重ね、衝突はビルドエラーで捕まえる。
+Cut one `.muro` into layers and compose them with `import`. Divide the writing, write exceptions as differences, and let collisions fail the build.
 
-**合成は時間と分担のためにあり、大きさのためではない。**一棟が大きいから分けるのではない。分担して書く、例外を差分として書く、計画の上に実測を重ねる — これが合成の用途である。
+**Composition is for time and for division of labour, not for size.** You do not split a building because it is large. You split it to share the writing, to write an exception as a difference, and to lay as-built over plan.
 
-以下の出力例のファイルパスは、実際には絶対パスで出る。読みやすさのためファイル名だけに縮めてある。
+File paths in the output below are absolute when you actually run these commands. They are shortened to bare filenames here for readability.
 
-## 前提
+## Before you start
 
-- 一つのファイルとして [`koyu check`](../reference/cli/check.md) がエラー0で通っている `.muro` があること。
-- 分担の単位 (階・敷地・建具・実測など) の見当がついていること。
+- One `.muro` file passes [`koyu check`](../reference/cli/check.md) with zero errors.
+- You have some idea of the unit of division: storeys, site, joinery, as-built.
 
-## 1. base層 (entry) を決める
+## 1. Choose the base layer (the entry)
 
-建物全体の一貫性 — 版・`name`・`unit`・`grid`・`level` — は base層が**一度だけ**宣言する。これらを集めたファイルが entry になる。
+The facts about the whole building — the version, `name`, `unit`, `grid`, `level` — are declared **exactly once** by the base layer. The file that gathers them is the entry.
 
 ```muro-part
 # main.muro
-koyu 1.0
-name 小さな事務所
+koyu 1.1
+name A small office
 unit mm
 
 grid X 0 6400 12800
@@ -34,9 +34,9 @@ level L2 4200 h:2800 slab:400
 level R 8400 slab:400
 ```
 
-## 2. 残りを層に切り出して import する
+## 2. Cut the rest into layers and import them
 
-空間・境界・ゾーン・アセット・敷地形状は、どの層に置いてもよい。切り口は分担の単位で決める。
+Spaces, boundaries, zones, assets and site outlines may live in any layer. Cut along the division of labour.
 
 ```muro-part
 import ./assets.muro
@@ -45,11 +45,11 @@ import ./L2.muro
 import ./as-built.muro
 ```
 
-`import` のパスは、**それを書いたファイルからの相対**である (実行時のカレントディレクトリからではない)。同じファイルを二度 import しても、循環していても、合成は一度きりで冪等である。
+An `import` path is **relative to the file that writes it**, not to the working directory at run time. Import the same file twice, or import in a cycle, and composition still happens once: it is idempotent.
 
-## 3. 層は強度を持つ — 後の層ほど強い
+## 3. Layers have strength — later is stronger
 
-**`import` 行の並びが強度の宣言である。**深さ優先で平坦化した列が層の順序であり、entry は添字0で最も弱く、**後の層ほど強い**。
+**The order of the `import` lines is the declaration of strength.** Flatten depth-first and that sequence is the layer order: the entry is index 0 and the weakest, and **each later layer is stronger**.
 
 ```text
 $ npx tsx src/cli.ts layers main.muro
@@ -61,71 +61,71 @@ Layers (weakest first — later layers are stronger):
   4	as-built.muro
 ```
 
-**強度は走査の順ではない。**entry の宣言が `import` 行より後ろにあっても、entry は添字0のままである。順序で決めていたら、`import` 行を上下に動かしただけで結果が変わってしまう。
+**Strength is not reading order.** Declarations in the entry that sit below the `import` lines do not make the entry stronger — it stays index 0. If order decided it, moving an `import` line up or down would change the result.
 
-## 4. 強い層で値を差し替える — over
+## 4. Replace values from a stronger layer — over
 
-`over` は既にあるものの属性を差し替える。空間・ゾーン・境界・レベル・アセットを対象にとり、**書き方から対象の種別が決まる** — パス1つなら空間 (無ければゾーン)、パス2つなら境界、`level` / `asset` に続けて名を書けばそれぞれ。
+`over` replaces attributes on something that already exists. It takes spaces, zones, boundaries, levels and assets, and **the shape of the line decides which** — one path means a space (or a zone if no space has that path), two paths mean a boundary, `level` or `asset` followed by a name mean those.
 
 ```muro-part
-# as-built.muro — 実測を計画の上に重ねる層
-over /L1/office h:2600 spec:実測
+# as-built.muro — the survey laid over the plan
+over /L1/office h:2600 spec:As-built
 over /L1/office /L1/core t:150
 ```
 
-**`over` は定義ではない。**対象が既に合成されていなければエラーになる。
+**`over` is not a definition.** If the target has not already been composed, it errors.
 
 ```text
 ✖ as-built.muro:line 6: No such target for over: /L1/nowhere (place it after the layer that defines it)
 ```
 
-**同じ層が同じ属性に二度意見を持つのはエラーである。**どちらが勝つかが決まらないからである。
+**One layer holding two opinions about the same attribute is an error**, because which one wins would be undetermined.
 
 ```text
 ✖ as-built.muro:line 6: One layer holds two opinions about h on /L1/office (which one wins is undetermined)
 ```
 
-対象の取り方と、`over` の届く範囲は [over / drop](../reference/muro/over-drop.md) にある。
+How targets are named, and how far `over` reaches, is in [over / drop](../reference/muro/over-drop.md).
 
-## 5. 集合は明示された編集で合成する — `+` / `-` / `=`
+## 5. Sets compose through explicit edits — `+` / `-` / `=`
 
-**暗黙のマージはしない。**同じ座に複数の層が意見を持ちうるもの — 開口・`seg`・`area`・柱 — は、`over` の直下に字下げして編集を書く。
+**Nothing merges implicitly.** For anything where several layers can hold opinions about the same slot — openings, `seg`, `area`, columns — write the edit indented under `over`.
 
 ```muro-part
 over /L1/office /out
-  = window W-1F w:1800                       # 置換 (書いた属性だけを差し替える)
-  + window w:900 h:1800 at:0.8 name:W-1F-b   # 追加
+  = window W-1F w:1800                       # replace (only the attributes written)
+  + window w:900 h:1800 at:0.8 name:W-1F-b   # add
 over /L2/office /L2/core
-  - door D2                                  # 削除
+  - door D2                                  # remove
 ```
 
-**同一性は「含む対象 + その中で一意な名」である。**`name:` を持たない開口は編集の対象にできない — 指す言葉が無いからである。`+` で足す要素には `name:` が要る。名で指す仕組みは [改名に耐える識別](survive-a-rename.md) にある。
+**Identity is "the container plus a name unique within it".** An opening without a `name:` cannot be edited — there is no word that points at it. Anything added with `+` needs a `name:`. Naming as identity is covered in [Survive a rename](survive-a-rename.md).
 
-`- door D2` を書いた層を重ねると、その扉は消える。
+Compose a layer carrying `- door D2` and the door is gone.
 
 ```text
 $ npx tsx src/cli.ts doors main.muro /L2/office /out
 2 doors — /L2/office → /L2/core → /L1/core → /out
 
-$ npx tsx src/cli.ts doors main.muro /L2/office /out   # - door D2 を重ねたあと
+$ npx tsx src/cli.ts doors main.muro /L2/office /out   # after the - door D2 layer
 Cannot reach /out from /L2/office
 ```
 
-## 6. まるごと消す — drop
+## 6. Remove things whole — drop
 
 ```muro-part
-drop /L2/office        # 空間 (その関係も一緒に消える)
-drop /L1/a /L1/b       # 境界
-drop column C1         # 柱の宣言
+drop /L2/office        # a space, and its relations with it
+drop /L1/a /L1/b       # a boundary
+drop column C1         # a column declaration
 ```
 
-対象が無ければエラーになる。
+An absent target is an error.
 
 ```text
 ✖ as-built.muro:line 6: No such target for drop: /L2/nowhere
 ```
 
-空間を落とすと、その空間が持っていた境界も一緒に落ちる。[`koyu diff`](../reference/cli/diff.md) がそう言う。
+Dropping a space drops the boundaries it held. [`koyu diff`](../reference/cli/diff.md) says so.
 
 ```text
 $ npx tsx src/cli.ts diff main.muro dropped/main.muro
@@ -134,18 +134,18 @@ $ npx tsx src/cli.ts diff main.muro dropped/main.muro
 − boundary /L2/office | /out edge:W
 ```
 
-## 7. 定義と上書きを区別する
+## 7. Definition and override are different statements
 
-| | 文 | 対象が既にあるとき | 対象が無いとき |
+| | Statement | Target exists | Target does not exist |
 |---|---|---|---|
-| **定義** | `space` `boundary` `zone` `asset` `level` `polygon` | **エラー** (重複) | 定義する |
-| **上書き** | `over` | 上書きする | **エラー** |
+| **Define** | `space` `boundary` `zone` `asset` `level` `polygon` | **error** (duplicate) | defines it |
+| **Override** | `over` | overrides it | **error** |
 
-二つは別の文であって、書き方から区別がつく。存在しないものに意見だけを足すのは、たいてい綴り違いか、層の順序の思い違いである。
+They are two statements, told apart by how they are written. Adding an opinion about something that does not exist is almost always a misspelling or a misunderstanding of the layer order.
 
-## 確かめる
+## Check it
 
-entry を `check` する。import は自動でたどられ、一棟として合成された結果が返る。**これが一棟のビルドの門番になる。**
+`check` the entry. Imports are followed automatically and the composed building comes back. **This is the gate on the build of the whole building.**
 
 ```text
 $ npx tsx src/cli.ts check main.muro
@@ -153,7 +153,7 @@ $ npx tsx src/cli.ts check main.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-どの値をどの層が与えたかは `--attrs` が答える。API では同じものが `model.attrSrc` にあり、キーは `<種別>:<対象>:<属性キー>`、値は層の添字である。
+Which layer supplied which value is what `--attrs` answers. The same thing is on the API as `model.attrSrc`, keyed `<kind>:<target>:<attribute>` with the layer index as the value.
 
 ```text
 $ npx tsx src/cli.ts layers main.muro --attrs
@@ -170,70 +170,70 @@ Attribute provenance:
   space:/L1/office:spec	← 4 as-built.muro
 ```
 
-**上書きの跡は機械形式には残らない。**`over` で `h:2600` にした模型と、最初から `h:2600` と書いた模型は、同じ正準JSONを与える。正準形が答えるのは「同じ建物か」であって「どう書かれたか」ではない。
+**The machine form keeps no trace of the overriding.** A model set to `h:2600` by an `over` and a model that said `h:2600` from the start give the same canonical JSON. The canonical form answers "is this the same building", not "how was it written".
 
-## 層を単体で check しない
+## Do not check a layer on its own
 
-層のファイルは `grid` も `level` も持たないので、単独では読めない。
+A layer file has no `grid` and no `level`, so it cannot be read alone.
 
 ```text
 $ npx tsx src/cli.ts check L1.muro
 ✖ L1.muro:line 1: Undefined grid line name: X1
 ```
 
-**検査はつねに entry に対して行う。**
+**Always check the entry.**
 
-## 衝突したとき
+## When layers collide
 
-同じものを二つの層が宣言すると、合成はエラーになる。エラーは両者の出所を `ファイル:行` で言う。これらは診断ではなく**モデルが組み上がる前に止まる**エラーで、壊れた JSON を JSON パーサが弾くのと同じ層にある。
+Two layers declaring the same thing is an error, and the error names both origins as `file:line`. These are not diagnostics: they **stop before the model is assembled**, in the same place a JSON parser rejects broken JSON.
 
-**空間パスの重複**
+**A duplicate space path**
 
 ```text
 ✖ L2.muro:line 9: Duplicate space path: /L1/office (first seen in L1.muro at line 1)
 ```
 
-パスは同一性そのものである。別の空間なら別のパスを与える。
+The path is the identity. A different space gets a different path.
 
-**`grid` / `name` / 版の再宣言** — 層が単独で動くようにと基盤を書き足したとき。同値でもエラーである。
+**Redeclaring `grid`, `name` or the version** — usually from making a layer runnable on its own. It is an error even when the values agree.
 
 ```text
 ✖ L2.muro:line 1: grid X is declared once (in the base layer when composing)
 ```
 
-**アセット名の重複** — 建具の型を層ごとに書いたとき。
+**A duplicate asset name** — from writing the joinery types once per layer.
 
 ```text
 ✖ L2.muro:line 9: Duplicate asset name: W1 (first seen in assets.muro at line 2)
 ```
 
-アセットは一つの層にまとめる。寸法違いが要るなら別の名前を与えるか、参照側で属性を上書きする (`window W1 h:1200`)。
+Keep the assets in one layer. If a different size is needed, give it a different name or override the attribute at the reference (`window W1 h:1200`).
 
-## 何を合成しないか
+## What does not compose
 
-- **案の分岐 (バリアント)。**分岐は git が持つ。
-- **アセットの入れ子参照。**アセットはアセットを参照しない。
-- **層ごとの名前空間接頭辞。**パスの階層がすでに名前空間である。
-- **層の部分的な読み込み。**層は丸ごと合成される。
+- **Design variants.** Branching belongs to git.
+- **Nested asset references.** An asset does not reference an asset.
+- **Per-layer namespace prefixes.** The path hierarchy already is a namespace.
+- **Partial loading of a layer.** A layer composes whole.
 
-## 切り分けの例
+## A worked division
 
-同梱の `examples/house/` は 5 ファイルで次のように割っている。
+The bundled `examples/house/` splits into five files:
 
-| ファイル | 持つもの |
+| File | What it holds |
 |---|---|
-| `main.muro` | base層 — 版・名前・単位・グリッド・レベル、`import`、階を跨ぐ関係 |
-| `assets.muro` | 建具アセット — 建具表にあたる層 |
-| `site.muro` | 敷地と外部空間、塀・門扉 |
-| `L1.muro` | 1階の空間と境界 |
-| `L2.muro` | 2階の空間と境界 |
+| `main.muro` | the base layer — version, name, unit, grid, levels, the `import`s, the relations that span storeys |
+| `assets.muro` | joinery assets — the door and window schedule as a layer |
+| `site.muro` | the site and exterior spaces, the boundary walls and the gate |
+| `L1.muro` | the ground floor's spaces and boundaries |
+| `L2.muro` | the first floor's spaces and boundaries |
 
-**階を跨ぐ関係 — 垂直境界と `stack` — はどの階の層にも属さないので base層に置く。**`boundary` は空間を前方参照してよいので、`L1.muro` / `L2.muro` を import する前に書いても後に書いても同じく通る。
+**Relations that span storeys — vertical boundaries and `stack` — belong to no storey's layer, so they go in the base layer.** A `boundary` may forward-reference its spaces, so those lines work whether they are written before or after the `import`s of `L1.muro` and `L2.muro`.
 
-**敷地形状は隔離した層に置く。**`polygon` は測量由来の所与であって設計の生成物ではない。`examples/tower/site-geometry.muro` は宣言が `polygon` 1 行だけの層である。
+**Keep the site outline in a layer of its own.** A `polygon` is a survey fact, not a product of the design. `examples/tower/site-geometry.muro` is a layer whose only declaration is one `polygon` line.
 
-## 次に
+## Next
 
-- [基準階を一度だけ書く](typical-floors.md) — 例外階を差分の層として重ねる
-- [改名に耐える識別](survive-a-rename.md) — `name:` が集合編集の指す先になる
-- [敷地と外構を書く](describe-a-site.md) — polygon の隔離層の置き方
+- [Write a typical floor once](typical-floors.md) — exceptional storeys as difference layers
+- [Survive a rename](survive-a-rename.md) — `name:` is what a set edit points at
+- [Describe a site](describe-a-site.md) — where the polygon layer goes

@@ -1,21 +1,21 @@
 ---
-title: LIN — 描かれた線
+title: LIN — drawn lines
 mode: reference
 ---
 
-# LIN — 描かれた線
+# LIN — drawn lines
 
-LIN は三つある。
+There are three LIN codes.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| LIN01 | error | 描かれた線が二つの空間を分離していない |
-| LIN02 | error | 垂直境界に線が描かれている |
-| LIN03 | warning | 描かれた線が何も切っていない |
+| LIN01 | error | The drawn line does not separate the two spaces |
+| LIN02 | error | A line is drawn on a vertical boundary |
+| LIN03 | warning | The drawn line cuts nothing |
 
-**`line` は境界の実現を、隣接からの導出ではなく設計の行為として与える。**通常、境界の線分は二つの空間の割付の共有辺として導かれる。`line` を書くと、その導出の代わりに**書かれた線そのもの**が境界になり、両側の割付は線の両側へ分け直される。斜めの壁・隅切り・台形の部屋は、これで書く。
+**`line` gives a boundary its realisation as an act of design rather than as a derivation from adjacency.** Normally a boundary's segment is derived as the shared edge of two allocations. Write a `line` and **the written line itself** becomes the boundary instead, and the allocations on both sides are re-divided across it. Angled walls, cut corners and trapezoidal rooms are written this way.
 
-`line` は境界の下に字下げして書き、**一つの境界に一本だけ**である。端点は通り語で書く — 生の座標も角度も導入しない。
+A `line` is written indented under its boundary, and **one boundary carries one line**. Its endpoints are written in grid-reference words — neither raw coordinates nor angles are introduced.
 
 ```muro
 grid X 0 3000 6000
@@ -27,11 +27,11 @@ boundary /L1/a /L1/b t:120
   line X2+900,Y1 X2-900,Y2
 ```
 
-## 診断が線を引用するとき
+## How a diagnostic quotes a line
 
-**綴りは書かれたまま、順序は正準である。**
+**The spelling is as written; the order is canonical.**
 
-線分は向きを持たない。同じ二点を結ぶ線は、どちらの端から書いても同じ線である。だから端点の対は**解決座標の昇順** (x、同値なら y) に並べ替えられる。並べ替えるとき綴り (`X1+300` のような通り参照) も一緒に入れ替わるので、診断が引用する綴りは**書いたとおりの通り語のまま、順序だけが正準**になる。
+A segment has no direction: the same two points joined either way are the same line. So the pair of endpoints is sorted into **ascending resolved coordinates** (x first, then y). The spellings — grid references such as `X1+300` — travel with the swap, so what a diagnostic quotes is **your grid words exactly, in canonical order**.
 
 ```muro-bad
 grid X 0 3000 6000
@@ -47,11 +47,11 @@ boundary /L1/a /L1/b t:120
 Line X1+300,Y1..X1+300,Y2 does not separate /L1/a and /L1/b (draw it so the two allocations fall on opposite sides)
 ```
 
-書いたのは `X1+300,Y2 X1+300,Y1` だが、診断は `X1+300,Y1..X1+300,Y2` と引用する。`X1+300` は座標 (300) に潰されず、通り語のまま残る。
+What was written is `X1+300,Y2 X1+300,Y1`; what is quoted is `X1+300,Y1..X1+300,Y2`. `X1+300` is not flattened into `300` — it stays a grid word.
 
-**なぜ揃えるのか。**開口の `at:` は線分の始端からの比である。始端が書き順で決まってしまうと、同じ形が二通りに読まれる — `line X1,Y1+2000 X2,Y1+4000` と `line X2,Y1+4000 X1,Y1+2000` が正準JSONとしてバイト同一のまま、扉を別の位置に置く、ということが起きる。だから合成の出口で向きを揃え、**形を正準形の関数にする**。
+**Why canonicalise.** An opening's `at:` is a ratio measured from the segment's start. If the start depended on writing order, one shape would have two readings: `line X1,Y1+2000 X2,Y1+4000` and `line X2,Y1+4000 X1,Y1+2000` would be byte-identical as canonical JSON while placing the door in different places. So the direction is settled at the exit of composition, which makes **the shape a function of the canonical form**.
 
-## LIN01 — 線が二つの空間を分離していません
+## LIN01 — the line does not separate the two spaces {#lin01}
 
 `error`
 
@@ -69,27 +69,27 @@ boundary /L1/a /L1/b t:120
 Line X1,Y1..X1,Y2 does not separate /L1/a and /L1/b (draw it so the two allocations fall on opposite sides)
 ```
 
-**原因** — 描かれた線は「二つの空間の割付の合併を、線の両側へ分け直す」操作である。両方の割付が線の同じ側にあれば、分け直すものが無い。
+**Cause** — a drawn line re-divides the union of two allocations across itself. With both allocations on the same side of the line, there is nothing to re-divide.
 
-どちらの側に寄るかは面積の偏りで決まり、偏りの無い側 — 線が割付をちょうど二等分する側 — は相手の反対側として決まる。**両方とも偏りが無ければ決まらない。**
+Which side each space takes is decided by where its area leans. A space with no lean — one the line bisects exactly — takes whatever side is opposite its partner. **If neither leans, nothing is settled.**
 
-**直し方** — 二つの割付の間を通る線を引く。境界の実現を動かしたいのであって割付を動かしたいのではない、という点を確かめる。
+**Fix** — draw the line between the two allocations. Check that what you want to move is the boundary's realisation, not the allocations themselves.
 
-LIN01 は同じコードで、あと二つの状態も言う。
+LIN01 also covers two more states under the same code.
 
 ```text
 Line X2,Y1..X2,Y2 bisects the allocation exactly, so which side to keep is undetermined
 ```
 
-片側が領域を持たない空間 (`exterior` など) のときの本文である。相手側が無いので「反対側」で決めることができず、線がもう一方の割付をちょうど二等分すると、残す側が決まらない。
+This is the body when one side is a space with no region (an `exterior`, typically). There is no partner to take the opposite side from, so a line that bisects the other allocation exactly leaves the kept side undetermined.
 
 ```text
 A line cannot be drawn between spaces that have no region: /out | /out2
 ```
 
-両側とも領域を持たない。切り分ける相手が無い。
+Neither side has a region. There is nothing to divide.
 
-## LIN02 — 垂直境界に線は描けません
+## LIN02 — a vertical boundary cannot carry a line {#lin02}
 
 `error`
 
@@ -99,7 +99,7 @@ grid Y 0 6000
 level L1 0 h:2700 slab:300
 level L2 3000 slab:300
 space /L1/a room X1..X2 Y1..Y2
-space /L2/a void X1..X2 Y1..Y2
+space /L2/a X1..X2 Y1..Y2 void:1
 boundary /L1/a /L2/a type:void
   line X1,Y1 X2,Y2
 ```
@@ -108,11 +108,11 @@ boundary /L1/a /L2/a type:void
 A line cannot be drawn on a vertical boundary (drawing a line is an act of dividing a plan): /L1/a | /L2/a
 ```
 
-**原因** — 線を描くことは平面上で空間を区切る行為である。垂直境界 (`type:stair` / `shaft` / `void`) は上下の関係であって、平面上に線分を持たない。
+**Cause** — drawing a line is an act of dividing a plan. A vertical boundary (`type:stair` / `shaft` / `void`) is a relation between storeys and holds no segment in plan.
 
-**直し方** — 吹抜けの輪郭を斜めにしたいのなら、線を描く先は**その階の水平境界** — 吹抜けと隣室の間の境界である。同じレベルの境界に線を移す。
+**Fix** — if you want an angled edge to a void, the line belongs on **that storey's horizontal boundary** — the one between the void and the room next to it. Move the line to a boundary on the same level.
 
-## LIN03 — 線が何も切っていません
+## LIN03 — the line cuts nothing {#lin03}
 
 `warning`
 
@@ -130,39 +130,39 @@ boundary /L1/a /L1/b t:120
 Line X2,Y1..X2,Y2 cuts nothing (it is the same as the default adjacency line, or falls outside the allocation)
 ```
 
-**原因** — 二つある。
+**Cause** — two possibilities.
 
-- 引いた線が、既定で導かれる隣接線とちょうど同じ位置にある。上の例がそれで、`X2` は二室がもともと接している位置である。害は無いが、**書いた行が何もしていない**ことは知らされるべきである。
-- 線の及ぶ範囲に割付が無い。斜めにしたつもりで端点の綴りを間違えた、という取り違えがここで出る。
+- The line sits exactly where the default adjacency line would be derived. That is the example above: `X2` is where the two rooms already touch. Harmless, but **a line that does nothing ought to be reported**.
+- No allocation falls within the line's reach. This is where a mistyped endpoint on an intended diagonal shows up.
 
-**直し方** — 意図した位置に線を引き直すか、行を消す。
+**Fix** — redraw the line where you meant it, or delete the row.
 
-## 帰結は導出のその場で記録される
+## The outcome is recorded where the derivation happens
 
-線が何をしたかは、形を起こすときに決まり、そのとき記録される。値は三つある。
+What a line did is settled while the shape is being raised, and recorded at that moment. There are three values.
 
-| 帰結 | 意味 | 診断 |
+| Outcome | Meaning | Diagnostic |
 |---|---|---|
-| `cut` | 実際に割付を切り分けた | 無し |
-| `nothing` | 何も切らなかった | LIN03 |
-| `undetermined` | 残す側が決まらなかった | LIN01 |
+| `cut` | It actually divided the allocations | none |
+| `nothing` | It cut nothing | LIN03 |
+| `undetermined` | The side to keep could not be settled | LIN01 |
 
-診断はこの記録を読むだけで、切り分けをやり直さない。やり直すと、**既に切られた形**を相手に判定を組み立てることになり、母集団が食い違う — 実際に切った線に「何も切っていない」と言う経路がそこにあった。この値は API では `DrawnLine` の `effect` として読める。正準JSONには出ない — 書かれた構成ではなく導出の帰結だからである。
+The diagnostics read that record; they do not redo the cut. Redoing it would build the test against **a shape that has already been cut**, and the populations would diverge — that is exactly the path by which a line that really did cut was told it had cut nothing. From the API this value is `DrawnLine`'s `effect`. It does not appear in canonical JSON, because it is a consequence of derivation rather than part of what was written.
 
-## 一つの境界に一本
+## One line per boundary
 
-同じ境界に二本目の `line` を書くと、これは診断ではなく構文の誤りになる。
+Writing a second `line` under the same boundary is not a diagnostic but a syntax error.
 
 ```text
 One boundary carries one line: /L1/a | /L1/b
 ```
 
-同じ空間対に二箇所の隅切りが要るなら、境界を二つ書く — 線を持つ境界は、線の綴りまで含めて同一性が決まるので、同じ対に二つ書いても [BND02](./bnd.md) にならない。
+If the same pair of spaces needs two cut corners, write two boundaries. A boundary that carries a line takes the line's spelling into its identity, so two of them on the same pair are not [BND02](./bnd.md).
 
-## 関連
+## Related
 
-- [BND — 境界](./bnd.md) — 線を持たない境界の同一性と線分
-- [VRT — 垂直境界](./vrt.md) — 線を描けない側の境界
-- [VER — 言語の版](./ver.md) — `line` は 0.5 の語 (VER03)
-- [SYN — 構文と合成](./syn.md) — 二本目の `line`、字下げの誤り
+- [BND — boundaries](./bnd.md) — identity and segments for boundaries without lines
+- [VRT — vertical boundaries](./vrt.md) — the boundaries that cannot carry a line
+- [VER — the language version](./ver.md) — `line` is 0.5 vocabulary (VER03)
+- [SYN — syntax and composition](./syn.md) — a second `line`, indentation mistakes
 - [koyu check](../cli/check.md)

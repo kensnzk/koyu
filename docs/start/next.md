@@ -1,70 +1,70 @@
 ---
-title: 次に読むもの
+title: What to read next
 mode: explanation
 ---
 
-# 次に読むもの
+# What to read next
 
-[チュートリアル](index.md)を通したなら、二階建て一棟と平面図と、動線・採光の答えが手元にある。ここから先は読者によって道が分かれる。**一つ選んで、一枚だけ読む** — 順に読み下す本ではない。
+Having worked through [the tutorial](index.md), you have a two-storey house, its plans, and the answers about circulation and daylight. From here the road forks by reader. **Pick one and read that one page** — this is not a book to work down in order.
 
-## 記法をもう少し書きたい
+## I want to write a bit more of the notation
 
-→ **[.muro の全構文](../reference/muro/index.md)**
+→ **[Every construct in .muro](../reference/muro/index.md)**
 
-行頭に来る16語と、字下げの9種類の行が、一枚に並んでいる。チュートリアルで使わなかった `zone` (集計の単位)、`asset` (建具の型)、`import` (層に重ねる)、`stack` と `band` (階を跨ぐ積層と帯状の割付)、`polygon` (敷地の形)、`column` (位置を書かない柱)、`over` と `drop` (上書きと削除) は、規模が大きくなったときの語である。
+The 16 words that can begin a line and the 9 kinds of indented line, laid out on one page. The ones the tutorial did not use — `zone` (the unit of aggregation), `asset` (door and window types), `import` (layering files), `stack` and `band` (vertical stacking and strip layouts), `polygon` (the shape of a site), `column` (columns whose position is never written), `over` and `drop` (override and delete) — are the words for when the scale grows.
 
-書きながら手元に置くならこの頁でよい。
+This is the page to keep beside you while writing.
 
-## やりたいことが決まっている
+## I already know what I want to do
 
-→ **[階を足す](../howto/add-a-storey.md)** から始める手順の巻
+→ the how-to volume, starting at **[Add a storey](../howto/add-a-storey.md)**
 
-[階を足す](../howto/add-a-storey.md)・[階をつなぐ](../howto/connect-storeys.md)・[住戸を室に割る](../howto/subdivide-a-unit.md)・[実測を計画に重ねる](../howto/write-as-built.md)・[プログラムに組み込む](../howto/embed-in-a-program.md)・[エージェントに書かせる標準ループ](../howto/agent-loop.md) — 目的別の手順が並んでいる。チュートリアルが一本道だったのに対し、こちらは必要なところだけ抜き読みするための巻である。
+[Add a storey](../howto/add-a-storey.md) · [Connect storeys](../howto/connect-storeys.md) · [Subdivide a dwelling into rooms](../howto/subdivide-a-unit.md) · [Lay measurements over the plan](../howto/write-as-built.md) · [Embed koyu in a program](../howto/embed-in-a-program.md) · [The standard loop for letting an agent write](../howto/agent-loop.md). Procedures arranged by goal. Where the tutorial was a single road, this is the volume you dip into.
 
-## なぜこう書くのかが腑に落ちていない
+## Why it is written this way has not settled yet
 
-→ **[koyu とは何か](../why/index.md)**
+→ **[What koyu is](../why/index.md)**
 
-[空間中心のモデル](../why/space-is-primary.md)・[境界による壁の表現](../why/boundary-is-a-relation.md)・[既定の境界](../why/silence.md)・[パスと面積集計](../why/paths.md)・[導出される情報](../why/source-and-derived.md)・[属性の拡張](../why/open-vocabulary.md) — 記法の形の裏にある考えを、実装の話を挟まずに扱う巻である。
+[The space-centred model](../why/space-is-primary.md) · [Walls as boundaries](../why/boundary-is-a-relation.md) · [Default boundaries](../why/silence.md) · [Paths and area aggregation](../why/paths.md) · [Derived information](../why/source-and-derived.md) · [Extending attributes](../why/open-vocabulary.md) — the thinking behind the shape of the notation, without the implementation in the way.
 
-チュートリアル第5段で踏んだ罠だけを正面から見たいなら **[check の保証範囲](../why/green-is-not-a-building.md)** が一枚で答える。
+If you only want the trap from stage 5 looked at straight on, **[What check guarantees](../why/green-is-not-a-building.md)** answers it in one page.
 
-## エラーが出て止まっている
+## An error has stopped me
 
-→ **[診断コード索引](../reference/diagnostics/index.md)**
+→ **[The diagnostic code index](../reference/diagnostics/index.md)**
 
-`koyu check --json` を付けると診断コードが出る。65個すべてに、何を言っているのか・なぜそうなったか・どう直すかがある。
+Add `--json` to `koyu check` and you get diagnostic codes. All 65 of them have what they are saying, how you got there, and how to fix it.
 
-コードが出る前に「なぜこの書き方が拒まれるのか」から知りたいなら **[診断の読み方](../reference/diagnostics/reading.md)**。
+If you want "why is this way of writing rejected at all?" before the codes, start at **[How to read a diagnostic](../reference/diagnostics/reading.md)**.
 
-## check は緑なのに建物が怪しい
+## check is green but the building looks wrong
 
-→ **[koyu validate — 建築的な判定](../reference/validate/index.md)**
+→ **[koyu validate — architectural judgement](../reference/validate/index.md)**
 
-`check` が言うのは「書かれたものがデータとして矛盾していない」までである。外部へ辿り着けない室、外皮の穴、窮屈な階段、急すぎるスロープ、扉に重なる柱、敷地からはみ出す建物 — 15の規則が別の面として並んでいる。**判定は保証ではない。**この線引きそのものは **[約束の範囲](../reference/scope.md)** にある。
+What `check` says stops at "what is written does not contradict itself as data". A room that cannot reach the outside, a hole in the envelope, a cramped stair, a ramp that is too steep, a column standing in a doorway, a building that spills off its site — 15 rules on a separate surface. **A judgement is not a guarantee.** That line itself is drawn in **[Scope — what a green check means](../reference/scope.md)**.
 
-## コマンドをもっと知りたい
+## I want more commands
 
-→ **[koyu コマンド](../reference/cli/index.md)**
+→ **[The koyu command](../reference/cli/index.md)**
 
-14のサブコマンドが、実際の出力つきで並んでいる。チュートリアルで使わなかった `graph` (空間の隣接)、`stats` (面積と効率)、`site` (敷地・建蔽率・容積率)、`runs` (縦動線)、`layers` (合成に参加した層と、属性ごとの出所)、`diff` (合成の言葉での差分)、`axo` (軸測図) がここにある。
+All 14 subcommands, with real output. The ones the tutorial did not use are here: `graph` (space adjacency), `stats` (areas and efficiency), `site` (site area, coverage, FAR), `runs` (vertical circulation), `layers` (which layers took part in composition, and where each attribute came from), `diff` (differences in the language of composition), `axo` (axonometrics).
 
-## プログラムから使いたい
+## I want to drive it from a program
 
-→ **[プログラムから建物を読む](first-program.md)**
+→ **[Reading a building from a program](first-program.md)**
 
-20行で parse から診断、正準JSONまで通す。その先の公開面 — 59個の値と77個の型 — は **[TypeScript API](../reference/api/index.md)** に並んでいる。
+Twenty lines from parse through diagnostics to canonical JSON. The published surface beyond that is laid out in **[TypeScript API](../reference/api/index.md)**.
 
-## LLM エージェントに読み書きさせたい
+## I want an LLM agent to read and write it
 
 → **[koyu-mcp](../reference/mcp/index.md)**
 
-依存ゼロの stdio MCP サーバーで、12個の道具が同じ導出を出す。登録は一行、認証も環境変数も要らない。エージェントは `layers` で読み、`write_layer` で書き、`check` が門番になる — エラーは層と行の出所つきで返る。
+A zero-dependency stdio MCP server whose 12 tools expose the same derivations. Registration is one line; no auth, no environment variables. The agent reads with `layers`, writes with `write_layer`, and `check` is the gate — errors come back with layer and line provenance.
 
-**書かせる前にコミットしておくこと。**`write_layer` は全置換で書き、取り消しを持たない。
+**Commit before you let it write.** `write_layer` writes by full replacement and has no undo.
 
-## この道具が何を持たないのか知りたい
+## I want to know what this tool does not hold
 
-→ **[持たないもの](../reference/not-held.md)**
+→ **[What koyu does not hold](../reference/not-held.md)**
 
-原本に幾何を持たないこと、配置の仕組みを持たないこと、建築的な判定を原本の契約に含めないこと、実務解像度を追わないこと、往復互換を諦めたこと — 意図して置かなかったものが、なぜ置かないかとともに並んでいる。逆に何が壊れずに残るのかは **[凍る面 — 何を壊さないか](../reference/stability.md)**。
+No geometry in the source, no placement mechanism, no architectural judgement in the source's contract, no chase after construction-document resolution, no round-trip compatibility — everything deliberately left out, with why. What will not break, conversely, is in **[Stability — what will not break](../reference/stability.md)**.

@@ -1,94 +1,92 @@
 ---
-title: BIM・IFC・USD の基礎
+title: BIM, IFC and USD basics
 mode: explanation
 ---
 
-# BIM・IFC・USD の基礎
+# BIM, IFC and USD basics
 
-koyu の位置づけを述べる文章は、この分野の語彙を前提にしている。**この頁はその語彙だけを説明する。**建築情報の実務に慣れている読者は [IFC・USD との比較](vs-ifc.md) へ飛んでよい。
+Any statement of where koyu sits assumes the vocabulary of this field. **This page explains only that vocabulary.** Readers at home in building-information practice can skip to [Comparison with IFC and USD](vs-ifc.md).
 
 ## BIM
 
-**Building Information Modeling** — 建物の三次元形状と属性情報を一体で扱う手法。
+**Building Information Modeling** — handling a building's three-dimensional geometry and its attribute information together.
 
-実務では Revit や Archicad といったオーサリングツール (設計者がモデルを作成するソフトウェア) が中心にあり、**モデルの実体は各ツールの独自データベースの中にある。**
+In practice the centre of gravity is an authoring tool such as Revit or Archicad, and **the model itself lives inside each tool's proprietary database.**
 
-ここが koyu との一つ目の分岐点である。原本がツールの独自データベースにある限り、モデルにできることは**そのツールの UI と API が許す範囲**に限られる。テキストの原本なら、その制約は無い。
+That is the first divergence from koyu. As long as the source lives in a tool's proprietary database, what can be done with the model is bounded by **what that tool's UI and API permit.** A text source has no such bound.
 
 ## IFC
 
-**Industry Foundation Classes** — buildingSMART が策定する交換用のオープン標準。BIM ツールの間でモデルを受け渡すための共通語である。
+**Industry Foundation Classes** — the open exchange standard published by buildingSMART. The common language for passing models between BIM tools.
 
-標準的なシリアライズ形式は **SPF** (STEP Physical File、拡張子 `.ifc`) で、次のような姿をしている。
+Its standard serialisation is **SPF** (STEP Physical File, extension `.ifc`), which looks like this.
 
 ```text
 #42=IFCWALLSTANDARDCASE('1a2b3c...',#5,'Wall-001',$,$,#43,#51,$);
 #43=IFCLOCALPLACEMENT(#12,#44);
 ```
 
-**行番号でエンティティを相互参照する。**この一点が版管理に効く — 同じモデルを書き出し直すだけで行番号が振り直され、**ファイル全体の差分が壊れる。**どのファイルを最新とみなすかは、データではなく人の運用が決めることになる。実務の CDE (共通データ環境) も、突き詰めればその運用の器である。
+**Entities cross-reference each other by line number.** That single fact governs version control — re-export the same model and the line numbers are reassigned, so **the diff of the whole file is destroyed.** Which file counts as current is then decided by human process, not by the data. A practice's CDE (common data environment) is, at bottom, a vessel for that process.
 
-規模の目安として、IFC のスキーマ (IFC2x3/4/4x3 統合) は約 1,140 のエンティティを持つ。うち幾何・形状表現系が約 250、構造解析系が約 45、設備系が約 150、土木系が約 50、関係を表す `IfcRel*` が約 60 である。
+For a sense of scale: the IFC schema (2x3, 4 and 4x3 combined) holds about 1,140 entities. Of those roughly 250 are geometry and shape representation, 45 structural analysis, 150 building services, 50 infrastructure, and 60 are the `IfcRel*` relationship entities.
 
 ## IfcSpace
 
-**IFC において室や領域を表すエンティティ。**規格上は存在する。
+**The IFC entity for a room or region.** It exists in the schema.
 
-しかし多くの現場では、**部材が囲んだ結果として導かれる二次的な情報**として扱われ、書き出されないことも珍しくない。空間境界を表す `IfcRelSpaceBoundary` は規格にあるが、境界の接続ジオメトリが省略されることが最も多い箇所でもある。
+On many projects, though, it is treated as **secondary information derived from what the components enclose**, and it is not unusual for it not to be exported at all. `IfcRelSpaceBoundary` exists for space boundaries, but the connection geometry of those boundaries is one of the most commonly omitted things in the format.
 
-**koyu の主題はここを一次要素へ格上げすることである。**`IfcSpace` が二級市民であり続けているのは規格の不備ではなく、**形を原本にしたことの帰結**である ([空間中心のモデル](space-is-primary.md))。
+**koyu's whole subject is promoting this to a primary element.** That `IfcSpace` remains a second-class citizen is not a flaw in the standard but **a consequence of making form the source** ([The space-centred model](space-is-primary.md)).
 
-## IFC5 と IFCX
+## IFC5 and IFCX
 
-現在開発中の次世代規格が **IFC5** で、そのファイル形式が **IFCX** である。
+The next-generation standard under development is **IFC5**, and its file format is **IFCX**.
 
-IFCX は素の JSON を採る。ノードは `{ path, children?, inherits?, attributes? }` だけの小さな構造で、`children` が名前 → UUID の辞書として階層を張り、`inherits` が USD の reference 相当としてプロトタイプ (窓インスタンス → 窓の型) を参照する。属性の語彙は `bsi::ifc::prop::FireRating` のように名前空間で切られる。
+IFCX is plain JSON. A node is a small structure — `{ path, children?, inherits?, attributes? }` — where `children` builds the hierarchy as a name-to-UUID dictionary and `inherits` references a prototype (a window instance pointing at a window type), the equivalent of USD's reference. Attribute vocabularies are namespaced, in the form `bsi::ifc::prop::FireRating`.
 
-そして**合成 (composition) を持つ。**同じパスのノードを複数書けば重なり合い、ファイルをまたいでも同じ機構で上書きできる。差分レイヤーが数百バイトで書けることが、この機構の価値のすべてである。
+And **it has composition.** Write several nodes at the same path and they overlay; the same mechanism works across files. That a difference layer can be written in a few hundred bytes is the whole value of that mechanism.
 
-**形式の問題は、標準の側で解かれつつある。**テキストになり、差分が読めるようになり、レイヤーが重なるようになった。
+**The format problem is being solved on the standards side.** It has become text, its diffs have become readable, and its layers overlay.
 
-**しかしその形式が運ぶ中身は、依然として建築物のオントロジーである。**場面の主語は `IfcWall` のままで、ファイルの大半は頂点座標列 — つまりビルド成果物がソースに同梱されている分 — である。**形式の刷新は、対象の取り替えではない。**
+**But what that format carries is still an ontology of the building as a thing.** The subject of the scene is still `IfcWall`, and most of the file is vertex coordinates — that is, build output shipped inside the source. **Renewing the format is not changing the subject.**
 
 ## OpenUSD
 
-**Universal Scene Description** — もともと映像制作のために作られたシーン記述の枠組み。**composition (合成)** と呼ばれる仕組みを中核に持つ。
+**Universal Scene Description** — a scene-description framework built originally for film production. At its core is a mechanism called **composition**.
 
-複数のレイヤーを重ね、上のレイヤーが下のレイヤーの値を**非破壊的に**上書きする。パス名前空間 (`/World/Building/Room`) が背骨になる。
+Layers stack, and an upper layer overrides a lower layer's values **non-destructively**. A path namespace (`/World/Building/Room`) is the backbone.
 
-**現在の IFC に相当する概念は無い。**そして USD の側には建築の意味論が無い。
+**There is no equivalent concept in current IFC.** And USD has no architectural semantics of its own.
 
-> **建築の意味論を持つ形式は合成を持たず、合成を持つ形式は建築の意味論を持たない。**
+> **Formats with architectural semantics have no composition; formats with composition have no architectural semantics.**
 
-koyu が両方を持とうとしているのは、この空白に対してである。ただし USD から借りるのは**機構だけ**である — パス名前空間を背骨にしたレイヤーの非破壊的な重ね合わせ、名前空間つきの語彙、外部レイヤー参照の発想。借りないのは UUID を主キーにした同一性 (koyu は人間可読パス)、メッシュの同梱 (形は生成物)、そして建築物のオントロジーそのものである。
+koyu is aimed at that gap. But what it borrows from USD is **the mechanism only** — non-destructive layering on a path-namespace backbone, namespaced vocabulary, and the idea of referencing external layers. What it does not borrow: identity keyed on UUIDs (koyu uses human-readable paths), shipping meshes inside the source (form is generated), and the ontology of the building as a thing.
 
-## オントロジー
+## Ontology
 
-**ある領域に何が存在し、それらがどういう関係にあるかを形式的に定義したもの。**
+**A formal definition of what exists in a domain and how those things relate.**
 
-koyu の主題はまさにこの問い — **建築において何を「存在するもの」として数えるか** — そのものである。IFC は部材を数える。koyu は空間と、その間の関係を数える。
+koyu's subject is exactly that question — **what architecture counts as "a thing that exists".** IFC counts components. koyu counts spaces and the relations between them.
 
-近い形をした既存の体系がいくつかある。
+Several existing systems have a similar shape.
 
-- **W3C BOT** (Building Topology Ontology) — `bot:Space` と `bot:Interface` (二つの Zone の界面) を持つ。koyu の境界は `bot:Interface` の、人が書ける表面記法だと言える
-- **IndoorGML** — セル空間と双対グラフ
-- **CityGML / PLATEAU** — 都市スケールの三次元都市モデル
+- **W3C BOT** (Building Topology Ontology) — has `bot:Space` and `bot:Interface` (the interface between two zones). koyu's boundary is, in effect, an authorable surface notation for `bot:Interface`
+- **IndoorGML** — cellular space and its dual graph
+- **CityGML / PLATEAU** — three-dimensional city models at urban scale
 
-**近さは隠すべき弱点ではなく、設計上の狙いである。**近い形をしているからこそ、それらへの射影が自明になる。
+**The closeness is not a weakness to hide but the design intent.** It is precisely because the shapes are close that projections onto them are trivial.
 
-## 建築と建築物
+## Architecture and the building
 
-日本語は**建築**と**建築物**を区別する。
+Japanese distinguishes 建築 (*architecture*) from 建築物 (*the building as a thing*).
 
-**建築物**は建築基準法上のカテゴリであり、**物**としての対象である。IFC も CityGML も、規格の名が示すとおり (`IfcBuilding`)、この側のオントロジーである。
+**The building** is a category of the Building Standards Act — an object, a thing. IFC and CityGML are, as their names say (`IfcBuilding`), ontologies of that side.
 
-**建築**の側 — 空間の分節・接続・序列 — は、そこに含まれていない。**空いているのはこちら側である。**
+**Architecture** — how space is divided, connected and ordered — is not in them. **That is the side that is empty.**
 
-英語には対応する語の区別が無いので、koyu の英語の文書ではこれを "the building" と "architecture" で書き分けている。
+## Next
 
-## この先
-
-- [IFC・USD との比較](vs-ifc.md) — トークン実測つきの比較
-- [IFC4 対応表](ifc4-coverage.md)
-- [空間中心のモデル](space-is-primary.md)
-- [ファイル分割と重ね合わせ](composition-is-for-time.md)
+- [Comparison with IFC and USD](vs-ifc.md) — comparison with measured token counts
+- [IFC4 coverage](ifc4-coverage.md)
+- [The space-centred model](space-is-primary.md)
+- [Splitting and layering files](composition-is-for-time.md)

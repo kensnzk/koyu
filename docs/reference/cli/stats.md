@@ -5,21 +5,21 @@ mode: reference
 
 # koyu stats
 
-レベル別の床面積、半屋外と屋外の別掲、ゾーン別・型別・use 別の集計を出す。
+Gives floor areas by level, reports semi-outdoor and outdoor separately, and totals by zone, by type and by use.
 
-## 引数
+## Arguments
 
 ```text
 koyu stats <entry.muro>
 ```
 
-entry のパスを一つ取る。
+Takes one entry path.
 
-## 旗
+## Flags
 
-無い。
+None.
 
-## 出力
+## Output
 
 ```sh
 npx tsx src/cli.ts stats examples/house/main.muro
@@ -49,24 +49,24 @@ By zone (counted aggregation):
 By use: exclusive 92.75 m2 (100.0%)
 ```
 
-## 読み方
+## Reading it
 
-レベルは `z` の昇順に並ぶ。領域を持つ空間が一つも無いレベルは節ごと出ない。
+Levels come out in ascending `z`. A level with no space that has a region gets no section at all.
 
-空間の行はタブ区切りの `パス / 名前 / 型 / 面積` である。**面積は壁芯で数える。**
+A space's line is tab-separated: `path / name / type / area`. **Areas are measured to wall centrelines.**
 
-四つの扱いが分かれる。
+Four kinds are handled differently.
 
-| 種類 | 扱い |
+| Kind | Treatment |
 |---|---|
-| 屋内の空間 | `Subtotal` と `Total` に算入 |
-| `type:void` (吹抜け) | 面積を出さず `void (not counted as floor area)` と出る。算入しない |
-| `type:exterior` | `(outdoor, not counted)` と出て、末尾に `Outdoor` として別掲 |
-| 半屋外 | `(semi-outdoor, reported separately)` と出て、末尾に `Semi-outdoor` として別掲 |
+| An indoor space | Counted into `Subtotal` and `Total` |
+| `void:1` | No area is given; it prints `void (not counted as floor area)` and is not counted |
+| `outside:1` | Prints `(outdoor, not counted)` and is reported at the end as `Outdoor` |
+| Semi-outdoor | Prints `(semi-outdoor, reported separately)` and is reported at the end as `Semi-outdoor` |
 
-**半屋外は宣言ではなく導出である。**`exterior` に `open` か `air:1` の境界で接する空間が半屋外になる。バルコニーや外階段が床面積に入るかは法規の細目なので、算入せずに別掲する。
+**Semi-outdoor is derived, not declared.** A space that meets an `exterior` across an `open` boundary or a wall with `air:1` is semi-outdoor. Whether a balcony or an external stair counts toward floor area is a matter of regulatory detail, so it is reported separately rather than counted.
 
-`Outdoor` の行は屋外の空間があるときだけ出る。
+The `Outdoor` line only appears when there are outdoor spaces.
 
 ```sh
 npx tsx src/cli.ts stats examples/complex/main.muro
@@ -77,29 +77,29 @@ Total 31606.24 m2 (indoor floor area)
 Outdoor 736.00 m2 (plazas, open ground and the like — not counted as floor area)
 ```
 
-(この建物の全出力の末尾の一部である。)
+(An excerpt from the end of this building's full output.)
 
-## 三つの集計軸
+## Three axes of aggregation
 
-`By zone` はゾーンごとの合計である。**`site:1` を持つゾーンはここに出ない** — 敷地は床面積の集計対象ではないからで、敷地の数字は [`koyu site`](site.md) が別に答える。
+`By zone` totals per zone. **A zone carrying `site:1` does not appear here** — the site is not a floor-area aggregation, and the site numbers are answered separately by [`koyu site`](site.md).
 
-続く `<型>: <面積>` の行は、`space` の第2位置引数 (型) ごとの合計である。**型は開かれた語彙なので、綴りを間違えても静かに別の型として数えられる。**`bedroom` を `bedrom` と書いた行は、エラーにならず新しい型として一行増える。
+The `<type>: <area>` lines that follow total by the type given as `space`'s second positional argument. **Types are an open vocabulary, so a misspelling is quietly counted as a different type.** A line that says `bedrom` instead of `bedroom` does not error; it adds a row.
 
-`By use` はゾーンから継承した実効 `use` ごとの合計と、屋内床面積に対する百分率である。`use` を一つも書いていない建物ではこの行が出ない。
+`By use` totals by the effective `use` inherited from the zone, with a percentage of the indoor floor area. A building that writes no `use` anywhere does not get this line.
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 常に (空間が一つも無くても 0 である) |
-| 1 | 構文・合成エラーで読めなかった |
-| 2 | ファイルパスを渡していない (使い方が印字される) |
+| 0 | Always (even with no spaces at all) |
+| 1 | It could not be read because of a syntax or composition error |
+| 2 | No file path was given (usage is printed) |
 
-**`stats` は合否を言わない。**面積が過大でも過小でも 0 を返す。容積率の判断は [`koyu site`](site.md) が数字として出し、判定は [`koyu validate`](validate.md) が言う。
+**`stats` never passes judgement.** Whether the area is too large or too small, it returns 0. The floor area ratio comes out as a number from [`koyu site`](site.md), and the verdict from [`koyu validate`](validate.md).
 
-## 関連
+## See also
 
-- [koyu site](site.md) — 敷地面積・建蔽率・容積率
-- [koyu levels](levels.md) — 高さの積み上がり
-- [.muro リファレンス](../muro/index.md) — `space` の型と `zone` の `use`
-- [koyu コマンド](index.md) — 終了コードの共通の約束
+- [koyu site](site.md) — site area, coverage, floor area ratio
+- [koyu levels](levels.md) — how the heights stack up
+- [.muro reference](../muro/index.md) — a `space`'s type and a `zone`'s `use`
+- [The koyu command](index.md) — the shared promises about exit codes

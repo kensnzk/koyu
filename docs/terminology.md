@@ -78,7 +78,7 @@ This is the translation contract for `spec/en/` and `guide/en/`. Japanese is the
 | 階高 | floor-to-floor height | |
 | 天井高 | ceiling height | `h:` |
 | 床組み厚 | slab thickness | `slab:` |
-| 吹抜け | void | `type:void`。二層のものは double-height void |
+| 吹抜け | void | 空間は `void:1`、階をまたぐ境界は `type:void`。二層のものは double-height void |
 | 基準階 | typical floor | |
 | 例外階 | exception floor | 基準階からの差分を持つ階 |
 | 住戸 | dwelling unit | |

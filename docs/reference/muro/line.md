@@ -1,76 +1,78 @@
 ---
-title: line — 描かれた線
+title: line — a drawn line
 mode: reference
 ---
 
-# line — 描かれた線
+# line — a drawn line
 
 ```text
 boundary /pathA /pathB …
-  line <始点> <終点>
+  line <start> <end>
 ```
 
-`line` は [境界](boundary.md)の直下に**字下げ一段**で書く。境界の実現を、隣接からの導出ではなく**設計の行為**として与える一行である。
+A `line` is written **one level of indentation** under a [boundary](boundary.md). It is the one line that gives a boundary its realisation as **an act of design**, rather than deriving it from adjacency.
 
-koyu の位置はふつう「書かれない」— 壁は二つの空間が接する所に現れ、[柱](column.md)は通り芯の交点に現れる。だが所与の斜めは導出されない。隣地境界なりの隅切り、既存擁壁の折れ、斜線制限のセットバック — これらは**設計者が引いた線そのもの**であって、他の何かから出てくるものではない。`line` はそのために在る。
+Position in koyu is normally not written — a wall appears where two spaces touch, a [column](column.md) appears at a grid intersection. But a given diagonal is not derived from anything. A corner cut following a site boundary, the kink of an existing retaining wall, a setback under a height envelope — these are **the line the designer drew**, and nothing else produces them. That is what `line` is for.
 
-一つの境界に線は一本である。
+One boundary carries one line.
 
-## 端点は通り語の対
+## The endpoints are pairs of grid words
 
 ```muro-part
 boundary /L1/w04 /out t:300 spec:カーテンウォール
   line X1,Y5+2000 X2,Y6
 ```
 
-端点は `<X通り>,<Y通り>` の対で書く。どちらの通りにも `+600` / `-900` のオフセットを付けられる。**生の座標も角度も書けない** — 位置を定めるのは常に線であり、線の端点は通りである。X の通りを先に、Y の通りを後に書く。
+Each endpoint is a pair `<X grid line>,<Y grid line>`. Either may carry an offset such as `+600` or `-900`. **Neither raw coordinates nor angles can be written** — position is always fixed by a line, and the ends of a line are grid lines. The X grid line comes first, the Y grid line second.
 
-両端が同じ点なら parse がその場で止める。
+If both ends resolve to the same point, parse stops there and then.
 
-## 線は向きを持たない
+## A line has no direction
 
-**同じ二点を結ぶ線は、どちらの端から書いても同じ線である。**parse の出口で、端点は**解決座標の (x, 次いで y) 昇順**へ揃えられる。綴り (通り参照) も一緒に入れ替わるので、診断が引用する綴りは書いたとおりのまま順だけが入れ替わる。
+**The line joining two points is the same line from whichever end it is written.** At the exit of parse, the endpoints are ordered by **resolved coordinate, ascending in x then y**. The spelling (the grid references) swaps with them, so a diagnostic quotes the spelling exactly as written, only in the other order.
+
+Write
 
 ```muro-part
   line X1+3000,Y2 X1,Y2-3000
 ```
 
-と書いても、モデルにも正準JSONにも `X1,Y2-3000` `X1+3000,Y2` の順で入る。
+and both the model and the canonical JSON hold it as `X1,Y2-3000` then `X1+3000,Y2`.
 
-これは整形ではない。**この正準の始端が、線に載る開口の `at:` の起点である。**揃えなければ、正準JSONがバイト同一のまま扉が別の位置に出ることになる — 実測で `line X1,Y1+2000 X2,Y1+4000` と `line X2,Y1+4000 X1,Y1+2000` が同じハッシュのまま扉を (1500, 2500) と (4500, 3500) に置いていた。
+This is not tidying. **That canonical start point is the origin of `at:` for openings on the line.** Without it, the canonical JSON stays byte-identical while a door moves — measured, `line X1,Y1+2000 X2,Y1+4000` and `line X2,Y1+4000 X1,Y1+2000` hashed the same and put the door at (1500, 2500) and at (4500, 3500).
 
-斜めの線分の上では、開口の `at:` は **0..1 の比率でしか書けない**。通り参照は斜めの上の位置を一意に定めないからである。吊元も始端側に固定される — `hinge` の N/E/S/W は軸の言葉なので斜めには当たらない。そして `edge:` は効かない — 線がそのまま線分だからである。
+On a diagonal segment, an opening's `at:` **can only be a ratio 0..1**, because a grid reference does not fix a unique point on a diagonal. The hinge is fixed at the start end too — `hinge`'s N/E/S/W are words of the axes and do not reach a diagonal. And `edge:` has no effect, because the line is the segment.
 
-## 何を切るか
+## What it cuts
 
-線は無限直線ではない。**線に沿っては限られた区間を、線を横切っては相手を含む範囲を**切る。線の向きは `|Δy| ≥ |Δx|` なら縦向きで、縦向きなら「沿う」軸が y、「横切る」軸が x になる (ちょうど 45 度と退化した点も縦向きに数える)。
+A line is not an infinite line. **Along itself it cuts a limited interval; across itself it cuts a range that contains the other side.** A line counts as vertical when `|Δy| ≥ |Δx|` (exactly 45 degrees, and the degenerate point, count as vertical), and for a vertical line the "along" axis is y and the "across" axis is x.
 
-| 場合 | 沿う軸 | 横切る軸 |
+| Case | Along | Across |
 |---|---|---|
-| 二空間を分け直す (両側が領域を持つ) | 二つの領域の外接矩形の**積** | 二つの外接矩形の**和** |
-| 外皮を切る (片側が領域を持たない) | **線分自身の区間** | 領域を持つ側の外接矩形**全体** |
+| dividing two spaces (both sides have a region) | the **intersection** of the two bounding boxes | the **union** of the two bounding boxes |
+| cutting the envelope (one side has no region) | **the interval of the segment itself** | the **whole** bounding box of the side that has a region |
 
-この非対称が要である。無限直線として扱えば離れた翼を巻き込んで室が消え、線分の外接矩形として扱えば軸平行の線で退化して何も切れない。
+That asymmetry is the crux. Treated as an infinite line it swallows a distant wing and a room vanishes; treated as the bounding box of the segment it degenerates on an axis-parallel line and cuts nothing.
 
-切り分けは**窓の中の割付を合併してから両側へ分け直す**ので、**二空間の場合は合計面積が保存される** — 一方が失う三角形をもう一方が得る。外皮を切る場合は領域を持つ側だけが減り、相手は面積を得ない。
+The cut merges the allocations inside the window and then redivides them across the line, so **dividing two spaces preserves total area** — the triangle one loses, the other gains. Cutting the envelope shrinks only the side that has a region; the other side gains nothing.
 
-**残す側は書かない。**窓に触れる凸片を丸ごと測り、線の左右の面積を比べて偏った側を残す。外皮を切る場合は領域を持つ側の偏りがそのまま残す側になる。二空間の場合は両側の偏りを取り、片方だけが 0 なら他方の反対を当てる。
+**Which side to keep is not written.** Every convex piece touching the window is measured whole, and the side with the greater area is kept. For an envelope cut, the bias of the side that has a region is the side kept. For two spaces, both biases are taken, and if exactly one of them is zero, the opposite of the other is used.
 
 ```muro
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:200
 
 space /L1/a room X1..X2 Y1..Y2 name:隅切りの室
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/a /out t:150 spec:RC
   line X1,Y2-3000 X1+3000,Y2
 ```
 
-6000 × 6000 の割付から北西の三角形 (3000 × 3000 ÷ 2 = 4.5 m2) が落ちる。
+The north-west triangle (3000 × 3000 ÷ 2 = 4.5 m2) falls off the 6000 × 6000 allocation.
 
 ```text
   /L1/a	隅切りの室	room	31.50 m2
@@ -78,30 +80,30 @@ boundary /L1/a /out t:150 spec:RC
 Total 31.50 m2 (indoor floor area)
 ```
 
-面積も、壁の位置も、屋根の輪郭も、この切られた形から出る。**形を読む入口は一つ**であり、書かれた割付ではなく導出された凸片がそれである。
+Area, wall positions and roof outlines all come out of that cut form. **There is one door into the form**, and it is the derived convex pieces, not the written allocation.
 
-## 切り分けの帰結 — effect
+## What the cut did — effect
 
-線が実際に何をしたかは、**導出したその場で記録される**。公開型 `DrawnLine` の `effect` がそれを持つ。
+What a line actually did is recorded **at the moment of the derivation**. The public type `DrawnLine` carries it as `effect`.
 
-| 値 | 意味 | 診断 |
+| Value | Meaning | Diagnostic |
 |---|---|---|
-| `"cut"` | 実際に形を切った | — |
-| `"nothing"` | 何も切らなかった — 既定の隣接線と同じか、線の及ぶ範囲に割付が無い | LIN03 (warning) |
-| `"undetermined"` | 残す側が決まらない — 両側の偏りが同じ、または割付をちょうど二等分した | LIN01 (error) |
+| `"cut"` | it really cut the form | — |
+| `"nothing"` | it cut nothing — it coincides with the default adjacency line, or no allocation lies within its reach | LIN03 (warning) |
+| `"undetermined"` | which side to keep cannot be decided — the two sides are equally biased, or the allocation is bisected exactly | LIN01 (error) |
 
-後から計算し直さないのは、そのときには**既に切られた形**が相手になっていて、母集団が食い違うからである。`effect` は導出の帰結であって書かれた構成ではないので、正準JSONには出ない。
+It is not recomputed later because by then the form has **already been cut**, and the population would no longer agree. `effect` is a consequence of the derivation rather than part of the written composition, so it does not appear in the canonical JSON.
 
-既定の隣接線をなぞった線は何も切らない。
+A line tracing the default adjacency line cuts nothing.
 
 ```muro-warn
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:200
 space /L1/a room X1..X2 Y1..Y2 name:室
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out t:150
   line X1,Y1 X2,Y1
 ```
@@ -110,16 +112,16 @@ boundary /L1/a /out t:150
 ⚠ Line X1,Y1..X2,Y1 cuts nothing (it is the same as the default adjacency line, or falls outside the allocation)
 ```
 
-正方形を対角に割る線は、左右の面積が等しいので残す側が決まらない。
+A line across the diagonal of a square leaves equal areas either side, so no side can be chosen.
 
 ```muro-bad
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:200
 space /L1/a room X1..X2 Y1..Y2 name:室
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out t:150
   line X1,Y1 X2,Y2
 ```
@@ -128,36 +130,36 @@ boundary /L1/a /out t:150
 ✖ Line X1,Y1..X2,Y2 bisects the allocation exactly, so which side to keep is undetermined
 ```
 
-直し方は「どちらを残したいのかが分かるように線を引き直す」である。既定値を選んで黙って進むことはしない。
+The fix is to redraw the line so it is visible which side you meant to keep. No default is chosen and nothing proceeds in silence.
 
-## 一本の線は複数の境界に共有される
+## One line is shared by several boundaries
 
-貫通通路の壁は、その前を通る区画の数だけ境界を持つ。各境界が線の全長を実現すると、平面には同じ壁が何本も重なる。
+The wall of a through-passage has as many boundaries as there are tenancies fronting it. If each boundary realised the full length of the line, the plan would carry the same wall several times over.
 
-そうならないよう、線は両空間の凸片の辺で切られ、**左右がちょうど a と b になっている区間だけ**が残る。判定は a と b について対称である。だから同じ綴りの `line` を複数の境界に書いてよく、それぞれが自分の受け持つ区間だけを実現する。
+To stop that, the line is cut by the edges of the convex pieces of both spaces, and **only the intervals whose two sides are exactly a and b** survive. The test is symmetric in a and b. So the same `line` spelling may be written on several boundaries, and each realises only the stretch it is responsible for.
 
-## 切り分けの順序
+## The order of the cuts
 
-線の切り分けは `parse` の出口で**一度だけ**、**正準の境界順**に効く。冪等ではない — 先に効いた線が縮めた領域が、後の線の窓を縮める。
+Cutting happens **once**, at the exit of parse, **in canonical boundary order**. It is not idempotent — a region shrunk by an earlier line shrinks the window of a later one.
 
-順序は宣言順ではない。正準JSONは境界の宣言順を捨てるので、宣言順に切ると同じ正準形から違う面積が出てしまう。並びの規則は正準JSONと同じで、`between` の辞書順、同じ `between` は直列化順である。合成で境界が挟まっても並びは動かない。
+The order is not declaration order. The canonical JSON discards the declaration order of boundaries, so cutting in declaration order would let one canonical form yield different areas. The ordering rule is the canonical JSON's own: the lexical order of `between`, and for equal `between`, serialisation order. Composition inserting boundaries between others does not disturb it.
 
-## 診断
+## Diagnostics
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| LIN01 | error | 二つの空間を分離しない — 両側の偏りが同じ、または割付をちょうど二等分して残す側が決まらない |
-| LIN02 | error | 垂直の境界に描かれた線 — 線は平面を区切る行為である |
-| LIN03 | warning | 何も切っていない |
+| LIN01 | error | the line does not separate the two spaces — the two sides are equally biased, or the allocation is bisected exactly |
+| LIN02 | error | a line drawn on a vertical boundary — drawing a line is an act of dividing a plan |
+| LIN03 | warning | the line cuts nothing |
 
-領域を持たない空間同士の境界に線は引けない (LIN01)。同じ空間対に**二本の線**を引くのは矛盾ではない — 二箇所の隅切りは別々の線であり、境界の同一性の鍵には線の綴りが入る。
+No line may be drawn on a boundary between two spaces that both lack a region (LIN01). **Two** lines on the same pair of spaces is not a contradiction, though — two corner cuts are two different lines, and the spelling of the line is part of a boundary's identity.
 
-コードから原因と直し方を引くなら [診断コードの一覧](../diagnostics/index.md) がある。
+To look a code up by cause and cure, there is [the list of diagnostic codes](../diagnostics/index.md).
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [boundary](boundary.md) — 線が実現する関係
-- [space](space.md) — 線に切られる割付
-- [door](door.md) — 斜めの線分の上での `at:` と吊元
-- [polygon](polygon.md) — もう一つの「書かれる形」
+- [boundary](boundary.md) — the relation a line realises
+- [space](space.md) — the allocation a line cuts
+- [door](door.md) — `at:` and the hinge on a diagonal segment
+- [polygon](polygon.md) — the other written shape
 - [koyu check](../cli/check.md)

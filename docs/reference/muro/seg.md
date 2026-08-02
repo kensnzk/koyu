@@ -1,36 +1,36 @@
 ---
-title: seg — 境界上の数えない分節
+title: seg — an uncounted segmentation along a boundary
 mode: reference
 ---
 
-# seg — 境界上の数えない分節
+# seg — an uncounted segmentation along a boundary
 
 ```text
 boundary /pathA /pathB …
-  seg w:3000 [at:…] [edge:…] [属性…]
+  seg w:3000 [at:…] [edge:…] [attributes…]
 ```
 
-`seg` は [境界](boundary.md)の直下に**字下げ一段**で書く区間である。壁の途中から仕様が変わるとき — 一枚の壁の一部だけがカーテンウォールになるとき、耐火の等級がそこだけ違うとき — に、その区間を名指すために使う。
+A `seg` is an interval written **one level of indentation** under a [boundary](boundary.md). Use it when the specification changes partway along a wall — one stretch of a single wall is curtain wall, or the fire rating differs just there — and that stretch needs naming.
 
-**seg は数えない。**通行にも接続にも面積にも影響せず、`koyu doors` のグラフに辺を張らず、壁に穴も空けない。運ぶのは**位置と、その区間で上書きされる属性**だけである。
+**A seg is not counted.** It affects neither passage nor connection nor area, adds no edge to the graph `koyu doors` walks, and cuts no hole in the wall. All it carries is **a position, and the attributes overridden over that interval**.
 
-これが `seg` と[開口](door.md)を分ける唯一の線である。開口は壁を割る — 区間の列としての壁に、そこだけ穴が空く。`seg` は壁を割らない。
+That is the one line separating a `seg` from an [opening](door.md). An opening divides the wall — the wall, as a run of intervals, gets a hole exactly there. A `seg` does not divide it.
 
-## 位置の書き方は開口と同じ
+## Position is written exactly as it is for an opening
 
-| 属性 | 要否 | 意味 |
+| Attribute | Required | Meaning |
 |---|---|---|
-| `w` | **必須** | 線分に沿った区間の長さmm |
-| `at` | 任意 | 比率 0..1 (既定 0.5、クランプされる) または通り参照による絶対位置 (クランプしない) |
-| `edge` | 任意 | 境界線分が複数あるときの辺の選択 |
+| `w` | **yes** | length of the interval in mm along the segment |
+| `at` | no | a ratio 0..1 (default 0.5, clamped) or an absolute position by grid reference (not clamped) |
+| `edge` | no | choose a side where the boundary has several segments |
 
-`w` が無ければ parse がその場で止める。
+Without `w`, parse stops there and then.
 
 ```text
 ✖ seg requires a width w:(mm)
 ```
 
-置けるかどうかの判定も開口と同じ順で走る — 線分を取り、`edge` で絞り、一つも無ければ置けず、二つ以上あれば辺を選ばなければ置けず、幅が線分の長さを超えれば置けない。
+Whether it can be placed is decided in the same order as for an opening — take the segments, narrow by `edge`, place nothing if there are none, place nothing if there are two or more and no side is chosen, place nothing if the width exceeds the segment length.
 
 ```text
 ✖ There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)
@@ -38,12 +38,12 @@ boundary /pathA /pathB …
 ✖ The seg position Y1+1000 is on the wrong axis: a horizontal segment takes an X grid line
 ```
 
-## 属性は区間の上書きである
+## The attributes are an override over the interval
 
-境界の `spec` を、その区間だけ差し替える。
+They replace the boundary's `spec` for that stretch alone.
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 分節の書き方
 unit mm
 
@@ -53,7 +53,7 @@ level L1 0 h:2700 slab:200
 
 space /L1/office office X1..X2 Y1..Y2 name:事務室
   area X1..X1+2000 Y1..Y2 name:土間 floor:モルタル
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/office /out t:180 spec:RC edge:S
   seg w:3000 at:X1+4000 spec:カーテンウォール fire:60
@@ -64,65 +64,65 @@ boundary /L1/office /out t:180 spec:RC edge:W
   door w:900 h:2100 name:出入口
 ```
 
-南面の壁は `spec:RC` だが、X1+4000 を中心とする 3000mm の区間だけは `spec:カーテンウォール` である。その同じ区間に窓を一枚吊ってある — `seg` と開口は互いに干渉しないので、重なって構わない。
+The south wall is `spec:RC`, except for a 3000mm interval centred on X1+4000, which is `spec:カーテンウォール`. A window hangs over that same interval — a `seg` and an opening do not interfere, so they may overlap freely.
 
-面積は 8000 × 5000 のままである。
+The area is still 8000 × 5000.
 
 ```text
   /L1/office	事務室	office	40.00 m2
 ```
 
-`seg` も、その上の `area` も、一平米も動かしていない。
+Neither the `seg` nor the `area` above it moved a single square metre.
 
-## area との対
+## The pair with area
 
-数えない分節は二つある。**どちらも隔離則に従う** — 位置と上書き属性だけを運び、構成には影響しない。
+There are two uncounted segmentations. **Both obey the same isolation rule** — they carry a position and overriding attributes, and touch nothing in the composition.
 
-| | どこに書く | 何を割る |
+| | Written under | What it divides |
 |---|---|---|
-| `seg` | [境界](boundary.md)の直下 | 境界線分の上の区間 |
-| `area` | [空間](space.md)の直下 | 室の中の領域 |
+| `seg` | a [boundary](boundary.md) | an interval along a boundary segment |
+| `area` | a [space](space.md) | a region inside a room |
 
-`area` は床材の切替のような室内の分節で、親の領域からはみ出せば警告 (SEG02)、領域を持たない空間に書けばエラー (SEG01) になる。
+`area` is the indoor counterpart — a change of floor finish, say. Spilling outside the parent region is a warning (SEG02); writing one on a space that has no region is an error (SEG01).
 
-## 属性の層
+## Attribute tiers
 
-| 属性 | 層 |
+| Attribute | Tier |
 |---|---|
-| `w` `at` `edge` | 構造 — parse が型つきの欄へ持ち上げる |
-| `name` | 解釈 |
-| `spec` `fire` `sound` | 運搬 — 運ぶだけ |
+| `w` `at` `edge` | structure — parse lifts these into typed fields |
+| `name` | interpreted |
+| `spec` `fire` `sound` | carried — carried and nothing more |
 
-台帳に無いキーは書けない。
+A key outside the ledger cannot be written.
 
 ```text
 ✖ seg (/L1/a | /out) carries finish:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.finish:タイル)
 ```
 
-ドットを含む名前空間 (`acme.finish:タイル`) を付ければ通る。core は名前空間つきのキーを読まない。
+Give it a namespace containing a dot (`acme.finish:tile`) and it passes. The core does not read namespaced keys.
 
-`name` は**その境界の中で一意な名**である。同じ境界に同じ名の `seg` を二つ書けば UID04 になる。
+`name` is **a name unique inside that boundary**. Two segs on one boundary with the same name is UID04.
 
-## 診断
+## Diagnostics
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| SEG03 | warning | `open` 境界の上の `seg` — 壁が無いので解釈されない |
-| SEG04 | error | `seg` を置ける境界線分が無い |
-| SEG05 | error | 境界線分が複数で、どれか決まらない |
-| SEG06 | error | `seg` の幅が線分の長さを超える |
-| SEG07 | error | 絶対位置の軸違い |
-| SEG08 | error | 絶対位置のはみ出し |
-| VRT06 | warning | 垂直の境界の上の `seg` — 解釈されない |
-| UID04 | error | 同じ境界の中で `name` が重複 |
+| SEG03 | warning | a `seg` on an `open` boundary — there is no wall, so it is not interpreted |
+| SEG04 | error | there is no boundary segment to place the `seg` on |
+| SEG05 | error | there is more than one segment and none is chosen |
+| SEG06 | error | the `seg` is wider than the segment |
+| SEG07 | error | an absolute position on the wrong axis |
+| SEG08 | error | an absolute position runs off the segment |
+| VRT06 | warning | a `seg` on a vertical boundary — not interpreted |
+| UID04 | error | duplicate `name` within one boundary |
 
-SEG01 と SEG02 は `area` の診断であって `seg` のものではない。
+SEG01 and SEG02 belong to `area`, not to `seg`.
 
-コードから原因と直し方を引くなら [診断コードの一覧](../diagnostics/index.md) がある。
+To look a code up by cause and cure, there is [the list of diagnostic codes](../diagnostics/index.md).
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [boundary](boundary.md) — `seg` が載る関係
-- [door](door.md) / [window](window.md) — 壁を割る開口
-- [space](space.md) — `area` を書く先
+- [boundary](boundary.md) — the relation a `seg` sits on
+- [door](door.md) / [window](window.md) — the openings that do divide the wall
+- [space](space.md) — where `area` is written
 - [koyu check](../cli/check.md)

@@ -5,21 +5,21 @@ mode: reference
 
 # koyu levels
 
-テキストの矩計。レベルを `z` の降順に並べ、階高を天井高と床組み厚に分解して見せる。
+A section drawing in text. Lists the levels in descending `z` and breaks each storey height down into ceiling height and floor build-up.
 
-## 引数
+## Arguments
 
 ```text
 koyu levels <entry.muro>
 ```
 
-entry のパスを一つ取る。
+Takes one entry path.
 
-## 旗
+## Flags
 
-無い。
+None.
 
-## 出力
+## Output
 
 ```sh
 npx tsx src/cli.ts levels examples/house/main.muro
@@ -33,13 +33,13 @@ L1	z:0	h:2400	slab:400
   ↑ storey height 2900 = ceiling 2400 + slab 500
 ```
 
-レベルの行はタブ区切りで、`h` と `slab` は書かれているときだけ出る。上から下へ、つまり **`z` の降順**に並ぶ。
+A level's line is tab-separated, and `h` and `slab` appear only when written. The order runs top to bottom, that is, **descending `z`**.
 
-`↑` の行は**その行のレベルから見た上への積み上がり**である。階高は上のレベルの `z` との差で、内訳はそのレベルの `h` と**上のレベルの** `slab` で説明される。上に何も無い最上部のレベルには `↑` の行が付かない。
+The `↑` line is **the stack-up seen from the level on the line above it**. The storey height is the difference to the next level's `z`, and the breakdown explains it with that level's `h` and **the next level's** `slab`. The topmost level, with nothing above it, gets no `↑` line.
 
-## 余りが出るとき
+## When there is a remainder
 
-階高が天井高と床組み厚の和より大きければ、その差が `left over` として出る。天井裏の懐である。
+If the storey height exceeds ceiling plus floor build-up, the difference comes out as `left over`. It is the ceiling void.
 
 ```sh
 npx tsx src/cli.ts levels examples/tower/main.muro
@@ -55,19 +55,19 @@ L9	z:26000	h:2500	slab:450
   ↑ storey height 3000 = ceiling 2500 + slab 450 + 50 left over
 ```
 
-(この建物の全出力の先頭である。)
+(The head of this building's full output.)
 
-## 分解が出ないとき
+## When the breakdown is missing
 
-内訳が出るのは、**そのレベルが `h` を持ち、かつ上のレベルが `slab` を持つ**ときだけである。どちらかを欠くと `↑ storey height <数>` だけになる。
+The breakdown appears only when **that level has an `h` and the level above has a `slab`**. Missing either leaves just `↑ storey height <n>`.
 
-そのどちらの欠落も [`koyu check`](check.md) が別に言う。天井高が定まらないのはエラー、床組み厚が無いのは警告である (どちらの場合も高さの検査は行われない)。
+Both absences are reported separately by [`koyu check`](check.md): an undetermined ceiling height is an error, a missing floor build-up is a warning. (In either case the height checks do not run.)
 
-**空間を持たない屋上レベル (`level R 5800 slab:500`) を宣言しておくと、最上階も検査の対象になる。**上に何も無ければ最上階の階高は計算できない。
+**Declaring a roof level with no spaces (`level R 5800 slab:500`) brings the top storey into the checks too.** With nothing above it, the top storey height cannot be computed.
 
-## 空間側の天井高
+## Per-space ceiling heights
 
-`h:` を持つ空間があれば、末尾に別掲される。実効の天井高 — つまりその空間に効いている値 — が出る。
+Spaces carrying `h:` are listed at the end, with the effective ceiling height — the value in force for that space.
 
 ```sh
 npx tsx src/cli.ts levels examples/office.muro
@@ -82,15 +82,15 @@ L1	z:0	h:2700	slab:600
 Per-space ceiling height: /L1/hall h:6700
 ```
 
-領域を持たない空間、レベルに載っていない空間はここに出ない。
+Spaces without a region, and spaces not on a level, do not appear here.
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 出せた |
-| 1 | レベルが一つも定義されていない、または構文・合成エラーで読めなかった |
-| 2 | ファイルパスを渡していない (使い方が印字される) |
+| 0 | It came out |
+| 1 | No level is defined, or the input could not be read |
+| 2 | No file path was given (usage is printed) |
 
 ```sh
 npx tsx src/cli.ts levels nolevels.muro
@@ -100,9 +100,9 @@ npx tsx src/cli.ts levels nolevels.muro
 No level is defined
 ```
 
-## 関連
+## See also
 
-- [koyu check](check.md) — 天井高と床組み厚の欠落を診断として言う
-- [koyu stats](stats.md) — レベルごとの床面積
-- [koyu plan](plan.md) — ここに出るレベル名を `-l` に渡す
-- [.muro リファレンス](../muro/index.md) — `level` の書き方
+- [koyu check](check.md) — reports missing ceiling heights and floor build-ups as diagnostics
+- [koyu stats](stats.md) — floor area per level
+- [koyu plan](plan.md) — pass one of these level names to `-l`
+- [.muro reference](../muro/index.md) — how to write `level`

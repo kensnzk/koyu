@@ -7,7 +7,7 @@
 // 対象は `daylight:1` を書いた空間だけ — 型からは推定しない (ADR-0020)。
 // 「どの室に採光の問いを掛けるか」は書き手の宣言であって、core の推定ではない。
 
-import { areaM2, isCoveredAbove, isSemiOutdoor, type Model, type Space } from "./model.js";
+import { areaM2, isCoveredAbove, isSemiOutdoor, type Model, type Space, isOutside} from "./model.js";
 
 /** 庇下・バルコニー下 (上に空間がある半屋外) 越しの窓の係数 — 縁側補正に倣う粗い値。
  *  上が開いた半屋外 (庭・最上階バルコニー) 越しは 1.0 (ADR-0009) */
@@ -46,7 +46,7 @@ export function daylightInputs(model: Model): DaylightInput[] {
       const os = model.spaces.get(other);
       if (!os) continue;
       const factor =
-        os.type === "exterior"
+        isOutside(os)
           ? 1
           : isSemiOutdoor(model, os)
             ? isCoveredAbove(model, os)

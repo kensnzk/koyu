@@ -11,9 +11,9 @@ export type Attrs = Record<string, AttrValue>;
  * このツールが受理する言語版 (ADR-0017)。旧版は意味保存の場合のみ受理される (checkが検査する)。
  * **この並びが版の新旧の順である** — 版の比較はここの添字で行う (辞書順では 0.5 が 1.0 より後になる)
  */
-export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2", "0.3", "0.4", "0.5", "1.0"];
+export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2", "0.3", "0.4", "0.5", "1.0", "1.1"];
 /** 版宣言を省略したときの解釈 — 常に最新版の意味論 (省略はツール版を跨いで意味安定ではない) */
-export const DEFAULT_LANGUAGE_VERSION = "1.0";
+export const DEFAULT_LANGUAGE_VERSION = "1.1";
 
 /**
  * 機械形式 (正準JSON) が自分を名乗る版 (ADR-0036)。**言語版でもツール版でもない** —
@@ -21,7 +21,7 @@ export const DEFAULT_LANGUAGE_VERSION = "1.0";
  * majorは既存のキーの名前・並び・照合順・正規化・数の綴りが変わったとき (既存の文書のバイトが変わる)。
  * 意味論の版は muro が持つので、`koyu` キー (書かれた版宣言の素通し) とは別の面である
  */
-export const CANONICAL_FORMAT = "koyu-canonical/1.0";
+export const CANONICAL_FORMAT = "koyu-canonical/1.1";
 
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";
@@ -83,13 +83,17 @@ export interface Space {
    *  パスの第一義は集計の階層 — レベルは既定で先頭セグメントから読むが、
    *  階を跨ぐくくり (メゾネット) は level: 属性で明示する (ADR-0008) */
   path: string;
-  /** 開かれた語彙 (room, corridor, exterior, void, ...) */
-  type: string;
+  /**
+   * 自由なラベル。**core はこの語を一切読まない**ので、綴りは何の判定にも効かない。
+   * 集計の軸と図面の刷り字にだけ現れる。任意 — 書かなければ何も無い。
+   * 構成の事実 (外部・吹抜け) は `outside:` / `void:` の宣言の側にある
+   */
+  type?: string;
   /** 所属レベル名 (パス先頭セグメント、または level: 属性) */
   level?: string;
   /** グリッド参照。複数矩形の合併でL字などを表す (rectsと同順) */
   grids: GridRef[];
-  /** グリッド解決後のmm矩形の合併。exteriorなどは空。**書かれた割付** (セル) であって形ではない */
+  /** グリッド解決後のmm矩形の合併。`outside:1` の空間などは空。**書かれた割付** (セル) であって形ではない */
   rects: Rect[];
   /**
    * 導出された領域 — 凸片の集合 (ADR-0022)。既定は rects をそのまま写したもので、
@@ -258,7 +262,7 @@ export interface Model {
   /** 柱の宣言 (ADR-0023)。位置は書かれない — 通り芯の交点から導出される */
   columns: ColumnDecl[];
   /**
-   * 合成に参加したレイヤー (ローダーのキー)。**この並びが層の強度順序である** (spec/composition.md)。
+   * 合成に参加したレイヤー (ローダーのキー)。**この並びが層の強度順序である** (docs/reference/muro/import.md)。
    * entry が添字0で最も弱く、**後の層ほど強い**。単一ソースの parse では空。
    *
    * 並びは import 行を深さ優先で平坦化した順で、同じ層が二度現れれば最初の位置を保つ。
@@ -415,7 +419,7 @@ export class SourceError extends Error {
 }
 
 /**
- * 空間の導出された領域 (ADR-0022 / spec/derivation.md §1)。**形を読むときの唯一の入口**。
+ * 空間の導出された領域 (ADR-0022 / docs/reference/form/index.md)。**形を読むときの唯一の入口**。
  * parse の出口で必ず埋まるので、割付への退避は「未parseのModelを手で組んだとき」だけに効く。
  * この式が各所に散っていたことが、rects と pieces の取り違えを四度生んだ根である。
  */
@@ -450,8 +454,8 @@ export function columnSites(
   const floors = [...model.spaces.values()].filter(
     (s) =>
       s.level === level &&
-      s.type !== "exterior" &&
-      s.type !== "void" &&
+      !isOutside(s) &&
+      !isVoid(s) &&
       s.rects.length > 0 &&
       // 空しか支えない床には柱を立てない (ADR-0030): 半屋外で上に床も無い
       // 屋上庭園・テラスは、柱が持ち上げるものを持たない
@@ -480,7 +484,7 @@ export function columnSites(
 
 /**
  * そのレベルに立つ柱を導く (ADR-0023)。
- * 通り芯の交点のうち、床のある空間 (exterior・void を除く) の内側にあるものへ柱を置く。
+ * 通り芯の交点のうち、床のある空間 (`outside:1`・`void:1` を除く) の内側にあるものへ柱を置く。
  * 位置はどこにも書かれていない — 通りと床という既にある事実の交わりから現れる
  */
 export function columnsFor(model: Model, level: string): Column[] {
@@ -507,7 +511,23 @@ export function columnsFor(model: Model, level: string): Column[] {
 }
 
 /**
- * 半屋外か — 宣言ではなく導出。外部 (type:exterior) に対して
+ * 建物の外部か。**空間の型ではなく `outside:1` の宣言で決まる。**
+ *
+ * 型の位置は開かれた語彙であって、そこから構成の事実を読むと綴りが意味を持ってしまう。
+ * `exteriorr` の一字で外部が屋内になり、延床が倍になりながら check は緑だった。
+ * 宣言なら台帳が綴りを守る (ATT03/ATT02) — 開かれた語彙を殺さずに塞ぐ唯一の形である。
+ */
+export function isOutside(s: Space): boolean {
+  return s.attrs["outside"] === 1;
+}
+
+/** 吹抜けか — 床が無いので、面積にも通行にも数えない。[[isOutside]] と同じ理由で宣言である */
+export function isVoid(s: Space): boolean {
+  return s.attrs["void"] === 1;
+}
+
+/**
+ * 半屋外か — 宣言ではなく導出。外部 (outside:1) に対して
  * open または air:1 (手すり等、遮蔽しない物) の境界で接する空間は半屋外である (ADR-0007)
  */
 export function isSemiOutdoor(model: Model, s: Space): boolean {
@@ -516,7 +536,8 @@ export function isSemiOutdoor(model: Model, s: Space): boolean {
     if (b.kind !== "open" && !b.air) continue;
     const other = b.a === s.path ? b.b : b.b === s.path ? b.a : undefined;
     if (!other) continue;
-    if (model.spaces.get(other)?.type === "exterior") return true;
+    const o = model.spaces.get(other);
+    if (o && isOutside(o)) return true;
   }
   return false;
 }
@@ -575,7 +596,7 @@ export function zoneAreaM2(model: Model, zonePath: string): number {
  */
 export function isIndoor(model: Model, s: Space): boolean {
   if (s.rects.length === 0) return false;
-  if (s.type === "exterior" || s.type === "void") return false;
+  if (isOutside(s) || isVoid(s)) return false;
   return !isSemiOutdoor(model, s);
 }
 
@@ -617,7 +638,7 @@ export function displayName(s: Space): string {
 /**
  * 開口が主張する同一性の名 (ADR-0039)。
  *
- * 開口の同一性は「含む対象 + その中で一意な名」から導かれる (spec/scope.md §5)。だが
+ * 開口の同一性は「含む対象 + その中で一意な名」から導かれる (docs/reference/scope.md)。だが
  * `name:` はアセットからも流れ込む — そしてアセットの `name` は**型の名**である
  * (`asset W1 window … name:掃き出し窓`)。同じ建具を一枚の壁に二枚並べるのは
  * ごく普通の設計であり、型の名を同一性の主張として読めば、それが衝突になってしまう。
@@ -692,7 +713,7 @@ export function newUids(model: Model, count = 1): string[] {
 /** 正準JSONの空間エントリ (書かれた表記・正準順)。semantic diff (ADR-0018) が比較基底として共有する */
 export function canonicalSpaceEntry(s: Space): Record<string, unknown> {
   return {
-    type: s.type,
+    ...(s.type !== undefined ? { type: s.type } : {}),
     // 明示の level: (パス先頭セグメントと異なる所属 — メゾネット等) は書かれた構成として保存する。
     // これが無いとJSONだけでは所属レベル (垂直検査・集計・既定境界の前提) を復元できない
     ...(s.level !== undefined && s.path.split("/")[1] !== s.level ? { level: s.level } : {}),

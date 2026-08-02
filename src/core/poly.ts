@@ -1,4 +1,4 @@
-// koyu — 凸片の幾何 (ADR-0022 / spec/derivation.md §1)
+// koyu — 凸片の幾何 (ADR-0022 / docs/reference/form/index.md)
 //
 // 空間の形は**凸片の集合** (`Pt[][]`) である (ADR-0022)。矩形はその入口の綴りにすぎない。
 // この層が存在しなかったあいだ、面積・被覆・切り分けの計算が model / graph / fabric /
@@ -110,9 +110,6 @@ export function splitByRect(pieces: Pt[][], w: Rect): { inside: Pt[][]; outside:
   return { inside, outside };
 }
 
-/** 軸平行の窓の内側だけ */
-export const clipToRect = (poly: Pt[], w: Rect): Pt[] => splitByRect([poly], w).inside[0] ?? [];
-
 /**
  * 凸片から凸片群を引く (差集合)。結果も凸片の集合。
  *
@@ -167,10 +164,6 @@ export function unionArea(pieces: Pt[][]): number {
   }
   return total;
 }
-
-/** 凸片の集合から凸片群を引く */
-export const subtractAll = (pieces: Pt[][], covers: Pt[][]): Pt[][] =>
-  pieces.flatMap((p) => subtract(p, covers));
 
 // ---- 窓 (どの範囲で測り、どの範囲を切るか) ----
 

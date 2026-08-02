@@ -1,27 +1,27 @@
 ---
-title: check と validate の違い
+title: check and validate
 mode: explanation
 ---
 
-# check と validate の違い
+# check and validate
 
-koyu は「正しさ」を二つに割っている。
+koyu splits "correct" in two.
 
-| | 構成の診断 | 建築の判定 |
+| | Structural diagnostics | Architectural judgement |
 |---|---|---|
-| コマンド | `koyu check` | `koyu validate` |
-| 返す型 | `Diagnostic { code, severity }` | `Finding { rule, level }` |
-| 識別子 | `BND04` `SUF01` — 3 字 + 2 桁 | `envelope.gap` `access.unreachable` — 章.規則 |
-| 重さ | `error` / `warning` | `violation` / `caution` |
-| 数 | **65 コード** | **15 規則** |
-| 版 | **凍る** | 凍らない。増える |
-| 言うこと | 書かれたものがデータとして矛盾していない | 建築として妥当である (らしい) |
+| Command | `koyu check` | `koyu validate` |
+| Return type | `Diagnostic { code, severity }` | `Finding { rule, level }` |
+| Identifier | `BND04`, `SUF01` — three letters plus two digits | `envelope.gap`, `access.unreachable` — chapter.rule |
+| Weight | `error` / `warning` | `violation` / `caution` |
+| Count | **65 codes** | **15 rules** |
+| Version | **freezes** | does not freeze; grows |
+| What it says | what is written does not contradict itself as data | this is (probably) architecturally sound |
 
-**綴りが違うのは事故を防ぐためである。**`ENV01` と `envelope.gap` を取り違える読み手はいない。
+**They are spelled differently on purpose.** No reader will confuse `ENV01` with `envelope.gap`.
 
-## 型からして別である
+## Even the types are separate
 
-`--json` を付けると、二つが同じ形をしていないことがそのまま見える。
+Add `--json` and the fact that these two are not the same shape is visible directly.
 
 ```sh
 npx tsx src/cli.ts check b1.muro --json
@@ -62,24 +62,24 @@ npx tsx src/cli.ts validate gap.muro --json
 ]
 ```
 
-**混ぜられないことがこの型の仕事である。**下流の道具が二つを同じ配列に流し込むには、まず型を潰す必要がある。潰したことは、その時点で見える。
+**Being unmixable is the job of these types.** For a downstream tool to pour both into one array, it must first flatten the types — and that flattening is visible at the moment it happens.
 
-## 分ける理由 — 求められる品質が違う
+## Why split — the quality demanded is different
 
-**判定は、何が正しいかがまだ定まっていない領域である。**採光の有効係数をどう扱うか、階段の窮屈さをどこで切るか、避難の経路をどう数えるか — どれも管轄と時代と建物用途で変わる。定まらないうちに凍結すれば、**誤りを凍結することになる。**
+**Judgement is a domain where what is correct is not settled yet.** How to treat daylight correction factors, where to cut off a cramped stair, how to count egress routes — every one of these varies by jurisdiction, by era and by building use. Freeze before they settle and **you freeze the mistake.**
 
-一方、構成の診断は定まっている。パスが一意か。参照先が存在するか。二つの領域が重なっていないか。**これらは「読解の一部」であって、意見の余地が無い。**
+Structural diagnostics, by contrast, are settled. Is the path unique? Does the referent exist? Do two regions overlap? **These are part of reading, and admit no opinion.**
 
-だから扱いを変える。
+So they are treated differently.
 
-| | 構成の診断 | 建築の判定 |
+| | Structural diagnostics | Architectural judgement |
 |---|---|---|
-| 足すときの値段 | **高い** — 解析・合成・機械形式・仕様・文書を同時に触る | **安い** — 台帳に一行と、頁に一節 |
-| 間違えたときの値段 | **極めて高い** — 凍った面に誤りが残る | 安い — 書き直せる |
-| 精度 | 完全でなければならない | **粗くてよい** |
-| 捨てられるか | 捨てられない | **捨ててよい** |
+| Cost of adding | **high** — parsing, composition, machine format, spec and docs all at once | **low** — one ledger line and one page section |
+| Cost of being wrong | **very high** — the error sits on a frozen surface | low — rewrite it |
+| Precision | must be complete | **may be coarse** |
+| Can it be thrown away? | no | **yes** |
 
-**汚くてよい条件は一つ。判定の結果が、原本の保証と混同されないこと。**その条件を、綴りと型と出力の文言が三重に守っている。
+**There is one condition on being allowed to be messy: the result of a judgement must never be mistaken for a guarantee about the source.** Spelling, type and output wording all defend that condition.
 
 ```text
 Validation — 2 violations / 0 cautions
@@ -89,44 +89,44 @@ Validation — 2 violations / 0 cautions
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
 ```
 
-判定が緑でも、それは判定が緑なだけである。
+Green judgement means only that judgement is green.
 
-## 判定が粗くてよいことの実例
+## Coarseness in practice
 
-`envelope.gap` は外皮の穴を報告する規則である。判定の母集団は**外部への境界を一本でも書いたレベルだけ**である。
+`envelope.gap` reports holes in the envelope. Its population is **only those levels where at least one boundary to the exterior has been written**.
 
-外皮をまだ模型にしていない階を「穴が開いている」とは言わない。**「書き始めたなら閉じきる」という整合の要求であって、完全性の要求ではない。**
+It will not call a storey whose envelope has not been modelled yet "full of holes". **It demands "if you started, finish"; it does not demand completeness.**
 
-これは正確な規則ではない。基本計画の途中で外皮を一階分だけ書いた模型は、他の階について何も言われない。**それでよい** — 粗さを直す値段が安いからこの粗さで出せる。core にこの規則があったら、この粗さでは出せなかった。
+This is not a precise rule. A scheme-stage model with the envelope written for one storey hears nothing about the others. **That is fine** — the rule can afford to be this coarse because fixing the coarseness is cheap. Were this rule in core, it could not have shipped this coarse.
 
-## 数を返すのは core、線を引くのは判定
+## core returns numbers; judgement draws lines
 
-集計とグラフの問いは core が持つ。**ただし合否を言わない。**
+Aggregate and graph queries live in core. **They never say pass or fail.**
 
-| 問い | core が返すもの | 判定が言うこと |
+| Question | What core returns | What judgement says |
 |---|---|---|
-| 採光 | 床面積と有効窓面積 | 1/7 を満たすか (`daylight.ratio`) |
-| 敷地 | 敷地面積・接道長・建築面積・延べ面積とその商 | 2m の接道 (`site.frontage`)・はみ出し (`site.escape`) |
-| 縦動線 | 段数・蹴上・踏面・勾配 | 窮屈さ (`stair.proportion`)・勾配 (`run.slope`) |
-| 外皮 | 何にも面していない外周の線分 | それが穴か (`envelope.gap`) |
-| 動線 | 最少扉数の経路と通行可能性 | 外部へ出られるか (`access.unreachable` ほか) |
-| 柱と開口 | 通り芯から立つ柱と線分上の開口 | 重なっているか (`column.blocksdoor`) |
+| Daylight | floor area and effective window area | does it meet 1/7 (`daylight.ratio`) |
+| Site | site area, frontage, footprint, gross floor area and their ratios | 2 m of frontage (`site.frontage`), escaping the site (`site.escape`) |
+| Vertical circulation | riser count, rise, tread, slope | crampedness (`stair.proportion`), slope (`run.slope`) |
+| Envelope | perimeter segments faced by nothing | is that a hole (`envelope.gap`) |
+| Circulation | fewest-door routes and passability | can you get out (`access.unreachable` and the rest) |
+| Columns and openings | columns standing on grid crossings, openings on segments | do they overlap (`column.blocksdoor`) |
 
-**閾値は建築の側にある。**1/7 も 2m も 240mm も、原本の構成が満たすべき不変量ではない。数を返すところまでが core で、数に線を引くのが判定である。
+**The thresholds belong to architecture.** 1/7, 2 m and 240 mm are not invariants the composition must satisfy. core goes as far as returning the number; judgement draws the line on it.
 
-この線引きがあるので、**別の管轄の判定を足すことは core を一行も触らずにできる。**規則を台帳に足し、頁を一つ書けば終わりで、言語の版は動かない。
+Because of that split, **adding a judgement for another jurisdiction touches not one line of core.** Add a rule to the ledger, write a page, and you are done; the language version does not move.
 
-## 判定は増える面である
+## Judgement is a surface that grows
 
-15 規則は完成形ではない。防火区画、日影、斜線、動線の距離、バリアフリー、設備の成立 — 判定として書けることは山ほど残っている。
+Fifteen rules is not a finished set. Fire compartmentation, shadow studies, setback envelopes, travel distances, accessibility, whether services can be made to work — there is a great deal left that could be written as judgement.
 
-**それらは全部この面に足される。**足しても `.muro` の意味は変わらず、既存のファイルは読めたまま、正準 JSON は同じバイト列を出す。
+**All of it goes onto this surface.** Adding it does not change what `.muro` means, existing files still read, and canonical JSON still emits the same bytes.
 
-**言語に足すことは高く、判定に足すことは安い。**この非対称を作るためにこそ、二つを分けてある。
+**Adding to the language is expensive; adding to judgement is cheap.** Creating that asymmetry is precisely why the two are kept apart.
 
-## この先
+## Next
 
-- [言語・判定・描画の分離](three-domains.md) — この分割の全体像
-- [診断 — koyu check](../reference/diagnostics/index.md) — 65 コード
-- [判定 — koyu validate](../reference/validate/index.md) — 15 規則
-- [約束の範囲](../reference/scope.md)
+- [Separating language, checks and drawing](three-domains.md) — the whole picture of this split
+- [Diagnostics — koyu check](../reference/diagnostics/index.md) — 65 codes
+- [Judgement — koyu validate](../reference/validate/index.md) — 15 rules
+- [Scope](../reference/scope.md)

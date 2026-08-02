@@ -1,115 +1,115 @@
 ---
-title: door — 通行する開口
+title: door — the opening you pass through
 mode: reference
 ---
 
-# door — 通行する開口
+# door — the opening you pass through
 
 ```text
 boundary /pathA /pathB …
-  door [アセット名] w:900 [h:2100] [at:…] [edge:…] [hinge:…] [swing:…] [style:…] [name:…]
+  door [AssetName] w:900 [h:2100] [at:…] [edge:…] [hinge:…] [swing:…] [style:…] [name:…]
 ```
 
-`door` は [境界](boundary.md)の直下に**字下げ一段**で書く。字下げは一段だけで、入れ子は無い。境界の下に置けるのは `door` / `window` / `seg` / [`line`](line.md) の四つだけである。
+A `door` is written **one level of indentation** under a [boundary](boundary.md). There is one level only; nothing nests further. The four things that may sit under a boundary are `door`, `window`, `seg` and [`line`](line.md).
 
-扉は**通行**を担う。`wall` の境界は扉が一枚も無ければ通れない — [窓](window.md)を何枚並べても通れるようにはならない。`koyu doors` が数えるのはこの扉であり、避難や動線の問いはすべてここを通る。
+A door carries **passage**. A `wall` boundary cannot be passed unless it has at least one door — no number of [windows](window.md) will ever make it passable. `koyu doors` counts doors and nothing else, and every question about escape and circulation goes through them.
 
-## 幅と高さ
+## Width and height
 
-| 属性 | 要否 | 意味 |
+| Attribute | Required | Meaning |
 |---|---|---|
-| `w` | **必須** | 線分に沿った幅mm。参照した[アセット](asset.md)が与えてもよい |
-| `h` | 任意 | 高さmm |
+| `w` | **yes** | width in mm along the segment. A referenced [asset](asset.md) may supply it |
+| `h` | no | height in mm |
 
-`w` が無ければ形が作れないので、parse がその場で止める。
+Without `w` no form can be built, so parse stops there and then.
 
 ```text
 ✖ door requires a width w:(mm) (the asset may supply it)
 ```
 
-`h` は書かなくてよい。**扉は床から立ち上がり、`h` があればそこまで、無ければまぐさ高 2000mm まで達する。**
+`h` may be left out. **A door rises from the floor: to `h` if it is written, and to the lintel height of 2000mm if it is not.**
 
-| 書いたもの | 開口の z 範囲 (FL からの高さ) |
+| Written | z range of the opening (above FL) |
 |---|---|
 | `door w:900 h:2100` | 0 … 2100 |
 | `door w:900` | 0 … 2000 |
 
-まぐさ高 2000mm は導出の定数であって、属性では動かせない。
+The 2000mm lintel is a constant of the derivation; no attribute moves it.
 
-壁は「開口で割られた区間の列」として現れる。扉の位置には床から上端までの穴が空き、その上に垂れ壁が残る。**壁の黒帯を紙の色で塗り潰して穴に見せる操作は、この規則があるかぎり存在しない。**
+A wall appears as a run of intervals divided by its openings. Where a door sits there is a hole from the floor to the head, with a spandrel above it. **So long as that rule holds, there is no such operation as painting over a black wall band in the paper colour to fake a hole.**
 
-## at — 線分上のどこに
+## at — where along the segment
 
-`at` には二つの綴りがある。
+`at` has two spellings.
 
-| 書き方 | 意味 |
+| Written | Meaning |
 |---|---|
-| `at:0.4` | 線分の長さに対する**比率** 0..1。既定は 0.5。中心が線分に収まるよう**クランプされる** (診断は出ない) |
-| `at:X2+450` | 通り参照による**絶対位置**。クランプしない — はみ出せばエラー |
+| `at:0.4` | a **ratio** 0..1 of the segment length. Default 0.5. **Clamped** so the centre stays on the segment (no diagnostic is raised) |
+| `at:X2+450` | an **absolute position** by grid reference. Not clamped — overrunning is an error |
 
-中心の座標は線分の始点から終点へのパラメータで取る。**線分は導出されたものも[描かれた線](line.md)のものも常に座標の昇順に向く**ので、同じ `at:` は境界の `a`/`b` の書き順にも線の端点の書き順にも依らず同じ場所を指す。
+The centre is taken as a parameter from the start of the segment to its end. **Segments — both derived ones and those of a [drawn line](line.md) — always run in ascending coordinate order**, so the same `at:` lands in the same place regardless of which space was written as `a` and which end of the line was written first.
 
-絶対位置は軸を選ぶ。水平の線分は X 系、垂直の線分は Y 系の通り参照でなければならない。斜めの線分の上には絶対位置を置けない — 比率だけである。
+An absolute position picks an axis. A horizontal segment takes an X grid reference, a vertical segment a Y one. A diagonal segment takes no absolute position at all — only a ratio.
 
 ```text
 ✖ The door position Y1+1000 is on the wrong axis: a horizontal segment takes an X grid line
 ✖ At X1+100 the door (width 900) runs off the boundary segment (segment 0-3600mm, center allowed 450-3150mm)
 ```
 
-同じ線分に複数の開口を置くとき、中心間の距離は `(w₁+w₂)/2` 以上でなければならない。
+Where several openings share a segment, their centres must be at least `(w₁+w₂)/2` apart.
 
 ```text
 ✖ Openings overlap (door and door — center to center 720mm < the required 1800mm)
 ```
 
-## edge — どの辺か
+## edge — which side
 
-一つの境界が複数の線分に割れているとき、辺を選ばなければ扉は置けない。外部への境界はたいてい室の四方に分かれるので、`edge:` はほぼ必須になる。
+Where one boundary has split into several segments, no door can be placed until a side is picked. A boundary with the outside usually splits across all four sides of the room, so `edge:` is near enough mandatory there.
 
 ```text
 ✖ There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/living | /out)
 ```
 
-方位は N=+Y、S=−Y、E=+X、W=−X で、**a 側 — 先に書いた空間 — の形から見た辺**である。境界の側に `edge:` があればそれが先に効き、開口の `edge:` はさらにその中を絞る。
+The compass is N=+Y, S=−Y, E=+X, W=−X, and it reads **the side as seen from the form of a — the space written first**. An `edge:` on the boundary applies first; an `edge:` on the opening narrows within what is left.
 
-線分が一つも無ければ置けない (OPN04)。開口の幅が線分の長さを超えても置けない (OPN06 — 等しいときは置ける)。
+With no segments at all, nothing can be placed (OPN04). Nor can an opening wider than the segment (OPN06 — equal lengths are fine).
 
-## hinge — 吊元
+## hinge — which jamb it hangs on
 
-| 線分 | 取れる値 | 既定 |
+| Segment | Accepted | Default |
 |---|---|---|
-| 水平 | `W` / `E` | 始端側 (西) |
-| 垂直 | `N` / `S` | 始端側 (南) |
-| 斜め | — | 始端側に固定 |
+| horizontal | `W` / `E` | the start end (west) |
+| vertical | `N` / `S` | the start end (south) |
+| diagonal | — | fixed at the start end |
 
-軸違いはエラーになる。
+The wrong axis is an error.
 
 ```text
 ✖ hinge:N: a horizontal segment takes W/E
 ```
 
-`hinge` の N/E/S/W は軸の言葉なので、斜めの線分には当たらない。そこでは吊元が常に始端側に置かれる。
+N/E/S/W are words of the axes, so they do not reach a diagonal segment. There the hinge always sits at the start end.
 
-## swing — 開く側
+## swing — which side it opens into
 
-`swing:a` / `swing:b` で、境界の a 側と b 側のどちらへ開くかを書く。**書かなければ「a が領域を持てば a、でなければ b」である。**これが[境界の書き順](boundary.md)を読む二つのうちの一つである。
+`swing:a` / `swing:b` says whether the door opens toward the a side or the b side of the boundary. **Written nothing, it is "a if a has a region, otherwise b".** This is one of the two things that read [the order in which the boundary was written](boundary.md).
 
-開く**向き**は書かない。開く先の**導出された形**のうち、開口に最も近い凸片の中心へ向かう成分から決まる。軌跡は吊元を中心とする半径 = 幅の 1/4 円である。
+The **direction** it swings is not written. It follows from the component pointing at the centre of the nearest convex piece of the **derived form** of the side it opens into. The arc is a quarter circle centred on the hinge with a radius equal to the width.
 
-## style — 建具の型
+## style — the kind of leaf
 
-| 値 | 平面の表現 |
+| Value | How the plan reads it |
 |---|---|
-| `hinged` | 開き戸 (既定) — 吊元と 1/4 円の軌跡 |
-| `sliding` | 引き戸 — 軌跡を持たず、吊元の側へ引き込まれる |
-| `auto` | 自動扉 — 同じく軌跡を持たない |
+| `hinged` | a swing door (default) — hinge plus a quarter-circle arc |
+| `sliding` | a sliding door — no arc; it slides back toward the hinge side |
+| `auto` | an automatic door — likewise no arc |
 
-この三語の外は ATT02 (error) である。
+Anything outside those three words is ATT02 (error).
 
-## 書いてみる
+## Written out
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 扉の書き方
 unit mm
 
@@ -121,7 +121,7 @@ asset SD1 door w:800 h:2000 style:sliding name:片引き戸
 
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/a /L1/b t:120 spec:LGS
   door SD1 hinge:N swing:b
@@ -132,41 +132,41 @@ boundary /L1/b /out t:150 spec:EW
   door w:1200 h:2100 edge:S at:0.4 style:auto name:玄関
 ```
 
-三枚の扉が導出される中心座標は、上から順に (3600, 2250)・(1200, 0)・(5040, 0) である。二枚目は通り参照どおりの絶対位置、三枚目は長さ 3600 の線分の始点 x=3600 から 0.4 の位置である。
+The three doors are derived at centres (3600, 2250), (1200, 0) and (5040, 0) in that order. The second sits exactly where its grid reference says; the third sits 0.4 along a 3600-long segment that starts at x=3600.
 
-## 属性の層
+## Attribute tiers
 
-| 属性 | 層 |
+| Attribute | Tier |
 |---|---|
-| `w` `h` `at` `edge` `hinge` `swing` | 構造 — parse が型つきの欄へ持ち上げる |
-| `style` `name` | 解釈 — 値域が検査される |
-| `sill` `spec` `fire` | 運搬 — 運ぶだけ |
+| `w` `h` `at` `edge` `hinge` `swing` | structure — parse lifts these into typed fields |
+| `style` `name` | interpreted — the values are checked |
+| `sill` `spec` `fire` | carried — carried and nothing more |
 
-台帳に無いキーはドットを含む名前空間 (`acme.hardware:レバー`) を持たなければ書けない (ATT03)。
+A key outside the ledger cannot be written unless it carries a namespace containing a dot (`acme.hardware:lever`), or it is ATT03.
 
-`name` は**その境界の中で一意な名**であり、開口の同一性の鍵である。同じ境界に同じ名を二枚書くと UID04 になる。ただし[アセット](asset.md)から継いだ名は型の名なので、同一性の主張として数えない — 同じ建具を一枚の壁に二枚並べても衝突しない。
+`name` is **a name unique inside that boundary**, and it is the key to the opening's identity. Two openings on one boundary with the same name is UID04. A name inherited from an [asset](asset.md) is the name of a type, though, and does not count as a claim of identity — hanging the same leaf twice on one wall does not collide.
 
-## 診断
+## Diagnostics
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| OPN01 | error | `hinge` の軸違い |
-| OPN02 | error | 同じ線分上の開口同士の重なり |
-| OPN03 | warning | `open` 境界の上の扉 — 通行に影響しない (常に通れる) |
-| OPN04 | error | 開口を置ける境界線分が無い |
-| OPN05 | error | 境界線分が複数で、どれか決まらない |
-| OPN06 | error | 開口の幅が線分の長さを超える |
-| OPN07 | error | 絶対位置の軸違い、または斜めの線分への絶対位置 |
-| OPN08 | error | 絶対位置のはみ出し |
-| VRT05 | warning | 垂直の境界の上の開口 — 解釈されない |
-| UID04 | error | 同じ境界の中で `name` が重複 |
+| OPN01 | error | `hinge` is on the wrong axis |
+| OPN02 | error | two openings overlap on one segment |
+| OPN03 | warning | a door on an `open` boundary — no effect on passage (it is always passable) |
+| OPN04 | error | there is no boundary segment to place the opening on |
+| OPN05 | error | there is more than one segment and none is chosen |
+| OPN06 | error | the opening is wider than the segment |
+| OPN07 | error | an absolute position on the wrong axis, or on a diagonal segment |
+| OPN08 | error | an absolute position runs off the segment |
+| VRT05 | warning | an opening on a vertical boundary — not interpreted |
+| UID04 | error | duplicate `name` within one boundary |
 
-コードから原因と直し方を引くなら [診断コードの一覧](../diagnostics/index.md) がある。
+To look a code up by cause and cure, there is [the list of diagnostic codes](../diagnostics/index.md).
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [boundary](boundary.md) — 扉が載る関係
-- [window](window.md) — 通行しない開口
-- [asset](asset.md) — 建具の既定値を一箇所に置く
-- [seg](seg.md) — 穴を空けない、境界上の分節
+- [boundary](boundary.md) — the relation a door sits on
+- [window](window.md) — the opening you do not pass through
+- [asset](asset.md) — putting the defaults of a leaf in one place
+- [seg](seg.md) — a segmentation along a boundary that cuts no hole
 - [koyu check](../cli/check.md)

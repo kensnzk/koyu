@@ -1,27 +1,27 @@
 ---
-title: 到達できない空間を見つけて開ける
+title: Find spaces you cannot reach
 mode: howto
 ---
 
-# 到達できない空間を見つけて開ける
+# Find spaces you cannot reach
 
-閉じ込められた空間を機械的に洗い出し、通れる経路を書き足す。
+Sweep out the rooms nobody can get into, then write the openings that connect them.
 
-**`check` はこの問いを持たない。**`check` が見るのは書かれたものがデータとして矛盾していないかだけで、建物が使えるかどうかは見ない。**扉を一枚も書かない建物は `check` 緑のまま完全に密閉されている。**捕まえるのは [`koyu validate`](../reference/cli/validate.md) と [`koyu doors`](../reference/cli/doors.md) であり、編集のたびに `check` と並べて走らせる検査である。
+**`check` does not ask this question.** `check` looks at whether what is written contradicts itself as data, not at whether the building works. **A building with no doors at all is completely sealed and completely green.** [`koyu validate`](../reference/cli/validate.md) and [`koyu doors`](../reference/cli/doors.md) are what catch it — run them beside `check` on every edit.
 
-以下の出力例のファイルパスは、実際には絶対パスで出る。読みやすさのためファイル名だけに縮めてある。
+File paths in the output below are absolute when you actually run these commands. They are shortened to bare filenames here for readability.
 
-## なぜ密閉されるのか
+## Why buildings seal themselves
 
-接する空間のあいだには、宣言が無ければ**扉のない壁**が導かれる。これが既定であり、既定のままの壁は通れない。部屋を足すという行為は、それだけでは何にもつながらない。
+Between two spaces that touch, and about which nothing has been declared, a **wall with no door** is derived. That is the default, and a default wall is not passable. Adding a room is, by itself, connecting it to nothing.
 
-## 1. 全体を掃く — validate
+## 1. Sweep the whole model — validate
 
-`validate` が、外部へ辿り着けない室を**すべて**列挙する。起点を自分で挙げる必要は無い。
+`validate` lists **every** room that cannot reach the exterior. You do not have to nominate a starting point.
 
 ```muro
-koyu 1.0
-name 閉じた家
+koyu 1.1
+name A sealed house
 unit mm
 
 grid X 0 3600 5400
@@ -30,15 +30,15 @@ level L1 0 h:2400 slab:500
 level L2 2900 h:2400 slab:500
 level R 5800 slab:500
 
-space /out exterior name:外部
+space /out name:Outside outside:1
 
 space /L1/ldk  ldk     X1..X2 Y1..Y2 name:LDK
-space /L1/hall hall    X2..X3 Y1..Y2 name:玄関
-space /L2/bed  bedroom X1..X2 Y1..Y2 name:寝室
-space /L2/hall hall    X2..X3 Y1..Y2 name:2階ホール
+space /L1/hall hall    X2..X3 Y1..Y2 name:Entry
+space /L2/bed  bedroom X1..X2 Y1..Y2 name:Bedroom
+space /L2/hall hall    X2..X3 Y1..Y2 name:Upper-hall
 
 boundary /L1/hall /out edge:E t:150 spec:EW
-  door w:900 name:玄関扉
+  door w:900 name:Front-door
 boundary /L1/ldk /out edge:W t:150 spec:EW
 boundary /L2/bed /out edge:W t:150 spec:EW
 boundary /L2/hall /out edge:E t:150 spec:EW
@@ -52,7 +52,7 @@ $ npx tsx src/cli.ts check house.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-境界を5本しか書いていないのに7本ある。差の2本が、接する室のあいだに導かれた既定の壁である。`check` は緑である。
+Five boundaries written, seven reported: the other two are default walls between rooms that touch. `check` is green.
 
 ```text
 $ npx tsx src/cli.ts validate house.muro
@@ -65,26 +65,26 @@ $ npx tsx src/cli.ts validate house.muro
 Validation — 2 violations / 4 cautions
 ```
 
-`access.unreachable` が違反 (violation) で、これが閉じ込めである。**`validate` の終了コードは violation があるときだけ 1 になる** — CI で避難経路を守るならこの一本でよい。ついでに `envelope.gap` が、何にも面していない外周も教えている。判定の一覧は [判定リファレンス](../reference/validate/index.md) にある。
+`access.unreachable` is the violation, and it is the trap. **`validate` exits 1 only when there are violations** — that single command is enough to defend escape routes in CI. As a bonus, `envelope.gap` reports perimeter that faces nothing at all. The full list of rules is the [validation reference](../reference/validate/index.md).
 
-## 2. 一本の経路を数える — doors
+## 2. Count one route — doors
 
-起点と終点を決めて数えるなら `doors` を使う。最少扉数と経路が出る。
+To count between a specific pair, use `doors`. It prints the fewest doors and the route.
 
 ```text
 $ npx tsx src/cli.ts doors house.muro /L2/bed /out
 Cannot reach /out from /L2/bed
 ```
 
-終了コードは1。緑の建物の寝室から外に出られない。
+Exit code 1. You cannot get out of the bedroom of a green building.
 
-## 3. どの辺が壁なのかを見る — graph
+## 3. See which edges are walls — graph
 
-[`koyu graph`](../reference/cli/graph.md) は空間ごとの隣接を、境界の種別つきで並べる。
+[`koyu graph`](../reference/cli/graph.md) lists each space's neighbours with the kind of boundary between them.
 
 ```text
 $ npx tsx src/cli.ts graph house.muro
-/out (外部)
+/out (Outside)
   — 1 door → /L1/hall  (spec:EW)
   | wall → /L1/ldk  (spec:EW)
   | wall → /L2/bed  (spec:EW)
@@ -92,24 +92,24 @@ $ npx tsx src/cli.ts graph house.muro
 /L1/ldk (LDK)
   | wall → /out  (spec:EW)
   | wall → /L1/hall
-/L1/hall (玄関)
+/L1/hall (Entry)
   — 1 door → /out  (spec:EW)
   ↕ stair → /L2/hall
   | wall → /L1/ldk
-/L2/bed (寝室)
+/L2/bed (Bedroom)
   | wall → /out  (spec:EW)
   | wall → /L2/hall
-/L2/hall (2階ホール)
+/L2/hall (Upper-hall)
   | wall → /out  (spec:EW)
   ↕ stair → /L1/hall
   | wall → /L2/bed
 ```
 
-`| wall` は扉のない壁で、通れない。**`spec:` が付いていない `| wall` の行が、書いていないのに導かれた既定の壁である** — `/L1/ldk` ↔ `/L1/hall` と `/L2/bed` ↔ `/L2/hall` がそれで、寝室からホールへも、LDKから玄関へも出られない。
+`| wall` is a wall with no door in it, and nobody passes. **A `| wall` line with no `spec:` is a default wall — derived, never written.** Those are `/L1/ldk` ↔ `/L1/hall` and `/L2/bed` ↔ `/L2/hall`: no way out of the bedroom, no way out of the living room.
 
-## 4. 通れない境界に扉を書く
+## 4. Write a door on the boundary that blocks
 
-既定の壁に扉を足すには、その組の境界を宣言して字下げで `door` を置く。**宣言した時点で既定の導出は止まり、書いた境界がその組の境界になる。**
+To put a door into a default wall, declare that pair's boundary and indent a `door` under it. **Declaring it stops the default from being derived; what you wrote is now the boundary for that pair.**
 
 ```muro-part
 boundary /L1/ldk /L1/hall t:120 spec:LGS
@@ -126,55 +126,55 @@ $ npx tsx src/cli.ts validate house.muro
 Validation — 0 violations / 4 cautions
 ```
 
-違反は消えた。残る4件は外皮の穴 (caution) である。
+The violations are gone. The four remaining cautions are gaps in the envelope.
 
-## 辺になる境界
+## Which boundaries are edges
 
-`doors` と `access.unreachable` が使うグラフの辺は、境界の型だけで決まる。
+The graph that `doors` and `access.unreachable` walk is decided by the boundary type alone.
 
-| 境界 | 通れるか | 数える扉 |
+| Boundary | Passable | Doors counted |
 |---|---|---|
-| `wall` (既定・扉なし) | 通れない | — |
-| `wall` + `door` | 通れる | 1枚 |
-| `open` | 常に通れる | 0枚 |
-| `stair` (垂直) | 常に通れる | 0枚 |
-| `shaft` (垂直) | 通れない | — |
-| `void` (垂直) | 通れない | — |
+| `wall` (default, no door) | no | — |
+| `wall` with a `door` | yes | 1 |
+| `open` | always | 0 |
+| `stair` (vertical) | always | 0 |
+| `shaft` (vertical) | no | — |
+| `void` (vertical) | no | — |
 
-**`air:1` は遮蔽の話であって通行の話ではない。**手すり・柵・塀は外気を通すが人は通さない。通したければ扉を書く。
+**`air:1` is about enclosure, not about passage.** Balustrades, railings and boundary walls let air through and people not. Write a door if people should pass.
 
 ```text
 $ npx tsx src/cli.ts doors examples/house.muro /home/void /home/hall2
 Cannot reach /home/hall2 from /home/void
 ```
 
-シャフトは連続していても通行路ではない。
+A shaft is continuous and still not a route.
 
 ```text
 $ npx tsx src/cli.ts doors examples/tower/main.muro /L1/ev /L2/ev
 Cannot reach /L2/ev from /L1/ev
 ```
 
-## 「到達できません」が返る三つの原因
+## Three reasons for "cannot reach"
 
-1. **経路上に扉のない壁がある。**既定の壁を含む。最も多い。
-2. **経路が `shaft` か `void` を通っている。**エレベーターシャフトは全階を貫いていても通行路ではない。
-3. **起点か終点のパスが存在しない。**綴り違いも同じ文言で返るので、まず `graph` でパスを確かめる。
+1. **A doorless wall on the route** — including a default wall. By far the most common.
+2. **The route passes through a `shaft` or a `void`.** A lift shaft that runs the full height of the building is not a route.
+3. **The start or the end path does not exist.** A misspelling produces the same message, so check the paths with `graph` first.
 
-## 床の無いところへ開いた扉
+## Doors that open where there is no floor
 
-扉があるのに通れないという例外が一つある。吹抜けにしか開いていない扉である。床が無いのだから誰も渡れない。
+There is one way to have a door and still not pass: a door that opens only onto a void. There is no floor, so nobody crosses.
 
 ```text
 ✖ [access.unreachable] voidonly.muro:line 14: Cannot reach the exterior: /L2/bed (no passable boundary leads out — write a door)
 ✖ [access.voidonly] voidonly.muro:line 14: Doors open only onto a void: /L2/bed (they open where there is no floor, so nobody can pass)
 ```
 
-同じことは屋外にも起きる。**バルコニーに `window` しか書かなければ、そのバルコニーには出られない。**開口は通行 (`door`) か採光 (`window`) のどちらかであり、一枚が両方を担うとは言えない。掃き出しサッシは引違い部を `door`、FIX部を `window` として分けて書く。
+The same thing happens outdoors. **Give a balcony only a `window` and nobody can step onto it.** An opening is either passage (`door`) or daylight (`window`); one opening cannot claim both. A full-height sliding assembly is written as a `door` for the sliding leaves and a `window` for the fixed panes.
 
-## 車が出られない
+## Cars that cannot get out
 
-駐車場には人の経路とは別の判定がある。`access.parking` は、**幅 2400mm 以上の開口・`type:open` の境界・斜路**のいずれも無い駐車場を violation にする。人用の扉しか無い地下駐車場は、これで捕まる。
+Car parks have their own test, separate from the pedestrian one. `access.parking` is a violation when a car park has **no opening at least 2400mm wide, no `type:open` boundary and no ramp**. A basement car park served only by a person-sized door is caught here.
 
 ```text
 ✖ [access.parking] main.muro:line 32: No vehicle route to the exterior: /B2/park (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)
@@ -182,8 +182,8 @@ Cannot reach /L2/ev from /L1/ev
 ✖ [access.parking] main.muro:line 33: No vehicle route to the exterior: /B2/ramp (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)
 ```
 
-## 次に
+## Next
 
-- [階をつなぐ](connect-storeys.md) — `stair` と `shaft` の使い分け
-- [住戸を室に割る](subdivide-a-unit.md) — 割った室のあいだに扉を置く
-- [階を足す](add-a-storey.md) — 足した階が浮いていないことの確認
+- [Connect storeys](connect-storeys.md) — when to use `stair` and when `shaft`
+- [Subdivide a dwelling into rooms](subdivide-a-unit.md) — doors between the rooms you just made
+- [Add a storey](add-a-storey.md) — confirming the new storey is not floating

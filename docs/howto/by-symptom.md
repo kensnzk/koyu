@@ -1,17 +1,17 @@
 ---
-title: 症状から診断を引く
+title: Look up a diagnostic by symptom
 mode: howto
 ---
 
-# 症状から診断を引く
+# Look up a diagnostic by symptom
 
-**人向けの `check` の出力に診断コードは出ない。**出るのは `ファイル:行: 本文` だけである。手元にあるのが本文か、あるいは「なんとなくおかしい」という感触だけのとき、この頁から引く。
+**Human-readable `check` output carries no diagnostic codes.** All you get is `file:line: message`. When what you have in hand is that message — or nothing but a feeling that something is off — start here.
 
-コードを持っているなら、ここではなく[診断コード索引](../reference/diagnostics/index.md)が速い。
+If you already have a code, the [diagnostic code index](../reference/diagnostics/index.md) is faster.
 
-## コードを手に入れる
+## Get the code
 
-`--json` を付けると同じ診断がコード付きで出る。
+`--json` prints the same diagnostics with their codes.
 
 ```sh
 koyu check bad.muro --json
@@ -32,106 +32,106 @@ koyu check bad.muro --json
 ]
 ```
 
-`message` は**本文だけ**で、位置接頭辞を含まない。位置は `line` と `file` が別に持つ。読み方の詳しい手順は[診断を読む](../reference/diagnostics/reading.md)にある。
+`message` is **the body only** — no position prefix. The position lives in `line` and `file`. The full reading procedure is on [Reading a diagnostic](../reference/diagnostics/reading.md).
 
-**severity は二つしかない。**`error` は構成が成立していない (終了コード 1)、`warning` は疑わしいが成立している (終了コード 0、`--strict` なら 1)。severity はコードの不変属性で、場合によって変わらない。
+**There are only two severities.** `error` means the composition does not stand (exit code 1); `warning` means it stands but is suspect (exit code 0, or 1 under `--strict`). Severity is an invariant property of the code and never varies by case.
 
-## 1. check がエラーで止まる
+## 1. check stops with an error
 
-本文は完全一致で検索できる。以下は本文の一部である。
+Message bodies can be searched for verbatim. Below are fragments of them.
 
-| 見えているもの | 原因 | 直し方 | コード |
+| What you see | Cause | Fix | Code |
 |---|---|---|---|
-| `Undefined grid line name: X1` | `grid` が無い、または通り参照を使う行より**後**にある | `grid X` と `grid Y` を、使う最初の行より前に書く → [よくある詰まり](troubleshooting.md#1-通り名が未定義だと言われる) | 合成エラー |
-| `A region is given as two ranges, X?..X? and Y?..Y?` | ほとんどは**型 (第2位置引数) の書き忘れ**。領域の一つ目が型として読まれている | `space <パス> <型> X?..X? Y?..Y?` の順に書く → [よくある詰まり](troubleshooting.md#4-領域の書き方を叱られる) | 合成エラー |
-| `has a region, but its level cannot be determined` | `level` 行が無い。**パスに `/L1/` と書いてもレベルの宣言にはならない** | `level L1 0 h:2400 slab:150` を、使う行より前に書く | [SUF02](../reference/diagnostics/suf.md) |
-| `The ceiling height of … cannot be determined` | 空間の `h:` もレベルの `h:` も無い | どちらかに `h:` を書く | [SUF01](../reference/diagnostics/suf.md) |
-| `The spaces do not touch, so no boundary can be derived` | 角だけで触れている。接触には**長さのある共有辺**が要る | 矩形を重ねて辺を共有させるか、その `boundary` 行を消す → [よくある詰まり](troubleshooting.md#2-接していないと言われる) | [BND04](../reference/diagnostics/bnd.md#bnd04) |
-| `There is more than one boundary segment; pick an edge with edge:N/E/S/W` | 外部との境界が室の外周の複数の辺に割れている | 開口に `edge:` で辺を選ぶ。`N`=+Y / `S`=−Y / `E`=+X / `W`=−X | [OPN05](../reference/diagnostics/opn.md#opn05) / `seg` は [SEG05](../reference/diagnostics/seg.md) |
-| `No boundary segment can hold the door` | その空間対に境界線分が一本も無い | 相手の空間と本当に接しているかを `koyu graph` で確かめる | [OPN04](../reference/diagnostics/opn.md#opn04) |
-| `Space regions overlap:` | 領域を持つ空間の下に、領域を持つ子空間を置いている | 親を `zone` にする → [数える分節と数えない分節](uncounted-divisions.md) | [GEO02](../reference/diagnostics/geo.md#geo02) |
-| `Regions within … overlap:` | 一つの空間が `+` で合併した矩形同士が重なっている | 重ならないように割る | [GEO01](../reference/diagnostics/geo.md#geo01) |
-| `References an undefined space:` | パスの綴り違い、またはその空間を宣言した層を `import` していない | パスを直すか `import` を足す | [REF01](../reference/diagnostics/ref.md) |
-| `Duplicate boundary:` | 同じ空間対に境界が二本ある | 一本に統合するか、両方に `edge:` を付けて別の辺に限定する | [BND02](../reference/diagnostics/bnd.md#bnd02) |
-| `A wall boundary cannot be written to a space on a different level` | 階を跨ぐ関係を壁として書いている | `type:stair` / `type:shaft` / `type:void` を使う | [BND03](../reference/diagnostics/bnd.md#bnd03) |
-| `Openings overlap` | 同じ境界線分の上で扉と窓が近すぎる | `at:` をずらす | [OPN02](../reference/diagnostics/opn.md#opn02) |
-| `The door width … exceeds the boundary segment length` | 開口が壁より長い | 幅を縮めるか、壁を伸ばす | [OPN06](../reference/diagnostics/opn.md#opn06) |
-| `is written as a positive number:` | 解釈される属性の値が数値として読めない (`h:24OO` のように英字が混じっている) | 綴りを直す | [ATT01](../reference/diagnostics/att.md) |
-| `A boundary type is wall / open / stair / shaft / void:` | 語彙の決まった属性に台帳外の値を書いた | 台帳の語に直す | [ATT02](../reference/diagnostics/att.md) |
-| `which is not in the ledger (check the spelling, or add a namespace…)` | **台帳に無い属性キーを、名前空間なしで書いた。**`nmae:` は黙って通らない | 綴りを直すか、運ぶだけの値なら `acme.note:` のように名前空間を付ける | [ATT03](../reference/diagnostics/att.md) |
-| `daylight is either 1 … or 0` | `daylight:` に 0/1 以外を書いた | `daylight:1` か `daylight:0` にする | [DAY01](../reference/diagnostics/day.md) |
-| `Duplicate uid:` | 同じ `uid` が二つの対象に付いている | 片方を `new_uids` が発行した新しい値にする → [同一性](../reference/identity.md) | [UID03](../reference/diagnostics/uid.md) |
-| `A koyu 0.5 file uses a 1.0 word:` | 古い版を宣言したファイルに新しい語 (`over` / `drop` / 集合編集) を書いた | `koyu 1.0` に上げる | [VER04](../reference/diagnostics/ver.md) |
-| `One layer holds two opinions about … ` | 同じ層が同じ属性に二度意見を持っている | 上書きは別の層から行う → [実測を計画に重ねる](write-as-built.md) | 合成エラー |
-| `No such target for over:` | `over` の対象が合成されていない | 綴りを直すか、定義した層より後ろに置く | 合成エラー |
-| `Duplicate space path:` | 二つの層が同じパスを定義している | 片方を `over` に変えるか、パスを分ける | 合成エラー |
+| `Undefined grid line name: X1` | No `grid`, or it sits **after** the line that uses the grid reference | Write `grid X` and `grid Y` before the first line that uses them → [Common traps](troubleshooting.md#1-undefined-grid-line-name) | composition error |
+| `A region is given as two ranges, X?..X? and Y?..Y?` | A region needs **two** ranges, one on X and one on Y; only one is written | Write both axes: `space <path> [type] X?..X? Y?..Y?` → [Common traps](troubleshooting.md#4-a-region-is-given-as-two-ranges) | composition error |
+| `has a region, but its level cannot be determined` | There is no `level` line. **Writing `/L1/` in the path does not declare a level.** | Write `level L1 0 h:2400 slab:150` before the lines that use it | [SUF02](../reference/diagnostics/suf.md) |
+| `The ceiling height of … cannot be determined` | Neither the space's `h:` nor the level's `h:` exists | Write `h:` on one of them | [SUF01](../reference/diagnostics/suf.md) |
+| `The spaces do not touch, so no boundary can be derived` | They meet only at a corner. Touching requires **a shared edge with length** | Extend one rectangle so an edge is shared, or delete the `boundary` line → [Common traps](troubleshooting.md#2-the-spaces-do-not-touch) | [BND04](../reference/diagnostics/bnd.md#bnd04) |
+| `There is more than one boundary segment; pick an edge with edge:N/E/S/W` | The boundary to the exterior falls on several edges of the room's perimeter | Pick the edge on the opening with `edge:`. `N`=+Y / `S`=−Y / `E`=+X / `W`=−X | [OPN05](../reference/diagnostics/opn.md#opn05), or [SEG05](../reference/diagnostics/seg.md) for `seg` |
+| `No boundary segment can hold the door` | That pair of spaces has no boundary segment at all | Check with `koyu graph` whether they really touch | [OPN04](../reference/diagnostics/opn.md#opn04) |
+| `Space regions overlap:` | A space with a region has a child space with a region | Make the parent a `zone` → [Counted and uncounted divisions](uncounted-divisions.md) | [GEO02](../reference/diagnostics/geo.md#geo02) |
+| `Regions within … overlap:` | Rectangles unioned with `+` inside one space overlap each other | Split them so they do not | [GEO01](../reference/diagnostics/geo.md#geo01) |
+| `References an undefined space:` | A misspelled path, or the layer declaring that space is not imported | Fix the path or add the `import` | [REF01](../reference/diagnostics/ref.md) |
+| `Duplicate boundary:` | Two boundaries on the same pair of spaces | Merge them into one, or give both an `edge:` limiting them to different edges | [BND02](../reference/diagnostics/bnd.md#bnd02) |
+| `A wall boundary cannot be written to a space on a different level` | A relation across storeys written as a wall | Use `type:stair` / `type:shaft` / `type:void` | [BND03](../reference/diagnostics/bnd.md#bnd03) |
+| `Openings overlap` | A door and a window sit too close on the same boundary segment | Move one with `at:` | [OPN02](../reference/diagnostics/opn.md#opn02) |
+| `The door width … exceeds the boundary segment length` | The opening is longer than the wall | Narrow it, or lengthen the wall | [OPN06](../reference/diagnostics/opn.md#opn06) |
+| `is written as a positive number:` | An interpreted attribute's value does not read as a number (`h:24OO` has letters in it) | Fix the spelling | [ATT01](../reference/diagnostics/att.md) |
+| `A boundary type is wall / open / stair / shaft / void:` | A value outside the ledger on an attribute with a fixed vocabulary | Use a word from the ledger | [ATT02](../reference/diagnostics/att.md) |
+| `which is not in the ledger (check the spelling, or add a namespace…)` | **An attribute key not in the ledger, with no namespace.** `nmae:` does not pass silently | Fix the spelling, or add a namespace such as `acme.note:` if the value is only carried | [ATT03](../reference/diagnostics/att.md) |
+| `daylight is either 1 … or 0` | Something other than 0 or 1 on `daylight:` | Write `daylight:1` or `daylight:0` | [DAY01](../reference/diagnostics/day.md) |
+| `Duplicate uid:` | The same `uid` on two targets | Replace one with a fresh value from `new_uids` → [Identity](../reference/identity.md) | [UID03](../reference/diagnostics/uid.md) |
+| `A koyu 0.5 file uses a 1.0 word:` | A newer word (`over`, `drop`, set editing) in a file declaring an older version | Raise it to `koyu 1.0` | [VER04](../reference/diagnostics/ver.md) |
+| `One layer holds two opinions about …` | One layer holds two opinions about one attribute | Override from another layer → [Lay measurements over the plan](write-as-built.md) | composition error |
+| `No such target for over:` | The target of `over` was never composed | Fix the spelling, or place it after the layer that defines it | composition error |
+| `Duplicate space path:` | Two layers define the same path | Turn one into an `over`, or split the paths | composition error |
 
-## 2. check は警告だけ出す
+## 2. check emits warnings only
 
-`--strict` を付けない限り終了コードは 0 である。**放っておくと形が生成されないものが混じっている。**
+The exit code stays 0 unless you pass `--strict`. **Some of these mean nothing gets generated.**
 
-| 見えているもの | 意味 | どうするか | コード |
+| What you see | What it means | What to do | Code |
 |---|---|---|---|
-| `has no slab:, so not one floor is generated on this storey` | そのレベルの床が一枚も出ない | `level L1 0 h:2400 slab:150` のように `slab:` を書く | [SUF03](../reference/diagnostics/suf.md) |
-| `There are no spaces beneath zone …` | ゾーンの配下が空。パス接頭辞が噛み合っていない | ゾーンのパスか空間のパスを直す | [ZON01](../reference/diagnostics/zon.md) |
-| `A space shares its path with a zone` | 同じパスに空間とゾーンの両方がある | どちらか一方にする | [ZON02](../reference/diagnostics/zon.md) |
-| `A door on a vertical boundary is not interpreted` | 階段・シャフト・吹抜けの境界に開口を書いた。通行には効かない | 開口を消す。通行は垂直境界そのものが持つ | [VRT05](../reference/diagnostics/vrt.md#vrt05) |
-| `A door on an open boundary has no effect on passage` | `type:open` は既に通れる | 開口を消すか、境界を `wall` に戻す | [OPN03](../reference/diagnostics/opn.md#opn03) |
-| `cuts nothing` | 描いた線が既定の隣接線と同じか、割付の外にある | 線を引き直すか、消す | [LIN03](../reference/diagnostics/lin.md) |
-| `The area spills outside the region of` | `area` が親の空間からはみ出している | 範囲を縮める → [数える分節と数えない分節](uncounted-divisions.md) | [SEG02](../reference/diagnostics/seg.md) |
-| 柱の宣言に対して立つ柱が 0 本 | 通り芯の交点に床が無い、または半屋外で上に床が無い | 宣言する通りか、床のある範囲を見直す | [COL01](../reference/diagnostics/col.md) |
+| `has no slab:, so not one floor is generated on this storey` | No floor is produced on that level | Write `slab:`, as in `level L1 0 h:2400 slab:150` | [SUF03](../reference/diagnostics/suf.md) |
+| `There are no spaces beneath zone …` | The zone has no members; the path prefix does not line up | Fix either the zone path or the space paths | [ZON01](../reference/diagnostics/zon.md) |
+| `A space shares its path with a zone` | Both a space and a zone occupy the same path | Settle on one of them | [ZON02](../reference/diagnostics/zon.md) |
+| `A door on a vertical boundary is not interpreted` | An opening written on a stair, shaft or void boundary. It has no effect on passage | Delete it. Passage is carried by the vertical boundary itself | [VRT05](../reference/diagnostics/vrt.md#vrt05) |
+| `A door on an open boundary has no effect on passage` | `type:open` is already passable | Delete the opening, or make the boundary a `wall` again | [OPN03](../reference/diagnostics/opn.md#opn03) |
+| `cuts nothing` | The drawn line matches the default adjacency line, or falls outside the allocation | Redraw it, or delete it | [LIN03](../reference/diagnostics/lin.md) |
+| `The area spills outside the region of` | An `area` runs past its parent space | Shrink its extent → [Counted and uncounted divisions](uncounted-divisions.md) | [SEG02](../reference/diagnostics/seg.md) |
+| No column stands for a column declaration | There is no floor at that grid crossing, or the space is semi-outdoor with no floor above | Revisit the declared grid lines, or the extent with a floor | [COL01](../reference/diagnostics/col.md) |
 
-## 3. check は緑なのに正しくない
+## 3. check is green and it is still wrong
 
-**ここには診断が無い。**`check` が言うのは「書かれたものがデータとして矛盾していない」までで、建物として使えるかは言わない。
+**There is no diagnostic here.** `check` speaks only to whether what is written contradicts itself as data. Whether it works as a building is not its subject.
 
-| 症状 | 原因 | 確かめる道具 |
+| Symptom | Cause | Tool to confirm with |
 |---|---|---|
-| 室から外へ出られない | 接する空間の既定は**扉のない壁**である。扉は自動では付かない | `koyu doors` / `koyu graph` → [よくある詰まり](troubleshooting.md#9-緑なのに外へ出られない) |
-| 外皮が一枚も無い | 領域を持たない空間 (`/out`) との組には既定が導出されない | `koyu validate` の `envelope.gap` → [よくある詰まり](troubleshooting.md#10-緑なのに外皮が無い) |
-| 空のファイルが緑になる | 何も書かれていない構成は成立している | `koyu stats` / `koyu graph` で中身を見る |
-| 面積表に出したい室が出ない | `area` は数えない分節である。面積にも室数にも現れない | [数える分節と数えない分節](uncounted-divisions.md) |
-| `check` の境界数と正準 JSON の `boundaries` が合わない | `check` は導出後の本数、正準 JSON は**書かれた構成だけ** | 食い違いではない → [よくある詰まり](troubleshooting.md#13-境界の数が二つの場所で違う) |
-| 属性が効いていない | 台帳に無いキーはエラーになるが、**値の綴り違いは運ばれる** | `koyu layers --attrs` で出所を引く |
-| 型を変えたのに採光の判定が変わらない | 採光の対象は型ではなく `daylight:1` が決める | `koyu light` |
+| A room cannot reach the outside | The default between touching spaces is **a wall with no door**. Doors are never added automatically | `koyu doors` / `koyu graph` → [Common traps](troubleshooting.md#9-green-and-no-way-out) |
+| No envelope at all | Nothing is derived against a space with no region (`/out`) | `envelope.gap` from `koyu validate` → [Common traps](troubleshooting.md#10-green-and-no-envelope) |
+| An empty file is green | A composition with nothing written in it stands | Look inside with `koyu stats` / `koyu graph` |
+| A room you want in the area schedule is missing | `area` is an uncounted division. It appears in neither area nor room count | [Counted and uncounted divisions](uncounted-divisions.md) |
+| The boundary count from `check` and `boundaries` in the canonical JSON disagree | `check` counts the composed model; canonical JSON carries **only what was written** | Not a contradiction → [Common traps](troubleshooting.md#13-two-places-give-different-boundary-counts) |
+| An attribute has no effect | An unknown key is an error, but **a misspelled value is carried** | Trace the origin with `koyu layers --attrs` |
+| Changing the type does not change the daylight verdict | Daylight scope is decided by `daylight:1`, not by the type | `koyu light` |
 
-## 4. check は何も言わない — validate が言う
+## 4. check says nothing — validate does
 
-建築の側の判断は `koyu validate` が別に返す。**`check` の診断コードではなく、`章.規則` の綴りを持つ。**
+Architectural judgement comes back separately from `koyu validate`. **It carries `chapter.rule` spellings, not `check` codes.**
 
-| 症状 | 規則 |
+| Symptom | Rule |
 |---|---|
-| 外周に何も面していない部分がある | [`envelope.gap`](../reference/validate/envelope.md) |
-| 窓が床面積の 1/7 に足りない | [`daylight.ratio`](../reference/validate/daylight.md) |
-| 窓の `h:` が無くて窓面積を数え切れていない | [`daylight.unknown`](../reference/validate/daylight.md) |
-| 階段の踏面が窮屈・蹴上と踏面の関係が常用域の外 | [`stair.proportion`](../reference/validate/runs.md) |
-| 傾斜路の勾配が宣言より急 | [`run.slope`](../reference/validate/runs.md) |
-| 縦動線の形はあるが上下が繋がっていない | [`run.disconnected`](../reference/validate/runs.md) |
-| 室から外部へ辿り着けない | [`access.unreachable`](../reference/validate/access.md) |
-| 扉が吹抜けにしか開いていない | [`access.voidonly`](../reference/validate/access.md) |
-| 柱が扉と重なっている | [`column.blocksdoor`](../reference/validate/column.md) |
-| 建物が敷地形状からはみ出す | [`site.escape`](../reference/validate/site.md) |
-| 敷地面積の宣言と導出が食い違う | [`site.area`](../reference/validate/site.md) |
-| 接道長が足りない | [`site.frontage`](../reference/validate/site.md) |
+| Part of the perimeter faces nothing | [`envelope.gap`](../reference/validate/envelope.md) |
+| Window area falls short of 1/7 of the floor | [`daylight.ratio`](../reference/validate/daylight.md) |
+| A window has no `h:`, so the window area is incomplete | [`daylight.unknown`](../reference/validate/daylight.md) |
+| Stair treads are cramped, or riser and tread fall outside the usual band | [`stair.proportion`](../reference/validate/runs.md) |
+| A ramp is steeper than declared | [`run.slope`](../reference/validate/runs.md) |
+| A vertical run has form but nothing connects the storeys | [`run.disconnected`](../reference/validate/runs.md) |
+| A room cannot reach the exterior | [`access.unreachable`](../reference/validate/access.md) |
+| A door opens only onto a void | [`access.voidonly`](../reference/validate/access.md) |
+| A column stands in a door | [`column.blocksdoor`](../reference/validate/column.md) |
+| The building escapes the site shape | [`site.escape`](../reference/validate/site.md) |
+| Declared and derived site area disagree | [`site.area`](../reference/validate/site.md) |
+| Road frontage is too short | [`site.frontage`](../reference/validate/site.md) |
 
-規則の全部は[判定 — koyu validate](../reference/validate/index.md)にある。
+Every rule is on [Judgement — koyu validate](../reference/validate/index.md).
 
-## 5. コマンドそのものが落ちる
+## 5. The command itself fails
 
-| 見えているもの | 終了コード | 原因 |
+| What you see | Exit code | Cause |
 |---|---|---|
-| `Undeclared level: l2 (declared: L1 L2 R)` | 2 | `-l` のレベル名違い。**大文字小文字を区別する。**`koyu levels` で確かめる |
-| `Usage: koyu …` の使い方行 | 2 | 引数が足りない。`--help` も同じ経路を通る |
-| `Error: No level is defined` (スタックトレース付き) | 1 | `level` 行が一つも無い。`check` は緑でも描画は落ちる |
-| `Error: There is no space with a region on level R` (スタックトレース付き) | 1 | そのレベルに領域を持つ空間が一つも無い |
-| `Cannot reach /out from /L1/nope` | 1 | 到達不能。**起点か終点のパスが存在しないときも同じ文言**である。`koyu graph` で綴りを確かめる |
+| `Undeclared level: l2 (declared: L1 L2 R)` | 2 | A wrong level name after `-l`. **Case matters.** Confirm with `koyu levels` |
+| The `Usage: koyu …` line | 2 | Missing arguments. `--help` goes down the same path |
+| `Error: No level is defined` with a stack trace | 1 | There is no `level` line at all. `check` can be green while drawing fails |
+| `Error: There is no space with a region on level R` with a stack trace | 1 | No space on that level has a region |
+| `Cannot reach /out from /L1/nope` | 1 | Unreachable. **The same wording appears when the start or end path does not exist.** Confirm the spelling with `koyu graph` |
 
-**呼び方の問題は終了コード 2、構成の問題は 1 である。**この二つを混ぜないので、CI で区別して扱える。
+**A problem with how you called it exits 2; a problem with the composition exits 1.** The two are never mixed, so CI can treat them differently.
 
-## 関連
+## Related
 
-- [よくある詰まり](troubleshooting.md) — 上の表のうち、手順で直すもの
-- [診断コード索引](../reference/diagnostics/index.md) — コードから引く 65 件の全目録
-- [診断を読む](../reference/diagnostics/reading.md) — `--json` の返りの構造
-- [判定 — koyu validate](../reference/validate/index.md) — 15 の規則
-- [約束の範囲](../reference/scope.md) — `check` が緑であることの意味
+- [Common traps](troubleshooting.md) — the entries above that need a worked fix
+- [Diagnostic code index](../reference/diagnostics/index.md) — all 65, looked up by code
+- [Reading a diagnostic](../reference/diagnostics/reading.md) — the structure of the `--json` return
+- [Judgement — koyu validate](../reference/validate/index.md) — the fifteen rules
+- [The scope of the promise](../reference/scope.md) — what a green `check` means

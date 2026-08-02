@@ -1,4 +1,6 @@
 {
-  "pins": ["docs/reference/form/index.md#1-形は正準形の関数である"],
-  "why": "上の対。同じ二つの開口を逆順に書いた版で、正準形も形も一致しなければならない"
+ "pins": [
+  "docs/reference/form/index.md#four-promises"
+ ],
+ "why": "上の対。同じ二つの開口を逆順に書いた版で、正準形も形も一致しなければならない"
 }

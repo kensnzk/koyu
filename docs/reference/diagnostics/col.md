@@ -1,18 +1,18 @@
 ---
-title: COL — 柱
+title: COL — columns
 mode: reference
 ---
 
-# COL — 柱
+# COL — columns
 
-COL は二つある。どちらも警告である。
+There are two COL codes, and both are warnings.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| COL01 | warning | この宣言から柱が一本も立たない — 交点にその階の床が無い |
-| COL02 | warning | この宣言から柱が一本も立たない — 同じ交点を先の宣言が取った |
+| COL01 | warning | Not one column stands for this declaration — the intersections have no floor |
+| COL02 | warning | Not one column stands for this declaration — an earlier one took the same intersections |
 
-**柱は位置を書かない。**書くのは寸法と階と通りだけで、立つ場所は導出される。壁が境界という関係から現れるのと同じ構えを、点の要素に適用したものである。
+**A column's position is never written.** You write a size, storeys and grid lines; where it stands is derived. It is the same stance that makes walls emerge from boundaries, applied to a point element.
 
 ```muro
 grid X 0 3000 6000
@@ -26,23 +26,23 @@ column 800 L1..L2 d:600 name:C1
 column 600 L3 x:X1,X2 name:C2
 ```
 
-書式は `column <一辺 mm> <レベル名 または L?..L?> [x:通り,…] [y:通り,…]`。`d:` で奥行 (書かなければ正方形)、`name:` と `spec:` も書ける。`x:` / `y:` を書かなければ、その軸の通りは全部が対象になる。
+The form is `column <side, mm> <level name or L?..L?> [x:grid,…] [y:grid,…]`. `d:` gives the depth (square if omitted); `name:` and `spec:` may be written too. Leave out `x:` / `y:` and every grid line on that axis is in play.
 
-## 柱はどこに立つか
+## Where a column stands
 
-**その階の床のある通り芯の交点**に立つ。「床がある」とは、その交点がその階の空間の導出された領域の内側 (許容 1mm) に入る、ということである。ただし次の三つは床として数えない。
+At **a grid intersection that has a floor on that storey**. "Has a floor" means the intersection falls inside the derived region of a space on that level, within a 1mm tolerance. Three things do not count as floor.
 
-- `type:exterior` — 地面である
-- `type:void` — 床が無いことが定義である
-- **半屋外で、かつ上に何も重なっていない空間** — 屋上庭園・最上階のテラスがこれで、柱が持ち上げるものを持たない
+- `outside:1` — it is the ground
+- `void:1` — having no floor is what a void is
+- **A semi-outdoor space with nothing above it** — a roof garden or a top-storey terrace. There is nothing for a column to hold up
 
-三つ目は忘れやすい。**バルコニーの下に柱は立たない** — 上に床が重なっていれば別で、そのときは持ち上げるものがあるので立つ。
+The third is easy to forget. **No column stands under a balcony** — unless a floor overlaps it from above, in which case there is something to hold up and it does stand.
 
-**同じ交点に二本は立たない。**同じレベルの同じ交点を複数の宣言が狙ったら、**先に書かれた宣言が勝つ**。「大きい方を採る」のような暗黙の規則は持たない。
+**Two columns never share an intersection.** Where several declarations aim at the same intersection on the same level, **the earlier declaration wins**. There is no implicit rule such as "take the larger one".
 
-**母集団は宣言である。**COL01 も COL02 も「このレベルに何本立ったか」ではなく「**この宣言から**何本立ったか」を問う。前者を数えると、同じ階の別の宣言が一本でも立てた瞬間に、一本も立たない宣言が黙って通ってしまう。
+**The population is the declaration.** COL01 and COL02 both ask not "how many stood on this level" but "how many stood **for this declaration**". Counting the former would let a declaration producing nothing pass in silence the moment any other declaration on that storey stood a single column.
 
-## COL01 — 立つ柱がありません
+## COL01 — the declaration produces no columns {#col01}
 
 `warning`
 
@@ -59,12 +59,12 @@ column 600 L2
 Not one column stands for this declaration (the grid intersections have no floor): L2 600mm square
 ```
 
-**原因** — 狙った交点に、その階の床が無い。多くは次のどれかである。
+**Cause** — the intersections aimed at have no floor on that storey. Usually one of these.
 
-- **階の指定違い。**上の例がそれで、床があるのは `L1` なのに `L2` を指している。
-- **通りの限定 (`x:` / `y:`) の書き間違い。**限定した先に床が無い。
-- **その階をまだ書いていない。**骨組みを先に書いたときに出る。
-- **床が半屋外で、上に何も無い。**屋上テラスに柱を立てようとした場合である。
+- **The wrong storey.** The example: the floor is on `L1` and the declaration points at `L2`.
+- **A mistyped grid restriction (`x:` / `y:`).** There is no floor where you restricted it to.
+- **That storey is not written yet.** This shows up when the frame is written first.
+- **The floor is semi-outdoor with nothing above.** Trying to put columns on a roof terrace.
 
 ```muro-warn
 grid X 0 3000
@@ -72,16 +72,16 @@ grid Y 0 6000
 level L1 0 h:2700 slab:300
 level R 3000 slab:300
 space /L1/t terrace X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/t /out type:open
 column 600 L1
 ```
 
-このファイルも同じ本文の COL01 になる。テラスは外部に `type:open` で接するので半屋外で、上に空間が重なっていない。
+This file produces COL01 with the same body. The terrace meets the exterior across `type:open`, which makes it semi-outdoor, and nothing overlaps it from above.
 
-**直し方** — 階の指定を直すか、限定を外す。上層で柱を細くしたいだけなら、階の範囲が実在の床と合っているかを確かめる。
+**Fix** — correct the storey, or drop the restriction. If all you wanted was thinner columns higher up, check that the storey range matches floors that actually exist.
 
-## COL02 — 柱の宣言が重なっています
+## COL02 — overlapping column declarations {#col02}
 
 `warning`
 
@@ -98,13 +98,13 @@ column 800 L1
 This column declaration (L1 800mm square) stands nowhere because an earlier declaration took the same intersections (at the same intersection the earlier declaration wins)
 ```
 
-**原因** — 二つの宣言が同じレベルの同じ交点を狙い、先の宣言が全部取った。後から書いた `800` は一本も立たない。
+**Cause** — two declarations aim at the same intersections on the same level, and the earlier one took them all. The `800` written later stands nowhere.
 
-**COL01 と分けてあるのは、直す場所が違うからである。**COL01 は「床が無い」— 床か階の指定を直す。COL02 は「床はあるが先客がいる」— 宣言の側を直す。COL01 の本文を出してしまうと、実際には床のある場所へ「床がありません」と言うことになり、直しようがない。
+**It is kept separate from COL01 because the fix is somewhere else.** COL01 means "no floor" — fix the floor or the storey. COL02 means "there is a floor, but it is taken" — fix the declaration. Emitting COL01's body here would tell you there is no floor at a place where there demonstrably is one, and leave you nothing to correct.
 
-`related` には、同じ交点に**実際に立った**先の宣言の行が入る。
+`related` carries the line of the earlier declaration that **actually stood** at those intersections.
 
-**直し方** — 通りを `x:` / `y:` で限定して重ならないようにするか、宣言を一つにまとめる。
+**Fix** — restrict the grid lines with `x:` / `y:` so they do not overlap, or consolidate into one declaration.
 
 ```muro
 grid X 0 3000 6000
@@ -115,16 +115,16 @@ column 600 L1 x:X1
 column 800 L1 x:X2,X3
 ```
 
-## 一本も立たないのに COL が出ないとき
+## When nothing stands and COL says nothing
 
-**階高が決まらないレベルでは、柱は導出そのものに現れない。**柱は床上面から階高いっぱいまで立つので、階高が無ければ立体が作れない。上にレベルがあれば階高は `z` の差だが、最上階の階高は「そのレベルの `h:` と、そこに載る空間の有効天井高のうち最も高いもの + 200mm」で決まる。天井高が一つも決まらなければ、この数が無い。
+**On a level whose storey height is undetermined, columns never reach the derivation at all.** A column rises from the floor to the full storey height, so with no storey height there is no solid to make. With a level above, the storey height is the difference in `z`; for the top storey it is fixed by "the tallest of the level's own `h:` and the effective ceiling heights of the spaces on it, plus 200mm". If not one ceiling height is determined, that number does not exist.
 
-その状態で言葉になるのは COL01 ではなく [SUF01](./suf.md) である — 柱の宣言は正しく交点を捉えているので、COL の側から言うことは何も無い。柱も壁も無い建物が出てきたら、まず SUF01 を疑う。
+What speaks in that state is not COL01 but [SUF01](./suf.md) — the column declaration is catching its intersections correctly, so COL has nothing to say. If a building comes out with neither columns nor walls, suspect SUF01 first.
 
-## 関連
+## Related
 
-- [SUF — 充足性](./suf.md) — 階高が決まらず柱も壁も立たない状態 (SUF01)
-- [UID — 同一性](./uid.md) — 柱の `name` はモデル全体で一意 (UID04)
-- [VER — 言語の版](./ver.md) — `column` は 0.5 の語 (VER03)
-- [koyu validate](../cli/validate.md) — 導出された柱が導出された扉と重なる `column.blocksdoor`
+- [SUF — sufficiency](./suf.md) — the state where no storey height means no columns and no walls (SUF01)
+- [UID — identity](./uid.md) — a column's `name` is unique across the whole model (UID04)
+- [VER — the language version](./ver.md) — `column` is 0.5 vocabulary (VER03)
+- [koyu validate](../cli/validate.md) — `column.blocksdoor`, a derived column landing on a derived door
 - [koyu check](../cli/check.md)

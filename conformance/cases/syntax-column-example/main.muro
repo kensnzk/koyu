@@ -1,4 +1,4 @@
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000 12000
 grid Y 0 6000
@@ -8,7 +8,7 @@ level L2 3200 h:3000 slab:200
 space /L1/room room X1..X2 Y1..Y2 name:室
 space /L1/terrace terrace X2..X3 Y1..Y2 name:テラス
 space /L2/room room X1..X2 Y1..Y2 name:上階の室
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/terrace /out type:open
 

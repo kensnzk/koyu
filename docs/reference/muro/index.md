@@ -1,93 +1,93 @@
 ---
-title: .muro の全構文
+title: Every construct in .muro
 mode: reference
 ---
 
-# .muro の全構文
+# Every construct in .muro
 
-**一行が一文である。**`.muro` に書けるのはここに並ぶ行だけで、括弧も終端子も入れ子も無い。各行の詳細はその行の頁が持つ。
+**One line, one statement.** These are all the lines `.muro` has — no brackets, no terminators, no nesting. Each line's own page holds the detail.
 
 ```text
-キーワード 位置引数… key:value…
+keyword positional… key:value…
 ```
 
-## 非字下げの行
+## Lines with no indentation
 
-行頭に空白の無い行は、それぞれ独立した宣言である。
+A line that starts flush is a declaration in its own right.
 
-| 行 | 何を宣言するか |
+| Line | What it declares |
 |---|---|
-| [`koyu 1.0`](version.md) | このファイルを読む言語の版。入口の層でのみ、一度だけ |
-| [`name 街角の複合ビル`](name.md) | 建物の名。残りの行全体が値。一度だけ |
-| [`unit mm`](name.md) | 長さの単位。v0 は mm のみ |
-| [`grid X 0 6400 12800`](grid.md) | 通り芯の座標。軸ごとに一度だけ。`X1` `X2` … と自動命名される |
-| [`level L1 0 h:3600 slab:600`](level.md) | レベル — 名・z・天井高・床組み厚。`L4..L10` の範囲宣言は `pitch:` を要する |
-| [`space /L5/A/ldk ldk X1..X2 Y1..Y2`](space.md) | **空間** — パス・型・領域。一次要素 |
-| [`band X X1..X3 Y1..Y2`](band.md) | 帯 — 位置ではなく寸法と並びで空間を割る。要素は字下げした `space` |
-| [`boundary /L5/A/hall /L5/corridor`](boundary.md) | **境界** — 二つの空間を結ぶ関係。壁は物ではなく関係である |
-| [`stack ev L1..L11 type:shaft`](stack.md) | 垂直積層の一括宣言。連続するレベル対に垂直境界を張る |
-| [`zone /L3..L10/A use:exclusive`](zone.md) | 数える集約。幾何を持たず、パス接頭辞で配下の空間を束ねる |
-| [`asset SD1 door w:800 h:2000`](asset.md) | 建具アセット — 開口が参照する既定値の束 |
-| [`polygon /site -2600,-7000 …`](polygon.md) | 敷地形状。**格子に載らない自由頂点で形を書ける唯一の行** |
-| [`column 800 B2..L1`](column.md) | 柱。**位置を書かない** — 通り芯の交点のうち床のある所に立つ |
-| [`import ./assets.muro`](import.md) | 層を重ねる。**並びが強度の宣言**であり、後の層ほど強い |
-| [`over /L5/A/ldk h:2600`](over-drop.md) | 上書き。対象が無ければエラー |
-| [`drop /L5/A/store`](over-drop.md) | 削除。空間・境界・柱の宣言を消す |
+| [`koyu 1.0`](version.md) | the language version this file is read under. Base layer only, once |
+| [`name 街角の複合ビル`](name.md) | the name of the building. The rest of the line is the value. Once |
+| [`unit mm`](name.md) | the unit of length. v0 is mm only |
+| [`grid X 0 6400 12800`](grid.md) | grid line coordinates. Once per axis; named `X1`, `X2`, … automatically |
+| [`level L1 0 h:3600 slab:600`](level.md) | a level — name, z, ceiling height, slab thickness. A range such as `L4..L10` requires `pitch:` |
+| [`space /L5/A/ldk ldk X1..X2 Y1..Y2`](space.md) | **a space** — path, type, region. The primary element |
+| [`band X X1..X3 Y1..Y2`](band.md) | a band — divides by dimension and order rather than by position. Members are indented `space` lines |
+| [`boundary /L5/A/hall /L5/corridor`](boundary.md) | **a boundary** — the relation joining two spaces. A wall is a relation, not a thing |
+| [`stack ev L1..L11 type:shaft`](stack.md) | a vertical stack, declared at once. Puts a vertical boundary on each consecutive pair of levels |
+| [`zone /L3..L10/A use:exclusive`](zone.md) | a counted aggregation. No geometry; gathers the spaces under a path prefix |
+| [`asset SD1 door w:800 h:2000`](asset.md) | a door asset — the bundle of defaults an opening refers to |
+| [`polygon /site -2600,-7000 …`](polygon.md) | the site shape. **The only line that writes a shape from free vertices off the grid** |
+| [`column 800 B2..L1`](column.md) | a column. **No position is written** — it stands where a grid intersection has floor |
+| [`import ./assets.muro`](import.md) | layers another file on. **The order is the declaration of strength**; later layers are stronger |
+| [`over /L5/A/ldk h:2600`](over-drop.md) | an override. An error if the target does not exist |
+| [`drop /L5/A/store`](over-drop.md) | a removal — of a space, a boundary, or a column declaration |
 
-## 字下げの行
+## Indented lines
 
-行頭に空白があれば、直前の非字下げ行に従属する。**一段だけで、入れ子は無い。**
+A line beginning with whitespace is subordinate to the non-indented line above it. **One level only; no nesting.**
 
-| 行 | 親 | 何を宣言するか |
+| Line | Parent | What it declares |
 |---|---|---|
-| [`door w:900 at:X4`](door.md) | `boundary` / `stack` | 通行する開口 |
-| [`window w:1800 h:1200 edge:S`](window.md) | `boundary` / `stack` | 採光する開口。通行しない |
-| [`seg w:1800 at:X5 spec:ガラス`](seg.md) | `boundary` / `stack` | 境界上の数えない分節 |
-| [`line X3,Y1 X3+600,Y2-900`](line.md) | `boundary` | 描かれた線 — 境界の実現を設計の行為として与える。一つの境界に一本 |
-| [`area X1..X2 Y1..Y2 floor:タイル`](area.md) | `space` | 室内の数えない分節。面積・室数・グラフに影響しない |
-| [`space /L1/wet wet w:4800`](band.md) | `band` | 帯の要素。領域の代わりに幅 `w:` を持つ |
-| [`+ window w:600 name:W1`](over-drop.md) | `over` | 集合への追加。`name:` が要る |
-| [`- door D2`](over-drop.md) | `over` | 集合からの削除。名で指す |
-| [`= door D1 w:1000`](over-drop.md) | `over` | 集合の置換。書いた属性だけを差し替える |
+| [`door w:900 at:X4`](door.md) | `boundary` / `stack` | an opening that is passed through |
+| [`window w:1800 h:1200 edge:S`](window.md) | `boundary` / `stack` | an opening that admits light. Not passed through |
+| [`seg w:1800 at:X5 spec:ガラス`](seg.md) | `boundary` / `stack` | an uncounted segmentation of a boundary |
+| [`line X3,Y1 X3+600,Y2-900`](line.md) | `boundary` | a drawn line — the boundary realised as an act of design. One per boundary |
+| [`area X1..X2 Y1..Y2 floor:タイル`](area.md) | `space` | an uncounted segmentation inside a room. Affects no area, no room count, no graph |
+| [`space /L1/wet wet w:4800`](band.md) | `band` | a band member. Carries a width `w:` instead of a region |
+| [`+ window w:600 name:W1`](over-drop.md) | `over` | adds to a set. `name:` is required |
+| [`- door D2`](over-drop.md) | `over` | removes from a set, by name |
+| [`= door D1 w:1000`](over-drop.md) | `over` | replaces in a set — only the attributes written are swapped |
 
-## 行を横断する規則
+## Rules that cut across every line
 
-どの行にも同じように効く規則が六つある。
+Six rules apply to every line alike.
 
-| 頁 | 何を書いているか |
+| Page | What it covers |
 |---|---|
-| [一行の読まれ方](lines.md) | トークン・コメント・引用符・字下げ・`key:value`・値の型 |
-| [位置と領域の書き方](positions.md) | 通り参照 `X1`・オフセット `X2+600`・範囲 `X1..X3`・矩形の合併 |
-| [方位と a 側](orientation.md) | `N`=+Y `S`=−Y `E`=+X `W`=−X。`edge:` がどの辺を選ぶか |
-| [属性の三層](attributes.md) | 構造層・解釈層・運搬層と、名前空間の掟。要素ごとの台帳 |
-| [書かなかったとき何が起きるか](defaults.md) | 既定値の唯一の表 |
-| [koyu — 版の宣言](version.md) | 受理される版と、旧版が受理される条件 |
+| [How a line is read](lines.md) | tokens, comments, quotes, indentation, `key:value`, value types |
+| [Positions and regions](positions.md) | grid references `X1`, offsets `X2+600`, ranges `X1..X3`, unions of rectangles |
+| [Orientation and the a side](orientation.md) | `N`=+Y, `S`=−Y, `E`=+X, `W`=−X, and which face `edge:` picks |
+| [The three tiers of attribute](attributes.md) | structure, interpreted and carried, the namespace rule, and the ledger per element |
+| [What happens when you write nothing](defaults.md) | the one table of defaults |
+| [koyu — the version line](version.md) | which versions are accepted, and when an older one is |
 
-## 宣言の順序
+## Order of declaration
 
-**多くの行は前方参照してよいが、三つだけは使う前に宣言しなければならない。**
+**Most lines may refer forward, but three must be declared before use.**
 
-| 先に書かなければならないもの | 書かないと |
+| Must come first | Otherwise |
 |---|---|
 | `grid` | `Undefined grid line name: X1` |
-| `level` (パスやスパンで参照するとき) | レベルが決まらず `SUF02`、スパンなら `The range includes an undeclared level` |
-| `asset` (開口が参照するとき) | `Undefined opening asset: SD1` |
+| `level` (when a path or a span names it) | the level is undetermined — `SUF02`; for a span, `The range includes an undeclared level` |
+| `asset` (when an opening refers to it) | `Undefined opening asset: SD1` |
 
-一方、**境界は空間を前方参照してよい。**`boundary /L1/a /L1/b` を空間の宣言より前に書いても通る — 参照先の存在は合成が終わってから `REF01` が確かめる。
+By contrast, **a boundary may refer to its spaces before they are written.** `boundary /L1/a /L1/b` above the space declarations passes — whether the referents exist is settled after composition, by `REF01`.
 
-`over` と `drop` は例外で、**その行に達した時点で対象が存在していなければならない。**上書きは定義ではないので、存在しないものへ意見だけを足すことはできない。
+`over` and `drop` are the exception: **the target must already exist when the line is reached.** An override is not a definition, so an opinion cannot be added to something that is not there.
 
-## 一度だけの宣言
+## Declared once
 
-`koyu` は**入口の層で一度だけ**書かれる — 版だけは他の層から動かせない。`name` `grid X` `grid Y` は**層を跨いで一度**で、入口に書いても `import` した層に書いてもよい。同じ値を二度書いてもエラーである — 合成の順序による黙った上書きを禁じるためで、`name` だけは同じ文字列の再宣言を許す。
+`koyu` is written **in the base layer (the entry), once** — the version alone cannot be moved by another layer. `name`, `grid X` and `grid Y` are written **once across all layers**, and may sit in the entry or in an imported layer. Writing the same value twice is still an error — it forbids a silent override decided by composition order — except that `name` accepts a re-declaration of the identical string.
 
-空間パス・ゾーンパス・アセット名・敷地形状・レベル名の重複もエラーであり、どちらの出所も示される。
+Duplicate space paths, zone paths, asset names, site shapes and level names are errors too, and both provenances are reported.
 
-## 定義と上書きは別の文である
+## Defining and overriding are different statements
 
-| | 文 | 対象が既にあるとき | 対象が無いとき |
+| | Statement | When the target exists | When it does not |
 |---|---|---|---|
-| **定義** | `space` `boundary` `zone` `asset` `level` `polygon` | **エラー** (重複) | 定義する |
-| **上書き** | `over` | 上書きする | **エラー** |
+| **Definition** | `space` `boundary` `zone` `asset` `level` `polygon` | **error** (duplicate) | defines it |
+| **Override** | `over` | overrides it | **error** |
 
-書き方から種別が分かるので、読み手も機械も取り違えない。層をどう重ねるか、どの層の意見が勝つかは [合成](composition.md) にある。
+The kind is legible from the way the line is written, so neither a reader nor a machine has to guess. How layers stack, and whose opinion wins, is in [composition](composition.md).

@@ -1,19 +1,19 @@
 ---
-title: 縦動線 — stair.proportion / run.slope / run.disconnected
+title: Vertical circulation — stair.proportion / run.slope / run.disconnected
 mode: reference
 ---
 
-# 縦動線 — stair.proportion / run.slope / run.disconnected
+# Vertical circulation — stair.proportion / run.slope / run.disconnected
 
-| 規則 | level |
+| rule | level |
 |---|---|
 | [`stair.proportion`](#stair-proportion) | caution |
 | [`run.slope`](#run-slope) | caution |
 | [`run.disconnected`](#run-disconnected) | caution |
 
-**段数も踏面も踊り場も勾配も書かない。**書くのは装置と上る向きだけ (`stair:N` `ramp:E` `escalator:S`。`lift` は上る向きを持たないので値は `1` で、`lift:1` と書く) で、あとは領域と階高から導かれる。[`koyu check`](../cli/check.md) が保証するのは「宣言から形が一意に決まる」までである — **決まった形が登りやすいかは、この巻が言う。**
+**Riser counts, goings, landings and slopes are never written.** You write the device and the direction of ascent (`stair:N`, `ramp:E`, `escalator:S` — a `lift` has no direction of ascent, so its value is `1`: `lift:1`); everything else falls out of the region and the storey height. [`koyu check`](../cli/check.md) guarantees that the declaration determines one shape — **whether that shape can be climbed is what this volume says.**
 
-書かないものを検査する、という構えなので、検査の対象は「書かれた値」ではない。**導出された値である。**
+Because the stance is "write nothing, check everything", what is checked is not a written value. **It is a derived one.**
 
 ```sh
 koyu runs main.muro
@@ -23,16 +23,16 @@ koyu runs main.muro
 L1→L2	stair	s	rise 3000mm	straight	17 risers of 176mm, tread 150mm	going 2400mm	/L1/s
 ```
 
-`lift` は段も勾配も持たないので、この章のどの規則も掛からない。
+A `lift` has neither steps nor a pitch, so none of the rules in this chapter apply to one.
 
-## `stair.proportion` — 導出された段が窮屈 {#stair-proportion}
+## `stair.proportion` — the derived step is cramped {#stair-proportion}
 
 `caution`
 
-導出された踏面が 240mm 未満か、`2×蹴上 + 踏面` が 550〜700mm の外に出た。後者は歩幅則である。
+The derived going is under 240mm, or `2×riser + going` falls outside 550–700mm. The second is the pace rule.
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3000
 grid Y 0 4600
 level L1 0 h:2700 slab:300
@@ -47,16 +47,16 @@ stack s L1..L2 type:stair
 Validation — 0 violations / 1 caution
 ```
 
-数はこう出る。上る高さは 3000mm、蹴上げの上限は既定 180mm なので蹴上げは 17段 (3000/17 = 176mm)。走る向きの奥行 4600mm から、両端の乗り込みの床 (既定 1100mm) を引いた 2400mm が走り長で、それを 16 の踏面で割ると 150mm。**階段室が浅すぎる。**
+The arithmetic runs like this. The rise is 3000mm and the riser ceiling defaults to 180mm, so there are 17 risers of 3000/17 = 176mm. The 4600mm depth along travel loses the boarding floor at each end (1100mm by default), leaving 2400mm of run, divided by 16 goings = 150mm. **The stair shaft is too shallow.**
 
-蹴上げの上限は `riser:`、乗り込みの床は `entry:`、中間踊り場は `landing:` で書き換えられる。
+`riser:` overrides the riser ceiling, `entry:` the boarding floor, `landing:` the intermediate landing.
 
-折返し (`form:return`) では走りごとに踏面が違う。検査は**最も窮屈な走り**を見るので、表示される踏面もその走りの値である。
+In a return stair (`form:return`) each flight has its own going. The check reads **the tightest flight**, so the going reported is that flight's.
 
-**直し方は三つある。**どれも導出の入力を変える。
+**There are three fixes**, and each of them changes an input to the derivation.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3000
 grid Y 0 7000
 level L1 0 h:2700 slab:300
@@ -70,12 +70,12 @@ stack s L1..L2 type:stair
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
 ```
 
-走る向きに深くした (4600 → 7000mm)。走り長 4800mm ÷ 16 = 踏面 300mm、`2×176 + 300 = 652mm` で歩幅則の中に入る。
+Deepened along travel, 4600 → 7000mm. The run is 4800mm over 16 goings = 300mm, and `2×176 + 300 = 652mm` lands inside the pace rule.
 
-浅いままでも `form:return` で折り返せば走り長が倍になり、同じ 300mm に届く。
+Left shallow, folding it with `form:return` doubles the run and reaches the same 300mm.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3000
 grid Y 0 4600
 level L1 0 h:2700 slab:300
@@ -89,20 +89,20 @@ stack s L1..L2 type:stair
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
 ```
 
-三つ目は `riser:` を上げて段数を減らすこと。**これは寸法の警告であって、法適合の判定ではない。**
+The third is to raise `riser:` and use fewer steps. **This is a dimensional warning, not a code-compliance verdict.**
 
-## `run.slope` — 導出された勾配が急すぎる/常用域の外 {#run-slope}
+## `run.slope` — the derived slope leaves the band {#run-slope}
 
 `caution`
 
-斜路とエスカレーターで意味が違う。同じ規則名なのは、どちらも「導出された勾配が受け入れられる幅の外に出た」という一つの事実だからである。
+It means different things for a ramp and for an escalator. They share a rule name because they are one fact: the derived slope has left the band that would be accepted.
 
-### 斜路 — 宣言した上限より急な勾配
+### A ramp — steeper than the limit you declared
 
-`slope:` は**書く勾配ではない。許容する勾配の上限**であり、この検査のためだけに存在する。`slope:12` は「1/12 より急にはしない」という宣言である。
+`slope:` is **not the slope. It is the limit you will accept**, and it exists only so this check can be made. `slope:12` means "no steeper than 1/12".
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3000
 grid Y 0 6000
 level L1 0 h:2700 slab:300
@@ -117,18 +117,18 @@ stack r L1..L2 type:stair
 Validation — 0 violations / 1 caution
 ```
 
-上る高さ 3000mm に対して走り長は 3800mm しかない (6000mm から乗り込みの床 1100mm×2 を引いた値) ので、勾配は 1/1.3。1/12 の要求からは一桁違う。
+Against a 3000mm rise there is only 3800mm of run (6000mm less the 1100mm boarding floor at each end), giving 1/1.3 — an order of magnitude off the 1/12 asked for.
 
-`slope:` を書かない斜路には、この検査は掛からない。**上限を宣言していない斜路について、koyu が代わりに上限を決めることはしない。**
+A ramp with no `slope:` is not checked. **koyu does not invent a limit for a ramp that declared none.**
 
-**直し方** — 斜路の領域を走る向きに伸ばす、`form:return` で折り返して走り長を倍にする、または階高を下げる。1/12 を実際に成立させるには、上の例では走る向きに 40000mm 必要になる (走り長 37800mm で 1/12.6)。**斜路は長い。**数字がそれを言う。
+**Fix** — lengthen the ramp along travel, fold it with `form:return` to double the run, or lower the storey height. Actually achieving 1/12 in the example above takes 40000mm along travel (a 37800mm run, giving 1/12.6). **Ramps are long.** The numbers say so.
 
-### エスカレーター — 常用域の外
+### An escalator — outside the usual band
 
-エスカレーターには `slope:` を書かなくても、導出された勾配が 1/2.3 〜 1/1.4 (約1/1.7 = 30度を中心とした幅) から外れれば同じ規則が出る。
+An escalator needs no `slope:`. If the derived pitch falls outside 1/2.3 – 1/1.4 — a band around the usual 1/1.7, i.e. 30° — the same rule fires.
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 1200
 grid Y 0 12000
 level L1 0 h:2700 slab:300
@@ -143,16 +143,16 @@ stack e L1..L2 type:stair
 Validation — 0 violations / 1 caution
 ```
 
-これは**緩すぎる**側の例である。領域が長すぎて、実在しない寝たエスカレーターが導かれている。同じ領域を 7200mm にすると走り長 5000mm で勾配 1/1.7 になり、判定は通る。
+This is the **too shallow** side. The region is so long that the derivation produced a reclining escalator nobody builds. Shorten the same region to 7200mm and the run is 5000mm, the pitch 1/1.7, and the judgement passes.
 
-## `run.disconnected` — 上下を繋ぐ垂直境界が無い {#run-disconnected}
+## `run.disconnected` — no vertical boundary joins the levels {#run-disconnected}
 
 `caution`
 
-**形とトポロジーは別々に書かれる。**`stair:N` は段の形を作るが、階と階が繋がっているとは言っていない。繋ぐのは `stack` か `boundary type:stair` である。
+**Shape and topology are written separately.** `stair:N` builds treads; it does not claim that the two levels are connected. What connects them is a `stack`, or a `boundary type:stair`.
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3000
 grid Y 0 7000
 level L1 0 h:2700 slab:300
@@ -166,14 +166,14 @@ space /L2/s stair X1..X2 Y1..Y2
 Validation — 0 violations / 1 caution
 ```
 
-垂直境界が無ければ、[`koyu doors`](../cli/doors.md) は上階へ抜ける経路を見つけない。**図には階段が描かれるのに動線が通らない**という、最も気付きにくい食い違いである。だから caution にしてある。
+Without a vertical boundary, [`koyu doors`](../cli/doors.md) will not find a route upstairs. **A stair that is drawn but not walkable** is the hardest mismatch to notice, which is why it warns.
 
-検査は素朴である — その空間が `type:stair` か `type:shaft` の境界の端になっているかを見るだけで、繋ぎ先が正しい階かどうかまでは問わない。
+The test is blunt: it asks whether the space is an endpoint of some `type:stair` or `type:shaft` boundary, and does not ask whether it connects to the right level.
 
-**直し方** — `stack s L1..L2 type:stair` を書く。逆に「形は要らないが繋がっている」場合 (昇降機のシャフトなど) は、縦動線の宣言のほうを外して垂直境界だけを残す。
+**Fix** — write `stack s L1..L2 type:stair`. Conversely, if you want the connection without a generated shape (a lift shaft, say), drop the vertical-circulation attribute and keep the vertical boundary.
 
-## 関連
+## See also
 
-- [`koyu runs`](../cli/runs.md) — 装置・上る高さ・段数・踏面・勾配・走り長の一覧
-- [到達](access.md) — 縦動線が客動線から孤立していないかは `access.backofhouse` が言う
-- [判定の台帳](index.md) — 15規則と、`Finding` が `Diagnostic` と別である理由
+- [`koyu runs`](../cli/runs.md) — device, rise, riser count, going, slope and run length in one list
+- [Reachability](access.md) — whether a run is stranded off the customer's route is what `access.backofhouse` says
+- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`

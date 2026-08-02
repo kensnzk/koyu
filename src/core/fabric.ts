@@ -11,9 +11,12 @@ import {
   heff,
   isSemiOutdoor,
   levelsSorted,
+  regionOf,
   type Model,
   type Pt,
   type Space,
+  isOutside,
+  isVoid as isVoidSpace
 } from "./model.js";
 import { areaOf, rectToPoly, subtract } from "./poly.js";
 import { AREA_EPS } from "./tolerance.js";
@@ -23,10 +26,6 @@ import { runDecls } from "./vertical.js";
 export const CEILING_T = 30;
 /** 上に何も無いときの屋根版の厚さ mm (上階レベルの slab が無い場合の既定) */
 export const ROOF_T = 200;
-
-/** 空間の導出された領域。parse の出口で必ず埋まる (ADR-0022) — 割付への退避は持たない */
-export const regionOf = (s: Space): Pt[][] =>
-  s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
 
 export type SlabKind = "floor" | "ceiling" | "roof";
 
@@ -70,8 +69,8 @@ export function slabs(model: Model): Slab[] {
     const upper = levels[li + 1];
     for (const s of byLevel.get(level.name) ?? []) {
       const pieces = regionOf(s);
-      const isVoid = s.type === "void";
-      const isExterior = s.type === "exterior";
+      const isVoid = isVoidSpace(s);
+      const isExterior = isOutside(s);
       const semi = isSemiOutdoor(model, s);
       const isRun = runDecls(s).length > 0;
 
@@ -116,7 +115,7 @@ export function slabs(model: Model): Slab[] {
       const covers: Pt[][] = [];
       for (const up of levels.slice(li + 1)) {
         for (const o of byLevel.get(up.name) ?? []) {
-          if (o.type === "exterior") continue;
+          if (isOutside(o)) continue;
           covers.push(...regionOf(o));
         }
       }

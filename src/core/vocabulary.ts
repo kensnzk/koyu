@@ -1,8 +1,9 @@
-// koyu core — 属性の台帳 (spec/vocabulary.md の写しであり、実装の唯一の出所)
+// koyu core — 属性の台帳 (docs/reference/muro/attributes.md の写しであり、実装の唯一の出所)
 //
-// # 属性の三層 (spec/scope.md §7)
+// # 属性の三層 (docs/reference/scope.md)
 //
-//   構造 (structure)     パス・型・区画・レベル・関係の相手・kind。**必ず見る**。
+//   構造 (structure)     パス・区画・レベル・関係の相手・kind。**必ず見る**。
+//                        空間の**型は入らない** — 自由なラベルであり core は読まない (ADR-0051)
 //                        parse が typed field へ持ち上げるので、check の時点では attrs に残らない
 //   解釈 (interpreted)   台帳が値域を定義し、**見る**。h / at / daylight / road / style …
 //   運搬 (carry)         **見ない。**運ぶだけ。spec / fire / sound / floor / sill …
@@ -71,10 +72,22 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
     level: structure(), // 所属レベルの明示 (メゾネット)
     w: structure(), // 帯 (band) の要素の寸法。帯の外には書けない
 
+    // 構成の事実 — **core が空間について読む語は、この二つだけである**
+    //
+    // かつては型の位置に `exterior` `void` と書いた。型の位置は開かれた語彙なので、
+    // `exteriorr` の一字が外部を屋内に変え、実測で延床が 16.20㎡ から 32.40㎡ へ倍増しながら
+    // check は緑だった。守りは二語の編集距離1だけを拒むヒューリスティックで、
+    // `void` の距離2には `road` と `wood` — 人が正当に書く語 — が入るので広げられなかった。
+    //
+    // 台帳へ移せば、綴りを守るのは ATT03 (未知のキー) と ATT02 (値域) になる。
+    // 開かれた語彙は殺さない — 型の位置は今や完全に自由で、core はそこを一切読まない。
+    outside: one(0, 1), // 1 = 建物の外部。延べ面積に算入せず、領域が無くてよく、接道の相手になる
+    void: one(0, 1), // 1 = 吹抜け。床が無いので延べ面積に算入せず、床も張られない
+
     // 解釈 — core が読む
     h: num(), // 天井高 mm。高さ不変量と矩計が読む
     use: free(), // 集計軸。zone から継承
-    road: num(), // exterior の幅員 mm。接道の導出
+    road: num(), // outside:1 の幅員 mm。接道の導出
     daylight: free(), // 採光の問いの対象 (ADR-0020)。値域は DAY01 が守るので台帳では重ねない
     ceiling: one(0, 1), // 0 = 天井を張らない (ADR-0024)
     uid: free(), // 永続同一性トークン (ADR-0015)。UID01-03 が守る
@@ -135,7 +148,7 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
 
     // 解釈
     style: one("hinged", "sliding", "auto"), // 平面の建具表現が変わる
-    name: free(), // **境界の中で一意な名** — 開口の同一性の鍵 (spec/scope.md §5)
+    name: free(), // **境界の中で一意な名** — 開口の同一性の鍵 (docs/reference/scope.md)
 
     // 運搬
     sill: carry(), // 窓台高

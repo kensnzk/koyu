@@ -1,6 +1,6 @@
 {
-  "format": "koyu-canonical/1.0",
-  "koyu": "1.0",
+  "format": "koyu-canonical/1.1",
+  "koyu": "1.1",
   "name": "床組みの例",
   "unit": "mm",
   "grid": {

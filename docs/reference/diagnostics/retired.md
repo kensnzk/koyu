@@ -1,86 +1,86 @@
 ---
-title: 欠番の診断コード
+title: Retired diagnostic codes
 mode: reference
 ---
 
-# 欠番の診断コード
+# Retired diagnostic codes
 
-11 の綴りが欠番である。**番号は再利用しない。**同じ綴りが別の意味を持つと、過去の出力もログも読めなくなる。台帳 (`DIAGNOSTIC_CODES`) にこれらのキーは無いので、**欠番の綴りで引くと型検査が止まる** — `DIAGNOSTIC_CODES["BND07"]` は TS2551 になる。実行時の値として確かめたいなら型を広げてから引き、`undefined` を得る。
+Eleven spellings are retired. **Numbers are never reused.** If one spelling came to mean something else, past output and past logs would stop being readable. These keys are not in the ledger (`DIAGNOSTIC_CODES`), so **a retired spelling stops the type checker** — `DIAGNOSTIC_CODES["BND07"]` is a TS2551. To see the run-time value, widen the type first and you get `undefined`.
 
 ```ts
 DIAGNOSTIC_CODES["BND04"]; // "error"
 
 const ledger = DIAGNOSTIC_CODES as Record<string, "error" | "warning" | undefined>;
-ledger["BND07"]; // undefined — 欠番
+ledger["BND07"]; // undefined — retired
 ```
 
-欠番になった理由は三つに分かれる。
+They were retired for three different reasons.
 
-| 理由 | 欠番 |
+| Reason | Retired numbers |
 |---|---|
-| **判定だったので `koyu validate` へ移った** — 閾値を持ち、建築の判断であって構成の整合ではない | ENV01 RUN06 RUN07 RUN08 SIT03 SIT05 |
-| **「情報が足りない」という一つの話だったので SUF の族へ合流した** | HGT03 HGT04 HGT05 RUN04 |
-| **役目そのものが消えた** | BND07 |
+| **They were judgements, so they moved to `koyu validate`** — they carry thresholds and decide architecture, not the consistency of the composition | ENV01 RUN06 RUN07 RUN08 SIT03 SIT05 |
+| **They were all one story — "the information needed is missing" — so they folded into the SUF family** | HGT03 HGT04 HGT05 RUN04 |
+| **The job itself disappeared** | BND07 |
 
-## 一覧
+## The list
 
-| 欠番 | 当時の severity | 当時言っていたこと | いま同じことを言うもの |
+| Retired | Severity then | What it said then | What says it now |
 |---|---|---|---|
-| BND07 | warning | 接しているのに境界が宣言されていない | 無し — 未宣言の接触は既定で壁になる |
-| ENV01 | warning | 外皮に穴 — 何にも面していない外周がある | `envelope.gap` (caution) |
-| HGT03 | warning | 上階に `slab` が無く高さ検査ができない | [SUF03](suf.md) (warning) |
-| HGT04 | warning | 天井高が不明で高さ検査ができない | [SUF01](suf.md) (error) |
-| HGT05 | warning | 領域を持つ空間のレベルが特定できない | [SUF02](suf.md) (error) |
-| RUN04 | warning | 上にレベルが無く、縦動線の形が生成できない | [SUF04](suf.md) (warning) |
-| RUN06 | warning | 導出された段が窮屈 (踏面が狭い / 2R+T が快適域の外) | `stair.proportion` (caution) |
-| RUN07 | warning | 導出された勾配が宣言や常用域から外れる | `run.slope` (caution) |
-| RUN08 | warning | 縦動線の形はあるが、上下を繋ぐ垂直境界が無い | `run.disconnected` (caution) |
-| SIT03 | error | 建物が敷地形状からはみ出している | `site.escape` (violation) |
-| SIT05 | warning | 敷地面積の宣言と導出が食い違う | `site.area` (caution) |
+| BND07 | warning | These touch, but no boundary is declared | Nothing — an undeclared contact is a wall by default |
+| ENV01 | warning | A hole in the envelope — a stretch of perimeter facing nothing | `envelope.gap` (caution) |
+| HGT03 | warning | The storey above has no `slab`, so the height check cannot run | [SUF03](suf.md) (warning) |
+| HGT04 | warning | The ceiling height is unknown, so the height check cannot run | [SUF01](suf.md) (error) |
+| HGT05 | warning | A space with a region whose level cannot be determined | [SUF02](suf.md) (error) |
+| RUN04 | warning | No level above, so the run's shape cannot be generated | [SUF04](suf.md) (warning) |
+| RUN06 | warning | The derived steps are cramped (a narrow going, or 2R+T outside the comfortable band) | `stair.proportion` (caution) |
+| RUN07 | warning | The derived slope departs from the declaration or the usual band | `run.slope` (caution) |
+| RUN08 | warning | The run has a shape but no vertical boundary connecting the storeys | `run.disconnected` (caution) |
+| SIT03 | error | The building escapes the site outline | `site.escape` (violation) |
+| SIT05 | warning | The declared site area and the derived one disagree | `site.area` (caution) |
 
-右列の `envelope.gap` 以下は `koyu check` の診断ではなく **`koyu validate` の規則**である。型からして別で、`check` は `Diagnostic { code, severity }` を、`validate` は `Finding { rule, level }` を返す。`level` は `violation` (守られなかった) と `caution` (疑わしい) の二つで、`severity` の `error` / `warning` とは別の軸である — 前者は建築の側の重さ、後者は構成の壊れ方を言う。
+Everything from `envelope.gap` down in the right-hand column is not a `koyu check` diagnostic but a **`koyu validate` rule**. They are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns `Finding { rule, level }`. `level` is `violation` (not met) or `caution` (suspect), an axis of its own — it measures architectural weight, where `severity` measures how the composition is broken.
 
-## 判定が core から出た理由
+## Why the judgements left the core
 
-`check` はかつて二種類のことを同時に言っていた。「境界が未定義の空間を参照している」(REF01) と「外皮に穴がある」(ENV01) が、同じ配列に同じ `severity` で並んでいた。前者は**構成が壊れている**という読解の失敗であり、後者は**建築として疑わしい**という判断である。
+`check` used to say two kinds of thing at once. "References an undefined space" (REF01) and "there is a hole in the envelope" (ENV01) sat in one array with the same `severity`. The first is a failure of reading — **the composition is broken**. The second is a judgement — **this is architecturally suspect**.
 
-分けた理由は二つある。
+Two problems forced the split.
 
-**第一に、緑の意味が一文で言えなかった。**「`check` が緑」の意味を書こうとすると、「構成が矛盾していない、ただし外皮と階段と採光と敷地については建築的にも一応見ている、ただしその判定は粗い」という文になる。これは定義ではない。いまは一文で言える — **構成がデータとして矛盾しておらず、書かれた構成から一意な形が作れる。建築としての妥当性については何も言わない。**
+**First, green could not be defined in one sentence.** Writing down what "`check` is green" meant produced: "the composition is not self-contradictory, except that the envelope, stairs, daylight and site are also judged architecturally, but roughly." That is not a definition. It can be said in one sentence now: **the composition is self-consistent as data, and a single shape can be made from what is written. Nothing is claimed about architectural validity.**
 
-**第二に、判定を足すたびに凍る面が伸びていた。**区画・避難距離・排煙・用途別の面積率を足したくなるたび、診断コードの台帳が伸び、そのすべてが「壊さないと約束した面」に見えてしまう。判定は別の面に置かれ、増やしても捨てても言語の版は動かない。
+**Second, every new judgement stretched the frozen surface.** Every time compartmentation, escape distance, smoke extraction or an area ratio by occupancy wanted adding, the ledger of diagnostic codes grew — and all of it looked like surface that had been promised not to break. Judgements now live on their own surface, where adding or dropping one moves no language version.
 
-**判定は捨てていない。置き場所を変えただけである。**`koyu validate` を実行すれば、六つの規則はいまも同じことを言う。
+**Nothing was thrown away; it was moved.** Run `koyu validate` and those six rules still say the same things.
 
 ```sh
 koyu validate examples/tower/main.muro
 ```
 
-## 充足性が一つの族になった理由
+## Why sufficiency became one family
 
-HGT03・HGT04・HGT05・RUN04 は、族の名としては高さと縦動線に分かれていたが、言っていたことは一つだった — **形を作るのに必要な情報が書かれていない**。
+HGT03, HGT04, HGT05 and RUN04 were split across the height and vertical-circulation families by name, but they said one thing: **the information needed to make a shape is not written**.
 
-| 欠番 | 当時の本文 | 実際に言っていたこと |
+| Retired | Its body then | What it was actually saying |
 |---|---|---|
-| HGT03 | 上階に `slab` が未宣言で高さ検査ができません | 立式に要る値が書かれていない |
-| HGT04 | 天井高が不明で高さ検査ができません | 同上 |
-| HGT05 | レベルが特定できません | z が書かれていない |
-| RUN04 | 上にレベルが無いため形が生成されません | 形が一つも出ない |
+| HGT03 | The level above has no `slab`, so the height check with this storey cannot run | A value the formula needs is not written |
+| HGT04 | The ceiling height is unknown, so the height check cannot run | The same |
+| HGT05 | Its level cannot be determined | The z is not written |
+| RUN04 | No level above, so no shape is generated | Not one shape comes out |
 
-どれも「宣言された不変量が破れている」という報せではない。HGT01 / HGT02 が**書かれた値が矛盾している**ことを言うのに対し、この四つは**値が書かれていない**ことを言っていた。族が違う。
+None of them reports a broken invariant. Where HGT01 / HGT02 say **the written values contradict each other**, these four said **the values are not written**. Different family.
 
-畳んだときに重さが変わったものが二つある。HGT04 (warning) は SUF01 (error) になり、HGT05 (warning) は SUF02 (error) になった。天井高が決まらなければ押し出す高さが無く、レベルが決まらなければ z が無い。どちらも立体が一つも出ないので、疑わしいのではなく**形が作れない**。severity はコードの不変属性なので、重さが変わる以上、綴りも新しくなる — これが四つが欠番になったもう一つの理由である。
+Two of them changed weight when they were folded in. HGT04 (warning) became SUF01 (error), and HGT05 (warning) became SUF02 (error). With no ceiling height there is no height to extrude; with no level there is no z. Either way not one solid comes out, which is not *suspect* — **no shape can be made**. Severity is an invariant property of a code, so a change of weight demands a new spelling. That is the other reason these four are retired numbers.
 
-いま高さの検査が見るのは「書かれた値が矛盾しているか」だけで、値が無ければ黙って先へ進む。それを言う仕事は充足性の検査に移った。
+The height check now looks only at whether the written values contradict; when a value is absent it moves on in silence, and saying so is the sufficiency check's job.
 
-## BND07 だけは置き換えが無い
+## BND07 alone has no replacement
 
-`BND07` はかつて「接しているのに境界が宣言されていません」という警告だった。接する二つの空間の既定が**壁**になったことで、この警告は役目を失った。未宣言の接触はもはや「未定義」ではなく「壁」を意味し、警告が促していた宣言は既定の導出そのものに置き換わった。
+`BND07` was once the warning "these touch, but no boundary is declared". Making a wall the default between two touching spaces ended its job. An undeclared contact no longer means "undefined" but "wall", and the declaration the warning was pressing for was replaced by the derivation itself.
 
-つまり `boundary` を書くのは、例外 (`type:open`・`air:1`) と、属性や開口を載せるときだけである。書かなければ壁が導かれる。
+So a `boundary` is written only to carry an exception (`type:open`, `air:1`) or to hang an attribute or an opening on it. Write nothing and a wall is derived.
 
-**そして「壁は扉が無ければ通れない」ので、扉を一枚も書かない建物は緑のまま密封される。**動線を見る道具は `check` ではなく `koyu doors` と `koyu validate` の `access.unreachable` である。
+**And since a wall is impassable without a door, a building with not one door written is green and sealed.** The instrument for looking at circulation is not `check` but `koyu doors`, and `koyu validate`'s `access.unreachable`.
 
-## 索引に戻る
+## Back to the index
 
-現行の 65 コードは[診断コード索引](index.md)にある。
+The 65 live codes are on [The diagnostic code index](index.md).

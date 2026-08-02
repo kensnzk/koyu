@@ -1,5 +1,7 @@
 {
-  "pins": ["docs/reference/form/index.md#1-形は正準形の関数である"],
-  "why": "region-union-order の対。+ の二片を逆順に書いた版で、正準形も Form も一致しなければならない。片方だけを置いてもそれは実装の写しにすぎず、性質を縛らない",
-  "sameBuildingAs": "region-union-order"
+ "pins": [
+  "docs/reference/form/index.md#four-promises"
+ ],
+ "why": "region-union-order の対。+ の二片を逆順に書いた版で、正準形も Form も一致しなければならない。片方だけを置いてもそれは実装の写しにすぎず、性質を縛らない",
+ "sameBuildingAs": "region-union-order"
 }

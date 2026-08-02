@@ -1,25 +1,25 @@
 ---
-title: はじめての .muro — 一室から二階建てまで
+title: Your first .muro — from one room to a two-storey house
 mode: tutorial
 ---
 
-# はじめての .muro — 一室から二階建てまで
+# Your first .muro — from one room to a two-storey house
 
-koyu で二階建ての家を一つ書き、平面図を出し、動線と採光を確かめるまでを通す。所要 30〜45分。
+Write one two-storey house in koyu, produce its plan drawings, and confirm its circulation and daylighting. It takes 30–45 minutes.
 
-この文書は**レッスン**である。上から順に、書いてあるとおりに進めてほしい。選択肢は出てこない。説明は最小限にとどめ、代わりに引くべき頁への入口を置いてある — 一度通り抜けてから読めばよい。
+This document is a **lesson**. Work down it in order, writing exactly what it says. No choices appear. Explanation is kept to a minimum, and doorways into the reference are placed instead — read those once you have been through.
 
-終わったときに手元にあるもの:
+What you will have at the end:
 
-- 30行の `.muro` ファイル一つ
-- 各階の平面図 (SVG)
-- 「二階の寝室から外まで扉何枚か」「居室の採光は足りているか」への答え
+- One 30-line `.muro` file
+- A plan drawing (SVG) for each level
+- Answers to "how many doors from the upstairs bedroom to the outside?" and "do the habitable rooms get enough daylight?"
 
-**ツールの出力は英語である。**貼ってあるものは実際に走らせて得たままで、`✔` が成功、`⚠` が警告、`✖` がエラーである。例に書く名前が日本語のままなのは、それが書き手の言葉であってツールの言葉ではないからである。
+**The tool speaks English.** Its output is pasted here exactly as it appears; `✔` marks success, `⚠` a warning, and `✖` an error. Names written in the examples stay in Japanese, because they are the author's words, not the tool's.
 
-## 準備
+## Getting ready
 
-必要なのは Node.js (22以上) だけである。この頁はリポジトリをクローンして進める。npm から入れる道や他の入れ方は [koyu を入れる](install.md)にある。
+All you need is Node.js (22 or newer). This page works from a clone of the repository. Installing from npm and the other routes are in [Installing koyu](install.md).
 
 ```sh
 git clone https://github.com/kensnzk/koyu.git
@@ -28,13 +28,13 @@ npm install
 mkdir -p out
 ```
 
-この先で書くファイルは `out/house.muro` 一つだけである。`out/` は `.gitignore` に入っているので、ここに置くものはリポジトリを汚さない。コマンドはすべてリポジトリのルートから実行する。
+The only file you will write from here on is `out/house.muro`. `out/` is in `.gitignore`, so nothing you put there dirties the repository. Run every command from the root of the repository.
 
-各段の到達点は `examples/steps/` に `01-one-room.muro` から `06-finished.muro` まで置いてある。迷ったら突き合わせてほしい。
+The endpoint of each stage is kept under `examples/steps/`, from `01-one-room.muro` through `06-finished.muro`. Compare against them whenever you lose your way.
 
-## 第1段 — 一室
+## Stage 1 — one room
 
-`out/house.muro` を作り、次の4行を書く。
+Create `out/house.muro` and write these four lines.
 
 ```muro
 grid X 0 3600 5400
@@ -43,18 +43,18 @@ level L1 0 h:2400 slab:150
 space /L1/ldk ldk X1..X2 Y1..Y2
 ```
 
-4行の中身はこうである。
+Here is what the four lines say.
 
-- `grid X 0 3600 5400` — X軸の**通り芯**を宣言する。左から順に `X1` `X2` `X3` と自動で名が付く。位置は常にこの通り芯の言葉で書く — 座標を直に書く行は (敷地の形を除いて) この記法に無い。
-- `grid Y 0 4000` — 同じくY軸。`Y1` `Y2` が生える。
-- `level L1 0 h:2400 slab:150` — 高さ0mmに `L1` というレベルを置く。`h:` は基準天井高、`slab:` は床組みの厚みである。
-- `space /L1/ldk ldk X1..X2 Y1..Y2` — 空間を一つ置く。`/L1/ldk` がこの空間の**パス** (同一性そのもの)、続く `ldk` が**型**、残りが領域である。
+- `grid X 0 3600 5400` — declares the **grid lines** of the X axis. They are named `X1`, `X2`, `X3` automatically, left to right. Position is always written in the language of these grid lines — apart from the shape of a site, there is no line in this notation that writes a coordinate directly.
+- `grid Y 0 4000` — the same for the Y axis. `Y1` and `Y2` come into being.
+- `level L1 0 h:2400 slab:150` — puts a level called `L1` at height 0 mm. `h:` is its nominal ceiling height, `slab:` the thickness of its floor construction.
+- `space /L1/ldk ldk X1..X2 Y1..Y2` — puts down one space. `/L1/ldk` is this space's **path** (its identity itself), the `ldk` that follows is its **type**, and the rest is its region.
 
-型は第2位置引数で、**省略できない**。パスの先頭が `L1` なので、この空間はレベル `L1` に属する。
+The type is the second positional argument and **cannot be omitted**. Because the path begins with `L1`, this space belongs to level `L1`.
 
-`grid` と `level` は、それを使う行より前に書く。行の順序が意味を持つのはここだけで、たとえば `boundary` はまだ書いていない空間を先に参照してもよい。
+Write `grid` and `level` before any line that uses them. This is the only place where line order carries meaning — a `boundary`, for instance, may refer to a space that has not been written yet.
 
-検査する。
+Check it.
 
 ```sh
 npx tsx src/cli.ts check out/house.muro
@@ -65,7 +65,7 @@ npx tsx src/cli.ts check out/house.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-平面図を出す。
+Produce the plan.
 
 ```sh
 npx tsx src/cli.ts plan out/house.muro
@@ -75,19 +75,19 @@ npx tsx src/cli.ts plan out/house.muro
 Generated the plan: out/house-L1.svg
 ```
 
-`out/house-L1.svg` をブラウザで開く。
+Open `out/house-L1.svg` in a browser.
 
-![一室だけの平面図。通り芯 X1 X2 Y1 Y2 と、淡い色の矩形が一つ。壁は一本も描かれていない](../img/start-01-one-room.svg)
+![Plan of a single room: grid lines X1 X2 Y1 Y2 and one pale rectangle. Not one wall is drawn](../img/start-01-one-room.svg)
 
-**壁が一本も描かれていない。**空間はあるが、境界が一つも無いからである。壁は空間に付属する持ち物ではない。
+**Not one wall is drawn.** There is a space, but not one boundary. A wall is not a possession that hangs off a space.
 
-`check` が見るのは「書かれたものが整合しているか」だけである。空のファイルも `✔ Consistent — 0 spaces / 0 boundaries` で通る。緑は「正しい建物」の意味ではない — この点は第5段で正面から扱う。
+What `check` looks at is only whether what is written is consistent. An empty file passes too, with `✔ Consistent — 0 spaces / 0 boundaries`. Green does not mean "a correct building" — stage 5 takes that head-on.
 
-引くなら [grid](../reference/muro/grid.md)・[level](../reference/muro/level.md)・[space](../reference/muro/space.md)。
+To look things up: [grid](../reference/muro/grid.md), [level](../reference/muro/level.md), [space](../reference/muro/space.md).
 
-## 第2段 — 二室、そして書いていない壁
+## Stage 2 — two rooms, and the wall you did not write
 
-`space` を1行足す。他は何も変えない。
+Add one `space` line. Change nothing else.
 
 ```muro
 grid X 0 3600 5400
@@ -97,7 +97,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
 ```
 
-検査する。
+Check it.
 
 ```sh
 npx tsx src/cli.ts check out/house.muro
@@ -108,31 +108,31 @@ npx tsx src/cli.ts check out/house.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-**境界が 0 から 1 に増えている。**境界の行は一つも書いていない。
+**Boundaries went from 0 to 1.** You wrote no boundary line at all.
 
-平面図を出し直して開く。
+Produce the plan again and open it.
 
 ```sh
 npx tsx src/cli.ts plan out/house.muro
 ```
 
-![二室の平面図。X2通り芯の上に黒い帯が一本立ち、ldk と hall を分けている](../img/start-02-two-rooms.svg)
+![Plan of two rooms, with a black band standing on grid line X2, dividing ldk from hall](../img/start-02-two-rooms.svg)
 
-SVGの中身にはこの一行が増えている。
+One line has appeared inside the SVG.
 
 ```text
 <path d="M 261.5 284 L 261.5 84 L 266.5 84 L 266.5 284 Z" fill="#1f1f1f"/>
 ```
 
-これが壁である。前の段の図に黒い帯は0本、この段では1本 — 増やした行は `space` 一行だけである。
+That is the wall. The previous stage's drawing had zero black bands; this one has one — and the only line you added was one `space`.
 
-ここで手を止めてほしい。**この記法には壁を描く操作が無い。**壁は二つの空間の間の境界であり、空間の割付から導出される。接する空間の組に境界の宣言が一つも無ければ、それは「未定義」ではなく「壁」を意味する。垂直方向の「床は書かない、既定は床」と対称の規定である。
+Stop here for a moment. **There is no operation in this notation that draws a wall.** A wall is the boundary between two spaces, derived from how the spaces are laid out. Where a pair of touching spaces carries no boundary declaration at all, that means "wall" rather than "undefined". Vertically the rule is its mirror image: you do not write floors, and the default is floor.
 
-導出される既定の中身は[既定の境界](../reference/muro/defaults.md)、共有辺から壁芯線分が起きる規則は[境界の形](../reference/form/boundaries.md)にある。
+What the defaults are is in [Default boundaries](../reference/muro/defaults.md); how a wall centreline segment is raised from a shared edge is in [The form of boundaries](../reference/form/boundaries.md).
 
-## 第3段 — 扉
+## Stage 3 — a door
 
-導出された壁は物として立っているので、扉が無ければ通れない。穴をあけるには、その境界を**宣言**する必要がある。末尾に `boundary` と `door` の2行を足す (読みやすいように空行も入れた)。
+The derived wall stands there as a thing, so without a door there is no way through. To cut a hole, you must **declare** that boundary. Add two lines, `boundary` and `door`, at the end (blank lines added for legibility).
 
 ```muro
 grid X 0 3600 5400
@@ -146,11 +146,11 @@ boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
 ```
 
-`boundary` は二つの空間パスを結ぶ関係である。線分は書かない — 両空間の割付から導かれる。`t:120` は壁厚mm。
+A `boundary` is a relation joining two space paths. You do not write a line segment — it is derived from how the two spaces are laid out. `t:120` is the wall thickness in mm.
 
-`door` の行は**字下げしてある**。字下げされた行は直前の親行に従属する、というのがこの記法の唯一の入れ子である。`door` には幅 `w` が要る。
+The `door` line is **indented**. An indented line belongs to the parent line just above it, and that is the only nesting this notation has. A `door` needs a width, `w`.
 
-検査して図を出す。
+Check it and produce the drawing.
 
 ```sh
 npx tsx src/cli.ts check out/house.muro
@@ -163,11 +163,11 @@ npx tsx src/cli.ts plan out/house.muro
 Generated the plan: out/house-L1.svg
 ```
 
-境界の数は 1 のままである。導出されていた壁が、宣言された壁に置き換わっただけだからである。
+The boundary count is still 1. The wall that was derived has simply been replaced by a wall that is declared.
 
-![二室の平面図。壁の中央に開口があき、1/4円の軌跡で開き戸が描かれている](../img/start-03-door.svg)
+![Plan of two rooms; an opening in the middle of the wall, with a swing door drawn as a quarter-circle arc](../img/start-03-door.svg)
 
-扉が通っているか、モデルに訊く。
+Ask the model whether the door gets you through.
 
 ```sh
 npx tsx src/cli.ts doors out/house.muro /L1/ldk /L1/hall
@@ -177,15 +177,15 @@ npx tsx src/cli.ts doors out/house.muro /L1/ldk /L1/hall
 1 door — /L1/ldk → /L1/hall
 ```
 
-**境界を宣言するのは、その境界について何か言うことがあるときだけである** — 厚み、仕様、開口。言うことが無ければ書かない。書かなくても壁はそこにある。
+**You declare a boundary only when you have something to say about it** — thickness, specification, an opening. If you have nothing to say, do not write it. The wall is there either way.
 
-引くなら [boundary](../reference/muro/boundary.md)・[door](../reference/muro/door.md)・[開口の位置](../reference/muro/positions.md)。
+To look things up: [boundary](../reference/muro/boundary.md), [door](../reference/muro/door.md), [Opening positions](../reference/muro/positions.md).
 
-## 第4段 — 外
+## Stage 4 — the outside
 
-外部は空間である。`space /out exterior` で宣言し、外皮の境界を自分で書く。
+The outside is a space. Declare it with `space /out outside:1` and write the envelope boundaries yourself.
 
-型が `exterior` の空間は領域を持たなくてよい。次のように書き足す。
+A space of type `exterior` need not carry a region. Add the following.
 
 ```muro-bad
 grid X 0 3600 5400
@@ -194,7 +194,7 @@ level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -205,7 +205,7 @@ boundary /L1/hall /out t:150
   door w:900 h:2000
 ```
 
-検査すると落ちる。
+Checking it fails.
 
 ```sh
 npx tsx src/cli.ts check out/house.muro
@@ -216,22 +216,22 @@ npx tsx src/cli.ts check out/house.muro
 ✖ …/out/house.muro:line 15: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/hall | /out)
 ```
 
-(エラーは絶対パスで位置を言う。前半は `…` で省いてある。これは [OPN05](../reference/diagnostics/opn.md#opn05) である。)
+(Errors give their location as an absolute path; the front of it is elided with `…` here. This is [OPN05](../reference/diagnostics/opn.md#opn05).)
 
-これは外部が内部と違うところである。室と室の境界は一本の共有辺だが、室と外部の境界は**外周から他の空間と接する区間を除いた残り**であり、複数の辺に分かれる。`/L1/ldk` は北・南・西の3辺が外に面しているので、窓をどこに置きたいのか記法からは決まらない。
+This is where the outside differs from the inside. A room-to-room boundary is a single shared edge, but a room-to-outside boundary is **the perimeter minus the stretches that touch other spaces**, and it breaks into several edges. `/L1/ldk` faces the outside on three sides — north, south and west — so the notation cannot tell where you want the window.
 
-`edge:` で辺を選ぶ。方角は次のとおりである。
+Pick an edge with `edge:`. The compass points are these.
 
-| 記号 | 向き | 図の上では |
+| Symbol | Direction | On the drawing |
 |---|---|---|
-| `N` | +Y | 上 |
-| `S` | -Y | 下 |
-| `E` | +X | 右 |
-| `W` | -X | 左 |
+| `N` | +Y | up |
+| `S` | -Y | down |
+| `E` | +X | right |
+| `W` | -X | left |
 
-X は東が正、Y は北が正である。`edge` の方角は**先に書いた空間の矩形から見る**。
+X is positive to the east and Y positive to the north. The `edge` direction is read **from the rectangle of the space written first**.
 
-南面に窓と玄関を置く。13行目と15行目に `edge:S` を足す。合わせて `ldk` に `daylight:1` を書く — これはこの段の終わりで使う。
+Put the window and the front door on the south face: add `edge:S` on lines 13 and 15. Add `daylight:1` to `ldk` at the same time — you will use it at the end of this stage.
 
 ```muro
 grid X 0 3600 5400
@@ -240,7 +240,7 @@ level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -262,11 +262,11 @@ npx tsx src/cli.ts plan out/house.muro
 Generated the plan: out/house-L1.svg
 ```
 
-![外皮のついた平面図。外周がすべて黒い帯で囲まれ、南面に窓の芯線と玄関の開き戸が描かれている](../img/start-04-exterior.svg)
+![Plan with an envelope: the whole perimeter is enclosed by black bands, and the south face carries a window centreline and a swinging front door](../img/start-04-exterior.svg)
 
-黒い帯は1本から10本になった。内壁が扉で2つに割れ、外周の6辺のうち南の2辺が窓と玄関でそれぞれ2つに割れた残りである。**内壁は自動、外壁は宣言。**外部との境界は書かなければ存在せず、書かなくても `check` は緑のままである。外皮は自分の目で確かめる持ち場だと憶えてほしい。
+The black bands went from one to ten: the internal wall split in two by its door, plus the six perimeter edges with two of the southern ones each split in two by the window and the front door. **Internal walls are automatic; external walls are declared.** A boundary with the outside does not exist unless you write it, and `check` stays green whether you write it or not. Remember the envelope as the ground you have to hold with your own eyes.
 
-窓を入れたので、採光を訊ける。**koyu は「どの室を判定すべきか」を推測しない** — 型を `ldk` と綴ったことも `bedroom` と綴ったことも、判定の根拠にはならない。判定してほしい室に `daylight:1` を書く。5行目に足したのがそれである。
+Now that there is a window, you can ask about daylight. **koyu does not guess which rooms should be judged** — spelling a type `ldk` or `bedroom` is no grounds for judging anything. You write `daylight:1` on the rooms you want judged, which is what went onto line 5.
 
 ```sh
 npx tsx src/cli.ts light out/house.muro
@@ -277,13 +277,13 @@ npx tsx src/cli.ts light out/house.muro
 ✔ Every room meets 1/7 — 1 room in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
-`hall` が出てこないのは、`daylight:1` を書いたのが `ldk` だけだからである。型は判定に一切関与しない — `hall` を `room` に書き換えても対象にはならず、`hall` のまま `daylight:1` を足せば対象になる。空間の型で構造として解釈されるのは `exterior` と `void` の二語だけで、残りは koyu が解釈しない自由な語である。
+`hall` does not appear because `daylight:1` was written only on `ldk`. Type plays no part whatsoever: rewriting `hall` as `room` does not bring it into scope, and adding `daylight:1` while leaving it `hall` does. **No space type is read at all** — being outside and being a void live in the declarations `outside:1` and `void:1`, and the type position is a free label.
 
-引くなら [方角と edge](../reference/muro/orientation.md)・[window](../reference/muro/window.md)・[採光の判定](../reference/validate/daylight.md)。
+To look things up: [Orientation and edge](../reference/muro/orientation.md), [window](../reference/muro/window.md), [The daylight rules](../reference/validate/daylight.md).
 
-## 第5段 — 二階、そして緑の罠
+## Stage 5 — a second storey, and the green trap
 
-二階を載せる。`level` を1行足し、空間2行、階段の境界1行、二階の外皮2つを足す。
+Put a second storey on. Add one `level` line, two spaces, one stair boundary, and two envelope boundaries upstairs.
 
 ```muro
 grid X 0 3600 5400
@@ -295,7 +295,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
 space /L2/bed bedroom X1..X2 Y1..Y2 daylight:1
 space /L2/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -312,11 +312,11 @@ boundary /L2/bed /out t:150
 boundary /L2/hall /out t:150
 ```
 
-`/L2/…` のパスを持つ空間は `L2` に属する。`level L2 2800` の `2800` は L2 の床の高さで、`slab:400` は L2 の床組みの厚みである。
+Spaces whose path begins `/L2/…` belong to `L2`. The `2800` in `level L2 2800` is the height of L2's floor, and `slab:400` is the thickness of its floor construction.
 
-`boundary /L1/hall /L2/hall type:stair` が階段である。上下階の空間は平面が重なれば自動で隣接し、既定の解釈は「床がある」— 例外だけを境界で宣言する。`stair` は通行可、`shaft` は繋がるが通行不可、`void` は床の不在を意味する。
+`boundary /L1/hall /L2/hall type:stair` is the stair. Spaces on consecutive levels become adjacent automatically wherever their plans overlap, and the default reading is "there is a floor" — you declare only the exceptions. `stair` is passable, `shaft` connects without being passable, and `void` means the absence of a floor.
 
-検査する。
+Check it.
 
 ```sh
 npx tsx src/cli.ts check out/house.muro
@@ -327,7 +327,7 @@ npx tsx src/cli.ts check out/house.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-高さの積み上がりを見る。
+Look at how the heights stack up.
 
 ```sh
 npx tsx src/cli.ts levels out/house.muro
@@ -339,9 +339,9 @@ L1	z:0	h:2400	slab:150
   ↑ storey height 2800 = ceiling 2400 + slab 400
 ```
 
-テキストの矩計である。天井高 + 上階のslab が階高を超えれば `check` がエラーにする。ここでは 2400 + 400 = 2800 でぴたりと収まっている。
+A section in text. If ceiling height plus the slab above exceeds the storey height, `check` makes it an error. Here 2400 + 400 = 2800 fits exactly.
 
-二階の平面図を出す。レベルは `-l` で選ぶ。
+Produce the upstairs plan. Choose the level with `-l`.
 
 ```sh
 npx tsx src/cli.ts plan out/house.muro -l L2
@@ -351,9 +351,9 @@ npx tsx src/cli.ts plan out/house.muro -l L2
 Generated the plan: out/house-L2.svg
 ```
 
-![二階の平面図。寝室と階段ホールが壁で仕切られ、外周は黒い帯で囲まれている。寝室の南面に窓がある](../img/start-05-L2-sealed.svg)
+![Upstairs plan: the bedroom and the stair hall separated by a wall, the perimeter enclosed by black bands, a window on the bedroom's south face](../img/start-05-L2-sealed.svg)
 
-普通の二階の平面に見える。`check` も緑である。ここで動線を訊く。
+It looks like an ordinary upstairs plan. `check` is green. Now ask about circulation.
 
 ```sh
 npx tsx src/cli.ts doors out/house.muro /L2/bed /out
@@ -363,9 +363,9 @@ npx tsx src/cli.ts doors out/house.muro /L2/bed /out
 Cannot reach /out from /L2/bed
 ```
 
-**寝室は完全に密閉されている。**`/L2/bed` と `/L2/hall` は接しているので既定の壁が導出されており、その壁には扉が無い。書き忘れではなく、書かなかったことが「壁」という意味を持ったのである。
+**The bedroom is sealed shut.** `/L2/bed` and `/L2/hall` touch, so a default wall was derived between them, and that wall has no door. This is not a forgotten line; not writing anything is what carried the meaning "wall".
 
-直す。寝室と階段ホールの境界を宣言し、扉を切る。`boundary /L1/hall /L2/hall type:stair` の次に2行足す。
+Fix it. Declare the boundary between the bedroom and the stair hall, and cut a door. Add two lines after `boundary /L1/hall /L2/hall type:stair`.
 
 ```muro
 grid X 0 3600 5400
@@ -377,7 +377,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
 space /L2/bed bedroom X1..X2 Y1..Y2 daylight:1
 space /L2/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -408,32 +408,32 @@ npx tsx src/cli.ts doors out/house.muro /L2/bed /out
 2 doors — /L2/bed → /L2/hall → /L1/hall → /out
 ```
 
-寝室から玄関ホールを抜けて外まで扉2枚。階段は扉ではないので数に入らない。
+Two doors from the bedroom, through the entrance hall, to the outside. A stair is not a door, so it does not count.
 
-**境界の数は 7 のまま変わっていない。**導出されていた壁が、扉つきの壁に置き換わっただけである。`check` の出力も前後で一字も違わない — 密閉された家と使える家を、`check` は区別しない。
+**The boundary count has not moved from 7.** The wall that was derived has simply been replaced by a wall with a door in it. Not one character of the `check` output differs before and after — `check` does not distinguish a sealed house from a usable one.
 
-図を出し直すと、壁に扉が現れている。
+Redraw, and the door appears in the wall.
 
 ```sh
 npx tsx src/cli.ts plan out/house.muro -l L2
 ```
 
-![二階の平面図。寝室と階段ホールの間の壁に開口があき、開き戸の軌跡が描かれている](../img/start-05-L2.svg)
+![Upstairs plan: an opening in the wall between the bedroom and the stair hall, with the swing arc of a door](../img/start-05-L2.svg)
 
-ここが koyu を使ううえで一番大事なところである。
+This is the most important thing about using koyu.
 
-> `check` が緑でも建物が使えるとは限らない。動線は `doors` で、採光は `light` で、外皮は自分の目で確かめる。
+> A green `check` does not mean the building works. Confirm circulation with `doors`, daylight with `light`, and the envelope with your own eyes.
 
-この一行がなぜそうなっていて、どこまでを信用してよいのかは[check の保証範囲](../why/green-is-not-a-building.md)で扱う。
+Why that line is where it is, and how far you may trust it, is in [What check guarantees](../why/green-is-not-a-building.md).
 
-引くなら [垂直動線](../reference/muro/vertical-circulation.md)・[koyu levels](../reference/cli/levels.md)・[koyu doors](../reference/cli/doors.md)。
+To look things up: [Vertical circulation](../reference/muro/vertical-circulation.md), [koyu levels](../reference/cli/levels.md), [koyu doors](../reference/cli/doors.md).
 
-## 第6段 — 仕上げ
+## Stage 6 — finishing
 
-最後に、これまで省いてきたものを足す。
+Finally, add what has been left out so far.
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 小さな家
 
 grid X 0 3600 5400
@@ -445,7 +445,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク daylight:1
 space /L1/hall hall X2..X3 Y1..Y2 name:玄関ホール floor:タイル
 space /L2/bed bedroom X1..X2 Y1..Y2 name:寝室 floor:オーク daylight:1
 space /L2/hall hall X2..X3 Y1..Y2 name:階段ホール
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/ldk /L1/hall t:120 spec:PW1
   door w:800 h:2000 name:LDK扉
@@ -465,17 +465,17 @@ boundary /L2/bed /out t:150 spec:EW1
 boundary /L2/hall /out t:150 spec:EW1
 ```
 
-足したものは三種類である。
+Three kinds of thing were added.
 
-- **`koyu 1.0`** — 言語版の宣言。省いたファイルは常に最新版の意味論で読まれるので、ツールの版が上がると意味が動きうる。**新しく作るファイルには書く。**
-- **`name`** — 建物名 (図面のタイトルになる) と、空間・境界・開口それぞれの名前。
-- **`floor:` `spec:`** — koyu が解釈せず、そのまま運ぶ属性。物の名 (RC・LGS・EW1…) は `spec` の値として書く、というのがこの記法の構えである。
+- **`koyu 1.0`** — the language version declaration. A file that omits it is always read with the semantics of the newest version, so its meaning can move when the tool's version moves. **Write it in every new file.**
+- **`name`** — the building's name (it becomes the drawing title), and names for spaces, boundaries and openings.
+- **`floor:` and `spec:`** — attributes koyu does not interpret and simply carries. The stance of this notation is that the names of things (RC, LGS, EW1 …) go in the value of `spec`.
 
-書けるキーは決まっている。**台帳に無いキーは、`acme.sensor` のように名前空間を持たなければ書けない** — 「見ていない」と「見て問題がない」を区別するための境界で、`floor` も `spec` も台帳に載っている語である。一覧は[属性](../reference/muro/attributes.md)にある。
+The keys you may write are a fixed set. **A key that is not in that set cannot be written unless it carries a namespace**, like `acme.sensor` — the boundary exists to separate "not looked at" from "looked at and fine". Both `floor` and `spec` are in the set. The full list is in [Attributes](../reference/muro/attributes.md).
 
-同梱の例に見える `unit mm` は書かなくてよい。長さは mm しかない。
+The `unit mm` you see in the bundled examples need not be written. Lengths are mm and nothing else.
 
-検査して、面積を出す。
+Check it, then produce areas.
 
 ```sh
 npx tsx src/cli.ts check out/house.muro
@@ -499,18 +499,18 @@ Total 43.20 m2 (indoor floor area)
   bedroom: 14.40 m2
 ```
 
-面積は壁芯である。両階の図を出す。
+Areas are measured to wall centrelines. Produce both plans.
 
 ```sh
 npx tsx src/cli.ts plan out/house.muro -l L1
 npx tsx src/cli.ts plan out/house.muro -l L2
 ```
 
-![一階の平面図。LDK と玄関ホール、南面に掃き出し窓と玄関](../img/start-06-L1.svg)
+![Ground floor plan: the LDK and the entrance hall, with a full-height window and the front door on the south face](../img/start-06-L1.svg)
 
-![二階の平面図。寝室と階段ホール、その間に扉](../img/start-06-L2.svg)
+![Upstairs plan: the bedroom and the stair hall, with a door between them](../img/start-06-L2.svg)
 
-最後に、第5段の言いつけどおり動線と採光を確かめる。
+Finally, as stage 5 instructed, confirm circulation and daylight.
 
 ```sh
 npx tsx src/cli.ts doors out/house.muro /L2/bed /out
@@ -524,12 +524,12 @@ npx tsx src/cli.ts light out/house.muro
 ✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
-30行のテキストから、二階建ての家と、その平面図と、動線と採光の答えが出た。
+From 30 lines of text came a two-storey house, its plan drawings, and the answers about circulation and daylight.
 
-## ここまでで使った語
+## The words you have used
 
-この記法で行頭に来る語は16種類、字下げに置ける行は9種類しかない。ここまでで使ったのは `grid` `level` `space` `boundary` と、字下げの `door` `window`、それに `koyu` と `name` — 家一軒はそれで足りる。
+There are only 16 words that can begin a line in this notation, and 9 kinds of line that can sit indented. What you have used so far is `grid`, `level`, `space`, `boundary`, the indented `door` and `window`, plus `koyu` and `name` — that is enough for one house.
 
-残る `unit` `zone` `band` `stack` `asset` `polygon` `column` `import` `over` `drop` と、字下げの `seg` `line` `area`、帯の要素として字下げされる `space`、`over` の下に置く `+` `-` `=` は、規模が大きくなったとき・建物をファイルに割ったときの語である。全部の一覧は [.muro の全構文](../reference/muro/index.md)にある。
+The rest — `unit`, `zone`, `band`, `stack`, `asset`, `polygon`, `column`, `import`, `over`, `drop`, the indented `seg`, `line` and `area`, the `space` that sits indented as a band member, and the `+` `-` `=` that sit under `over` — are the words for when the scale grows and when a building is split across files. The full list is in [Every construct in .muro](../reference/muro/index.md).
 
-次にどこへ行くかは[次に読むもの](next.md)に、読者ごとに一枚ずつ並べてある。
+Where to go next is laid out one page per reader in [What to read next](next.md).

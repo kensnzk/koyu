@@ -1,0 +1,9 @@
+koyu 1.1
+grid X 0 4000
+grid Y 0 5000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2 name:居室
+space /L1/hole X1..X2 Y1..Y2 level:L1 void:1 name:吹抜け
+space /out name:南側道路 road:6000 outside:1
+boundary /L1/a /out edge:S t:120
+  door w:900

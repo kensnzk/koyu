@@ -1,28 +1,28 @@
 ---
-title: 同梱の建物
+title: The bundled buildings
 mode: explanation
 ---
 
-# 同梱の建物
+# The bundled buildings
 
-リポジトリには八棟入っている。二室の最小例から、延床141,449㎡の双塔再開発まで、**どれも `koyu check` が緑になる実物**である。図が読めれば書けたことになる記法なので、実例は付録ではなく入口である。
+Eight buildings ship with the repository, from a two-room minimum to a twin-tower redevelopment of 141,449 m² gross. **Every one of them passes `koyu check`.** In a notation where being able to read the drawing means you were able to write it, the examples are not an appendix — they are the entrance.
 
-八棟はおおむね難度順に並び、前の例の上に積み上がる。各頁は「この例が**初めて**示すもの」「代表的な抜粋」「投げる価値のある問いと、実際に返ってきた答え」からなる。
+They are roughly in order of difficulty and mostly build on one another. Each page is organised as "what this example shows **first**", a representative excerpt, and the questions worth putting to it with the answers that actually came back.
 
-## 規模
+## Scale
 
-| 例 | 原本 | レベル | 空間 | 境界 | 屋内床面積 | 半屋外 |
+| Example | Source | Levels | Spaces | Boundaries | Interior floor area | Semi-outdoor |
 |---|---|---:|---:|---:|---:|---:|
-| [two-rooms](two-rooms.md) | 26行 / 1ファイル | 1 | 3 | 3 | 32.40㎡ | — |
-| [office](office.md) | 110行 / 1ファイル | 3 | 17 | 43 | 419.84㎡ | — |
-| [house](house.md) | 89行 / 1ファイル (合成版 102行 / 5ファイル) | 3 | 13 | 31 | 92.75㎡ | 73.24㎡ |
-| [basement](basement.md) | 86行 / 1ファイル | 4 | 15 | 49 | 1,242.08㎡ | — |
-| [mansion](mansion.md) | 192行 / 1ファイル | 11 | 122 | 332 | 2,366.40㎡ | 162.16㎡ |
-| [tower](tower.md) | 453行 / 9ファイル | 12 | 178 | 543 | 4,785.92㎡ | 941.16㎡ |
-| [complex](complex.md) | 646行 / 10ファイル | 22 | 425 | 1,364 | 31,606.24㎡ | — |
-| [twin](twin.md) | 1,220行 / 11ファイル | 39 | 1,808 | 5,973 | 141,448.56㎡ | 6,534.08㎡ |
+| [two-rooms](two-rooms.md) | 26 lines / 1 file | 1 | 3 | 3 | 32.40 m² | — |
+| [office](office.md) | 110 lines / 1 file | 3 | 17 | 43 | 419.84 m² | — |
+| [house](house.md) | 89 lines / 1 file (composed version 102 lines / 5 files) | 3 | 13 | 31 | 92.75 m² | 73.24 m² |
+| [basement](basement.md) | 86 lines / 1 file | 4 | 15 | 49 | 1,242.08 m² | — |
+| [mansion](mansion.md) | 192 lines / 1 file | 11 | 122 | 332 | 2,366.40 m² | 162.16 m² |
+| [tower](tower.md) | 453 lines / 9 files | 12 | 178 | 543 | 4,785.92 m² | 941.16 m² |
+| [complex](complex.md) | 646 lines / 10 files | 22 | 425 | 1,364 | 31,606.24 m² | — |
+| [twin](twin.md) | 1,220 lines / 11 files | 39 | 1,808 | 5,973 | 141,448.56 m² | 6,534.08 m² |
 
-空間数と境界数は `koyu check` が印字する合成後の数、床面積は `koyu stats` の合計、レベル数は `koyu levels` の行数である。**この表の数字はすべて実際に走らせて得た。**
+Space and boundary counts are what `koyu check` prints for the composed model, floor area is the total from `koyu stats`, and the level count is the number of rows from `koyu levels`. **Every figure in this table came from actually running the command.**
 
 ```sh
 npx tsx src/cli.ts check examples/twin/main.muro
@@ -33,25 +33,25 @@ npx tsx src/cli.ts check examples/twin/main.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-## 大きさは行数に比例しない
+## Size does not scale with line count
 
-**延床が4,300倍になっても、原本は47倍にしかならない。**two-rooms の 32.40㎡ / 26行 と twin の 141,448.56㎡ / 1,220行を比べればそうなる。complex と tower の間ではもっと極端で、床面積 6.6 倍に対して原本は 1.43 倍である。
+**The floor area grows 4,300-fold and the source grows 47-fold.** That is two-rooms at 32.40 m² / 26 lines against twin at 141,448.56 m² / 1,220 lines. Between complex and tower it is starker still: 6.6 times the floor area for 1.43 times the source.
 
-理由は記法の圧縮率ではない。**複合建築は繰り返しでできている**からで、レベルスパン (`/B2..L19/`) と[帯](../reference/muro/band.md)と [`stack`](../reference/muro/stack.md) が繰り返しを丸ごと畳む。complex のコアは地下2階から19階までの21レベル分が9行、ホテルの客室は帯13行から78室に展開される。
+The reason is not compression. **Large mixed-use buildings are made of repetition**, and level spans (`/B2..L19/`), [bands](../reference/muro/band.md) and [`stack`](../reference/muro/stack.md) fold that repetition whole. The core of complex covers twenty-one levels, from two floors below ground to the nineteenth, in nine lines; the hotel guest rooms expand from thirteen lines of band declaration into seventy-eight rooms.
 
-したがって**原本の大きさは建物の大きさではなく設計判断の数に比例する**。これは記法の性能ではなく、建築そのものの性質を写している。
+So **the size of the source is proportional to the number of design decisions, not to the size of the building**. That is not a property of the notation; it is a property of architecture, which the notation happens to reflect.
 
-LLMのコンテキストに載るかどうかも、そこで決まる。o200k_base で測ると two-rooms が 359トークン、tower の9ファイル合計が 8,574トークン、complex の10ファイル合計が 12,685トークン、twin の11ファイル合計が 26,630トークン。**延床31,606㎡の一棟が、どのモデルの文脈にも丸ごと載る。**同じ場面を IFC4 / IFCX で書いたときの実測は [koyu と IFC の実測比較](vs-ifc.md)にある。
+Whether a building fits in an LLM's context is settled there too. Measured with o200k_base: two-rooms is 359 tokens, the nine files of tower total 8,574, the ten files of complex total 12,685, and the eleven files of twin total 26,630. **A single 31,606 m² building fits whole into any model's context.** The same scene written in IFC4 and IFCX, measured the same way, is in [koyu measured against IFC](vs-ifc.md).
 
-## 走らせる
+## Running them
 
-八棟すべての整合を一度に確かめる。
+All eight are checked at once.
 
 ```sh
 npm run check:examples
 ```
 
-一棟だけを見るなら、まず `check`、次に問いを投げる。
+For one building, check first, then put questions to it.
 
 ```sh
 npx tsx src/cli.ts check  examples/office.muro
@@ -60,15 +60,15 @@ npx tsx src/cli.ts doors  examples/office.muro /L2/office /out
 npx tsx src/cli.ts plan   examples/office.muro -l L2 -o out/office-L2.svg
 ```
 
-**`check` が緑でも建物が使えるとは限らない。**`check` が言うのは「書かれたものがデータとして矛盾していない」までである。建築的な判定は [`koyu validate`](../reference/cli/validate.md) が別に言う — 同梱の八棟はどれも `validate` も通る。
+**A green `check` does not mean the building works.** All `check` says is that what was written is not self-contradictory as data. Architectural verdicts come separately from [`koyu validate`](../reference/cli/validate.md) — all eight bundled buildings pass that too.
 
-## 何から読むか
+## Where to start
 
-- **記法をまだ知らない** — [two-rooms](two-rooms.md) から [office](office.md)、[house](house.md) の順。
-- **書きたいものが決まっている** — [書きたいものから引く](by-pattern.md)が、機能から例の行へ直接飛ばす。
-- **規模に耐えるか知りたい** — [complex](complex.md) と [twin](twin.md)。
-- **IFC と比べたい** — [koyu と IFC の実測比較](vs-ifc.md)。
+- **New to the notation** — [two-rooms](two-rooms.md), then [office](office.md), then [house](house.md).
+- **You know what you want to write** — [Look it up by what you want to write](by-pattern.md) jumps straight from a feature to the line in an example that has it.
+- **You want to know whether it holds at scale** — [complex](complex.md) and [twin](twin.md).
+- **You want the comparison with IFC** — [koyu measured against IFC](vs-ifc.md).
 
-## 段階を追う例
+## The step-by-step example
 
-[examples/steps/](../../examples/steps/) には、一室から二階建てまでを6段に分けた到達点が入っている。こちらは実例集ではなくチュートリアルの伴走ファイルなので、[はじめの一歩](../start/first-program.md)から辿るのがよい。
+[examples/steps/](../../examples/steps/) holds the state reached at each of six stages, from one room to two storeys. That set accompanies the tutorial rather than the gallery, so follow it from [your first program](../start/first-program.md).

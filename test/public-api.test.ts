@@ -80,8 +80,8 @@ function cliSubcommands(): string[] {
 
 // The pages checked are the **published documentation**. `spec/` is an internal tree on its way
 // out; while two trees both claim to be normative, the machine must bind the canonical one.
-const SURFACE_PAGES = ["docs/reference/api/index.md", "docs/en/reference/api/index.md"];
-const CLI_PAGES = ["docs/reference/cli/index.md", "docs/en/reference/cli/index.md"];
+const SURFACE_PAGES = ["docs/reference/api/index.md"];
+const CLI_PAGES = ["docs/reference/cli/index.md"];
 
 // ---- 1. 面が書き下されている ----
 

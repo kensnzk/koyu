@@ -1,7 +1,7 @@
 # 2階の層 — 上階の外壁は方角別のexteriorに面する。
 
 space /home/bed1  bedroom X1..X2 Y1..Y3 level:L2 name:主寝室 daylight:1
-space /home/void  void    X2..X3 Y1..Y2 level:L2 name:リビング上部
+space /home/void          X2..X3 Y1..Y2 level:L2 name:リビング上部 void:1
 space /home/hall2 hall    X2..X3 Y2..Y3 level:L2 name:2階ホール
 
 boundary /home/bed1 /out/road edge:S t:150 spec:EW

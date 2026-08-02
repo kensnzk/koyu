@@ -1,34 +1,34 @@
 ---
-title: area — 空間の中の数えない分節
+title: area — an uncounted subdivision inside a space
 mode: reference
 ---
 
-# area — 空間の中の数えない分節
+# area — an uncounted subdivision inside a space
 
 ```muro-part
 space /L1/hall hall X1..X2 Y1..Y2 name:エントランスホール floor:オーク
   area X1..X1+1800 Y1..Y2 name:土間 floor:モルタル
 ```
 
-`area <領域> [属性...]` は[空間](space.md)の直下に字下げして書く、**数えない分節**である。室の中で床仕上げが変わる、たたきの範囲がある、家具の置き場が決まっている — そういう「室を割らずに範囲を持つ」情報がここに来る。
+`area <region> [attributes...]` is written indented directly under a [space](space.md) and is an **uncounted subdivision**. A change of floor finish inside a room, the extent of an entrance slab, a fixed furniture zone — anything that holds an extent without dividing the room — belongs here.
 
-## 隔離則 — 何にも影響しない
+## The isolation rule — it affects nothing
 
-`area` は室ではない。**面積にも室数にもグラフにも一切現れない。**
+An `area` is not a room. **It appears in no area total, no room count and no graph.**
 
-- 延床面積は親の空間の領域から出る。`area` を何枚重ねても増えも減りもしない。
-- 隣接も通行も親の空間のものである。`area` は[境界](boundary.md)を持てず、扉も窓も置けない。
-- ゾーンの集計にも `use` の集計にも出ない。
+- Gross floor area comes from the parent space's region. No number of `area` lines raises or lowers it.
+- Adjacency and passage belong to the parent space. An `area` cannot carry a [boundary](boundary.md), and no door or window can be placed on one.
+- It appears in neither the zone totals nor the `use` totals.
 
-書けるのは**領域と上書き属性だけ**で、それが `area` の全部である。ここを割って数えたくなったら、それは `area` ではなく `space` を二つ書く場面である — 親を[ゾーン](zone.md)にして、その下に領域つきの空間を並べる。
+A region and overriding attributes are all it can hold, and that is the whole of it. The moment you want to count what you are dividing, the answer is not an `area` but two `space` lines — make the parent a [zone](zone.md) and put spaces with regions beneath it.
 
-## 領域
+## Region
 
-領域の書き方は[空間](space.md)と同じで、`X?..X? Y?..Y?` の二トークンである。ただし `+` による合併は書けない — 一枚の `area` は一つの矩形である。複数の範囲が要るなら `area` を複数行書く。
+A region is written exactly as on a [space](space.md): the two tokens `X?..X? Y?..Y?`. A `+` union, however, cannot be written — one `area` is one rectangle. If several extents are needed, write several `area` lines.
 
-親の領域からはみ出せば [SEG02](../diagnostics/seg.md) の警告になる。判定は宣言した割付ではなく**導出された領域**に対して行われるので、[描かれた線](line.md)で切り落とされた側に置いた床材はここで捕まる。
+Spilling outside the parent's region is the warning [SEG02](../diagnostics/seg.md). The test is made against the **derived** region rather than the declared cells, so a finish placed on the part that a [drawn line](line.md) cut away is caught here.
 
-領域を持たない空間 (`exterior` など) に `area` は書けない。こちらはエラーである。
+An `area` cannot be written on a space with no region (an `exterior`, say). That one is an error.
 
 ```muro-bad
 grid X 0 3600
@@ -36,7 +36,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/hall hall X1..X2 Y1..Y2
   area X1..X2 Y1-2000..Y2 name:はみ出し
-space /out exterior
+space /out outside:1
   area X1..X2 Y1..Y2 name:無理
 ```
 
@@ -50,49 +50,49 @@ $ npx tsx src/cli.ts check a2.muro --json
   "message": "An area cannot be written on /out, which has no region",
 ```
 
-## 属性
+## Attributes
 
-`area` に書ける鍵は三つと、ドットを含む名前空間つきの鍵だけである。台帳に無い鍵で名前空間も無いものは [ATT03](../diagnostics/att.md) のエラーになる。
+Three keys may be written on an `area`, plus any namespaced key containing a dot. A key in neither category is the error [ATT03](../diagnostics/att.md).
 
-| 鍵 | 層 | 意味 |
+| Key | Tier | Meaning |
 |---|---|---|
-| `name:` | 解釈 | この分節の名。**同じ空間の中で一意でなければならない** |
-| `floor:` | 運搬 | 床仕上げ。親の空間の `floor:` をこの範囲だけ上書きする |
-| `spec:` | 運搬 | 物の名。ツールは解釈せず運ぶだけ |
-| `<名前空間>.<鍵>:` | 運搬 | ドットを含む鍵は誰でも書けて、core は中身に一切の意味を与えない |
+| `name:` | interpreted | The subdivision's name. **It must be unique within its space** |
+| `floor:` | carry | Floor finish, overriding the parent space's `floor:` over this extent |
+| `spec:` | carry | The name of the thing. Carried, never interpreted |
+| `<namespace>.<key>:` | carry | Anyone may write a dotted key, and core gives its content no meaning at all |
 
-`use:` も `h:` も `daylight:` も書けない。`area` は室ではないので、室の属性を持たない。
+Neither `use:` nor `h:` nor `daylight:` can be written. An `area` is not a room, so it does not carry a room's attributes.
 
 ```text
 ✖ ar.muro:line 5: area (/L1/a) carries use:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.use:common)
 ```
 
-### 名は同一性である
+### The name is the identity
 
-`area` に名を書くとき、その名は**含む空間の中でその分節を指す唯一の手段**になる。合成の集合編集がその名で分節を引くからである。したがって同じ空間の中で名が重複すれば [UID04](../diagnostics/uid.md) のエラーになる。
+When an `area` carries a name, that name becomes **the only way to point at that subdivision inside its space** — it is what the set edits of composition look it up by. A duplicated name within one space is therefore the error [UID04](../diagnostics/uid.md).
 
 ```text
 ✖ s4.muro:line 6: Duplicate area name within space /L1/a: 同名 (s4.muro:line 5, s4.muro:line 6) — the name is what identifies it inside its container
 ```
 
-名を書かない `area` は同一性を主張していないので、この検査の母集団に入らない。
+An `area` with no name claims no identity and is not in the population of that check.
 
-## 字下げの規律
+## The indentation rules
 
-- **字下げは一段だけで、入れ子は無い。**`area` の下にさらに何かを字下げすることはできない。
-- `area` は直前の `space` 行に従属する。間に別の非字下げ行が入れば、その `space` の分節ではなくなる。
-- レベルスパンで展開された `space` の下に書いた `area` は、展開されたすべての空間に付く。
-- [帯](band.md)の要素には書けない。帯の要素の領域は導出されるものであり、その中の範囲を先に書くことはできない。
+- **Indentation is one level deep and never nests.** Nothing can be indented under an `area`.
+- An `area` belongs to the `space` line immediately above it. Any unindented line in between ends that association.
+- An `area` written under a `space` that expands over a level span is attached to every expanded space.
+- It cannot be written on a [band](band.md) member. A member's region is derived, so an extent inside it cannot be written in advance.
 
 ```text
 ✖ b9.muro:line 6: area may not be written on a band member (its region is derived — write a room that needs area by position)
 ```
 
-範囲を持つ分節が要る室は、帯ではなく位置で書く。
+A room that needs an extent inside it is written by position, not by band.
 
-## 正準JSON
+## Canonical JSON
 
-`area` は親の空間の下に `areas` として、書かれた通り参照の綴りのまま出る。
+An `area` is emitted under its parent space as `areas`, keeping the grid-reference spelling as written.
 
 ```muro
 grid X 0 3600
@@ -135,6 +135,6 @@ $ npx tsx src/cli.ts json a1.muro
   },
 ```
 
-## 境界の上の分節
+## The counterpart on a boundary
 
-境界の上で仕上げが変わるときの対応物は `seg` である。壁の途中でガラスに変わる、腰壁だけ材が違う、といった区間を運ぶ。書ける場所と規律は [seg](seg.md) にある。`area` が室内の範囲を、`seg` が境界上の区間を担当する。
+Where a finish changes along a boundary, the counterpart is `seg`: the stretch where a wall turns to glass, or where the dado is a different material. Where it goes and what governs it is in [seg](seg.md). `area` holds an extent inside a room; `seg` holds an interval along a boundary.

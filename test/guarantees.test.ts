@@ -11,7 +11,7 @@ import { CANONICAL_FORMAT, compareCanonical, toCanonical } from "../src/core/mod
 import { parse, parseFiles } from "../src/core/parse.js";
 
 const BASE = [
-  "koyu 0.4",
+  "koyu 1.1",
   "unit mm",
   "grid X 0 4000 8000",
   "grid Y 0 4000 8000",
@@ -51,7 +51,7 @@ test("canonical JSON: the declaration order of openings does not change the byte
 
 test("canonical JSON: the declaration order of boundaries on the same pair of spaces (differing edge) does not change the bytes either", () => {
   const src = (bounds: string) =>
-    `${BASE}\nspace /L1/a room X2..X3 Y1..Y2\nspace /out exterior\n${bounds}`;
+    `${BASE}\nspace /L1/a room X2..X3 Y1..Y2\nspace /out outside:1\n${bounds}`;
   const j1 = toCanonical(parse(src("boundary /L1/a /out edge:N t:100\nboundary /L1/a /out edge:S t:150")));
   const j2 = toCanonical(parse(src("boundary /L1/a /out edge:S t:150\nboundary /L1/a /out edge:N t:100")));
   assert.equal(j1, j2);
@@ -73,7 +73,7 @@ test("check: a duplicate boundary on the same pair of spaces is an error (a wall
 test("check: on the same pair of spaces a different edge is a different boundary (not an error)", () => {
   const r = check(
     parse(
-      `${BASE}\nspace /L1/a room X2..X3 Y1..Y2\nspace /out exterior\nboundary /L1/a /out edge:N\nboundary /L1/a /out edge:S`,
+      `${BASE}\nspace /L1/a room X2..X3 Y1..Y2\nspace /out outside:1\nboundary /L1/a /out edge:N\nboundary /L1/a /out edge:S`,
     ),
   );
   assert.deepEqual(r.errors, []);
@@ -290,7 +290,7 @@ test("canonical JSON: a numeric-looking level or asset name still lands in colla
   // format promises — puts `10` first. `check` stayed green throughout.
   const m = parse(
     [
-      "koyu 1.0",
+      "koyu 1.1",
       "unit mm",
       "grid X 0 4000",
       "grid Y 0 4000",

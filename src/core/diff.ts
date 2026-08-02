@@ -57,7 +57,8 @@ export interface GridChange {
 
 export interface SpaceItem {
   path: string;
-  type: string;
+  /** 書かれていれば。型は任意である */
+  type?: string;
   areaM2?: number;
 }
 
@@ -266,7 +267,7 @@ function comparable(b: Boundary, tok: (p: string) => string): string {
 
 /**
  * 開口の対のキー。**名があれば名が優先である** (ADR-0039) —
- * 開口の同一性は「含む対象 + その中で一意な名」から導かれるので (spec/scope.md §5)、
+ * 開口の同一性は「含む対象 + その中で一意な名」から導かれるので (docs/reference/scope.md)、
  * 名の付いた扉を動かせば「同じ扉の at が変わった」であって「消えて生えた」ではない。
  * 名が無ければ位置で対応づける他にない: (kind, edge??"", atRef??at)。
  * 名のある開口と無い開口は別のキー空間に落ちるので、名を後から書き足した編集は追加/削除に見える —
@@ -587,7 +588,7 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
   d.spaces.renamed = sm.renamed.sort((x, y) => (key(x.to) < key(y.to) ? -1 : 1));
   const spaceItem = (s: Space): SpaceItem => {
     const ar = areaM2(s);
-    return { path: s.path, type: s.type, ...(ar !== undefined ? { areaM2: ar } : {}) };
+    return { path: s.path, ...(s.type !== undefined ? { type: s.type } : {}), ...(ar !== undefined ? { areaM2: ar } : {}) };
   };
   d.spaces.added = sm.added.map(spaceItem).sort((x, y) => (key(x.path) < key(y.path) ? -1 : 1));
   d.spaces.removed = sm.removed.map(spaceItem).sort((x, y) => (key(x.path) < key(y.path) ? -1 : 1));
@@ -677,7 +678,7 @@ const fmtFields = (fields: FieldChange[]): string => fields.map(fmtField).join("
 const betweenLabel = (x: { between: [string, string]; edge?: Edge }): string =>
   `${x.between[0]} | ${x.between[1]}${x.edge ? ` edge:${x.edge}` : ""}`;
 
-/** 日本語の差分行 (空なら差分なし)。並びはsemanticDiffが決めた正準順のまま */
+/** 差分行 (英語・空なら差分なし)。並びはsemanticDiffが決めた正準順のまま */
 export function renderDiff(d: ModelDiff): string[] {
   const out: string[] = [];
   for (const g of d.grid) {
@@ -701,11 +702,14 @@ export function renderDiff(d: ModelDiff): string[] {
   for (const p of d.zones.removed) out.push(`− zone ${p}`);
   for (const c of d.zones.changed) out.push(`± zone ${c.path}: ${fmtFields(c.fields)}`);
   for (const r of d.spaces.renamed) out.push(`renamed ${r.from} → ${r.to} (uid:${r.uid})`);
+  // 型は任意なので、書かれていない空間もある。`${undefined}` が "undefined" と刷られると
+  // 型がそう綴られたように読めるので、集計の見出しと同じ形で言う (cli.ts と同じ構え)
+  const label = (t?: string) => t ?? "(untyped)";
   for (const s of d.spaces.added) {
-    out.push(`+ space ${s.path} (${s.type}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)} m2` : ""})`);
+    out.push(`+ space ${s.path} (${label(s.type)}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)} m2` : ""})`);
   }
   for (const s of d.spaces.removed) {
-    out.push(`− space ${s.path} (${s.type}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)} m2` : ""})`);
+    out.push(`− space ${s.path} (${label(s.type)}${s.areaM2 !== undefined ? ` ${s.areaM2.toFixed(2)} m2` : ""})`);
   }
   for (const c of d.spaces.changed) out.push(`± ${c.path}: ${fmtFields(c.fields)}`);
   for (const x of d.boundaries.added) {

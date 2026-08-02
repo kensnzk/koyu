@@ -1,0 +1,20 @@
+[
+ {
+  "code": "VER05",
+  "severity": "error",
+  "line": 6,
+  "file": "main.muro",
+  "path": [
+   "/L1/hole"
+  ]
+ },
+ {
+  "code": "VER05",
+  "severity": "error",
+  "line": 7,
+  "file": "main.muro",
+  "path": [
+   "/out"
+  ]
+ }
+]

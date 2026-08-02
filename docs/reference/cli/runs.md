@@ -5,23 +5,23 @@ mode: reference
 
 # koyu runs
 
-縦動線の一覧を出す。**段数も踏面も踊り場も勾配も、原本には書かれていない。**領域と階高から導かれる。何が導かれたのかを目で見るのがこのコマンドである。
+Lists the vertical circulation. **The number of risers, the tread, the landing and the slope are nowhere in the source.** They are derived from the region and the storey height. This command is how you see what was derived.
 
-## 引数
+## Arguments
 
 ```text
 koyu runs <entry.muro>
 ```
 
-entry のパスを一つ取る。
+Takes one entry path.
 
-## 旗
+## Flags
 
-無い。
+None.
 
-## 出力
+## Output
 
-一つの走り (run) が一行になる。走りは**階と階のあいだ**に立つので、三層を貫く階段は三行ではなく二行として出る。
+One run per line. A run stands **between two levels**, so a stair through three storeys is two lines, not three.
 
 ```sh
 npx tsx src/cli.ts runs examples/basement/main.muro
@@ -37,26 +37,26 @@ B1→L1	stair	避難階段	rise 3700mm	return	21 risers of 176mm, tread 300mm	go
 L1→R	lift	EV	/L1/ev
 ```
 
-列はタブ区切りで、装置によって長さが変わる。
+Columns are tab-separated and their number depends on the device.
 
-| 列 | 中身 |
+| Column | Contents |
 |---|---|
-| 1 | `<下のレベル>→<上のレベル>`。上が無ければ下のレベル名だけ |
-| 2 | 装置 — `stair` / `ramp` / `escalator` / `lift` |
-| 3 | 表示名 |
-| 4 | `rise <数>mm` — 上る高さ |
-| 5 | `return` (折り返す) か `straight` (直線) |
-| 6 | 階段なら `<段数> risers of <蹴上>mm, tread <踏面>mm`、斜路とエスカレーターなら `slope 1/<数>` |
-| 7 | `going <数>mm` — 走り長 |
-| 8 | 空間のパス |
+| 1 | `<lower level>→<upper level>`. Just the lower name when there is no upper |
+| 2 | The device — `stair` / `ramp` / `escalator` / `lift` |
+| 3 | Display name |
+| 4 | `rise <n>mm` — the height climbed |
+| 5 | `return` (it turns back) or `straight` |
+| 6 | For a stair, `<n> risers of <riser>mm, tread <tread>mm`; for a ramp or escalator, `slope 1/<n>` |
+| 7 | `going <n>mm` — the run length |
+| 8 | The space path |
 
-**`lift` だけは列が二つで終わる。**昇降機には段も勾配も走り長も無いので、装置名と表示名の後は直接パスが来る。
+**Only `lift` stops at two columns.** A lift has no steps, no slope and no going, so the path follows the display name directly.
 
 ```text
 B2→B1	lift	EV	/B2/ev
 ```
 
-エスカレーターは階段ではなく勾配で報告される。
+An escalator is reported by slope, not by steps.
 
 ```sh
 npx tsx src/cli.ts runs examples/complex/main.muro
@@ -66,11 +66,11 @@ npx tsx src/cli.ts runs examples/complex/main.muro
 L1→L2	escalator	エスカレーター	rise 6600mm	straight	slope 1/1.5	going 9800mm	/L1/es
 ```
 
-(この建物の全出力の一部である。)
+(An excerpt from this building's full output.)
 
-## 縦動線が無いとき
+## When there is no vertical circulation
 
-`stair` / `ramp` / `escalator` / `lift` のどれも宣言されていなければ、その旨が出る。
+If none of `stair`, `ramp`, `escalator` or `lift` is declared, it says so.
 
 ```sh
 npx tsx src/cli.ts runs examples/two-rooms.muro
@@ -80,27 +80,27 @@ npx tsx src/cli.ts runs examples/two-rooms.muro
 There is no vertical circulation (write stair:N / ramp:N / escalator:N / lift:1 on a space)
 ```
 
-**階段の境界 (`boundary /a /b type:stair`) を書いただけでは、ここには何も出ない。**境界の種別は「二つの空間が階段で繋がっている」という関係であって、階段そのものの形ではない。形が要るなら、階段室の空間に `stair:<上る向き>` を書く。`examples/house` は前者だけを持つので、`runs` は上の一行を返す。
+**Writing a stair boundary (`boundary /a /b type:stair`) alone puts nothing here.** A boundary kind is the relation "these two spaces are joined by a stair", not the form of the stair itself. For the form, write `stair:<direction of climb>` on the stair space. `examples/house` has only the former, so `runs` returns the line above.
 
-## 導出であることの帰結
+## What follows from it being derived
 
-同じ階段室でも階高が違えば段割りが変わる。書き分けはどこにも無い — **階高を変えれば段数が変わるのが導出である。**上の `examples/basement` では B2→B1 と B1→L1 がどちらも `rise 3700mm` なので同じ 21 段になっているが、階高の違う建物では同じ階段室が階ごとに別の段割りを持つ。
+Change the storey height and the same stair enclosure gets a different step division. There is nothing to write differently — **the number of risers changing when the storey height changes is what derivation means.** In `examples/basement` above, B2→B1 and B1→L1 are both `rise 3700mm`, so both come out as 21 risers; in a building with unequal storeys the same enclosure gets different divisions floor by floor.
 
-**導いた結果が登りやすい寸法かどうかは、ここでは言わない。**形が一意に決まるかは [`koyu check`](check.md) の仕事で、段が窮屈でないか・勾配が常用域に収まっているかは [`koyu validate`](validate.md) の `stair.proportion` と `run.slope` が言う。
+**Whether the derived dimensions are comfortable to climb is not said here.** Whether the form is uniquely determined is [`koyu check`](check.md)'s job, and whether the steps are cramped or the slope is outside normal use is what [`koyu validate`](validate.md) says with `stair.proportion` and `run.slope`.
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 常に — **縦動線が一つも無いときも 0 である** |
-| 1 | 構文・合成エラーで読めなかった |
-| 2 | ファイルパスを渡していない (使い方が印字される) |
+| 0 | Always — **including when there is no vertical circulation at all** |
+| 1 | It could not be read because of a syntax or composition error |
+| 2 | No file path was given (usage is printed) |
 
-縦動線が無いことを「合格」と読まないこと。`stair:` を書き忘れても同じ出力になる。
+Do not read the absence of vertical circulation as a pass. Forgetting to write `stair:` gives exactly the same output.
 
-## 関連
+## See also
 
-- [koyu validate](validate.md) — 段の窮屈さと勾配の判定 (`stair.proportion` / `run.slope`)
-- [koyu check](check.md) — 縦動線の形が一意に決まるかの診断
-- [koyu axo](axo.md) — 導出された縦動線を立体で見る
-- [.muro リファレンス](../muro/index.md) — `stair` `ramp` `escalator` `lift` の書き方
+- [koyu validate](validate.md) — the step and slope judgements (`stair.proportion` / `run.slope`)
+- [koyu check](check.md) — the diagnostics for whether the run's form is determined
+- [koyu axo](axo.md) — seeing the derived runs as solids
+- [.muro reference](../muro/index.md) — how to write `stair`, `ramp`, `escalator` and `lift`

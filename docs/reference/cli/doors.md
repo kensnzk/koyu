@@ -5,23 +5,23 @@ mode: reference
 
 # koyu doors
 
-空間グラフ上で、ある空間から別の空間へ**最少の扉数で辿る経路**を出す。避難と動線の問いである。
+Gives the route from one space to another **through the fewest doors** on the space graph. It is the escape-and-circulation question.
 
-## 引数
+## Arguments
 
 ```text
-koyu doors <entry.muro> <パスA> <パスB>
+koyu doors <entry.muro> <pathA> <pathB>
 ```
 
-entry のパスの後に、出発と到着の空間パスを両方渡す。両方必須である。
+After the entry path, give the departure and arrival space paths. Both are required.
 
-## 旗
+## Flags
 
-無い。
+None.
 
-## 出力
+## Output
 
-扉の枚数と、経由した空間の列が一行で出る。
+One line: the number of doors, and the spaces passed through.
 
 ```sh
 npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
@@ -31,7 +31,7 @@ npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
 2 doors — /L1/a → /L1/b → /out
 ```
 
-経路は空間の列であって扉の列ではない。扉を数えない境界 (`open` や階段) も経路の途中に現れる。
+The route is a list of spaces, not of doors. Boundaries that cost no door — `open`, stairs — also appear along it.
 
 ```sh
 npx tsx src/cli.ts doors examples/house/main.muro /home/bed1 /out/road
@@ -41,9 +41,9 @@ npx tsx src/cli.ts doors examples/house/main.muro /home/bed1 /out/road
 3 doors — /home/bed1 → /home/hall2 → /home/hall1 → /site/east → /site/garden → /out/road
 ```
 
-五つの境界を跨いでいるのに扉は 3 枚である。`/home/hall2 → /home/hall1` は階段、`/site/east → /site/garden` は `open` なので数えられない。
+Five boundaries are crossed but only 3 doors counted. `/home/hall2 → /home/hall1` is a stair and `/site/east → /site/garden` is `open`, so neither counts.
 
-到達できなければその旨が出る。
+When there is no route, it says so.
 
 ```sh
 npx tsx src/cli.ts doors examples/house/main.muro /home/bed9 /site/garden
@@ -53,33 +53,33 @@ npx tsx src/cli.ts doors examples/house/main.muro /home/bed9 /site/garden
 Cannot reach /site/garden from /home/bed9
 ```
 
-## 何が通れるか
+## What is passable
 
-| 境界 | 通れるか |
+| Boundary | Passable |
 |---|---|
-| 扉のある壁 | 通れる (跨いだ境界ごとに一枚として数える — その境界に何枚書かれていても 1) |
-| 扉の無い壁 | 通れない |
-| `open` | 通れる (扉を数えない) |
-| `air:1` の壁 (手すり・柵・塀) | **通れない** — `air` は遮蔽の話であって通行の話ではない |
-| `stair` | 通れる (扉を数えない) |
-| `shaft` (EV 等) | 通れない |
-| `void` (吹抜け) | 通れない |
+| A wall with doors | Yes (each boundary crossed counts as one door, however many are written on it) |
+| A wall with no doors | No |
+| `open` | Yes (no door counted) |
+| A wall with `air:1` (railings, fences, garden walls) | **No** — `air` is about enclosure, not about passage |
+| `stair` | Yes (no door counted) |
+| `shaft` (lifts and the like) | No |
+| `void` | No |
 
-書かれていない境界も経路に使われる。接する空間の既定は壁で、扉の無い壁は通れないので、**書かなかった接触は経路を塞ぐ側に働く。**
+Boundaries you never wrote are used too. The default between touching spaces is a wall, and a wall with no doors is impassable, so **a contact you did not write acts to block the route.**
 
-## 存在しないパスの扱い
+## Paths that do not exist
 
-**綴りを間違えたパスを渡しても「到達できません」と出る。**綴り違いと本当の未到達は、同じメッセージ・同じ終了コード 1 になる。上の例の `/home/bed9` は存在しない空間である。
+**A mistyped path also produces "cannot reach".** A typo and a genuine dead end give the same message and the same exit code 1. The `/home/bed9` above is not a space that exists.
 
-到達できないと出たら、まず [`koyu graph`](graph.md) でパスの綴りを確かめる。外部は一つとは限らない — `examples/house` の外部は `/out/road` `/out/n` `/out/e` `/out/w` に割れていて、`/out` という空間は存在しない。
+When you get "cannot reach", check the spelling with [`koyu graph`](graph.md) first. The exterior is not necessarily one space — in `examples/house` it is split into `/out/road`, `/out/n`, `/out/e` and `/out/w`, and there is no space called `/out`.
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 到達できる |
-| 1 | 到達できない (存在しないパスを含む)、または構文・合成エラーで読めなかった |
-| 2 | パスが二つ揃っていない / ファイルパスを渡していない |
+| 0 | It can be reached |
+| 1 | It cannot be reached (including via a path that does not exist), or the input could not be read |
+| 2 | Two paths were not given / no file path was given |
 
 ```sh
 npx tsx src/cli.ts doors examples/house/main.muro /home/bed1
@@ -89,13 +89,13 @@ npx tsx src/cli.ts doors examples/house/main.muro /home/bed1
 Usage: koyu doors <file> /pathA /pathB
 ```
 
-## 一組ずつしか答えない
+## One pair at a time
 
-`doors` が答えるのは渡した一組についてだけである。**「どこか一つでも外へ出られない室があるか」を建物全体について問うなら [`koyu validate`](validate.md) を使う** — `access.unreachable` が、領域を持つ室のすべてについて外部への到達可能性を確かめる。
+`doors` answers about the one pair you gave it. **To ask whether any room at all fails to reach the outside, use [`koyu validate`](validate.md)** — `access.unreachable` tests reachability to the exterior for every room that has a region.
 
-## 関連
+## See also
 
-- [koyu graph](graph.md) — 空間ごとの隣接と境界の種別
-- [koyu validate](validate.md) — 建物全体の到達可能性を一度に問う
-- [.muro リファレンス](../muro/index.md) — `boundary` と開口の書き方
-- [koyu コマンド](index.md) — 終了コードの共通の約束
+- [koyu graph](graph.md) — adjacency and boundary kinds, space by space
+- [koyu validate](validate.md) — reachability across the whole building at once
+- [.muro reference](../muro/index.md) — how to write `boundary` and openings
+- [The koyu command](index.md) — the shared promises about exit codes

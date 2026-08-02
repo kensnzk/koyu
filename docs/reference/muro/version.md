@@ -1,52 +1,52 @@
 ---
-title: koyu — 版の宣言
+title: koyu — the version line
 mode: reference
 ---
 
-# koyu — 版の宣言
+# koyu — the version line
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 ```
 
-**このファイルをどの版の意味論で読むかを宣言する一行である。**受理される版は次の六つで、この並びが新旧の順である。
+**One line declaring which version of the semantics this file is read under.** Six versions are accepted, and this order is the order of old to new.
 
 ```text
-0.1   0.2   0.3   0.4   0.5   1.0
+0.1   0.2   0.3   0.4   0.5   1.0   1.1
 ```
 
-**省略すれば最新版 `1.0` の意味論で読まれる。**省略はツールの版を跨いで意味が安定することを意味しない — 意味を固定したいファイルは版を書く。
+**Omitted, the file is read under the newest version, `1.1`.** Omitting it does not pin the meaning across tool versions — a file whose meaning must stay fixed writes the line.
 
-## 新旧は並び順であって、綴りの辞書順ではない
+## Newer means later in that list, not later in the alphabet
 
-**`1.0` は `0.5` より新しい。**文字列として比べれば `"0.5" > "1.0"` になるので、版の比較を綴りに任せると新しい版が古い版と判定される。新旧は必ず上の並びの添字で決まる。
+**`1.1` is newer than `0.5`.** Compared as strings, `"0.5" > "1.0"`, so leaving the comparison to the spelling would make the newest version look like the oldest. The order is always decided by the index in the list above.
 
-## 書き方の規律
+## How the line is written
 
-`koyu <版>` の**ちょうど2トークン**である。
+Exactly two tokens: `koyu <version>`.
 
-| 書いたもの | 結果 |
+| Written | Result |
 |---|---|
-| `koyu 1.0` | 受理される |
-| `koyu` | `koyu takes a version: koyu 1.0` |
-| `koyu 1.0 latest` | `Extra tokens on the koyu version declaration: latest` |
-| `koyu 0.6` | `Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0)` |
+| `koyu 1.1` | accepted |
+| `koyu` | `koyu takes a version: koyu 1.1` |
+| `koyu 1.1 latest` | `Extra tokens on the koyu version declaration: latest` |
+| `koyu 0.6` | `Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1)` |
 
-**宣言は入口の層でのみ、一度だけである。**
+**It is declared in the base layer only, and only once.**
 
-- 入口以外の層に書けば `The koyu version is declared only in the base layer (the entry)`
-- 二度書けば `The koyu version is declared once (already 1.0)` — **同じ版を二度書いてもエラーである**。合成の順序による黙った上書きを禁じるため、`grid` と同じ規律を取る
-- 行の位置は自由である。ファイルの先頭でなくてもよい
+- In any other layer: `The koyu version is declared only in the base layer (the entry)`
+- Twice: `The koyu version is declared once (already 1.1)` — **declaring the same version twice is also an error.** The discipline matches `grid`: it forbids a silent override decided by composition order
+- The position in the file is free; it need not be the first line
 
-## 旧版は、意味が保たれる場合だけ受理される
+## An older version is accepted only where the meaning is preserved
 
-**古い版を宣言したファイルは、その版の処理系が読んだときと同じ建物になる場合にのみ通る。**同じ文字列が別の建物を意味してしまうときは `check` が止め、二つの選択肢を示す — 意味を明示的に書き足すか、版を上げるか。
+**A file that declares an older version passes only if it means the same building it meant to a processor of that version.** Where the same text would mean a different building, `check` stops and offers two ways out — write the meaning explicitly, or raise the version.
 
-これを言う診断が四つある。すべて error であり、`check --json` にコードが出る。
+Four diagnostics say this. All four are errors, and `check --json` carries the code.
 
-### VER01 — 0.1 で既定境界が導出される
+### VER01 — a default boundary is derived under 0.1
 
-`0.2` から、同じレベルで接する領域つきの空間の組には、宣言が無ければ `wall` の既定境界が導かれるようになった。`0.1` を宣言したファイルにその組があれば、境界の有無で建物が変わる。
+From `0.2` onward, a touching pair of spaces with regions on the same level gets a derived `wall` boundary when none is declared. In a file declaring `0.1`, such a pair means a different building depending on whether the boundary exists.
 
 ```text
 A koyu 0.1 file has a touching pair with no declared boundary: /L1/a | /L1/b — in 0.2 a
@@ -54,11 +54,11 @@ default wall is derived and the meaning changes. Declare the boundary, or raise 
 version to koyu 0.2
 ```
 
-**直し方**: その境界を宣言するか、`koyu 0.2` 以上へ上げる。
+**The fix**: declare the boundary, or raise the version to `koyu 0.2` or above.
 
-### VER02 — 0.3 以前で採光の対象が型から推定されていた
+### VER02 — daylight scope was inferred from the type before 0.4
 
-`0.3` 以前は `unit` `room` `ldk` `bedroom` `living` の型を採光の対象と推定していた。`0.4` から採光の対象は `daylight:1` という宣言だけになったので、これらの型に `daylight` が書かれていなければ、版を上げた瞬間に黙って判定から外れる。
+Up to `0.3`, the types `unit`, `room`, `ldk`, `bedroom` and `living` were inferred to be in scope for the daylight check. From `0.4` the scope is the declaration `daylight:1` alone, so a space of one of those types with no `daylight` silently drops out of the check the moment the version is raised.
 
 ```text
 A koyu 0.3 file has a room with no daylight: /L1/a — 0.4 does not infer the daylight scope
@@ -66,49 +66,49 @@ from the type, so it falls out of the check. Write daylight:1 (in scope) or dayl
 (out of scope), then raise the version to koyu 0.4
 ```
 
-**直し方**: `daylight:1` (対象) か `daylight:0` (対象外) を書いてから `koyu 0.4` 以上へ上げる。
+**The fix**: write `daylight:1` (in scope) or `daylight:0` (out of scope), then raise the version to `koyu 0.4` or above.
 
-### VER03 — 0.4 以前のファイルに 0.5 の語がある
+### VER03 — a 0.5 word in a file declaring 0.4 or older
 
-`0.5` で入った語を `0.4` 以前の処理系は知らない。知らない語が書かれていれば、その形は黙って生成されない。対象は四つ。
+A processor of `0.4` or earlier does not know the words introduced in `0.5`. Where it does not know the word, the shape is simply never generated. There are five.
 
-| 語 | どこに書かれるか |
+| Word | Where it is written |
 |---|---|
-| `stair:` `ramp:` `escalator:` `lift:` | 空間の縦動線の宣言 |
-| `line` | 境界の下の描かれた線 |
-| `column` | 柱の宣言 |
-| `underground:` | レベルの地下の宣言 |
+| `stair:` `ramp:` `escalator:` `lift:` | a vertical circulation on a space |
+| `line` | a drawn line under a boundary |
+| `column` | a column declaration |
+| `underground:` | a level below ground |
 
 ```text
 A koyu 0.4 file uses a 0.5 word: /B1/st carries stair: (a vertical circulation) — raise the
 version to koyu 0.5
 ```
 
-**直し方**: `koyu 0.5` 以上へ上げる。
+**The fix**: raise the version to `koyu 0.5` or above.
 
-### VER04 — 0.5 以前のファイルに 1.0 の語がある
+### VER04 — a 1.0 word in a file declaring 0.5 or older
 
-`1.0` で入った合成の語を `0.5` 以前の処理系は知らない。**知らない処理系ではその行が語として読めず、上書きも削除も起きない — 黙って別の建物になる。**対象は三つ。
+A processor of `0.5` or earlier does not know the composition words introduced in `1.1`. **It cannot read those lines as words at all, so neither the override nor the removal happens — it silently becomes a different building.** There are three.
 
-| 語 | 何をする語か |
+| Word | What it does |
 |---|---|
-| `over` | 空間・ゾーン・境界・レベル・アセットの上書き |
-| `drop` | 空間・境界・柱の宣言の削除 |
-| `over` 直下の `+` `-` `=` | 集合 (開口・`seg`・`area`) の追加・削除・置換 |
+| `over` | overrides a space, zone, boundary, level or asset |
+| `drop` | removes a space, a boundary or a column declaration |
+| `+` `-` `=` under `over` | adds to, removes from, or replaces a member of a set (openings, `seg`, `area`) |
 
 ```text
 A koyu 0.5 file uses a 1.0 word: over /L1/a name:居室 (a composition override) — raise the
 version to koyu 1.0
 ```
 
-**直し方**: `koyu 1.0` へ上げる。
+**The fix**: raise the version to `koyu 1.0`.
 
-## 版が意味するもの
+## What the version covers
 
-版は**言語と意味論と合成の規則**に付く。「この版で読めたものは、以後も同じ意味で読める」という約束であり、実装の版とは別に数えられる。したがって、
+The version belongs to **the language, its semantics and the rules of composition**. It promises that what could be read under this version stays readable with the same meaning, and it is counted separately from the version of the implementation. Therefore:
 
-- 言語の意味を変える変更は版を上げる。同じ綴りが別の建物を意味するようになることは、版を上げずには起きない
-- **判定を足しても版は動かない。**建築的な妥当性を言う規則は `koyu validate` の面にあり、増えても既存のファイルの意味は変わらない
-- 描画も版に含まれない。同じ形から出る SVG の見た目は変わりうる
+- A change to what the language means raises the version. The same text never starts meaning a different building without one
+- **Adding a judgement does not move it.** Rules about architectural validity live on the `koyu validate` face, and adding one changes the meaning of no existing file
+- Drawing is not covered either. The look of the SVG produced from the same shape may change
 
-同梱の例はすべて最新版で書かれる。版を上げる変更を入れたときは、例も同じ変更で追随する。
+The bundled examples are always written at the newest version. A change that raises the version brings the examples along in the same change.

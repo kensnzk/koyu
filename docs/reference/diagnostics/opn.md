@@ -1,37 +1,37 @@
 ---
-title: OPN — 開口の診断
+title: OPN — opening diagnostics
 mode: reference
 ---
 
-# OPN — 開口の診断
+# OPN — opening diagnostics
 
-開口 (`door` `window` ほか) は境界の**線分の上**に載る。線分は空間の割付から導出されるので、線分が無ければ置けず、線分が複数あれば置き先が決まらない。OPN の八つはその配置と、置いた後の整合を咎める。
+An opening (`door`, `window` and the rest) rides **on a segment** of a boundary. The segment is derived from the layout of the spaces, so with no segment there is nowhere to put it, and with several segments there is no telling which. These eight catch the placement, and the consistency of what was placed.
 
-位置の書き方は二通りある。
+There are two idioms for position.
 
-- **比率** — `at:0.5` は線分長に対する割合。線分に収まるよう**自動でクランプされる**。
-- **通り参照** — `at:X2+450` は絶対位置。「そこに置け」という明示なので**クランプせず**、収まらなければエラーになる。
+- **A ratio** — `at:0.5` is a proportion of the segment length. It is **clamped automatically** to fit the segment.
+- **A grid reference** — `at:X2+450` is an absolute position. It means "put it *there*", so it is **not clamped**, and errors if it does not fit.
 
-省略すれば `at:0.5` (中央) である。`at` は開口の**中心**を指す。
+Omitted, it is `at:0.5` (the middle). `at` points at the opening's **center**.
 
-| コード | severity | 一文 |
+| Code | severity | One line |
 |---|---|---|
-| [OPN01](#opn01) | error | `hinge` の軸違い |
-| [OPN02](#opn02) | error | 開口同士が重なっています |
-| [OPN03](#opn03) | warning | open 境界の開口は通行に影響しません |
-| [OPN04](#opn04) | error | 開口を置ける境界線分がありません |
-| [OPN05](#opn05) | error | 境界線分が複数あって曖昧です |
-| [OPN06](#opn06) | error | 開口の幅が境界線分の長さを超えています |
-| [OPN07](#opn07) | error | 開口の明示位置の軸違い |
-| [OPN08](#opn08) | error | 開口の明示位置が線分からはみ出します |
+| [OPN01](#opn01) | error | The wrong axis for `hinge` |
+| [OPN02](#opn02) | error | The openings overlap |
+| [OPN03](#opn03) | warning | An opening on an open boundary has no effect on passage |
+| [OPN04](#opn04) | error | There is no boundary segment on which to place the opening |
+| [OPN05](#opn05) | error | There is more than one boundary segment — ambiguous |
+| [OPN06](#opn06) | error | The opening is wider than the boundary segment |
+| [OPN07](#opn07) | error | The wrong axis for an explicit opening position |
+| [OPN08](#opn08) | error | An explicit opening position runs off the segment |
 
-`seg` の配置は同じ規則に従い、[SEG04〜SEG08](seg.md) が OPN04〜OPN08 と一対一に対応する。垂直境界 (`stair` `shaft` `void`) に載せた開口は解釈されず、[VRT05](vrt.md#vrt05) が言う。コードの手に入れ方は[診断を読む](reading.md)にある。
+A `seg` follows the same placement rules, and [SEG04–SEG08](seg.md) correspond one to one with OPN04–OPN08. An opening on a vertical boundary (`stair`, `shaft`, `void`) is not interpreted, which [VRT05](vrt.md#vrt05) says. How to get a code is on [Reading a diagnostic](reading.md).
 
-**置けなかった開口は、その先の検査を受けない。**OPN04〜OPN08 のどれかで落ちた開口は、`hinge` の軸 (OPN01) も見られず、重なり (OPN02) の母集団からも外れる。位置が無いものの向きと距離は問えないからである。
+**An opening that could not be placed receives no further check.** One that failed on any of OPN04–OPN08 is not examined for its `hinge` axis (OPN01), and drops out of the population for overlap (OPN02). You cannot ask the direction or the distance of something that has no position.
 
-以下の誤り例はどれも `koyu check --strict` で終了コード1になり、**そのコードちょうど1件**を出す。
+Every wrong example below exits 1 under `koyu check --strict`, producing **exactly one** instance of that code.
 
-## OPN01 — hinge の軸違い {#opn01}
+## OPN01 — the wrong axis for hinge {#opn01}
 
 `error`
 
@@ -47,11 +47,11 @@ boundary /L1/a /L1/b t:120
 
 `hinge:E: a vertical segment takes N/S`
 
-**原因** — `hinge` は吊元がどちら**端**かを言う。線分の向きに沿った方角でなければ意味が無い。上の例の二室は東西に並ぶので、共有する辺は**南北に走る垂直線分**であり、その両端は N と S である。
+**Cause** — `hinge` says which **end** the hinge is at. It only means something as a compass along the segment. The two rooms here sit east and west, so the edge they share is a **vertical segment running north–south**, whose ends are N and S.
 
-**直し方** — 線分が垂直 (南北に走る) なら `hinge:N` か `hinge:S`、水平 (東西に走る) なら `hinge:W` か `hinge:E`。省略すれば線分の始端側になる。
+**Fix** — for a vertical segment (running north–south) use `hinge:N` or `hinge:S`; for a horizontal one (running east–west) use `hinge:W` or `hinge:E`. Omitted, it takes the starting end of the segment.
 
-## OPN02 — 開口同士が重なっています {#opn02}
+## OPN02 — the openings overlap {#opn02}
 
 `error`
 
@@ -68,13 +68,13 @@ boundary /L1/a /L1/b t:120
 
 `Openings overlap (door and door — center to center 800mm < the required 2000mm)`
 
-**原因** — 同じ線分上の二つの開口が食い込んでいる。必要な中心間距離は `(w₁ + w₂) / 2` で、メッセージが実測値と必要値の両方を出す。
+**Cause** — two openings on the same segment cut into each other. The required center-to-center distance is `(w₁ + w₂) / 2`, and the message prints both the measured and the required value.
 
-**直し方** — メッセージの数値を見て `at` を離すか、幅を詰める。比率 `at` は線分長に対する割合なので、線分が短いほど同じ比率差でも実距離は小さくなる。確実に置きたいときは通り参照 (`at:X2+900`) で絶対位置を書く。
+**Fix** — look at the numbers in the message and move the `at`s apart, or narrow the widths. A ratio `at` is a proportion of the segment length, so the shorter the segment the smaller the real distance for the same difference in ratio. To be certain, write an absolute position with a grid reference (`at:X2+900`).
 
-**注** — 検査されるのは**同じ線分に載った開口同士**である。別の辺 (`edge:` で分けた先) に置いた開口は、たとえ座標が近くても比べられない。
+**Note** — what is checked is **openings riding on the same segment**. Openings on different edges (separated by `edge:`) are never compared, however close their coordinates.
 
-## OPN03 — open境界の開口は通行に影響しません {#opn03}
+## OPN03 — an opening on an open boundary has no effect on passage {#opn03}
 
 `warning`
 
@@ -90,13 +90,13 @@ boundary /L1/a /L1/b type:open
 
 `A door on an open boundary has no effect on passage (it is always passable)`
 
-**原因** — `open` は「そこに物が無い」という宣言である。もともと常に通れるので、扉を足しても通行可能性は変わらない。`koyu doors` の扉数にも算入されない。
+**Cause** — `open` declares that there is nothing there. It is always passable to begin with, so adding a door changes nothing about passability. It is not counted by `koyu doors` either.
 
-**直し方** — 扉を数えたい (=建具が実在する) なら、境界を `wall` (既定 — `type:` を書かない) にして扉を載せる。開口部として開いているだけなら `door` の行を消す。
+**Fix** — if you want the door counted (that is, a real door exists), make the boundary a `wall` (the default — write no `type:`) and put the door on it. If it is merely an opening, delete the `door` line.
 
-**注** — 警告が出た後も、その開口は配置と重なりの検査を受ける。`open` 境界に置いた扉の幅が線分より長ければ、OPN03 と [OPN06](#opn06) が並んで出る。
+**Note** — the warning does not stop the opening being checked for placement and overlap. A door on an `open` boundary that is wider than the segment produces OPN03 and [OPN06](#opn06) side by side.
 
-## OPN04 — 開口を置ける境界線分がありません {#opn04}
+## OPN04 — there is no boundary segment on which to place the opening {#opn04}
 
 `error`
 
@@ -112,11 +112,11 @@ boundary /L1/a /L1/b t:120
 
 `No boundary segment can hold the door (/L1/a | /L1/b)`
 
-**原因** — 開口の `edge:` で絞った先に線分が無い。上の例の二室は東西に並ぶので共有辺は E (a側から見て) にあり、N には何も無い。境界そのものに線分が無い場合 (**[BND04](bnd.md#bnd04) / [BND06](bnd.md#bnd06) と同時に出る**) も同じコードになる。
+**Cause** — there is no segment where the opening's `edge:` narrowed to. The two rooms here sit east and west, so their shared edge is on E (seen from the a side) and there is nothing on N. The same code also appears when the boundary itself has no segment — **arriving together with [BND04](bnd.md#bnd04) / [BND06](bnd.md#bnd06)**.
 
-**直し方** — `edge:` の方角を直す。方角は**先に書いた空間の矩形から見た向き**で、**N=+Y・S=−Y・E=+X・W=−X**。X は東が正、Y は北が正である。線分が一本しかない境界では `edge:` は不要である。
+**Fix** — correct the compass of `edge:`. It is read **from the rectangle of the space written first**: **N=+Y, S=−Y, E=+X, W=−X**. X is east-positive and Y is north-positive. On a boundary with only one segment, `edge:` is unnecessary.
 
-## OPN05 — 境界線分が複数あって曖昧です {#opn05}
+## OPN05 — there is more than one boundary segment {#opn05}
 
 `error`
 
@@ -126,7 +126,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:150
   door w:800
 boundary /L1/b /out t:150
@@ -134,13 +134,13 @@ boundary /L1/b /out t:150
 
 `There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)`
 
-**原因** — 外部 (`/out` など、領域を持たない空間) との境界は、部屋の外周のうち他室に接していない**残り全部**であり、ふつう複数の辺に分かれる。「その境界のどこに扉を置くのか」が決まらない。**外壁に開口を置くときは必ず `edge:` が要る**、と覚えてよい。
+**Cause** — a boundary with the outside (`/out` and other spaces with no region) is **all that remains** of the room's perimeter not touching another room, and it usually splits across several edges. Where on that boundary the door goes is not settled. You may as well remember it as: **placing an opening on an external wall always needs `edge:`**.
 
-**直し方** — `edge:` で辺を選ぶ。方角は**先に書いた空間 (この例なら `/L1/a`) の矩形から見て、N=+Y・S=−Y・E=+X・W=−X**。玄関を南に置くなら `door w:900 edge:S`。
+**Fix** — select the side with `edge:`. The compass is read **from the rectangle of the space written first (here `/L1/a`): N=+Y, S=−Y, E=+X, W=−X**. To put the entrance on the south, `door w:900 edge:S`.
 
-**注** — 内部の二室でも、L字の空間などで共有辺が二本に分かれていれば同じことが起きる。曖昧なら**推測せずに拒む**のがこの検査の構えである。
+**Note** — the same happens between two interior rooms when an L-shaped space splits their shared edge in two. Faced with ambiguity, this check **refuses rather than guesses**.
 
-## OPN06 — 開口の幅が境界線分の長さを超えています {#opn06}
+## OPN06 — the opening is wider than the boundary segment {#opn06}
 
 `error`
 
@@ -156,11 +156,11 @@ boundary /L1/a /L1/b t:120
 
 `The door width 5000 exceeds the boundary segment length 4000`
 
-**原因** — 幅が壁より長い。メッセージが線分の実長を出すので、割付との突き合わせはそこでできる。アセット参照 (`door SD1`) を使っている場合、幅はアセット側から来ていることがある。
+**Cause** — the width is longer than the wall. The message prints the segment's real length, so you can reconcile it against the layout right there. When using an asset reference (`door SD1`), the width may be coming from the asset.
 
-**直し方** — `w` を縮めるか、割付を広げる。アセットの幅を個別に上書きするなら、インスタンス側に `w:` を書く — インスタンスがアセットに勝つ。
+**Fix** — narrow the `w`, or widen the layout. To override an asset's width for one instance, write `w:` on the instance — the instance beats the asset.
 
-## OPN07 — 開口の明示位置の軸違い {#opn07}
+## OPN07 — the wrong axis for an explicit opening position {#opn07}
 
 `error`
 
@@ -176,15 +176,15 @@ boundary /L1/a /L1/b t:120
 
 `The door position Y1+2000 is on the wrong axis: a horizontal segment takes an X grid line`
 
-**原因** — 通り参照で位置を書くとき、線分に沿った軸の通りでなければ位置にならない。上の例の二室は南北に並ぶので共有辺は**東西に走る水平線分**であり、その上の位置は X 系の通りで測る。
+**Cause** — when writing a position as a grid reference, it is only a position if it is on the axis along the segment. The two rooms here sit north and south, so their shared edge is a **horizontal segment running east–west**, and a position on it is measured on the X axis.
 
-**直し方** — 水平線分 (東西に走る) には `at:X…`、垂直線分 (南北に走る) には `at:Y…`。どちらか分からないときは、二室が東西に並ぶなら垂直線分 (Y系)、南北に並ぶなら水平線分 (X系) と考える。
+**Fix** — a horizontal segment (running east–west) takes `at:X…`; a vertical one (running north–south) takes `at:Y…`. When unsure: two rooms side by side east–west share a vertical segment (Y axis); two rooms north and south share a horizontal one (X axis).
 
-**メッセージは期待する軸を言う。**書かれた軸ではない — この枝は軸が食い違ったときにだけ通るので、書かれた軸は必ず期待の逆である。
+**The message names the expected axis**, not the one you wrote — this branch is only reached when the two disagree, so the written axis is always the opposite of the expected one.
 
-**注 — 斜めの線分には通り参照が使えない。**`line` で引いた斜めの境界の上では、通り参照は位置を一意に定めない。同じ OPN07 が `The door position X2+450 cannot be used on a diagonal segment (write it as a ratio, at:0..1)` という本文で出る。比率で書く。
+**Note — a grid reference cannot be used on a diagonal segment.** On a boundary drawn with `line` at an angle, a grid reference does not fix a position uniquely. The same OPN07 comes out with the body `The door position X2+450 cannot be used on a diagonal segment (write it as a ratio, at:0..1)`. Write a ratio.
 
-## OPN08 — 開口の明示位置が線分からはみ出します {#opn08}
+## OPN08 — an explicit opening position runs off the segment {#opn08}
 
 `error`
 
@@ -200,6 +200,6 @@ boundary /L1/a /L1/b t:120
 
 `At Y1+200 the door (width 900) runs off the boundary segment (segment 0-4000mm, center allowed 450-3550mm)`
 
-**原因** — `at` が通り参照のときは**クランプしない**。比率 (`at:0.5` など) は線分に収まるよう自動で押し戻されるが、通り参照は「そこに置け」という明示なので、収まらなければ黙って動かさずエラーにする。`at` は開口の**中心**を指すので、端から `w/2` 以上内側でなければならない。
+**Cause** — when `at` is a grid reference it is **not clamped**. A ratio (`at:0.5` and the like) is pushed back automatically to fit the segment, but a grid reference is an instruction to put it *there*, so if it does not fit it errors rather than moving silently. `at` points at the opening's **center**, so it must be at least `w/2` inside from the end.
 
-**直し方** — メッセージの「中心の許容」の範囲に `at` を収める。上の例なら `at:Y1+450` 以上。端に寄せたいだけなら比率で `at:0` と書けば、クランプされて端いっぱいに収まる。
+**Fix** — bring `at` within the "center allowed" range in the message. Here that is `at:Y1+450` or more. If you only want it flush to one end, write the ratio `at:0` and it is clamped hard against the end.

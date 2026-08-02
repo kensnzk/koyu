@@ -1,101 +1,101 @@
 ---
-title: 同一性 — uid
+title: Identity — uid
 mode: reference
 ---
 
-# 同一性 — uid
+# Identity — uid
 
-三年前にセンサーが結んだ空間を、いまも同じものとして指せること。**それが uid の仕事である。**
+Being able to point, today, at the same space a sensor bound three years ago. **That is what a uid is for.**
 
 ```muro-part
 space /L5/A/ldk ldk X1..X2 Y1..Y2 name:LDK uid:u-7f3k9m2qx4b8dhtv
 ```
 
-## 何が同一性を持つか
+## What carries identity
 
-| 対象 | 同一性の出どころ |
+| Subject | Where identity comes from |
 |---|---|
-| **uid が書かれた空間・集約** | **その uid が正典である。**パスが変わっても同じものである |
-| **uid が書かれていない空間・集約** | パスで対応づく。改名すれば対応は切れる |
-| **関係(boundary)** | **両端の空間から導かれる。**関係に uid は書けない |
-| **開口・`seg`・`area`・柱** | それを含む対象と、その中で一意な名から導かれる ([UID04](diagnostics/uid.md) が重複を拒む)。「含む対象」は開口と `seg` は境界、`area` は空間、柱はモデル全体である |
+| **A space or zone with a uid** | **the uid is authoritative.** Rename the path and it is still the same thing |
+| **A space or zone without one** | matched by path. Rename it and the correspondence is cut |
+| **A relation (boundary)** | **derived from its two ends.** A relation cannot carry a uid |
+| **Openings, `seg`s, `area`s, columns** | derived from their container plus a name unique inside it ([UID04](diagnostics/uid.md) rejects duplicates). The container is the boundary for openings and `seg`s, the space for `area`s, and the whole model for columns |
 
-**関係に uid を書けないのは、関係が必ず二つの空間の間にあるからである。**両端が定まれば関係も定まる。関係ごとに uid を書けば関係の数が空間の数を上回り、「一棟が機械の視野に入る」という目的を自分で削ることになる。
+**A relation cannot carry a uid because a relation always lies between two spaces.** Fix both ends and the relation is fixed. Writing a uid per relation would make relations outnumber spaces, which cuts away the very goal — that one building fits in a machine's field of view.
 
-> **同一性には責任を持ち、内容には持たない。**
+> **Take responsibility for identity, not for content.**
 
-## uid は必須ではない
+## A uid is not required
 
-**必須にしないのは、保証の強さを書き手が選べるようにするためである。**時点をまたいで指す必要がある空間にだけ付ければよい。リポジトリの中の参照はパスで足りる。uid が要るのは、外の台帳やセンサーと結ぶときである。
+**It is optional so that the writer can choose the strength of the guarantee.** Attach one only to the spaces that must be pointed at across time. Inside the repository, paths are enough. A uid is what you need when binding to a ledger or a sensor outside.
 
-## 書ける対象は閉じている
+## The set of things that may carry one is closed
 
-**`uid` を書けるのは `space` と `zone` だけであり、この一覧は閉じている。**
+**Only `space` and `zone` may carry `uid`, and that list is closed.**
 
-- 他の要素に書けば [ATT03](diagnostics/att.md) — 台帳に無いキー
-- `level` に書けば構文エラー
+- On any other element it is [ATT03](diagnostics/att.md) — a key not in the ledger
+- On a `level` it is a syntax error
 
-**黙って無視される経路は無い。**
+**There is no path by which it is silently ignored.**
 
-`acme.uid:` のように名前空間を付ければ書けるが、それは[運搬層](scope.md)である — core は見ない。**「同一性を持たせた」ことにはならない。**
+Namespaced, `acme.uid:` can be written — but that is the [carried tier](scope.md), which core does not read. **It does not amount to having given the thing identity.**
 
-## 綴り
+## Spelling
 
 ```text
 u-7f3k9m2qx4b8dhtv
 ```
 
-接頭辞 `u-` + 16 字、合わせて 18 字。字母は Crockford base32 の小文字で、紛らわしい `i` `l` `o` `u` を持たない。**接頭辞の `u` は字母に無い**ので、生成された uid は必ず一つだけ `u` を持ち、それが先頭である。
+The prefix `u-` plus 16 characters, 18 in all. The alphabet is lowercase Crockford base32, which omits the confusable `i`, `l`, `o` and `u`. **The `u` of the prefix is not in the alphabet**, so a generated uid contains exactly one `u` and it is the first character.
 
-16 字 × 5 ビット = **80 ビット**。
+16 characters × 5 bits = **80 bits**.
 
-接頭辞があるのは、**数字だけの綴りを構造的に不可能にするため**である(数値化するとトークンの区別が失われるので、数字だけの uid は [UID01](diagnostics/uid.md) で拒まれる)。空白も書けない。
+The prefix exists to make an all-digit spelling **structurally impossible** (numeric coercion would lose the distinction between tokens, so an all-digit uid is rejected by [UID01](diagnostics/uid.md)). Whitespace cannot be written either.
 
-**種別は綴りに入れない。**uid は不透明であり、綴りから何かが読めてはならない。
+**The kind is not encoded in the spelling.** A uid is opaque; nothing should be readable from it.
 
-## 生成は乱数、付与は明示の行為
+## Generated at random, attached deliberately
 
-**uid はパスからもモデルの中身からも導出しない。**導出すれば改名でトークンが変わり、uid の意味(改名を跨ぐ)が消える。機械が作るときは**乱数**である。
+**A uid is derived neither from the path nor from the content of the model.** Derive it and a rename changes the token, which destroys the very meaning of a uid — surviving renames. When a machine makes one, it is **random**.
 
 ```ts
 import { newUids } from "@kensnzk/koyu";
 const [a, b] = newUids(model, 2);
 ```
 
-MCP なら `new_uids`。
+Over MCP, `new_uids`.
 
-**付与は明示の行為である。**書き手が書くか、`newUids` / `new_uids` を呼ぶまで、**どのツールも uid を書かない。**`write_layer` も書かない。自分から付与するものは無いので、改名を跨いで指す必要が出たときにだけ呼ぶ。
+**Attaching one is a deliberate act.** Until the writer writes it or calls `newUids` / `new_uids`, **no tool writes a uid.** `write_layer` does not either. Nothing attaches one on its own, so you call it exactly when the need to point across a rename arises.
 
-## 衝突しないことの範囲
+## How far "no collision" reaches
 
-**保証は二段である。**混ぜてはならない。
+**The guarantee has two tiers.** They must not be conflated.
 
-| 相手 | 保証 |
+| Against | Guarantee |
 |---|---|
-| **合成済みのモデル** | **衝突しない。**生成器が検査して作り、`check` の [UID03](diagnostics/uid.md) が証明する |
-| **まだ合成されていない層・他のリポジトリ** | **確率でしか保証しない。**80 ビットなので 100 万個を集めても衝突確率は 10⁻¹² を下回る |
+| **A composed model** | **no collision.** The generator checks as it builds, and `check`'s [UID03](diagnostics/uid.md) proves it |
+| **Layers not yet composed, other repositories** | **probabilistic only.** At 80 bits, a million tokens still collide with probability below 10⁻¹² |
 
-**確実さが要るなら、合成して `check` を通すこと。**実際に一意性を証明するのは UID03 だけである。
+**If you need certainty, compose and run `check`.** UID03 is the only thing that actually proves uniqueness.
 
-## 名は、一つのものを指していなければならない
+## A name must point at one thing
 
-「含む対象 + その中で一意な名」が同一性である以上、**一つの名が二つを指す状態は同一性の破れである。**合成の集合編集(`= window W1` / `- column C1`)がどちらを指すのか決まらない。
+Since identity is "container plus a name unique inside it", **one name pointing at two things is a break in identity.** A set edit during composition (`= window W1` / `- column C1`) has no way to decide which one it means.
 
-これは検査され([UID04](diagnostics/uid.md))、合成の側でも拒まれる。曖昧な名を狙った `drop` や `=` は、黙って片方を選ばずに**拒む**。
+This is checked ([UID04](diagnostics/uid.md)) and also refused on the composition side. A `drop` or `=` aimed at an ambiguous name **refuses** rather than silently picking one.
 
-**アセットから継いだ名は、同一性の主張ではない。**
+**A name inherited from an asset is not a claim of identity.**
 
 ```muro-part
 asset W1 window w:2600 h:2200 sill:0 name:掃き出し窓
 ```
 
-この `name` は型の名であり、同じ建具を一枚の壁に二枚並べるのは普通の設計である。同一性の主張は、**その開口の行に書かれた名だけ**である。
+That `name` names a type, and putting two of the same unit into one wall is ordinary design. **The only claim of identity is a name written on the opening's own line.**
 
-## 隣り合う頁
+## Neighbouring pages
 
-- [約束の範囲](scope.md) — 同一性の一意性が保証の一つである理由
-- [凍る面](stability.md) — 同一性の規則が凍る面の一つである
-- [name](muro/name.md) — 名の書き方
-- [space](muro/space.md) / [zone](muro/zone.md) — uid を書ける二つ
-- [UID の診断](diagnostics/uid.md) — UID01–04
-- [over / drop](muro/over-drop.md) — 名で対象を狙う合成
+- [Scope](scope.md) — why uniqueness of identity is one of the guarantees
+- [Stability](stability.md) — identity is one of the frozen surfaces
+- [name](muro/name.md) — how names are written
+- [space](muro/space.md) / [zone](muro/zone.md) — the two that may carry a uid
+- [UID diagnostics](diagnostics/uid.md) — UID01–04
+- [over / drop](muro/over-drop.md) — composition that targets by name

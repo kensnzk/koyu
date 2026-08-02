@@ -5,26 +5,26 @@ mode: reference
 
 # koyu plan
 
-指定したレベルの平面図を SVG で書き出す。**壁を描く操作はどこにも無い** — 壁は境界から導出されて現れる。
+Writes the plan drawing of one level as SVG. **There is no operation anywhere that draws a wall** — walls appear because they are derived from boundaries.
 
-## 引数
+## Arguments
 
 ```text
-koyu plan <entry.muro> [-l <レベル>] [-o <出力.svg>]
+koyu plan <entry.muro> [-l <level>] [-o <out.svg>]
 ```
 
-entry のパスを一つ取る。出力はファイルに書かれ、標準出力には書いた先の一行だけが出る。
+Takes one entry path. The drawing goes to a file; stdout gets one line naming where it went.
 
-## 旗
+## Flags
 
-| 旗 | 効果 |
+| Flag | Effect |
 |---|---|
-| `-l <レベル>` / `--level <レベル>` | 描くレベル。既定は**最初に宣言されたレベル** |
-| `-o <パス>` | 出力先。既定は `<entry のパスから .muro を除いたもの>-<レベル>.svg` |
+| `-l <level>` / `--level <level>` | The level to draw. Defaults to **the first level declared** |
+| `-o <path>` | Where to write. Defaults to `<the entry path with .muro removed>-<level>.svg` |
 
-`-o` に長い形 (`--out`) は無い。縮尺や切断面の高さを渡す旗も無い。
+There is no long form of `-o` (no `--out`), and no flag for scale or cut height.
 
-## 出力
+## Output
 
 ```sh
 npx tsx src/cli.ts plan examples/house/main.muro -l L2 -o out/house-L2.svg
@@ -34,17 +34,17 @@ npx tsx src/cli.ts plan examples/house/main.muro -l L2 -o out/house-L2.svg
 Generated the plan: out/house-L2.svg
 ```
 
-出力先のディレクトリは無ければ作られる。
+The output directory is created if it does not exist.
 
-`-o` を省くと入力ファイルの隣に書き出す。`plan examples/two-rooms.muro` は `examples/two-rooms-L1.svg` を作る。リポジトリを汚したくないときは `-o` を付ける。
+Omitting `-o` writes next to the input file: `plan examples/two-rooms.muro` creates `examples/two-rooms-L1.svg`. Pass `-o` when you do not want to dirty the repository.
 
-## 三つの癖
+## Three quirks
 
-**`-l` の既定は最下階ではない。**`level` 行を**書いた順**の一番目である。`level L2 …` を `level L1 …` より先に書いたファイルでは、既定が L2 になる。意図した階を確実に描くには `-l` を明示する。
+**The default for `-l` is not the lowest storey.** It is the first level **in the order the `level` lines were written**. In a file where `level L2 …` comes before `level L1 …`, the default is L2. Pass `-l` explicitly to be sure which storey you get.
 
-**`-l=L2` の形は効かない。**旗と値は空白で区切る (`-l L2`)。`-l=L2` は黙って無視され、既定のレベルが描かれる。未宣言のレベル名は終了コード 2 で止まるのに、`=` で繋いだ書き方は止まらない — 旗そのものが認識されないからである。
+**The `-l=L2` form does nothing.** Separate the flag from its value with a space (`-l L2`). `-l=L2` is silently ignored and the default level is drawn. An undeclared level name stops with exit 2, but the `=` spelling does not stop — the flag itself is never recognised.
 
-**領域を持つ空間が一つも無いレベルは描けない。**空間を持たない屋上レベル (`level R 5800 slab:500`) を `-l` に渡すと、整えられた診断ではなく生の例外が出る。
+**A level with no space that has a region cannot be drawn.** Pass a roof level declared without spaces (`level R 5800 slab:500`) to `-l` and you get a raw exception, not a tidy diagnostic.
 
 ```sh
 npx tsx src/cli.ts plan examples/house/main.muro -l R -o out/house-R.svg
@@ -58,17 +58,17 @@ npx tsx src/cli.ts plan examples/house/main.muro -l R -o out/house-R.svg
 Error: There is no space with a region on level R
 ```
 
-終了コードは 1 である。
+The exit code is 1.
 
-## 終了コード
+## Exit codes
 
-| 終了コード | 意味 |
+| Exit code | Meaning |
 |---|---|
-| 0 | 書き出した |
-| 1 | 描けなかった (領域を持つ空間が無いレベル)、または構文・合成エラーで読めなかった |
-| 2 | `-l` に未宣言のレベル名を渡した / ファイルパスを渡していない |
+| 0 | It was written |
+| 1 | It could not be drawn (a level with no space that has a region), or the input could not be read |
+| 2 | `-l` was given an undeclared level name / no file path was given |
 
-未宣言のレベル名は呼び方の問題として扱われる。**空の SVG を黙って書いて「生成しました」と言うことはしない。**
+An undeclared level name is treated as a calling mistake. **An empty SVG is never written out silently and announced as "generated".**
 
 ```sh
 npx tsx src/cli.ts plan examples/house/main.muro -l ZZ9 -o out/x.svg
@@ -78,11 +78,11 @@ npx tsx src/cli.ts plan examples/house/main.muro -l ZZ9 -o out/x.svg
 Undeclared level: ZZ9 (declared: L1 L2 R)
 ```
 
-**`check` が緑でも `plan` は落ちうる。**描画は `check` の検査対象ではない。`-l` に渡した名前の取り違えは `check` の外にある。
+**A green `check` does not mean `plan` will succeed.** Drawing is not what `check` inspects, and a mistyped `-l` is outside it entirely.
 
-## 関連
+## See also
 
-- [koyu axo](axo.md) — 同じ「生成して見る」手で立体を確かめる
-- [koyu levels](levels.md) — 宣言されているレベルの一覧と高さの積み上がり
-- [koyu check](check.md) — 描く前に通す門番
-- [koyu コマンド](index.md) — 終了コードの共通の約束
+- [koyu axo](axo.md) — the same generate-and-look move, in three dimensions
+- [koyu levels](levels.md) — the declared levels and how the heights stack up
+- [koyu check](check.md) — the gate to pass before drawing
+- [The koyu command](index.md) — the shared promises about exit codes

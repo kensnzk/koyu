@@ -38,7 +38,7 @@ test("language version sync: the published norm, the examples and the canonical 
   // The page lists the accepted versions on one line, oldest first — the order is the norm,
   // because the newest is decided by index and not by how the string sorts.
   const inOrder = new RegExp(SUPPORTED_LANGUAGE_VERSIONS.map((v) => v.replace(".", "\\.")).join("\\s+"));
-  for (const page of ["docs/reference/muro/version.md", "docs/en/reference/muro/version.md"]) {
+  for (const page of ["docs/reference/muro/version.md"]) {
     const md = read(page);
     assert.match(md, inOrder, `the accepted versions, in order, in ${page}`);
     assert.ok(md.includes(`\`${DEFAULT_LANGUAGE_VERSION}\``), `the default when omitted, in ${page}`);

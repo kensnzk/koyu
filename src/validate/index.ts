@@ -1,7 +1,7 @@
 // koyu — 検証の面 (建築的な判定)
 //
 // **ここは core ではない。**core が言うのは「書かれたものがデータとして矛盾していない」
-// までであって、建築として妥当かは何も言わない (spec/scope.md §3)。採光・面積率・
+// までであって、建築として妥当かは何も言わない (docs/reference/scope.md)。採光・面積率・
 // 外皮の連続・階段の寸法・到達可能性 — 建築の側の判断はすべてこの面に属す。
 //
 // この面は**凍らない**。規則が粗くても、管轄が一つしかなくても、精度が足りなくても、
@@ -63,7 +63,7 @@ export type ValidationRule = keyof typeof VALIDATION_RULES;
 export interface Finding {
   rule: ValidationRule;
   level: "violation" | "caution";
-  /** 日本語の本文 (位置接頭辞なし — core の Diagnostic と同じ流儀) */
+  /** 本文 (英語・位置接頭辞なし — core の Diagnostic と同じ流儀) */
   message: string;
   /** 出所の行 */
   line?: number;

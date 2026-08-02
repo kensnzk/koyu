@@ -1,87 +1,87 @@
 ---
-title: 平面図の生成
+title: How plans are generated
 mode: explanation
 ---
 
-# 平面図の生成
+# How plans are generated
 
-「平面図とは、床から一定の高さで建物を水平に切った断面である」— これは半分だけ正しい。**立体を切っただけでは平面図にならない。**
+"A plan is the building cut horizontally at a fixed height above the floor" — that is half right. **Cutting a solid does not give you a plan.**
 
-この頁は、切っただけでは出てこない四つを挙げ、それが導出の設計にどう跳ね返っているかを説明する。導出が返すものの一覧は [平面の形](../reference/form/plan.md) にある。
+This page lists the four things that cutting never produces, and explains how they shape the design of derivation. What derivation returns is catalogued in [Plan form](../reference/form/plan.md).
 
-## 切断は入力であって、導出の中身ではない
+## The cut is an input, not part of derivation
 
-まず切断そのものについて。平面は「そのレベルで切った断面」であり、切断面の高さは **FL からの一定の高さ** (既定 1200mm) である。
+First, the cut itself. A plan is "the section at this level", and the cut plane sits at **a fixed height above FL** (1200 mm by default).
 
-**この高さは導出の入力であって、導出が決めることではない。**切断高さを変えれば、腰窓が切れたり切れなかったりする。**同じ切断高さを与えれば、同じ平面が出る** — [導出の決定性](form-must-be-unique.md) の約束は、この入力を固定した上での約束である。
+**That height is an input to derivation, not something derivation decides.** Change it and a sill window is cut or not cut. **Give the same cut height and the same plan comes out** — the promise in [Determinism of derivation](form-must-be-unique.md) is a promise given that input.
 
-## 切っただけでは出てこない四つ
+## The four things a cut cannot produce
 
-### 1. 扉の軌跡
+### 1. Door swings
 
-扉の開く軌跡は、**動きの記号であって、そこに物は無い。**どれだけ精密に切っても、空気を切っただけで円弧は出てこない。
+A door's swing arc is **a symbol of movement; there is no thing there.** Cut as precisely as you like and you have cut air, not an arc.
 
-同梱の例で数えると、平面に出る軌跡は **1,516 件**ある。それは全部、断面ではなく記号である。
+Counted across the bundled examples, plans carry **1,516** swing entities. Every one of them is a symbol, not a section.
 
-### 2. 上部吹抜けの投影
+### 2. The projection of voids above
 
-切断面より上にあるものが、下階の平面に落ちる。吹抜けの輪郭がその代表である。
+Things above the cut plane fall onto the plan of the storey below. The outline of a void is the archetype.
 
-**これは実際に落ちた。**同梱の例には上部吹抜けの投影が **29 件**あるが、ある時期のビュアーの平面からは一つも出ていなかった。「立体から切れ」という指示だけを渡していたので、切断面より上のものは当然のように消えていた。
+**This actually got dropped.** The bundled examples contain **29** such projections, and for a while not one of them appeared in a viewer's plans. The instruction handed over was "cut the solid", so of course everything above the cut plane vanished.
 
-落とすのは**導出された形**である。割付 (書かれた矩形) で落とすと、斜めの線で切られた吹抜けが**切られる前の姿**で出る。
+What is projected is **the derived form**. Project the authored rectangles instead and a void that has been re-cut by a diagonal line comes out **in its uncut shape**.
 
-### 3. 切断線
+### 3. The cut line
 
-階段が切断面を跨いだ位置に引く線。**「切れたことそのもの」の位置であって、物ではない。**
+The line drawn where a stair crosses the cut plane. It marks **the fact of being cut**, not a thing.
 
-作図慣習ではここに平行な二本の斜線を引くが、**二本であることは見た目**である。導出が返すのは、走りの幅いっぱいを横切る一本の線分だけで、二本にするか記号を変えるかは描画側の判断である。
+Drawing convention puts two parallel oblique strokes there, but **being two strokes is appearance.** Derivation returns a single segment spanning the full width of the run; whether to draw it as two strokes or some other symbol is the drawing side's call.
 
-### 4. 下りる走り
+### 4. The descending run
 
-切断面より下の見えがかり。降り階段は切断面の下にあるので、断面には現れない。それでも平面図には描かれる。
+What is visible below the cut plane. A downward stair is under the cut, so it is not in the section. It is nonetheless drawn on the plan.
 
-koyu はこれを、**同じ枠を共有する双子の上る走りが「隠した残り」**として出す。双子であるには、矩形の四座標が一致し、向き・形式・装置・部品数がすべて一致していなければならない。**位置だけで照合すると鏡像が出る。**
+koyu produces it as **what its twin upward run left unhidden**, the two sharing the same frame. To be twins, the four coordinates of the rectangle must match, and direction, form, device and part count must all agree. **Matching by position alone yields mirror images.**
 
-## だから形は分類つきの 2D 集合である
+## Which is why form is a classified 2D set
 
-四つを「各自が発明する」に任せれば、消費者ごとに違う平面図が出る。それは [導出の決定性](form-must-be-unique.md) に反する。
+Leave those four to be "invented by each consumer" and you get a different plan per consumer, which contradicts [Determinism of derivation](form-must-be-unique.md).
 
-だから導出は平面を**分類つきの 2D エンティティ集合**として返す。各要素が (幾何・分類・対象の同一性) を持つ。
+So derivation returns the plan as **a set of 2D entities with classifications**, each carrying geometry, a class, and the identity of what it is the form of.
 
-| 分類 | 何か | 同梱例での件数 |
+| Class | What it is | Count across the bundled examples |
 |---|---|---|
-| `cut` | 切断された断面 | 20,782 |
-| `above` | 切断面より上のものの投影 | 2,460 |
-| `below` | 切断面より下の見えがかり | 845 |
-| `swing` | 動きの軌跡 | 1,516 |
-| `anchor` | 記号を置く座 | 179 |
+| `cut` | what the cut plane sliced | 20,782 |
+| `above` | projection of what is above the cut | 2,460 |
+| `below` | what is visible below the cut | 845 |
+| `swing` | the arc of movement | 1,516 |
+| `anchor` | the seat where a symbol goes | 179 |
 
-**分類が形の側にあることが要である。**「これは断面、これは投影」という判断は、切断高さと z 範囲の比較から決まる — つまり導出の仕事である。描画側に任せれば、比較の閾値が実装ごとに違って同じ原本から違う図が出る。
+**The essential point is that the classification lives on the form side.** "This is a section, this is a projection" is decided by comparing the cut height with a z range — that is derivation's job. Leave it to the drawing side and the comparison thresholds differ per implementation, and the same source yields different drawings.
 
-`anchor` は面白い立ち位置にある。**記号そのものは見た目だが、記号を置く座は形である。**「ここに上り下りの注記が要る」という位置は導出が決め、「`UP` と書くか矢印を描くか」は描画が決める。
+`anchor` occupies an interesting position. **The symbol is appearance, but the seat the symbol goes in is form.** "An up/down annotation is needed here" is decided by derivation; "write `UP` or draw an arrow" is decided by drawing.
 
-## 壁は最初から穴の空いた区間の列である
+## A wall is a run of intervals with holes in it from the start
 
-平面図の描き方で古くからある手が、**「壁の黒帯を紙の色で塗り潰して開口に見せる」**である。koyu にはこの操作が無い。
+An old trick in plan drawing is to **paint over the black band of a wall with the paper colour so it reads as an opening**. koyu has no such operation.
 
-壁は**開口で割られた区間の列**として現れる。線分に載る開口を順に並べ、開口の間には全高の区間を、開口の位置には腰壁 (床から開口の下端まで) と垂れ壁 (開口の上端から天端まで) を残す。
+A wall appears as **the run of intervals into which openings divide it**. Openings on the segment are ordered, full-height intervals sit between them, and at each opening a spandrel below and a head above remain.
 
-**平面でも立体でも、壁は最初から穴の空いた区間の列である。**塗り潰しという操作が存在しないので、塗り潰し漏れも存在しない。
+**In plan as in three dimensions, a wall is a run of intervals with holes in it from the start.** With no painting-over operation, there is no failure to paint over.
 
-そして黒帯が本当に `Form` の「切られた区間」であることは検査されている — 紙と世界を結ぶ相似変換を外接枠から解き、四辺形の集合として突き合わせる。
+And that the black bands really are the `Form`'s cut intervals is checked: the similarity transform from world to page is solved from the bounding box, and the two are matched as sets of quadrilaterals.
 
-## 描けないことと、書けないこととを混同しない
+## Do not confuse what cannot be drawn with what cannot be written
 
-描画の面は凍らない。**寸法線も、通り芯記号も、建具の作図表現も、縮尺も、勾配屋根も、精度は少しずつ上げればよい。**
+The drawing surface does not freeze. **Dimension lines, grid bubbles, door and window conventions, scale, pitched roofs — the precision can be raised a bit at a time.**
 
-ただし条件が一つある。**描けないことが、書けないことと混同されないこと。**何を描き、何を描かないかを列挙して持たなければ、描画側の限界が記述側の限界として原本に持ち込まれ、**原本が表現に引きずられる。**
+With one condition. **What cannot be drawn must never be mistaken for what cannot be written.** Without an enumeration of what is drawn and what is not, the limits of the drawing side get imported as limits of the description side, and **the source starts being dragged around by its presentation.**
 
-この条件があるので、平面が貧しいことは記法を変える理由にならない。**変えてよいのは見た目であって、形ではない。**
+Because of that condition, a poor plan is never a reason to change the notation. **What may change is the appearance, not the form.**
 
-## この先
+## Next
 
-- [平面の形](../reference/form/plan.md) — 分類と要素の一覧
-- [形 — 導出が返すもの](../reference/form/index.md)
-- [導出の決定性](form-must-be-unique.md)
+- [Plan form](../reference/form/plan.md) — the classes and the entities
+- [Form — what derivation returns](../reference/form/index.md)
+- [Determinism of derivation](form-must-be-unique.md)
 - [koyu plan](../reference/cli/plan.md)

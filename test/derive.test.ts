@@ -43,12 +43,12 @@ const digest = (file: string): string =>
  * 座標・厚み・z 範囲・分類・並び — Form に載るものはすべてここに効く。
  */
 const GOLDEN: Record<string, string> = {
-  "examples/two-rooms.muro": "ae6e08bb1ea7579c",
-  "examples/office.muro": "f9825aea2aade757",
-  "examples/house/main.muro": "f614e9ffa04c13ad",
-  "examples/basement/main.muro": "bc1432e735bdf727",
-  "examples/tower/main.muro": "aa2ed2ed71a37e86",
-  "examples/complex/main.muro": "d95287b9b468a12a",
+  "examples/two-rooms.muro": "9d92220d9f2d7adc",
+  "examples/office.muro": "e536046e5b75c3c9",
+  "examples/house/main.muro": "e3cf2f90817c9aec",
+  "examples/basement/main.muro": "6563b75ee0b10cfb",
+  "examples/tower/main.muro": "a483e49f4938c58f",
+  "examples/complex/main.muro": "7e3b8522272f0bf3",
 };
 
 test("derive: the Form of every bundled example matches its golden", () => {
@@ -127,7 +127,7 @@ function tableAfter(page: string, marker: string): Record<string, number> {
 // The ledger is checked against the **published documentation**. `spec/` is an internal tree on
 // its way out and has in fact gone stale — while two trees both claim to be normative, the machine
 // must bind the one that is canonical.
-for (const page of ["docs/reference/form/constants.md", "docs/en/reference/form/constants.md"]) {
+for (const page of ["docs/reference/form/constants.md"]) {
   test(`derive: the constants table in ${page} and DERIVATION_CONSTANTS agree`, () => {
     assert.deepEqual(tableAfter(page, "<!-- derivation-constants -->"), { ...DERIVATION_CONSTANTS });
   });
@@ -138,14 +138,14 @@ for (const page of ["docs/reference/form/constants.md", "docs/en/reference/form/
 
 // ---- 4. 形の不変量 ----
 
-const SRC = `koyu 1.0
+const SRC = `koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /L1/b
   door w:900
 boundary /L1/a /out edge:W
@@ -196,12 +196,12 @@ test("derive: the storey height rises to the apex of the roof where no level sit
 
 test("derive: a level whose ceiling height is undetermined raises no wall and no column", () => {
   // 既定値を捏造しない (spec/derivation.md §0-2) — SUF01 が「作れない」ことを言葉にする
-  const m = parse(`koyu 1.0
+  const m = parse(`koyu 1.1
 grid X 0 4000
 grid Y 0 5000
 level L1 0 slab:300
 space /L1/a room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out
 `);
   assert.equal(levelPitch(m, "L1"), undefined);

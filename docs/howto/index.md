@@ -1,45 +1,45 @@
 ---
-title: 手順 — 目的から引く
+title: How-to — look it up by what you want to do
 mode: howto
 ---
 
-# 手順 — 目的から引く
+# How-to — look it up by what you want to do
 
-一度 `.muro` を書いたことがある人が、**やりたいことの名前から**引くための頁である。上から読む本ではない。記法を初めて見るなら [はじめての .muro](../start/index.md) を先に通すこと。
+For someone who has written `.muro` once and now wants a particular thing done. Not a book to read from the top. If you have never seen the notation, work through [Your first .muro](../start/index.md) first.
 
-各頁は前提・手順・確かめ方の三部でできている。手順の中で使う語の定義は [リファレンス](../reference/muro/index.md) にある。
+Every page has the same three parts: what it assumes, the steps, and how to check. Definitions of the words used in the steps live in the [reference](../reference/muro/index.md).
 
-## 建物を書く
+## Writing a building
 
-| したいこと | 頁 |
+| What you want | Page |
 |---|---|
-| 二階を足す | [階を足す](add-a-storey.md) |
-| 階段・吹抜け・シャフトで階をつなぐ | [階をつなぐ](connect-storeys.md) |
-| 住戸を玄関・居室・水回りに割る | [住戸を室に割る](subdivide-a-unit.md) |
-| 同じ平面の階をまとめて書く | [基準階を一度だけ書く](typical-floors.md) |
-| 窓を開けて採光を通す | [窓を開けて採光を通す](windows-and-daylight.md) |
-| 外へ出られない部屋を見つける | [到達できない空間を見つけて開ける](find-unreachable.md) |
-| 敷地を書いて建蔽率・容積率を出す | [敷地と外構を書く](describe-a-site.md) |
-| 一棟を複数ファイルに割る | [層に割って import で合成する](split-into-layers.md) |
-| 改名しても指し続けられるようにする | [改名に耐える識別](survive-a-rename.md) |
-| 実測を計画に重ねる | [実測を計画に重ねる](write-as-built.md) |
-| 面積表に出す分節と出さない分節を決める | [数える分節と数えない分節](uncounted-divisions.md) |
-| 書き始める前に寸法を決める | [書く前に寸法を決める](choose-dimensions.md) |
+| Add a second storey | [Add a storey](add-a-storey.md) |
+| Join storeys with a stair, void or shaft | [Connect storeys](connect-storeys.md) |
+| Divide a dwelling into rooms | [Subdivide a unit](subdivide-a-unit.md) |
+| Write repeated floors once | [Typical floors](typical-floors.md) |
+| Open windows and satisfy daylight | [Windows and daylight](windows-and-daylight.md) |
+| Find rooms with no way out | [Find unreachable spaces](find-unreachable.md) |
+| Describe a site and get coverage and FAR | [Describe a site](describe-a-site.md) |
+| Split one building across files | [Split into layers](split-into-layers.md) |
+| Keep a reference alive across a rename | [Survive a rename](survive-a-rename.md) |
+| Lay measured reality over the plan | [Write as-built](write-as-built.md) |
+| Decide what appears in the area schedule | [Counted and uncounted divisions](uncounted-divisions.md) |
+| Settle dimensions before writing | [Choose dimensions](choose-dimensions.md) |
 
-## ツールを動かす
+## Running the tools
 
-| したいこと | 頁 |
+| What you want | Page |
 |---|---|
-| エージェントから koyu を触れるようにする | [MCP をクライアントに登録する](install-mcp.md) |
-| エージェントに建物を書かせる | [エージェントに書かせる標準ループ](agent-loop.md) |
-| MCP の応答を手で確かめる | [stdio で MCP を手で叩く](debug-mcp.md) |
-| 自分のプログラムから読む | [プログラムに組み込む](embed-in-a-program.md) |
-| この文書に手を入れる | [この文書の書き方](write-docs.md) |
+| Let an agent reach koyu | [Install the MCP server](install-mcp.md) |
+| Have an agent write the building | [The agent loop](agent-loop.md) |
+| Check the MCP responses by hand | [Debug MCP over stdio](debug-mcp.md) |
+| Read a building from your own program | [Embed koyu in a program](embed-in-a-program.md) |
+| Edit this documentation | [How this documentation is written](write-docs.md) |
 
-## 詰まったとき
+## When you are stuck
 
-| 症状 | 頁 |
+| Symptom | Page |
 |---|---|
-| エラーが出たが、どのコードか分からない | [症状から診断を引く](by-symptom.md) |
-| よく踏む罠を先に知っておきたい | [よくある詰まり](troubleshooting.md) |
-| コードは分かっている | [診断コード索引](../reference/diagnostics/index.md) |
+| An error appeared and you do not know its code | [Look up a diagnostic by symptom](by-symptom.md) |
+| You want the common traps up front | [Common trouble](troubleshooting.md) |
+| You already have the code | [Diagnostic code index](../reference/diagnostics/index.md) |

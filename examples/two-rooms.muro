@@ -4,7 +4,7 @@
 # 書いてあるのは、扉を吊るために宣言した境界と、外皮の境界だけ。
 # 両室に daylight:1 を書いたので、窓が要る — `koyu light` が 1/7 を確かめる (ADR-0020)。
 
-koyu 1.0
+koyu 1.1
 name 二室
 unit mm
 
@@ -14,7 +14,7 @@ level L1 0 h:2400 slab:150
 
 space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
 space /L1/b room X2..X3 Y1..Y2 name:居室B daylight:1
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/a /L1/b t:120 spec:PW1
   door w:780 h:2000

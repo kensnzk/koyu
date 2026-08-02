@@ -1,17 +1,17 @@
 ---
-title: stack — 縦の境界を階に渡す
+title: stack — carrying a vertical boundary across storeys
 mode: reference
 ---
 
-# stack — 縦の境界を階に渡す
+# stack — carrying a vertical boundary across storeys
 
-垂直に貫く空間 — 階段室・EVシャフト・吹抜け — は、階ごとに同じ関係を書き直すことになる。`stack` はその関係を**一度書いて全階に渡す**一語である。
+A space that runs vertically through a building — a stair enclosure, a lift shaft, a void — otherwise forces the same relation to be written once per storey. `stack` **writes it once and carries it across every storey**.
 
 ```text
-stack <名> <レベル範囲> type:stair|shaft|void [属性...]
+stack <name> <level range> type:stair|shaft|void [attributes...]
 ```
 
-`<名>` はパスの**末尾のセグメント**であり、`/` で始まらない。レベル範囲は `L1..L11` の形で、`type:` は必須である。
+`<name>` is the **last segment of the path** and does not begin with `/`. The level range takes the form `L1..L11`, and `type:` is required.
 
 ```muro-part
 stack st1 L1..L11 type:stair
@@ -19,33 +19,33 @@ stack st2 L1..L11 type:stair
 stack ev  L1..L11 type:shaft
 ```
 
-これは「連続するレベルの対ごとに、垂直の境界を一本ずつ張る」と書いたのと同じである。`stack ev L1..L3 type:shaft` は次の二行になる。
+This says "draw one vertical boundary for every consecutive pair of levels". `stack ev L1..L3 type:shaft` is the same as these two lines.
 
 ```muro-part
 boundary /L1/ev /L2/ev type:shaft
 boundary /L2/ev /L3/ev type:shaft
 ```
 
-## 型はトポロジーだけを言う
+## The type says topology and nothing else
 
-垂直の隣接の既定は**床**である。書かないかぎり、上下に重なる空間の間には床がある。`stack` が宣言するのはその例外であり、型は三つしかない。
+Vertical adjacency defaults to a **floor**. Unless something is written, spaces stacked above one another have a slab between them. `stack` declares the exception, and there are only three.
 
-| 型 | 意味 |
+| Type | Meaning |
 |---|---|
-| `stair` | 通れる。階段も斜路もエスカレーターもここに入る |
-| `shaft` | 連続するが人は通れない (EVシャフト・ダクト) |
-| `void` | 床が無い (吹抜け) |
+| `stair` | Passable. Stairs, ramps and escalators all sit here |
+| `shaft` | Continuous but not passable (a lift shaft, a duct) |
+| `void` | No floor (a double-height void) |
 
-**縦の通行可能性は `stair` の一語が引き受ける。**階段も斜路もエスカレーターもトポロジーは同じなので、型は増やさない。装置の違いは空間の側の宣言 — `stair:` `ramp:` `escalator:` `lift:` — が形の生成規則として持つ ([縦動線](vertical-circulation.md))。
+**Vertical passability is carried by the single word `stair`.** A stair, a ramp and an escalator have the same topology, so the set of types does not grow. The difference between the devices lives on the space instead — `stair:`, `ramp:`, `escalator:`, `lift:` — as a rule for generating form ([vertical circulation](vertical-circulation.md)).
 
 ```text
 ✖ c.muro:line 13: A stack type is stair / shaft / void: undefined
 ✖ b.muro:line 11: A stack type is stair / shaft / void: floor
 ```
 
-## 属性は全ての対に配られる
+## Attributes are handed to every pair
 
-`type:` 以外の `key:value` は、生成される境界のすべてに同じ値で載る。
+Every `key:value` other than `type:` rides on all of the generated boundaries with the same value.
 
 ```muro-part
 stack a L1..L3 type:stair spec:RC name:主階段
@@ -60,114 +60,114 @@ stack a L1..L3 type:stair spec:RC name:主階段
 }
 ```
 
-境界の `name:` と、`stack` の第一引数である末尾セグメントは別物である。前者は境界の表示名、後者は空間パスの一部である。
+A boundary's `name:` and `stack`'s first argument are different things: the first is the boundary's display name, the second is a segment of a space path.
 
-## 対応する空間が要る
+## The spaces have to be there
 
-`stack` は境界を作るだけで、空間は作らない。範囲の**すべてのレベル**に `/Lk/<名>` の空間が無ければ、`check` が未定義の空間として止める。
+`stack` makes boundaries, not spaces. If any level in the range lacks a `/Lk/<name>` space, `check` stops on the undefined space.
 
 ```text
 ✖ b.muro:line 11: References an undefined space: /L3/st
 ```
 
-空間の側は [スパン展開](#スパン展開) で一行で書けるので、対になる二行はこう並ぶ。
+The spaces themselves fit on one line through [span expansion](#span-expansion), so the pair reads like this.
 
 ```muro-part
-space /L1..L3/st stair X1..X2 Y1..Y2 name:階段 use:common stair:N form:return
+space /L1..L3/st stair X1..X2 Y1..Y2 name:stair use:common stair:N form:return
 stack st L1..L3 type:stair
 ```
 
-## stack は残らない
+## stack does not survive
 
-`stack` は parse の時点で普通の `boundary` へ展開される。**モデルにも正準JSONにも `stack` は残らない。**一行で書いた版と、対ごとに手で書いた版は、同じ正準JSONを与える。
+`stack` is expanded into ordinary `boundary` declarations while the file is parsed. **Neither the model nor the canonical JSON contains `stack`.** The one-line version and the hand-written pairs yield the same canonical JSON.
 
 ---
 
-## スパン展開
+## Span expansion
 
-`stack` のレベル範囲と同じ綴りが、`space` `zone` `boundary` のパスの**先頭セグメント**でも使える。
+The same level-range spelling `stack` uses also works as the **first segment** of a path on `space`, `zone` and `boundary`.
 
 ```muro-part
-space /L2..L9/B unit X2..X3 Y1..Y2 name:Bタイプ use:exclusive
-zone /L3..L10/A name:Aタイプ use:exclusive
+space /L2..L9/B unit X2..X3 Y1..Y2 name:"type B" use:exclusive
+zone /L3..L10/A name:"type A" use:exclusive
 boundary /L2..L9/A/ldk /L2..L9/A/hall t:100 spec:LGS
   door w:800 name:D
 ```
 
-基準階を一度だけ書くための記法である。展開されるのは**先頭セグメントだけ**で、パスの途中に書いた `..` は展開されない。
+It exists so a typical floor is written once. **Only the first segment expands**; a `..` written further along the path stays literal.
 
-### 並びは z 順であって、名前の連番ではない
+### The order is by z, not by numbering
 
-`L1..L2` は「宣言済みのレベルのうち、z が両端の間 (両端を含む) にあるものを z の昇順に並べたもの」に展開される。**名前が連番かどうかは見ない。**
+`L1..L2` expands to "every declared level whose z lies between the two ends, inclusive, in ascending z order". **Whether the names form a sequence is not consulted.**
 
 ```muro-part
 level L1 0  h:2000 slab:200
 level M1 2200 h:2000 slab:200
 level L2 4400 h:2700 slab:300
-space /L1..L2/a room X1..X2 Y1..Y2 name:室
+space /L1..L2/a room X1..X2 Y1..Y2 name:room
 ```
 
-この一行は `/L1/a` `/M1/a` `/L2/a` の**三つ**の空間になる。中2階を範囲に入れたくなければ、範囲を分けて二行書く。
+That one line becomes **three** spaces: `/L1/a`, `/M1/a`, `/L2/a`. To leave the mezzanine out, split the range into two lines.
 
-### 範囲の綴り
+### How a range may be spelled
 
-レベル名は `英字+数字` の形でなければスパンに使えない。`R` や `PH` のような数字を持たない名は、範囲の端にできない。
+A level name must be letters followed by digits to take part in a span. A name with no digits — `R`, `PH` — cannot be an end of a range.
 
 ```text
 ✖ b.muro:line 11: Cannot read the level range: L1..R
 ```
 
-範囲の端は宣言済みでなければならず、逆順は拒まれる。
+Both ends must already be declared, and a backwards range is refused.
 
 ```text
 ✖ b.muro:line 11: The range includes an undeclared level (declare level first): L1..L9
 ✖ b.muro:line 11: The range runs backwards: L2..L1
 ```
 
-### 一行の中の範囲は一つに揃える
+### One line, one range
 
-`boundary` のように一行が二つのパスを取るとき、両方のスパンは同じでなければならない。「2階から9階までの A と、1階の B を結ぶ」のような書き方はできない。
+When a line takes two paths, as `boundary` does, both spans must be the same. "The A of floors 2 to 9 joined to the B of the ground floor" cannot be written.
 
 ```text
 ✖ b.muro:line 12: Level ranges on one line must agree: L1..L3, L1..L2
 ```
 
-### 字下げした行は全ての展開に載る
+### Indented lines ride on every expansion
 
-展開される行の下に字下げして書いた `door` / `window` / `seg` / `area` は、**展開されたすべて**に付く。扉を一度書けば全階に載る。
+A `door`, `window`, `seg` or `area` indented under an expanded line attaches to **every expansion**. Write the door once and it rides on every storey.
 
 ```muro-part
 boundary /L1..L3/a /L1..L3/b t:100 spec:LGS
   door w:800 name:D
 ```
 
-三階建てなら、この二行から境界が三本、扉が三枚出る。
+Over three storeys, those two lines produce three boundaries and three doors.
 
-### スパンも残らない
+### Spans do not survive either
 
-スパン展開も parse の時点で普通の宣言に開かれる。展開後のパスが正準JSONに並び、`..` の綴りは残らない。
+Span expansion also happens while the file is parsed. The expanded paths are what appear in the canonical JSON; the `..` spelling does not.
 
 ---
 
-## 縦を組む二行
+## The two lines that make a vertical run
 
-垂直に貫く空間は、**空間の列**と**関係の列**の二つが揃って初めて建物になる。片方だけでは通れない。
+A space that runs vertically needs **both** a column of spaces and a column of relations. One without the other is not a way through.
 
 ```muro-part
-space /L1..L3/st stair X1..X2 Y1..Y2 name:階段 use:common stair:N form:return
-space /L1..L3/ev shaft X2..X3 Y1..Y2 name:昇降機 use:common lift:1
+space /L1..L3/st stair X1..X2 Y1..Y2 name:stair use:common stair:N form:return
+space /L1..L3/ev shaft X2..X3 Y1..Y2 name:lift use:common lift:1
 
 stack st L1..L3 type:stair
 stack ev L1..L3 type:shaft
 ```
 
-空間の側の `stair:` `lift:` が形を決め、`stack` の側の `type:stair` `type:shaft` がトポロジーを決める。**形があってもグラフが繋がっているとは限らない** — 形だけを書いて `stack` を落とすと、`koyu validate` が `run.disconnected` で言う。
+`stair:` and `lift:` on the space decide the form; `type:stair` and `type:shaft` on the `stack` decide the topology. **A form is no proof that the graph connects** — write only the form and leave out the `stack`, and `koyu validate` says so as `run.disconnected`.
 
-階を跨ぐ関係はどの階の層にも属さないので、ファイルを分けて書くときは entry (base層) に置くのが自然である ([import](import.md))。
+Relations that cross storeys belong to no single storey's layer, so when the building is split across files they naturally sit in the entry ([import](import.md)).
 
-## 関連
+## See also
 
-- [縦動線](vertical-circulation.md) — `stair:` `ramp:` `escalator:` `lift:` と、形の導出
-- [boundary](boundary.md) — 境界の宣言、水平と垂直の型
-- [space](space.md) — 空間の宣言とパス
-- [import](import.md) — 階を跨ぐ関係をどの層に置くか
+- [Vertical circulation](vertical-circulation.md) — `stair:` `ramp:` `escalator:` `lift:` and how form is derived
+- [boundary](boundary.md) — declaring boundaries, horizontal and vertical types
+- [space](space.md) — declaring spaces and paths
+- [import](import.md) — which layer the cross-storey relations belong in

@@ -260,14 +260,14 @@ stack r L1..L2 type:stair
 // ---- 描かれた線 (ADR-0022) ----
 
 test("line: the area one side loses the other gains (the total is preserved)", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000 24000
 grid Y 0 16000
 level L1 0 h:2700
 space /L1/w room X1..X2 Y1..Y2
 space /L1/p corridor X2..X3 Y1..Y2
 space /L1/e room X3..X4 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/w /L1/p t:120
   line X2,Y1 X3,Y2
 boundary /L1/p /L1/e t:120
@@ -300,12 +300,12 @@ boundary /L1/a /L1/b t:120
 });
 
 test("line: with exterior on one side it cuts the envelope, and no wall stands on the cut-off side", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 16000
 level L1 0 h:2700
 space /L1/a room X1..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:200
   line X2,Y2 X3,Y2-8000
 boundary /L1/a /out edge:N t:200
@@ -334,13 +334,13 @@ boundary /L1/a /L1/b t:120
 test("line: a line that actually cut is never reported as cutting nothing (LIN03 / ADR-0041)", () => {
   // 帰結は導出のその場で記録する。判定を後から計算し直すと、切った後の pieces から
   // 窓を組み立てて切る前の rects に当てることになり、母集団が食い違う
-  const src = `koyu 1.0
+  const src = `koyu 1.1
 grid X 0 3000 6000
 grid Y 0 3000 6000
 level L1 0 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y3
 space /L1/b room X2..X3 Y1..Y3
-space /out exterior
+space /out outside:1
 boundary /L1/a /out edge:S
 boundary /L1/a /L1/b
   line X1,Y1 X1,Y2
@@ -361,12 +361,12 @@ boundary /L1/a /out
 // ---- 柱 (ADR-0023) ----
 
 test("column: the position is not written; it emerges where grid intersections meet a floor", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 8000 16000
 level L1 0 h:2700
 space /L1/a room X1..X2 Y1..Y3
-space /out exterior
+space /out outside:1
 column 800 L1
 `);
   const cols = columnsFor(m, "L1");
@@ -377,12 +377,12 @@ column 800 L1
 });
 
 test("column: none stands on a floor that carries only sky — an open terrace is excluded, but under an overhang above they stand (ADR-0030)", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 8000 16000
 level L1 0 h:2700
 level L2 3000 h:2700 slab:300
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X3 Y1..Y2
 space /L2/b room X1..X2 Y1..Y2
 space /L2/t terrace X2..X3 Y1..Y2
@@ -395,13 +395,13 @@ column 800 L1..L2
   const l2 = columnsFor(m, "L2").map((c) => c.grid);
   assert.deepEqual(l2, ["X1/Y1", "X1/Y2", "X2/Y1", "X2/Y2"]);
   // 同じテラスでも上に床が重なれば (張り出しの下) 柱は戻る
-  const m2 = parse(`koyu 0.5
+  const m2 = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 8000 16000
 level L1 0 h:2700
 level L2 3000 h:2700 slab:300
 level L3 6000 h:2700 slab:300
-space /out exterior
+space /out outside:1
 space /L2/t terrace X2..X3 Y1..Y2
 boundary /L2/t /out edge:E air:1 t:120
 space /L3/c room X2..X3 Y1..Y2
@@ -452,7 +452,7 @@ space /L2/b room X1..X2 Y1..Y2
 });
 
 test("surface: a void has no floor, vertical circulation has no ceiling, and ceiling:0 is an exposed ceiling", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
@@ -460,7 +460,7 @@ level L2 3000 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y2 ceiling:0
 space /L1/s stair X2..X3 Y1..Y1+7000 stair:N
 space /L2/s stair X2..X3 Y1..Y1+7000
-space /L2/v void X1..X2 Y1..Y2
+space /L2/v X1..X2 Y1..Y2 void:1
 boundary /L1/a /L2/v type:void
 stack s L1..L2 type:stair
 `);
@@ -475,7 +475,7 @@ stack s L1..L2 type:stair
 // ---- 軸測図 (ADR-0026) ----
 
 test("axo: the solid comes out as SVG — floors, walls, columns and vertical circulation are all projected", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 3000 6000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
@@ -485,7 +485,7 @@ space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
 space /L1/a room X2..X3 Y1..Y1+7000
 space /L2/a room X2..X3 Y1..Y1+7000
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:200
 boundary /L2/a /out t:200
 boundary /L1/s /out t:200
@@ -506,12 +506,12 @@ test("axo: a solid carries a bottom face — where it can be looked at from belo
   // 箱を「上面+側面」だけで作ると**底の無い箱**になる。普通は見えないが、
   // -l で階を絞った最下段や、外へ張り出した柱では下から覗けて中身が見える。
   // 実際に見えた (外周柱の足元が抜けていた)
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 4000
 grid Y 0 4000
 level L1 0 h:3000 slab:300
 space /L1/a room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:200 spec:CW`);
   const svg = svgAxo(m, {});
   // **底面と上面は同じ形が上下にずれて現れる。**軸測投影は平行投影なので、
@@ -531,7 +531,7 @@ boundary /L1/a /out t:200 spec:CW`);
 });
 
 test("axo: the absence of a floor is not the absence of a roof — a void is closed over", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 4000 8000
 grid Y 0 6000
 level L1 0 h:2700 slab:300
@@ -539,7 +539,7 @@ level L2 3000 h:2700 slab:300
 level R 6000 slab:300
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
-space /L2/v void X1..X2 Y1..Y2
+space /L2/v X1..X2 Y1..Y2 void:1
 space /L2/b room X2..X3 Y1..Y2
 boundary /L1/a /L2/v type:void
 `);
@@ -550,13 +550,13 @@ boundary /L1/a /L2/v type:void
 });
 
 test("line: on the cut-off side the edge shared with the neighbour shortens too (no wall juts outside)", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 8000 16000
 level L1 0 h:2700
 space /L1/a room X1..X2 Y1..Y3
 space /L1/b room X2..X3 Y1..Y3
-space /out exterior
+space /out outside:1
 boundary /L1/b /out t:200
   line X2,Y2 X3,Y3
 boundary /L1/a /out t:200
@@ -574,12 +574,12 @@ boundary /L1/a /out t:200
 // ---- 母集団のずれ (ADR-0041) — どれも check が緑のまま黙って壊れていた ----
 
 test("line: a distant wing does not flip the direction of the corner cut (the L-shaped room does not vanish)", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 7000 8000 10000
 grid Y 0 8000 10000 40000
 level L1 0 h:2400
 space /L1/a room X1..X4 Y1..Y2 + X1..X2 Y2..Y4 name:L字の室
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:150
   line X3,Y2 X4,Y1
 `);
@@ -589,7 +589,7 @@ boundary /L1/a /out t:150
 });
 
 test("roof: cut only the upper storey on a diagonal and a roof spans right below the cut", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 16000
 level L1 0 h:2700 slab:300
@@ -597,7 +597,7 @@ level L2 3000 h:2700 slab:300
 level R 6000 slab:300
 space /L1/a room X1..X3 Y1..Y2
 space /L2/b room X1..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:200
 boundary /L2/b /out t:200
   line X1,Y2 X2,Y1
@@ -629,13 +629,13 @@ boundary /L1/a /L1/b t:120
 });
 
 test("default boundary: no boundary without a source is made for a pair whose contact a line removed", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 3000 4000 9000
 grid Y 0 4500
 level L1 0 h:2400
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X4 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:150
 boundary /L1/b /out t:150
   line X2,Y1 X3,Y2

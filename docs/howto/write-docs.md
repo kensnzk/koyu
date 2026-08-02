@@ -1,107 +1,107 @@
 ---
-title: この文書の書き方
+title: How this documentation is written
 mode: howto
 ---
 
-# この文書の書き方
+# How this documentation is written
 
-この文書に頁を足す・直すときの手順である。**読者ではなく、書き手のための頁である。**
+The procedure for adding to, or changing, a page here. **This page is for writers, not readers.**
 
-## 一つの掟
+## One rule
 
-**この文書が正典である。**読者にとって、ここに書かれていることが koyu の事実の全部である。したがって、
+**This documentation is the canon.** For a reader, what is written here is the whole of what koyu is. Therefore:
 
-> **頁は自分の言葉で事実を述べ切る。他所へ預けない。**
+> **A page states its facts in its own words. It hands them to nobody else.**
 
-外部の文書へ読者を送る一文 — 「本当のことは別の場所にある」と読める一文 — は、読者が開けない扉を指している。それは頁の欠陥である。
+A sentence that sends the reader elsewhere — a sentence that reads as "the real answer lives somewhere else" — points at a door the reader cannot open. That is a defect in the page.
 
-参照してよいのは**この文書の中の頁だけ**である。相対リンクで結ぶ。
+The only thing a page may point at is **another page of this documentation**, linked relatively.
 
 ```markdown
 [space](../reference/muro/space.md) · [koyu check](../reference/cli/check.md)
 ```
 
-この掟はビルドの門番が機械的に検査する。
+A build gate checks this mechanically.
 
-## 一頁一仕事
+## One page, one job
 
-**その頁が何のためにあるのかを一文で言えなければ、二頁に割る。**書いているうちに別の話に入ったら、それは別の頁の仕事である — 本文を膨らませずに、リンクを張る。
+**If you cannot say in one sentence what a page is for, split it in two.** If you find yourself writing about something else, that is another page's job — link to it instead of growing the body.
 
-仕事の種類は四つあり、front matter の `mode` がそれを名乗る。
+There are four kinds of job, and the `mode` in the front matter declares which.
 
-| `mode` | 仕事 | 読者の状態 |
+| `mode` | The job | The reader's state |
 |---|---|---|
-| `tutorial` | 手を動かして一周させる | まだ何も知らない |
-| `howto` | ある目的を達成する手順を与える | 目的がある |
-| `reference` | 事実を引けるように並べる | 答えを探している |
-| `explanation` | なぜそうなっているかを述べる | 納得したい |
+| `tutorial` | Take them once round with their hands on it | They know nothing yet |
+| `howto` | Give the procedure that reaches a goal | They have a goal |
+| `reference` | Lay out facts so they can be looked up | They are hunting an answer |
+| `explanation` | Say why it is the way it is | They want to be convinced |
 
-**混ぜない。**手順の途中に長い理由を挟むと手順が読めなくなり、理由の頁に手順を書くと理由が薄まる。
+**Do not mix them.** A long justification in the middle of a procedure makes the procedure unreadable, and a procedure inside an explanation dilutes the argument.
 
-## 頁の形
+## The shape of a page
 
-front matter はこの二つだけである。
+The front matter has exactly two fields.
 
 ```text
 ---
-title: <頁の題>
+title: <the page title>
 mode: tutorial | howto | reference | explanation
 ---
 ```
 
-続けて `title` と同じ文の H1 を置き、そこから本文を書く。**言語切替の行は書かない** — 表示側が locale を扱う。
+Follow it with an H1 carrying the same sentence as `title`, then the body. **Do not write a language switcher line** — the rendering side handles the locale.
 
-## 日本語と英語を同時に置く
+## One tree, one language
 
-**頁は必ず二つ書く。**日本語を `docs/` に、英語を同じパスの `docs/en/` に置く。
+**There is one set of pages, and it is written in English.** A page lives at exactly one path
+under `docs/`.
 
 ```text
 docs/howto/write-as-built.md
-docs/en/howto/write-as-built.md
 ```
 
-片方だけ足すと、半分の読者にとってその頁は存在しない。ビルドの門番が両ロケールの過不足を検査する。
+There used to be a Japanese tree and an English mirror of it, and every change had to be made
+twice. That is not a discipline anybody keeps: one semantic change to the notation moved 95
+Japanese pages and 93 English ones, and the halves still came apart — the Japanese side was
+corrected while the English side went on stating the retired rule.
 
-守る規律は四つ。
+The reason it can go is that **the reader is a machine.** The processor already answers in
+English everywhere it speaks — diagnostics, `validate` findings, the MCP surface, the canonical
+form. A translation of the prose around them bought nothing an agent could not already read, and
+cost a doubling of every page.
 
-1. **頁が対応していること。**片方だけ足す・消すをしない。
-2. **コードブロックが一致していること。**例のコードが片方だけ直されると、読者は誤った例を手に入れる。**コード中のコメントは訳してよい** — 英語の読者に日本語のコメントを読ませない。
-3. **貼った出力は訳さない。**ツールが実際に出す文字列であり、訳せば嘘になる。人向けの出力は英語なので、日本語の頁にもそのまま貼り、解説だけを日本語で書く。手で描いた図 (層の重なり、矩形の配置) は出力ではないので訳す。
-4. **見出しの構造が一致していること。**節を片方だけに足さない。見出しの**文**は訳す。
+Japanese survives where the reader is a person and the page is not published: the decision
+records under `docs/decisions/`, and the working notes at the top of `docs/`.
 
-**英語は訳し下ろしではなく英語である。**日本語の語順をなぞった文は書かない。
+## Code fences
 
-見出しの文を訳すと、その見出しへのアンカーが変わる。**同じロケールの頁からリンクする** — 英語の頁からは英語のアンカーへ、日本語の頁からは日本語のアンカーへ。
+**Never write a bare fence with no tag.** Dropping the tag is the likeliest way for verification to be skipped.
 
-## コードフェンス
+Six fences wrap `.muro`.
 
-**印の無い裸のフェンスは書かない。**印を落とすのが、検証の最も起きやすい抜け方である。
-
-`.muro` を囲むフェンスは六つある。
-
-| 印 | 中身 | 検証されること |
+| Tag | Contents | What is verified |
 |---|---|---|
-| ` ```muro ` | **通る完全なファイル** | `check` のエラーが 0 件 |
-| ` ```muro-part ` | 断片 | 検証しない |
-| ` ```muro-bad ` | `check` がエラーで落とすもの | error の診断が 1 件以上 |
-| ` ```muro-warn ` | `check` は通り `--strict` で落ちるもの | error 0 件・warning 1 件以上 |
-| ` ```muro-fail ` | `validate` が `violation` を出すもの | error 0 件・violation 1 件以上 |
-| ` ```muro-caution ` | `validate` が `caution` を出すもの | error 0 件・caution 1 件以上 |
+| ` ```muro ` | **A complete file that passes** | Zero `check` errors |
+| ` ```muro-part ` | A fragment | Nothing |
+| ` ```muro-bad ` | Something `check` stops with an error | At least one error diagnostic |
+| ` ```muro-warn ` | Something `check` passes and `--strict` fails | Zero errors, at least one warning |
+| ` ```muro-fail ` | Something `validate` reports as a `violation` | Zero errors, at least one violation |
+| ` ```muro-caution ` | Something `validate` reports as a `caution` | Zero errors, at least one caution |
 
-**`import` を含むファイルは ` ```muro ` にできない。**一枚のテキストとして読むと `import` が解決できないからである。合成の例は ` ```muro-part ` で書く。
+**A file containing `import` cannot be ` ```muro `.** Read as a single text, the `import` cannot be resolved. Write composition examples as ` ```muro-part `.
 
-`.muro` 以外はこの四つ。
+Everything else uses these four.
 
-| 印 | 中身 |
+| Tag | Contents |
 |---|---|
-| ` ```text ` | **貼った出力**と、手で描いた図 |
-| ` ```sh ` | 実行するコマンド |
+| ` ```text ` | **Pasted output**, and diagrams drawn by hand |
+| ` ```sh ` | Commands to run |
 | ` ```ts ` | TypeScript |
 | ` ```json ` | JSON |
 
-## 出力は実行して得たものだけを貼る
+## Paste only output you actually ran
 
-**推測した出力を貼らない。**これは頁ごとの礼儀ではなく、この文書が正典であることの条件である。
+**Never paste guessed output.** This is not page-level etiquette; it is the condition on which this documentation is the canon.
 
 ```sh
 npx tsx src/cli.ts check examples/two-rooms.muro
@@ -112,45 +112,45 @@ npx tsx src/cli.ts check examples/two-rooms.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-絶対パスが出るところは `<absolute path>` や `<dir>/` と縮めてよい。**縮めたことを頁のどこかで一度断る。**それ以外の改変はしない — 数字を丸めない、順序を並べ替えない、都合の悪い行を落とさない。
+Where an absolute path appears, it may be shortened to `<absolute path>` or `<dir>/`. **Say once, somewhere on the page, that you shortened it.** Change nothing else — do not round numbers, do not reorder, do not drop the inconvenient line.
 
-出力が長すぎるときは、`✔ Consistent — 3 spaces / 3 boundaries` のように**先頭から必要な行だけを抜く。**抜くのはよいが、書き換えるのは駄目である。
+When the output is too long, **take the leading lines you need**, as with `✔ Consistent — 3 spaces / 3 boundaries`. Excerpting is fine. Rewriting is not.
 
-## 数を手で書かない
+## Never hand-write a count
 
-診断コードは 65、判定の規則は 15、CLI のサブコマンドは 14、MCP のツールは 12、公開 API は実行時の値 59 と型 77。**これらの数は実装の台帳から来る。**
+Diagnostic codes, validation rules, CLI subcommands, MCP tools, the public API — **those counts come from the ledgers in the implementation, so they are not copied into prose.** The moment one is copied, the ledger can move and the sentence cannot.
 
-台帳が動けば数も動く。だから**数を書くときは、その場で実装から数え直す。**書いた時点で正しかった数が古びて残る、というのがこの文書で最も起きやすい嘘である。
+Move a ledger and the number moves. So **whenever you write a number, count it again from the implementation on the spot.** A number that was right when it was written, quietly going stale, is the lie this documentation is most prone to.
 
-コード・規則・ツール名・サブコマンド名の**全件が公開頁に載っていること**は、テストが台帳と突き合わせて検査する。足したのに書かなければビルドが落ちる。
+That **every** code, rule, tool name and subcommand name appears on a published page is checked by a test against the ledgers. Add one without writing it up and the build fails.
 
-## 生成される頁は手で書かない
+## Do not hand-write what is generated
 
-**サイドバーは公開された木から導かれる。**手で並べた一覧ではないので、**頁が在ればサイドバーに載る。**登録の作業は無い。
+**The sidebar is derived from the published tree.** It is not a hand-kept list, so **a page that exists is a page in the sidebar.** There is no registration step.
 
-同じ理由で、ビルドが生成した木 (`website/.generated/`) を編集しない。次のビルドで消える。原本は `docs/` にある。
+For the same reason, do not edit the generated tree (`website/.generated/`). The next build erases it. The original is in `docs/`.
 
-## 頁を足したときの確認
+## Checklist for a new page
 
-1. `docs/` と `docs/en/` の両方に置いたか。
-2. front matter は `title` と `mode` の二つだけか。H1 は `title` と同じか。
-3. リンクの先はこの文書の中の頁か。相対パスで届くか。
-4. フェンスに印が付いているか。` ```muro ` は本当に通るか。
-5. 貼った出力は実行して得たものか。
-6. 数を手で書いていないか。
-7. **他所へ預ける一文が残っていないか。**
+1. Is it at one path under `docs/`, in English?
+2. Does the front matter carry only `title` and `mode`? Does the H1 match `title`?
+3. Do the links point at pages of this documentation, and do the relative paths reach them?
+4. Does every fence carry a tag? Does the ` ```muro ` block really pass?
+5. Was every pasted output actually run?
+6. Are there hand-written counts?
+7. **Is there a sentence left that hands the facts to somewhere else?**
 
-## 声
+## Voice
 
-- **現在形で書く。**「〜になる予定である」「v0.9 では〜だった」を積まない。版は git が持っている。
-- **断定する。**「〜と思われます」「〜かもしれません」を書かない。分からないことは書かない。
-- **その頁で一番効いている主張を太字にする。**一節に一つか二つまで。多いと効かなくなる。
-- **同じ事実を二度書かない。**二度書けば、いつか片方だけが直される。
-- **売り込まない。**読者は既にここに来ている。
+- **Write in the present tense.** No "this will be", no "in v0.9 it was". Versions are git's business.
+- **Assert.** No "it seems", no "it might". If you do not know, do not write it.
+- **Bold the load-bearing claim** of the section. One or two per section; more and none of them land.
+- **Never state the same fact twice.** Write it twice and one of the two will eventually be fixed alone.
+- **Do not sell.** The reader is already here.
 
-## 関連
+## Related
 
-- [約束の範囲](../reference/scope.md) — `check` が緑であることの意味。頁が引く事実の出所
-- [診断コード索引](../reference/diagnostics/index.md) — 数を台帳から採る例
-- [.muro リファレンス](../reference/muro/index.md) — 記法の頁の並び
-- [症状から診断を引く](by-symptom.md) — 索引を一本にするということ
+- [The scope of the promise](../reference/scope.md) — what a green `check` means; the source of facts pages draw on
+- [Diagnostic code index](../reference/diagnostics/index.md) — an example of taking counts from a ledger
+- [.muro reference](../reference/muro/index.md) — how the notation pages are ordered
+- [Look up a diagnostic by symptom](by-symptom.md) — what it means to keep one index, not two

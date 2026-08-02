@@ -1,4 +1,4 @@
-// koyu — 形の参照実装 (ADR-0040 / spec/derivation.md)
+// koyu — 形の参照実装 (ADR-0040 / docs/reference/form/index.md)
 //
 // **`derive(model)` が形の唯一の入口である。**
 //
@@ -8,7 +8,7 @@
 // 上部吹抜けの投影が ugatsu の平面から 11 件落ち、最上階の壁の上端は koyu と ugatsu で
 // 150mm 割れ、壁厚の既定 100mm は四箇所に別々のリテラルとして書かれていた。
 //
-// **Form は見た目を持たない** (spec/scope.md §6)。返すのは座標・厚み・z 範囲・向き・
+// **Form は見た目を持たない** (docs/reference/scope.md)。返すのは座標・厚み・z 範囲・向き・
 // そして対象の同一性だけである。色も書体も線幅も注記文字列も記号も縮尺も紙面の余白も、
 // この型のどこにも現れない。`src/draw/` と ugatsu はこれを描くだけである。
 //
@@ -43,6 +43,8 @@ import {
   canonicalOpeningOrder,
   canonicalSegOrder,
   canonicalSpaceOrder,
+  isOutside,
+  isVoid
 } from "./model.js";
 import { EPS, SPAN_EPS } from "./tolerance.js";
 import {
@@ -83,8 +85,8 @@ export const OPENING_HEAD = 2000;
 export const OPENING_H = 1200;
 
 /**
- * 導出の定数の台帳。**spec/derivation.md の表の唯一の出所である** —
- * `test/derive.test.ts` が表とここの一致を縛る (語彙台帳と spec/vocabulary.md と同じ構え)。
+ * 導出の定数の台帳。**docs/reference/form/index.md の表の唯一の出所である** —
+ * `test/derive.test.ts` が表とここの一致を縛る (語彙台帳と docs/reference/muro/attributes.md と同じ構え)。
  */
 export const DERIVATION_CONSTANTS: Readonly<Record<string, number>> = {
   WALL_T,
@@ -134,7 +136,8 @@ export interface FormLevel {
 
 export interface FormSpace {
   path: string;
-  type: string;
+  /** 書かれた自由なラベル。導出はこれを読まない — 構成の事実は [[outside]] / [[void]] にある */
+  type?: string;
   level?: string;
   /** 導出された領域 (凸片)。反時計回り */
   outline: Pt[][];
@@ -144,6 +147,10 @@ export interface FormSpace {
   z1?: number;
   indoor: boolean;
   semiOutdoor: boolean;
+  /** 建物の外部と宣言されているか (`outside:1`)。半屋外は外部ではない — [[indoor]] と併せて読む */
+  outside: boolean;
+  /** 吹抜けと宣言されているか (`void:1`)。床が無いので面積にも通行にも数えない */
+  void: boolean;
   /** 上に空間が重なっているか */
   covered: boolean;
 }
@@ -160,7 +167,7 @@ export interface FormPanel {
 
 /** 境界の実体 — 芯線分と、物があるならその材 */
 export interface FormBoundary {
-  /** 関係の同一性 — 両端の空間と、宣言の並びの中の位置 (spec/scope.md §5) */
+  /** 関係の同一性 — 両端の空間と、宣言の並びの中の位置 (docs/reference/scope.md) */
   ref: string;
   boundary: number;
   a: string;
@@ -196,7 +203,7 @@ export interface FormSwing {
 }
 
 export interface FormOpening {
-  /** 開口の同一性 — 境界と、その中の並びの位置 (spec/scope.md §5) */
+  /** 開口の同一性 — 境界と、その中の並びの位置 (docs/reference/scope.md) */
   ref: string;
   boundary: number;
   index: number;
@@ -292,7 +299,7 @@ export interface FormPlan {
 }
 
 /**
- * 形。**見た目を一つも持たない** (spec/scope.md §6)。
+ * 形。**見た目を一つも持たない** (docs/reference/scope.md)。
  * 座標・厚み・z 範囲・向き・対象の同一性だけを持ち、描き方は消費者が決める
  */
 export interface Form {
@@ -455,13 +462,13 @@ function swingOf(
 // ---- 実体の構成子 --------------------------------------------------------
 //
 // **Form が持つのは芯線と厚みと z である。**そこから実体 (厚みのある四辺形・立体の角柱) を
-// 組み立てる規則も導出の一部なので、ここが唯一の実装を持つ (spec/derivation.md §7)。
+// 組み立てる規則も導出の一部なので、ここが唯一の実装を持つ (docs/reference/form/index.md)。
 // 描画側がそれぞれ書き直せば、同じ Form から違う形が出る余地がまた開く — ADR-0040 が
 // 数えた「壁厚 100mm が四箇所に別々のリテラルとして書かれていた」のと同じ壊れ方である。
 
 /**
  * 芯線を厚みのある四辺形へ。**厚みは芯線に対して両側へ半分ずつ振り分ける**
- * (spec/derivation.md §3.1)。単位法線へ ±t/2 だけ振るので斜めの線分でも同じ一つの式である。
+ * (docs/reference/form/index.md)。単位法線へ ±t/2 だけ振るので斜めの線分でも同じ一つの式である。
  * 頂点は 始点+n → 終点+n → 終点−n → 始点−n の順で、`0番と3番の中点`〜`1番と2番の中点`が芯線に戻る。
  */
 export function thicken(x1: number, y1: number, x2: number, y2: number, t: number): Pt[] {
@@ -506,7 +513,7 @@ export interface FormPrism {
 
 /**
  * 縦動線の立体を角柱へ。**傾いた版の四隅の高さは、走る向きに線形で振る** —
- * `up` 側が高い (spec/derivation.md §4.6)。箱は四隅とも同じ高さになる。
+ * `up` 側が高い (docs/reference/form/index.md)。箱は四隅とも同じ高さになる。
  */
 export function runPrism(s: RunSolid): FormPrism {
   const poly = rectToPoly(s.rect);
@@ -560,13 +567,15 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
     const z = s.level !== undefined ? zOf.get(s.level) : undefined;
     spaces.push({
       path: s.path,
-      type: s.type,
+      ...(s.type !== undefined ? { type: s.type } : {}),
       ...(s.level !== undefined ? { level: s.level } : {}),
       outline: regionOf(s),
       ...(areaM2(s) !== undefined ? { areaM2: areaM2(s)! } : {}),
       ...(z !== undefined && h !== undefined ? { z0: z, z1: z + h } : {}),
       indoor: isIndoor(model, s),
       semiOutdoor: isSemiOutdoor(model, s),
+      outside: isOutside(s),
+      void: isVoid(s),
       covered: isCoveredAbove(model, s),
     });
   }

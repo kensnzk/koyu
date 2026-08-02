@@ -1,30 +1,30 @@
 ---
-title: エージェントに書かせる標準ループ
+title: The standard loop for letting an agent write
 mode: howto
 ---
 
-# エージェントに書かせる標準ループ
+# The standard loop for letting an agent write
 
-エージェントに `.muro` を編集させるときの作業の順序である。
+The order of work when an agent edits `.muro` files.
 
 ```text
-model_summary  →  layers  →  write_layer  →  check ──エラー──→ 直して write_layer へ戻る
+model_summary  →  layers  →  write_layer  →  check ──errors──→ fix, write_layer again
                                                │
-                                               └──緑──→ doors / light / site で帰結を確かめる
+                                               └──green──→ doors / light / site confirm the consequences
 ```
 
-**この順序は git の作業と同型である。**掴む・読む・書く・門番を通す・帰結を確かめる。エージェントが暴れるのは、たいてい「読まずに書く」か「門番を通さずに次へ行く」のどちらかである。
+**The shape is the same as working in git**: grasp it, read it, write it, pass the gatekeeper, confirm the consequences. Agents go wrong in one of two ways — writing without reading, or moving on without passing the gatekeeper.
 
-サーバーの登録はここでは扱わない — [MCP をクライアントに登録する](install-mcp.md)にある。各ツールの引数と返りの形は[読む](../reference/mcp/tools-read.md) / [書く](../reference/mcp/tools-write.md) / [確かめる](../reference/mcp/tools-verify.md) / [問う](../reference/mcp/tools-ask.md)にある。
+Registering the server is not covered here; it is on [Register the MCP server with a client](install-mcp.md). Each tool's arguments and return shape are on [Read](../reference/mcp/tools-read.md) / [Write](../reference/mcp/tools-write.md) / [Verify](../reference/mcp/tools-verify.md) / [Ask](../reference/mcp/tools-ask.md).
 
-以下の出力は実際に走らせて得たものである。絶対パスは `<dir>/` と略した。
+Every output below was actually run. Absolute paths are abbreviated to `<dir>/`.
 
-## 題材
+## The subject
 
-二室の平屋。玄関の扉が一枚あるだけで、室と室のあいだには何も書かれていない。
+A single-storey pair of rooms. There is one entrance door, and nothing at all between the two rooms.
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 name 平屋
 unit mm
 
@@ -39,23 +39,23 @@ import ./L1.muro
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out  exterior name:外部
+space /out  name:外部 outside:1
 
 boundary /L1/b /out t:150 spec:EW edge:S
   door w:900 h:2100 name:玄関
 ```
 
-## 0. コミットする
+## 0. Commit
 
 ```sh
 git add . && git commit -m "before the agent edits"
 ```
 
-`write_layer` は全置換で書き、取り消しを持たない。**これを飛ばした作業には戻り道が無い。**
+`write_layer` replaces a layer whole and has no undo. **Skip this and there is no way back.**
 
-## 1. model_summary — 建物を掴む
+## 1. model_summary — grasp the building
 
-一度の呼び出しで、レイヤー構成・レベル・ゾーン・面積・`check` の件数が返る。**次にどのファイルを読めばよいかがここで決まる。**
+One call returns the layer composition, the levels, the zones, the areas and the `check` counts. **This is what decides which file to read next.**
 
 ```text
 {
@@ -95,28 +95,28 @@ git add . && git commit -m "before the agent edits"
 }
 ```
 
-(`hint` の一行は省いた。)
+(The one-line `hint` field is omitted.)
 
-**`check` が 0 / 0 でも、この建物は使えない。**室 A から外へ出る道が無い。要約は「書かれたものが矛盾していない」ことしか言っていない。
+**0 / 0 on `check`, and the building is still unusable.** There is no way out of room A. The summary only says that what is written does not contradict itself.
 
-`boundaries` は合成後の本数で、導出された既定の壁を含む。原本に書かれた `boundary` 行の数とは一致しない。
+`boundaries` counts the composed model, including the walls derived by default. It does not match the number of `boundary` lines in the source.
 
-## 2. layers — 原本を読む
+## 2. layers — read the original
 
-合成に参加した全レイヤーの全文が `{file, source}` で返る。`import` は自動で辿られ、**参照されていないファイルは返らない。**
+Every layer taking part in the composition comes back in full as `{file, source}`. `import` is followed automatically, and **a file nobody imports is not returned.**
 
-エージェントが編集前に読むべきは、要約ではなくここである。要約は構造しか持たないので、綴り・並び・コメントは読めない。
+What the agent must read before editing is this, not the summary. The summary carries structure only — spelling, ordering and comments are not in it.
 
-## 3. write_layer — 書く
+## 3. write_layer — write
 
-引数は entry (`file`)・書き込み先 (`layer`)・**全文** (`content`) の三つである。差分ではない。
+Three arguments: the entry (`file`), the target layer (`layer`), and **the whole text** (`content`). Not a diff.
 
-室 A と室 B のあいだに扉を吊る編集は、`L1.muro` を丸ごと書き直す形になる。
+Hanging a door between room A and room B therefore means rewriting `L1.muro` in full.
 
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out  exterior name:外部
+space /out  name:外部 outside:1
 
 boundary /L1/a /L1/b t:120 spec:PW
   door w:800 h:2000 name:D-中扉
@@ -125,7 +125,7 @@ boundary /L1/b /out t:150 spec:EW edge:S
   door w:900 h:2100 name:玄関
 ```
 
-返りには**書いた直後の `check` の結果が載る。**編集と検証が一往復で済む。
+**The return carries the `check` result from immediately after the write.** Editing and verifying cost one round trip together.
 
 ```text
 {
@@ -137,9 +137,9 @@ boundary /L1/b /out t:150 spec:EW edge:S
 }
 ```
 
-### 書き込みの前に門番が立つ
+### The gatekeeper stands before the write
 
-`write_layer` は差し替え後の内容で**仮想的に合成してから**書く。parse できない内容は**原本に一切触れない。**
+`write_layer` composes the replacement **virtually first**. Content that cannot be parsed **never touches the original.**
 
 ```text
 {
@@ -150,7 +150,7 @@ boundary /L1/b /out t:150 spec:EW edge:S
 }
 ```
 
-parse は通るが `check` がエラーになる内容は**書かれる。**複数レイヤーにまたがる編集を段階的に進められるようにするためで、`written` にはパスが入り `ok` が false になる。次の呼び出しで直す。
+Content that parses but fails `check` **is written.** That is deliberate: it lets an edit that spans several layers proceed in steps. `written` carries the path and `ok` is false. Fix it on the next call.
 
 ```text
 {
@@ -164,19 +164,19 @@ parse は通るが `check` がエラーになる内容は**書かれる。**複�
 }
 ```
 
-書き込み先の制約と atomic 性は[書く — write_layer / new_uids](../reference/mcp/tools-write.md)にある。**新しいレイヤーを作るときは、`import` 行の追加を同じ作業単位に入れる** — どこからも import されていないファイルは合成に参加しないので、中身が一度も検査されない。
+The restrictions on where it may write, and its atomicity, are on [Write — write_layer / new_uids](../reference/mcp/tools-write.md). **When creating a new layer, put the added `import` line in the same unit of work** — a file nobody imports never joins the composition, so its contents are never checked.
 
-## 4. check — 門番を通す
+## 4. check — pass the gatekeeper
 
-`write_layer` の返りに載るので、緑ならそのまま次へ進める。エラーが返ったら**直して再度書く。**ここで止まらずに先へ進む段取りにすると、壊れたまま図面まで生成される。
+It rides along on the `write_layer` return, so a green result moves straight on. An error means **fix it and write again.** A workflow that walks past this point produces drawings from a broken building.
 
-`check` が返す `diagnostics` はコード付きの構造化診断である。人向けの出力にコードは出ないが、MCP の返りには最初から入っている。コードから直し方を引く表は[診断コード索引](../reference/diagnostics/index.md)にある。
+The `diagnostics` array on the return is the structured, coded form. Human-readable `check` output carries no codes, but the MCP return has them from the start. The table from code to fix is the [diagnostic code index](../reference/diagnostics/index.md).
 
-## 5. 帰結を確かめる
+## 5. Confirm the consequences
 
-**ここが最も飛ばされる段である。**`check` は動線も採光も敷地も見ていない。編集が意図した帰結を持ったことは、別の問いで確かめる。
+**This is the step people skip.** `check` looks at neither circulation nor daylight nor the site. That an edit had the intended consequence has to be established by a separate question.
 
-編集前、室 A から外へは出られなかった。
+Before the edit, room A could not reach the outside.
 
 ```text
 {
@@ -184,7 +184,7 @@ parse は通るが `check` がエラーになる内容は**書かれる。**複�
 }
 ```
 
-扉を一枚吊ったあと、同じ問いはこう答える。
+After one door, the same question answers:
 
 ```text
 {
@@ -197,7 +197,7 @@ parse は通るが `check` がエラーになる内容は**書かれる。**複�
 }
 ```
 
-そして `validate` は、`check` が緑のままでも建築の側の指摘を返し続ける。
+And `validate` keeps returning architectural findings while `check` stays green.
 
 ```text
 {
@@ -228,32 +228,32 @@ parse は通るが `check` がエラーになる内容は**書かれる。**複�
 }
 ```
 
-外壁が一枚も書かれていない。`check` はこれを一度も指摘していない — 領域を持たない空間との境界は導出されないからである。
+Not one exterior wall has been written. `check` never mentioned it — boundaries against a space with no region are not derived.
 
-**どの問いを立てるかは編集の種類が決める。**
+**Which question to ask is decided by what was edited.**
 
-| 編集したもの | 確かめる問い |
+| What changed | The question to ask |
 |---|---|
-| 間仕切り・扉 | [`doors`](../reference/mcp/tools-ask.md#doors) — 到達可能性と扉数 |
-| 窓・室の型 | [`light`](../reference/mcp/tools-ask.md#light) — 床面積と有効窓面積 |
-| 領域・レベル | [`site`](../reference/mcp/tools-ask.md#site) — 建蔽率と容積率 |
-| 何であれ | [`validate`](../reference/mcp/tools-verify.md#validate) — 建築の側の指摘 |
+| Partitions, doors | [`doors`](../reference/mcp/tools-ask.md#doors) — reachability and door count |
+| Windows, room types | [`light`](../reference/mcp/tools-ask.md#light) — floor area and effective window area |
+| Regions, levels | [`site`](../reference/mcp/tools-ask.md#site) — coverage and floor-area ratios |
+| Anything at all | [`validate`](../reference/mcp/tools-verify.md#validate) — the architectural findings |
 
-## エージェントに渡す規律
+## The rules to hand the agent
 
-指示に添えておくと事故が減るものを並べる。
+Put these in the instructions and the accidents mostly stop.
 
-1. **書く前に `layers` で読む。**要約から書くと、綴りとコメントが失われる。
-2. **`write_layer` は全置換である。**返す `content` は編集後のファイルの全文でなければならない。
-3. **`ok: false` が返ったら、次の行動は「直して再度書く」以外に無い。**
-4. **緑を根拠に「動く」と言わない。**`check` が緑でも、扉が一枚も無い建物は密封されている。
-5. **`uid` は呼ばれるまで誰も書かない。**改名を跨いで空間を指し続ける必要が出たときだけ [`new_uids`](../reference/mcp/tools-write.md#new_uids) を呼び、書いたあとに `check` を通す。
-6. **形は生成物である。**平面図を「書く」ことはできない。[`plan_svg`](../reference/mcp/tools-ask.md#plan_svg) が導出して返す。
+1. **Read with `layers` before writing.** Writing from the summary loses spelling and comments.
+2. **`write_layer` is a whole-file replacement.** The `content` it sends must be the complete text of the edited file.
+3. **When `ok: false` comes back, the only next action is to fix it and write again.**
+4. **Never claim it works because it is green.** A building with no doors is sealed and `check` is happy.
+5. **Nothing mints a `uid` on its own.** Call [`new_uids`](../reference/mcp/tools-write.md#new_uids) only when a space must be pointed at across renames, and run `check` afterwards.
+6. **Form is generated.** A plan cannot be "written". [`plan_svg`](../reference/mcp/tools-ask.md#plan_svg) derives and returns it.
 
-## 関連
+## Related
 
-- [MCP をクライアントに登録する](install-mcp.md) — 繋ぐまでの手順
-- [stdio で MCP を手で叩く](debug-mcp.md) — エージェントを外して挙動を確かめる
-- [実測を計画に重ねる](write-as-built.md) — 原本を書き換えずに上書きを重ねる書き方
-- [koyu-mcp](../reference/mcp/index.md) — 無状態であることと 12 のツール
-- [約束の範囲](../reference/scope.md) — `check` が緑であることの意味
+- [Register the MCP server with a client](install-mcp.md) — getting connected
+- [Drive the MCP server by hand over stdio](debug-mcp.md) — take the agent out and inspect behaviour
+- [Lay measurements over the plan](write-as-built.md) — overriding without rewriting the original
+- [koyu-mcp](../reference/mcp/index.md) — statelessness and the twelve tools
+- [The scope of the promise](../reference/scope.md) — what a green `check` means

@@ -1,26 +1,26 @@
 ---
-title: 住戸を室に割る
+title: Subdivide a dwelling into rooms
 mode: howto
 ---
 
-# 住戸を室に割る
+# Subdivide a dwelling into rooms
 
-一室として書いてある住戸を LDK・洋室・水回りに割り、割ったあとも住戸単位の面積が壊れないようにする。
+Break a dwelling written as one space into living room, bedrooms and wet block — without breaking the area figure for the dwelling as a whole.
 
-以下の出力例のファイルパスは、実際には絶対パスで出る。読みやすさのためファイル名だけに縮めてある。
+File paths in the output below are absolute when you actually run these commands. They are shortened to bare filenames here for readability.
 
-## 前提
+## Before you start
 
-- 住戸が一つの `space` として書けていて、[`koyu check`](../reference/cli/check.md) がエラー0で通っていること。
-- その住戸の領域 (`X?..X? Y?..Y?` の合併) が分かっていること。
+- The dwelling exists as a single `space` and [`koyu check`](../reference/cli/check.md) passes with zero errors.
+- You know the dwelling's region (the union of its `X?..X? Y?..Y?` rectangles).
 
-## 最初に踏む罠 — 領域を持つ親の下に、領域を持つ子は置けない
+## The first trap — a parent with a region cannot hold children with regions
 
-住戸の `space` を残したまま子の `space` を足すと、親の領域と子の領域が重なる。
+Keep the dwelling's `space` line and add child spaces, and parent and children overlap.
 
 ```muro-bad
-koyu 1.0
-name 住戸を割る
+koyu 1.1
+name Subdividing a dwelling
 unit mm
 
 grid X 0 9600 12800
@@ -28,10 +28,10 @@ grid Y 0 5600 7600
 level L3 8000 h:2500 slab:450
 level L4 11000 slab:450
 
-space /L3/A unit X1..X2 Y1..Y2 + X2..X3 Y1..Y1+2400 name:Aタイプ use:exclusive
+space /L3/A unit X1..X2 Y1..Y2 + X2..X3 Y1..Y1+2400 name:Type-A use:exclusive
 
 space /L3/A/ldk  ldk     X1+3200..X2 Y1..Y1+4000 + X2..X3 Y1..Y1+2400 name:LDK
-space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1
+space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:Bedroom-1
 ```
 
 ```text
@@ -39,41 +39,41 @@ space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1
 ✖ unit.muro:line 10: Space regions overlap: /L3/A and /L3/A/bed1
 ```
 
-**パスの親子関係は面積の二重算入を免除しない。**`/L3/A` と `/L3/A/ldk` は、パスの上で親子であっても、平面の上では重なった二つの空間である。
+**Being a parent in the path does not excuse counting the area twice.** `/L3/A` and `/L3/A/ldk` are parent and child in the path, and two overlapping spaces in the plan.
 
-## 1. 親を `zone` に置き換える
+## 1. Replace the parent with a `zone`
 
-住戸の行を `space` から `zone` に変える。ゾーンは幾何を持たず、**パス接頭辞で配下の空間を束ねる集約**である。領域も型も書かない。
+Change the dwelling's line from `space` to `zone`. A zone carries no geometry: it is an **aggregation that gathers the spaces under a path prefix**. It takes neither a region nor a type.
 
 ```muro-part
-zone /L3/A name:Aタイプ use:exclusive
+zone /L3/A name:Type-A use:exclusive
 ```
 
-`space` の行を消し忘れると、同じパスの空間とゾーンが並んで警告になる (ZON02)。
+Forget to delete the `space` line and a space sits at the same path as a zone — ZON02, a warning.
 
 ```text
 ⚠ unit-clash.muro:line 10: A space shares its path with a zone (settle on one of them): /L3/A
 ```
 
-ゾーンが束ねられるもの、継承する属性、集計のされ方は [zone](../reference/muro/zone.md) にある。
+What a zone gathers, which attributes it passes down and how it is totalled are in [zone](../reference/muro/zone.md).
 
-## 2. 子の空間で住戸の領域を敷き詰める
+## 2. Tile the dwelling's region with the children
 
-子の領域の合併が、もとの住戸の領域と一致するように書く。壁芯で敷き詰めれば、ゾーンの導出面積はもとの住戸の面積にそのまま一致する。
+Write the children so that the union of their regions equals the dwelling's original region. Tile to wall centrelines and the zone's derived area comes out identical to the dwelling's old area.
 
 ```muro-part
 space /L3/A/ldk  ldk     X1+3200..X2 Y1..Y1+4000 + X2..X3 Y1..Y1+2400 name:LDK
-space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1
-space /L3/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2
-space /L3/A/wet  wet     X1+3200..X1+8000 Y1+4000..Y2 name:水回り
-space /L3/A/hall hall    X1+8000..X2 Y1+4000..Y2 name:玄関
+space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:Bedroom-1
+space /L3/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:Bedroom-2
+space /L3/A/wet  wet     X1+3200..X1+8000 Y1+4000..Y2 name:Bathroom-block
+space /L3/A/hall hall    X1+8000..X2 Y1+4000..Y2 name:Entry
 ```
 
-L字の室は矩形の合併 (`+`) で書く。
+L-shaped rooms are unions of rectangles, written with `+`.
 
-## 3. 室のあいだに扉を書く
+## 3. Write doors between the rooms
 
-接する空間の既定は扉のない壁である。間仕切りそのものは書かなくてよいが、**扉は書かないと通れない。**
+The default between two spaces that touch is a wall with no door. You need not write the partitions themselves, but **without a door nobody passes**.
 
 ```muro-part
 boundary /L3/A/ldk /L3/A/bed1 t:120 spec:LGS
@@ -82,22 +82,22 @@ boundary /L3/A/hall /L3/A/wet t:120 spec:LGS
   door w:700
 ```
 
-同じ二室が L 字で二辺に接するときは、`edge:N/E/S/W` で辺を選ぶ。
+Where the same two rooms meet along two edges of an L, pick the edge with `edge:N/E/S/W`.
 
-## 4. 玄関で外側につなぐ
+## 4. Reconnect to the outside through the entry
 
-住戸を割ると、内廊下や外部と接するのは住戸ではなく**個々の室**になる。玄関の扉は、玄関ホールと廊下のあいだの境界に移す。
+Once the dwelling is subdivided, what touches the corridor or the outside is no longer the dwelling but **the individual rooms**. Move the front door onto the boundary between the entry hall and the corridor.
 
 ```muro-part
 boundary /L3/A/hall /L3/corridor t:180 spec:RC
-  door w:900 name:A玄関
+  door w:900 name:A-front-door
 ```
 
-## 確かめる
+## Check it
 
 ```muro
-koyu 1.0
-name 住戸を割る
+koyu 1.1
+name Subdividing a dwelling
 unit mm
 
 grid X 0 9600 12800
@@ -105,14 +105,14 @@ grid Y 0 5600 7600
 level L3 8000 h:2500 slab:450
 level L4 11000 slab:450
 
-zone /L3/A name:Aタイプ use:exclusive
+zone /L3/A name:Type-A use:exclusive
 
 space /L3/A/ldk  ldk     X1+3200..X2 Y1..Y1+4000 + X2..X3 Y1..Y1+2400 name:LDK
-space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1
-space /L3/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2
-space /L3/A/wet  wet     X1+3200..X1+8000 Y1+4000..Y2 name:水回り
-space /L3/A/hall hall    X1+8000..X2 Y1+4000..Y2 name:玄関
-space /L3/corridor corridor X1..X3 Y2..Y3 name:内廊下 use:common
+space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:Bedroom-1
+space /L3/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:Bedroom-2
+space /L3/A/wet  wet     X1+3200..X1+8000 Y1+4000..Y2 name:Bathroom-block
+space /L3/A/hall hall    X1+8000..X2 Y1+4000..Y2 name:Entry
+space /L3/corridor corridor X1..X3 Y2..Y3 name:Internal-corridor use:common
 
 boundary /L3/A/ldk /L3/A/bed1 t:120 spec:LGS
   door w:800
@@ -123,7 +123,7 @@ boundary /L3/A/ldk /L3/A/hall t:120 spec:LGS
 boundary /L3/A/hall /L3/A/wet t:120 spec:LGS
   door w:700
 boundary /L3/A/hall /L3/corridor t:180 spec:RC
-  door w:900 name:A玄関
+  door w:900 name:A-front-door
 ```
 
 ```text
@@ -132,23 +132,23 @@ $ npx tsx src/cli.ts check unit.muro
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-宣言した境界は5本だが、10本あると出る。**差の5本は、接していて宣言の無い組に導かれた既定の壁である。**
+Five boundaries are declared; ten are reported. **The other five are default walls, derived for the pairs that touch and were never written about.**
 
-[`koyu stats`](../reference/cli/stats.md) が、間取りに割ったあとも住戸の言葉で面積を返す。
+[`koyu stats`](../reference/cli/stats.md) still speaks in the language of the dwelling after the subdivision.
 
 ```text
 $ npx tsx src/cli.ts stats unit.muro
 L3
   /L3/A/ldk	LDK	ldk	33.28 m2
-  /L3/A/bed1	洋室1	bedroom	10.24 m2
-  /L3/A/bed2	洋室2	bedroom	7.68 m2
-  /L3/A/wet	水回り	wet	7.68 m2
-  /L3/A/hall	玄関	hall	2.56 m2
-  /L3/corridor	内廊下	corridor	25.60 m2
+  /L3/A/bed1	Bedroom-1	bedroom	10.24 m2
+  /L3/A/bed2	Bedroom-2	bedroom	7.68 m2
+  /L3/A/wet	Bathroom-block	wet	7.68 m2
+  /L3/A/hall	Entry	hall	2.56 m2
+  /L3/corridor	Internal-corridor	corridor	25.60 m2
   Subtotal 87.04 m2
 Total 87.04 m2 (indoor floor area)
 By zone (counted aggregation):
-  /L3/A	Aタイプ	61.44 m2
+  /L3/A	Type-A	61.44 m2
   ldk: 33.28 m2
   bedroom: 17.92 m2
   wet: 7.68 m2
@@ -157,35 +157,35 @@ By zone (counted aggregation):
 By use: exclusive 61.44 m2 (70.6%) / common 25.60 m2 (29.4%)
 ```
 
-`By zone` の行が住戸の面積であり、専有・共用の比も一行も書き足さずに出る。`use:exclusive` はゾーンから配下の室へ継承される。
+The `By zone` line is the dwelling's area, and the exclusive/common split falls out without another line of source. `use:exclusive` is inherited by every space under the zone.
 
-玄関から各室へ通れることは [`koyu doors`](../reference/cli/doors.md) が答える。
+Whether you can walk from the corridor to each room is [`koyu doors`](../reference/cli/doors.md)'s answer.
 
 ```text
 $ npx tsx src/cli.ts doors unit.muro /L3/A/bed1 /L3/corridor
 3 doors — /L3/A/bed1 → /L3/A/ldk → /L3/A/hall → /L3/corridor
 ```
 
-## 割ると変わること
+## What changes when you subdivide
 
-- **採光の対象は型では動かない。**判定に入るかどうかは `daylight:1` の宣言だけが決める。割る前に住戸へ `daylight:1` を書いていたなら、**割ったあとは宣言を室の側へ書き直す** — 書き直さなければ、割った瞬間に採光の判定が消える。どの室を対象にするかは設計者の判断であって、`ldk` や `bedroom` という綴りからは決まらない。手順は [窓を開けて採光を通す](windows-and-daylight.md) にある。
-- **`stats` の型別が細かくなる。**住戸一つが `unit` として計上されていたところが `ldk` `bedroom` `wet` `hall` に分かれる。粒度の変化を吸収するのはゾーン別の行だけである。
-- **粒度は混在してよい。**一部の住戸だけ割り、残りは一室のままにできる。同梱の `examples/tower/typical.muro` は A タイプだけを間取りまで割り、B〜F は `unit` 一室のまま置いている。
+- **Daylight scope does not follow the type.** Only `daylight:1` decides what is judged. If the dwelling carried `daylight:1` before the split, **move that declaration onto the rooms** — otherwise the daylight judgement disappears the moment you subdivide. Which rooms are in scope is the designer's decision, not something the words `ldk` or `bedroom` settle. The procedure is in [Open windows and pass the daylight check](windows-and-daylight.md).
+- **The by-type breakdown in `stats` gets finer.** What was one `unit` becomes `ldk`, `bedroom`, `wet` and `hall`. Only the by-zone line absorbs the change of grain.
+- **Grains may be mixed.** Subdivide some dwellings and leave others whole. The bundled `examples/tower/typical.muro` takes type A down to rooms and leaves B through F as single `unit` spaces.
 
-## 寸法と並びで割るとき
+## When the sizes and the order are what you know
 
-室の位置ではなく**寸法と並び**が決まっているなら、領域の代わりに `band` で書ける。帯は読み込みの時点で通常の空間へ展開されるので、以降の手順 — ゾーンの親・境界・開口・確かめ方 — は何も変わらない。
+If what is settled is the **size and the order** of the rooms rather than their positions, write a `band` instead of regions. A band expands into ordinary spaces at read time, so everything after this — the zone parent, the boundaries, the openings, the checks — is unchanged.
 
 ```muro-part
 band X X1+3200..X2+3200 Y1+4000..Y2
-  space /L3..L10/A/wet  wet  w:4800 name:水回り
-  space /L3..L10/A/hall hall w:1600 name:玄関
+  space /L3..L10/A/wet  wet  w:4800 name:Bathroom-block
+  space /L3..L10/A/hall hall w:1600 name:Entry
 ```
 
-全要素に寸法を書けば、合計が帯幅と一致することが読み込みの時点で照合される — 寸法の打ち間違いの検算になる。文法は [band](../reference/muro/band.md) にある。
+Give every member a size and the total is reconciled against the band's width at read time — a free arithmetic check on your typing. The grammar is in [band](../reference/muro/band.md).
 
-## 次に
+## Next
 
-- [窓を開けて採光を通す](windows-and-daylight.md) — 割った室に窓を開ける
-- [到達できない空間を見つける](find-unreachable.md) — 玄関から各室まで通れるか
-- [基準階を一度だけ書く](typical-floors.md) — 同じ間取りが複数階に載るとき
+- [Open windows and pass the daylight check](windows-and-daylight.md) — glazing the rooms you just made
+- [Find spaces you cannot reach](find-unreachable.md) — confirm every room is reachable from the entry
+- [Write a typical floor once](typical-floors.md) — when the same plan repeats up the building

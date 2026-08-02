@@ -1,11 +1,11 @@
 ---
-title: 到達 — access.*
+title: Reachability — access.*
 mode: reference
 ---
 
-# 到達 — access.*
+# Reachability — access.*
 
-| 規則 | level |
+| rule | level |
 |---|---|
 | [`access.unreachable`](#access-unreachable) | violation |
 | [`access.voidonly`](#access-voidonly) | violation |
@@ -13,32 +13,34 @@ mode: reference
 | [`access.parking`](#access-parking) | violation |
 | [`access.backofhouse`](#access-backofhouse) | caution |
 
-**緑の `check` は「使える建物」を意味しない。**接する空間の既定は壁なので、扉を一枚も宣言しない二階建ては、構成として何一つ矛盾しないまま完全に密封される。
+**A green `check` does not mean the building works.** The default between two touching spaces is a wall, so a two-storey building that declares not one door is completely sealed while contradicting nothing.
 
-この章は、その予言が旗艦例で現実になったときに書かれた。`check` が緑のまま、「床の無い吹抜けにしか扉が開かない区画が20」「他人の店舗を貫通する避難路」「車の出入口の無い2層の駐車場」「バックヤードの奥で孤立したエスカレーター」を抱えていたのである。**予言した当人が予言を踏んだ。**直したことと再発しないことは別なので、五つを規則として置いてある。
+This chapter was written when that prophecy came true in the flagship example. With `check` green it was carrying "twenty units whose only doors open onto a floorless void", "an escape route driven through somebody else's shop", "two storeys of parking with no way out for a car", and "an escalator stranded behind the back of house". **The prophecy was walked into by the one who made it.** Fixing them and stopping them recurring are different things, so the five became rules.
 
-## 通れる境界の定義
+## What counts as passable
 
-どの規則も同じ一つの定義の上に立つ。
+Every rule here stands on one definition.
 
-**人が通れる境界** — `type:open` の境界、上下を繋ぐ `type:stair` の境界、そして `door` の書かれた壁。`type:shaft` と `type:void` は通れない。窓は通れない。
+**Passable by a person** — a `type:open` boundary, a `type:stair` boundary joining levels, and a wall with a `door` written on it. `type:shaft` and `type:void` are not passable. Windows are not passable.
 
-**通り抜けられない空間** — `type:shaft` と `type:void` は、空間としては連続していても人が通り抜ける先にはならない。
+**Spaces you cannot pass through** — a space declaring `void:1`, and a space whose type is `shaft`. They may be continuous as space, but nobody walks through them to somewhere else.
 
-**車が通れる境界** ([`access.parking`](#access-parking) だけが使う) — `type:open` の境界、幅 2400mm 以上の `door`、そして `ramp:` を持つ空間の縦連結。**階段の縦連結は、車にとってはただの段差である。**
+> **Note that the spelling is guarded on one side only.** `void:1` is a key in the [ledger](../muro/attributes.md), so `voi:1` stops at [ATT03](../diagnostics/att.md#att03). `shaft` is **a free word in the type position**, so `shaftt` makes this rule quietly stop applying. Core reads no type at all; the judging face does — and that face [does not freeze](../scope.md).
 
-## `access.unreachable` — 外部へ到達できない {#access-unreachable}
+**Passable by a car** (used only by [`access.parking`](#access-parking)) — a `type:open` boundary, a `door` at least 2400mm wide, and the vertical link of a space carrying `ramp:`. **The vertical link of a stair is, to a car, merely a step.**
+
+## `access.unreachable` — the outside cannot be reached {#access-unreachable}
 
 `violation`
 
-領域を持つ空間から、通れる境界を辿って `type:exterior` の空間へ出られない。
+A space with a region cannot reach an `outside:1` space along passable boundaries.
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /out t:150
 ```
@@ -48,39 +50,39 @@ boundary /L1/a /out t:150
 Validation — 1 violation / 0 cautions
 ```
 
-外部への壁は書いた。だが開口が無い。**問うのは扉の有無ではなく到達性である** — 扉を持っていても、その先が行き止まりなら出られない。
+The wall to the outside was written. There is no opening in it. **What is asked is reachability, not the presence of a door** — a door into a dead end still leads nowhere.
 
-対象外になるのは、領域を持たない空間、`type:exterior` そのもの、`type:shaft`、`type:void` である。そして**外部空間が一つも書かれていない模型では、この規則は走らない** — 外部が無い模型に「外部へ出られない」と言っても意味がないからである。
+Out of scope: spaces with no region, an `outside:1` space itself, a space whose type is `shaft`, and a `void:1` space. And **a model with no exterior space at all is never asked** — telling it that it cannot reach an outside it never described would mean nothing.
 
-violation にしてあるのは、出られない室を建築として読める解釈が無いからである。
+It is a violation because there is no reading of architecture in which a room you cannot leave is fine.
 
-**直し方** — 外部へ抜ける経路のどこかに `door` を書く。外部への境界は線分が複数になるので `edge:N/E/S/W` で辺を選ぶ。
+**Fix** — write a `door` somewhere along the route out. A boundary to the outside has several segments, so pick one with `edge:N/E/S/W`.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /out t:150
   door w:900 edge:S
 ```
 
-どこで鎖が切れているかは [`koyu doors`](../cli/doors.md) が最少扉数の経路で答える。
+To find where the chain breaks, [`koyu doors`](../cli/doors.md) answers with the route of fewest doors.
 
-## `access.voidonly` — 扉が吹抜けにしか開いていない {#access-voidonly}
+## `access.voidonly` — the doors open only onto a void {#access-voidonly}
 
 `violation`
 
-通れる境界を持っているのに、その行き先が全部 `type:void` である。
+The space has passable boundaries, and every one of them leads to a space declaring `void:1`.
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /L1/v void X1..X2 Y1..Y2
+space /L1/v X1..X2 Y1..Y2 void:1
 space /L1/a room X2..X3 Y1..Y2
 boundary /L1/a /L1/v type:open
 ```
@@ -90,34 +92,34 @@ boundary /L1/a /L1/v type:open
 Validation — 1 violation / 0 cautions
 ```
 
-吹抜けは空間としては連続するが**床が無い**。扉は穴に向かって開いていて、出入りしたつもりでどこへも行けない。区画を吹抜けに面して並べ、廊下との境界を書き忘れると起きる。旗艦例はこれを20区画抱えたまま緑だった。
+A void is continuous as space but **has no floor**. The door opens onto a hole: you go through it and arrive nowhere. It happens when units are lined up facing an atrium and the boundary to the corridor is forgotten. The flagship example carried twenty of them while green.
 
-この規則は外部空間の有無を問わない。通れる境界が一本も無い空間にも掛からない — それは [`access.unreachable`](#access-unreachable) の仕事である。
+This rule does not care whether an exterior exists. It also does not fire on a space with no passable boundary at all — that is [`access.unreachable`](#access-unreachable)'s job.
 
-**直し方** — 床のある隣 (廊下・階段室) へ扉を書く。吹抜けに面した縁が本当に開いているのなら、それは通行ではなく**見下ろし**なので、`type:open` ではなく `air:1` の壁 (手すり) にする。
+**Fix** — write a door to a neighbour that has a floor (a corridor, a stair). If the edge onto the void really is open, it is a place to **look down from**, not to walk through: make it an `air:1` wall (a railing) rather than `type:open`.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /L1/v void X1..X2 Y1..Y2
+space /L1/v X1..X2 Y1..Y2 void:1
 space /L1/a room X2..X3 Y1..Y2
 boundary /L1/a /L1/v air:1 h:1100
 ```
 
-## `access.throughtenant` — 避難が賃貸区画を通る {#access-throughtenant}
+## `access.throughtenant` — the escape runs through a tenancy {#access-throughtenant}
 
 `caution`
 
-`type:stair` の空間から外部へ出るどの経路も、`use:rentable` の空間を通る。
+Every route out of a space whose type is `stair` passes through a `use:rentable` space.
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3000 9000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/s stair X1..X2 Y1..Y2
 space /L1/t room X2..X3 Y1..Y2 use:rentable
 boundary /L1/s /L1/t
@@ -132,24 +134,24 @@ boundary /L1/s /out t:150
 Validation — 0 violations / 1 caution
 ```
 
-**テナントが施錠した瞬間、その階段は避難に使えなくなる。**`use:` はゾーンから継承されるので、区画ごとに書いていなくても親のゾーンに `use:rentable` があれば同じ判定が掛かる。
+**The moment the tenant locks up, that stair stops being an escape.** `use:` is inherited from the zone, so the judgement applies even when the individual units do not carry it, as long as a parent zone says `use:rentable`.
 
-**caution にしてある理由** — 通ってよいかは契約と管轄の側の事実であって、書かれた構成には無い。賃貸区画の中に専用通路を通す設計は現にある。疑う値打ちはあるが、断じる根拠がここには無い。
+**Why this is a caution** — whether it may pass through is a fact on the side of the lease and the jurisdiction, and it is not in what was written. Designs that run a dedicated passage through a tenancy do exist. It is worth doubting, but there is nothing here on which to rule.
 
-**直し方** — 賃貸区画を避けて外部へ抜ける経路 (共用廊下・附室) を書く。階段室から直接外部へ出るなら、その境界に `door` を書く。
+**Fix** — write a route out that avoids the tenancy (a common corridor, a lobby). If the stair discharges directly, write a `door` on that boundary.
 
-## `access.parking` — 車が外部へ出られない {#access-parking}
+## `access.parking` — a car cannot get out {#access-parking}
 
 `violation`
 
-`use:parking` の空間から、車が通れる境界だけを辿って外部へ出られない。
+A `use:parking` space cannot reach the outside along car-passable boundaries.
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/p room X1..X2 Y1..Y2 use:parking
 boundary /L1/p /out
   door w:900 edge:S
@@ -160,29 +162,29 @@ boundary /L1/p /out
 Validation — 1 violation / 0 cautions
 ```
 
-**人は 900mm の扉と階段で出られてしまうので、[`access.unreachable`](#access-unreachable) はこれを見ない。**駐車場だけが別の通行体で問われる理由がそこにある。
+**People get out through a 900mm door and a stair, so [`access.unreachable`](#access-unreachable) never sees this.** That is why parking is asked with a different traveller.
 
-**直し方** — 車路の開口を `door w:2400` 以上にするか、境界を `type:open` にする。地下や上階の駐車場なら、斜路の空間に `ramp:` を書いて `stack` で繋ぐ — その縦連結だけが車の通れる階の跨ぎ方である。
+**Fix** — make the vehicle opening `door w:2400` or wider, or make the boundary `type:open`. For parking above or below grade, write `ramp:` on the ramp space and join the levels with `stack` — that vertical link is the only way a car changes level.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/p room X1..X2 Y1..Y2 use:parking
 boundary /L1/p /out
   door w:2400 edge:S
 ```
 
-## `access.backofhouse` — 共用廊下からバックヤードを通らずに届かない {#access-backofhouse}
+## `access.backofhouse` — unreachable from a common corridor without crossing the back of house {#access-backofhouse}
 
 `caution`
 
-縦動線の宣言 (`stair:` / `escalator:`) を持つ `use:common` の空間へ、共用廊下から `type:backyard` を通らずに届かない。
+A `use:common` space declaring a vertical run (`stair:` / `escalator:`) cannot be reached from a common corridor without crossing a space whose type is `backyard`.
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
@@ -203,18 +205,18 @@ boundary /L1/b /L1/e
 Validation — 0 violations / 1 caution
 ```
 
-共用の縦動線は客動線の一部である。その乗り場へ行くのにバックヤードを抜けなければならないなら、客は乗れない。
+A common vertical run belongs to the customer's route. If reaching its foot means crossing the back of house, no customer rides it.
 
-**当の空間へは水平に入れなければならない。**自分の縦連結を経由してよいことにすると「上の階からそのエスカレーターで降りてくれば乗り場に着く」という循環が成り立ち、孤立をそのまま素通ししてしまう。だから検査は、その空間自身に接する `type:stair` の境界を使わない経路だけを見る。
+**Entry to the space itself must be horizontal.** Allow its own vertical link and the circle "come down that escalator from the floor above and you arrive at its foot" closes, letting a stranded run pass unnoticed. So the check only considers routes that do not use a `type:stair` boundary incident to the space in question.
 
-**共用廊下 (`type:corridor` かつ `use:common`) が一つも無い建物では、この規則は走らない。**客動線と従業員動線の区別が無い建物 — 住宅など — の階段を孤立と誤検出しないためである。
+**A building with no common corridor (type `corridor` and `use:common`) is never asked.** A house draws no customer/staff distinction, and its stair should not be reported as stranded.
 
-**caution にしてある理由** — 「共用の縦動線はすべて客用」は粗い推定である。従業員用の共用階段を客用と読み違えることがある。
+**Why this is a caution** — "every common vertical run is for customers" is a coarse inference. A common stair meant for staff can be misread as a customer's.
 
-**直し方** — 共用廊下から直接届く位置へ動かすか、廊下との間に扉を書く。従業員用の縦動線なら `use:common` を外す。
+**Fix** — move it where the common corridor reaches it directly, or write a door between it and the corridor. If it really is for staff, drop `use:common`.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
@@ -230,9 +232,9 @@ boundary /L1/c /L1/e
   door w:900
 ```
 
-## 関連
+## See also
 
-- [`koyu doors`](../cli/doors.md) — 二つの空間の間の、扉の数が最も少ない経路
-- [柱](column.md) — 扉が開かないもう一つの理由。柱が塞いでいる場合
-- [外皮](envelope.md) — 外周に穴があると、そもそも外との関係が書かれていない
-- [判定の台帳](index.md) — 15規則と、`Finding` が `Diagnostic` と別である理由
+- [`koyu doors`](../cli/doors.md) — the route between two spaces that passes fewest doors
+- [Columns](column.md) — the other reason a door does not work: something stands in it
+- [The envelope](envelope.md) — a hole in the outline means the relation to the outside was never written
+- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`

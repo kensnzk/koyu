@@ -1,6 +1,6 @@
 {
-  "format": "koyu-canonical/1.0",
-  "koyu": "1.0",
+  "format": "koyu-canonical/1.1",
+  "koyu": "1.1",
   "name": "位置の例",
   "unit": "mm",
   "grid": {
@@ -68,9 +68,9 @@
       }
     },
     "/out": {
-      "type": "exterior",
       "attrs": {
-        "name": "外部"
+        "name": "外部",
+        "outside": 1
       }
     }
   },

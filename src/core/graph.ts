@@ -154,7 +154,7 @@ export function mergeCollinear(segs: Segment[]): Segment[] {
  * 既定境界の導出 (ADR-0014) — 垂直の「既定は床」と対称の、水平の「既定は壁」。
  * 同一レベル (未特定同士を含む) で平面が接する領域つき空間の組に、宣言境界がその組に
  * 一つも無ければ kind:wall の既定境界を導く。宣言は例外 (open・手すり) と属性のためにある。
- * 領域を持たない空間 (exterior等) との境界は導かない — 相手の名指しが情報のため宣言する。
+ * 領域を持たない空間 (`outside:1` の外部など) との境界は導かない — 相手の名指しが情報のため宣言する。
  * 合成・スパン展開の完了後に呼ぶ (parse / parseWith の出口)。冪等。
  */
 export function deriveDefaultBoundaries(model: Model): void {
@@ -262,7 +262,7 @@ export function derivePieces(model: Model): void {
 }
 
 /**
- * 描かれた線の切り方を一度に決める — 窓・残す側・片側かどうか (ADR-0022 / spec/derivation.md §1.2-1.3)。
+ * 描かれた線の切り方を一度に決める — 窓・残す側・片側かどうか (ADR-0022 / docs/reference/form/index.md-1.3)。
  *
  * **窓と側は必ず一緒に決める。**別々に決めていたために、側は空間の全割付を無限直線で
  * 測るのに切るのは線の近傍だけ、という母集団のずれが生まれ、線から遠い翼が符号を

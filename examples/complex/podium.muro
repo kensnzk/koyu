@@ -13,7 +13,7 @@
 # 吹抜けは**床の不在**である。区画の扉を吹抜けに開くと、そこは床の無い所なので出られない。
 # 西列の区画は回廊に面させ、回廊がモールへ回り込む — 吹抜けの縁は手すりになる
 space /L2..L5/wgal corridor X2..X2+2400 Y1..Y6 + X2+2400..X3 Y2..Y2+3600 name:西回廊 use:common floor:石張り
-space /L2..L5/atrium void X2+2400..X3 Y1..Y2 + X2+2400..X3 Y2+3600..Y4 + X2+5600..X3 Y4..Y4+12000 + X2+2400..X3 Y4+12000..Y6 name:吹抜け
+space /L2..L5/atrium X2+2400..X3 Y1..Y2 + X2+2400..X3 Y2+3600..Y4 + X2+5600..X3 Y4..Y4+12000 + X2+2400..X3 Y4+12000..Y6 name:吹抜け void:1
 space /L2..L5/mall corridor X3..X8 Y2..Y2+3600 name:モール use:common floor:石張り
 space /L2..L5/north backyard X4..X7 Y5..Y6 name:北側サービス use:common
 space /L2..L5/bohW backyard X3..X4 Y4-3200..Y6 name:バックヤード西 use:common

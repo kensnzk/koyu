@@ -3,7 +3,7 @@
 // **ここに形の規則は一つも無い。**壁の厚みも、開口の位置も、扉の吊元も、階段がどこで
 // 切れるかも、`derive(model)` が返す `Form` に既に入っている (ADR-0040)。この頁が持つのは
 // 色・線種・線幅・書体・記号・注記の言葉・縮尺・紙面の余白 — すべて**見た目**であり、
-// 消費者ごとに違ってよいものである (spec/scope.md §6)。
+// 消費者ごとに違ってよいものである (docs/reference/scope.md)。
 //
 // 形と見た目の線引きはこうである。境界線分の座標・壁の厚み・開口で割られた区間・
 // 扉の軌跡の中心と半径と掃き方向・切断面を跨ぐ位置は Form が持つ。1/4円を破線で描くか、
@@ -79,7 +79,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   // 空間の面 — 切断面が気積を切った姿。同色・輪郭なしなのでL字も切られた形も一体に見える。
   // 半屋外は淡く塗り分け、屋外であることが図から読めるように
   for (const s of rooms) {
-    const isVoid = s.type === "void";
+    const isVoid = s.void;
     for (const poly of s.outline) {
       parts.push(fill(poly, isVoid ? PAPER : s.semiOutdoor ? "#f8f5ec" : ROOM));
       if (isVoid) {
@@ -160,7 +160,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   for (const g of form.segs) {
     if (g.level !== level) continue;
     parts.push(fill(band(g.segment, g.cx, g.cy, g.w, g.t), "#77716a"));
-    // `g.boundary` は **Form の境界の添字 = 正準順の添字**である (spec/derivation.md)。
+    // `g.boundary` は **Form の境界の添字 = 正準順の添字**である (docs/reference/form/index.md)。
     // 宣言順の配列を引くと、宣言順を入れ替えただけで注記が別の境界のものになる
     const spec = ordered[g.boundary]?.segs[g.index]?.attrs["spec"];
     if (typeof spec === "string") {
@@ -246,9 +246,9 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     const cx = sx((r.x1 + r.x2) / 2);
     const cy = sy((r.y1 + r.y2) / 2);
     const sub =
-      s.type === "void"
+      s.void
         ? "void"
-        : `${esc(s.type)} · ${s.areaM2} m2${s.semiOutdoor ? " · semi-outdoor" : ""}`;
+        : `${s.type ? `${esc(s.type)} · ` : ""}${s.areaM2} m2${s.semiOutdoor ? " · semi-outdoor" : ""}`;
     parts.push(
       `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="14" fill="${INK}">${esc(displayName(space))}</text>`,
       `<text x="${cx}" y="${cy + 13}" text-anchor="middle" font-size="10" fill="#8a8171">${sub}</text>`,

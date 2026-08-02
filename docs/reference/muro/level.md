@@ -1,9 +1,9 @@
 ---
-title: level — レベル
+title: level — levels
 mode: reference
 ---
 
-# level — レベル
+# level — levels
 
 ```muro-part
 level L1 0 h:3600 slab:600
@@ -11,31 +11,31 @@ level L4..L10 11000 pitch:3000 h:2500 slab:450
 level R 30200 slab:500
 ```
 
-`level <名> <z> [h:] [slab:] [pitch:] [underground:]` は、床の高さに名を与える。**この記法で z を書く場所はここだけ**で、[空間](space.md)は自分の高さを持たず、所属するレベルからそれを受け取る。
+`level <name> <z> [h:] [slab:] [pitch:] [underground:]` gives a name to a floor height. **This is the only place in the notation where z is written**: a [space](space.md) has no height of its own and takes it from the level it belongs to.
 
-## 位置引数
+## Positionals
 
-| 位置 | 意味 |
+| Position | Meaning |
 |---|---|
-| 名 | レベルの名。空間のパスの先頭セグメントとして使われる (`/L1/hall`) |
-| z | 床レベルの高さ mm。負でもよい |
+| name | The level's name. Used as the first segment of a space path (`/L1/hall`) |
+| z | The floor level in mm. May be negative |
 
-名は自由な語だが、**範囲宣言と単発の宣言は綴りで区別される** — `..` を含む名は範囲として読まれる。
+The name is a free word, but **a range declaration is distinguished from a single one by its spelling** — a name containing `..` is read as a range.
 
-z は[通り芯](grid.md)と同じ座標系の数値で、原点をどこに置くかは自由である。z の順序がレベルの上下であり、名の連番ではない。
+z is a number in the same coordinate system as the [grid](grid.md), and where the origin sits is your choice. The order of levels is the order of their z, not of their names.
 
-## 属性
+## Attributes
 
-レベルに書ける鍵は四つだけで、この一覧は閉じている。
+Four keys may be written on a level, and that list is closed.
 
-| 鍵 | 値 | 意味 |
+| Key | Value | Meaning |
 |---|---|---|
-| `h:` | 正の数値 mm | 基準天井高。この階の空間の既定の天井高になる |
-| `slab:` | 正の数値 mm | 床組み厚。床版はこの階の FL から下へこの厚さで生成される |
-| `pitch:` | 正の数値 mm | 範囲宣言の階高。範囲宣言のときだけ書ける |
-| `underground:` | `0` / `1` | 地下の宣言 |
+| `h:` | positive number, mm | The base ceiling height — the default for spaces on this storey |
+| `slab:` | positive number, mm | Slab thickness. The floor slab is generated downward from this level's FL |
+| `pitch:` | positive number, mm | The storey height of a range declaration. Only on a range |
+| `underground:` | `0` / `1` | Declares that the level is below ground |
 
-**台帳に無い鍵は診断ではなく構文エラーになる。**レベルは属性の袋を持たない — 四つの鍵はすべて型のついたフィールドへ持ち上げられ、余った鍵の行き場が無い。行き場が無いまま黙って捨てれば、`undergound:1` と綴った階が黙って地上階になる。
+**A key outside the ledger is a syntax error rather than a diagnostic.** A level carries no attribute bag — all four keys are lifted into typed fields, and a leftover key has nowhere to live. Dropping it silently would let a storey spelled `undergound:1` become an above-ground storey without a word.
 
 ```muro-bad
 grid X 0 3600
@@ -48,33 +48,33 @@ space /L1/a room X1..X2 Y1..Y2
 ✖ levelkey.muro:line 3: level carries undergound:, which is not in the ledger (level reads h / slab / pitch / underground)
 ```
 
-他の要素では台帳外の鍵が [ATT03](../diagnostics/att.md) という診断になるが、レベルだけはその手前の parse で止まる。
+On every other element an unknown key becomes the diagnostic [ATT03](../diagnostics/att.md); the level alone stops earlier, in the parse.
 
-## h: — 基準天井高
+## h: — the base ceiling height
 
-`h:` はこの階の空間の**既定**の天井高である。空間側の `h:` が書かれていればそちらが勝つ。
+`h:` is the **default** ceiling height for spaces on this storey. A space's own `h:` wins over it.
 
-どちらも無ければ天井高が決まらず、天井も屋根も押し出す高さを失う。これは警告ではなくエラーである。
+With neither, the ceiling height cannot be determined, and there is no height to extrude a ceiling or a roof to. That is an error, not a warning.
 
 ```text
 The ceiling height of /L2/a cannot be determined (neither the space's h: nor level L2's h: is there)
 ```
 
-天井高の決まらない空間の一覧は [SUF01](../diagnostics/suf.md) が出す。ただし吹抜け (`void`)・外部 (`exterior`)・半屋外の空間は天井を持たないので、この検査の対象にならない。
+[SUF01](../diagnostics/suf.md) reports the spaces whose ceiling height is undetermined. Voids (`void`), the outside (`exterior`) and semi-outdoor spaces have no ceiling, so they are not subject to it.
 
-## slab: — 床組み厚
+## slab: — the slab thickness
 
-`slab:` は床版の厚さであり、**床を置く操作は存在しない** — 厚さを宣言することが床を宣言することである。床版は `z - slab` から `z` までに生成される。
+`slab:` is the thickness of the floor slab, and **there is no operation that places a floor** — declaring the thickness is declaring the floor. The slab is generated from `z - slab` up to `z`.
 
-書かなければその階に床が一枚も生成されない。形そのものは決まるので警告である。
+Omit it and not one floor is generated on that storey. The form is still determined, so this is a warning.
 
 ```text
 Level L2 has no slab:, so not one floor is generated on this storey
 ```
 
-床を持ちうる空間が一つも載っていない階には何も言われない — 生成されなかった床が無いからである。
+Nothing is said about a level carrying no space that could have a floor — there is no missing floor to report.
 
-`slab:` は**上の階の床**として下の階の頭上を食う。次の階までの階高を、下の階の天井高と上の階の床組み厚が食い合う。
+`slab:` eats into the headroom of the storey **below** it, as the floor of the storey above. The storey height is shared out between the lower storey's ceiling height and the upper storey's slab.
 
 ```text
 $ npx tsx src/cli.ts levels lv.muro
@@ -91,48 +91,48 @@ B1	z:-4200	h:3600	slab:600
   ↑ storey height 4200 = ceiling 3600 + slab 600
 ```
 
-天井高と上階の床組み厚の合計が階高を超えれば、[HGT01](../diagnostics/hgt.md) がエラーになる。
+When the ceiling height plus the slab above exceeds the storey height, [HGT01](../diagnostics/hgt.md) is an error.
 
-## 範囲宣言 — level L4..L10
+## Range declarations — level L4..L10
 
 ```muro-part
 level L2..L4 4400 pitch:3400 h:2700 slab:400
 ```
 
-名が `<接頭辞><数字>..<接頭辞><数字>` の形なら、等差の連番として展開される。z は `z + pitch × k` になる。
+A name of the form `<prefix><digits>..<prefix><digits>` expands into an arithmetic run of levels, at `z + pitch × k`.
 
-| 規則 | エラー |
+| Rule | Error |
 |---|---|
-| 接頭辞は前後で同じ | `Cannot read the level range: L1..M3` |
-| 番号は昇順 | `Cannot read the level range: L3..L1` |
-| `pitch:` は必須 | `A level range requires pitch: (the storey height in mm): L1..L3` |
-| `pitch:` は範囲宣言だけ | `pitch is available only on a level range declaration (L?..L?)` |
+| The prefix is the same at both ends | `Cannot read the level range: L1..M3` |
+| The numbers ascend | `Cannot read the level range: L3..L1` |
+| `pitch:` is required | `A level range requires pitch: (the storey height in mm): L1..L3` |
+| `pitch:` only on a range | `pitch is available only on a level range declaration (L?..L?)` |
 
-`h:` と `slab:` と `underground:` は展開された全レベルに同じ値で付く。基準階の階高が揃っていない部分は、範囲を切って複数行に書く。
+`h:`, `slab:` and `underground:` are applied identically to every level in the expansion. Where the storey height changes, cut the range and write several lines.
 
-## 重複と同じ z
+## Duplicates and equal z
 
-同じ名のレベルを二度宣言すればエラーになる。
+Declaring the same level name twice is an error.
 
 ```text
 ✖ lvdup.muro:line 4: Duplicate level: L1
 ```
 
-名が違っても z が同じ二つのレベルは [LVL01](../diagnostics/lvl.md) のエラーになる — どちらが上でどちらが下かが決まらず、階高が 0 になる。
+Two differently-named levels at the same z are the error [LVL01](../diagnostics/lvl.md) — which one is above the other is undetermined, and the storey height between them is zero.
 
-## underground: — 地下は宣言である
+## underground: — being below ground is declared
 
 ```muro-part
 level B1 -4200 h:3600 slab:600 underground:1
 ```
 
-`underground:1` はその階が地下にあるという宣言で、値は `0` か `1` だけである。
+`underground:1` declares that the level is below ground; the value is `0` or `1`.
 
-**z の符号からは推定しない。**地盤面は敷地の事実であり、z が負であることは座標系の原点をどこに置いたかの事実にすぎない。原点を地下2階の床に置けば地下階の z は正になるし、造成前の地盤に置けば地上階が負になることもある。二つは別の事実なので、別に書く。
+**It is never inferred from the sign of z.** Ground level is a fact about the site; a negative z is a fact about where the origin of the coordinate system was put. Put the origin on the second basement floor and the basements have positive z; put it on the pre-cut ground and above-ground storeys can be negative. Two different facts, written separately.
 
-土に接する壁は境界の型でも属性でもなく、[境界](boundary.md)の `spec:` が運ぶ (`spec:RC土圧壁`)。境界のトポロジーは地上でも地下でも同じである。
+A wall against earth is carried by neither the boundary's type nor an attribute of it, but by the [boundary](boundary.md)'s `spec:` (`spec:RC土圧壁`). The topology of a boundary is the same above and below ground.
 
-`underground` は正準JSONに真のときだけ `1` として出る。
+`underground` is emitted into the canonical JSON only when true.
 
 ```text
 $ npx tsx src/cli.ts json lv.muro
@@ -150,9 +150,9 @@ $ npx tsx src/cli.ts json lv.muro
     },
 ```
 
-## 空間のないレベル
+## A level with no spaces
 
-空間を一つも載せないレベルを宣言してよい。屋上がその代表で、**最上階の高さ検査の上限**になる。
+A level that carries no space at all is a legitimate declaration. The roof is the usual case, and it acts as **the upper bound of the topmost storey's height check**.
 
 ```muro-bad
 grid X 0 6000
@@ -166,11 +166,11 @@ space /L1/hall hall X1..X2 Y1..Y2
 ✖ roof.muro:line 5: /L1/hall collides into the floor above: ceiling height 3600 + R's slab 500 = 4100 > storey height 3800
 ```
 
-`level R` を消せば同じファイルが緑になる — 上に何も無い階の天井高は、何とも突き合わせようがないからである。**屋上を宣言することは、最上階の高さを検算に載せることである。**
+Delete `level R` and the same file turns green — a ceiling height with nothing above it has nothing to be reconciled against. **Declaring the roof is putting the top storey's height into the arithmetic.**
 
-## 使用より前に宣言する
+## Declare it before you use it
 
-レベルは、その名を使う行より前になければ効かない。空間のパスの先頭セグメントは、その行を読む時点で宣言済みのレベル名と照合される — 後ろに置かれた `level` は間に合わず、空間はレベルを持たないまま残る。
+A level has no effect on lines above it. The first segment of a space path is matched against the levels declared *so far*, so a `level` written further down arrives too late and the space is left with no level.
 
 ```muro-bad
 grid X 0 3600
@@ -188,11 +188,11 @@ $ npx tsx src/cli.ts check levellate.muro --json
   "message": "/L1/a has a region, but its level cannot be determined (give it at the head of the path or with level:)",
 ```
 
-`level:` 属性・[柱](column.md)の階範囲・[stack](stack.md)・パスのレベルスパンも同じで、宣言済みのレベルだけを指せる。未宣言なら `Undeclared level: level:L9` で止まる。
+The same holds for the `level:` attribute, a [column](column.md)'s level range, [stack](stack.md), and a level span in a path: only a declared level can be named. An undeclared one stops with `Undeclared level: level:L9`.
 
-## 並びは z 順である
+## Order is z order
 
-レベルの上下はすべて z で決まり、名の綴りは関わらない。パスのレベルスパン `/B1..M2/a` は、両端の z の間にある**宣言済みレベルを z の昇順**に並べて展開する — 接頭辞が違っていても構わない。
+Everything about above and below is decided by z, and the spelling of the name plays no part. A level span in a path, `/B1..M2/a`, expands over **the declared levels between the two z values, in ascending z** — prefixes need not agree.
 
 ```muro
 grid X 0 3600
@@ -218,16 +218,16 @@ Total 43.20 m2 (indoor floor area)
   room: 43.20 m2
 ```
 
-## 合成での上書き
+## Overriding under composition
 
-レベルの定義は層を跨いで一度である。既に宣言されたレベルの値を別の層から変えるのは `over level` で、書き換えられるのは `h` / `slab` / `underground` の三つに限られる (`pitch` は展開のための入力なので、展開後には対象が無い)。強度の規則は [over / drop](over-drop.md) にある。
+A level is defined once across all layers. Changing a declared level's values from another layer is `over level`, and only `h` / `slab` / `underground` can be rewritten (`pitch` is an input to the expansion, so after expansion there is nothing to point at). The strength rules are in [over / drop](over-drop.md).
 
-## 面はレベルから導かれる
+## Surfaces come from the level
 
-床・天井・屋根に専用の語彙は無い。`slab:` が床を、`h:` が天井を**既に宣言している**からである。
+Floors, ceilings and roofs have no vocabulary of their own, because `slab:` **already declares** the floor and `h:` already declares the ceiling.
 
-- **床** — `slab:` を持つ階の、吹抜けでも外部でもない空間の下に生成される。
-- **天井** — `h:` から決まる高さに張られる。吹抜け・外部・半屋外・縦動線の空間には張られない。
-- **屋根** — 「上にどのレベルの空間も重なっていない範囲」に架かる。基壇の上に塔屋が載れば、基壇屋上が書かずに現れる。
+- **Floor** — generated under every space on a storey that carries `slab:`, except voids and the outside.
+- **Ceiling** — hung at the height that `h:` fixes. Not in voids, the outside, semi-outdoor spaces, or vertical circulation.
+- **Roof** — laid over whatever is not covered by a space on any level above. Put a penthouse on a podium and the podium roof appears without being written.
 
-天井を張らない室 (現し天井) は空間側の `ceiling:0` で宣言する。詳しくは [space](space.md) を見る。
+A room with no ceiling — an exposed soffit — is declared space-side with `ceiling:0`. See [space](space.md).

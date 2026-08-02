@@ -25,7 +25,7 @@ import {
 } from "./model.js";
 import { deriveDefaultBoundaries, derivePieces } from "./graph.js";
 
-/** 境界のトポロジー語 — 増やすのは最後の手段である (spec/vocabulary.md 規則1) */
+/** 境界のトポロジー語 — 増やすのは最後の手段である (docs/reference/muro/attributes.md 規則1) */
 const BOUNDARY_KINDS = new Set(["wall", "open", "stair", "shaft", "void"]);
 
 const EDGES = new Set(["N", "E", "S", "W"]);
@@ -51,7 +51,8 @@ interface BandDecl {
 
 interface BandMember {
   path: string;
-  type: string;
+  /** 自由なラベル。space と同じく任意 */
+  type?: string;
   /** 帯の向きの寸法mm。"rest" は残りを吸収する印 (帯に高々一つ) */
   w: number | "rest";
   attrTokens: string[];
@@ -89,7 +90,7 @@ export function parse(source: string): Model {
   // Put the region spellings into canonical order before cutting — both the cutting and the
   // default boundaries read `rects`, so without this the written order of `+` stays in the shape
   normalizeRegionOrder(model);
-  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / spec/derivation.md §1)。
+  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / docs/reference/form/index.md)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
   // 出所の無い BND04 が出る — 書いていない関係を責めることになる
   derivePieces(model);
@@ -110,7 +111,7 @@ export function parseWith(loader: LayerLoader, entry: string): Model {
   // Put the region spellings into canonical order before cutting — both the cutting and the
   // default boundaries read `rects`, so without this the written order of `+` stays in the shape
   normalizeRegionOrder(model);
-  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / spec/derivation.md §1)。
+  // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / docs/reference/form/index.md)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
   // 出所の無い BND04 が出る — 書いていない関係を責めることになる
   derivePieces(model);
@@ -156,7 +157,7 @@ function ingestLayer(
 ): void {
   if (seen.has(key)) return; // 同じレイヤーは一度だけ合成される (USDのsublayerと同じ)
   seen.add(key);
-  // **この push の順序が層の強度順序である** (spec/composition.md 規則1)。
+  // **この push の順序が層の強度順序である** (docs/reference/muro/import.md 規則1)。
   // entry が添字0で最も弱く、後の層ほど強い。同じ層が二度 import されても最初の位置を保つ
   model.layers.push(key);
   ingest(model, src, key, seen, loader);
@@ -591,7 +592,7 @@ function ingest(
         const leaf = rest[0];
         const span = rest[1];
         if (!leaf || leaf.startsWith("/") || !span) {
-          throw new SourceError(ln, "stack takes the form stack <name> <L?..L?> type:stair|shaft");
+          throw new SourceError(ln, "stack takes the form stack <name> <L?..L?> type:stair|shaft|void");
         }
         const levels = resolveSpanLevels(model, span, ln);
         const attrs = parseAttrs(rest.slice(2), ln);
@@ -646,14 +647,21 @@ function parseSpace(rest: string[], ln: number, model: Model): Space {
   if (!path || !path.startsWith("/")) {
     throw new SourceError(ln, "space takes the form space /path type [X?..X? Y?..Y? [+ ...]]");
   }
-  const type = rest[1];
-  if (!type) throw new SourceError(ln, `space ${path} requires a type (a word from the vocabulary)`);
-  guardStructuralType(type, ln);
+  // 型は任意である。**位置ではなく形で決まる** — 区画 (`..` を含む)・区画の区切り (`+`)・
+  // 属性 (`k:v`) のどれでもない裸の語だけが型になる。
+  //
+  // 必須をやめたのは、必須である理由が無くなったからである。かつてこの位置には
+  // `exterior` と `void` — 構成の事実 — が書かれ、だから必ず一語要った。二語が台帳へ移り、
+  // core がこの位置を一切読まなくなった今、残っているのは自由なラベルであり、
+  // ラベルを強制する言語は書き手に無意味な語を選ばせる。書かなければ何も無い
+  // (既定は捏造しない — docs/why/silence.md)。
+  const head = rest[1];
+  const type = head !== undefined && head !== "+" && !head.includes("..") && !head.includes(":") ? head : undefined;
 
   // 領域は「+」区切りで複数書ける (L字などの合併)
   const groups: string[][] = [[]];
   const attrTokens: string[] = [];
-  for (const t of rest.slice(2)) {
+  for (const t of rest.slice(type === undefined ? 1 : 2)) {
     if (t === "+") {
       groups.push([]);
     } else if (t.includes("..")) {
@@ -744,15 +752,12 @@ function parseBandMember(rest: string[], ln: number): BandMember {
   if (!path?.startsWith("/")) {
     throw new SourceError(ln, "A band member takes the form space /path type w:(mm)");
   }
-  const type = rest[1];
-  // 型の位置に k:v が来たら「型の書き忘れ」— 幅の欠落として誤報しない
-  if (!type || type.includes(":")) {
-    throw new SourceError(ln, `The band member ${path} requires a type (a word from the vocabulary)`);
-  }
-  guardStructuralType(type, ln);
+  // 帯の要素でも型は任意である (space と同じ規則)。`k:v` は属性であって型ではない
+  const head2 = rest[1];
+  const type = head2 !== undefined && !head2.includes(":") && !head2.includes("..") && head2 !== "+" ? head2 : undefined;
   let w: number | "rest" | undefined;
   const attrTokens: string[] = [];
-  for (const t of rest.slice(2)) {
+  for (const t of rest.slice(type === undefined ? 1 : 2)) {
     if (t === "+" || t.includes("..")) {
       throw new SourceError(ln, `A region may not be written on a band member (the band and w: give it): ${t}`);
     }
@@ -866,7 +871,11 @@ function expandBand(model: Model, band: BandDecl, file: string | undefined): voi
       const cross = `${band.crossA}..${band.crossB}`;
       const xTok = axis === "X" ? along : cross;
       const yTok = axis === "X" ? cross : along;
-      const space = parseSpace([it[k]!, m.type, xTok, yTok, ...m.attrTokens], m.line, model);
+      const space = parseSpace(
+        [it[k]!, ...(m.type !== undefined ? [m.type] : []), xTok, yTok, ...m.attrTokens],
+        m.line,
+        model,
+      );
       const prev = model.spaces.get(space.path);
       if (prev) {
         throw new SourceError(
@@ -1174,55 +1183,6 @@ export function tokenize(line: string, ln: number): string[] {
 }
 
 /**
- * 型として構造的に解釈される二語 (spec/vocabulary.md 規則1)。
- * `exterior` は「外部」、`void` は「床面積に算入しない」— どちらも構成の事実である。
- */
-const STRUCTURAL_TYPES = ["exterior", "void"];
-
-/** 編集距離が1以内か (挿入・削除・置換をそれぞれ1と数える) */
-function nearBy1(a: string, b: string): boolean {
-  if (a === b) return false;
-  if (Math.abs(a.length - b.length) > 1) return false;
-  let i = 0;
-  let j = 0;
-  let diff = 0;
-  while (i < a.length && j < b.length) {
-    if (a[i] === b[j]) {
-      i++;
-      j++;
-      continue;
-    }
-    if (++diff > 1) return false;
-    if (a.length > b.length) i++;
-    else if (a.length < b.length) j++;
-    else {
-      i++;
-      j++;
-    }
-  }
-  return diff + (a.length - i) + (b.length - j) <= 1;
-}
-
-/**
- * 型の綴りを守る (ADR-0033)。**型の語彙は開いている** — `room` も `ldk` も `厨房` も自由である。
- * だが構造として解釈される二語だけは、一字違いが黙って意味を変える:
- * `exteriorr` と書けば外部でなくなり、延床が倍になる。check は緑のままだった。
- *
- * 開かれた語彙を殺さずにこれを塞ぐ唯一の形が、**二語の近傍だけを拒むこと**である。
- * 遠い語 (room / yard / ldk) は何も言われない。
- */
-function guardStructuralType(type: string, ln: number): void {
-  for (const w of STRUCTURAL_TYPES) {
-    if (nearBy1(type.toLowerCase(), w)) {
-      throw new SourceError(
-        ln,
-        `The type ${type} looks like a misspelling of ${w} (${w} is read structurally — if a different word was meant, spell it further away)`,
-      );
-    }
-  }
-}
-
-/**
  * 上書きの対象 (合成の規則4 — 定義と上書きの区別)。
  * `space` / `boundary` は**定義**であり、重複はエラーである。`over` は**上書き**であり、
  * 対象が既に定義されていなければエラーである。二つは別の文であって、書き方から区別がつく。
@@ -1298,11 +1258,6 @@ function applyAttr(
   }
   into[key] = value;
   model.attrSrc.set(k, layer);
-}
-
-/** 定義された属性の出所を、その層のものとして記録する */
-function recordAttrs(model: Model, kind: string, subject: string, attrs: Attrs, layer: number): void {
-  for (const key of Object.keys(attrs)) model.attrSrc.set(srcKey(kind, subject, key), layer);
 }
 
 /** 集合の要素を名で引く (合成の規則3 — 同一性は「含む対象 + その中で一意な名」) */
@@ -1476,7 +1431,7 @@ function applyBoundaryAttr(
  *   - door D9                          削除 (名で指す)
  *   = door D9 w:1200                   置換 (名で指し、書いた属性だけを差し替える)
  *
- * 同一性は「含む対象 + その中で一意な名」である (spec/scope.md §5)。
+ * 同一性は「含む対象 + その中で一意な名」である (docs/reference/scope.md)。
  * 名を持たない要素は編集の対象にできない — 指す言葉が無いからである。
  */
 function applySetEdit(

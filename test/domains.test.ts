@@ -76,14 +76,14 @@ test("domains: drawing pulls in core only (it does not pull in validation — dr
 });
 
 test("domains: a diagnostic and a finding cannot be mistaken for each other (the field names differ to begin with)", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 1500 10000
 grid Y 0 10000 11000
 level L1 0 h:2700
 zone /site name:敷地 site:1
 polygon /site 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X3 Y1..Y2 level:L1
-space /out/road-n exterior X1..X2 Y2..Y3 name:北側道路 road:4000 level:L1
+space /out/road-n X1..X2 Y2..Y3 name:北側道路 road:4000 level:L1 outside:1
 boundary /site/yard /out/road-n`);
 
   const diags = checkDiagnostics(m);
@@ -114,7 +114,7 @@ test("domains: the ledgers do not intersect (no spelling appears on both faces)"
 
 // The page checked is the **published documentation**; `spec/` is an internal tree on its way out.
 // Rows read `| [`envelope.gap`](envelope.md#envelope-gap) | caution | … |`
-for (const page of ["docs/reference/validate/index.md", "docs/en/reference/validate/index.md"]) {
+for (const page of ["docs/reference/validate/index.md"]) {
   test(`ledger: VALIDATION_RULES and the table in ${page} agree as sets`, () => {
     const md = readFileSync(join(root, page), "utf8");
     const inDocs = new Map<string, string>();
@@ -134,7 +134,7 @@ for (const page of ["docs/reference/validate/index.md", "docs/en/reference/valid
 
 // Every rule must also have its own section, with its level stated there. The family pages of the
 // published documentation carry them as `## `rule` — … {#anchor}` followed by `` `violation` ``.
-for (const dir of ["docs/reference/validate", "docs/en/reference/validate"]) {
+for (const dir of ["docs/reference/validate"]) {
   test(`ledger: the sections under ${dir} agree with VALIDATION_RULES as sets, and the levels match too`, () => {
     const found = new Map<string, string>();
     for (const f of readdirSync(join(root, dir)).sort()) {

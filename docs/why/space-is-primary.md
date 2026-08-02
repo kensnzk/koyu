@@ -1,38 +1,38 @@
 ---
-title: 空間中心のモデル
+title: The space-centred model
 mode: explanation
 ---
 
-# 空間中心のモデル
+# The space-centred model
 
-建築が扱っているのは、壁や床や天井そのものではなく、それらが生み出す空間である。ところが建築のデータは、一貫して「建てるべき物」の記述であり続けた。**koyu は順序を逆にする — 室を数え上げれば、その間の壁は付いてくる。**
+What architecture deals in is not walls, floors and ceilings themselves but the space they produce. Yet architectural data has consistently described the things to be built. **koyu reverses the order — enumerate the rooms and the walls between them come with them.**
 
-この頁はその転回が何であり、なぜそれが自然なのかを説明する。記法の詳細は [space](../reference/muro/space.md) にある。
+This page explains what that reversal is and why it is the natural one. The notation itself is in [space](../reference/muro/space.md).
 
-## 三十年、誰も「読み」をデジタル化しなかった
+## For thirty years nobody digitised the reading
 
-平面図は、本来は構成の記述である。線と記号が空間の切り方と繋がり方を伝え、読み手は頭の中で空間を再構成する。図面の内容とは、この**読み**のことだった。
+A plan is, properly, a description of composition. Lines and symbols convey how space is divided and connected, and the reader reconstructs the space in their head. The content of a drawing *is* that **reading**.
 
-デジタル化の歴史は、この読みを一度も捉えていない。
+The history of digitisation has never once captured it.
 
-- **CAD は図面の線を捉えた。**意味は紙の時代と同じく読み手の頭に残った
-- **BIM は意味を持たせた。**ただし意味を取り付けた先は三次元の部材ソリッドだった。空間は、部材が囲んだ結果として後から導くものになった
+- **CAD captured the lines of the drawing.** The meaning stayed in the reader's head, exactly as in the paper era.
+- **BIM gave things meaning.** But it attached that meaning to three-dimensional component solids. Space became something derived afterwards from what the components enclosed.
 
-`IfcSpace` が IFC の規格に存在しながら、実務では書き出されないことも珍しくない二級市民であり続けているのは、この順序の帰結である。**物の表現ばかりが精緻になり、読みは誰もデジタル化していない。**
+That `IfcSpace` exists in the IFC schema yet remains a second-class citizen — often not even exported — follows from that ordering. **The representation of things got ever more refined; nobody digitised the reading.**
 
-形を原本にしたことの症状は三つある。
+Making form the source has three symptoms.
 
-**データがツールに閉じる。**原本がオーサリングツールの独自データベースにある限り、モデルにできることはそのツールの UI と API が許す範囲に限られる。
+**The data is locked to the tool.** As long as the source lives in an authoring tool's proprietary database, what can be done with the model is bounded by that tool's UI and API.
 
-**版が管理できない。**行番号で相互参照する形式では、書き出し直すだけでファイル全体の差分が壊れる。どのファイルを最新とみなすかは、データではなく人の運用が決めることになる。
+**Versions cannot be managed.** In a format whose entities cross-reference by line number, re-exporting breaks the diff of the entire file. Which file counts as current is then decided by human process, not by the data.
 
-**外の世界と繋がらない。**オントロジーもデジタルツインも都市データも、必要としているのは空間とトポロジーと意味であって、ソリッドではない。部材の集合からそれらを毎回抽出し直すことが、接続のたびに個別の統合作業を発生させる。
+**It does not connect to the outside world.** Ontologies, digital twins and city data all need space, topology and meaning — not solids. Re-extracting those from a set of components is what turns every connection into a bespoke integration project.
 
-## 逆にするとどうなるか
+## What happens when you reverse it
 
-データの一次要素を空間にする。室・ゾーン・外部の領域。**壁はそれ自体が独立した物ではなく、二つの空間の境界という関係として持つ。**開口は境界に開いた接続である。
+Make space the primary element: rooms, zones, exterior regions. **A wall is not an independent thing but a relation — the boundary between two spaces.** An opening is a connection made through a boundary.
 
-次の 4 行が、整合し、平面図まで描ける最小のファイルである。
+These four lines are the smallest file that is consistent and can be drawn in plan.
 
 ```muro
 grid X 0 3600
@@ -46,9 +46,9 @@ space /L1/a room X1..X2 Y1..Y2
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-`koyu 1.0` も `unit mm` も `name` も要らない。必要なのは、`grid` が二軸あること、それを使う行より前にあること、`level` が宣言されていること、`space` に型が付いていることだけである。座標は直接書かない — 位置は常に通り芯の言葉で書く ([位置の書き方](../reference/muro/positions.md))。
+No `koyu 1.0`, no `unit mm`, no `name`. All that is required is two grid axes, declared before the lines that use them, a declared level, and a type on the `space`. Coordinates are never written directly — position is always expressed in the language of the grid ([positions](../reference/muro/positions.md)).
 
-室を一つ足す。境界は一行も書かない。
+Add a room. Write not a single boundary.
 
 ```muro
 grid X 0 3600 7200
@@ -63,13 +63,13 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-境界を書いていないのに「境界 1」と出る。二室が接しているので、その間の壁が導かれている ([既定の境界](silence.md))。
+One boundary, though none was written. The two rooms touch, so the wall between them is derived ([Default boundaries](silence.md)).
 
-**`space` 行だけのファイルが、欠けた図面ではなく完全な建築の記述である。**これがこの記法の出発点である。
+**A file of nothing but `space` lines is not a deficient drawing; it is a complete description of architecture.** That is where this notation starts.
 
-## データが自然にグラフになる
+## The data is a graph already
 
-空間を節点、境界を辺にすると、建築のデータはそのままグラフになる。設計で問われることが、変換なしにグラフへの問いになる。
+Take spaces as nodes and boundaries as edges and architectural data is a graph. The questions design asks become graph queries with no conversion in between.
 
 ```sh
 npx tsx src/cli.ts graph examples/two-rooms.muro
@@ -87,7 +87,7 @@ npx tsx src/cli.ts graph examples/two-rooms.muro
   — 1 door → /L1/b  (spec:EW1 fire:60)
 ```
 
-「この室とこの室は繋がっているか」「この境界は耐火か」「ここからここまで扉をいくつ通るか」に、抽出作業なしで答えられる。
+"Are these two rooms connected?", "is this boundary fire-rated?", "how many doors from here to there?" are answered without any extraction pass.
 
 ```sh
 npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
@@ -97,29 +97,29 @@ npx tsx src/cli.ts doors examples/two-rooms.muro /L1/a /out
 2 doors — /L1/a → /L1/b → /out
 ```
 
-部材モデルで同じ問いに答えるには、空間 → 空間境界 → 壁 → 開口の関係 → 建具、と何段も辿った上で、なお「その扉がどの空間とどの空間を繋ぐか」はデータに無いので幾何から推定することになる。**避難も面積も区画も動線も、koyu では同じ記述の異なる読み方である。**
+Answering the same question against a component model means walking space → space boundary → wall → opening relation → door, several hops deep, and then still guessing from geometry which two spaces the door actually connects, because the data does not say. **In koyu, egress, area, compartmentation and circulation are different readings of the same description.**
 
-## 抽象度は新しくない
+## The abstraction level is not new
 
-構成のほとんどは二次元で決まる。平面の割り付け、隣接、動線。そこにレベルと高さ、吹抜けや階をまたぐ関係が乗る。これで直交グリッドの建物は決まる。
+Most of the composition is settled in two dimensions: the planar layout, adjacency, circulation. Onto that go levels, heights, voids and relations that cross storeys. That settles an orthogonal-grid building.
 
-重要なのは、**これが新しい抽象化ではない**ことである。図面が数百年運んできた抽象度そのものを、紙から機械可読なテキストへ移しているだけである。実務の成果物が今なお図面であり、確認申請が図面で行われているのは、**建築の決定がこの抽象度でなされているから**である。
+The important point is that **this is not a new abstraction**. It is the abstraction level drawings have carried for centuries, moved from paper to machine-readable text. That practice still delivers drawings, and that permits are still granted on drawings, is because **architectural decisions are made at this level of abstraction**.
 
-だから空間を一次にすることは、情報を捨てる操作ではない。捨てられているのは形であって、形は決定の帰結である。決定の側を原本にした、というのがこの選択である。
+Making space primary is therefore not an act of discarding information. What is discarded is form, and form is a consequence of the decisions. The choice here is to make the decision side the source.
 
-## 空間だけで建築のすべてが書けるとは言わない
+## The claim is not that space alone describes everything
 
-構造と設備は、空間ではなく物が主役である。柱、梁、ダクト、盤。空間を一次にしたモデルは意匠と計画の側に強く、構造と設備は物を持つ別の層として重ねることになる。
+Structure and services are led by things, not by space: columns, beams, ducts, boards. A space-primary model is strong on the design and planning side; structure and services will be overlaid as separate layers that carry things.
 
-柱だけは例外的に扱いが定まっている — **位置を書かない要素**として、通り芯の交点と床の交わりから現れる ([column](../reference/muro/column.md))。壁が境界から現れるのと同型の規則を、点の要素に適用したものである。
+Columns are the one exception with a settled treatment — they are **an element whose position is never written**, appearing where grid crossings meet a floor ([column](../reference/muro/column.md)). It is the rule that makes walls appear from boundaries, applied to a point element.
 
-境界が曖昧な場所も残る。吹抜け、半屋外、外部空間。`IfcSpace` が実務で機能しにくい理由の一つもここにあり、koyu はこれを逃げずに決めている — **半屋外は宣言ではなく導出である** ([導出される情報](source-and-derived.md))。
+Places where the boundary of a space is ambiguous remain: voids, semi-outdoor space, exterior space. Part of why `IfcSpace` works poorly in practice lives here, and koyu decides it rather than dodging it — **semi-outdoor is derived, never declared** ([Derived information](source-and-derived.md)).
 
-粒度も自明ではない。室で切るのか、ゾーンで切るのか、両方を持つのか。koyu の答えは「両方を持ち、パスが両者を繋ぐ」である ([パスと面積集計](paths.md))。
+Granularity is not obvious either. Cut at rooms, at zones, or hold both? koyu's answer is "hold both, and let the path join them" ([Paths and area aggregation](paths.md)).
 
-## この先
+## Next
 
-- [境界による壁の表現](boundary-is-a-relation.md) — この転回の直接の帰結
-- [既定の境界](silence.md) — 既定の三段構え
-- [導出される情報](source-and-derived.md)
-- [space の書き方](../reference/muro/space.md)
+- [Walls as boundaries](boundary-is-a-relation.md) — the direct consequence
+- [Default boundaries](silence.md) — the three tiers of default
+- [Derived information](source-and-derived.md)
+- [Writing `space`](../reference/muro/space.md)

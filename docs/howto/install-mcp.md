@@ -1,63 +1,63 @@
 ---
-title: MCP をクライアントに登録する
+title: Register the MCP server with a client
 mode: howto
 ---
 
-# MCP をクライアントに登録する
+# Register the MCP server with a client
 
-`koyu-mcp` をエージェントのクライアントに繋ぎ、**繋がったことを一段ずつ確かめる**までの手順である。所要は数分で、環境変数も認証鍵もネットワークも要らない。
+How to connect `koyu-mcp` to an agent client and **confirm, one step at a time, that it is actually connected**. It takes a few minutes. No environment variables, no credentials, no network.
 
-登録の形そのもの — クライアント別の設定ファイルの置き場所、起動コマンドの二択、`.mcp.json` の綴り — は[クライアントに登録する](../reference/mcp/install.md)に一枚で並んでいる。この頁が足すのは**順序と、各段の確認**である。「登録したのにエージェントが建物を読めない」の原因は、ほぼすべてこの確認のどれかを飛ばしたところにある。
+The registration forms themselves — where each client keeps its config file, the two launch commands, the spelling of `.mcp.json` — are laid out on [Register with a client](../reference/mcp/install.md). What this page adds is **the order, and the check at each step**. "It's registered but the agent can't read my building" almost always traces back to a check that was skipped.
 
-## 0. 先にコミットする
+## 0. Commit first
 
-これが最初の手順である。
+This is step zero, before any registration.
 
 ```sh
 git add . && git commit -m "before letting the agent write"
 ```
 
-[`write_layer`](../reference/mcp/tools-write.md#write_layer) はレイヤーを**全置換**で書き、取り消しを持たない。サーバーは版を一つも保存しない。巻き戻し・分岐・レビューはすべて git の仕事である。
+[`write_layer`](../reference/mcp/tools-write.md#write_layer) replaces a layer **whole**, and has no undo. The server stores no versions at all. Rollback, branching and review are git's job.
 
-登録より前にこれを書いているのは、順序として先だからである。**繋いだ直後にエージェントは書ける。**
+This comes before registration because it comes first in time. **The moment the client connects, the agent can write.**
 
-## 1. Node を確かめる
+## 1. Check Node
 
 ```sh
 node --version
 ```
 
-**Node 22 以上が要る。**サーバー自身は実行時依存を一つも持たないので、これ以外に入れるものは無い。
+**Node 22 or newer is required.** The server itself has zero runtime dependencies, so there is nothing else to install.
 
-## 2. 登録する
+## 2. Register
 
-npm から使うなら一行である。
+From npm it is one line.
 
 ```sh
 claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp
 ```
 
-リポジトリをクローンした開発版なら、先に `npm install && npm run build` を通してから `dist/mcp.js` を直接指す。
+For a development build from a clone, run `npm install && npm run build` first, then point at `dist/mcp.js` directly.
 
 ```sh
 claude mcp add koyu -- node /path/to/koyu/dist/mcp.js
 ```
 
-チームで共有するなら、リポジトリ直下の `.mcp.json` に同じ起動コマンドを書いてコミットする。他のクライアント (Desktop など) の設定ファイルの置き場所と、`.mcp.json` の書式は[クライアントに登録する](../reference/mcp/install.md)にある。
+To share the registration with a team, put the same launch command in a `.mcp.json` at the repository root and commit it. Config file locations for other clients (Desktop and the rest) and the `.mcp.json` format are on [Register with a client](../reference/mcp/install.md).
 
-## 3. 繋がったことを確かめる
+## 3. Confirm the connection
 
 ```sh
 claude mcp list
 ```
 
-`✓ Connected` が出るまで次に進まない。`.mcp.json` から来たサーバーは初回に承認を挟むので、承認するまでは保留のまま並ぶ。
+Do not move on until `✓ Connected` appears. A server that came from `.mcp.json` needs approval on first use, and sits pending until you give it.
 
-セッション中は `/mcp` がツールの一覧まで見せる。**12 個あれば正しい。**数が違うなら、古い版に繋がっている。
+Inside a session, `/mcp` lists the tools. **Twelve is the right number.** A different count means you are talking to an older build.
 
-## 4. サーバーが単体で動くことを確かめる
+## 4. Confirm the server works on its own
 
-クライアントの一覧が疑わしいときは、クライアントを外して直接確かめる。これが原因の切り分けになる — 下が通ってクライアントで見えないなら、問題はクライアント側の設定にある。
+When the client's listing is suspect, take the client out of the picture. This is the split that tells you where the fault is — if the command below works and the client still shows nothing, the fault is in the client's configuration.
 
 ```sh
 printf '%s\n' \
@@ -69,42 +69,42 @@ printf '%s\n' \
 {"jsonrpc":"2.0","id":1,"result":{"content":[{"type":"text","text":"{\n \"ok\": true,\n \"spaces\": 3,\n \"boundaries\": 3,\n \"errors\": [],\n \"warnings\": [],\n \"diagnostics\": []\n}"}]}}
 ```
 
-手で叩く道具立ての全部は[stdio で MCP を手で叩く](debug-mcp.md)にある。
+The full kit for driving the server by hand is on [Drive the MCP server by hand over stdio](debug-mcp.md).
 
-## 5. 自分の建物を読ませる
+## 5. Let it read your building
 
-ここが最後の関門である。**entry のパスは絶対パスで渡す。**
+This is the last gate. **Pass the entry path as an absolute path.**
 
-ツールの `file` 引数が相対パスのとき、それは**サーバープロセスのカレントディレクトリ**を基準に解決される。クライアントがどのディレクトリでサーバーを起動するかはクライアント次第なので、相対パスは当たったり外れたりする。
+When a tool's `file` argument is relative, it resolves against **the server process's working directory**. Which directory the client launches the server in is up to the client, so a relative path hits or misses at random.
 
 ```text
 line 0: Cannot read file: /private/tmp/examples/two-rooms.muro
 ```
 
-これが出たら、パスの綴りではなく**基準ディレクトリ**を疑う。絶対パスに直せば消える。
+When you see this, suspect the base directory rather than the spelling. An absolute path makes it go away.
 
-エージェントへの最初の指示は、絶対パスを与えたうえでこう言えばよい。
+The first instruction to the agent, with an absolute path in hand, can be as plain as this.
 
 ```text
-/Users/me/work/house/main.muro を model_summary で読んで、何が書かれているか要約して
+Read /Users/me/work/house/main.muro with model_summary and summarise what is written there
 ```
 
-返ってくる要約に、レイヤー構成・レベル・面積・`check` の件数が並んでいれば、登録は完了している。[`model_summary`](../reference/mcp/tools-read.md#model_summary) が何を返すかはリファレンスにある。
+If the summary comes back with the layer composition, levels, areas and the `check` counts, registration is done. What [`model_summary`](../reference/mcp/tools-read.md#model_summary) returns is in the reference.
 
-## 繋がらないときの切り分け
+## When it will not connect
 
-| 症状 | 見るところ |
+| Symptom | Where to look |
 |---|---|
-| `claude mcp list` に出ない | 登録コマンドを打ったスコープ (ユーザー / プロジェクト) を確かめる |
-| 保留のまま | `.mcp.json` 由来のサーバーは初回に承認が要る |
-| 接続はするがツールが 0 個 | 起動コマンドが別のプログラムを指している。手順 4 を直接実行する |
-| Desktop アプリだけ繋がらない | デスクトップアプリはシェルの `PATH` を継がないことがある。`npx` や `node` を絶対パス (`which node` の結果) で書く |
-| ツールは見えるが `Cannot read file:` | 手順 5 — `file` を絶対パスにする |
-| `Unknown tool:` | ツール名の綴り違い。名前の全部は[koyu-mcp](../reference/mcp/index.md) |
+| Not in `claude mcp list` | Check which scope (user / project) you registered in |
+| Stuck pending | A server from `.mcp.json` needs approval on first use |
+| Connects but has zero tools | The launch command points at a different program. Run step 4 directly |
+| Only the Desktop app fails | Desktop apps do not always inherit the shell `PATH`. Write `npx` or `node` as an absolute path (the output of `which node`) |
+| Tools are visible but `Cannot read file:` | Step 5 — make `file` absolute |
+| `Unknown tool:` | A misspelled tool name. The full list is on [koyu-mcp](../reference/mcp/index.md) |
 
-## 次に読む
+## Read next
 
-- [エージェントに書かせる標準ループ](agent-loop.md) — 繋いだ後の作業の順序
-- [stdio で MCP を手で叩く](debug-mcp.md) — クライアントを外して原因を掴む
-- [クライアントに登録する](../reference/mcp/install.md) — 設定ファイルの形と置き場所
-- [koyu-mcp](../reference/mcp/index.md) — 無状態であることと 12 のツール
+- [The standard loop for letting an agent write](agent-loop.md) — the order of work once you are connected
+- [Drive the MCP server by hand over stdio](debug-mcp.md) — take the client out and find the fault
+- [Register with a client](../reference/mcp/install.md) — config file shapes and locations
+- [koyu-mcp](../reference/mcp/index.md) — statelessness and the twelve tools

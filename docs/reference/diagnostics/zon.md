@@ -1,22 +1,22 @@
 ---
-title: ZON — ゾーン
+title: ZON — zones
 mode: reference
 ---
 
-# ZON — ゾーン
+# ZON — zones
 
-ZON は二つある。どちらも警告である。
+There are two ZON codes, and both are warnings.
 
-| コード | severity | 何を言うか |
+| Code | Severity | What it says |
 |---|---|---|
-| ZON01 | warning | ゾーンの配下に空間が一つも無い |
-| ZON02 | warning | ゾーンと同じパスの空間がある |
+| ZON01 | warning | Not one space sits beneath the zone |
+| ZON02 | warning | A space shares its path with the zone |
 
-**ゾーンは幾何を持たない。**空間のようにレベルにも領域にも載らず、`zone /L9/A` と書くことは `/L9/A/` で始まるパスの空間を束ねる、という宣言である。面積の小計・用途の継承・敷地の集約は、この接頭辞の一致だけで動く。
+**A zone carries no geometry.** Unlike a space it sits on no level and holds no region; writing `zone /L9/A` declares that spaces whose path begins `/L9/A/` are bundled together. Area subtotals, inherited use, and site aggregation all run on that prefix match alone.
 
-だからゾーンの誤りはいつも**パスのずれ**である。ZON01 は束ねる先が無いずれ、ZON02 は束ねる対象と自分が重なったずれである。
+So a zone's faults are always **a path that does not line up**. ZON01 is a path with nothing under it; ZON02 is a path that collides with what it is meant to bundle.
 
-## ZON01 — ゾーンの下に空間がありません
+## ZON01 — there are no spaces beneath the zone {#zon01}
 
 `warning`
 
@@ -32,11 +32,11 @@ zone /wing name:西棟
 There are no spaces beneath zone /wing
 ```
 
-**原因** — 配下と数えられるのは、パスが `/wing/` で始まる空間だけである。一つも無い。ゾーンの面積は 0 になり、集計にも `koyu stats` のゾーン別の表にも何も現れない。
+**Cause** — only spaces whose path begins `/wing/` count as beneath it, and there are none. The zone's area comes out as 0 and it shows up empty in every aggregate, including `koyu stats`' per-zone table.
 
-ほとんどは、ゾーンのパスと空間のパスがずれているだけである。`/wing` と書いたが空間は `/L1/wing/a` にある、というのが典型で、この二つは接頭辞として一致しない。
+Almost always the zone's path and the spaces' paths simply differ. Writing `/wing` while the spaces live at `/L1/wing/a` is the classic case: the two do not match as prefixes.
 
-**直し方** — ゾーンのパスを、配下の空間の**共通接頭辞**に合わせる。
+**Fix** — set the zone's path to the **common prefix** of the spaces beneath it.
 
 ```muro
 grid X 0 3600
@@ -46,11 +46,11 @@ space /L1/wing/a room X1..X2 Y1..Y2
 zone /L1/wing name:西棟
 ```
 
-まだ空間を書いていないだけなら、書けば消える。**空のゾーンを先に置いて後から埋めるのは正しい書き方である** — 警告どまりなのはそのためで、`--strict` を回している間だけ邪魔になる。
+If you simply have not written the spaces yet, writing them clears it. **Putting an empty zone down first and filling it in later is a legitimate way to work** — which is why this stops at a warning. It only gets in the way while you are running `--strict`.
 
-**敷地のゾーンで出やすい。**`zone /site site:1` を宣言して `polygon` だけ書き、敷地内の外部空間 (庭・通路) をまだ書いていないと、これが出る。敷地の面積は多角形が与えるので導出は動くが、配下が空であることは知らされる。
+**It shows up most on the site zone.** Declare `zone /site site:1` with a `polygon` but no exterior spaces inside the site yet (yard, path) and this fires. The site area comes from the polygon, so the derivations still run — but the emptiness is told.
 
-## ZON02 — ゾーンと同じパスの空間があります
+## ZON02 — a space shares its path with a zone {#zon02}
 
 `warning`
 
@@ -67,13 +67,13 @@ zone /L1/a name:重なった名
 A space shares its path with a zone (settle on one of them): /L1/a
 ```
 
-**原因** — パスが同一性であるのに、同じパス `/L1/a` に**空間** (領域を持つ実体) と**ゾーン** (集約) の両方がある。ゾーン `/L1/a` は `/L1/a/x` を束ね、空間 `/L1/a` は自分の領域を持つ。面積を二重に数える読み方ができてしまう。
+**Cause** — the path is the identity, yet at `/L1/a` there is both a **space** (an entity with a region) and a **zone** (an aggregate). The zone `/L1/a` bundles `/L1/a/x` while the space `/L1/a` holds its own region. There is now a reading under which the area is counted twice.
 
-**住戸を室に割るときに必ず踏む。**「住戸をまず一室として書き、あとから中を割る」と書くと、この形になる。
+**You hit this every time you split a dwelling into rooms.** Writing the dwelling as a single room first and subdividing it afterwards produces exactly this shape.
 
-**直し方** — どちらかに寄せる。
+**Fix** — settle on one of them.
 
-**割るなら、親をゾーンにする。**これが正しい形である。
+**If you are subdividing, make the parent a zone.** This is the correct form.
 
 ```muro
 grid X 0 3600 7200
@@ -84,9 +84,9 @@ space /L1/a/ldk ldk X1..X2 Y1..Y2
 space /L1/a/bed bedroom X2..X3 Y1..Y2
 ```
 
-親の領域は消える。面積は子の合計としてゾーンに集まり、住戸という言葉は保たれる。親の領域を残したまま子を書くと、今度は同じレベルで領域が重なるので [GEO02](./geo.md) がエラーで止める。
+The parent's region goes away. The area gathers on the zone as the sum of its children, and the word "dwelling" is preserved. Leave the parent's region in place while writing children and the regions overlap on one level, which [GEO02](./geo.md) stops with an error.
 
-**割らないなら、`zone` の行を消す。**名前を付けたいだけなら空間に `name:` を書けばよい。
+**If you are not subdividing, delete the `zone` line.** If all you wanted was a display name, write `name:` on the space.
 
 ```muro
 grid X 0 3600
@@ -95,13 +95,13 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:住戸A
 ```
 
-## ゾーンに書ける属性
+## What a zone may carry
 
-`name` (表示名)、`use` (集計軸 — 配下の空間へ継承される)、`site` (0/1 — このゾーンが敷地であるという宣言)、`area` (敷地の宣言面積 ㎡、測量値)、`uid` (永続同一性トークン)。これ以外のキーは、ドット区切りの名前空間 (`acme.owner`) を持たなければ [ATT03](./att.md) になる。
+`name` (display name), `use` (an aggregation axis, inherited by the spaces beneath), `site` (0/1 — declaring that this zone is the site), `area` (the site's declared area in m², a surveyed value) and `uid` (a persistent identity token). Any other key must carry a dot-separated namespace (`acme.owner`) or it becomes [ATT03](./att.md).
 
-## 関連
+## Related
 
-- [GEO — 領域の重なり](./geo.md) — 親の領域を消し忘れたときに出るエラー
-- [SIT — 敷地形状](./sit.md) — `site:1` のゾーンと `polygon` の対応
-- [ATT — 属性](./att.md) — ゾーンに書ける属性の値と鍵
+- [GEO — overlapping regions](./geo.md) — the error you get when you forget to remove the parent's region
+- [SIT — the site shape](./sit.md) — pairing a `site:1` zone with a `polygon`
+- [ATT — attributes](./att.md) — the keys and values a zone may carry
 - [koyu check](../cli/check.md)

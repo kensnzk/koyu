@@ -1,18 +1,18 @@
 ---
-title: 確かめる — check / validate
+title: Verifying — check / validate
 mode: reference
 ---
 
-# 確かめる — check / validate
+# Verifying — check / validate
 
-編集のあとに呼ぶ二つ。**この二つは別のことを言う。**
+The two you call after an edit. **They say different things.**
 
-- [`check`](#check) — 書かれたものがデータとして矛盾していないか。**門番。**
-- [`validate`](#validate) — 建築として妥当か。**judgement であって門番ではない。**
+- [`check`](#check) — does what is written hold together as data. **The gatekeeper.**
+- [`validate`](#validate) — is it sound as architecture. **A judgement, not a gate.**
 
-型からして別である。`check` の診断は `{code, severity}`、`validate` の判定は `{rule, level}` で、綴りも違えば連結もできない。**`check` が緑であることを根拠に「建物が動く」と主張しない。**
+They differ down to the type. `check`'s diagnostics carry `{code, severity}`; `validate`'s findings carry `{rule, level}`. The spellings differ and the two arrays cannot be concatenated. **Do not claim the building works because `check` is green.**
 
-この頁の出力はすべて実際に走らせて得たものである。絶対パスは `<abs>` に縮めてある。
+Every piece of output on this page was obtained by actually running it. Absolute paths are shortened to `<abs>`.
 
 ---
 
@@ -20,9 +20,9 @@ mode: reference
 
 > The gatekeeper of the build: composes the layers and checks structural consistency. Errors and warnings carry layer:line. Call it after every edit. **This says nothing about architectural soundness** — that is the validate tool
 
-`file` のみ、必須。**編集のたびに呼ぶ。**
+`file` only, required. **Call it after every edit.**
 
-### 緑のとき
+### When it is green
 
 ```text
 {
@@ -35,20 +35,20 @@ mode: reference
 }
 ```
 
-| フィールド | 中身 |
+| Field | Contents |
 |---|---|
-| `ok` | `errors` が空か。**`warnings` は `ok` を落とさない** |
-| `spaces` | 合成後の空間数 |
-| `boundaries` | **導出後**の境界の本数 |
-| `errors` `warnings` | 出所つきの文字列の配列 |
-| `diagnostics` | 構造化診断の配列。**`errors` と `warnings` を足したものと同件。**並びは走査の順で、`errors` / `warnings` はそれを severity で二本に割ったものなので、**連結して添字で対応させてはならない** |
+| `ok` | Whether `errors` is empty. **`warnings` do not make `ok` false** |
+| `spaces` | How many spaces after composition |
+| `boundaries` | How many boundaries **after derivation** |
+| `errors` `warnings` | Arrays of strings carrying their provenance |
+| `diagnostics` | The structured diagnostics. **The same count as `errors` plus `warnings`.** The order is scan order, and `errors` / `warnings` are that list split in two by severity — so **never concatenate them and match by index** |
 
-**警告で止めたいなら自分で見る。**CLI の `--strict` に当たる旗はここに無い。`warnings.length` を読んで判断する。
+**If you want to stop on warnings, look yourself.** There is no flag here corresponding to the CLI's `--strict`. Read `warnings.length` and decide.
 
-### 警告があるとき
+### When there are warnings
 
 ```muro-warn
-koyu 1.0
+koyu 1.1
 name 警告
 unit mm
 grid X 0 3600 7200
@@ -56,7 +56,7 @@ grid Y 0 4500
 level L1 0 h:2400
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 ```
 
 ```text
@@ -80,12 +80,12 @@ space /out exterior name:外部
 }
 ```
 
-`ok` は `true` のままである。
+`ok` stays `true`.
 
-### エラーがあるとき
+### When there are errors
 
 ```muro-bad
-koyu 1.0
+koyu 1.1
 name 二重宣言
 unit mm
 grid X 0 3600 7200
@@ -93,7 +93,7 @@ grid Y 0 4500
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /L1/b t:120
 boundary /L1/a /L1/b t:150
 ```
@@ -129,42 +129,42 @@ boundary /L1/a /L1/b t:150
 }
 ```
 
-**`errors` の文字列と `diagnostics` の項は同じものを指す。**前者は位置を本文の頭に貼り付けた人向けの形、後者は機械が読む形である。`errors` と `warnings` を合わせたものが `diagnostics` と同件で、`diagnostics` は走査の順に並ぶ — この例のように警告が無いときだけ、`errors` の並びが `diagnostics` の並びと一致する。**エージェントは `diagnostics` を読む。**
+**The strings in `errors` and the entries in `diagnostics` point at the same things.** The first is the human form with the position glued onto the front of the message; the second is the machine form. `errors` plus `warnings` has the same count as `diagnostics`, which comes out in scan order — so only when there are no warnings, as here, does the order of `errors` match the order of `diagnostics`. **An agent reads `diagnostics`.**
 
-### 診断の形
+### The shape of a diagnostic
 
-| フィールド | いつ出るか | 中身 |
+| Field | When it appears | Contents |
 |---|---|---|
-| `code` | 常に | 三文字 + 二桁。全部で 65 個 |
-| `severity` | 常に | `"error"` または `"warning"` |
-| `message` | 常に | 本文だけ。**位置の接頭辞は付かない** |
-| `line` | 出所が判るとき | 1 始まりの行番号 |
-| `file` | 出所が判るとき | 宣言があった層の絶対パス |
-| `path` | 対象が空間・ゾーンのとき | 対象のパスの配列 |
-| `related` | 相手のある診断のとき | もう一方の出所 `{line, file}` の配列 |
+| `code` | always | Three letters plus two digits. There are 65 of them |
+| `severity` | always | `"error"` or `"warning"` |
+| `message` | always | The message alone. **No position prefix** |
+| `line` | when the provenance is known | 1-based line number |
+| `file` | when the provenance is known | Absolute path of the layer the declaration is in |
+| `path` | when the subject is a space or zone | The subject paths |
+| `related` | when the diagnostic has a counterpart | `{line, file}` for the other end |
 
-**`severity` はコードの属性である。**同じコードが場合によって `error` になったり `warning` になったりはしない。コードから原因と直し方を引く表は[診断コード](../diagnostics/index.md)にある。
+**`severity` is an attribute of the code.** The same code is never an `error` sometimes and a `warning` other times. The table from a code to its cause and its fix is on [Diagnostic codes](../diagnostics/index.md).
 
-**並びは走査の順である。**コードの族でまとめ直したりはしない。同じモデルからは常に同じ並びが返る。
+**The order is scan order.** Nothing regroups them by code family. The same model always yields the same order.
 
-### 構文・合成エラーはここに来ない
+### Syntax and composition errors do not arrive here
 
-**ファイルが読めない、構文が壊れている、合成が成立しない — このときは `check` の返りが返らない。**ツールが例外を投げた扱いになり、`isError: true` の付いた結果としてメッセージだけが返る。
+**When a file cannot be read, the syntax is broken, or the composition does not hold, no `check` result comes back at all.** The tool is treated as having thrown: the response carries `isError: true` and the message alone.
 
 ```text
 <abs>/bad.muro:line 8: The region has zero width
 ```
 
-**[`koyu check --json`](../cli/check.md) との違いである。**CLI はこれを `SYN01` の診断一件に写して有効な JSON を返すが、MCP では `diagnostics` の配列が返らない。エージェントは `isError` を見て、返ってきた一行を読んで直す。詳しくは[プロトコル](protocol.md)にある。
+**This is where it differs from [`koyu check --json`](../cli/check.md).** The CLI maps this onto a single `SYN01` diagnostic and still returns valid JSON; over MCP no `diagnostics` array comes back. The agent notices `isError`, reads the one line, and fixes it. The details are on [The protocol](protocol.md).
 
-### check が言わないこと
+### What check does not say
 
-`check` が保証するのは「書かれたものがデータとして矛盾していない」までである。**建物として使えるかは一言も見ていない。**
+`check` guarantees only that what is written holds together as data. **It has not looked at whether the building is usable.**
 
-接する空間の既定は壁で、壁は扉が無ければ通れない。だから扉を一枚も書かない建物は、完全に密封されたまま `check` が緑になる。
+The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no door written at all stays sealed and green.
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -172,7 +172,7 @@ grid Y 0 4500
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 ```
 
 ```text
@@ -186,7 +186,7 @@ space /out exterior name:外部
 }
 ```
 
-同じファイルを `validate` に渡すと三つの違反が出る。
+Hand the same file to `validate` and three violations come out.
 
 ---
 
@@ -194,7 +194,7 @@ space /out exterior name:外部
 
 > Architectural verdicts: daylight, envelope continuity, stair proportions, slopes, reachability, column/door collisions, and the site. **This is a different surface from the check guarantee** — findings carry rule/level, never code/severity. The surface grows and is not frozen
 
-`file` のみ、必須。上の密封された建物に掛けるとこうなる。
+`file` only, required. Against the sealed building above:
 
 ```text
 {
@@ -236,31 +236,31 @@ space /out exterior name:外部
 }
 ```
 
-| フィールド | 中身 |
+| Field | Contents |
 |---|---|
-| `findings` | 判定の配列 |
-| `violations` | `level` が `"violation"` の件数 |
-| `cautions` | `level` が `"caution"` の件数 |
-| `note` | 固定文。`check` の保証ではないことを言う |
+| `findings` | The findings |
+| `violations` | How many have `level` `"violation"` |
+| `cautions` | How many have `level` `"caution"` |
+| `note` | A fixed sentence saying this is not what `check` guarantees |
 
-**`ok` は返らない。**合否をこのツールは名乗らない。件数を見て判断するのは呼び手である。
+**No `ok` comes back.** This tool declares no pass or fail. Reading the counts and deciding is the caller's job.
 
-### 判定の形
+### The shape of a finding
 
-| フィールド | いつ出るか | 中身 |
+| Field | When it appears | Contents |
 |---|---|---|
-| `rule` | 常に | 規則名。`daylight.ratio` のように `族.名` である |
-| `level` | 常に | `"violation"` (守られなかった) または `"caution"` (疑わしい) |
-| `message` | 常に | 本文だけ。位置の接頭辞は付かない |
-| `line` `file` | 出所が判るとき | 宣言があった行と層 |
-| `path` | 対象が判るとき | 対象のパスの配列 |
+| `rule` | always | The rule name, spelled `family.name` — `daylight.ratio`, say |
+| `level` | always | `"violation"` (it was not met) or `"caution"` (it is suspect) |
+| `message` | always | The message alone; no position prefix |
+| `line` `file` | when the provenance is known | The declaring line and layer |
+| `path` | when the subject is known | The subject paths |
 
-**`level` は規則の属性である。**同じ規則が場合によって重くなったり軽くなったりはしない。
+**`level` is an attribute of the rule.** The same rule never gets heavier or lighter with circumstance.
 
-`violation` と `caution` は一つの応答に混ざる。
+Violations and cautions mix freely in one response.
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 name 窓の高さ
 unit mm
 grid X 0 3600 7200
@@ -268,7 +268,7 @@ grid Y 0 4500
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /L1/b t:120
   door w:780 h:2000
 boundary /L1/a /out t:150
@@ -307,43 +307,43 @@ boundary /L1/b /out t:150
 }
 ```
 
-窓に `h:` が無いので有効窓面積が数え切れておらず (`caution`)、数え切れた分では 1/7 に届いていない (`violation`)。**二つは同時に出る。**
+The window has no `h:`, so the effective window area could not be fully counted (`caution`), and what could be counted does not reach 1/7 (`violation`). **Both come out at once.**
 
-### 返りうる規則
+### The rules that can come back
 
-15 個ある。`level` は規則ごとに固定である。
+There are 15. `level` is fixed per rule.
 
-| 規則 | `level` | 何を見るか |
+| Rule | `level` | What it looks at |
 |---|---|---|
-| `daylight.ratio` | violation | 有効窓面積が床面積の 1/7 に届かない |
-| `daylight.unknown` | caution | `h:` の無い窓があり、窓面積を数え切れていない |
-| `envelope.gap` | caution | 外皮に穴 — 何にも面していない外周がある |
-| `stair.proportion` | caution | 導出された段が窮屈 |
-| `run.slope` | caution | 導出された勾配が急すぎる・常用域の外 |
-| `run.disconnected` | caution | 縦動線の形はあるが上下を繋ぐ垂直境界が無い |
-| `access.unreachable` | violation | 領域を持つ室から外部へ辿り着けない |
-| `access.voidonly` | violation | 扉が吹抜けにしか開いていない |
-| `access.throughtenant` | caution | 階段室からの避難が賃貸区画を通る |
-| `access.parking` | violation | 駐車場から車が出られない |
-| `access.backofhouse` | caution | 共用廊下からバックヤードを通らずに縦動線へ届かない |
-| `column.blocksdoor` | violation | 導出された柱が導出された扉と重なる |
-| `site.escape` | violation | 建物が敷地形状からはみ出す |
-| `site.area` | caution | 敷地面積の宣言と導出が食い違う |
-| `site.frontage` | violation | 接道長が 2m 未満 |
+| `daylight.ratio` | violation | Effective window area below one seventh of the floor |
+| `daylight.unknown` | caution | A window with no `h:`, so the window area is not fully counted |
+| `envelope.gap` | caution | A hole in the envelope — perimeter facing nothing |
+| `stair.proportion` | caution | The derived steps are cramped |
+| `run.slope` | caution | The derived slope is too steep, or outside normal use |
+| `run.disconnected` | caution | A vertical run exists but no vertical boundary connects the storeys |
+| `access.unreachable` | violation | A room with a region cannot reach the exterior |
+| `access.voidonly` | violation | A door opens only onto a void |
+| `access.throughtenant` | caution | Escape from a stair core passes through a tenancy |
+| `access.parking` | violation | A car cannot get out of the parking |
+| `access.backofhouse` | caution | A vertical run cannot be reached from the common corridor without crossing back-of-house |
+| `column.blocksdoor` | violation | A derived column collides with a derived door |
+| `site.escape` | violation | The building escapes the site shape |
+| `site.area` | caution | The declared and derived site areas disagree |
+| `site.frontage` | violation | Road frontage under 2 m |
 
-一件ずつの詳しい読み方と直し方は[判定 — koyu validate](../validate/index.md) にある。
+Each one, read closely with its fix, is on [Judgement — koyu validate](../validate/index.md).
 
-### この面は増える
+### This surface grows
 
-**`validate` の規則は凍っていない。**規則は足されるし、捨てられることもある。`check` の 65 の診断コードとは扱いが違う — あちらは凍る面である。
+**`validate`'s rules are not frozen.** Rules get added, and rules can be dropped. That is a different footing from `check`'s diagnostic codes, which are a frozen surface.
 
-だから、判定の件数を CI の門にするなら、**足された規則で赤くなることを受け入れる**か、規則名で絞る。
+So if you gate CI on a finding count, either **accept going red when a rule is added**, or filter by rule name.
 
-## 関連
+## See also
 
-- [書く — write_layer / new_uids](tools-write.md) — `write_layer` の返りに載る `check`
-- [問う — doors / light / site / plan_svg](tools-ask.md) — 判定ではなく数を返す面
-- [プロトコル](protocol.md) — 構文エラーが `isError` で返る理由
-- [診断コード](../diagnostics/index.md) — 65 コードの原因と直し方
-- [判定 — koyu validate](../validate/index.md) — 15 規則の詳しい読み方
-- [koyu check](../cli/check.md) — CLI 側の `--json` と `--strict`
+- [Writing — write_layer / new_uids](tools-write.md) — the `check` carried in a `write_layer` result
+- [Asking — doors / light / site / plan_svg](tools-ask.md) — the surface that returns numbers, not verdicts
+- [The protocol](protocol.md) — why a syntax error comes back as `isError`
+- [Diagnostic codes](../diagnostics/index.md) — 65 codes, their causes and their fixes
+- [Judgement — koyu validate](../validate/index.md) — the 15 rules read closely
+- [koyu check](../cli/check.md) — the CLI's `--json` and `--strict`

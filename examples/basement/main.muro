@@ -11,7 +11,7 @@
 #   * 地下は level の underground:1 という宣言。zの負値からは推定しない (ADR-0022)。
 #   * 土に接する壁は spec 語彙 (spec:RC土圧壁)。境界の型は増やさない — 物の名は spec である。
 
-koyu 1.0
+koyu 1.1
 name 地下駐車場 — 縦動線の最小例
 unit mm
 
@@ -48,8 +48,8 @@ boundary /B2..B1/st /B2..B1/mech t:250 spec:RC
 boundary /B2..B1/ev /B2..B1/mech t:250 spec:RC
 
 # 外周は土。物の名は spec 語彙が運ぶ (境界の型を増やさない)
-space /out exterior name:外部
-space /road exterior road:12000 name:前面道路
+space /out name:外部 outside:1
+space /road road:12000 name:前面道路 outside:1
 
 boundary /B2..B1/park /out edge:W t:500 spec:RC土圧壁
 boundary /B2..B1/park /out edge:S t:500 spec:RC土圧壁

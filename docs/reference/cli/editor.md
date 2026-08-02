@@ -1,57 +1,57 @@
 ---
-title: VS Code 拡張
+title: The VS Code extension
 mode: reference
 ---
 
-# VS Code 拡張
+# The VS Code extension
 
-`.muro` に色を付け、保存のたびに `koyu check` を走らせて診断を問題パネルに出す。**拡張はパーサも規則も持たない** — 色は文法ファイルが、赤は CLI が持つ。
+Colours `.muro`, and on every save runs `koyu check` and puts the diagnostics in the Problems panel. **The extension holds neither a parser nor a rule** — the colour comes from a grammar file, the red from the CLI.
 
-## 二つの仕事だけ
+## It does two things only
 
-| 仕事 | 出所 |
+| Job | Where it comes from |
 |---|---|
-| 色 | `editors/vscode/syntaxes/koyu.tmLanguage.json` — 唯一の文法。ドキュメントサイトも同じ一枚を読む |
-| 赤 | `koyu check --json` を呼んで、返ってきた `Diagnostic[]` を VS Code の診断へ写す |
+| Colour | `editors/vscode/syntaxes/koyu.tmLanguage.json` — the one and only grammar. The documentation site reads the same file |
+| Red | It calls `koyu check --json` and copies the returned `Diagnostic[]` into VS Code's diagnostics |
 
-**門番は一つである。**CLI もエージェント (MCP) もエディタも、同じ `check` の同じ答えを見る。拡張が独自に判定することは無い。
+**There is one gate.** The CLI, agents over MCP, and the editor all see the same answer from the same `check`. The extension never judges anything on its own.
 
-## 入れる
+## Installing it
 
-拡張フォルダを VS Code の拡張置き場へリンクする。**ビルドは無い** — 素の CommonJS と JSON である。
+Link the extension folder into VS Code's extensions directory. **There is no build** — it is plain CommonJS and JSON.
 
 ```sh
 ln -s "$PWD/editors/vscode" ~/.vscode/extensions/koyu
 ```
 
-VS Code を再起動すれば `.muro` に色が付く。VS Code 1.75 以降が要る。Cursor などの派生エディタでも、拡張の置き場所が変わるだけで同じである。
+Restart VS Code and `.muro` files are coloured. VS Code 1.75 or later is required. Derived editors such as Cursor work the same way; only the extensions directory differs.
 
-配るなら `.vsix` に固めてもよい。
+To hand it around, package it as a `.vsix`.
 
 ```sh
-npx --yes @vscode/vsce package     # editors/vscode で実行
+npx --yes @vscode/vsce package     # run inside editors/vscode
 ```
 
-## CLI の探し方
+## How it finds the CLI
 
-**色だけなら他に何も要らない。赤を出すには `koyu` CLI が要る。**拡張は次の順に探す。ふつうは設定しなくてよい。
+**Colour needs nothing else. Red needs the `koyu` CLI.** The extension looks in this order, and normally you configure nothing.
 
-1. 設定 `koyu.cliPath` (空でなければそれ)
-2. 開いているファイルから上へ辿って `node_modules/.bin/koyu`
-3. 同じく上へ辿って `dist/cli.js` (koyu リポジトリ自身で作業しているとき — 先に `npm run build`)
-4. PATH の `koyu`
+1. The `koyu.cliPath` setting, if not empty
+2. Walking up from the open file, `node_modules/.bin/koyu`
+3. Walking up likewise, `dist/cli.js` (when working in the koyu repository itself — run `npm run build` first)
+4. `koyu` on the PATH
 
-見つからなければ一度だけ警告が出て、色だけになる。
+If none is found, one warning appears and you get colour only.
 
-## 起点 (entry) の決め方
+## How the entry is chosen
 
-`import` で層に割った建物では、層を単体で検査しても意味がない — その層には `grid` も `level` も無いので赤で埋まる。拡張は起点を次の順で決める。
+In a building split into layers with `import`, checking one layer on its own is meaningless — it has neither `grid` nor `level`, so it fills with red. The extension picks the entry in this order.
 
-1. 設定 `koyu.entry` (ワークスペースからの相対、または絶対パス)
-2. 開いているファイルと**同じディレクトリの `main.muro`** (開いているのが `main.muro` 自身でない場合)
-3. 開いているファイルそのもの
+1. The `koyu.entry` setting (relative to the workspace, or absolute)
+2. **`main.muro` in the same directory as the open file** (when the open file is not itself `main.muro`)
+3. The open file itself
 
-起点が別の場所にあるなら名指しする。
+Name it explicitly when the entry lives elsewhere.
 
 ```json
 {
@@ -59,79 +59,77 @@ npx --yes @vscode/vsce package     # editors/vscode で実行
 }
 ```
 
-診断は**出所ごとに配り直される。**`examples/twin/office.muro` を開いて保存すると、`examples/twin/main.muro` から一棟が合成された上で、`office.muro` の行にだけ赤が出る。前回この起点が置いた診断のうち今回消えたものは取り下げられる。
+Diagnostics are **redistributed by provenance.** Open `examples/twin/office.muro` and save, and the whole building is composed from `examples/twin/main.muro` while the red lands only on lines of `office.muro`. Diagnostics this entry placed last time that are gone this time are withdrawn.
 
-## いつ走るか
+## When it runs
 
-| 契機 | 走るか |
+| Trigger | Runs |
 |---|---|
-| ファイルを保存した | 走る |
-| ファイルを開いた | 走る |
-| コマンドパレットの **koyu: 整合を確かめる (check)** | 走る (`koyu.check.enabled` が false でも走る) |
-| 入力している最中 | **走らない** |
+| You saved the file | Yes |
+| You opened the file | Yes |
+| **koyu: 整合を確かめる (check)** from the command palette | Yes (even with `koyu.check.enabled` set to false) |
+| While you type | **No** |
 
-**未保存のバッファは検査されない。**CLI はファイルを読むので、保存が検査の契機である。
+**An unsaved buffer is not checked.** The CLI reads files, so saving is what triggers the check.
 
-## 設定
+## Settings
 
-| 設定 | 既定 | 意味 |
+| Setting | Default | Meaning |
 |---|---|---|
-| `koyu.check.enabled` | `true` | 保存時と開いたときに `check` を走らせる |
-| `koyu.cliPath` | `""` | CLI の場所。空なら上の順で探す |
-| `koyu.entry` | `""` | 合成の起点。空なら同じディレクトリの `main.muro`、無ければ開いているファイル自身 |
+| `koyu.check.enabled` | `true` | Run `check` on save and on open |
+| `koyu.cliPath` | `""` | Where the CLI is. Empty means search in the order above |
+| `koyu.entry` | `""` | The entry for composition. Empty means `main.muro` in the same directory, else the open file itself |
 
-## 診断の写り方
-
-`Diagnostic` のフィールドは次のように写る。
+## How a diagnostic maps across
 
 | `Diagnostic` | VS Code |
 |---|---|
-| `message` | 診断の本文。`path` があれば末尾に対象のパスが `[/L1/a \| /L1/b]` の形で付く |
-| `code` | 診断のコード欄 (`BND04` など。問題パネルにそのまま出る) |
+| `message` | The diagnostic body. With a `path`, the subject paths are appended as `[/L1/a \| /L1/b]` |
+| `code` | The diagnostic's code field (`BND04` and so on, shown as-is in the Problems panel) |
 | `severity: "warning"` | Warning |
-| `severity: "error"` (それ以外すべて) | Error |
-| `line` | その行の全体。`line` が無い診断は起点の 1 行目に置かれる |
-| `file` | 診断を置くファイル。無ければ起点 |
+| `severity: "error"` (and anything else) | Error |
+| `line` | That whole line. A diagnostic without a `line` lands on line 1 of the entry |
+| `file` | The file the diagnostic is placed in; the entry when absent |
 
-`source` は常に `koyu` である。
+`source` is always `koyu`.
 
-## 色の読み方
+## Reading the colours
 
-色の割り当ては記法の構造をなぞっている。
+The colour assignment traces the structure of the notation.
 
-| 見えるもの | 何 |
+| What you see | What it is |
 |---|---|
-| `space` `boundary` `band` … | 行頭に書く語 |
-| `door` `window` `seg` `line` `area` | 字下げして書く語 |
-| `/L1/a` `/out` `/L2..L9/A` | 空間・ゾーンのパス (同一性) |
-| `X2+600` `Y1..Y2` `L14..L19` | 通り芯とレベルの参照 |
-| `room` `shop` `exterior` | 空間の型 (開かれた語彙) |
-| `daylight:` `t:` `edge:` `slope:` `road:` `name:` … | **形と導出のために core が読む属性**。専用の色を持つ |
-| `spec:` `fire:` `floor:` `acme.sensor:` | それ以外の属性。まとめて一つの色 |
+| `space` `boundary` `band` … | Words that start a line |
+| `door` `window` `seg` `line` `area` | Words written indented |
+| `/L1/a` `/out` `/L2..L9/A` | Space and zone paths (identity) |
+| `X2+600` `Y1..Y2` `L14..L19` | Grid-line and level references |
+| `room` `shop` `exterior` | The type of a space (an open vocabulary) |
+| `daylight:` `t:` `edge:` `slope:` `road:` `name:` … | **Attributes core reads for form and derivation.** They have their own colour |
+| `spec:` `fire:` `floor:` `acme.sensor:` | Every other attribute. One shared colour |
 
-最後の二行が分かれているのが要点である。専用の色を持つのは `underground` `escalator` `daylight` `ceiling` `landing` `hinge` `level` `riser` `slope` `stair` `style` `swing` `tread` `pitch` `entry` `lane` `lift` `form` `road` `slab` `site` `area` `turn` `type` `edge` `name` `ramp` `uid` `air` `use` `at` `h` `w` `t` `d` `x` `y` の 37 語で、`daylight:1` と `dayligth:1` の違いが、書いている最中に色で見える。
+That last split is the point. The 37 words with their own colour are `underground`, `escalator`, `daylight`, `ceiling`, `landing`, `hinge`, `level`, `riser`, `slope`, `stair`, `style`, `swing`, `tread`, `pitch`, `entry`, `lane`, `lift`, `form`, `road`, `slab`, `site`, `area`, `turn`, `type`, `edge`, `name`, `ramp`, `uid`, `air`, `use`, `at`, `h`, `w`, `t`, `d`, `x` and `y` — so the difference between `daylight:1` and `dayligth:1` is visible in colour as you type.
 
-**綴りを間違えた属性は色が付かないだけでなく、`check` がエラーで止める。**台帳に無いキーは、ドットを含む名前空間 (`acme.sensor`) を持たないかぎり書けない。逆に、名前空間さえ付けば何を書いてもよく、core はその中身に一切の意味を与えない。
+**A misspelled attribute does not merely lose its colour; `check` stops on it as an error.** A key not in the ledger cannot be written at all unless it carries a dotted namespace (`acme.sensor`). Conversely, once namespaced, anything goes: core assigns no meaning to what is inside it.
 
-ただし**テーマによっては二種類の属性が同じ色になる** (VS Code 既定の Dark+ がそう)。色が分かれるのは GitHub Dark / GitHub Light / One Dark Pro / Monokai / Nord など。
+Note that **some themes give both kinds of attribute the same colour** (VS Code's default Dark+ does). They separate under GitHub Dark, GitHub Light, One Dark Pro, Monokai and Nord, among others.
 
-## 拡張がしないこと
+## What the extension does not do
 
-**整合を判定しない。**判定は CLI が返した JSON をそのまま写しているだけである。
+**It does not judge consistency.** The red is a straight copy of the JSON the CLI returned.
 
-**色は正しさではない。**文法は正規表現であってパーサではないので、色が付いていても `check` は赤を出しうる。答えは常に `check` の側にある。
+**Colour is not correctness.** The grammar is regular expressions, not a parser, so something can be coloured and still draw red from `check`. The answer always lives on the `check` side.
 
-**建築的な妥当性を出さない。**呼ぶのは `koyu check --json` だけで、[`koyu validate`](validate.md) は呼ばない。扉を一枚も宣言しない二階建ては、問題パネルが空のまま完全に密封される。動線は [`koyu doors`](doors.md)、採光は [`koyu light`](light.md) が別に答える。
+**It does not surface architectural soundness.** The only thing it calls is `koyu check --json`; it never calls [`koyu validate`](validate.md). A two-storey building that declares no door stays sealed with an empty Problems panel. Circulation is answered by [`koyu doors`](doors.md), daylight by [`koyu light`](light.md).
 
-**図を出さない。**平面図が要るなら [`koyu plan`](plan.md) を走らせて SVG を開く。
+**It does not produce drawings.** For a plan, run [`koyu plan`](plan.md) and open the SVG.
 
-**補完も整形もしない。**
+**It offers neither completion nor formatting.**
 
-`check` が終了コード 2 (使い方) を返した場合や、JSON として読めない出力を返した場合は、**黙って緑にはしない。**出力パネル `koyu` にその内容を書き、ステータスバーに `koyu: check が走りませんでした (出力パネル: koyu)` を出す。
+If `check` returns exit code 2 (usage), or output that will not parse as JSON, **it does not quietly go green.** It writes what came back into the `koyu` output channel and puts `koyu: check が走りませんでした (出力パネル: koyu)` in the status bar.
 
-## 関連
+## See also
 
-- [koyu check](check.md) — 拡張が呼んでいるコマンドそのもの
-- [koyu validate](validate.md) — 拡張が呼ばないほうの面
-- [診断コード](../diagnostics/index.md) — 問題パネルに出たコードから直し方を引く
-- [koyu コマンド](index.md) — 起点と import の解決
+- [koyu check](check.md) — the command the extension calls
+- [koyu validate](validate.md) — the surface it does not call
+- [Diagnostics](../diagnostics/index.md) — looking up a fix from a code in the Problems panel
+- [The koyu command](index.md) — the entry and how `import` resolves

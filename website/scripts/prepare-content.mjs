@@ -16,14 +16,7 @@ const websiteDir = path.resolve(
   '..',
 );
 const repositoryDir = path.resolve(websiteDir, '..');
-const jaContentDir = path.join(websiteDir, '.generated', 'docs');
-const enContentDir = path.join(
-  websiteDir,
-  'i18n',
-  'en',
-  'docusaurus-plugin-content-docs',
-  'current',
-);
+const contentDir = path.join(websiteDir, '.generated', 'docs');
 const generatedStaticDir = path.join(websiteDir, 'static', 'generated');
 const repositoryWebUrl = 'https://github.com/kensnzk/koyu';
 const repositoryRawUrl =
@@ -87,15 +80,7 @@ function outputDocumentPath(sourceAbsolute, locale) {
 
   if (relative.startsWith('docs/')) {
     if (isInternal(relative)) return null;
-    const isEnglish = relative.startsWith('docs/en/');
-    if (locale === 'en') {
-      return isEnglish ? relative.slice('docs/en/'.length) : null;
-    }
-    return isEnglish ? null : relative.slice('docs/'.length);
-  }
-
-  if (locale === 'en') {
-    return null;
+    return relative.slice('docs/'.length);
   }
 
   return null;
@@ -300,20 +285,13 @@ async function copyContentAssets(outputRoot) {
   }
 }
 
-await rm(jaContentDir, {recursive: true, force: true});
-await rm(enContentDir, {recursive: true, force: true});
+await rm(contentDir, {recursive: true, force: true});
 await rm(generatedStaticDir, {recursive: true, force: true});
 
-// The canonical tree is the only one published. The two-book layout (guide/ + spec/) it grew out
-// of has been withdrawn (ADR-0046), so there is no branch to choose any more.
-const roots = {
-  ja: [path.join(repositoryDir, 'docs')],
-  en: [path.join(repositoryDir, 'docs', 'en')],
-};
+// One tree, one locale. The documentation is written for machines to read, and the machine
+// surfaces (MCP, diagnostics, the canonical form) have always answered in English — the
+// Japanese mirror doubled every page while adding nothing a reader could not already get.
+await writeLocale('en', [path.join(repositoryDir, 'docs')], contentDir);
+await copyContentAssets(contentDir);
 
-await writeLocale('ja', roots.ja, jaContentDir);
-await writeLocale('en', roots.en, enContentDir);
-await copyContentAssets(jaContentDir);
-await copyContentAssets(enContentDir);
-
-console.log('Prepared the canonical documentation (docs/), Japanese and English.');
+console.log('Prepared the canonical documentation (docs/).');
