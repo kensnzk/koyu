@@ -160,7 +160,7 @@ Cannot reach /L2/ev from /L1/ev
 
 ## 吹抜けを書く
 
-下階の天井が抜けているところには、**上階側に `void` 型の空間を置き**、下階の空間との間に `type:void` の垂直境界を書く。
+下階の天井が抜けているところには、**上階側に `void:1` を宣言した空間を置き**、下階の空間との間に `type:void` の垂直境界を書く。
 
 ```muro-part
 space /L2/void X2..X3 Y1..Y2 name:リビング上部 void:1

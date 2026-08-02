@@ -190,7 +190,7 @@ Stated honestly.
 - **You write the parser yourself.** koyu has zero runtime dependencies, so it is hand-written.
 - **You provide editor support yourself.** There is one syntax-highlighting grammar definition, and tests bind it to the implementation and the ledger.
 - **Readers must learn the syntax.** The amount is small — 16 kinds of unindented line and 9 kinds of indented line, with no nesting, no brackets and no terminators ([The whole syntax of .muro](../reference/muro/index.md)).
-- **General-purpose tooling (YAML linters, schema validation) does not apply.** In its place `check` carries 65 diagnostics.
+- **General-purpose tooling (YAML linters, schema validation) does not apply.** In its place `check` carries its own diagnostics.
 
 **Whether that price is worth paying is judged against the design criterion.** A whole building fits in one context, an agent can edit it line by line, and diffs read in the language of composition — if those three hold at once, the choice pays.
 

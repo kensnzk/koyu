@@ -20,7 +20,7 @@ Thickness, specification, fire rating, sound rating, slope, top height — every
 
 **Why not put it on the space?** Because a relation grants a seat and a space's attributes do not. Put substance on the space side and the derivation has to work out which surface it lands on, and that is where ambiguity enters. A state in which the slab between two storeys can be claimed separately by the space below as its ceiling and by the space above as its floor is not a source of truth. **With a relation, the owner is uniquely determined.**
 
-That decision has a consequence. **The exterior must be a space.** For a roof to be a relation the sky must exist as the other space; for a ground-bearing floor to be a relation the ground must. This is why `space /out exterior` appears in `.muro` files.
+That decision has a consequence. **The exterior must be a space.** For a roof to be a relation the sky must exist as the other space; for a ground-bearing floor to be a relation the ground must. This is why `space /out outside:1` appears in `.muro` files.
 
 ## Rule 1 — no boundary may be written between spaces that do not touch
 

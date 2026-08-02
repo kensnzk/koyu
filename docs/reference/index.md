@@ -32,7 +32,7 @@ mode: reference
 |---|---|
 | [koyu コマンド](cli/index.md) | サブコマンド14個の引数・旗・出力・終了コード |
 | [koyu-mcp](mcp/index.md) | エージェントから触るための面。12ツールと JSON-RPC の契約 |
-| [TypeScript API](api/index.md) | `@kensnzk/koyu` の公開名 (実行時の値59・型77) と入口 |
+| [TypeScript API](api/index.md) | `@kensnzk/koyu` の公開名と入口 |
 
 ## 出てくるもの
 

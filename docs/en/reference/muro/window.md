@@ -84,7 +84,7 @@ Effective window area is discounted by **what lies beyond the window**.
 
 | What the window faces | Coefficient |
 |---|---|
-| the outside (`type:exterior`) | 1.0 |
+| the outside (`outside:1`) | 1.0 |
 | semi-outdoor with a space above it (under a balcony, under an eave) | 0.7 |
 | semi-outdoor open to the sky (a garden, a top-floor balcony) | 1.0 |
 | anything else (indoors to indoors) | 0 — not counted |

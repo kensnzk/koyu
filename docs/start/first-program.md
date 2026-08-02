@@ -137,7 +137,7 @@ try {
 
 ## この先
 
-- 空間グラフ、動線、採光、敷地など、CLI が答えるものを API から呼ぶ道は [TypeScript API](../reference/api/index.md) にすべて並んでいる。59個の値と 77個の型が公開面である。
+- 空間グラフ、動線、採光、敷地など、CLI が答えるものを API から呼ぶ道は [TypeScript API](../reference/api/index.md) にすべて並んでいる。
 - 平面図や立体を SVG で出すなら [図の生成](../reference/api/draw.md)。
 - 芯線・厚み・柱・縦動線の立体まで降りるなら [形 — derive(model)](../reference/form/index.md)。
 - 診断コードの意味を引くなら [診断コード索引](../reference/diagnostics/index.md) — 全65コードが載っている。

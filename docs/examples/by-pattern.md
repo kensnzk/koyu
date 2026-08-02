@@ -47,7 +47,7 @@ mode: reference
 |---|---|---|
 | 階段で繋ぐ | `boundary /L1/stair /L2/stair type:stair` | `examples/office.muro` |
 | 通れないシャフト | `type:shaft` | `examples/office.muro` |
-| 床を抜く (吹抜け) | `type:void` と、`void` 型の空間 | `examples/office.muro` |
+| 床を抜く (吹抜け) | `type:void` の境界と、`void:1` を宣言した空間 | `examples/office.muro` |
 | 何層にもわたる縦動線を一括で | [`stack`](../reference/muro/stack.md) `ev L1..L10 type:shaft` | `examples/mansion.muro` |
 | 階段の段数・踏面を出す | 空間に `stair:N form:return` と書き、[`runs`](../reference/cli/runs.md) に訊く | `examples/basement/main.muro` |
 | 斜路 | 空間に `ramp:E form:return slope:6` | `examples/basement/main.muro` |
@@ -60,7 +60,7 @@ mode: reference
 
 | やりたいこと | 書き方 | 実物 |
 |---|---|---|
-| 外部を作る | `space /out exterior name:外部` (領域は要らない) | `examples/two-rooms.muro` |
+| 外部を作る | `space /out name:外部` (領域は要らない) | `examples/two-rooms.muro` |
 | 外部を方角ごとに割る | `/out/n` `/out/e` … と複数の `exterior` | `examples/house.muro` |
 | 道路 | `space /road-s exterior road:22000` | `examples/complex/site.muro` |
 | 敷地 | `zone /site … site:1` (測量値は `area:`) | `examples/house.muro` |

@@ -335,7 +335,7 @@ Each one, read closely with its fix, is on [Judgement — koyu validate](../vali
 
 ### This surface grows
 
-**`validate`'s rules are not frozen.** Rules get added, and rules can be dropped. That is a different footing from `check`'s 65 diagnostic codes, which are a frozen surface.
+**`validate`'s rules are not frozen.** Rules get added, and rules can be dropped. That is a different footing from `check`'s diagnostic codes, which are a frozen surface.
 
 So if you gate CI on a finding count, either **accept going red when a rule is added**, or filter by rule name.
 

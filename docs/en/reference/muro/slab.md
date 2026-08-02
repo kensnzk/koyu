@@ -18,8 +18,8 @@ level <name> <z> [h:ceiling height] [slab:floor build-up] [underground:1]
 A floor is laid over every space on that level satisfying all of the following.
 
 - it has a region
-- it is not `type:void` — **the absence of a floor is what a void is**
-- it is not `type:exterior` — the outside is ground
+- it is not `void:1` — **the absence of a floor is what a void is**
+- it is not `outside:1` — the outside is ground
 - its level carries `slab:`
 
 The floor's z range runs **from FL − slab to FL**. Its outline is the derived convex piece, so a floor cut by a [drawn line](line.md) comes out cut.

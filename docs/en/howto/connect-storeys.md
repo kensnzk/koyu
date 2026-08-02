@@ -160,7 +160,7 @@ Cannot reach /L2/ev from /L1/ev
 
 ## Write a void
 
-Where the ceiling below is open, **put a `void` space on the upper storey** and write a `type:void` vertical boundary to the space below.
+Where the ceiling below is open, **put a space declaring `void:1` on the upper storey** and write a `type:void` vertical boundary to the space below.
 
 ```muro-part
 space /L2/void X2..X3 Y1..Y2 name:Over-the-living-room void:1

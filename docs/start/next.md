@@ -53,7 +53,7 @@ mode: explanation
 
 → **[プログラムから建物を読む](first-program.md)**
 
-20行で parse から診断、正準JSONまで通す。その先の公開面 — 59個の値と77個の型 — は **[TypeScript API](../reference/api/index.md)** に並んでいる。
+20行で parse から診断、正準JSONまで通す。その先の公開面は **[TypeScript API](../reference/api/index.md)** に並んでいる。
 
 ## LLM エージェントに読み書きさせたい
 

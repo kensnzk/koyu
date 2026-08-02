@@ -14,7 +14,7 @@ There are three versions, counted independently. Mixing them makes it impossible
 | Version | What it attaches to | Currently |
 |---|---|---|
 | **The muro version** | **the language, its semantics and the rules of composition.** "A file written this way keeps meaning this" | **1.0** |
-| **The koyu version** | **the implementation.** "This implementation's surfaces will not break." It declares which muro it implements | **0.16.0** |
+| **The koyu version** | **the implementation.** "This implementation's surfaces will not break." It declares which muro it implements | **0.17.0** |
 | **The canonical JSON format version** | **the spelling.** The set of keys, their order, collation, normalisation, number notation | `koyu-canonical/1.1` |
 
 A `.muro` file declares only [the language version](muro/version.md). It announces semantics, not the maturity of a processor.

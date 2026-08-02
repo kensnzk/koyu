@@ -46,8 +46,8 @@ The ceiling height of /L1/a cannot be determined (neither the space's h: nor lev
 
 **咎めないものが三つある。**この三つは天井高に依らずに形が決まる。
 
-- 吹抜け (`type:void`) — 床も天井も無いことが定義である
-- 外部 (`type:exterior`) — 地面である
+- 吹抜け (`void:1`) — 床も天井も無いことが定義である
+- 外部 (`outside:1`) — 地面である
 - 半屋外 — 外部に `type:open` か `air:1` で接する領域つき空間。バルコニーに天井高は無い
 
 **直し方** — レベルに基準天井高を書く。

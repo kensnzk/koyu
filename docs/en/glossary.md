@@ -30,7 +30,7 @@ The terms fall into six groups — the skeleton, the elements, attributes, deriv
 |---|---|---|
 | space, 空間 | The primary element. It has a path, a type, and a region (a union of rectangles). A room, a portion within a zone, or an exterior region is one of these | [space](reference/muro/space.md) |
 | path, パス | `/L1/A/ldk` — the identity of a space or zone, and at the same time the hierarchy of aggregation. The first segment becomes a level if a `level` of that name has been declared | [space](reference/muro/space.md) |
-| type, 型 | The second positional of `space` (required). An open vocabulary in which exactly two words are interpreted structurally, `exterior` and `void`. Whether the daylight check applies is not inferred from the type | [space](reference/muro/space.md) |
+| type, 型 | The second positional of `space` (**optional**). An open vocabulary that **core never reads** — a free label appearing only in aggregation and in the lettering on a plan. Facts of composition (outside, void, daylight) live in the declarations `outside:` `void:` `daylight:` | [space](reference/muro/space.md) |
 | exterior, 外部 | The type denoting a region outside the building. It need not have a region. Adding `road:<width>` makes it a subject of road frontage | [space](reference/muro/space.md) |
 | void, 吹抜け | The absence of a floor. As a space type it is excluded from floor area and is not passable; as a boundary kind it says there is no floor between the levels | [boundary](reference/muro/boundary.md) |
 | boundary, 境界 | A first-class **relation** joining two spaces. The wall centerline segment is not written; it is derived from the rectangles of the two spaces. A wall is this, not a thing | [boundary](reference/muro/boundary.md) |
@@ -106,7 +106,7 @@ The terms fall into six groups — the skeleton, the elements, attributes, deriv
 | daylighting, 採光 | The rough judgement that effective window area ≥ floor area / 7, for rooms in scope. A coefficient of 0.7 applies when the window looks onto covered semi-outdoor space | [daylight](reference/validate/daylight.md) |
 | road frontage, 接道 | The sum of the boundary segment lengths between spaces under the site zone and exterior spaces carrying `road:<width>`. **An external wall of the building facing the road does not count** | [site](reference/validate/site.md) |
 | MCP server | `koyu-mcp` — the entrance for agents. A dependency-free stdio server with 12 tools. The standard loop is `model_summary` → `layers` → `write_layer` → `check` | [MCP](reference/mcp/index.md) |
-| public surface, 公開面 | The set of names written down as the TypeScript API: 59 runtime values and 77 types | [API](reference/api/canonical.md) |
+| public surface, 公開面 | The set of names written down as the TypeScript API | [API](reference/api/canonical.md) |
 
 ## Neighbouring words (outside koyu)
 

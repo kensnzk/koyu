@@ -54,12 +54,12 @@ Boundaries that join levels (`type:stair`, `type:shaft`, `type:void`) do not cov
 
 **A level with no boundary to the outside at all says nothing.** That level has simply not modelled its envelope yet, and nagging a two-room example would be pointless.
 
-The test for "has started its envelope" is concrete: **somewhere on that level, a boundary is declared against a space with no region** — the kind of exterior written as `space /out exterior`, with no extent. Which means that a model whose outside is written **with a region**, tiling the site as `space /out/n exterior X1..X3 Y2..Y3`, has boundaries between two spaces that both have regions, and its levels are never taken to have started an envelope.
+The test for "has started its envelope" is concrete: **somewhere on that level, a boundary is declared against a space with no region** — the kind of exterior written as `space /out outside:1`, with no extent. Which means that a model whose outside is written **with a region**, tiling the site as `space /out/n exterior X1..X3 Y2..Y3`, has boundaries between two spaces that both have regions, and its levels are never taken to have started an envelope.
 
 Some spaces are never reported:
 
 - spaces with no region (the outside itself)
-- `type:exterior` spaces
+- `outside:1` spaces
 - semi-outdoor spaces (derived from meeting an exterior across `type:open` or `air:1`)
 - the site tiles under a zone carrying `site:1`
 

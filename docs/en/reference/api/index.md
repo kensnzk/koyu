@@ -41,7 +41,7 @@ The first four are JavaScript module entrances: you `import` names from them. Th
 
 The package root does not use `export *`. The moment a module gains an export, a promise nobody declared would join a frozen surface. A promise has to be written out to be a promise.
 
-So **this surface is exactly the set of names spelled out one by one in `src/index.ts`** — **59** runtime values and **77** types. A name that is not there is not a promise, however visible it is in the source.
+So **this surface is exactly the set of names spelled out one by one in `src/index.ts`**. A name that is not there is not a promise, however visible it is in the source. The table below is that set, and `test/public-api.test.ts` holds it in set-equality with the implementation — **the count is not written down; the table is the source.**
 
 **The whole promise is this table.** A test binds this table and the set in `src/index.ts` to each other, so adding an export without writing it here fails. Names go in collation order, and the grouping follows which module each name is exported from.
 

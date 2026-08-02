@@ -106,7 +106,7 @@ koyu の語を引き当てるための表である。**ここに書かれた一�
 | 採光 | 対象の居室について「有効窓面積 ≥ 床面積 / 7」を見る粗い判定。窓の先が庇下の半屋外なら係数 0.7 がかかる | [採光](reference/validate/daylight.md) |
 | 接道 | 敷地ゾーン配下の空間と、`road:幅員` を持つ外部空間との境界線分長の合計。**建物の外壁が道路に面する分は数えない** | [敷地](reference/validate/site.md) |
 | MCP サーバー | `koyu-mcp` — エージェント向けの入口。依存ゼロの stdio サーバーで、ツールは12個。`model_summary` → `layers` → `write_layer` → `check` が標準のループ | [MCP](reference/mcp/index.md) |
-| 公開面 | TypeScript API として書き下されている名前の集合。実行時の値が59、型が77 | [API](reference/api/canonical.md) |
+| 公開面 | TypeScript API として書き下されている名前の集合 | [API](reference/api/canonical.md) |
 
 ## 隣接する語 (koyu の外)
 

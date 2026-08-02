@@ -96,7 +96,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2 + X2..X3 Y1..Y1+2800 name:LDK
 
 Each side of `+` is its own pair of X and Y ranges. **Rectangles that overlap inside one space are an error** (`GEO01`), and so is an overlap with another space on the same level (`GEO02`). No wall stands on the internal seam of a union — an L written as two rectangles behaves as one room.
 
-**A space may have no region at all.** `space /out exterior name:外部` is how exteriors and aggregation-only spaces are written. But a space that does have a region must have a determinable level and ceiling height (`SUF02` / `SUF01`).
+**A space may have no region at all.** `space /out name:外部` is how exteriors and aggregation-only spaces are written. But a space that does have a region must have a determinable level and ceiling height (`SUF02` / `SUF01`).
 
 ## Points
 

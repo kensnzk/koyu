@@ -29,7 +29,7 @@ stdio 上の **JSON-RPC 2.0**。手書きの実装で、MCP の SDK は使って
 ```
 
 ```text
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.16.0"},"instructions":"Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written."}}
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.17.0"},"instructions":"Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written."}}
 ```
 
 | フィールド | 中身 |
@@ -37,7 +37,7 @@ stdio 上の **JSON-RPC 2.0**。手書きの実装で、MCP の SDK は使って
 | `protocolVersion` | **クライアントが送ってきた値をそのまま返す。**`params.protocolVersion` が無ければ `"2025-06-18"` を名乗る。版の交渉も拒否も行わない |
 | `capabilities` | `{"tools":{}}` — ツールだけを宣言する。`listChanged` は宣言しないし、ツールの集合は動かない |
 | `serverInfo.name` | `"koyu"` |
-| `serverInfo.version` | `"0.16.0"` — **実装の版である。**記法の版 (`koyu 1.0`) とは別に動く |
+| `serverInfo.version` | `"0.17.0"` — **実装の版である。**記法の版 (`koyu 1.1`) とは別に動く |
 | `instructions` | エージェント向けの一段落。標準ループと、`check` と `validate` の別を述べる |
 
 `initialize` は状態を作らない。**`initialize` を送らずに `tools/call` を投げても動く** — サーバーは初期化済みかどうかを覚えていない。行儀の良いクライアントは送るが、手で確かめるときは省ける。

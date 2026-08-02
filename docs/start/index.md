@@ -183,7 +183,7 @@ npx tsx src/cli.ts doors out/house.muro /L1/ldk /L1/hall
 
 ## 第4段 — 外
 
-外部は空間である。`space /out exterior` で宣言し、外皮の境界を自分で書く。
+外部は空間である。`space /out outside:1` で宣言し、外皮の境界を自分で書く。
 
 型が `exterior` の空間は領域を持たなくてよい。次のように書き足す。
 

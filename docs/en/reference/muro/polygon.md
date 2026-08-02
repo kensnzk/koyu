@@ -94,7 +94,7 @@ The `site` question still answers without a `polygon` — the site area is then 
 ⚠ [site.area] site.muro:line 8: Declared and derived site areas disagree: declared 150 m2 / derived 154.00 m2
 ```
 
-The escape test reads the **derived region**, not the written allocation. So an outline cut back to follow the site with a [drawn line](line.md) passes here. Spaces of `type:exterior`, and spaces beneath that polygon's own zone path, are left out of the test.
+The escape test reads the **derived region**, not the written allocation. So an outline cut back to follow the site with a [drawn line](line.md) passes here. Spaces declaring `outside:1`, and spaces beneath that polygon's own zone path, are left out of the test.
 
 ## Keep it in its own layer
 

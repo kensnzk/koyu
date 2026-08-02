@@ -60,8 +60,8 @@ Four kinds are handled differently.
 | Kind | Treatment |
 |---|---|
 | An indoor space | Counted into `Subtotal` and `Total` |
-| `type:void` | No area is given; it prints `void (not counted as floor area)` and is not counted |
-| `type:exterior` | Prints `(outdoor, not counted)` and is reported at the end as `Outdoor` |
+| `void:1` | No area is given; it prints `void (not counted as floor area)` and is not counted |
+| `outside:1` | Prints `(outdoor, not counted)` and is reported at the end as `Outdoor` |
 | Semi-outdoor | Prints `(semi-outdoor, reported separately)` and is reported at the end as `Semi-outdoor` |
 
 **Semi-outdoor is derived, not declared.** A space that meets an `exterior` across an `open` boundary or a wall with `air:1` is semi-outdoor. Whether a balcony or an external stair counts toward floor area is a matter of regulatory detail, so it is reported separately rather than counted.

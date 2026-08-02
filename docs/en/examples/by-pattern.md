@@ -47,7 +47,7 @@ The rules of the notation itself are in the [notation reference](../reference/mu
 |---|---|---|
 | Connect with a stair | `boundary /L1/stair /L2/stair type:stair` | `examples/office.muro` |
 | A shaft nobody walks | `type:shaft` | `examples/office.muro` |
-| Remove the floor (a void) | `type:void` plus a `void`-typed space | `examples/office.muro` |
+| Remove the floor (a void) | a `type:void` boundary plus a space declaring `void:1` | `examples/office.muro` |
 | Many storeys of circulation at once | [`stack`](../reference/muro/stack.md) `ev L1..L10 type:shaft` | `examples/mansion.muro` |
 | Get riser counts and treads out | Write `stair:N form:return` on the space, then ask [`runs`](../reference/cli/runs.md) | `examples/basement/main.muro` |
 | A ramp | `ramp:E form:return slope:6` on the space | `examples/basement/main.muro` |
@@ -60,7 +60,7 @@ The rules of the notation itself are in the [notation reference](../reference/mu
 
 | What you want | How to write it | The real thing |
 |---|---|---|
-| Create the outside | `space /out exterior name:外部` (no region needed) | `examples/two-rooms.muro` |
+| Create the outside | `space /out name:外部` (no region needed) | `examples/two-rooms.muro` |
 | Split the outside by orientation | Several `exterior` spaces, `/out/n`, `/out/e`, … | `examples/house.muro` |
 | A road | `space /road-s exterior road:22000` | `examples/complex/site.muro` |
 | A site | `zone /site … site:1`, with the survey figure in `area:` | `examples/house.muro` |

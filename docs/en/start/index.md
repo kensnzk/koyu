@@ -183,7 +183,7 @@ To look things up: [boundary](../reference/muro/boundary.md), [door](../referenc
 
 ## Stage 4 — the outside
 
-The outside is a space. Declare it with `space /out exterior` and write the envelope boundaries yourself.
+The outside is a space. Declare it with `space /out outside:1` and write the envelope boundaries yourself.
 
 A space of type `exterior` need not carry a region. Add the following.
 
@@ -277,7 +277,7 @@ npx tsx src/cli.ts light out/house.muro
 ✔ Every room meets 1/7 — 1 room in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
-`hall` does not appear because `daylight:1` was written only on `ldk`. Type plays no part whatsoever: rewriting `hall` as `room` does not bring it into scope, and adding `daylight:1` while leaving it `hall` does. Only two space types are read structurally, `exterior` and `void`; every other type is a free word koyu does not interpret.
+`hall` does not appear because `daylight:1` was written only on `ldk`. Type plays no part whatsoever: rewriting `hall` as `room` does not bring it into scope, and adding `daylight:1` while leaving it `hall` does. **No space type is read at all** — being outside and being a void live in the declarations `outside:1` and `void:1`, and the type position is a free label.
 
 To look things up: [Orientation and edge](../reference/muro/orientation.md), [window](../reference/muro/window.md), [The daylight rules](../reference/validate/daylight.md).
 

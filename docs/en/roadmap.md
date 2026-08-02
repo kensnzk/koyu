@@ -7,7 +7,7 @@ mode: explanation
 
 **1.0.0 is not the completion of features. It is the settling of the surfaces we promise not to break.** So this road is cut by "what can be frozen", not by "what will be built".
 
-The present state is **koyu 0.16.0 / muro 1.0**.
+The present state is **koyu 0.17.0 / muro 1.1**.
 
 ## There are two version lines
 
@@ -16,7 +16,7 @@ The present state is **koyu 0.16.0 / muro 1.0**.
 | Line | Now | What it means |
 |---|---|---|
 | Language (muro) | **1.0** | The grammar and semantics of the source. Written `koyu 1.0`. This is settled |
-| Implementation (the npm package) | **0.16.0** | The library, the CLI and the MCP server. While it is 0.x, **nothing that changes is a breaking change** |
+| Implementation (the npm package) | **0.17.0** | The library, the CLI and the MCP server. While it is 0.x, **nothing that changes is a breaking change** |
 
 They were separated so that the implementation can keep moving after the language has settled. A file that says `koyu 1.0` reads the same whether the implementation is 0.16, 1.0 or 2.0.
 
@@ -35,11 +35,11 @@ These are the eight things 1.0.0 promises not to break. **All eight now stand in
 | The machine format | The spelling of the canonical JSON — format version, key collation (ascending code point), NFC normalisation | ✅ |
 | The derivation rules | The definition of what is uniquely determined by the authored composition (wall segments, areas, adjacency, passability) | ✅ A reference implementation stands, and uniqueness became a predicate a machine can hold |
 | Structural-consistency diagnostics | 65 codes, with severity as an invariant property of the code | ✅ Verdicts were moved to a separate domain, and the meaning of green now matches the definition |
-| The public API and CLI | The TypeScript names (59 runtime, 77 types) and the contract of the 14 subcommands | ✅ The surface was written down, and tests hold it in set-equality with the implementation |
+| The public API and CLI | The TypeScript names and the contract of the CLI subcommands | ✅ The surface was written down, and tests hold it in set-equality with the implementation |
 
 ## What is left — looking at it end to end
 
-**A surface standing and a surface being looked at are different things.** That the tests are green says something only about what the tests hold. 1.0.0 cannot be walked back, so **a person looks end to end at what the tests do not hold**. 0.16.0 is the version for doing that.
+**A surface standing and a surface being looked at are different things.** That the tests are green says something only about what the tests hold. 1.0.0 cannot be walked back, so **a person looks end to end at what the tests do not hold**. 0.17.0 is the version for doing that.
 
 There are four.
 

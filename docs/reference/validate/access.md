@@ -33,7 +33,7 @@ mode: reference
 
 `violation`
 
-領域を持つ空間から、通れる境界を辿って `type:exterior` の空間へ出られない。
+領域を持つ空間から、通れる境界を辿って `outside:1` の空間へ出られない。
 
 ```muro-fail
 koyu 1.1
@@ -75,7 +75,7 @@ boundary /L1/a /out t:150
 
 `violation`
 
-通れる境界を持っているのに、その行き先が全部 `type:void` である。
+通れる境界を持っているのに、その行き先が全部 `void:1` の空間である。
 
 ```muro-fail
 koyu 1.1

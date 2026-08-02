@@ -17,7 +17,7 @@ Since neither is written, **nobody can tell whether the two collide until someth
 
 ## Where columns stand
 
-One column stands at each grid intersection **that has a floor on that level**. A floor means a space on that level, with a region, that is neither `type:exterior` nor `type:void`.
+One column stands at each grid intersection **that has a floor on that level**. A floor means a space on that level, with a region, that is neither `outside:1` nor `void:1`.
 
 There is one exception. **A space that is semi-outdoor and has nothing above it does not count as a floor.** A roof garden or a top-floor terrace gives a column nothing to hold up. Being semi-outdoor is derived: a space that meets an exterior across a `type:open` or `air:1` boundary is semi-outdoor.
 

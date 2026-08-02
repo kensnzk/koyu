@@ -32,8 +32,8 @@ The form is `column <side, mm> <level name or L?..L?> [x:grid,…] [y:grid,…]`
 
 At **a grid intersection that has a floor on that storey**. "Has a floor" means the intersection falls inside the derived region of a space on that level, within a 1mm tolerance. Three things do not count as floor.
 
-- `type:exterior` — it is the ground
-- `type:void` — having no floor is what a void is
+- `outside:1` — it is the ground
+- `void:1` — having no floor is what a void is
 - **A semi-outdoor space with nothing above it** — a roof garden or a top-storey terrace. There is nothing for a column to hold up
 
 The third is easy to forget. **No column stands under a balcony** — unless a floor overlaps it from above, in which case there is something to hold up and it does stand.

@@ -23,8 +23,8 @@ The first positional argument is the side in mm (a positive number), the second 
 The population of "floors" a column stands on is every space on that level satisfying all of the following.
 
 - it has a region
-- it is not `type:exterior`
-- it is not `type:void`
+- it is not `outside:1`
+- it is not `void:1`
 - it is **not** the case that it is semi-outdoor **and** no floor on any level lies above it
 
 That last clause is the rule that **a floor holding up nothing but sky gets no column**. An open terrace or a roof garden takes no columns — there is nothing for a column to hold up. Under a balcony with a storey cantilevered over it, columns do stand.

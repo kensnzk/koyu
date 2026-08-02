@@ -94,7 +94,7 @@ Site /site (敷地)
 ⚠ [site.area] site.muro:line 8: Declared and derived site areas disagree: declared 150 m2 / derived 154.00 m2
 ```
 
-はみ出しの照合に使うのは割付ではなく**導出された領域**である。だから[描かれた線](line.md)で敷地なりに切り落とした外形はここを通る。`type:exterior` の空間と、その `polygon` のゾーンパスの配下にある空間は照合から外れる。
+はみ出しの照合に使うのは割付ではなく**導出された領域**である。だから[描かれた線](line.md)で敷地なりに切り落とした外形はここを通る。`outside:1` の空間と、その `polygon` のゾーンパスの配下にある空間は照合から外れる。
 
 ## 隔離レイヤーに置く
 

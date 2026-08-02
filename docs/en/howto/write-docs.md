@@ -118,7 +118,7 @@ When the output is too long, **take the leading lines you need**, as with `✔ C
 
 ## Never hand-write a count
 
-There are 65 diagnostic codes, 15 validation rules, 14 CLI subcommands, 12 MCP tools, and a public API of 59 runtime values and 77 types. **Those numbers come from the ledgers in the implementation.**
+Diagnostic codes, validation rules, CLI subcommands, MCP tools, the public API — **those counts come from the ledgers in the implementation, so they are not copied into prose.** The moment one is copied, the ledger can move and the sentence cannot.
 
 Move a ledger and the number moves. So **whenever you write a number, count it again from the implementation on the spot.** A number that was right when it was written, quietly going stale, is the lie this documentation is most prone to.
 

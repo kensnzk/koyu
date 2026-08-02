@@ -53,7 +53,7 @@ All 14 subcommands, with real output. The ones the tutorial did not use are here
 
 → **[Reading a building from a program](first-program.md)**
 
-Twenty lines from parse through diagnostics to canonical JSON. The published surface beyond that — 59 values and 77 types — is laid out in **[TypeScript API](../reference/api/index.md)**.
+Twenty lines from parse through diagnostics to canonical JSON. The published surface beyond that is laid out in **[TypeScript API](../reference/api/index.md)**.
 
 ## I want an LLM agent to read and write it
 

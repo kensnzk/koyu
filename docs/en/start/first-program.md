@@ -137,7 +137,7 @@ try {
 
 ## Onward
 
-- The space graph, circulation, daylight, the site — everything the CLI answers is callable from the API, and it is all laid out in [TypeScript API](../reference/api/index.md). The published surface is 59 values and 77 types.
+- The space graph, circulation, daylight, the site — everything the CLI answers is callable from the API, and it is all laid out in [TypeScript API](../reference/api/index.md).
 - To emit plans and axonometrics as SVG, see [Drawing](../reference/api/draw.md).
 - To go down to centrelines, thicknesses, columns and the solids of vertical runs, see [Form — derive(model)](../reference/form/index.md).
 - To look a diagnostic code up, see [The diagnostic code index](../reference/diagnostics/index.md) — all 65 of them.

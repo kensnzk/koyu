@@ -32,7 +32,7 @@ They are two different surfaces. [check and validate](../why/two-kinds-of-green.
 |---|---|
 | [The koyu command](cli/index.md) | Arguments, flags, output and exit codes for all 14 subcommands |
 | [koyu-mcp](mcp/index.md) | The surface an agent touches: 12 tools and the JSON-RPC contract |
-| [TypeScript API](api/index.md) | The public names of `@kensnzk/koyu` (59 runtime values, 77 types) and the entry points |
+| [TypeScript API](api/index.md) | The public names of `@kensnzk/koyu` and the entry points |
 
 ## What comes out
 

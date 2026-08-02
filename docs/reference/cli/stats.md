@@ -60,8 +60,8 @@ By use: exclusive 92.75 m2 (100.0%)
 | 種類 | 扱い |
 |---|---|
 | 屋内の空間 | `Subtotal` と `Total` に算入 |
-| `type:void` (吹抜け) | 面積を出さず `void (not counted as floor area)` と出る。算入しない |
-| `type:exterior` | `(outdoor, not counted)` と出て、末尾に `Outdoor` として別掲 |
+| `void:1` (吹抜け) | 面積を出さず `void (not counted as floor area)` と出る。算入しない |
+| `outside:1` | `(outdoor, not counted)` と出て、末尾に `Outdoor` として別掲 |
 | 半屋外 | `(semi-outdoor, reported separately)` と出て、末尾に `Semi-outdoor` として別掲 |
 
 **半屋外は宣言ではなく導出である。**`exterior` に `open` か `air:1` の境界で接する空間が半屋外になる。バルコニーや外階段が床面積に入るかは法規の細目なので、算入せずに別掲する。

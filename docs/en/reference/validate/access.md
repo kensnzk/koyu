@@ -33,7 +33,7 @@ Every rule here stands on one definition.
 
 `violation`
 
-A space with a region cannot reach a `type:exterior` space along passable boundaries.
+A space with a region cannot reach an `outside:1` space along passable boundaries.
 
 ```muro-fail
 koyu 1.1
@@ -75,7 +75,7 @@ To find where the chain breaks, [`koyu doors`](../cli/doors.md) answers with the
 
 `violation`
 
-The space has passable boundaries, and every one of them leads to a `type:void`.
+The space has passable boundaries, and every one of them leads to a space declaring `void:1`.
 
 ```muro-fail
 koyu 1.1

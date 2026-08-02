@@ -46,8 +46,8 @@ That last point is visible. Add exterior walls and columns to the four-line file
 
 **Three kinds are not blamed.** For these the shape is settled without a ceiling height.
 
-- Voids (`type:void`) — having neither floor nor ceiling is what a void is
-- The exterior (`type:exterior`) — it is the ground
+- Voids (`void:1`) — having neither floor nor ceiling is what a void is
+- The exterior (`outside:1`) — it is the ground
 - Semi-outdoor spaces — a space with a region meeting the exterior across `type:open` or `air:1`. A balcony has no ceiling height
 
 **Fix** — write a base ceiling height on the level.

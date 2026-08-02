@@ -19,7 +19,7 @@ mode: reference
 | Requires | Node 22 or later |
 | Tools | 12 |
 
-The version `serverInfo` announces is the implementation's (`0.16.0`), not the notation's (`koyu 1.0`). The two versions move independently.
+The version `serverInfo` announces is the implementation's (`0.17.0`), not the notation's (`koyu 1.1`). The two versions move independently.
 
 ## It is stateless
 
