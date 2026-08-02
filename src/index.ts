@@ -13,7 +13,7 @@
 // core のモジュール同士が引き合うだけの配管は面ではない。型は、載せた値の署名を
 // 書き下すのに要るものだけを載せる。
 //
-// この一覧と docs/reference/cli/index.md の一覧は集合として一致する — test/public-api.test.ts が縛る。
+// この一覧と docs/reference/api/index.md の表は集合として一致する — test/public-api.test.ts が縛る。
 
 // ---- 解析と合成 (docs/reference/muro/import.md) ----
 export { parse, parseFiles, parseWith, tokenize, type LayerLoader } from "./core/parse.js";

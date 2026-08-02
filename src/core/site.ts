@@ -8,7 +8,6 @@ import { segmentLength, segmentsFor } from "./graph.js";
 import {
   areaM2,
   isIndoor,
-  isSemiOutdoor,
   polygonAreaM2,
   regionOf,
   unionAreaM2,

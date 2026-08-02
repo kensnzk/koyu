@@ -13,10 +13,9 @@ import {
   placeOpening,
   planOverlap,
   segmentsFor,
-  drawnCut,
   spacesOverlap,
 } from "./graph.js";
-import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type Attrs, type Boundary, type Edge, type Level, type Model, type Pt, type Rect, type Space,
+import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type Attrs, type Boundary, type Edge, type Level, type Model, type Space,
   columnSites,
   openingIdentity,
   regionOf,
@@ -28,7 +27,6 @@ import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type At
   isOutside,
   isVoid
 } from "./model.js";
-import { cutsInWindow } from "./poly.js";
 import { ASSET_ELEM, attrSpec, isNamespaced } from "./vocabulary.js";
 import { runDecls, runIssues } from "./vertical.js";
 

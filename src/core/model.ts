@@ -93,7 +93,7 @@ export interface Space {
   level?: string;
   /** グリッド参照。複数矩形の合併でL字などを表す (rectsと同順) */
   grids: GridRef[];
-  /** グリッド解決後のmm矩形の合併。exteriorなどは空。**書かれた割付** (セル) であって形ではない */
+  /** グリッド解決後のmm矩形の合併。`outside:1` の空間などは空。**書かれた割付** (セル) であって形ではない */
   rects: Rect[];
   /**
    * 導出された領域 — 凸片の集合 (ADR-0022)。既定は rects をそのまま写したもので、
@@ -484,7 +484,7 @@ export function columnSites(
 
 /**
  * そのレベルに立つ柱を導く (ADR-0023)。
- * 通り芯の交点のうち、床のある空間 (exterior・void を除く) の内側にあるものへ柱を置く。
+ * 通り芯の交点のうち、床のある空間 (`outside:1`・`void:1` を除く) の内側にあるものへ柱を置く。
  * 位置はどこにも書かれていない — 通りと床という既にある事実の交わりから現れる
  */
 export function columnsFor(model: Model, level: string): Column[] {

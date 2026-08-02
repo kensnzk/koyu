@@ -592,7 +592,7 @@ function ingest(
         const leaf = rest[0];
         const span = rest[1];
         if (!leaf || leaf.startsWith("/") || !span) {
-          throw new SourceError(ln, "stack takes the form stack <name> <L?..L?> type:stair|shaft");
+          throw new SourceError(ln, "stack takes the form stack <name> <L?..L?> type:stair|shaft|void");
         }
         const levels = resolveSpanLevels(model, span, ln);
         const attrs = parseAttrs(rest.slice(2), ln);
@@ -1258,11 +1258,6 @@ function applyAttr(
   }
   into[key] = value;
   model.attrSrc.set(k, layer);
-}
-
-/** 定義された属性の出所を、その層のものとして記録する */
-function recordAttrs(model: Model, kind: string, subject: string, attrs: Attrs, layer: number): void {
-  for (const key of Object.keys(attrs)) model.attrSrc.set(srcKey(kind, subject, key), layer);
 }
 
 /** 集合の要素を名で引く (合成の規則3 — 同一性は「含む対象 + その中で一意な名」) */

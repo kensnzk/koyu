@@ -11,6 +11,7 @@ import {
   heff,
   isSemiOutdoor,
   levelsSorted,
+  regionOf,
   type Model,
   type Pt,
   type Space,
@@ -25,10 +26,6 @@ import { runDecls } from "./vertical.js";
 export const CEILING_T = 30;
 /** 上に何も無いときの屋根版の厚さ mm (上階レベルの slab が無い場合の既定) */
 export const ROOF_T = 200;
-
-/** 空間の導出された領域。parse の出口で必ず埋まる (ADR-0022) — 割付への退避は持たない */
-export const regionOf = (s: Space): Pt[][] =>
-  s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
 
 export type SlabKind = "floor" | "ceiling" | "roof";
 

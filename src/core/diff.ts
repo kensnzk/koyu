@@ -678,7 +678,7 @@ const fmtFields = (fields: FieldChange[]): string => fields.map(fmtField).join("
 const betweenLabel = (x: { between: [string, string]; edge?: Edge }): string =>
   `${x.between[0]} | ${x.between[1]}${x.edge ? ` edge:${x.edge}` : ""}`;
 
-/** 日本語の差分行 (空なら差分なし)。並びはsemanticDiffが決めた正準順のまま */
+/** 差分行 (英語・空なら差分なし)。並びはsemanticDiffが決めた正準順のまま */
 export function renderDiff(d: ModelDiff): string[] {
   const out: string[] = [];
   for (const g of d.grid) {

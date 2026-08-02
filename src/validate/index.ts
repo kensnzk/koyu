@@ -63,7 +63,7 @@ export type ValidationRule = keyof typeof VALIDATION_RULES;
 export interface Finding {
   rule: ValidationRule;
   level: "violation" | "caution";
-  /** 日本語の本文 (位置接頭辞なし — core の Diagnostic と同じ流儀) */
+  /** 本文 (英語・位置接頭辞なし — core の Diagnostic と同じ流儀) */
   message: string;
   /** 出所の行 */
   line?: number;

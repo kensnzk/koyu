@@ -47,7 +47,7 @@ type CanPass = (b: Boundary) => boolean;
 
 /**
  * from (複数可) から toSet のどれかへ、avoid が真になる空間を**通らずに**辿り着けるか。
- * 到達先そのものは avoid を問わない (外部は exterior だが、着いた時点で目的は果たされている)。
+ * 到達先そのものは avoid を問わない (外部は `outside:1` だが、着いた時点で目的は果たされている)。
  */
 function reachableAvoiding(
   model: Model,
