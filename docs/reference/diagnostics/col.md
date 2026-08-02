@@ -42,7 +42,7 @@ The third is easy to forget. **No column stands under a balcony** — unless a f
 
 **The population is the declaration.** COL01 and COL02 both ask not "how many stood on this level" but "how many stood **for this declaration**". Counting the former would let a declaration producing nothing pass in silence the moment any other declaration on that storey stood a single column.
 
-## COL01 — the declaration produces no columns
+## COL01 — the declaration produces no columns {#col01}
 
 `warning`
 
@@ -81,7 +81,7 @@ This file produces COL01 with the same body. The terrace meets the exterior acro
 
 **Fix** — correct the storey, or drop the restriction. If all you wanted was thinner columns higher up, check that the storey range matches floors that actually exist.
 
-## COL02 — overlapping column declarations
+## COL02 — overlapping column declarations {#col02}
 
 `warning`
 

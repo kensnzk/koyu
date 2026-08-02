@@ -106,7 +106,7 @@ The terms fall into six groups — the skeleton, the elements, attributes, deriv
 | daylighting, 採光 | The rough judgement that effective window area ≥ floor area / 7, for rooms in scope. A coefficient of 0.7 applies when the window looks onto covered semi-outdoor space | [daylight](reference/validate/daylight.md) |
 | road frontage, 接道 | The sum of the boundary segment lengths between spaces under the site zone and exterior spaces carrying `road:<width>`. **An external wall of the building facing the road does not count** | [site](reference/validate/site.md) |
 | MCP server | `koyu-mcp` — the entrance for agents. A dependency-free stdio server with 12 tools. The standard loop is `model_summary` → `layers` → `write_layer` → `check` | [MCP](reference/mcp/index.md) |
-| public surface, 公開面 | The set of names written down as the TypeScript API | [API](reference/api/canonical.md) |
+| public surface, 公開面 | The set of names written down as the TypeScript API | [API](reference/api/index.md) |
 
 ## Neighbouring words (outside koyu)
 

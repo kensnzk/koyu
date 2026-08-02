@@ -53,7 +53,7 @@ The invariant is asked only of spaces that satisfy all of the following.
 
 That last point bites. Forget `slab:` on the level above and the storey below **goes unchecked and stays green**. Run `--strict` so SUF03 is caught.
 
-## HGT01 — it collides with the storey above
+## HGT01 — it collides with the storey above {#hgt01}
 
 `error`
 
@@ -91,7 +91,7 @@ space /L2/a room X1..X2 Y1..Y2
 
 If you meant to pierce the storey, that is a void — see HGT02 below.
 
-## HGT02 — insufficient coverage under a partial void
+## HGT02 — insufficient coverage under a partial void {#hgt02}
 
 `error`
 

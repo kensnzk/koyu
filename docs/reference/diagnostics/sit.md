@@ -27,7 +27,7 @@ Coordinates are in mm and there must be three or more vertices. **The polygon is
 
 The three live codes look only at **the soundness of the given** — whether it holds together as a shape, and whether a zone corresponds to it. Judgements about the **relation** between building and site are not in `koyu check` at all (see "retired numbers" below).
 
-## SIT01 — the site shape has a duplicate vertex
+## SIT01 — the site shape has a duplicate vertex {#sit01}
 
 `error`
 
@@ -59,7 +59,7 @@ polygon /site 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```
 
-## SIT02 — the site shape is self-intersecting
+## SIT02 — the site shape is self-intersecting {#sit02}
 
 `error`
 
@@ -91,7 +91,7 @@ polygon /site 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```
 
-## SIT04 — no zone corresponds to the polygon
+## SIT04 — no zone corresponds to the polygon {#sit04}
 
 `warning`
 

@@ -15,7 +15,7 @@ There is only one DAY code.
 
 So a wobble in the spelling of the value is **a total loss of the verdict**. Let `daylight:yes` through as a free attribute and the space drops silently out of scope, and `light` returns output indistinguishable from "every room passes". DAY01 exists for that one reason.
 
-## DAY01 — daylight is either 1 or 0
+## DAY01 — daylight is either 1 or 0 {#day01}
 
 `error`
 

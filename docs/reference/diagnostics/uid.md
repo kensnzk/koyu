@@ -19,7 +19,7 @@ There are four UID codes. All are errors.
 - **`uid`** — an **opaque token** written on a `space` or a `zone`. It is unique across the whole model and exists so you can say "this is the same thing" after changing a path. `koyu diff`'s rename detection reads it. UID01–UID03 guard it.
 - **`name`** — the identity of an opening, a `seg`, an `area` or a column. None of these has a path of its own, so their identity is **the container plus a name unique inside it**. UID04 guards that.
 
-## UID01 — a uid cannot be a token of digits alone
+## UID01 — a uid cannot be a token of digits alone {#uid01}
 
 `error`
 
@@ -45,7 +45,7 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 uid:sp-0123
 ```
 
-## UID02 — a uid cannot contain whitespace
+## UID02 — a uid cannot contain whitespace {#uid02}
 
 `error`
 
@@ -64,7 +64,7 @@ A uid cannot contain whitespace: "sp 1"
 
 **Fix** — replace the whitespace with a hyphen or an underscore (`uid:sp-1`).
 
-## UID03 — a duplicate uid
+## UID03 — a duplicate uid {#uid03}
 
 `error`
 
@@ -88,7 +88,7 @@ The message lists every origin with its kind, and `related` carries the same pos
 
 If you compose several files with `import`, deciding a prefix per layer prevents most of these (`sp-` / `w2-` / `ext-`). If a machine is writing them, `koyu-mcp`'s `new_uids` and the API's `newUids` return tokens that do not collide.
 
-## UID04 — a duplicate name within one container
+## UID04 — a duplicate name within one container {#uid04}
 
 `error`
 

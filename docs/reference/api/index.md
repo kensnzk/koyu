@@ -33,7 +33,7 @@ import { svgPlan, svgAxo } from "@kensnzk/koyu/draw";
 
 The first four are JavaScript module entrances: you `import` names from them. The last two are data — the sources of the bundled buildings, and the grammar file — so the `node:fs` column does not apply. **This table is every subpath the package publishes.** A test binds each declared subpath to an appearance on this page, so adding an entrance without writing it here makes the test fail.
 
-**The root pulls neither `node:fs` nor `node:path`.** It runs unchanged in a browser, a web worker, or an edge runtime. Only the entrance that touches the filesystem lives under `/node`. The split exists to keep the parser itself pure: composition (resolving `import`) takes a "how do I read a layer" function from outside, and the filesystem is only one implementation of it. A browser passes a virtual file set (`parseFiles`) or its own loader (`parseWith`) — see [Parsing and composition](parsing.md).
+**The root pulls neither `node:fs` nor `node:path`.** It runs unchanged in a browser, a web worker, or an edge runtime. Only the entrance that touches the filesystem lives under `/node`. The split exists to keep the parser itself pure: composition (resolving `import`) takes a "how do I read a layer" function from outside, and the filesystem is only one implementation of it. A browser passes a virtual file set (`parseFiles`) or its own loader (`parseWith`) — see Parsing and composition.
 
 `/validate` and `/draw` are also part of what the root re-exports. They are **separate entrances so the domains do not blur**, not separate implementations: calling `validate` from the root and from `@kensnzk/koyu/validate` calls the same function. (The `/validate` module also exposes `finding`, a constructor for a `Finding`; the root does not re-export it, and a name absent from the list below is outside the promise.)
 
@@ -49,21 +49,21 @@ So **this surface is exactly the set of names spelled out one by one in `src/ind
 
 | Surface | Values | Types |
 |---|---|---|
-| [Parsing and composition](parsing.md) | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
-| [The model and its questions](model.md) | `areaM2` `canonicalBoundaryOrder` `columnsFor` `DEFAULT_LANGUAGE_VERSION` `displayName` `effectiveUse` `heff` `isCoveredAbove` `isIndoor` `isOutside` `isSemiOutdoor` `isVoid` `levelsSorted` `newUids` `pointInPolygon` `polyBounds` `polygonAreaM2` `rectToPoly` `SourceError` `srcRef` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` `unionAreaM2` `zoneAreaM2` | `Area` `Asset` `Attrs` `AttrValue` `Boundary` `BoundaryKind` `Column` `ColumnDecl` `DrawnLine` `Edge` `GridAxis` `GridRef` `Level` `Model` `Opening` `Pt` `Rect` `Seg` `SitePolygon` `Space` `Zone` |
-| [Diagnostics](diagnostics.md) | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `CheckResult` `Diagnostic` `DiagnosticCode` |
-| [Graph and segments](queries.md) | `deriveDefaultBoundaries` `doorsBetween` `envelopeGaps` `neighbors` `passable` `placeBand` `placeOpening` `segmentsFor` | `Band` `BandCode` `BandError` `NeighborInfo` `PlacedBand` `Route` `Segment` |
-| [Derivation (Form)](derive.md) | `band` `bandLine` `columnRect` `derive` `DERIVATION_CONSTANTS` `levelPitch` `runPrism` `thicken` | `DeriveOptions` `Form` `FormBoundary` `FormColumn` `FormInput` `FormLevel` `FormOpening` `FormPanel` `FormPlan` `FormPrism` `FormRun` `FormSeg` `FormSite` `FormSpace` `FormSwing` `PlanClass` `PlanEntity` `PlanRole` `PlanSubject` |
+| Parsing and composition | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
+| The model and its questions | `areaM2` `canonicalBoundaryOrder` `columnsFor` `DEFAULT_LANGUAGE_VERSION` `displayName` `effectiveUse` `heff` `isCoveredAbove` `isIndoor` `isOutside` `isSemiOutdoor` `isVoid` `levelsSorted` `newUids` `pointInPolygon` `polyBounds` `polygonAreaM2` `rectToPoly` `SourceError` `srcRef` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` `unionAreaM2` `zoneAreaM2` | `Area` `Asset` `Attrs` `AttrValue` `Boundary` `BoundaryKind` `Column` `ColumnDecl` `DrawnLine` `Edge` `GridAxis` `GridRef` `Level` `Model` `Opening` `Pt` `Rect` `Seg` `SitePolygon` `Space` `Zone` |
+| Diagnostics | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `CheckResult` `Diagnostic` `DiagnosticCode` |
+| Graph and segments | `deriveDefaultBoundaries` `doorsBetween` `envelopeGaps` `neighbors` `passable` `placeBand` `placeOpening` `segmentsFor` | `Band` `BandCode` `BandError` `NeighborInfo` `PlacedBand` `Route` `Segment` |
+| Derivation (Form) | `band` `bandLine` `columnRect` `derive` `DERIVATION_CONSTANTS` `levelPitch` `runPrism` `thicken` | `DeriveOptions` `Form` `FormBoundary` `FormColumn` `FormInput` `FormLevel` `FormOpening` `FormPanel` `FormPlan` `FormPrism` `FormRun` `FormSeg` `FormSite` `FormSpace` `FormSwing` `PlanClass` `PlanEntity` `PlanRole` `PlanSubject` |
 | [The attribute ledger](../muro/attributes.md) | `ASSET_ELEM` `ATTR_LEDGER` `attrSpec` `CARRY_NAMESPACE` `isNamespaced` `known` | `AttrSpec` `AttrTier` |
 | [Tolerances](../form/constants.md) | `TOLERANCES` | — |
-| [Slabs — floors, ceilings, roofs](solids.md) | `slabs` | `Slab` `SlabKind` |
-| [Daylight inputs](queries.md) | `daylightInputs` | `DaylightInput` |
-| [Vertical circulation](solids.md) | `RUN_KEYS` `runDecls` `runDrawsForLevel` `runSolids` `slopeText` `verticalRuns` | `RunArrow` `RunDecl` `RunDevice` `RunDraw` `RunForm` `RunPart` `RunSolid` `Seg2` `VerticalRun` |
-| [Site](queries.md) | `siteReport` | `RoadFrontage` `SiteReport` |
-| [Diff](diff.md) | `renderDiff` `semanticDiff` | `BoundaryChange` `BoundaryItem` `ChangedItem` `ColumnItem` `FieldChange` `GridChange` `ModelDiff` `RenamedItem` `SpaceItem` |
-| [Drawing the plan](draw.md) | `svgPlan` | `PlanOptions` |
-| [Drawing the solid](draw.md) | `svgAxo` | `AxoOptions` |
-| [Architectural verdicts](validate.md) | `validate` `VALIDATION_RULES` | `Finding` `ValidationRule` |
+| Slabs — floors, ceilings, roofs | `slabs` | `Slab` `SlabKind` |
+| Daylight inputs | `daylightInputs` | `DaylightInput` |
+| Vertical circulation | `RUN_KEYS` `runDecls` `runDrawsForLevel` `runSolids` `slopeText` `verticalRuns` | `RunArrow` `RunDecl` `RunDevice` `RunDraw` `RunForm` `RunPart` `RunSolid` `Seg2` `VerticalRun` |
+| Site | `siteReport` | `RoadFrontage` `SiteReport` |
+| Diff | `renderDiff` `semanticDiff` | `BoundaryChange` `BoundaryItem` `ChangedItem` `ColumnItem` `FieldChange` `GridChange` `ModelDiff` `RenamedItem` `SpaceItem` |
+| Drawing the plan | `svgPlan` | `PlanOptions` |
+| Drawing the solid | `svgAxo` | `AxoOptions` |
+| Architectural verdicts | `validate` `VALIDATION_RULES` | `Finding` `ValidationRule` |
 
 Four things put a name on the surface.
 
@@ -100,28 +100,26 @@ for (const s of model.spaces.values()) {
 /out	exterior	-
 ```
 
-`model.spaces` is a `Map<string, Space>` and `model.boundaries` is a `Boundary[]`. **A path is the identity of a space**, and a boundary belongs to neither space it joins — it is a first-class relation sitting in an array. See [Model and its types](model.md).
+`model.spaces` is a `Map<string, Space>` and `model.boundaries` is a `Boundary[]`. **A path is the identity of a space**, and a boundary belongs to neither space it joins — it is a first-class relation sitting in an array. See Model and its types.
 
-**An empty diagnostic list does not mean the building works.** `checkDiagnostics` says only that what is written is not self-contradictory as data. A two-storey house with not one door declared stays sealed shut with an empty list. The architectural judgement is made separately by [`validate`](validate.md).
+**An empty diagnostic list does not mean the building works.** `checkDiagnostics` says only that what is written is not self-contradictory as data. A two-storey house with not one door declared stays sealed shut with an empty list. The architectural judgement is made separately by `validate`.
 
-## Map of the pages
+## Where to read a signature
 
-| Page | What you look up |
-|---|---|
-| [Model and its types](model.md) | `Model` `Space` `Boundary` `Zone` `Level` `Opening` and the rest of the written composition |
-| [Parsing and composition](parsing.md) | `parse` `parseFiles` `parseWith` `parseFile` `parseFileWith` `tokenize` `LayerLoader` |
-| [Diagnostics](diagnostics.md) | `checkDiagnostics` `check` `DIAGNOSTIC_CODES` `Diagnostic` `CheckResult` |
-| [Validation](validate.md) | `validate` `VALIDATION_RULES` `Finding` `ValidationRule` |
-| [Questions about a model](queries.md) | `doorsBetween` `neighbors` `areaM2` `siteReport` `daylightInputs` and friends |
-| [Deriving form](derive.md) | `derive`, every type in `Form`, `DERIVATION_CONSTANTS`, `TOLERANCES` |
-| [Solids and generated fabric](solids.md) | `thicken` `band` `columnRect` `runPrism` `slabs` `verticalRuns` and friends |
-| [Drawing](draw.md) | `svgPlan`, `svgAxo` and their options |
-| [Canonical JSON](canonical.md) | `toCanonical` |
-| [Semantic diff](diff.md) | `semanticDiff` `renderDiff` `ModelDiff` |
-| [Generating identity](identity.md) | `newUids` |
-| [Geometry helpers](geometry.md) | `polygonAreaM2` `pointInPolygon` `polyBounds` `rectToPoly` `envelopeGaps` |
-| [Errors](errors.md) | `SourceError` `srcRef` |
-| [Language versions](versions.md) | `SUPPORTED_LANGUAGE_VERSIONS` `DEFAULT_LANGUAGE_VERSION` |
+**The package ships its own source.** `files` in `package.json` carries `src/` alongside `dist/`,
+so `node_modules/@kensnzk/koyu/src/` holds every declaration with the comment that explains why it
+is shaped the way it is — and `dist/*.d.ts` holds the types your editor already reads.
+
+That is the place to look up a signature. This page used to be followed by fourteen more that
+restated those declarations in prose, and they were a hand transcription of a machine source: the
+moment `Space.type` became optional, `model.md` went on publishing `type: string` and `derive.md`
+went on publishing a `FormSpace` without `outside` or `void`. Nothing caught it, because nothing
+could — no test binds prose to a type.
+
+**What this page holds instead is the set.** The table above is the whole surface, and
+`test/public-api.test.ts` keeps it in set-equality with `src/index.ts`. A name in the table is a
+promise; a name absent from it is not one, however visible it is in the source. For what each name
+means, read the declaration.
 
 ## Three domains
 
@@ -135,4 +133,4 @@ The surface falls into three parts, and **the way it falls is itself part of the
 
 core **never passes judgement.** Areas, segments, convex pieces, solids — that is where core stops. Whether something is *enough*, or *complied with*, is validation's sentence. The split shows up in the types: core returns `Diagnostic { code, severity }` and validation returns `Finding { rule, level }`. The field names differ, so the two arrays cannot be confused for each other.
 
-The bytes of the SVG that `svgPlan` and `svgAxo` return are outside the promise. **The same input yields the same form, but not the same bytes.** Colours, line styles, typefaces and symbols change without notice. To compare drawings mechanically, compare [`toCanonical`](canonical.md) or the value returned by [`derive`](derive.md).
+The bytes of the SVG that `svgPlan` and `svgAxo` return are outside the promise. **The same input yields the same form, but not the same bytes.** Colours, line styles, typefaces and symbols change without notice. To compare drawings mechanically, compare `toCanonical` or the value returned by `derive`.

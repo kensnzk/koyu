@@ -13,7 +13,7 @@ There is only one LVL code.
 
 A level is a name paired with a `z` — a height in mm above the datum. `z` is **the only value that gives order**, and everything in section is derived from it: storey heights, what is above what, vertical adjacency, how far walls and columns rise. When two levels sit at the same `z`, that order is undetermined.
 
-## LVL01 — the levels have the same z
+## LVL01 — the levels have the same z {#lvl01}
 
 `error`
 

@@ -51,7 +51,7 @@ What was written is `X1+300,Y2 X1+300,Y1`; what is quoted is `X1+300,Y1..X1+300,
 
 **Why canonicalise.** An opening's `at:` is a ratio measured from the segment's start. If the start depended on writing order, one shape would have two readings: `line X1,Y1+2000 X2,Y1+4000` and `line X2,Y1+4000 X1,Y1+2000` would be byte-identical as canonical JSON while placing the door in different places. So the direction is settled at the exit of composition, which makes **the shape a function of the canonical form**.
 
-## LIN01 — the line does not separate the two spaces
+## LIN01 — the line does not separate the two spaces {#lin01}
 
 `error`
 
@@ -89,7 +89,7 @@ A line cannot be drawn between spaces that have no region: /out | /out2
 
 Neither side has a region. There is nothing to divide.
 
-## LIN02 — a vertical boundary cannot carry a line
+## LIN02 — a vertical boundary cannot carry a line {#lin02}
 
 `error`
 
@@ -112,7 +112,7 @@ A line cannot be drawn on a vertical boundary (drawing a line is an act of divid
 
 **Fix** — if you want an angled edge to a void, the line belongs on **that storey's horizontal boundary** — the one between the void and the room next to it. Move the line to a boundary on the same level.
 
-## LIN03 — the line cuts nothing
+## LIN03 — the line cuts nothing {#lin03}
 
 `warning`
 

@@ -40,7 +40,7 @@ The declaration is written **once**, in the base layer (the entry). By conventio
 
 The four VER codes stand at that second place. That is why every message takes the form "fix this, or raise the version".
 
-## VER01 — a default boundary is derived under 0.1
+## VER01 — a default boundary is derived under 0.1 {#ver01}
 
 `error`
 
@@ -66,7 +66,7 @@ A koyu 0.1 file has a touching pair with no declared boundary: /L1/a | /L1/b —
 
 This code's body mentions `0.2` because it is the rule that sits on the seam between 0.1 and 0.2.
 
-## VER02 — a habitable-room type with no daylight under 0.3
+## VER02 — a habitable-room type with no daylight under 0.3 {#ver02}
 
 `error`
 
@@ -92,7 +92,7 @@ A koyu 0.3 file has a room with no daylight: /L1/a — 0.4 does not infer the da
 
 A space that already carries `daylight` means the same thing in both versions, so this code does not fire for it.
 
-## VER03 — 0.5 vocabulary in a 0.4-or-earlier file
+## VER03 — 0.5 vocabulary in a 0.4-or-earlier file {#ver03}
 
 `error`
 
@@ -122,7 +122,7 @@ A koyu 0.4 file uses a 0.5 word: /L1/s carries stair: (a vertical circulation) �
 
 **Fix** — make the first line `koyu 0.5`. If you are not using the new words, 0.4 is fine as it is.
 
-## VER04 — 1.0 vocabulary in a 0.5-or-earlier file
+## VER04 — 1.0 vocabulary in a 0.5-or-earlier file {#ver04}
 
 `error`
 
@@ -161,7 +161,7 @@ The reasoning matches VER03, but the consequence is worse. An older implementati
 
 **Fix** — make the first line `koyu 1.0`. If you are not using composition edits, 0.5 is fine as it is.
 
-## VER05 — a 1.0-or-earlier file writes `exterior` / `void` in the type position
+## VER05 — a 1.0-or-earlier file writes `exterior` / `void` in the type position {#ver05}
 
 `error`
 

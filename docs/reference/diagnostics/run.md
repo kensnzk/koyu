@@ -33,7 +33,7 @@ RUN asks only whether **a unique shape follows from the declaration**. Whether t
 
 **One space produces at most one RUN diagnostic.** The tests run in the order below, and the first hit ends the scan for that space.
 
-## RUN01 — more than one vertical-circulation declaration
+## RUN01 — more than one vertical-circulation declaration {#run01}
 
 `error`
 
@@ -54,7 +54,7 @@ More than one vertical circulation declaration: stair:N ramp:N (one space carrie
 
 **Fix** — split the space and write one on each. A space where a stair and a ramp coexist is really two spaces.
 
-## RUN02 — the value is the direction of rise
+## RUN02 — the value is the direction of rise {#run02}
 
 `error`
 
@@ -81,7 +81,7 @@ The value of lift is 1: lift:N
 
 **Fix** — write one compass letter (`stair:N`). A lift takes `lift:1`.
 
-## RUN03 — the region must be a single rectangle
+## RUN03 — the region must be a single rectangle {#run03}
 
 `error`
 
@@ -116,7 +116,7 @@ The level of the vertical circulation cannot be determined: /house/s
 
 The level cannot be settled. [SUF02](./suf.md) fires alongside this — another consequence of the same space.
 
-## RUN05 — invalid form
+## RUN05 — invalid form {#run05}
 
 `error`
 

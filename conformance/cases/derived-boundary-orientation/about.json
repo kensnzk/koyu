@@ -1,4 +1,7 @@
 {
-  "pins": ["docs/reference/form/index.md#1-形は正準形の関数である", "docs/reference/api/derive.md#derivedefaultboundaries"],
-  "why": "既定境界は正準JSONに出ないので書かれた向きを持たない。だから a/b はパスの照合順で決まる — 空間の宣言順を拾えば、正準形がバイト同一の二つの原本から違う関係の同一性 (a|b@i) が出る。この入力は b を先に宣言しており、期待する ref は /L1/a|/L1/b@0 である"
+ "pins": [
+  "docs/reference/form/index.md#four-promises",
+  "docs/reference/muro/defaults.md"
+ ],
+ "why": "既定境界は正準JSONに出ないので書かれた向きを持たない。だから a/b はパスの照合順で決まる — 空間の宣言順を拾えば、正準形がバイト同一の二つの原本から違う関係の同一性 (a|b@i) が出る。この入力は b を先に宣言しており、期待する ref は /L1/a|/L1/b@0 である"
 }

@@ -20,7 +20,7 @@ const generatedDocs = path.resolve(
 
 const SECTIONS = [
   {
-    label: '入門',
+    label: 'Start',
     index: 'start/index',
     prefix: 'start/',
     order: ['start/install', 'start/first-program', 'start/next'],
@@ -30,7 +30,7 @@ const SECTIONS = [
     // not alphabetically: what the notation takes as primary, what follows from
     // that, what the tools therefore can and cannot promise, and only then the
     // comparisons with what already exists.
-    label: '解説',
+    label: 'Why',
     index: 'why/index',
     prefix: 'why/',
     groupsLast: true,
@@ -53,12 +53,12 @@ const SECTIONS = [
       'why/ifc4-coverage',
       'why/dsl-not-yaml',
     ],
-    groups: [{label: '実例', prefix: 'examples/', index: 'examples/index'}],
+    groups: [{label: 'Examples', prefix: 'examples/', index: 'examples/index'}],
   },
   {
     // The same three bands the how-to index uses: write a building, drive the
     // tools, get unstuck.
-    label: '手順',
+    label: 'How-to',
     index: 'howto/index',
     prefix: 'howto/',
     order: [
@@ -84,31 +84,31 @@ const SECTIONS = [
     ],
   },
   {
-    label: 'リファレンス',
+    label: 'Reference',
     index: 'reference/index',
     prefix: 'reference/',
     groups: [
-      {label: '記法 (.muro)', prefix: 'reference/muro/', index: 'reference/muro/index'},
+      {label: 'Notation (.muro)', prefix: 'reference/muro/', index: 'reference/muro/index'},
       {
-        label: '診断 — koyu check',
+        label: 'Diagnostics — koyu check',
         prefix: 'reference/diagnostics/',
         index: 'reference/diagnostics/index',
       },
       {
-        label: '判定 — koyu validate',
+        label: 'Validation — koyu validate',
         prefix: 'reference/validate/',
         index: 'reference/validate/index',
       },
       {label: 'CLI', prefix: 'reference/cli/', index: 'reference/cli/index'},
-      {label: 'MCP サーバー', prefix: 'reference/mcp/', index: 'reference/mcp/index'},
+      {label: 'MCP server', prefix: 'reference/mcp/', index: 'reference/mcp/index'},
       {
         label: 'TypeScript API',
         prefix: 'reference/api/',
         index: 'reference/api/index',
       },
-      {label: '形', prefix: 'reference/form/', index: 'reference/form/index'},
-      {label: '機械形式', prefix: 'reference/json/', index: 'reference/json/index'},
-      {label: '用語', prefix: 'glossary'},
+      {label: 'Form', prefix: 'reference/form/', index: 'reference/form/index'},
+      {label: 'Canonical JSON', prefix: 'reference/json/', index: 'reference/json/index'},
+      {label: 'Glossary', prefix: 'glossary'},
     ],
     // Loose reference pages come after the volumes: they are the promise, not
     // a surface. Then the roadmap, which belongs to nothing else.

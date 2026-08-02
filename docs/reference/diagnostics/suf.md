@@ -18,7 +18,7 @@ There are four SUF codes. None of them asks whether a value is *right*; each ask
 
 **These are not validity judgements.** SUF never says "that ceiling height is wrong". It says only "no ceiling height is written".
 
-## SUF01 — the ceiling height cannot be determined
+## SUF01 — the ceiling height cannot be determined {#suf01}
 
 `error`
 
@@ -61,7 +61,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 Write `h:` on the space for rooms that differ (`space /L1/a room X1..X2 Y1..Y2 h:2700`). A space's `h` beats its level's.
 
-## SUF02 — its level cannot be determined
+## SUF02 — its level cannot be determined {#suf02}
 
 `error`
 
@@ -98,7 +98,7 @@ space /house/a room X1..X2 Y1..Y2 level:L1
 
 Use this when you want the path cut by an aggregation hierarchy (bundling by dwelling, wing or use). If you want the head of the path to state the level, add a `level L1 0 h:2400 slab:150` line to the base layer and write `space /L1/a …`.
 
-## SUF03 — no slab, so no floor is generated
+## SUF03 — no slab, so no floor is generated {#suf03}
 
 `warning`
 
@@ -130,7 +130,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 **Sometimes it does not fire.** If a level carries no space that could have a floor (a space with a region that is neither `void` nor `exterior`), SUF03 stays quiet. A roof level that exists only to give the top storey its upper bound (`level R 5800 slab:500`) is exactly that case — there is no floor that failed to be generated, so there is nothing to say.
 
-## SUF04 — no level above, so no shape is generated
+## SUF04 — no level above, so no shape is generated {#suf04}
 
 `warning`
 

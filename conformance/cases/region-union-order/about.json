@@ -1,4 +1,7 @@
 {
-  "pins": ["docs/reference/form/index.md#1-形は正準形の関数である", "docs/reference/json/index.md"],
-  "why": "+ による領域の合併の書き順は正準形が捨てる (at は綴りの正準順に並ぶ)。捨てられた順が凸片・スラブ・平面のエンティティの並びに残れば、二片が同面積のときに室名ラベルの座という物理量が宣言順の関数になる。この Form が縛るのはその並びである"
+ "pins": [
+  "docs/reference/form/index.md#four-promises",
+  "docs/reference/json/index.md"
+ ],
+ "why": "+ による領域の合併の書き順は正準形が捨てる (at は綴りの正準順に並ぶ)。捨てられた順が凸片・スラブ・平面のエンティティの並びに残れば、二片が同面積のときに室名ラベルの座という物理量が宣言順の関数になる。この Form が縛るのはその並びである"
 }

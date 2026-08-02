@@ -74,7 +74,7 @@ An attribute value shaped like a number becomes a number, and the token you type
 }
 ```
 
-The same thing is on the public API ([identity API](../reference/api/identity.md)).
+The same thing is on the public API (`newUids` on the [TypeScript API](../reference/api/index.md)).
 
 ```ts
 import { newUids } from "@kensnzk/koyu";

@@ -16,7 +16,7 @@ There are two ZON codes, and both are warnings.
 
 So a zone's faults are always **a path that does not line up**. ZON01 is a path with nothing under it; ZON02 is a path that collides with what it is meant to bundle.
 
-## ZON01 — there are no spaces beneath the zone
+## ZON01 — there are no spaces beneath the zone {#zon01}
 
 `warning`
 
@@ -50,7 +50,7 @@ If you simply have not written the spaces yet, writing them clears it. **Putting
 
 **It shows up most on the site zone.** Declare `zone /site site:1` with a `polygon` but no exterior spaces inside the site yet (yard, path) and this fires. The site area comes from the polygon, so the derivations still run — but the emptiness is told.
 
-## ZON02 — a space shares its path with a zone
+## ZON02 — a space shares its path with a zone {#zon02}
 
 `warning`
 
