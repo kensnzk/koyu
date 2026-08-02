@@ -75,7 +75,7 @@ boundary /L2/bed /L2/hall t:120
 ここまでを一つのファイルにまとめると次になる。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 二階建ての稽古
 unit mm
 
@@ -167,7 +167,7 @@ space /L1/hall hall X2..X3 Y2..Y3 name:玄関・階段 h:2600
 上階レベルの `slab:` を書き忘れるとその階に床が一枚も生成されず、`h:` も落とすと天井高が決まらない。**値の無いところに既定値は捏造されない** — 痩せた形が黙って出ないよう、充足性の検査が言う。
 
 ```muro-bad
-koyu 1.0
+koyu 1.1
 name 段の欠け
 unit mm
 

@@ -109,7 +109,7 @@ boundary /pathA /pathB …
 ## 書いてみる
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 扉の書き方
 unit mm
 

@@ -1,6 +1,6 @@
 {
   "format": "koyu-canonical/1.1",
-  "koyu": "1.0",
+  "koyu": "1.1",
   "name": "方位の例",
   "unit": "mm",
   "grid": {

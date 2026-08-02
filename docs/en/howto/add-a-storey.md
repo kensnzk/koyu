@@ -75,7 +75,7 @@ boundary /L2/bed /L2/hall t:120
 All of the above in one file:
 
 ```muro
-koyu 1.0
+koyu 1.1
 name Two storeys
 unit mm
 
@@ -167,7 +167,7 @@ Lower the ceiling, raise `level L2`'s `z` to buy storey height, or thin the slab
 Forget `slab:` on the upper level and not one floor is generated on that storey; drop `h:` as well and the ceiling height is undetermined. **No default is invented where a value is missing** — the sufficiency checks say so out loud rather than letting a thin model ship silently.
 
 ```muro-bad
-koyu 1.0
+koyu 1.1
 name Missing pieces
 unit mm
 

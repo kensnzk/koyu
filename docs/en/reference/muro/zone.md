@@ -84,7 +84,7 @@ Five keys may be written on a zone, plus any namespaced key containing a dot. A 
 The zone carrying `site:1` is the site. Site area, road frontage, building coverage and floor area ratio are all derived starting from it.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 12000
 grid Y 0 10000
 level L1 0 h:3000 slab:200

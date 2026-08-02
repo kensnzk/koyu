@@ -42,7 +42,7 @@ Being semi-outdoor is derived too: a space that meets an exterior across a `type
 The effective window area is below one seventh of the floor area.
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150
@@ -69,7 +69,7 @@ A 600×600 window is 0.36 m²; the floor is 3600×4500 = 16.20 m², so 2.31 m² 
 The same window through a balcony with a floor above it is multiplied by 0.7.
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 3600 5400
 grid Y 0 4500
 level L1 0 h:2400 slab:150
@@ -101,7 +101,7 @@ The window is 2400×1200 = 2.88 m², but `/L2/a` sits on top of the balcony, so 
 A `window` without `h:` has dropped out of the sum.
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150

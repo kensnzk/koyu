@@ -30,7 +30,7 @@ boundary /home/ldk /home/hall1 t:120 spec:LGS
 アセットの属性が既定になり、**インスタンスの属性が上書きする**。
 
 ```muro
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 3600 7200
 grid Y 0 4500
@@ -98,7 +98,7 @@ boundary /L1/a /out t:150
 `asset W1 window … name:掃き出し窓` の `name` は**建具の型の名**であって、個体の名ではない。だから同じアセットを一枚の壁に二枚並べても衝突しない。
 
 ```muro
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 7200
 grid Y 0 4500

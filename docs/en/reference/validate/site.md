@@ -24,7 +24,7 @@ Coverage and floor-area ratios are numbers, so [`koyu site`](../cli/site.md) ret
 A space with a region lies outside the site polygon.
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 10000 14000
 grid Y 0 10000
 level L1 0 h:2400 slab:150
@@ -58,7 +58,7 @@ The message prints the coordinates of the first escaping point found. One space 
 The zone's `area:` (a transcription of the survey) and the area computed from the `polygon` differ by **0.05 m² or more**.
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 10000
 grid Y 0 10000
 level L1 0 h:2400 slab:150
@@ -97,7 +97,7 @@ Site /site (敷地)
 The boundary segments between an exterior space carrying `road:` (its width in mm) and the spaces under the site zone total less than **2000mm**.
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 1500 10000
 grid Y 0 10000 11000
 level L1 0 h:2700 slab:150
@@ -124,7 +124,7 @@ The 2 m floor is a rule on the architectural side. The frontage length itself is
 **Fix** — write the boundary that faces the road. In the example, correct the width over which the site meets the road (X1..X2) to the real one.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000 10000
 grid Y 0 10000 11000
 level L1 0 h:2700 slab:150

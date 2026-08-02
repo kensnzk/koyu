@@ -126,6 +126,7 @@ export const DIAGNOSTIC_CODES = {
   VER02: "error", // koyu 0.3以前で採光の推定対象だった型に daylight が無い (ADR-0020)
   VER03: "error", // koyu 0.4以前のファイルに0.5の語 (縦動線・線・柱・地下)
   VER04: "error", // koyu 0.5以前のファイルに1.0の語 (over・drop・集合編集 — ADR-0035/0038)
+  VER05: "error", // koyu 1.0以前のファイルの型の位置に exterior / void (ADR-0051)
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
 } as const satisfies Record<string, "error" | "warning">;
 
@@ -143,6 +144,16 @@ const EPS_SITE = 1;
 const VERTICAL = new Set(["stair", "shaft", "void"]);
 /** 0.3以前が採光の対象と推定していた型 (ADR-0020で廃止)。旧版の受理条件の判定にだけ使う — 意味論には効かない */
 const LEGACY_DAYLIT = new Set(["unit", "room", "ldk", "bedroom", "living"]);
+
+/**
+ * 1.0以前が型の位置から構造として読んでいた二語 (ADR-0051で廃止)。
+ * **VER05 の受理条件の判定にだけ使う — 意味論には効かない。**
+ * 型を読む場所がここにしか無いことは test/vocabulary.test.ts が守っている
+ */
+const RETIRED_STRUCTURAL_TYPES: Record<string, { decl: string; loses: string }> = {
+  exterior: { decl: "outside:1", loses: "stops being outside (it becomes indoor floor area)" },
+  void: { decl: "void:1", loses: "stops being a void (a floor is generated in it)" },
+};
 
 /**
  * 版の新旧は `SUPPORTED_LANGUAGE_VERSIONS` の並びで決まる。**辞書順で比べてはならない** —
@@ -591,7 +602,7 @@ function checkColumns(ctx: Ctx): void {
   }
 }
 
-/** 言語版の受理条件 — VER01〜VER04 */
+/** 言語版の受理条件 — VER01〜VER05 */
 function checkLanguageVersion(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 言語版の受理条件 (ADR-0017): 旧版は意味保存の場合のみ受理する。
@@ -618,6 +629,42 @@ function checkLanguageVersion(ctx: Ctx): void {
         `A koyu ${model.version} file has a ${s.type} with no daylight: ${s.path} — 0.4 does not infer the daylight scope from the type, so it falls out of the check. Write daylight:1 (in scope) or daylight:0 (out of scope), then raise the version to koyu 0.4`,
         { line: s.line, file: s.file, path: [s.path] },
       );
+    }
+  }
+
+  // 1.0 以前は型の位置に書かれた `exterior` と `void` が構造として読まれていた (ADR-0051 で廃止)。
+  // 1.1 の処理系はそこを一切読まないので、**書き換えないまま版を上げないと黙って別の建物になる** —
+  // 外部が屋内の床になり、吹抜けに床が生成される。実測で複合用途の例は延床 31,606.24㎡ が
+  // 33,004.00㎡ に増えながら check は緑で通った。ADR-0020 が `daylight` で下したのと同じ判断で、
+  // エラーにして二択を示す。
+  if (olderThan(model.version, "1.1")) {
+    for (const s of model.spaces.values()) {
+      const retired = RETIRED_STRUCTURAL_TYPES[s.type ?? ""];
+      if (!retired) continue;
+      emit(
+        "VER05",
+        `A koyu ${model.version} file writes ${s.type} in the type position: ${s.path} — 1.1 reads no meaning from the type, so this space silently ${retired.loses}. Write ${retired.decl} instead, then raise the version to koyu 1.1`,
+        { line: s.line, file: s.file, path: [s.path] },
+      );
+    }
+    // 逆向きも同じ境界である — 1.1 で入った語を古い版で書けば、知らない処理系は
+    // ATT03 で拒む。版の宣言と語彙は一致していなければならない (VER03/VER04 と同型)
+    for (const s of model.spaces.values()) {
+      if (s.type === undefined) {
+        emit(
+          "VER05",
+          `A koyu ${model.version} file writes a space with no type: ${s.path} — the type became optional in 1.1, and an older processor refuses the line. Write a type, or raise the version to koyu 1.1`,
+          { line: s.line, file: s.file, path: [s.path] },
+        );
+      }
+      for (const key of ["outside", "void"]) {
+        if (s.attrs[key] === undefined) continue;
+        emit(
+          "VER05",
+          `A koyu ${model.version} file carries ${key}: on ${s.path} — that word arrives in 1.1. Raise the version to koyu 1.1`,
+          { line: s.line, file: s.file, path: [s.path] },
+        );
+      }
     }
   }
 

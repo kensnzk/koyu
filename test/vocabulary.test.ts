@@ -40,9 +40,14 @@ const BRANCHES_ON_TYPE = [
   /\.(?:has|includes)\(\s*[A-Za-z_$][\w$]*\.type\s*\)/,
 ];
 
-// The one reader that survives, named here so a second one cannot arrive unnoticed.
-// VER02 tells the author of a pre-0.4 file that five type words used to imply daylight;
-// it is gated on the file's own version and decides nothing about the model.
+// The readers that survive, named here so a third one cannot arrive unnoticed.
+//
+// Both are version-gated migration diagnostics: they read the OLD spelling in order to
+// refuse a file written in it, and neither decides anything about what a model means.
+// VER02 tells the author of a pre-0.4 file that five type words used to imply daylight.
+// VER05 tells the author of a pre-1.1 file that `exterior`/`void` in the type position
+// have stopped meaning anything — the very reading this change removed, kept alive for
+// exactly as long as it takes to say so.
 const ALLOWED = new Set([
   'src/core/diagnose.ts: if (s.type === undefined || !LEGACY_DAYLIT.has(s.type) || s.attrs["daylight"] !== undefined) continue;',
 ]);
@@ -93,7 +98,7 @@ test("vocabulary: the ledger carries the two structural facts, and closes their 
   }
 });
 
-const TWO_ROOMS = `koyu 1.0
+const TWO_ROOMS = `koyu 1.1
 grid X 0 3000 6000
 grid Y 0 4000
 level L1 0 h:2700
@@ -139,4 +144,50 @@ space /out/road nonsense outside:1 road:4000
     indoor,
     "the type word is a label; changing it must not move a single square metre",
   );
+});
+
+// ---- The version boundary ----
+//
+// Moving the two words out of the type position changed what a file MEANS. A file written
+// before the move, left untouched, derives a different building under the new code: its
+// exteriors become indoor floor area and its voids grow floors. Measured on the mixed-use
+// example, 31,606.24 m2 -> 33,004.00 m2, and `check` was green throughout.
+//
+// That is the same silent reinterpretation this whole change was written to remove, so the
+// language version had to move with it and VER05 has to stop the old spelling. The corpus
+// migration is byte-identical, so nothing else in the suite exercises a pre-1.1 file — this
+// is the only thing standing between an old file and a wrong building.
+
+const LEGACY = `koyu 1.0
+grid X 0 3000 6000
+grid Y 0 4000
+level L1 0 h:2700 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /L2/hole void X2..X3 Y1..Y2 level:L1
+space /out exterior name:外部 road:4000
+`;
+
+test("vocabulary: a pre-1.1 file writing the retired spelling is refused, and told both ways out", () => {
+  const diags = checkDiagnostics(parse(LEGACY));
+  const ver05 = diags.filter((d) => d.code === "VER05");
+  assert.equal(ver05.length, 2, "one per space that would silently change meaning");
+  assert.deepEqual([...new Set(ver05.map((d) => d.severity))], ["error"], "silent is why it is an error, not a warning");
+  assert.match(ver05.map((d) => d.message).join("\n"), /Write outside:1 instead, then raise the version to koyu 1\.1/);
+  assert.match(ver05.map((d) => d.message).join("\n"), /Write void:1 instead/);
+});
+
+test("vocabulary: the same boundary is watched from the other side", () => {
+  // A 1.1 word in a 1.0 file: an older processor refuses it, so the versions must agree.
+  const forward = checkDiagnostics(parse(LEGACY.replace("space /out exterior name:外部 road:4000", "space /out name:外部 road:4000 outside:1")));
+  assert.ok(forward.some((d) => d.code === "VER05" && /carries outside:/.test(d.message)));
+  // and omitting the type is 1.1 spelling too
+  const untyped = checkDiagnostics(parse("koyu 1.0\ngrid X 0 3000\ngrid Y 0 4000\nlevel L1 0 h:2700\nspace /L1/a X1..X2 Y1..Y2\n"));
+  assert.ok(untyped.some((d) => d.code === "VER05" && /no type/.test(d.message)));
+});
+
+test("vocabulary: raising the version is the other way out, and it silences all of it", () => {
+  const raised = checkDiagnostics(
+    parse(LEGACY.replace("koyu 1.0", "koyu 1.1")),
+  ).filter((d) => d.code === "VER05");
+  assert.deepEqual(raised, [], "a 1.1 file may spell exterior in the type position — it is just a label there");
 });

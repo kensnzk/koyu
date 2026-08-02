@@ -205,6 +205,7 @@ RUN04, RUN06, RUN07 and RUN08 are [retired numbers](retired.md).
 | [VER02](ver.md) | error | A koyu 0.3-or-earlier file has a habitable type with no `daylight` |
 | [VER03](ver.md) | error | A koyu 0.4-or-earlier file uses 0.5 vocabulary |
 | [VER04](ver.md) | error | A koyu 0.5-or-earlier file uses 1.0 vocabulary |
+| [VER05](ver.md) | error | A koyu 1.0-or-earlier file writes exterior / void in the type position |
 
 ### SYN — syntax and composition (1)
 

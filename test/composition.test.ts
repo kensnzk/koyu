@@ -17,7 +17,7 @@ import { SourceError } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
 import { toCanonical } from "../src/core/model.js";
 
-const BASE = `koyu 1.0
+const BASE = `koyu 1.1
 unit mm
 grid X 0 4000 8000
 grid Y 0 5000

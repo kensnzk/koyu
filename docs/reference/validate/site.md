@@ -24,7 +24,7 @@ mode: reference
 領域を持つ空間が敷地の多角形の外に出ている。
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 10000 14000
 grid Y 0 10000
 level L1 0 h:2400 slab:150
@@ -58,7 +58,7 @@ Validation — 1 violation / 0 cautions
 ゾーンの `area:` (測量値の転記) と、`polygon` の頂点から計算した面積が **0.05㎡ 以上**ずれている。
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 10000
 grid Y 0 10000
 level L1 0 h:2400 slab:150
@@ -97,7 +97,7 @@ Site /site (敷地)
 `road:` (幅員 mm) を持つ外部空間と、敷地ゾーン配下の空間との間の境界線分の合計が **2000mm** に足りない。
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 1500 10000
 grid Y 0 10000 11000
 level L1 0 h:2700 slab:150
@@ -124,7 +124,7 @@ Validation — 1 violation / 0 cautions
 **直し方** — 道路に面する境界を書く。上の例なら、敷地が道路に接する幅 (X1..X2) を実際の幅に直す。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000 10000
 grid Y 0 10000 11000
 level L1 0 h:2700 slab:150

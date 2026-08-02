@@ -10,7 +10,7 @@ mode: reference
 この頁は、通り参照・オフセット・範囲・領域・点の綴りを書く。方位 (`N` `E` `S` `W`) は [方位と a 側](orientation.md)、行そのものの読まれ方は [一行の読まれ方](lines.md) にある。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 位置の例
 unit mm
 
@@ -118,7 +118,7 @@ boundary /L1/a /L1/b
 **`band` は帯の範囲を与え、要素は幅 `w:` だけを持つ。**切り位置は足し算で導かれ、書かれた寸法の合計が帯の幅と一致しなければエラーになる。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3600 5400
 grid Y 0 4000
 level L1 0 h:2400 slab:150

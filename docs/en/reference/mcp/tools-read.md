@@ -147,7 +147,7 @@ Take these two files.
 
 ```muro-part
 # main.muro — entry
-koyu 1.0
+koyu 1.1
 name 二層
 unit mm
 

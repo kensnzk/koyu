@@ -11,7 +11,7 @@ import { CANONICAL_FORMAT, compareCanonical, toCanonical } from "../src/core/mod
 import { parse, parseFiles } from "../src/core/parse.js";
 
 const BASE = [
-  "koyu 0.4",
+  "koyu 1.1",
   "unit mm",
   "grid X 0 4000 8000",
   "grid Y 0 4000 8000",
@@ -290,7 +290,7 @@ test("canonical JSON: a numeric-looking level or asset name still lands in colla
   // format promises — puts `10` first. `check` stayed green throughout.
   const m = parse(
     [
-      "koyu 1.0",
+      "koyu 1.1",
       "unit mm",
       "grid X 0 4000",
       "grid Y 0 4000",

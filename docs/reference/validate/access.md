@@ -36,7 +36,7 @@ mode: reference
 領域を持つ空間から、通れる境界を辿って `type:exterior` の空間へ出られない。
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -59,7 +59,7 @@ violation にしてあるのは、出られない室を建築として読める�
 **直し方** — 外部へ抜ける経路のどこかに `door` を書く。外部への境界は線分が複数になるので `edge:N/E/S/W` で辺を選ぶ。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -78,7 +78,7 @@ boundary /L1/a /out t:150
 通れる境界を持っているのに、その行き先が全部 `type:void` である。
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -99,7 +99,7 @@ Validation — 1 violation / 0 cautions
 **直し方** — 床のある隣 (廊下・階段室) へ扉を書く。吹抜けに面した縁が本当に開いているのなら、それは通行ではなく**見下ろし**なので、`type:open` ではなく `air:1` の壁 (手すり) にする。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -115,7 +115,7 @@ boundary /L1/a /L1/v air:1 h:1100
 型が `stair` の空間から外部へ出るどの経路も、`use:rentable` の空間を通る。
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3000 9000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -147,7 +147,7 @@ Validation — 0 violations / 1 caution
 `use:parking` の空間から、車が通れる境界だけを辿って外部へ出られない。
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -167,7 +167,7 @@ Validation — 1 violation / 0 cautions
 **直し方** — 車路の開口を `door w:2400` 以上にするか、境界を `type:open` にする。地下や上階の駐車場なら、斜路の空間に `ramp:` を書いて `stack` で繋ぐ — その縦連結だけが車の通れる階の跨ぎ方である。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -184,7 +184,7 @@ boundary /L1/p /out
 縦動線の宣言 (`stair:` / `escalator:`) を持つ `use:common` の空間へ、共用廊下から型 `backyard` の空間を通らずに届かない。
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
@@ -216,7 +216,7 @@ Validation — 0 violations / 1 caution
 **直し方** — 共用廊下から直接届く位置へ動かすか、廊下との間に扉を書く。従業員用の縦動線なら `use:common` を外す。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300

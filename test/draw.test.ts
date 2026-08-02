@@ -104,7 +104,7 @@ test("drawing: no derivation constant is spelled in src/draw (the ledger in core
 
 // ---- 3. 平面の黒帯は Form の区間そのもの ----
 
-const SRC = `koyu 1.0
+const SRC = `koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000 9000
 level L1 0 h:2700 slab:300
@@ -252,7 +252,7 @@ test("drawing: the axonometric of a model with tens of thousands of solids still
   // ここでは通り芯だけで柱を大量に立てて、同じ限界を安く超える
   const N = 160;
   const axis = (a: string) => `grid ${a} ` + Array.from({ length: N }, (_, i) => i * 1000).join(" ");
-  const m = parse(`koyu 1.0
+  const m = parse(`koyu 1.1
 ${axis("X")}
 ${axis("Y")}
 level L1 0 h:2700 slab:200

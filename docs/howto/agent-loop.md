@@ -24,7 +24,7 @@ model_summary  →  layers  →  write_layer  →  check ──エラー──�
 二室の平屋。玄関の扉が一枚あるだけで、室と室のあいだには何も書かれていない。
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 name 平屋
 unit mm
 

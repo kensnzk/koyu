@@ -18,7 +18,7 @@ import { ATTR_LEDGER } from "../src/core/vocabulary.js";
 import * as api from "../src/index.js";
 
 const BASE = [
-  "koyu 1.0",
+  "koyu 1.1",
   "unit mm",
   "grid X 0 3600 7200",
   "grid Y 0 4500",
@@ -73,7 +73,7 @@ for (const [what, body] of [
 
 test("identity: a uid written on a level is refused by the parser (level carries no free attributes)", () => {
   assert.throws(
-    () => parse("koyu 1.0\nunit mm\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0 h:2400 uid:lv-1"),
+    () => parse("koyu 1.1\nunit mm\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0 h:2400 uid:lv-1"),
     (e: unknown) => e instanceof SourceError && /not in the ledger/.test(e.message),
   );
 });

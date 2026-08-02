@@ -22,7 +22,7 @@ The facts about the whole building — the version, `name`, `unit`, `grid`, `lev
 
 ```muro-part
 # main.muro
-koyu 1.0
+koyu 1.1
 name A small office
 unit mm
 

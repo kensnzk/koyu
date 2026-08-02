@@ -16,7 +16,7 @@ mode: reference
 **`import` 行の並びが強度の宣言である。**入れ子になった `import` の木を深さ優先で平らにした列が層の並びであり、**後の層ほど強い**。entry は添字 0 で最も弱い。同じ層が二度 import されれば最初の位置を保つ (合成は一度だけ)。
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 level L1 0 h:2700 slab:300
 import ./plan.muro        # 層1

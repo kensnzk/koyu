@@ -199,7 +199,7 @@ In three dimensions a stair flight of k risers carries **k−1 treads** (the top
 ## A complete example
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 階段室のある小さなコア
 unit mm
 

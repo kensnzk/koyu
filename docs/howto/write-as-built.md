@@ -24,7 +24,7 @@ main.muro       ← 入口。グリッド・レベルと、重ねる順序を宣
 **`import` 行の並びが強度の宣言である。**後に書いた層ほど強い。入口は最も弱い層 (添字 0) になる。
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 name 実測を重ねた事務所
 unit mm
 
@@ -160,7 +160,7 @@ Attribute provenance:
 計画だけを重ねた入口をもう一つ作ると、二つのモデルを直接比べられる。
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 name 実測を重ねた事務所
 unit mm
 

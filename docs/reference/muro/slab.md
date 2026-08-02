@@ -25,7 +25,7 @@ level <名> <z> [h:天井高] [slab:床組み厚] [underground:1]
 床の z 範囲は **FL − slab から FL まで**である。輪郭は導出された凸片なので、[描かれた線](line.md)で切られていれば床も斜めになる。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 床組みの例
 unit mm
 grid X 0 6000
@@ -55,7 +55,7 @@ space /L2/a room X1..X2 Y1..Y2 name:2階
 **既定値を捏造しない。**必要な値が書かれていなければ、勝手に既定を置くのではなくその要素を作らない。だから `slab:` の無いレベルには床が一枚も生成されず、そのことが言葉になる。
 
 ```muro-warn
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000
 grid Y 0 4000
@@ -77,7 +77,7 @@ space /L2/a room X1..X2 Y1..Y2 name:2階
 各空間について **天井高 + 上階の slab ≤ 階高** が検査される。階高は次のレベルの z までの差である。超えれば上階への食い込みであり、エラーになる。
 
 ```muro-bad
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000
 grid Y 0 4000

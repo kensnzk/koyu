@@ -20,7 +20,7 @@ mode: howto
 `validate` が、外部へ辿り着けない室を**すべて**列挙する。起点を自分で挙げる必要は無い。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 閉じた家
 unit mm
 

@@ -6,20 +6,20 @@ mode: reference
 # koyu — the version line
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 ```
 
 **One line declaring which version of the semantics this file is read under.** Six versions are accepted, and this order is the order of old to new.
 
 ```text
-0.1   0.2   0.3   0.4   0.5   1.0
+0.1   0.2   0.3   0.4   0.5   1.0   1.1
 ```
 
-**Omitted, the file is read under the newest version, `1.0`.** Omitting it does not pin the meaning across tool versions — a file whose meaning must stay fixed writes the line.
+**Omitted, the file is read under the newest version, `1.1`.** Omitting it does not pin the meaning across tool versions — a file whose meaning must stay fixed writes the line.
 
 ## Newer means later in that list, not later in the alphabet
 
-**`1.0` is newer than `0.5`.** Compared as strings, `"0.5" > "1.0"`, so leaving the comparison to the spelling would make the newest version look like the oldest. The order is always decided by the index in the list above.
+**`1.1` is newer than `0.5`.** Compared as strings, `"0.5" > "1.0"`, so leaving the comparison to the spelling would make the newest version look like the oldest. The order is always decided by the index in the list above.
 
 ## How the line is written
 
@@ -27,15 +27,15 @@ Exactly two tokens: `koyu <version>`.
 
 | Written | Result |
 |---|---|
-| `koyu 1.0` | accepted |
-| `koyu` | `koyu takes a version: koyu 1.0` |
-| `koyu 1.0 latest` | `Extra tokens on the koyu version declaration: latest` |
-| `koyu 0.6` | `Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0)` |
+| `koyu 1.1` | accepted |
+| `koyu` | `koyu takes a version: koyu 1.1` |
+| `koyu 1.1 latest` | `Extra tokens on the koyu version declaration: latest` |
+| `koyu 0.6` | `Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1)` |
 
 **It is declared in the base layer only, and only once.**
 
 - In any other layer: `The koyu version is declared only in the base layer (the entry)`
-- Twice: `The koyu version is declared once (already 1.0)` — **declaring the same version twice is also an error.** The discipline matches `grid`: it forbids a silent override decided by composition order
+- Twice: `The koyu version is declared once (already 1.1)` — **declaring the same version twice is also an error.** The discipline matches `grid`: it forbids a silent override decided by composition order
 - The position in the file is free; it need not be the first line
 
 ## An older version is accepted only where the meaning is preserved
@@ -70,7 +70,7 @@ from the type, so it falls out of the check. Write daylight:1 (in scope) or dayl
 
 ### VER03 — a 0.5 word in a file declaring 0.4 or older
 
-A processor of `0.4` or earlier does not know the words introduced in `0.5`. Where it does not know the word, the shape is simply never generated. There are four.
+A processor of `0.4` or earlier does not know the words introduced in `0.5`. Where it does not know the word, the shape is simply never generated. There are five.
 
 | Word | Where it is written |
 |---|---|
@@ -88,7 +88,7 @@ version to koyu 0.5
 
 ### VER04 — a 1.0 word in a file declaring 0.5 or older
 
-A processor of `0.5` or earlier does not know the composition words introduced in `1.0`. **It cannot read those lines as words at all, so neither the override nor the removal happens — it silently becomes a different building.** There are three.
+A processor of `0.5` or earlier does not know the composition words introduced in `1.1`. **It cannot read those lines as words at all, so neither the override nor the removal happens — it silently becomes a different building.** There are three.
 
 | Word | What it does |
 |---|---|

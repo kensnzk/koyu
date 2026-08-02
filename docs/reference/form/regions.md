@@ -91,7 +91,7 @@ form.spaces[0].outline
 ## 一つ書いてみる
 
 ```muro
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000
 grid Y 0 6000

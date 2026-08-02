@@ -16,7 +16,7 @@ Composition keeps six rules. **It is usable only when all six hold.** The conseq
 **The order of the `import` lines is the declaration of strength.** The tree of nested imports flattened depth-first is the layer order, and **later layers are stronger**. The entry is index 0 and the weakest. A layer imported twice keeps its first position — it is composed only once.
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 level L1 0 h:2700 slab:300
 import ./plan.muro        # layer 1

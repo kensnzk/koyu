@@ -176,7 +176,7 @@ level carries acme.x:, which is not in the ledger (level reads h / slab / pitch 
 集計の軸だけが本当に継承される。空間のパスを接頭辞として含む**最も深いゾーン**の `use` が渡り、**空間側の宣言が勝つ**。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 継承の例
 grid X 0 4000 8000
 grid Y 0 4000

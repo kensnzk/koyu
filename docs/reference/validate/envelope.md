@@ -18,7 +18,7 @@ mode: reference
 `caution`
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -70,7 +70,7 @@ Validation — 0 violations / 1 caution
 残りの辺に境界を書く。`edge:N/E/S/W` で辺を選ぶか、辺を限定しない一本で残り全部を受ける。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150

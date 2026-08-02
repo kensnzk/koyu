@@ -80,7 +80,7 @@ polygon は隔離した層に置くとよい。所与のジオメトリと設計
 ## 確かめる
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 敷地つきの平屋
 unit mm
 

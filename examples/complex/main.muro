@@ -16,7 +16,7 @@
 #   koyu site  examples/complex/main.muro       敷地・接道
 #   koyu plan  examples/complex/main.muro -l L1 -o out/c-L1.svg
 
-koyu 1.0
+koyu 1.1
 name 特大複合建築 — 商業・事務所・ホテル
 unit mm
 

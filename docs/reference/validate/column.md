@@ -30,7 +30,7 @@ mode: reference
 `violation`
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150
@@ -59,7 +59,7 @@ violation にしてあるのは、物と物が同じ場所を占めているか�
 **扉を通りからずらす。**`at:` にオフセットを足す。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150
@@ -77,7 +77,7 @@ boundary /L1/a /L1/b
 **あるいは、その通りに柱を立てない。**`x:` / `y:` に通り芯の名前を並べて、柱の宣言のほうを限定する。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150

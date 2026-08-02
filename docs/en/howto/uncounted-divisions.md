@@ -34,7 +34,7 @@ If either is yes, it is a **counted division** — write two spaces. If both are
 Write the threshold as an extent inside the office. While we are here, write the fact that only part of the exterior wall is a curtain wall, with a `seg`.
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 数えない分節
 unit mm
 
@@ -82,7 +82,7 @@ The threshold is absent from the graph too. The office is one node, with one doo
 The same building, with the threshold and the working floor as separate spaces. **The parent is a `zone`, not a `space`** — a space with a region under another space with a region always overlaps.
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 数える分節
 unit mm
 

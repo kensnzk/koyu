@@ -38,7 +38,7 @@ So six rules are laid down.
 Three layers. `main.muro` holds the given, `plan.muro` the plan, `as-built.muro` the measurements.
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 grid X 0 3600 7200
 grid Y 0 4500
 level L1 0 h:2400 slab:150

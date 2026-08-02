@@ -579,7 +579,7 @@ test("guide: every CLI invocation it shows names a subcommand that exists", () =
     for (const p of prose) {
       for (const m of p.text.matchAll(/`([^`\n]+)`/g)) {
         const text = m[1]!.trim();
-        // A quoted **message** is not an invocation. `koyu takes a version: koyu 1.0` is what the
+        // A quoted **message** is not an invocation. `koyu takes a version: koyu 1.1` is what the
         // tool prints, and no real command line carries a colon followed by a space
         if (text.includes(": ")) continue;
         cands.push({ file, line: p.line, text });

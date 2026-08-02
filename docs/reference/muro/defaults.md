@@ -20,7 +20,7 @@ mode: reference
 ## 最小のファイル
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -155,7 +155,7 @@ space /L1/a room X1..X2 Y1..Y2
 **接する空間の既定が壁である以上、扉を一枚も宣言しない二階建ては緑のまま完全に密封される。**
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150

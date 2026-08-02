@@ -24,7 +24,7 @@ boundary /pathA /pathB …
 `w` が無ければ parse が止める。`h` は書かなくても `check` は緑になる — だが**採光の数え上げから丸ごと落ちる**。窓面積は `h` を持つ窓の `w × h` の合計だからである。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 窓の書き方
 unit mm
 

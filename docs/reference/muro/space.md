@@ -178,7 +178,7 @@ $ npx tsx src/cli.ts check s3.muro --json
 ## daylight — 採光の対象は宣言する
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150

@@ -20,7 +20,7 @@ koyu check building/main.muro
 接する空間の既定は壁で、壁は扉が無ければ通れない。だから扉を一枚も書かない建物は、完全に密封されたまま `check` が緑になる。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 密封
 unit mm
 grid X 0 3600 7200

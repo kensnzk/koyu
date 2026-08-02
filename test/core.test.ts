@@ -164,7 +164,7 @@ test("canonical JSON is stable", () => {
   const j2 = toCanonical(parse(exampleSrc));
   assert.equal(j1, j2);
   assert.ok(j1.includes('"between"'));
-  assert.ok(j1.includes('"koyu": "1.0"'));
+  assert.ok(j1.includes('"koyu": "1.1"'));
 });
 
 test("a plan SVG is generated", () => {

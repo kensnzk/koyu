@@ -86,7 +86,7 @@ const COVERAGE: Array<[string, RegExp]> = [
  */
 function generate(rnd: () => number): { header: Block[]; body: Block[] } {
   const header: Block[] = [
-    { lines: ["koyu 1.0"] },
+    { lines: ["koyu 1.1"] },
     { lines: ["name 生成された模型"] },
     { lines: ["unit mm"] },
     { lines: ["grid X 0 3000 6000 9000 12000"] },
@@ -462,7 +462,7 @@ function permuteHeader(header: Block[], rnd: () => number): Block[] {
     if (l.startsWith("grid ")) return 2;
     if (l.startsWith("level ")) return 3;
     if (l.startsWith("asset ")) return 4;
-    return 0; // koyu 1.0 — 動かさない
+    return 0; // koyu 1.1 — 動かさない
   };
   const out: Block[] = [];
   for (const f of [0, 1, 2, 3, 4]) {
@@ -983,7 +983,7 @@ test("property: one meaningful change always changes the bytes (injectivity, 30 
  * 運搬層の属性が形へ漏れ出したときに落ちるためである (漏れれば下の等値が破れる)。
  */
 test("witness: different bytes do not imply a different shape (the converse of promise 1 is false)", () => {
-  const src = (v: number) => `koyu 1.0
+  const src = (v: number) => `koyu 1.1
 unit mm
 grid X 0 3000
 grid Y 0 3000

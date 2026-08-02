@@ -18,7 +18,7 @@ The consequence of that asymmetry is that a forgotten boundary to the outside be
 `caution`
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -70,7 +70,7 @@ Not being enclosed is normal for all of them.
 Write boundaries for the remaining edges. Pick them with `edge:N/E/S/W`, or catch the whole remainder with one boundary that names no edge.
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150

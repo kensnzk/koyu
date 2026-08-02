@@ -76,7 +76,7 @@ boundary /L2/ev /L3/ev type:shaft
 ## 確かめる
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 階をつなぐ稽古
 unit mm
 

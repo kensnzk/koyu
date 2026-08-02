@@ -57,7 +57,7 @@ boundary /L1/w04 /out t:300 spec:カーテンウォール
 **残す側は書かない。**窓に触れる凸片を丸ごと測り、線の左右の面積を比べて偏った側を残す。外皮を切る場合は領域を持つ側の偏りがそのまま残す側になる。二空間の場合は両側の偏りを取り、片方だけが 0 なら他方の反対を当てる。
 
 ```muro
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -95,7 +95,7 @@ Total 31.50 m2 (indoor floor area)
 既定の隣接線をなぞった線は何も切らない。
 
 ```muro-warn
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -113,7 +113,7 @@ boundary /L1/a /out t:150
 正方形を対角に割る線は、左右の面積が等しいので残す側が決まらない。
 
 ```muro-bad
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000
 grid Y 0 6000

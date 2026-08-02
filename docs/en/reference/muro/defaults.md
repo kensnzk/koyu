@@ -20,7 +20,7 @@ This page is the one table of defaults. How values are written is in [the three 
 ## The smallest file
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -155,7 +155,7 @@ Riser count, tread and slope are never written. **What is written is the region 
 **Because the default between touching spaces is a wall, a two-storey building with no door declared anywhere is completely sealed — and green.**
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150

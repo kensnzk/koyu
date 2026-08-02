@@ -76,7 +76,7 @@ test("domains: drawing pulls in core only (it does not pull in validation — dr
 });
 
 test("domains: a diagnostic and a finding cannot be mistaken for each other (the field names differ to begin with)", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 1500 10000
 grid Y 0 10000 11000
 level L1 0 h:2700

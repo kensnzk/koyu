@@ -19,7 +19,7 @@ File paths in the output below are absolute when you actually run these commands
 Keep the dwelling's `space` line and add child spaces, and parent and children overlap.
 
 ```muro-bad
-koyu 1.0
+koyu 1.1
 name Subdividing a dwelling
 unit mm
 
@@ -96,7 +96,7 @@ boundary /L3/A/hall /L3/corridor t:180 spec:RC
 ## Check it
 
 ```muro
-koyu 1.0
+koyu 1.1
 name Subdividing a dwelling
 unit mm
 

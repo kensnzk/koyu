@@ -239,7 +239,7 @@ Undeclared level: l2 (declared: L1 L2 R)
 接する空間の間には、宣言が無ければ**扉のない壁**が導かれる。**扉は自動では付かない。**外皮と階段だけ宣言した二階建ては、`check` が緑のまま全室が密閉される。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 密封された二室
 unit mm
 grid X 0 3600 7200

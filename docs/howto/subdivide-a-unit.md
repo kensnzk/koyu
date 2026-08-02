@@ -19,7 +19,7 @@ mode: howto
 住戸の `space` を残したまま子の `space` を足すと、親の領域と子の領域が重なる。
 
 ```muro-bad
-koyu 1.0
+koyu 1.1
 name 住戸を割る
 unit mm
 
@@ -96,7 +96,7 @@ boundary /L3/A/hall /L3/corridor t:180 spec:RC
 ## 確かめる
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 住戸を割る
 unit mm
 

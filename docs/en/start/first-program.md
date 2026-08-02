@@ -23,7 +23,7 @@ npm install --save-dev tsx
 Put `"type": "module"` in `package.json`. For the building to read, drop in `house.muro` — the thirty lines from stage 6 of [the tutorial](index.md) will do exactly as they are.
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 name 小さな家
 
 grid X 0 3600 5400
@@ -41,15 +41,15 @@ Create `read.ts`.
 
 ```ts
 import { parseFile } from "@kensnzk/koyu/node";
-import { areaM2, checkDiagnostics, toCanonical } from "@kensnzk/koyu";
+import { areaM2, checkDiagnostics, isOutside, toCanonical } from "@kensnzk/koyu";
 
 const model = parseFile(process.argv[2] ?? "house.muro");
 
 console.log(`${model.spaces.size} spaces / ${model.boundaries.length} boundaries`);
 
 for (const space of model.spaces.values()) {
-  if (space.type === "exterior") continue;
-  console.log(`  ${space.path}  ${space.type}  ${areaM2(space).toFixed(2)} m2`);
+  if (isOutside(space)) continue;
+  console.log(`  ${space.path}  ${space.type ?? "—"}  ${areaM2(space)!.toFixed(2)} m2`);
 }
 
 const diagnostics = checkDiagnostics(model);
@@ -88,7 +88,7 @@ consistent
 
 **The `Model` that `parseFile` returns is what was written, and nothing more.** `model.spaces` is a `Map` keyed by path and `model.boundaries` is an array; both hold the declarations as authored. No judgement is baked in.
 
-**`areaM2` answers areas**, measured to wall centrelines, in square metres. The loop skips `exterior` spaces because the outside need not carry a region at all.
+**`areaM2` answers areas**, measured to wall centrelines, in square metres. The loop skips spaces where `isOutside` holds, because the outside need not carry a region at all and without a region there is no area. **The type cannot do that job** — the type position is a free label and koyu never reads it ([space](../reference/muro/space.md)).
 
 **`checkDiagnostics` returns an array.** Each element carries a `code` (a symbol like `OPN05`), a `severity` (`"error"` or `"warning"`), a `message`, a `line`, and, under composition, a `file`. **Severity is a property of the code and does not move with circumstance** — one code is never an error here and a warning there. That is why "is there any error?" is decided by looking at `severity` alone.
 

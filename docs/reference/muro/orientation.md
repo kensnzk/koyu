@@ -17,7 +17,7 @@ mode: reference
 方位磁針ではない。建物が真北を向いていなくても、この四語は `grid X` と `grid Y` が張った座標系の +X / −X / +Y / −Y をそのまま指す。座標の綴り方は [位置と領域](positions.md) にある。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 方位の例
 unit mm
 

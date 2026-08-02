@@ -21,7 +21,7 @@ mode: explanation
 ## 全文
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 二室
 unit mm
 

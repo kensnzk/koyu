@@ -43,7 +43,7 @@ boundary /pathA /pathB …
 境界の `spec` を、その区間だけ差し替える。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 分節の書き方
 unit mm
 

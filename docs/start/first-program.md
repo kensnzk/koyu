@@ -23,7 +23,7 @@ npm install --save-dev tsx
 `package.json` に `"type": "module"` を入れておく。読ませる建物として `house.muro` を置く — 中身は[チュートリアル](index.md)第6段の30行そのままでよい。
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 name 小さな家
 
 grid X 0 3600 5400
@@ -41,15 +41,15 @@ space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク daylight:1
 
 ```ts
 import { parseFile } from "@kensnzk/koyu/node";
-import { areaM2, checkDiagnostics, toCanonical } from "@kensnzk/koyu";
+import { areaM2, checkDiagnostics, isOutside, toCanonical } from "@kensnzk/koyu";
 
 const model = parseFile(process.argv[2] ?? "house.muro");
 
 console.log(`${model.spaces.size} spaces / ${model.boundaries.length} boundaries`);
 
 for (const space of model.spaces.values()) {
-  if (space.type === "exterior") continue;
-  console.log(`  ${space.path}  ${space.type}  ${areaM2(space).toFixed(2)} m2`);
+  if (isOutside(space)) continue;
+  console.log(`  ${space.path}  ${space.type ?? "—"}  ${areaM2(space)!.toFixed(2)} m2`);
 }
 
 const diagnostics = checkDiagnostics(model);
@@ -88,7 +88,7 @@ consistent
 
 **`parseFile` が返す `Model` が、書かれた構成そのものである。**`model.spaces` はパスをキーにした `Map`、`model.boundaries` は配列で、どちらも書かれた宣言をそのまま持っている。判定は入っていない。
 
-**面積は `areaM2` が答える。**壁芯で、単位は㎡である。`exterior` の空間を飛ばしているのは、外部が領域を持たなくてよいからである。
+**面積は `areaM2` が答える。**壁芯で、単位は㎡である。`isOutside` の空間を飛ばしているのは、外部が領域を持たなくてよく、領域が無ければ面積も無いからである。**型では飛ばせない** — 型の位置は自由なラベルで、koyu はそこを一切読まない ([space](../reference/muro/space.md))。
 
 **診断は `checkDiagnostics` が配列で返す。**要素は `code` (`OPN05` のような台帳の記号)、`severity` (`"error"` か `"warning"`)、`message`、`line`、合成しているときは `file` を持つ。**severity はコードの属性であって、状況では動かない** — 同じコードが場合によってエラーになったり警告になったりはしない。だから「エラーが一つでもあるか」は `severity` を見れば決まる。
 

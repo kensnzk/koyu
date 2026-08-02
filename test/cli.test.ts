@@ -202,7 +202,7 @@ test("cli: validate exits 1 on a violation and says which rule caught it", () =>
   // 扉が一枚も無い室は外へ出られない (access.unreachable) — checkは緑のままである
   const sealed = fixture(
     "sealed.muro",
-    `koyu 0.5
+    `koyu 1.1
 grid X 0 1000 2000
 grid Y 0 1000
 level L1 0 h:2400 slab:150

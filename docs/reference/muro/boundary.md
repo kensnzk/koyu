@@ -48,7 +48,7 @@ boundary /pathA /pathB [key:value...]
 床は書かない。連続するレベルの空間は平面が重なれば垂直に隣接し、その既定の解釈は「床がある」である。例外だけを `stair` / `shaft` / `void` で宣言する。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 五つの kind
 unit mm
 
@@ -99,7 +99,7 @@ boundary /L1/ev /L2/ev type:shaft
 境界を一行も書かなくてよい。**同一レベルで平面が接する領域つき空間の組には、その組に宣言が一つも無ければ `wall` の境界が導出される。**垂直の「既定は床」と対称の、水平の「既定は壁」である。
 
 ```muro
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 3600 7200
 grid Y 0 4000
@@ -150,7 +150,7 @@ Cannot reach /L1/b from /L1/a
 `boundary /L1/a /out` と `boundary /out /L1/a` は同じ関係の二つの綴りである。**面積も形も線分の位置も、書き順には依らない。**
 
 ```muro
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -173,7 +173,7 @@ boundary /out /L1/a t:150 spec:RC
 `edge` の非対称は、書き間違えるとその場で言葉になる。
 
 ```muro-bad
-koyu 1.0
+koyu 1.1
 unit mm
 grid X 0 6000
 grid Y 0 4000 8000

@@ -42,7 +42,7 @@ mode: reference
 有効窓面積が床面積の 1/7 に足りない。
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150
@@ -69,7 +69,7 @@ Validation — 1 violation / 0 cautions
 同じ窓でも、上に床のあるバルコニー越しなら 0.7 が掛かる。
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 grid X 0 3600 5400
 grid Y 0 4500
 level L1 0 h:2400 slab:150
@@ -101,7 +101,7 @@ Validation — 1 violation / 0 cautions
 `h:` を持たない `window` があり、その面積が合計から落ちている。
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150

@@ -239,7 +239,7 @@ test("band errors: the member region and level: (the type is optional, as it is 
 // the type position" so that a forgotten type was not misreported as a missing width. With the
 // type optional that shape is simply a member that carries no label, and it is legal.
 test("band: a member may carry no type at all", () => {
-  const m = parse("koyu 1.0\ngrid X 0 3200\ngrid Y 0 4000\nlevel L1 0\nband X X1..X2 Y1..Y2\n  space /L1/a w:rest\n");
+  const m = parse("koyu 1.1\ngrid X 0 3200\ngrid Y 0 4000\nlevel L1 0\nband X X1..X2 Y1..Y2\n  space /L1/a w:rest\n");
   const s = m.spaces.get("/L1/a")!;
   assert.equal(s.type, undefined);
   assert.equal(s.rects.length, 1);

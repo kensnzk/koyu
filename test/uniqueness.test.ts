@@ -30,7 +30,7 @@ function sameForm(a: string, b: string, what: string): void {
   assert.equal(form(a), form(b), `${what}: canonically equal but the derived form differs`);
 }
 
-const BASE = `koyu 1.0
+const BASE = `koyu 1.1
 grid X 0 3000 6000 9000
 grid Y 0 6000
 level L1 0 h:2700 slab:300

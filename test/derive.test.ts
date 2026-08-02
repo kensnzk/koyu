@@ -138,7 +138,7 @@ for (const page of ["docs/reference/form/constants.md", "docs/en/reference/form/
 
 // ---- 4. 形の不変量 ----
 
-const SRC = `koyu 1.0
+const SRC = `koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:300
@@ -196,7 +196,7 @@ test("derive: the storey height rises to the apex of the roof where no level sit
 
 test("derive: a level whose ceiling height is undetermined raises no wall and no column", () => {
   // 既定値を捏造しない (spec/derivation.md §0-2) — SUF01 が「作れない」ことを言葉にする
-  const m = parse(`koyu 1.0
+  const m = parse(`koyu 1.1
 grid X 0 4000
 grid Y 0 5000
 level L1 0 slab:300

@@ -76,7 +76,7 @@ A relation that spans storeys belongs to no storey's layer. Put it in the base l
 ## Check it
 
 ```muro
-koyu 1.0
+koyu 1.1
 name Connecting storeys
 unit mm
 

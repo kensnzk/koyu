@@ -22,7 +22,7 @@ mode: howto
 
 ```muro-part
 # main.muro
-koyu 1.0
+koyu 1.1
 name 小さな事務所
 unit mm
 

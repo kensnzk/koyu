@@ -17,7 +17,7 @@ mode: reference
 They are not a compass needle. If the building is not oriented to true north, these four words still mean +X / −X / +Y / −Y in the coordinate system that `grid X` and `grid Y` set up. How coordinates are spelled is in [positions and regions](positions.md).
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 方位の例
 unit mm
 

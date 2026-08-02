@@ -72,7 +72,7 @@ test("version: a 0.1 file in which no derivation happens is accepted as it stand
 
 test("version: omitting the declaration means the latest semantics (a default boundary is derived and it is not an error)", () => {
   const m = parse(`unit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0 h:2400 slab:150\n${ROOMS}`);
-  assert.equal(m.version, "1.0");
+  assert.equal(m.version, "1.1");
   assert.equal(m.boundaries.filter((b) => b.derived).length, 1);
   assert.deepEqual(check(m).errors, []);
 });
@@ -146,7 +146,7 @@ const POSITIVE_ON_DECLARATION: Array<[string, string]> = [
 for (const [what, decl] of POSITIVE_ON_DECLARATION) {
   test(`value range: ${what} is refused on the declaration, not only through over`, () => {
     assert.throws(
-      () => parse(["koyu 1.0", "grid X 0 3000", "grid Y 0 3000", decl, "space /L1/a room X1..X2 Y1..Y2"].join("\n")),
+      () => parse(["koyu 1.1", "grid X 0 3000", "grid Y 0 3000", decl, "space /L1/a room X1..X2 Y1..Y2"].join("\n")),
       (e: unknown) => e instanceof SourceError && /is written as a positive number/.test(e.message),
       what,
     );
@@ -155,7 +155,7 @@ for (const [what, decl] of POSITIVE_ON_DECLARATION) {
 
 test("value range: a negative wall thickness and a negative opening height are refused on the declaration", () => {
   const base = [
-    "koyu 1.0",
+    "koyu 1.1",
     "grid X 0 3000 6000",
     "grid Y 0 3000",
     "level L1 0 h:2400 slab:150",

@@ -20,7 +20,7 @@ mode: explanation
 同梱の `two-rooms.muro` から注釈を除いた本文はこれである。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 二室
 unit mm
 grid X 0 3600 7200

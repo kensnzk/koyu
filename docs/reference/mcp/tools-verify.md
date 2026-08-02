@@ -48,7 +48,7 @@ mode: reference
 ### 警告があるとき
 
 ```muro-warn
-koyu 1.0
+koyu 1.1
 name 警告
 unit mm
 grid X 0 3600 7200
@@ -85,7 +85,7 @@ space /out name:外部 outside:1
 ### エラーがあるとき
 
 ```muro-bad
-koyu 1.0
+koyu 1.1
 name 二重宣言
 unit mm
 grid X 0 3600 7200
@@ -164,7 +164,7 @@ boundary /L1/a /L1/b t:150
 接する空間の既定は壁で、壁は扉が無ければ通れない。だから扉を一枚も書かない建物は、完全に密封されたまま `check` が緑になる。
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -260,7 +260,7 @@ space /out name:外部 outside:1
 `violation` と `caution` は一つの応答に混ざる。
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 name 窓の高さ
 unit mm
 grid X 0 3600 7200

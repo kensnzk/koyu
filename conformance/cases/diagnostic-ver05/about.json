@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/ver.md",
+  "docs/reference/muro/version.md"
+ ],
+ "why": "1.0以前は型の位置の exterior と void を構造として読んでいた。1.1 は型を一切読まないので、書き換えずに新しい処理系へ持っていくと同じバイトが別の建物を意味する — 外部が屋内の床になり、吹抜けに床が生成される。黙って起きるので error である。二つの空間それぞれに一件、宣言の走査順で出る"
+}

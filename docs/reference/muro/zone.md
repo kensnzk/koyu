@@ -84,7 +84,7 @@ space /L1/A/ldk ldk X1..X2 Y1..Y2
 `site:1` を持つゾーンが敷地である。敷地面積・接道・建蔽率・容積率は、そのゾーンを起点に導出される。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 12000
 grid Y 0 10000
 level L1 0 h:3000 slab:200

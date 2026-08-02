@@ -48,7 +48,7 @@ Every piece of output on this page was obtained by actually running it. Absolute
 ### When there are warnings
 
 ```muro-warn
-koyu 1.0
+koyu 1.1
 name 警告
 unit mm
 grid X 0 3600 7200
@@ -85,7 +85,7 @@ space /out name:外部 outside:1
 ### When there are errors
 
 ```muro-bad
-koyu 1.0
+koyu 1.1
 name 二重宣言
 unit mm
 grid X 0 3600 7200
@@ -164,7 +164,7 @@ boundary /L1/a /L1/b t:150
 The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no door written at all stays sealed and green.
 
 ```muro-fail
-koyu 1.0
+koyu 1.1
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -260,7 +260,7 @@ Hand the same file to `validate` and three violations come out.
 Violations and cautions mix freely in one response.
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 name 窓の高さ
 unit mm
 grid X 0 3600 7200

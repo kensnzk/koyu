@@ -13,11 +13,12 @@ There are four VER codes. All are errors.
 | VER02 | error | A koyu 0.3-or-earlier file has a habitable-room type with no `daylight` |
 | VER03 | error | A koyu 0.4-or-earlier file uses 0.5 vocabulary |
 | VER04 | error | A koyu 0.5-or-earlier file uses 1.0 vocabulary |
+| VER05 | error | a koyu 1.0-or-earlier file writes exterior / void in the type position |
 
 ## Declaring the version
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 ```
 
 Six versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0**. Anything else stops at the parser, before any semantic check runs.
@@ -132,7 +133,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
-space /out outside:1
+space /out yard
 boundary /L1/a /out t:150
   door w:800 edge:S name:D1
 drop /L1/b
@@ -159,6 +160,38 @@ The reasoning matches VER03, but the consequence is worse. An older implementati
 **One diagnostic per edit.** The example has three edit lines, so three diagnostics.
 
 **Fix** — make the first line `koyu 1.0`. If you are not using composition edits, 0.5 is fine as it is.
+
+## VER05 — a 1.0-or-earlier file writes `exterior` / `void` in the type position
+
+`error`
+
+```muro-bad
+koyu 1.0
+grid X 0 3600
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /out exterior name:外部
+boundary /L1/a /out edge:S t:120
+  door w:900
+```
+
+```text
+A koyu 1.0 file writes exterior in the type position: /out — 1.1 reads no meaning from the type, so this space silently stops being outside (it becomes indoor floor area). Write outside:1 instead, then raise the version to koyu 1.1
+```
+
+**Cause** — up to 1.0, `exterior` and `void` written in the type position were read structurally. 1.1 **never reads the type position** ([space](../muro/space.md)). So the same bytes mean a different building: the exterior becomes indoor floor area, and a floor is generated in the void. Measured on the mixed-use example, the gross floor area went from 31,606.24 m2 to 33,004.00 m2.
+
+That happens silently, which is why it is **an error and not a warning** — the same reasoning as the four codes before it.
+
+**The fix** — the message offers two.
+
+| Rewrite it | Or raise the version |
+|---|---|
+| `space /out exterior` → `space /out yard` | make the first line `koyu 1.1` |
+| `space /L2/hole void X1..X2 Y1..Y2` → `space /L2/hole X1..X2 Y1..Y2 void:1` | |
+
+The same code watches the other direction. Writing `outside:` / `void:`, or omitting the type, in a 1.0-or-earlier file is 1.1 spelling and is stopped just the same — the declared version and the vocabulary have to agree.
 
 ## Why declare a version at all
 

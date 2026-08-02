@@ -27,7 +27,7 @@ before the opening that references it. Boundaries may name spaces declared later
 ## The version line
 
 ```muro
-koyu 1.0
+koyu 1.1
 ```
 
 Optional. If you write it, it goes in the ENTRY layer only, exactly once — never
@@ -205,7 +205,7 @@ cannot appear in a boundary. Keys: `name:` `use:` `site:`(0/1, one per model)
 
 ```muro
 # main.muro — the entry
-koyu 1.0
+koyu 1.1
 name Corner building
 unit mm
 grid X 0 6400 12800

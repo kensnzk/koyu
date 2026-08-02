@@ -205,6 +205,7 @@ RUN04・RUN06・RUN07・RUN08 は[欠番](retired.md)である。
 | [VER02](ver.md) | error | koyu 0.3 以前のファイルに `daylight` の無い居室型があります |
 | [VER03](ver.md) | error | koyu 0.4 以前のファイルに 0.5 の語があります |
 | [VER04](ver.md) | error | koyu 0.5 以前のファイルに 1.0 の語があります |
+| [VER05](ver.md) | error | koyu 1.0 以前の型の位置に exterior / void があります |
 
 ### SYN — 構文・合成 (1)
 

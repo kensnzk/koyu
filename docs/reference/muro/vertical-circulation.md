@@ -199,7 +199,7 @@ $ koyu validate a.muro
 ## 通しの例
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 階段室のある小さなコア
 unit mm
 

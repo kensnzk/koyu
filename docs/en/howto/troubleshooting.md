@@ -239,7 +239,7 @@ The exit code is 2 and the declared level names are printed alongside. `koyu lev
 Between touching spaces, a **wall with no door** is derived when nothing is declared. **Doors are never added automatically.** A two-storey house with only the envelope and the stair declared seals every room while `check` stays green.
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 密封された二室
 unit mm
 grid X 0 3600 7200

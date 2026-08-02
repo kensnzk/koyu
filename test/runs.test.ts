@@ -260,7 +260,7 @@ stack r L1..L2 type:stair
 // ---- 描かれた線 (ADR-0022) ----
 
 test("line: the area one side loses the other gains (the total is preserved)", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000 24000
 grid Y 0 16000
 level L1 0 h:2700
@@ -300,7 +300,7 @@ boundary /L1/a /L1/b t:120
 });
 
 test("line: with exterior on one side it cuts the envelope, and no wall stands on the cut-off side", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 16000
 level L1 0 h:2700
@@ -334,7 +334,7 @@ boundary /L1/a /L1/b t:120
 test("line: a line that actually cut is never reported as cutting nothing (LIN03 / ADR-0041)", () => {
   // 帰結は導出のその場で記録する。判定を後から計算し直すと、切った後の pieces から
   // 窓を組み立てて切る前の rects に当てることになり、母集団が食い違う
-  const src = `koyu 1.0
+  const src = `koyu 1.1
 grid X 0 3000 6000
 grid Y 0 3000 6000
 level L1 0 h:2700 slab:300
@@ -361,7 +361,7 @@ boundary /L1/a /out
 // ---- 柱 (ADR-0023) ----
 
 test("column: the position is not written; it emerges where grid intersections meet a floor", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 8000 16000
 level L1 0 h:2700
@@ -377,7 +377,7 @@ column 800 L1
 });
 
 test("column: none stands on a floor that carries only sky — an open terrace is excluded, but under an overhang above they stand (ADR-0030)", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 8000 16000
 level L1 0 h:2700
@@ -395,7 +395,7 @@ column 800 L1..L2
   const l2 = columnsFor(m, "L2").map((c) => c.grid);
   assert.deepEqual(l2, ["X1/Y1", "X1/Y2", "X2/Y1", "X2/Y2"]);
   // 同じテラスでも上に床が重なれば (張り出しの下) 柱は戻る
-  const m2 = parse(`koyu 0.5
+  const m2 = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 8000 16000
 level L1 0 h:2700
@@ -452,7 +452,7 @@ space /L2/b room X1..X2 Y1..Y2
 });
 
 test("surface: a void has no floor, vertical circulation has no ceiling, and ceiling:0 is an exposed ceiling", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
@@ -475,7 +475,7 @@ stack s L1..L2 type:stair
 // ---- 軸測図 (ADR-0026) ----
 
 test("axo: the solid comes out as SVG — floors, walls, columns and vertical circulation are all projected", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 3000 6000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
@@ -506,7 +506,7 @@ test("axo: a solid carries a bottom face — where it can be looked at from belo
   // 箱を「上面+側面」だけで作ると**底の無い箱**になる。普通は見えないが、
   // -l で階を絞った最下段や、外へ張り出した柱では下から覗けて中身が見える。
   // 実際に見えた (外周柱の足元が抜けていた)
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 4000
 grid Y 0 4000
 level L1 0 h:3000 slab:300
@@ -531,7 +531,7 @@ boundary /L1/a /out t:200 spec:CW`);
 });
 
 test("axo: the absence of a floor is not the absence of a roof — a void is closed over", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 4000 8000
 grid Y 0 6000
 level L1 0 h:2700 slab:300
@@ -550,7 +550,7 @@ boundary /L1/a /L2/v type:void
 });
 
 test("line: on the cut-off side the edge shared with the neighbour shortens too (no wall juts outside)", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 8000 16000
 level L1 0 h:2700
@@ -574,7 +574,7 @@ boundary /L1/a /out t:200
 // ---- 母集団のずれ (ADR-0041) — どれも check が緑のまま黙って壊れていた ----
 
 test("line: a distant wing does not flip the direction of the corner cut (the L-shaped room does not vanish)", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 7000 8000 10000
 grid Y 0 8000 10000 40000
 level L1 0 h:2400
@@ -589,7 +589,7 @@ boundary /L1/a /out t:150
 });
 
 test("roof: cut only the upper storey on a diagonal and a roof spans right below the cut", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 8000 16000
 grid Y 0 16000
 level L1 0 h:2700 slab:300
@@ -629,7 +629,7 @@ boundary /L1/a /L1/b t:120
 });
 
 test("default boundary: no boundary without a source is made for a pair whose contact a line removed", () => {
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 3000 4000 9000
 grid Y 0 4500
 level L1 0 h:2400

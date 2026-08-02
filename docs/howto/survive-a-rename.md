@@ -19,7 +19,7 @@ mode: howto
 `uid:` を書けるのは **`space` と `zone` の二つだけ**である。この一覧は閉じている。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 事務所
 unit mm
 

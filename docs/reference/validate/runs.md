@@ -32,7 +32,7 @@ L1→L2	stair	s	rise 3000mm	straight	17 risers of 176mm, tread 150mm	going 2400m
 導出された踏面が 240mm 未満か、`2×蹴上 + 踏面` が 550〜700mm の外に出た。後者は歩幅則である。
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3000
 grid Y 0 4600
 level L1 0 h:2700 slab:300
@@ -56,7 +56,7 @@ Validation — 0 violations / 1 caution
 **直し方は三つある。**どれも導出の入力を変える。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3000
 grid Y 0 7000
 level L1 0 h:2700 slab:300
@@ -75,7 +75,7 @@ stack s L1..L2 type:stair
 浅いままでも `form:return` で折り返せば走り長が倍になり、同じ 300mm に届く。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3000
 grid Y 0 4600
 level L1 0 h:2700 slab:300
@@ -102,7 +102,7 @@ stack s L1..L2 type:stair
 `slope:` は**書く勾配ではない。許容する勾配の上限**であり、この検査のためだけに存在する。`slope:12` は「1/12 より急にはしない」という宣言である。
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3000
 grid Y 0 6000
 level L1 0 h:2700 slab:300
@@ -128,7 +128,7 @@ Validation — 0 violations / 1 caution
 エスカレーターには `slope:` を書かなくても、導出された勾配が 1/2.3 〜 1/1.4 (約1/1.7 = 30度を中心とした幅) から外れれば同じ規則が出る。
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 1200
 grid Y 0 12000
 level L1 0 h:2700 slab:300
@@ -152,7 +152,7 @@ Validation — 0 violations / 1 caution
 **形とトポロジーは別々に書かれる。**`stair:N` は段の形を作るが、階と階が繋がっているとは言っていない。繋ぐのは `stack` か `boundary type:stair` である。
 
 ```muro-caution
-koyu 1.0
+koyu 1.1
 grid X 0 3000
 grid Y 0 7000
 level L1 0 h:2700 slab:300

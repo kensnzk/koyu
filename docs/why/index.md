@@ -102,7 +102,7 @@ Site /site (敷地)
 **5. 「緑」の意味を確かめる。**次の 11 行は `check` が緑で、しかも外へ出られない。
 
 ```muro
-koyu 1.0
+koyu 1.1
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:300

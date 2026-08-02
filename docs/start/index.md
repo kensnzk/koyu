@@ -433,7 +433,7 @@ npx tsx src/cli.ts plan out/house.muro -l L2
 最後に、これまで省いてきたものを足す。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 小さな家
 
 grid X 0 3600 5400

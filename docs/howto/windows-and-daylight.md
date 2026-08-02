@@ -80,7 +80,7 @@ boundary /L1/a /out t:150 spec:EW
 `light` を走らせる。全室が満たせば終了コード 0、一室でも足りなければ 1 である。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 採光の稽古
 unit mm
 
@@ -133,7 +133,7 @@ $ npx tsx src/cli.ts light daylight.muro
 上が開いたテラス越しの掃き出し窓 (2600×2200 = 5.72㎡) は、そのまま 5.72㎡ と数えられる。
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 半屋外越しの採光
 unit mm
 
@@ -158,7 +158,7 @@ boundary /L1/bal /out edge:S t:120 spec:手すり air:1 h:1100
 同じ位置に上階のバルコニーを足すと、テラスは庇下になり 0.7 がかかる。**窓も床も一切変えていない。**
 
 ```muro
-koyu 1.0
+koyu 1.1
 name 半屋外越しの採光
 unit mm
 

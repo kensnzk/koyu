@@ -20,7 +20,7 @@ There are three versions, counted independently. Mixing them makes it impossible
 A `.muro` file declares only [the language version](muro/version.md). It announces semantics, not the maturity of a processor.
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 ```
 
 **A separate format version is needed because the same semantics can be respelled with different keys.** Adding the `a` key, which preserves the written direction of a boundary, changed the spelling without changing one word of the language. The converse also happens: a language version can rise without the spelling moving.

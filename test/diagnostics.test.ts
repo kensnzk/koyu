@@ -254,7 +254,7 @@ test("order: the order of diagnostics is the order of the traversal — the seve
   // ここで効く模型は「一本の境界が複数のコードを出す」もの — 15行目の境界は
   // BND04・OPN04・SEG04 を続けて出す。checkDiagnostics を**コード族**で節に割ると
   // この三つが他の境界の診断で分断され、並びが崩れる。走査単位で割れば崩れない。
-  const m = parse(`koyu 0.5
+  const m = parse(`koyu 1.1
 grid X 0 3600 7200 10800
 grid Y 0 4000 8000
 level L1 0 h:2400 slab:300

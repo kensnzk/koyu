@@ -13,11 +13,12 @@ VER は四つある。すべてエラーである。
 | VER02 | error | koyu 0.3 以前のファイルに、`daylight` の無い居室型の空間がある |
 | VER03 | error | koyu 0.4 以前のファイルに 0.5 の語がある |
 | VER04 | error | koyu 0.5 以前のファイルに 1.0 の語がある |
+| VER05 | error | koyu 1.0 以前の型の位置に exterior / void がある |
 
 ## 版の宣言
 
 ```muro-part
-koyu 1.0
+koyu 1.1
 ```
 
 受理される版は **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0** の六つ。これ以外を書くと、意味の検査に入る前にパーサが止める。
@@ -132,7 +133,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
-space /out outside:1
+space /out yard
 boundary /L1/a /out t:150
   door w:800 edge:S name:D1
 drop /L1/b
@@ -159,6 +160,38 @@ VER03 と同型だが、帰結はもっと悪い。知らない処理系では�
 **診断は編集ごとに一件出る。**上の例は三行が編集なので三件である。
 
 **直し方** — 一行目を `koyu 1.0` にする。合成の編集を使わないなら 0.5 のままでよい。
+
+## VER05 — 1.0 以前の型の位置に `exterior` / `void` がある
+
+`error`
+
+```muro-bad
+koyu 1.0
+grid X 0 3600
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /out exterior name:外部
+boundary /L1/a /out edge:S t:120
+  door w:900
+```
+
+```text
+A koyu 1.0 file writes exterior in the type position: /out — 1.1 reads no meaning from the type, so this space silently stops being outside (it becomes indoor floor area). Write outside:1 instead, then raise the version to koyu 1.1
+```
+
+**原因** — 1.0 以前は、型の位置に書かれた `exterior` と `void` を構造として読んでいた。1.1 は**型の位置を一切読まない** ([space](../muro/space.md))。だから同じバイトが別の建物を意味する — 外部は屋内の床になり、吹抜けには床が生成される。実測では複合用途の例が延床 31,606.24 ㎡ から 33,004.00 ㎡ へ増えた。
+
+これは黙って起きるので、**警告ではなくエラーにしてある。**四つの先行するコードと同じ理屈である。
+
+**直し方** — 二択を示している。
+
+| 書き換える | 版を上げる |
+|---|---|
+| `space /out exterior` → `space /out yard` | 一行目を `koyu 1.1` にする |
+| `space /L2/hole void X1..X2 Y1..Y2` → `space /L2/hole X1..X2 Y1..Y2 void:1` | |
+
+逆向きも同じコードが見る。1.0 以前のファイルに `outside:` `void:` を書いたり、型を省いたりすれば、それは 1.1 の綴りなので同じく止まる — 版の宣言と語彙は一致していなければならない。
 
 ## 版を書く意味
 
