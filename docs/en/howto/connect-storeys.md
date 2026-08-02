@@ -88,7 +88,7 @@ level L2 4200 h:2800 slab:1400
 level L3 8400 h:2800 slab:1400
 level R 12600 slab:600
 
-space /out exterior name:Outside
+space /out name:Outside outside:1
 
 space /L1..L3/st   stair X2..X3 Y1..Y2 name:Stair use:common stair:N form:return
 space /L1..L3/ev   shaft X3..X4 Y1..Y2 name:Lift use:common lift:1
@@ -163,7 +163,7 @@ Cannot reach /L2/ev from /L1/ev
 Where the ceiling below is open, **put a `void` space on the upper storey** and write a `type:void` vertical boundary to the space below.
 
 ```muro-part
-space /L2/void void X2..X3 Y1..Y2 name:Over-the-living-room
+space /L2/void X2..X3 Y1..Y2 name:Over-the-living-room void:1
 
 boundary /L1/ldk /L2/void type:void
 ```

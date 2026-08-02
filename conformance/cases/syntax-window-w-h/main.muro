@@ -7,7 +7,7 @@ grid Y 0 4000
 level L1 0 h:2700 slab:200
 
 space /L1/a room X1..X2 Y1..Y2 name:居室 daylight:1
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/a /out t:150 edge:S
   window w:1650 h:1100 sill:900 name:腰窓

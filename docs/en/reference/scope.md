@@ -99,7 +99,7 @@ Core holds the questions of quantity and graph. **It just never says pass or fai
 
 | Tier | Examples | How core treats it |
 |---|---|---|
-| **Structural** | path, type, region, level, the other end of a relation, `kind` | **always read.** If it is broken, nothing is read |
+| **Structural** | path, region, level, the other end of a relation, `kind` | **always read.** If it is broken, nothing is read |
 | **Interpreted** | `h` `use` `daylight` `road` `site` `style` … | the ledger defines the value domain, and core **reads it** |
 | **Carried** | `acme.sensor` `bems.temp` `survey.measured` … | **not read.** Open, with a namespace |
 

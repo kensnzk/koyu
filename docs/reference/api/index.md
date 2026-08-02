@@ -50,14 +50,15 @@ import { svgPlan, svgAxo } from "@kensnzk/koyu/draw";
 | 面 | 値 | 型 |
 |---|---|---|
 | [解析と合成](parsing.md) | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
-| [モデルと問い](model.md) | `areaM2` `canonicalBoundaryOrder` `columnsFor` `DEFAULT_LANGUAGE_VERSION` `displayName` `effectiveUse` `heff` `isCoveredAbove` `isIndoor` `isSemiOutdoor` `levelsSorted` `newUids` `pointInPolygon` `polyBounds` `polygonAreaM2` `rectToPoly` `SourceError` `srcRef` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` `unionAreaM2` `zoneAreaM2` | `Area` `Asset` `Attrs` `AttrValue` `Boundary` `BoundaryKind` `Column` `ColumnDecl` `DrawnLine` `Edge` `GridAxis` `GridRef` `Level` `Model` `Opening` `Pt` `Rect` `Seg` `SitePolygon` `Space` `Zone` |
+| [モデルと問い](model.md) | `areaM2` `canonicalBoundaryOrder` `columnsFor` `DEFAULT_LANGUAGE_VERSION` `displayName` `effectiveUse` `heff` `isCoveredAbove` `isIndoor` `isOutside` `isSemiOutdoor` `isVoid` `levelsSorted` `newUids` `pointInPolygon` `polyBounds` `polygonAreaM2` `rectToPoly` `SourceError` `srcRef` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` `unionAreaM2` `zoneAreaM2` | `Area` `Asset` `Attrs` `AttrValue` `Boundary` `BoundaryKind` `Column` `ColumnDecl` `DrawnLine` `Edge` `GridAxis` `GridRef` `Level` `Model` `Opening` `Pt` `Rect` `Seg` `SitePolygon` `Space` `Zone` |
 | [診断](diagnostics.md) | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `CheckResult` `Diagnostic` `DiagnosticCode` |
 | [グラフと線分](queries.md) | `deriveDefaultBoundaries` `doorsBetween` `envelopeGaps` `neighbors` `passable` `placeBand` `placeOpening` `segmentsFor` | `Band` `BandCode` `BandError` `NeighborInfo` `PlacedBand` `Route` `Segment` |
 | [導出 (Form)](derive.md) | `band` `bandLine` `columnRect` `derive` `DERIVATION_CONSTANTS` `levelPitch` `runPrism` `thicken` | `DeriveOptions` `Form` `FormBoundary` `FormColumn` `FormInput` `FormLevel` `FormOpening` `FormPanel` `FormPlan` `FormPrism` `FormRun` `FormSeg` `FormSite` `FormSpace` `FormSwing` `PlanClass` `PlanEntity` `PlanRole` `PlanSubject` |
+| [属性の台帳](../muro/attributes.md) | `ASSET_ELEM` `ATTR_LEDGER` `attrSpec` `CARRY_NAMESPACE` `isNamespaced` `known` | `AttrSpec` `AttrTier` |
 | [公差](../form/constants.md) | `TOLERANCES` | — |
 | [面 — 床・天井・屋根](solids.md) | `slabs` | `Slab` `SlabKind` |
 | [採光の入力](queries.md) | `daylightInputs` | `DaylightInput` |
-| [縦動線](solids.md) | `runDrawsForLevel` `runSolids` `slopeText` `verticalRuns` | `RunArrow` `RunDevice` `RunDraw` `RunForm` `RunPart` `RunSolid` `Seg2` `VerticalRun` |
+| [縦動線](solids.md) | `RUN_KEYS` `runDecls` `runDrawsForLevel` `runSolids` `slopeText` `verticalRuns` | `RunArrow` `RunDecl` `RunDevice` `RunDraw` `RunForm` `RunPart` `RunSolid` `Seg2` `VerticalRun` |
 | [敷地](queries.md) | `siteReport` | `RoadFrontage` `SiteReport` |
 | [差分](diff.md) | `renderDiff` `semanticDiff` | `BoundaryChange` `BoundaryItem` `ChangedItem` `ColumnItem` `FieldChange` `GridChange` `ModelDiff` `RenamedItem` `SpaceItem` |
 | [平面の描画](draw.md) | `svgPlan` | `PlanOptions` |

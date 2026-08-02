@@ -22,7 +22,7 @@ level L1 0 h:2700 slab:200
 space /L1/ldk  ldk  X1..X2 Y1..Y2 + X2..X3 Y1..Y1+2800 name:LDK
 space /L1/hall hall X2..X3 Y1+2800..Y2 name:廊下
 space /L1/room room X1..X3 Y2..Y3 name:寝室
-space /out     exterior name:外部
+space /out     name:外部 outside:1
 ```
 
 ## Grid lines

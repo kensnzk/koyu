@@ -43,6 +43,8 @@ import {
   canonicalOpeningOrder,
   canonicalSegOrder,
   canonicalSpaceOrder,
+  isOutside,
+  isVoid
 } from "./model.js";
 import { EPS, SPAN_EPS } from "./tolerance.js";
 import {
@@ -134,7 +136,8 @@ export interface FormLevel {
 
 export interface FormSpace {
   path: string;
-  type: string;
+  /** 書かれた自由なラベル。導出はこれを読まない — 構成の事実は [[outside]] / [[void]] にある */
+  type?: string;
   level?: string;
   /** 導出された領域 (凸片)。反時計回り */
   outline: Pt[][];
@@ -144,6 +147,10 @@ export interface FormSpace {
   z1?: number;
   indoor: boolean;
   semiOutdoor: boolean;
+  /** 建物の外部と宣言されているか (`outside:1`)。半屋外は外部ではない — [[indoor]] と併せて読む */
+  outside: boolean;
+  /** 吹抜けと宣言されているか (`void:1`)。床が無いので面積にも通行にも数えない */
+  void: boolean;
   /** 上に空間が重なっているか */
   covered: boolean;
 }
@@ -560,13 +567,15 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
     const z = s.level !== undefined ? zOf.get(s.level) : undefined;
     spaces.push({
       path: s.path,
-      type: s.type,
+      ...(s.type !== undefined ? { type: s.type } : {}),
       ...(s.level !== undefined ? { level: s.level } : {}),
       outline: regionOf(s),
       ...(areaM2(s) !== undefined ? { areaM2: areaM2(s)! } : {}),
       ...(z !== undefined && h !== undefined ? { z0: z, z1: z + h } : {}),
       indoor: isIndoor(model, s),
       semiOutdoor: isSemiOutdoor(model, s),
+      outside: isOutside(s),
+      void: isVoid(s),
       covered: isCoveredAbove(model, s),
     });
   }

@@ -3,6 +3,6 @@ grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150
 space /L1/living living X1..X2 Y1..Y2 daylight:1 name:居間
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/living /out edge:S t:120
   window w:2400 h:1800

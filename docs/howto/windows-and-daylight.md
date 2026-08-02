@@ -91,7 +91,7 @@ level R 2700 slab:150
 
 space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
 space /L1/b room X2..X3 Y1..Y2 name:居室B daylight:1
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/a /L1/b t:120
   door w:780 h:2000
@@ -144,7 +144,7 @@ level R 2700 slab:150
 
 space /L1/liv living  X1..X2 Y1..Y2      name:居間 daylight:1
 space /L1/bal balcony X1..X2 Y1-1500..Y1 name:テラス
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/liv /L1/bal t:100 spec:サッシ
   window w:2600 h:2200
@@ -171,7 +171,7 @@ level R 5800 slab:500
 space /L1/liv living  X1..X2 Y1..Y2      name:居間 daylight:1
 space /L1/bal balcony X1..X2 Y1-1500..Y1 name:テラス
 space /L2/bal balcony X1..X2 Y1-1500..Y1 name:上階バルコニー
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/liv /L1/bal t:100 spec:サッシ
   window w:2600 h:2200

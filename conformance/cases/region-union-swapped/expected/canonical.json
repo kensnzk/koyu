@@ -1,5 +1,5 @@
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "koyu": "1.0",
   "unit": "mm",
   "grid": {
@@ -42,7 +42,9 @@
       }
     },
     "/out": {
-      "type": "exterior"
+      "attrs": {
+        "outside": 1
+      }
     }
   },
   "boundaries": [

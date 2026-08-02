@@ -227,7 +227,7 @@ grid X 0 6000 12000
 grid Y 0 6000
 level L1 0 h:4000 slab:200
 space /L1/hall room X1..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/hall /out
 `;
 const c1 = parse(head + `column 800 L1\n`);

@@ -88,7 +88,7 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/living living X1..X2 Y1..Y2 name:居間
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/living /out t:150
   door w:900
 ```
@@ -108,24 +108,26 @@ Compass directions are read **from the rectangle of the space written first**: `
 
 ## 4. A region is given as two ranges
 
-The message points at how the region is written, but **the cause is usually a forgotten type.** The second positional argument of `space` is the type, and it is required. Drop it and the first half of the region (`X1..X2`) is read as the type, leaving only one range.
+A region is **two** ranges — one on X and one on Y. Write only one and you get this.
 
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
-space /L1/a X1..X2 Y1..Y2
+space /L1/a room X1..X2
 ```
 
 ```text
-✖ notype.muro:line 4: A region is given as two ranges, X?..X? and Y?..Y?
+✖ region.muro:line 4: A region is given as two ranges, X?..X? and Y?..Y?
 ```
 
-**The fix.** Write the type between the path and the region.
+**The fix.** Write the range on the other axis too.
 
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2
 ```
+
+**A forgotten type is not the cause.** The type is optional ([space](../reference/muro/space.md)): `space /L1/a X1..X2 Y1..Y2` passes as a space with no label. The type is a free word and no tool reads it.
 
 ## 5. Space regions overlap
 
@@ -245,7 +247,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out t:150 spec:EW edge:W
 boundary /L1/b /out t:150 spec:EW edge:E
 ```
@@ -310,7 +312,7 @@ That one boundary is the default wall between the rooms; the perimeter has none 
 **The fix.** Declare an exterior space and write one boundary from each perimeter room. Splitting the exterior by direction or character makes `edge:` easier to write and opens up the site questions.
 
 ```muro-part
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out t:150 spec:EW
 boundary /L1/b /out t:150 spec:EW
 ```

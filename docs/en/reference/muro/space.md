@@ -7,7 +7,7 @@ mode: reference
 
 ```muro-part
 space /L5/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク
-space /out/road-s exterior name:南側道路 road:12000
+space /out/road-s name:南側道路 road:12000 outside:1
 ```
 
 `space <path> <type> [regions...] [attributes...]` declares a space. **Space is the primary element** — a wall is not a possession of a space but a relation between two of them ([boundary](boundary.md)), and plans, areas and circulation are all derived from how spaces are laid out.
@@ -32,30 +32,34 @@ Paths change when things are renamed. To join against an external register acros
 
 ## Type — an open vocabulary
 
-The second positional is the type, and it is **required**. Omit it and the first region is read as the type, which surfaces as a complaint about the region instead.
+The second positional is the type, and it is **optional**. `room`, `ldk`, `厨房`, `tenant` are all fine, and so is writing nothing at all.
 
-```text
-✖ t1.muro:line 4: A region is given as two ranges, X?..X? and Y?..Y?
+```muro-part
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b X1..X2 Y1..Y2
 ```
 
-A line with neither a type nor a region (`space /L1/a` alone) is stopped more directly, by `space /L1/a requires a type (a word from the vocabulary)`.
+**koyu never reads the type position.** The word appears in the aggregation axis ([stats](../cli/stats.md) subtotals by type) and in the lettering on a plan, and is the entrance to no verdict. Misspelling it therefore does nothing: write `bedrom` for `bedroom` and you get no error, just one more row under a new type. That is acceptable precisely because no meaning is kept there.
 
-The vocabulary of types is open: `room`, `ldk`, `厨房`, `tenant` are all fine. **Exactly two words are interpreted structurally.**
+Write no type and the canonical form carries no `type` key. **No default word is fabricated.**
 
-| Type | Interpretation |
+### Facts of composition live in the declaration
+
+Being outside, and being a void, are written as [attributes](attributes.md) rather than as a type.
+
+| Declaration | Meaning |
 |---|---|
-| `exterior` | Outside. May have no region. Splits into several (`/out/road-s`) |
-| `void` | A void through the floor. Not counted in floor area, not passable, and neither floor nor ceiling is generated |
+| `outside:1` | Outside the building. May have no region. Add `road:` and it takes part in street frontage |
+| `void:1` | A void through the floor. Not counted in floor area, not passable, and neither floor nor ceiling is generated |
 
-Every other type is merely carried and is never the entrance to a verdict. Whether the daylight check applies is in particular not inferred from the type — `light` looks at the spaces that wrote `daylight:1`.
-
-The two structural words are guarded against **misspelling**. A word one edit away from either is refused, because the moment `exteriorr` parses, that space stops being outside and the gross floor area silently doubles.
-
-```text
-✖ s2.muro:line 4: The type exteriorr looks like a misspelling of exterior (exterior is read structurally — if a different word was meant, spell it further away)
+```muro-part
+space /out name:南側道路 road:6000 outside:1
+space /L2/hole X1..X2 Y1..Y2 name:吹抜け void:1
 ```
 
-Words further away (`room`, `yard`, `ldk`) draw no comment.
+These two used to be written in the type position. That position is an open vocabulary, so the moment one extra character was typed — `exteriorr` — the space stopped being outside and the **gross floor area went from 16.20 m2 to 32.40 m2 while `check` stayed green**. The guard against that was a watch that refused words one edit away from either, which is a hunch standing in for a rule; it could not even be widened, because two edits from `void` reaches `road` and `wood`, words a person may legitimately write.
+
+Moved into the attribute position, the spelling is guarded by the ledger instead ([ATT03](../diagnostics/att.md#att03) refuses an unknown key, [ATT02](../diagnostics/att.md#att02) refuses a value outside the domain). `outsid:1` is an error; `acme.outside:1` passes as carrier tier — because that is **the author spelling out "this word is mine and the tool does not read it"**. Being open and being trustworthy hold together as long as the boundary is declared ([scope](../scope.md)).
 
 ## Regions — a union of rectangles
 
@@ -179,7 +183,7 @@ grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150
 space /L1/living living X1..X2 Y1..Y2 daylight:1 name:居間
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/living /out edge:S t:120
   window w:2400 h:1800
 ```

@@ -22,7 +22,7 @@ koyu 1.0
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /out edge:W t:200
@@ -74,7 +74,7 @@ koyu 1.0
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /out edge:W t:200

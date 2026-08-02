@@ -30,7 +30,7 @@ level R 3200 slab:400
 
 space /L1/office room X1..X2 Y1..Y2 name:Office uid:u-7f3k9m2qx4b8dhtv
 space /L1/meeting room X2..X3 Y1..Y2 name:Meeting-room
-space /out exterior name:Outside
+space /out name:Outside outside:1
 
 boundary /L1/office /L1/meeting t:120 spec:LGS
   door w:900 h:2000 name:D1

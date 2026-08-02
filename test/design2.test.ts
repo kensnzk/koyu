@@ -9,6 +9,7 @@ import { doorsBetween, segmentsFor } from "../src/core/graph.js";
 import { daylightInputs } from "../src/core/light.js";
 import { validate } from "../src/validate/index.js";
 import { areaM2, effectiveUse } from "../src/core/model.js";
+import { isVoid } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
 
 const mansion = readFileSync(
@@ -68,7 +69,7 @@ test("a void is not passable and does not count toward floor area", () => {
   const m = parse(office);
   assert.equal(doorsBetween(m, "/L1/hall", "/L2/void"), undefined);
   const total = [...m.spaces.values()]
-    .filter((s) => s.type !== "void")
+    .filter((s) => !isVoid(s))
     .reduce((sum, s) => sum + (areaM2(s) ?? 0), 0);
   assert.equal(Math.round(total * 100) / 100, 419.84); // 460.8 - 40.96 (吹抜け)
 });
@@ -88,7 +89,7 @@ test("daylight: losing the window fails it", () => {
 grid X 0 3600 7200
 grid Y 0 4500
 level L1 0 h:2400
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
   window w:600 h:600 edge:S
@@ -109,7 +110,7 @@ const daylightSrc = (space: string) => `
 grid X 0 3600 7200
 grid Y 0 4500
 level L1 0 h:2400 slab:150
-space /out exterior
+space /out outside:1
 ${space}
 boundary /L1/a /out t:150
   window w:2600 h:2200 edge:S
@@ -135,7 +136,7 @@ test("daylight: the denominator is decided by where daylight:1 is written (a who
 grid X 0 3600 7200
 grid Y 0 4500
 level L1 0 h:2400
-space /out exterior
+space /out outside:1
 `;
   const whole = parse(`${head}space /L1/a unit X1..X3 Y1..Y2 daylight:1
 boundary /L1/a /out t:150

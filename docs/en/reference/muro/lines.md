@@ -25,7 +25,7 @@ level L1 0 h:2700 slab:200
 
 space /L1/ldk  ldk  X1..X2 Y1..Y2 name:"居間 と 食堂" acme.note:"#3 と #4"
 space /L1/hall hall X2..X3 Y1..Y2 name:玄関           # a trailing comment
-space /out     exterior name:外部
+space /out     name:外部 outside:1
 
 boundary /L1/hall /out t:150 spec:EW1
   door w:900 h:2100 edge:S name:玄関戸

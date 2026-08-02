@@ -91,7 +91,7 @@ level R 2700 slab:150
 
 space /L1/a room X1..X2 Y1..Y2 name:Room-A daylight:1
 space /L1/b room X2..X3 Y1..Y2 name:Room-B daylight:1
-space /out exterior name:Outside
+space /out name:Outside outside:1
 
 boundary /L1/a /L1/b t:120
   door w:780 h:2000
@@ -144,7 +144,7 @@ level R 2700 slab:150
 
 space /L1/liv living  X1..X2 Y1..Y2      name:Living-room daylight:1
 space /L1/bal balcony X1..X2 Y1-1500..Y1 name:Terrace
-space /out exterior name:Outside
+space /out name:Outside outside:1
 
 boundary /L1/liv /L1/bal t:100 spec:Sash
   window w:2600 h:2200
@@ -171,7 +171,7 @@ level R 5800 slab:500
 space /L1/liv living  X1..X2 Y1..Y2      name:Living-room daylight:1
 space /L1/bal balcony X1..X2 Y1-1500..Y1 name:Terrace
 space /L2/bal balcony X1..X2 Y1-1500..Y1 name:Balcony-above
-space /out exterior name:Outside
+space /out name:Outside outside:1
 
 boundary /L1/liv /L1/bal t:100 spec:Sash
   window w:2600 h:2200

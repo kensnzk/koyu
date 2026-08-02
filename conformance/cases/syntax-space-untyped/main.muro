@@ -1,0 +1,6 @@
+koyu 1.0
+grid X 0 4000 8000
+grid Y 0 5000
+level L1 0 h:2400 slab:150
+space /L1/a X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2

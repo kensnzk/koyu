@@ -158,7 +158,7 @@ grid Y 0 4500
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 ```
 
 ```sh

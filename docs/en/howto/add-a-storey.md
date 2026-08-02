@@ -90,8 +90,8 @@ space /L1/ldk  ldk     X1..X2 Y1..Y3 + X2..X3 Y1..Y2 name:LDK
 space /L1/hall hall    X2..X3 Y2..Y3 name:Entry-and-stair
 space /L2/bed  bedroom X1..X2 Y1..Y3 name:Main-bedroom
 space /L2/hall hall    X2..X3 Y2..Y3 name:Upper-hall
-space /L2/void void    X2..X3 Y1..Y2 name:Over-the-living-room
-space /out exterior name:Outside
+space /L2/void         X2..X3 Y1..Y2 name:Over-the-living-room void:1
+space /out name:Outside outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 edge:E
@@ -178,7 +178,7 @@ level L2 2900
 
 space /L1/a room X1..X2 Y1..Y2 name:Downstairs
 space /L2/b room X1..X2 Y1..Y2 name:Upstairs
-space /out exterior name:Outside
+space /out name:Outside outside:1
 boundary /L1/a /out edge:S t:150
   door w:900
 ```

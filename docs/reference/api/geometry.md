@@ -90,7 +90,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out edge:W`);
 
 for (const s of ["/L1/a", "/L1/b"]) {

@@ -19,7 +19,7 @@ The key order is fixed.
 
 | Key | Present | Content |
 |---|---|---|
-| `format` | **always** | the version of this format itself; currently `"koyu-canonical/1.0"` |
+| `format` | **always** | the version of this format itself; currently `"koyu-canonical/1.1"` |
 | `koyu` | only with a version declaration | [the language version](../muro/version.md), passed through |
 | `name` | if `name` was written | the name of the building |
 | `unit` | **always** | currently `"mm"` only |
@@ -119,7 +119,7 @@ A zone carries attributes only. No region, no type.
 
 | Key | Present | Content |
 |---|---|---|
-| `type` | **always** | the type of the space |
+| `type` | when written | the type of the space. **Optional**, so the key is absent when none was written (no default is fabricated) |
 | `level` | only when explicit | emitted only when the level differs from the first path segment (a maisonette, say). The default is omitted |
 | `at` | if there is a region | four grid names. **A flat quadruple for a single rectangle, an array of quadruples for several**, sorted by canonical content |
 | `attrs` | if there are attributes | keys in collation order |

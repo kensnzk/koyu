@@ -88,7 +88,7 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/living living X1..X2 Y1..Y2 name:居間
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/living /out t:150
   door w:900
 ```
@@ -108,24 +108,26 @@ boundary /L1/living /out t:150
 
 ## 4. 領域の書き方を叱られる
 
-メッセージは領域の書き方を指しているが、**原因はたいてい型の書き忘れ**である。`space` の第2位置引数は型で、必須である。落とすと領域の一つ目 (`X1..X2`) が型として読まれ、残りが一つになる。
+領域は**二つの範囲**である — X 系で一つ、Y 系で一つ。片方しか書かなければこう言われる。
 
 ```muro-bad
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
-space /L1/a X1..X2 Y1..Y2
+space /L1/a room X1..X2
 ```
 
 ```text
-✖ notype.muro:line 4: A region is given as two ranges, X?..X? and Y?..Y?
+✖ region.muro:line 4: A region is given as two ranges, X?..X? and Y?..Y?
 ```
 
-**直し方。**パスと領域の間に型を書く。
+**直し方。**もう一方の軸の範囲を書く。
 
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2
 ```
+
+**型を書き忘れたのではない。**型は任意である ([space](../reference/muro/space.md))。`space /L1/a X1..X2 Y1..Y2` は型を持たない空間として通る — 型は自由なラベルであって、ツールはそこを読まない。
 
 ## 5. 領域が重なっていると言われる
 
@@ -245,7 +247,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out t:150 spec:EW edge:W
 boundary /L1/b /out t:150 spec:EW edge:E
 ```
@@ -310,7 +312,7 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
 **直し方。**外部空間を宣言し、外周の室から一本ずつ境界を書く。外部は方角や性格ごとに割っておくと `edge:` の指定が楽になり、敷地の問いも立てられるようになる。
 
 ```muro-part
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out t:150 spec:EW
 boundary /L1/b /out t:150 spec:EW
 ```
@@ -325,7 +327,7 @@ boundary /L1/b /out t:150 spec:EW
 ✖ att.muro:line 4: /L1/bath carries nmae:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.nmae:浴室)
 ```
 
-一方、**型 (`space` の第2位置引数) は開かれた語彙**である。ツールが構造として解釈するのは二つだけで、それ以外は自由語として運ばれ、検査も警告もされない。
+一方、**型 (`space` の第2位置引数) は開かれた語彙**であり、しかも任意である。koyu はこの位置を一切読まないので、どの語も自由語として運ばれ、検査も警告もされない。
 
 | 型 | 解釈 |
 |---|---|

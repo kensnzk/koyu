@@ -30,7 +30,7 @@ level L1 0 h:2400 slab:500
 level L2 2900 h:2400 slab:500
 level R 5800 slab:500
 
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 space /L1/ldk  ldk     X1..X2 Y1..Y2 name:LDK
 space /L1/hall hall    X2..X3 Y1..Y2 name:玄関

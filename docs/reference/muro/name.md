@@ -31,7 +31,7 @@ space /L1/a room X1..X2 Y1..Y2
 ```text
 $ npx tsx src/cli.ts json nm.muro
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "name": "街角の 複合ビル",
   "unit": "mm",
 ```

@@ -26,7 +26,7 @@ level L1 0 h:2700 slab:300
 
 const PLAN = `space /L1/a room X1..X2 Y1..Y2 h:2500 spec:計画
 space /L1/b room X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:900 name:D1
   door w:800 at:0.8 name:D2

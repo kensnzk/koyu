@@ -27,7 +27,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```text
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
@@ -75,7 +75,7 @@ npx tsx src/cli.ts json derived.muro
 
 ```text
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "unit": "mm",
 ```
 

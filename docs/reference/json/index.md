@@ -15,7 +15,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```json
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
@@ -71,7 +71,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 | キー | 何の版か | 上がるとき |
 |---|---|---|
-| `format` | **正準 JSON の綴り** — キーの集合・並び・照合順・正規化・数の綴り。現在は `koyu-canonical/1.0` | minor はキーが増えたとき(増えたキーを持たない文書のバイトは変わらない)、major は既存の綴りが変わったとき |
+| `format` | **正準 JSON の綴り** — キーの集合・並び・照合順・正規化・数の綴り。現在は `koyu-canonical/1.1` | minor はキーが増えたとき(増えたキーを持たない文書のバイトは変わらない)、major は既存の綴りが変わったとき |
 | `koyu` | **原本の言語版**の素通し。**書かれていなければ出ない** | 言語の意味論が変わったとき |
 
 二つが別なのは、**同じ意味論を別のキーで綴り直すことがありうる**からである。境界の向きを保存する `a` キーの追加は、言語を一語も変えずに綴りを変えた。逆に、言語版が上がっても綴りが変わらないことはある。

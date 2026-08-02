@@ -101,7 +101,7 @@ grid Y 0 4000
 level L1 0 h:5400 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X3 Y1..Y2
-space /L2/v void X1..X2 Y1..Y2
+space /L2/v X1..X2 Y1..Y2 void:1
 space /L2/b room X2..X3 Y1..Y2
 boundary /L1/a /L2/v type:void
 ```
@@ -122,7 +122,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X3 Y1..Y2
-space /L2/v void X1..X2 Y1..Y2
+space /L2/v X1..X2 Y1..Y2 void:1
 space /L2/b room X2..X3 Y1..Y2
 boundary /L1/a /L2/v type:void
 ```
@@ -137,7 +137,7 @@ grid Y 0 4000
 level L1 0 h:5400 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X2 Y1..Y2
-space /L2/v void X1..X2 Y1..Y2
+space /L2/v X1..X2 Y1..Y2 void:1
 boundary /L1/a /L2/v type:void
 ```
 

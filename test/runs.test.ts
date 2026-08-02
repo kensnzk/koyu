@@ -267,7 +267,7 @@ level L1 0 h:2700
 space /L1/w room X1..X2 Y1..Y2
 space /L1/p corridor X2..X3 Y1..Y2
 space /L1/e room X3..X4 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/w /L1/p t:120
   line X2,Y1 X3,Y2
 boundary /L1/p /L1/e t:120
@@ -305,7 +305,7 @@ grid X 0 8000 16000
 grid Y 0 16000
 level L1 0 h:2700
 space /L1/a room X1..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:200
   line X2,Y2 X3,Y2-8000
 boundary /L1/a /out edge:N t:200
@@ -340,7 +340,7 @@ grid Y 0 3000 6000
 level L1 0 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y3
 space /L1/b room X2..X3 Y1..Y3
-space /out exterior
+space /out outside:1
 boundary /L1/a /out edge:S
 boundary /L1/a /L1/b
   line X1,Y1 X1,Y2
@@ -366,7 +366,7 @@ grid X 0 8000 16000
 grid Y 0 8000 16000
 level L1 0 h:2700
 space /L1/a room X1..X2 Y1..Y3
-space /out exterior
+space /out outside:1
 column 800 L1
 `);
   const cols = columnsFor(m, "L1");
@@ -382,7 +382,7 @@ grid X 0 8000 16000
 grid Y 0 8000 16000
 level L1 0 h:2700
 level L2 3000 h:2700 slab:300
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X3 Y1..Y2
 space /L2/b room X1..X2 Y1..Y2
 space /L2/t terrace X2..X3 Y1..Y2
@@ -401,7 +401,7 @@ grid Y 0 8000 16000
 level L1 0 h:2700
 level L2 3000 h:2700 slab:300
 level L3 6000 h:2700 slab:300
-space /out exterior
+space /out outside:1
 space /L2/t terrace X2..X3 Y1..Y2
 boundary /L2/t /out edge:E air:1 t:120
 space /L3/c room X2..X3 Y1..Y2
@@ -460,7 +460,7 @@ level L2 3000 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y2 ceiling:0
 space /L1/s stair X2..X3 Y1..Y1+7000 stair:N
 space /L2/s stair X2..X3 Y1..Y1+7000
-space /L2/v void X1..X2 Y1..Y2
+space /L2/v X1..X2 Y1..Y2 void:1
 boundary /L1/a /L2/v type:void
 stack s L1..L2 type:stair
 `);
@@ -485,7 +485,7 @@ space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
 space /L1/a room X2..X3 Y1..Y1+7000
 space /L2/a room X2..X3 Y1..Y1+7000
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:200
 boundary /L2/a /out t:200
 boundary /L1/s /out t:200
@@ -511,7 +511,7 @@ grid X 0 4000
 grid Y 0 4000
 level L1 0 h:3000 slab:300
 space /L1/a room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:200 spec:CW`);
   const svg = svgAxo(m, {});
   // **底面と上面は同じ形が上下にずれて現れる。**軸測投影は平行投影なので、
@@ -539,7 +539,7 @@ level L2 3000 h:2700 slab:300
 level R 6000 slab:300
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
-space /L2/v void X1..X2 Y1..Y2
+space /L2/v X1..X2 Y1..Y2 void:1
 space /L2/b room X2..X3 Y1..Y2
 boundary /L1/a /L2/v type:void
 `);
@@ -556,7 +556,7 @@ grid Y 0 8000 16000
 level L1 0 h:2700
 space /L1/a room X1..X2 Y1..Y3
 space /L1/b room X2..X3 Y1..Y3
-space /out exterior
+space /out outside:1
 boundary /L1/b /out t:200
   line X2,Y2 X3,Y3
 boundary /L1/a /out t:200
@@ -579,7 +579,7 @@ grid X 0 7000 8000 10000
 grid Y 0 8000 10000 40000
 level L1 0 h:2400
 space /L1/a room X1..X4 Y1..Y2 + X1..X2 Y2..Y4 name:L字の室
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:150
   line X3,Y2 X4,Y1
 `);
@@ -597,7 +597,7 @@ level L2 3000 h:2700 slab:300
 level R 6000 slab:300
 space /L1/a room X1..X3 Y1..Y2
 space /L2/b room X1..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:200
 boundary /L2/b /out t:200
   line X1,Y2 X2,Y1
@@ -635,7 +635,7 @@ grid Y 0 4500
 level L1 0 h:2400
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X4 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:150
 boundary /L1/b /out t:150
   line X2,Y1 X3,Y2

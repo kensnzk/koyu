@@ -10,7 +10,7 @@
 // 建蔽率・容積率は**数**なので core の siteReport が返す。上限と較べるのは、
 // 用途地域という原本の外の事実を要するので、ここでも持たない — 持てるようになったら足す。
 
-import { polygonAreaM2, regionOf, shapeEscapesPolygon, type Model } from "../core/model.js";
+import { isOutside, polygonAreaM2, regionOf, shapeEscapesPolygon, type Model } from "../core/model.js";
 import { siteReport } from "../core/site.js";
 import { finding, type Finding } from "./index.js";
 
@@ -63,7 +63,7 @@ export function siteFindings(model: Model): Finding[] {
     }
 
     for (const s of withRect) {
-      if (s.type === "exterior" || s.path.startsWith(poly.path + "/")) continue;
+      if (isOutside(s) || s.path.startsWith(poly.path + "/")) continue;
       // 照合するのは割付ではなく**導出された領域** — 敷地なりに切った外形はここで通る
       for (const r of regionOf(s)) {
         const esc = shapeEscapesPolygon(r, poly.points, EPS_SITE);

@@ -9,7 +9,7 @@
 // 整合の要求であって、完全性の要求ではない。粗さが許されるのは、ここが凍らないからである。
 
 import { envelopeGaps, segmentLength } from "../core/graph.js";
-import { isSemiOutdoor, type Model } from "../core/model.js";
+import { isOutside, isSemiOutdoor, type Model } from "../core/model.js";
 import { finding, type Finding } from "./index.js";
 
 const VERTICAL = new Set(["stair", "shaft", "void"]);
@@ -33,7 +33,7 @@ export function envelopeFindings(model: Model): Finding[] {
     if (s.rects.length === 0) continue;
     if (!s.level || !envelopedLevels.has(s.level)) continue;
     // 外部・半屋外・外構のタイルは囲われていないのが正常
-    if (s.type === "exterior" || isSemiOutdoor(model, s)) continue;
+    if (isOutside(s) || isSemiOutdoor(model, s)) continue;
     if (siteZones.some((z) => s.path.startsWith(z + "/"))) continue;
 
     const gaps = envelopeGaps(model, s);

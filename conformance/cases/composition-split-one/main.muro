@@ -8,5 +8,5 @@ space /L1/a room X1..X2 Y1..Y2 name:居室
 space /L1/b room X2..X3 Y1..Y2 name:廊下
 boundary /L1/a /L1/b t:120
   door SD1
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out edge:W t:200

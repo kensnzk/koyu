@@ -25,6 +25,8 @@ import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type At
   rectToPoly,
   srcRef,
   polygonSelfIntersection,
+  isOutside,
+  isVoid
 } from "./model.js";
 import { cutsInWindow } from "./poly.js";
 import { ASSET_ELEM, attrSpec, isNamespaced } from "./vocabulary.js";
@@ -610,7 +612,7 @@ function checkLanguageVersion(ctx: Ctx): void {
   // 書かれていなければ、0.4では判定から黙って外れる — 意味が変わるのでエラーで二択を示す
   if (["0.1", "0.2", "0.3"].includes(model.version)) {
     for (const s of model.spaces.values()) {
-      if (!LEGACY_DAYLIT.has(s.type) || s.attrs["daylight"] !== undefined) continue;
+      if (s.type === undefined || !LEGACY_DAYLIT.has(s.type) || s.attrs["daylight"] !== undefined) continue;
       emit(
         "VER02",
         `A koyu ${model.version} file has a ${s.type} with no daylight: ${s.path} — 0.4 does not infer the daylight scope from the type, so it falls out of the check. Write daylight:1 (in scope) or daylight:0 (out of scope), then raise the version to koyu 0.4`,
@@ -810,8 +812,8 @@ function checkVerticalBoundary(ctx: Ctx, b: Boundary, sa: Space, sb: Space, bAt:
   }
   if (b.kind === "void") {
     const upper = (ia ?? 0) > (ib ?? 0) ? sa : sb;
-    if (upper.type !== "void") {
-      emit("VRT04", `The space above a void boundary is expected to be type:void: ${upper.path}`, bAt);
+    if (!isVoid(upper)) {
+      emit("VRT04", `The space above a void boundary is expected to declare void:1: ${upper.path}`, bAt);
     }
   }
   // 咎めているのは字下げされた door / window / seg の行そのものなので、
@@ -1084,7 +1086,7 @@ function checkSpaceSufficiency(ctx: Ctx): void {
       emit("SUF02", `${s.path} has a region, but its level cannot be determined (give it at the head of the path or with level:)`, at);
       continue; // z が決まらない空間には、天井高を問う意味が無い
     }
-    if (s.type === "void" || s.type === "exterior" || isSemiOutdoor(model, s)) continue;
+    if (isVoid(s) || isOutside(s) || isSemiOutdoor(model, s)) continue;
     if (heff(model, s) === undefined) {
       emit(
         "SUF01",
@@ -1109,7 +1111,7 @@ function checkLevelSufficiency(ctx: Ctx): void {
     // 床を持ちうる空間が一つも載っていない階 (最上階の上限を与えるだけの屋上レベルなど) には
     // 言うことが無い — 生成されなかった床が無いのだから
     const n = withRect.filter(
-      (s) => s.level === l.name && s.type !== "void" && s.type !== "exterior",
+      (s) => s.level === l.name && !isVoid(s) && !isOutside(s),
     ).length;
     if (n === 0) continue;
     emit("SUF03", `Level ${l.name} has no slab:, so not one floor is generated on this storey`, {

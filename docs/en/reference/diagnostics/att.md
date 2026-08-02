@@ -39,7 +39,7 @@ heigh:2400           not in the ledger and not namespaced → ATT03
 
 A namespace is **dot-separated**, matching `^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)+$`: it starts lowercase and contains at least one dot. `acme.sensor`, `bems.temp`, `survey.measured` and `acme.sub.key` all pass; `Acme.sensor`, `acme.Sensor` and `acme_x` do not. koyu gives the contents no meaning at all — it does not even have a rule for splitting them.
 
-## ATT01 — the attribute takes a positive number
+## ATT01 — the attribute takes a positive number {#att01}
 
 `error`
 
@@ -68,7 +68,7 @@ The keys that require a positive number are these.
 
 **Fix** — write a positive number with no unit. Every length is in mm, so units are never written. A ramp's `slope:` takes **the denominator only** — `slope:12` means 1/12.
 
-## ATT02 — the value is not in the vocabulary
+## ATT02 — the value is not in the vocabulary {#att02}
 
 `error`
 
@@ -100,7 +100,7 @@ site on zone /site is one of 0 / 1: site:yes
 
 `daylight` is not in this table; its value domain is guarded separately by [DAY01](./day.md).
 
-## ATT03 — the attribute is not in the ledger
+## ATT03 — the attribute is not in the ledger {#att03}
 
 `error`
 
@@ -149,7 +149,7 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X3 Y1..Y2 ceiling:none
   area X1..X1+1000 Y1..Y1+1000 flooring:tile
 zone /L1 name:一階 areaa:100
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:150 h:tall
   window w:1200 h:1100 edge:S at:0.5 styl:sliding
   seg w:900 edge:N at:0.5 sond:D45

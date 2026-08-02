@@ -50,7 +50,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2
 - `level L1 0 h:2400 slab:150` — 高さ0mmに `L1` というレベルを置く。`h:` は基準天井高、`slab:` は床組みの厚みである。
 - `space /L1/ldk ldk X1..X2 Y1..Y2` — 空間を一つ置く。`/L1/ldk` がこの空間の**パス** (同一性そのもの)、続く `ldk` が**型**、残りが領域である。
 
-型は第2位置引数で、**省略できない**。パスの先頭が `L1` なので、この空間はレベル `L1` に属する。
+型は第2位置引数で、**省略できる**。書けば集計と図面の刷り字に出るが、koyu はその語を読まない。パスの先頭が `L1` なので、この空間はレベル `L1` に属する。
 
 `grid` と `level` は、それを使う行より前に書く。行の順序が意味を持つのはここだけで、たとえば `boundary` はまだ書いていない空間を先に参照してもよい。
 
@@ -194,7 +194,7 @@ level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -240,7 +240,7 @@ level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -277,7 +277,7 @@ npx tsx src/cli.ts light out/house.muro
 ✔ Every room meets 1/7 — 1 room in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
 ```
 
-`hall` が出てこないのは、`daylight:1` を書いたのが `ldk` だけだからである。型は判定に一切関与しない — `hall` を `room` に書き換えても対象にはならず、`hall` のまま `daylight:1` を足せば対象になる。空間の型で構造として解釈されるのは `exterior` と `void` の二語だけで、残りは koyu が解釈しない自由な語である。
+`hall` が出てこないのは、`daylight:1` を書いたのが `ldk` だけだからである。型は判定に一切関与しない — `hall` を `room` に書き換えても対象にはならず、`hall` のまま `daylight:1` を足せば対象になる。**型はどの語も解釈されない** — 外部も吹抜けも `outside:1` `void:1` という宣言の側にあり、型の位置は自由なラベルである。
 
 引くなら [方角と edge](../reference/muro/orientation.md)・[window](../reference/muro/window.md)・[採光の判定](../reference/validate/daylight.md)。
 
@@ -295,7 +295,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
 space /L2/bed bedroom X1..X2 Y1..Y2 daylight:1
 space /L2/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -377,7 +377,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
 space /L2/bed bedroom X1..X2 Y1..Y2 daylight:1
 space /L2/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -445,7 +445,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク daylight:1
 space /L1/hall hall X2..X3 Y1..Y2 name:玄関ホール floor:タイル
 space /L2/bed bedroom X1..X2 Y1..Y2 name:寝室 floor:オーク daylight:1
 space /L2/hall hall X2..X3 Y1..Y2 name:階段ホール
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/ldk /L1/hall t:120 spec:PW1
   door w:800 h:2000 name:LDK扉

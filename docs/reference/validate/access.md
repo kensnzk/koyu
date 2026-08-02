@@ -23,7 +23,9 @@ mode: reference
 
 **人が通れる境界** — `type:open` の境界、上下を繋ぐ `type:stair` の境界、そして `door` の書かれた壁。`type:shaft` と `type:void` は通れない。窓は通れない。
 
-**通り抜けられない空間** — `type:shaft` と `type:void` は、空間としては連続していても人が通り抜ける先にはならない。
+**通り抜けられない空間** — `void:1` を宣言した空間と、型が `shaft` の空間。どちらも空間としては連続していても人が通り抜ける先にはならない。
+
+> **綴りの守りが二つに割れていることに注意。**`void:1` は[台帳](../muro/attributes.md)の鍵なので、`voi:1` と書けば [ATT03](../diagnostics/att.md#att03) で止まる。`shaft` は**型の位置の自由語**であり、`shaftt` と書けばこの規則は黙って掛からなくなる。core は型を一切読まないが、判定の面は読む — そしてこの面は[凍らない](../scope.md)。
 
 **車が通れる境界** ([`access.parking`](#access-parking) だけが使う) — `type:open` の境界、幅 2400mm 以上の `door`、そして `ramp:` を持つ空間の縦連結。**階段の縦連結は、車にとってはただの段差である。**
 
@@ -38,7 +40,7 @@ koyu 1.0
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /out t:150
 ```
@@ -50,7 +52,7 @@ Validation — 1 violation / 0 cautions
 
 外部への壁は書いた。だが開口が無い。**問うのは扉の有無ではなく到達性である** — 扉を持っていても、その先が行き止まりなら出られない。
 
-対象外になるのは、領域を持たない空間、`type:exterior` そのもの、`type:shaft`、`type:void` である。そして**外部空間が一つも書かれていない模型では、この規則は走らない** — 外部が無い模型に「外部へ出られない」と言っても意味がないからである。
+対象外になるのは、領域を持たない空間、`outside:1` の空間そのもの、型が `shaft` の空間、`void:1` の空間である。そして**外部空間が一つも書かれていない模型では、この規則は走らない** — 外部が無い模型に「外部へ出られない」と言っても意味がないからである。
 
 violation にしてあるのは、出られない室を建築として読める解釈が無いからである。
 
@@ -61,7 +63,7 @@ koyu 1.0
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /out t:150
   door w:900 edge:S
@@ -80,7 +82,7 @@ koyu 1.0
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /L1/v void X1..X2 Y1..Y2
+space /L1/v X1..X2 Y1..Y2 void:1
 space /L1/a room X2..X3 Y1..Y2
 boundary /L1/a /L1/v type:open
 ```
@@ -101,7 +103,7 @@ koyu 1.0
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /L1/v void X1..X2 Y1..Y2
+space /L1/v X1..X2 Y1..Y2 void:1
 space /L1/a room X2..X3 Y1..Y2
 boundary /L1/a /L1/v air:1 h:1100
 ```
@@ -110,14 +112,14 @@ boundary /L1/a /L1/v air:1 h:1100
 
 `caution`
 
-`type:stair` の空間から外部へ出るどの経路も、`use:rentable` の空間を通る。
+型が `stair` の空間から外部へ出るどの経路も、`use:rentable` の空間を通る。
 
 ```muro-caution
 koyu 1.0
 grid X 0 3000 9000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/s stair X1..X2 Y1..Y2
 space /L1/t room X2..X3 Y1..Y2 use:rentable
 boundary /L1/s /L1/t
@@ -149,7 +151,7 @@ koyu 1.0
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/p room X1..X2 Y1..Y2 use:parking
 boundary /L1/p /out
   door w:900 edge:S
@@ -169,7 +171,7 @@ koyu 1.0
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/p room X1..X2 Y1..Y2 use:parking
 boundary /L1/p /out
   door w:2400 edge:S
@@ -179,7 +181,7 @@ boundary /L1/p /out
 
 `caution`
 
-縦動線の宣言 (`stair:` / `escalator:`) を持つ `use:common` の空間へ、共用廊下から `type:backyard` を通らずに届かない。
+縦動線の宣言 (`stair:` / `escalator:`) を持つ `use:common` の空間へ、共用廊下から型 `backyard` の空間を通らずに届かない。
 
 ```muro-caution
 koyu 1.0
@@ -207,7 +209,7 @@ Validation — 0 violations / 1 caution
 
 **当の空間へは水平に入れなければならない。**自分の縦連結を経由してよいことにすると「上の階からそのエスカレーターで降りてくれば乗り場に着く」という循環が成り立ち、孤立をそのまま素通ししてしまう。だから検査は、その空間自身に接する `type:stair` の境界を使わない経路だけを見る。
 
-**共用廊下 (`type:corridor` かつ `use:common`) が一つも無い建物では、この規則は走らない。**客動線と従業員動線の区別が無い建物 — 住宅など — の階段を孤立と誤検出しないためである。
+**共用廊下 (型が `corridor` かつ `use:common`) が一つも無い建物では、この規則は走らない。**客動線と従業員動線の区別が無い建物 — 住宅など — の階段を孤立と誤検出しないためである。
 
 **caution にしてある理由** — 「共用の縦動線はすべて客用」は粗い推定である。従業員用の共用階段を客用と読み違えることがある。
 

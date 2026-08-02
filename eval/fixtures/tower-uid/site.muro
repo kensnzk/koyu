@@ -2,10 +2,10 @@
 # 角地: 南12m道路+東6m道路。地上の外部空間は建物の周りをタイルする実在の空間。
 # タイルは矩形の近似 — 面積の真は敷地形状 (site-geometry.muro のpolygon) が持つ。
 
-space /out/road-s exterior name:南側道路 road:12000
-space /out/road-e exterior name:東側道路 road:6000
-space /out/n exterior name:北側隣地
-space /out/w exterior name:西側隣地
+space /out/road-s name:南側道路 road:12000 outside:1
+space /out/road-e name:東側道路 road:6000 outside:1
+space /out/n name:北側隣地 outside:1
+space /out/w name:西側隣地 outside:1
 
 zone /site name:敷地 site:1 area:1097.80
 

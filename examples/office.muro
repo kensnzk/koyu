@@ -13,7 +13,7 @@ level L1 0 h:2700 slab:600
 level L2 4000 h:2700 slab:1300
 level R 8000 slab:1300          # 屋根面。L2の空間の上限を与える
 
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 # ---- 1階: エントランス+事務室、北側にコア ----
 space /L1/hall     hall     X1..X2 Y1..Y2       name:エントランスホール use:common floor:フローリング h:6700   # 吹抜けで2層分
@@ -62,7 +62,7 @@ boundary /L1/wc-w /out t:180 spec:EW1
 boundary /L1/machine /out t:180 spec:EW1
 
 # ---- 2階: 会議室+執務室 (南の廊下芯Y2を跨いで広がる)、コアは1階と同位置 ----
-space /L2/void     void     X1..X2 Y1..Y2       name:エントランス吹抜け
+space /L2/void              X1..X2 Y1..Y2       name:エントランス吹抜け void:1
 space /L2/office   office   X2..X4 Y1..Y3       name:執務室 use:rentable floor:タイルカーペット
   area X3+3200..X4 Y1..Y1+3200 name:リフレッシュコーナー floor:フローリング
 space /L2/corridor corridor X1..X2 Y2..Y3       name:廊下 use:common

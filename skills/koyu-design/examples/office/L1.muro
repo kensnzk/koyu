@@ -6,7 +6,7 @@ band X X1..X2 Y2..Y3
   space /L1/corr corridor w:rest name:Corridor
   space /L1/core stair w:3600 name:"Stair and shaft"
 
-space /out exterior name:Outside
+space /out name:Outside outside:1
 
 boundary /L1/entry /out t:200 spec:RC
   door w:1800 edge:S name:Entrance

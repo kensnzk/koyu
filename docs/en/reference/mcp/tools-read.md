@@ -162,7 +162,7 @@ import ./L1.muro
 # L1.muro
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/b /out t:150
   door w:900 h:2100 edge:S name:玄関
@@ -295,7 +295,7 @@ Narrowing by `level` puts site and building spaces side by side.
 
 ```text
 {
- "format": "koyu-canonical/1.0",
+ "format": "koyu-canonical/1.1",
  "koyu": "1.0",
  "name": "二室",
  "unit": "mm",

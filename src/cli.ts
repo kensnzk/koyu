@@ -32,6 +32,8 @@ import {
   zoneAreaM2,
   type Model,
   srcRef,
+  isOutside,
+  isVoid
 } from "./core/model.js";
 import { parseFile } from "./parse-file.js";
 import { svgPlan } from "./draw/plan.js";
@@ -323,29 +325,32 @@ function main(argv: string[]): number {
         console.log(`${l.name}`);
         let sub = 0;
         for (const s of onLevel) {
-          if (s.type === "void") {
+          if (isVoid(s)) {
             console.log(`  ${s.path}\t${displayName(s)}\tvoid (not counted as floor area)`);
             continue;
           }
           const a = areaM2(s)!;
-          if (s.type === "exterior") {
+          if (isOutside(s)) {
             outdoorTotal += a;
-            console.log(`  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)} m2 (outdoor, not counted)`);
+            console.log(`  ${s.path}\t${displayName(s)}\t${s.type ?? "(untyped)"}\t${a.toFixed(2)} m2 (outdoor, not counted)`);
             continue;
           }
           if (isSemiOutdoor(model, s)) {
             semiTotal += a;
             console.log(
-              `  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)} m2 (semi-outdoor, reported separately)`,
+              `  ${s.path}\t${displayName(s)}\t${s.type ?? "(untyped)"}\t${a.toFixed(2)} m2 (semi-outdoor, reported separately)`,
             );
             continue;
           }
           sub += a;
           total += a;
-          byType.set(s.type, (byType.get(s.type) ?? 0) + a);
+          // 型は任意なので、書かれなかった行にも小計の座が要る。**既定の語は捏造しない** —
+          // "(untyped)" は集計の見出しであって、その空間の型ではない (mcp の "(unspecified)" と同じ構え)
+          const label = s.type ?? "(untyped)";
+          byType.set(label, (byType.get(label) ?? 0) + a);
           const use = effectiveUse(model, s);
           if (use) byUse.set(use, (byUse.get(use) ?? 0) + a);
-          console.log(`  ${s.path}\t${displayName(s)}\t${s.type}\t${a.toFixed(2)} m2`);
+          console.log(`  ${s.path}\t${displayName(s)}\t${label}\t${a.toFixed(2)} m2`);
         }
         console.log(`  Subtotal ${sub.toFixed(2)} m2`);
       }

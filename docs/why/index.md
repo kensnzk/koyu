@@ -109,7 +109,7 @@ level L1 0 h:2400 slab:300
 level L2 3000 h:2400 slab:300
 space /L1/hall hall X1..X2 Y1..Y2
 space /L2/bed bedroom X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/hall /out t:150
 boundary /L2/bed /out t:150
 boundary /L1/hall /L2/bed type:stair

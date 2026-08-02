@@ -23,7 +23,9 @@ Every rule here stands on one definition.
 
 **Passable by a person** — a `type:open` boundary, a `type:stair` boundary joining levels, and a wall with a `door` written on it. `type:shaft` and `type:void` are not passable. Windows are not passable.
 
-**Spaces you cannot pass through** — `type:shaft` and `type:void`. They may be continuous as space, but nobody walks through them to somewhere else.
+**Spaces you cannot pass through** — a space declaring `void:1`, and a space whose type is `shaft`. They may be continuous as space, but nobody walks through them to somewhere else.
+
+> **Note that the spelling is guarded on one side only.** `void:1` is a key in the [ledger](../muro/attributes.md), so `voi:1` stops at [ATT03](../diagnostics/att.md#att03). `shaft` is **a free word in the type position**, so `shaftt` makes this rule quietly stop applying. Core reads no type at all; the judging face does — and that face [does not freeze](../scope.md).
 
 **Passable by a car** (used only by [`access.parking`](#access-parking)) — a `type:open` boundary, a `door` at least 2400mm wide, and the vertical link of a space carrying `ramp:`. **The vertical link of a stair is, to a car, merely a step.**
 
@@ -38,7 +40,7 @@ koyu 1.0
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /out t:150
 ```
@@ -50,7 +52,7 @@ Validation — 1 violation / 0 cautions
 
 The wall to the outside was written. There is no opening in it. **What is asked is reachability, not the presence of a door** — a door into a dead end still leads nowhere.
 
-Out of scope: spaces with no region, `type:exterior` itself, `type:shaft` and `type:void`. And **a model with no exterior space at all is never asked** — telling it that it cannot reach an outside it never described would mean nothing.
+Out of scope: spaces with no region, an `outside:1` space itself, a space whose type is `shaft`, and a `void:1` space. And **a model with no exterior space at all is never asked** — telling it that it cannot reach an outside it never described would mean nothing.
 
 It is a violation because there is no reading of architecture in which a room you cannot leave is fine.
 
@@ -61,7 +63,7 @@ koyu 1.0
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /out t:150
   door w:900 edge:S
@@ -80,7 +82,7 @@ koyu 1.0
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /L1/v void X1..X2 Y1..Y2
+space /L1/v X1..X2 Y1..Y2 void:1
 space /L1/a room X2..X3 Y1..Y2
 boundary /L1/a /L1/v type:open
 ```
@@ -101,7 +103,7 @@ koyu 1.0
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
-space /L1/v void X1..X2 Y1..Y2
+space /L1/v X1..X2 Y1..Y2 void:1
 space /L1/a room X2..X3 Y1..Y2
 boundary /L1/a /L1/v air:1 h:1100
 ```
@@ -110,14 +112,14 @@ boundary /L1/a /L1/v air:1 h:1100
 
 `caution`
 
-Every route out of a `type:stair` space passes through a `use:rentable` space.
+Every route out of a space whose type is `stair` passes through a `use:rentable` space.
 
 ```muro-caution
 koyu 1.0
 grid X 0 3000 9000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/s stair X1..X2 Y1..Y2
 space /L1/t room X2..X3 Y1..Y2 use:rentable
 boundary /L1/s /L1/t
@@ -149,7 +151,7 @@ koyu 1.0
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/p room X1..X2 Y1..Y2 use:parking
 boundary /L1/p /out
   door w:900 edge:S
@@ -169,7 +171,7 @@ koyu 1.0
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
-space /out exterior
+space /out outside:1
 space /L1/p room X1..X2 Y1..Y2 use:parking
 boundary /L1/p /out
   door w:2400 edge:S
@@ -179,7 +181,7 @@ boundary /L1/p /out
 
 `caution`
 
-A `use:common` space declaring a vertical run (`stair:` / `escalator:`) cannot be reached from a common corridor without crossing a `type:backyard`.
+A `use:common` space declaring a vertical run (`stair:` / `escalator:`) cannot be reached from a common corridor without crossing a space whose type is `backyard`.
 
 ```muro-caution
 koyu 1.0
@@ -207,7 +209,7 @@ A common vertical run belongs to the customer's route. If reaching its foot mean
 
 **Entry to the space itself must be horizontal.** Allow its own vertical link and the circle "come down that escalator from the floor above and you arrive at its foot" closes, letting a stranded run pass unnoticed. So the check only considers routes that do not use a `type:stair` boundary incident to the space in question.
 
-**A building with no common corridor (`type:corridor` and `use:common`) is never asked.** A house draws no customer/staff distinction, and its stair should not be reported as stranded.
+**A building with no common corridor (type `corridor` and `use:common`) is never asked.** A house draws no customer/staff distinction, and its stair should not be reported as stranded.
 
 **Why this is a caution** — "every common vertical run is for customers" is a coarse inference. A common stair meant for staff can be misread as a customer's.
 

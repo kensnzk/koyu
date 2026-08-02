@@ -14,6 +14,8 @@ import {
   type Model,
   type Pt,
   type Space,
+  isOutside,
+  isVoid as isVoidSpace
 } from "./model.js";
 import { areaOf, rectToPoly, subtract } from "./poly.js";
 import { AREA_EPS } from "./tolerance.js";
@@ -70,8 +72,8 @@ export function slabs(model: Model): Slab[] {
     const upper = levels[li + 1];
     for (const s of byLevel.get(level.name) ?? []) {
       const pieces = regionOf(s);
-      const isVoid = s.type === "void";
-      const isExterior = s.type === "exterior";
+      const isVoid = isVoidSpace(s);
+      const isExterior = isOutside(s);
       const semi = isSemiOutdoor(model, s);
       const isRun = runDecls(s).length > 0;
 
@@ -116,7 +118,7 @@ export function slabs(model: Model): Slab[] {
       const covers: Pt[][] = [];
       for (const up of levels.slice(li + 1)) {
         for (const o of byLevel.get(up.name) ?? []) {
-          if (o.type === "exterior") continue;
+          if (isOutside(o)) continue;
           covers.push(...regionOf(o));
         }
       }

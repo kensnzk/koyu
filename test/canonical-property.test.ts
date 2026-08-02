@@ -127,7 +127,7 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
     body.push({ lines });
   }
   // 外部・地下・メゾネット (パス先頭と所属レベルが違う空間)
-  body.push({ lines: ["space /out exterior name:外部 road:12000"] });
+  body.push({ lines: ["space /out outside:1 name:外部 road:12000"] });
   body.push({ lines: ["space /B1/park 駐車場 X1..X2 Y1..Y2 name:駐車場 acme.sensor:21"] });
   body.push({
     lines: [`space /L1/loft ${pick(rnd, ["room", "atelier"])} X4..X5 Y1..Y2 level:L2 name:ロフト`],

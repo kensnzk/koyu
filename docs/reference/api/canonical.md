@@ -24,7 +24,7 @@ console.log("bytes:", Buffer.byteLength(toCanonical(a)));
 
 ```text
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
@@ -61,7 +61,7 @@ bytes: 2164
 format → koyu → name → unit → grid → levels → assets → polygons → columns → zones → spaces → boundaries
 ```
 
-**文書が最初に名乗るのは自分の綴りの版である。**`format` は `"koyu-canonical/1.0"` で、これは**言語版でもツール版でもない** — 数えるのは綴りだけである。
+**文書が最初に名乗るのは自分の綴りの版である。**`format` は `"koyu-canonical/1.1"` で、これは**言語版でもツール版でもない** — 数えるのは綴りだけである。
 
 - minor が上がるのはキーが増えたとき。増えたキーを持たない文書のバイトは変わらない。
 - major が上がるのは既存のキーの名前・並び・照合順・正規化・数の綴りが変わったとき。既存の文書のバイトが変わる。
@@ -80,7 +80,7 @@ console.log(toCanonical(m));
 
 ```text
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "unit": "mm",
   "grid": {
     "X": [

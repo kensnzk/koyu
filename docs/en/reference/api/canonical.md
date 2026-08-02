@@ -24,7 +24,7 @@ console.log("bytes:", Buffer.byteLength(toCanonical(a)));
 
 ```text
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
@@ -61,7 +61,7 @@ For the same reason, whether `over` or `drop` was written does not survive. **No
 format → koyu → name → unit → grid → levels → assets → polygons → columns → zones → spaces → boundaries
 ```
 
-**The first thing a document announces is the version of its own spelling.** `format` is `"koyu-canonical/1.0"`, and that is **neither the language version nor the tool version** — it counts spelling and nothing else.
+**The first thing a document announces is the version of its own spelling.** `format` is `"koyu-canonical/1.1"`, and that is **neither the language version nor the tool version** — it counts spelling and nothing else.
 
 - The minor rises when a key is added. The bytes of a document that has no such key do not change.
 - The major rises when the name, order, collation, normalisation or number spelling of an existing key changes. Existing documents change bytes.
@@ -80,7 +80,7 @@ console.log(toCanonical(m));
 
 ```text
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "unit": "mm",
   "grid": {
     "X": [

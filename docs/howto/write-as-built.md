@@ -43,7 +43,7 @@ import ./as-built.muro
 space /L1/office office X1..X2 Y1..Y2 name:事務室
 space /L1/hall   hall   X2..X3 Y1..Y2 name:玄関
 space /L1/store  store  X3..X4 Y1..Y2 name:物置
-space /out       exterior name:外部
+space /out       name:外部 outside:1
 
 boundary /L1/office /L1/hall t:120 spec:LGS
   door w:800 h:2000 name:D1

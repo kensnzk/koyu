@@ -97,7 +97,7 @@ grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:150
   window w:1200 h:1100 edge:S at:0.25 name:W1
   window w:1200 h:1100 edge:S at:0.75 name:W1
@@ -130,7 +130,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 asset W1 window w:1200 h:1100 name:掃き出し窓
 space /L1/a room X1..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:150
   window W1 edge:S at:0.25
   window W1 edge:S at:0.75

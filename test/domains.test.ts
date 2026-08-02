@@ -83,7 +83,7 @@ level L1 0 h:2700
 zone /site name:敷地 site:1
 polygon /site 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X3 Y1..Y2 level:L1
-space /out/road-n exterior X1..X2 Y2..Y3 name:北側道路 road:4000 level:L1
+space /out/road-n X1..X2 Y2..Y3 name:北側道路 road:4000 level:L1 outside:1
 boundary /site/yard /out/road-n`);
 
   const diags = checkDiagnostics(m);

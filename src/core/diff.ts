@@ -57,7 +57,8 @@ export interface GridChange {
 
 export interface SpaceItem {
   path: string;
-  type: string;
+  /** 書かれていれば。型は任意である */
+  type?: string;
   areaM2?: number;
 }
 
@@ -587,7 +588,7 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
   d.spaces.renamed = sm.renamed.sort((x, y) => (key(x.to) < key(y.to) ? -1 : 1));
   const spaceItem = (s: Space): SpaceItem => {
     const ar = areaM2(s);
-    return { path: s.path, type: s.type, ...(ar !== undefined ? { areaM2: ar } : {}) };
+    return { path: s.path, ...(s.type !== undefined ? { type: s.type } : {}), ...(ar !== undefined ? { areaM2: ar } : {}) };
   };
   d.spaces.added = sm.added.map(spaceItem).sort((x, y) => (key(x.path) < key(y.path) ? -1 : 1));
   d.spaces.removed = sm.removed.map(spaceItem).sort((x, y) => (key(x.path) < key(y.path) ? -1 : 1));

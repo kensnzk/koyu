@@ -44,7 +44,8 @@ export interface JsonLevel {
 export interface JsonRoom {
   id: string;
   level?: string;
-  type: string;
+  /** The free label, when one was written. koyu reads no meaning from it. */
+  type?: string;
   name?: string;
   pieces: Array<Array<[number, number]>>;
   areaM2?: number;
@@ -203,7 +204,7 @@ export function exportBuilding(model: Model, form: Form): JsonBuilding {
     rooms: form.spaces.map((s) => ({
       id: s.path,
       ...(s.level === undefined ? {} : { level: s.level }),
-      type: s.type,
+      ...(s.type === undefined ? {} : { type: s.type }),
       pieces: s.outline.map((ring) => ring.map(pt)),
       ...(s.areaM2 === undefined ? {} : { areaM2: s.areaM2 }),
       ...(s.z0 === undefined ? {} : { floorZ: s.z0 }),

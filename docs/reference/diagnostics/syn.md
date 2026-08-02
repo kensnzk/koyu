@@ -71,7 +71,7 @@ koyu check bad.muro
 
 | 本文 | 原因 | 直し方 |
 |---|---|---|
-| `A region is given as two ranges, X?..X? and Y?..Y?` | **型 (第2位置引数) を書き忘れた** — `space /L1/a X1..X2 Y1..Y2` | 型を足す: `space /L1/a room X1..X2 Y1..Y2`。本文は領域の話をするが、原因は型の欠落であることが多い |
+| `A region is given as two ranges, X?..X? and Y?..Y?` | 領域は X 系と Y 系で**二つ**要るのに、片方しか書かれていない | もう一方の軸を書く: `space /L1/a room X1..X2 Y1..Y2`。**型の書き忘れではない** — 型は任意である |
 | `space /L1/a requires a type (a word from the vocabulary)` | 型も領域も無い | 型を足す |
 | `Duplicate space path: /L1/a (first seen …)` | 同じパスの空間が二つ | パスは同一性である。片方のパスを変える |
 | `boundary takes the form boundary /pathA /pathB [attributes...]` | 相手のパスが無い | 境界は二つの空間を結ぶ関係である |
@@ -123,7 +123,11 @@ level L1 0 h:2400 slab:150
 space /L1/a bedrom X1..X2 Y1..Y2
 ```
 
-このファイルは緑である。型は面積の集計軸と描画の淡さくらいにしか使われず、判定の入口ではないので、閉じていない。**採光の対象は型ではなく `daylight:1` が決める** ([DAY01](./day.md)) ので、型の綴りで判定が消えることは無い。
+このファイルは緑である。型は面積の集計軸と描画の淡さくらいにしか使われず、**core はこの位置を一切読まない**ので、閉じる必要が無い。
+
+**構成の事実は型の位置に置かない。**外部も吹抜けも採光も、宣言の側にある — `outside:1` `void:1` `daylight:1` はどれも[台帳](../muro/attributes.md)の鍵なので、一字違えば [ATT03](./att.md#att03) で止まる。`outsid:1` はエラーであり、黙って外部でなくなることはない。かつては `exterior` が型の位置にあり、`exteriorr` の一字で延床が倍増しながら緑で通った。
+
+なお[検証](../validate/index.md)の面はいくつかの型語を判定に使う。そちらは**凍らない面**であり、綴りは守られない ([scope](../scope.md))。
 
 ## 構文が通ってからが本番
 

@@ -111,7 +111,7 @@ level L1 0 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y3
 space /L1/b room X2..X3 Y1..Y2
 space /L1/c room X2..X3 Y2..Y3 t:150
-space /out exterior
+space /out outside:1
 column 600 L1
 boundary /L1/a /L1/b
   door w:900
@@ -257,7 +257,7 @@ ${axis("X")}
 ${axis("Y")}
 level L1 0 h:2700 slab:200
 space /L1/a room X1..X${N} Y1..Y${N}
-space /out exterior
+space /out outside:1
 boundary /L1/a /out
 column 600 L1
 `);

@@ -4,7 +4,7 @@ title: "koyu (戸牖) — a space-first, text-native notation for architecture"
 authors:
   - family-names: "Shinozaki"
     given-names: "Ken"
-version: "0.16.0"
+version: "0.17.0"
 date-released: "2026-07-27"
 license: "Apache-2.0"
 repository-code: "https://github.com/kensnzk/koyu"

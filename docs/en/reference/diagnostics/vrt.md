@@ -37,7 +37,7 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out type:stair
 ```
 
@@ -125,7 +125,7 @@ boundary /L1/a /L2/a type:void
 **Fix** — make the type of the space above `void`.
 
 ```muro-part
-space /L2/a void X1..X2 Y1..Y2 name:リビング上部
+space /L2/a X1..X2 Y1..Y2 name:リビング上部 void:1
 ```
 
 A `void` space is not counted in floor area and shows in `koyu stats` as `void (not counted as floor area)`.

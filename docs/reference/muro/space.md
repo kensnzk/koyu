@@ -7,7 +7,7 @@ mode: reference
 
 ```muro-part
 space /L5/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク
-space /out/road-s exterior name:南側道路 road:12000
+space /out/road-s name:南側道路 road:12000 outside:1
 ```
 
 `space <パス> <型> [領域...] [属性...]` は空間を宣言する。**空間が一次要素である** — 壁は空間の持ち物ではなく二つの空間の関係であり ([boundary](boundary.md))、平面図も面積も動線も空間の並びから導出される。
@@ -32,30 +32,34 @@ Duplicate space path: /L1/a (first seen in floors/L1.muro at line 12)
 
 ## 型 — 開かれた語彙
 
-第2位置引数は型で、**必須**である。省略すると領域の一つ目が型として読まれ、領域が一つしか無いという別のエラーになる。
+第2位置引数は型で、**任意**である。`room` も `ldk` も `厨房` も `tenant` も書けるし、書かなくてもよい。
 
-```text
-✖ t1.muro:line 4: A region is given as two ranges, X?..X? and Y?..Y?
+```muro-part
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b X1..X2 Y1..Y2
 ```
 
-型も領域も無い行 (`space /L1/a` だけ) は、もっと直接に `space /L1/a requires a type (a word from the vocabulary)` で止まる。
+**koyu は型の位置を一切読まない。**型は集計の軸 ([stats](../cli/stats.md) の型別小計) と平面図の刷り字に現れるだけで、どの判定の入口にもならない。だから綴りを間違えても何も起きない — `bedroom` を `bedrom` と書いた行は、エラーにならず新しい型として一行増える。それでよいのは、そこに意味が置かれていないからである。
 
-型の語彙は開いている。`room` も `ldk` も `厨房` も `tenant` も書ける。**構造として解釈されるのは二語だけ**である。
+書かなければ正準形に `type` の鍵は現れない。**既定の語を捏造することはしない。**
 
-| 型 | 解釈 |
+### 構成の事実は宣言の側にある
+
+外部であること・吹抜けであることは型ではなく[属性](attributes.md)で書く。
+
+| 宣言 | 意味 |
 |---|---|
-| `exterior` | 外部。領域を持たなくてよい。`/out/road-s` のように複数に割れる |
-| `void` | 吹抜け。床面積に算入せず、通行できず、床も天井も生成されない |
+| `outside:1` | 建物の外部。領域を持たなくてよい。`road:` を付ければ接道の対象になる |
+| `void:1` | 吹抜け。床面積に算入せず、通行できず、床も天井も生成されない |
 
-それ以外の型は運ばれるだけで、判定の入口にはならない。採光の対象かどうかも型からは推定しない — `light` が見るのは `daylight:1` と書いた空間である。
-
-構造として解釈される二語には**綴りの見張り**がある。一字違いの語は拒まれる — `exteriorr` と書けた瞬間にその空間は外部でなくなり、延床が黙って倍になるからである。
-
-```text
-✖ s2.muro:line 4: The type exteriorr looks like a misspelling of exterior (exterior is read structurally — if a different word was meant, spell it further away)
+```muro-part
+space /out name:南側道路 road:6000 outside:1
+space /L2/hole X1..X2 Y1..Y2 name:吹抜け void:1
 ```
 
-遠い語 (`room` `yard` `ldk`) には何も言われない。
+かつてこの二つは型の位置に書かれていた。型の位置は開かれた語彙なので、`exteriorr` と一字余分に打った瞬間にその空間は外部でなくなり、**延床が 16.20㎡ から 32.40㎡ へ倍増しながら check は緑のまま**だった。守りとして二語の一字違いだけを拒む見張りを置いていたが、それは規則の代わりに置いた勘であって、`void` の二字違いには `road` と `wood` — 人が正当に書く語 — が入るので広げることもできなかった。
+
+属性の位置に移すと、綴りを守るのは台帳になる ([ATT03](../diagnostics/att.md#att03) が未知の鍵を、[ATT02](../diagnostics/att.md#att02) が値域を拒む)。`outsid:1` はエラーであり、`acme.outside:1` は運搬層として通る — **著者が「これは自分の語で、ツールは読まない」と綴れる**からである。開いていることと信頼できることは、境界が宣言されていれば両立する ([scope](../scope.md))。
 
 ## 領域 — 矩形の合併
 
@@ -169,7 +173,7 @@ $ npx tsx src/cli.ts check s3.muro --json
 
 - `site:` と `area:` は[ゾーン](zone.md)の鍵である。空間に書けば ATT03 になる。
 - `underground:` は[レベル](level.md)の鍵である。空間に書けば ATT03 になる。
-- `type:` は[境界](boundary.md)の鍵である。空間の型は属性ではなく第2位置引数である。
+- `type:` は[境界](boundary.md)の鍵である。空間の型は属性ではなく第2位置引数であり、しかも任意である。
 
 ## daylight — 採光の対象は宣言する
 
@@ -179,7 +183,7 @@ grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150
 space /L1/living living X1..X2 Y1..Y2 daylight:1 name:居間
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/living /out edge:S t:120
   window w:2400 h:1800
 ```

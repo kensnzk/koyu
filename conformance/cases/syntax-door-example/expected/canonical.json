@@ -1,5 +1,5 @@
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "koyu": "1.0",
   "name": "扉の書き方",
   "unit": "mm",
@@ -58,9 +58,9 @@
       }
     },
     "/out": {
-      "type": "exterior",
       "attrs": {
-        "name": "外部"
+        "name": "外部",
+        "outside": 1
       }
     }
   },

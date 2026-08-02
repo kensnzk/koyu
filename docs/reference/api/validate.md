@@ -64,7 +64,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 space /L1/b room X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out edge:W`);
 for (const f of validate(m)) console.log(JSON.stringify(f));
 ```

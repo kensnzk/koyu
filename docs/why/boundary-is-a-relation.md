@@ -52,7 +52,7 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/living room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/living /out
   door w:900
 ```
@@ -68,7 +68,7 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/living room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/living /out t:150
   door w:900 edge:S
 ```

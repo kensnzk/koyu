@@ -8,7 +8,7 @@ grid Y 0 5600
 level L1 0 h:2700 slab:200
 
 space /L1/room room X1..X2 Y1..Y2 name:居室 daylight:1
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/room /out t:150
   window w:2400 h:1500 edge:S name:南窓

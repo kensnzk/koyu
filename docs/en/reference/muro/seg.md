@@ -53,7 +53,7 @@ level L1 0 h:2700 slab:200
 
 space /L1/office office X1..X2 Y1..Y2 name:事務室
   area X1..X1+2000 Y1..Y2 name:土間 floor:モルタル
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/office /out t:180 spec:RC edge:S
   seg w:3000 at:X1+4000 spec:カーテンウォール fire:60

@@ -25,32 +25,36 @@ space /L1/a wumbo X1..X2 Y1..Y2
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-同梱の例が実際に使っている型は **32 語** (`space` 行 469 本) である。頻度の高い順に `shop` (85) `corridor` (66) `room` (41) `shaft` (39) `exterior` (34) `service` (33) `unit` (20) `stair` (19) `hall` (15) … と続く。これは台帳ではなく **de facto の慣用**であって契約ではない。
+同梱の例が実際に使っている型は **30 語** (`space` 行 469 本、うち 43 本は型を書いていない) である。頻度の高い順に `shop` (85) `corridor` (66) `room` (41) `shaft` (39) `service` (33) `unit` (20) `stair` (19) `hall` (15) … と続く。これは台帳ではなく **de facto の慣用**であって契約ではない。
 
-## 開いていない二語
+## 開いていない語は、一つも無い
 
-型のうちツールが構造として解釈するのは二つだけである。
+**型の位置は完全に開いている。**core はそこを一切読まない。`stair` も `shaft` も `ldk` も `厨房` も、ツールにとって等価な自由語であり、書かなくてもよい。
 
-| 型 | 解釈 |
-|---|---|
-| `exterior` | 外部。領域なしでよい。`road:` を付ければ接道の対象になる |
-| `void` | 吹抜け。床面積に算入されず、通行できない |
-
-**この二つ以外の型は、どれだけ意味ありげでも、ツールにとって等価な自由語である。**`stair` も `shaft` も `ldk` も、空間の型としては解釈されない。
-
-そしてこの二語だけは**綴りが守られる。**
+かつては二語だけが例外だった。`exterior` と `void` — 外部であること・床が無いこと — が型の位置に書かれ、構造として解釈されていた。**そしてそれが、この頁の主張を嘘にしていた。**
 
 ```text
-✖ near.muro:line 5: The type exteriorr looks like a misspelling of exterior (exterior is read structurally — if a different word was meant, spell it further away)
+✖ near.muro:line 5: The type exteriorr looks like a misspelling of exterior …
 ```
 
-`exteriorr` が黙って通れば、その空間は外部でなくなり延床が倍になる。**一字違いの代償が大きすぎるので、近い綴りだけを拒む。**遠い語 (`room` `yard` `wumbo`) には何も言わない。
+この見張りは、`exteriorr` の一字で空間が外部でなくなり延床が 16.20㎡ から 32.40㎡ へ倍増しながら check が緑で通った、という実測の後に置かれたものである。だが編集距離1の拒否は**規則の代わりに置いた勘**であって、距離2まで広げることもできなかった — `void` の距離2には `road` と `wood`、人が正当に書く語が入る。守れる範囲がヒューリスティックの都合で決まっているとき、それは設計ではない。
+
+## 二語は宣言の側へ移った
+
+```muro-part
+space /out name:南側道路 road:6000 outside:1
+space /L2/hole X1..X2 Y1..Y2 name:吹抜け void:1
+```
+
+`outside` と `void` は[台帳](../reference/muro/attributes.md)の鍵になった。同じ守りが、今度は**規則として**掛かる — `outsid:1` は [ATT03](../reference/diagnostics/att.md#att03) のエラーであり、`void:2` は [ATT02](../reference/diagnostics/att.md#att02) である。見張りは消えた。守るものが型の位置から出たので、守る必要が無くなったからである。
+
+そして著者には逃げ道がある。`acme.outside:1` は運搬層として通る — **「これは自分の語で、ツールは読まない」と綴れる**からである。これが下の三層の話であり、開いていることと信頼できることが両立する条件そのものである。
 
 ## 属性は三層に分かれている
 
 | 層 | 例 | core の態度 |
 |---|---|---|
-| **構造層** | パス・型・区画・レベル・関係の相手・`kind` | **必ず見る。**壊れていれば読まない |
+| **構造層** | パス・区画・レベル・関係の相手・`kind` | **必ず見る。**壊れていれば読まない |
 | **解釈層** | `h` `w` `at` `edge` `daylight` `road` `site` `style` … | 台帳が値域を定義し、**見る** |
 | **運搬層** | `acme.sensor` `bems.temp` `survey.measured` … | **見ない。**名前空間つきで開いている |
 
@@ -98,7 +102,7 @@ grid X 0 2000
 grid Y 0 2000
 level L1 0 h:2400 slab:150
 space /L1/bath wet X1..X2 Y1..Y2 name:浴室 daylight:1
-space /out exterior
+space /out outside:1
 boundary /L1/bath /out edge:S t:150
 ```
 

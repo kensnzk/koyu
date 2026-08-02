@@ -21,7 +21,7 @@ export const DEFAULT_LANGUAGE_VERSION = "1.0";
  * majorは既存のキーの名前・並び・照合順・正規化・数の綴りが変わったとき (既存の文書のバイトが変わる)。
  * 意味論の版は muro が持つので、`koyu` キー (書かれた版宣言の素通し) とは別の面である
  */
-export const CANONICAL_FORMAT = "koyu-canonical/1.0";
+export const CANONICAL_FORMAT = "koyu-canonical/1.1";
 
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";
@@ -83,8 +83,12 @@ export interface Space {
    *  パスの第一義は集計の階層 — レベルは既定で先頭セグメントから読むが、
    *  階を跨ぐくくり (メゾネット) は level: 属性で明示する (ADR-0008) */
   path: string;
-  /** 開かれた語彙 (room, corridor, exterior, void, ...) */
-  type: string;
+  /**
+   * 自由なラベル。**core はこの語を一切読まない**ので、綴りは何の判定にも効かない。
+   * 集計の軸と図面の刷り字にだけ現れる。任意 — 書かなければ何も無い。
+   * 構成の事実 (外部・吹抜け) は `outside:` / `void:` の宣言の側にある
+   */
+  type?: string;
   /** 所属レベル名 (パス先頭セグメント、または level: 属性) */
   level?: string;
   /** グリッド参照。複数矩形の合併でL字などを表す (rectsと同順) */
@@ -450,8 +454,8 @@ export function columnSites(
   const floors = [...model.spaces.values()].filter(
     (s) =>
       s.level === level &&
-      s.type !== "exterior" &&
-      s.type !== "void" &&
+      !isOutside(s) &&
+      !isVoid(s) &&
       s.rects.length > 0 &&
       // 空しか支えない床には柱を立てない (ADR-0030): 半屋外で上に床も無い
       // 屋上庭園・テラスは、柱が持ち上げるものを持たない
@@ -507,7 +511,23 @@ export function columnsFor(model: Model, level: string): Column[] {
 }
 
 /**
- * 半屋外か — 宣言ではなく導出。外部 (type:exterior) に対して
+ * 建物の外部か。**空間の型ではなく `outside:1` の宣言で決まる。**
+ *
+ * 型の位置は開かれた語彙であって、そこから構成の事実を読むと綴りが意味を持ってしまう。
+ * `exteriorr` の一字で外部が屋内になり、延床が倍になりながら check は緑だった。
+ * 宣言なら台帳が綴りを守る (ATT03/ATT02) — 開かれた語彙を殺さずに塞ぐ唯一の形である。
+ */
+export function isOutside(s: Space): boolean {
+  return s.attrs["outside"] === 1;
+}
+
+/** 吹抜けか — 床が無いので、面積にも通行にも数えない。[[isOutside]] と同じ理由で宣言である */
+export function isVoid(s: Space): boolean {
+  return s.attrs["void"] === 1;
+}
+
+/**
+ * 半屋外か — 宣言ではなく導出。外部 (outside:1) に対して
  * open または air:1 (手すり等、遮蔽しない物) の境界で接する空間は半屋外である (ADR-0007)
  */
 export function isSemiOutdoor(model: Model, s: Space): boolean {
@@ -516,7 +536,8 @@ export function isSemiOutdoor(model: Model, s: Space): boolean {
     if (b.kind !== "open" && !b.air) continue;
     const other = b.a === s.path ? b.b : b.b === s.path ? b.a : undefined;
     if (!other) continue;
-    if (model.spaces.get(other)?.type === "exterior") return true;
+    const o = model.spaces.get(other);
+    if (o && isOutside(o)) return true;
   }
   return false;
 }
@@ -575,7 +596,7 @@ export function zoneAreaM2(model: Model, zonePath: string): number {
  */
 export function isIndoor(model: Model, s: Space): boolean {
   if (s.rects.length === 0) return false;
-  if (s.type === "exterior" || s.type === "void") return false;
+  if (isOutside(s) || isVoid(s)) return false;
   return !isSemiOutdoor(model, s);
 }
 
@@ -692,7 +713,7 @@ export function newUids(model: Model, count = 1): string[] {
 /** 正準JSONの空間エントリ (書かれた表記・正準順)。semantic diff (ADR-0018) が比較基底として共有する */
 export function canonicalSpaceEntry(s: Space): Record<string, unknown> {
   return {
-    type: s.type,
+    ...(s.type !== undefined ? { type: s.type } : {}),
     // 明示の level: (パス先頭セグメントと異なる所属 — メゾネット等) は書かれた構成として保存する。
     // これが無いとJSONだけでは所属レベル (垂直検査・集計・既定境界の前提) を復元できない
     ...(s.level !== undefined && s.path.split("/")[1] !== s.level ? { level: s.level } : {}),

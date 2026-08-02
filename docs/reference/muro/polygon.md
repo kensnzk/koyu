@@ -37,7 +37,7 @@ level L1 0 h:2700 slab:200
 
 zone /site name:敷地 site:1 area:154.00
 space /site/house room X1..X2 Y1..Y2 level:L1 name:建物
-space /out/road exterior name:前面道路 road:6000
+space /out/road name:前面道路 road:6000 outside:1
 
 polygon /site -2000,-2000 12000,-2000 12000,9000 -2000,9000
 

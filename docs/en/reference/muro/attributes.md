@@ -22,8 +22,9 @@ How a line is spelled (where the `:` falls, how values are typed, what a repeat 
 
 | Tier | Examples | How core treats it |
 |---|---|---|
-| **Structure** | the path, the type, the region, the level, the other end of a relation, `type` `t` `air` `edge` `w` `at` `hinge` `swing` `d` `x` `y` | **Always read.** If it is broken the file is not read at all — it stops on the spot |
-| **Interpreted** | `h` `use` `road` `daylight` `site` `area` `style` `ceiling` `uid` `name` `stair` `riser` … | **Read.** The ledger defines the range of values, and a value outside it produces a diagnostic |
+| **Structure** | the path, the region, the level, the other end of a relation, `type` `t` `air` `edge` `w` `at` `hinge` `swing` `d` `x` `y` | **Always read.** If it is broken the file is not read at all — it stops on the spot |
+| **Interpreted** | `outside` `void` `h` `use` `road` `daylight` `site` `area` `style` `ceiling` `uid` `name` `stair` `riser` … | **Read.** The ledger defines the range of values, and a value outside it produces a diagnostic |
+| — | the **type** of a space (the second positional) | **Not read.** A free label, optional, appearing only in aggregation and in lettering |
 | **Carried** | `spec` `fire` `sound` `floor` `sill`, and any namespaced key | **Not read.** Carried, nothing more |
 
 **Structure keys do not survive as attributes.** `type:`, `t:`, `air:`, `edge:`, `w:`, `at:`, `hinge:`, `swing:`, `d:`, `x:` and `y:` are lifted into fields of the element as the file is read, and their values are checked right there. So they never appear as `ATT01` or `ATT02` — a non-numeric `t:` stops earlier, with `The attribute t is written as a number`.
@@ -84,9 +85,11 @@ turn on /L1/b is one of R / L: turn:X
 |---|---|---|---|
 | `level` | structure | a level name | states the level explicitly. Defaults to the first path segment |
 | `w` | structure | a positive integer in mm, or `rest` | the dimension of a band member. **Cannot be written on a `space` outside a band** |
+| `outside` | interpreted | `0` / `1` | outside the building. **May have no region.** Not counted in floor area |
+| `void` | interpreted | `0` / `1` | a void. Having no floor it is not counted in floor area, and is not passable |
 | `h` | interpreted | positive number, mm | ceiling height. Defaults to the level's `h` |
 | `use` | interpreted | free | the axis of aggregation. Inherited from a zone |
-| `road` | interpreted | positive number, mm | the width of an `exterior` — the mark of a road. Read when frontage is derived |
+| `road` | interpreted | positive number, mm | the width of an `outside:1` — the mark of a road. Read when frontage is derived |
 | `daylight` | interpreted | `0` / `1` | declares whether the daylight question applies |
 | `ceiling` | interpreted | `0` / `1` | `0` means no ceiling is built |
 | `uid` | interpreted | an opaque token | persistent identity across renames. Not digits alone, no whitespace |

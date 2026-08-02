@@ -99,7 +99,7 @@ npx tsx src/cli.ts validate examples/two-rooms.muro
 
 | 層 | 例 | core の態度 |
 |---|---|---|
-| **構造層** | パス・型・区画・レベル・関係の相手・`kind` | **必ず見る。**壊れていれば読まない |
+| **構造層** | パス・区画・レベル・関係の相手・`kind` | **必ず見る。**壊れていれば読まない |
 | **解釈層** | `h` `use` `daylight` `road` `site` `style` … | 台帳が値域を定義し、**見る** |
 | **運搬層** | `acme.sensor` `bems.temp` `survey.measured` … | **見ない。**名前空間つきで開いている |
 

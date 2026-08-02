@@ -72,7 +72,7 @@ grid Y 0 6000
 level L1 0 h:2700 slab:300
 level R 3000 slab:300
 space /L1/t terrace X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/t /out type:open
 column 600 L1
 ```

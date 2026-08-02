@@ -88,7 +88,7 @@ level L2 4200 h:2800 slab:1400
 level L3 8400 h:2800 slab:1400
 level R 12600 slab:600
 
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 space /L1..L3/st   stair X2..X3 Y1..Y2 name:階段室 use:common stair:N form:return
 space /L1..L3/ev   shaft X3..X4 Y1..Y2 name:EV use:common lift:1
@@ -163,7 +163,7 @@ Cannot reach /L2/ev from /L1/ev
 下階の天井が抜けているところには、**上階側に `void` 型の空間を置き**、下階の空間との間に `type:void` の垂直境界を書く。
 
 ```muro-part
-space /L2/void void X2..X3 Y1..Y2 name:リビング上部
+space /L2/void X2..X3 Y1..Y2 name:リビング上部 void:1
 
 boundary /L1/ldk /L2/void type:void
 ```

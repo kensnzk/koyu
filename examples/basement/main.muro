@@ -48,8 +48,8 @@ boundary /B2..B1/st /B2..B1/mech t:250 spec:RC
 boundary /B2..B1/ev /B2..B1/mech t:250 spec:RC
 
 # 外周は土。物の名は spec 語彙が運ぶ (境界の型を増やさない)
-space /out exterior name:外部
-space /road exterior road:12000 name:前面道路
+space /out name:外部 outside:1
+space /road road:12000 name:前面道路 outside:1
 
 boundary /B2..B1/park /out edge:W t:500 spec:RC土圧壁
 boundary /B2..B1/park /out edge:S t:500 spec:RC土圧壁

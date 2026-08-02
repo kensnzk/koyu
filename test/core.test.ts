@@ -134,7 +134,8 @@ boundary /L1/a /L1/b type:open
 });
 
 test("notation errors come back in words with a line number", () => {
-  assert.throws(() => parse("space /L1/a"), SourceError);
+  assert.throws(() => parse("space"), SourceError);
+  assert.throws(() => parse("space L1/a"), /space takes the form/);
   assert.throws(
     () =>
       parse(`

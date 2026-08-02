@@ -15,7 +15,7 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```json
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "koyu": "1.0",
   "name": "二室",
   "unit": "mm",
@@ -71,7 +71,7 @@ The first thing the document announces is **the version of the format itself**. 
 
 | Key | Version of what | Raised when |
 |---|---|---|
-| `format` | **the spelling of canonical JSON** — the set of keys, their order, the collation, the normalisation, the spelling of numbers. Currently `koyu-canonical/1.0` | minor when a key is added (documents without the new key keep their bytes); major when an existing spelling changes |
+| `format` | **the spelling of canonical JSON** — the set of keys, their order, the collation, the normalisation, the spelling of numbers. Currently `koyu-canonical/1.1` | minor when a key is added (documents without the new key keep their bytes); major when an existing spelling changes |
 | `koyu` | **the language version of the source**, passed through. **Absent if it was not written** | when the semantics of the language change |
 
 They are separate because **the same semantics can be respelled with different keys**. Adding the `a` key, which preserves the written direction of a boundary, changed the spelling without changing one word of the language. The converse also happens: a language version can rise without the spelling moving.

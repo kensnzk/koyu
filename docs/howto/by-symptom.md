@@ -43,7 +43,7 @@ koyu check bad.muro --json
 | 見えているもの | 原因 | 直し方 | コード |
 |---|---|---|---|
 | `Undefined grid line name: X1` | `grid` が無い、または通り参照を使う行より**後**にある | `grid X` と `grid Y` を、使う最初の行より前に書く → [よくある詰まり](troubleshooting.md#1-通り名が未定義だと言われる) | 合成エラー |
-| `A region is given as two ranges, X?..X? and Y?..Y?` | ほとんどは**型 (第2位置引数) の書き忘れ**。領域の一つ目が型として読まれている | `space <パス> <型> X?..X? Y?..Y?` の順に書く → [よくある詰まり](troubleshooting.md#4-領域の書き方を叱られる) | 合成エラー |
+| `A region is given as two ranges, X?..X? and Y?..Y?` | 領域は X 系と Y 系で**二つ**要る。片方しか書かれていない | `space <パス> [型] X?..X? Y?..Y?` と両軸を書く → [よくある詰まり](troubleshooting.md#4-領域の書き方を叱られる) | 合成エラー |
 | `has a region, but its level cannot be determined` | `level` 行が無い。**パスに `/L1/` と書いてもレベルの宣言にはならない** | `level L1 0 h:2400 slab:150` を、使う行より前に書く | [SUF02](../reference/diagnostics/suf.md) |
 | `The ceiling height of … cannot be determined` | 空間の `h:` もレベルの `h:` も無い | どちらかに `h:` を書く | [SUF01](../reference/diagnostics/suf.md) |
 | `The spaces do not touch, so no boundary can be derived` | 角だけで触れている。接触には**長さのある共有辺**が要る | 矩形を重ねて辺を共有させるか、その `boundary` 行を消す → [よくある詰まり](troubleshooting.md#2-接していないと言われる) | [BND04](../reference/diagnostics/bnd.md#bnd04) |

@@ -11,7 +11,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check, checkDiagnostics, DIAGNOSTIC_CODES, type Diagnostic } from "../src/core/diagnose.js";
 import { validate } from "../src/validate/index.js";
-import { areaM2, isIndoor, srcRef } from "../src/core/model.js";
+import { areaM2, isIndoor, srcRef, isOutside } from "../src/core/model.js";
 import { siteReport } from "../src/core/site.js";
 import { slabs } from "../src/core/fabric.js";
 import { parseFile } from "../src/parse-file.js";
@@ -179,7 +179,7 @@ test("population: one place answers \"total floor area\" — stats, site and MCP
   // かつては CLI stats だけが exterior を屋内床に数え、site と 160㎡ 食い違っていた
   assert.equal(Math.round(total * 100) / 100, siteReport(m).totalFloor);
   assert.ok(
-    [...m.spaces.values()].some((s) => s.type === "exterior" && s.rects.length > 0),
+    [...m.spaces.values()].some((s) => isOutside(s) && s.rects.length > 0),
     "the example under test has an exterior carrying a region",
   );
 });
@@ -224,8 +224,8 @@ level L1 0 slab:150
 level L2 3000 h:2400 slab:150
 space /L1/liv living X1..X2 Y1..Y2 h:2400
 space /L1/bal balcony X2..X3 Y1..Y2
-space /L2/v void X1..X2 Y1..Y2
-space /out exterior
+space /L2/v X1..X2 Y1..Y2 void:1
+space /out outside:1
 boundary /L1/bal /out type:open`);
   // h を持たないのは balcony (半屋外) と void と exterior だけ — SUF01 は一件も出ない
   assert.deepEqual(checkDiagnostics(m).map((d) => d.code), []);
@@ -263,7 +263,7 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /L1/far room X3..X4 Y2..Y3
 space /L2/a room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:900 at:0.4
   door w:900 at:0.5

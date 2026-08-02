@@ -79,7 +79,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   // 空間の面 — 切断面が気積を切った姿。同色・輪郭なしなのでL字も切られた形も一体に見える。
   // 半屋外は淡く塗り分け、屋外であることが図から読めるように
   for (const s of rooms) {
-    const isVoid = s.type === "void";
+    const isVoid = s.void;
     for (const poly of s.outline) {
       parts.push(fill(poly, isVoid ? PAPER : s.semiOutdoor ? "#f8f5ec" : ROOM));
       if (isVoid) {
@@ -246,9 +246,9 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     const cx = sx((r.x1 + r.x2) / 2);
     const cy = sy((r.y1 + r.y2) / 2);
     const sub =
-      s.type === "void"
+      s.void
         ? "void"
-        : `${esc(s.type)} · ${s.areaM2} m2${s.semiOutdoor ? " · semi-outdoor" : ""}`;
+        : `${s.type ? `${esc(s.type)} · ` : ""}${s.areaM2} m2${s.semiOutdoor ? " · semi-outdoor" : ""}`;
     parts.push(
       `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="14" fill="${INK}">${esc(displayName(space))}</text>`,
       `<text x="${cx}" y="${cy + 13}" text-anchor="middle" font-size="10" fill="#8a8171">${sub}</text>`,

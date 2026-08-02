@@ -162,7 +162,7 @@ level L1 0 h:2400 slab:150
 level L2 2900 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:150
 boundary /L2/a /out t:150
 ```

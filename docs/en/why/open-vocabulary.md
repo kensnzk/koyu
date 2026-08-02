@@ -25,32 +25,36 @@ space /L1/a wumbo X1..X2 Y1..Y2
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-The bundled examples actually use **32 distinct types** across 469 `space` lines. By frequency: `shop` (85), `corridor` (66), `room` (41), `shaft` (39), `exterior` (34), `service` (33), `unit` (20), `stair` (19), `hall` (15), and so on. That is **de facto usage**, not a ledger and not a contract.
+The bundled examples actually use **30 distinct types** across 469 `space` lines, 43 of which write no type at all. By frequency: `shop` (85), `corridor` (66), `room` (41), `shaft` (39), `service` (33), `unit` (20), `stair` (19), `hall` (15), and so on. That is **de facto usage**, not a ledger and not a contract.
 
-## The two words that are not open
+## Not one word is closed
 
-Of all types, exactly two are read structurally by the tools.
+**The type position is open all the way through.** Core never reads it. `stair`, `shaft`, `ldk` and `厨房` are all equally free words as far as the tools are concerned, and writing none at all is fine.
 
-| Type | Interpretation |
-|---|---|
-| `exterior` | the exterior; may have no region. Add `road:` and it counts towards frontage |
-| `void` | a void; excluded from floor area, not passable |
-
-**Every other type, however meaningful it looks, is a free word as far as the tools are concerned.** `stair`, `shaft` and `ldk` are not interpreted as space types.
-
-And these two words alone have **their spelling protected**.
+Two words used to be the exception. `exterior` and `void` — being outside, having no floor — were written in the type position and read structurally. **And that is what made the claim on this page untrue.**
 
 ```text
-✖ near.muro:line 5: The type exteriorr looks like a misspelling of exterior (exterior is read structurally — if a different word was meant, spell it further away)
+✖ near.muro:line 5: The type exteriorr looks like a misspelling of exterior …
 ```
 
-If `exteriorr` passed silently, that space would stop being the exterior and the gross floor area would double. **The cost of a one-character slip is too high, so near misses — and only near misses — are refused.** Distant words (`room`, `yard`, `wumbo`) draw no comment.
+That watch was put there after a measurement: one extra character in `exteriorr` stopped a space being outside and took the gross floor area from 16.20 m2 to 32.40 m2, with `check` green throughout. But refusing words one edit away is **a hunch standing in for a rule**, and it could not even be widened to two — two edits from `void` reaches `road` and `wood`, words a person may legitimately write. When the reach of a protection is set by what a heuristic happens to allow, it is not a design.
+
+## The two words moved into the declaration
+
+```muro-part
+space /out name:南側道路 road:6000 outside:1
+space /L2/hole X1..X2 Y1..Y2 name:吹抜け void:1
+```
+
+`outside` and `void` became keys in the [ledger](../reference/muro/attributes.md). The same protection now applies **as a rule**: `outsid:1` is an [ATT03](../reference/diagnostics/att.md#att03) error and `void:2` is [ATT02](../reference/diagnostics/att.md#att02). The watch is gone — what it guarded left the type position, so there was nothing left to guard.
+
+And the author keeps a way out. `acme.outside:1` passes as carrier tier, because that is **the author spelling out "this word is mine and the tool does not read it"**. That is what the three tiers below are for, and it is the exact condition under which being open and being trustworthy hold together.
 
 ## Attributes come in three tiers
 
 | Tier | Examples | What core does |
 |---|---|---|
-| **structural** | path, type, region, level, the other end of a relation, `kind` | **always read.** If it is broken, nothing is read |
+| **structural** | path, region, level, the other end of a relation, `kind` | **always read.** If it is broken, nothing is read |
 | **interpreted** | `h`, `w`, `at`, `edge`, `daylight`, `road`, `site`, `style` … | the ledger defines the value range, and it **is read** |
 | **carried** | `acme.sensor`, `bems.temp`, `survey.measured` … | **not read.** Open, with a namespace |
 
@@ -98,7 +102,7 @@ grid X 0 2000
 grid Y 0 2000
 level L1 0 h:2400 slab:150
 space /L1/bath wet X1..X2 Y1..Y2 name:浴室 daylight:1
-space /out exterior
+space /out outside:1
 boundary /L1/bath /out edge:S t:150
 ```
 

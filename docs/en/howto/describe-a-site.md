@@ -22,10 +22,10 @@ File paths in the output below are absolute when you actually run these commands
 Do not make `/out` one space. Split it into an `exterior` per road and per neighbour. **Give roads their width with `road:` (mm)** — that is the mark `site` looks for when it hunts for frontage.
 
 ```muro-part
-space /out/road exterior name:South-road road:6000
-space /out/n exterior name:North-neighbour
-space /out/e exterior name:East-neighbour
-space /out/w exterior name:West-neighbour
+space /out/road name:South-road road:6000 outside:1
+space /out/n name:North-neighbour outside:1
+space /out/e name:East-neighbour outside:1
+space /out/w name:West-neighbour outside:1
 ```
 
 ## 2. Declare the site zone
@@ -90,10 +90,10 @@ level L1 0 h:2400 slab:150
 level R 2700 slab:150
 
 # Outside the site — split by direction and character. Roads carry road:width (mm)
-space /out/road exterior name:South-road road:6000
-space /out/n exterior name:North-neighbour
-space /out/e exterior name:East-neighbour
-space /out/w exterior name:West-neighbour
+space /out/road name:South-road road:6000 outside:1
+space /out/n name:North-neighbour outside:1
+space /out/e name:East-neighbour outside:1
+space /out/w name:West-neighbour outside:1
 
 # The site — a zone with site:1, and the ground-level outdoor spaces under it
 zone /site name:Site site:1 area:154.00

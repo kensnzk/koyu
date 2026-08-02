@@ -71,7 +71,7 @@ The single SYN01 exists only **so that valid JSON can still be returned**. A mac
 
 | Body | Cause | Fix |
 |---|---|---|
-| `A region is given as two ranges, X?..X? and Y?..Y?` | **The type (the second positional) was forgotten** — `space /L1/a X1..X2 Y1..Y2` | Add the type: `space /L1/a room X1..X2 Y1..Y2`. The body talks about the region, but the cause is usually the missing type |
+| `A region is given as two ranges, X?..X? and Y?..Y?` | A region needs **two** ranges, one on X and one on Y, and only one is written | Write the other axis: `space /L1/a room X1..X2 Y1..Y2`. **A forgotten type is not the cause** — the type is optional |
 | `space /L1/a requires a type (a word from the vocabulary)` | Neither type nor region | Add the type |
 | `Duplicate space path: /L1/a (first seen …)` | Two spaces at the same path | The path is the identity. Change one of them |
 | `boundary takes the form boundary /pathA /pathB [attributes...]` | The second path is missing | A boundary is a relation joining two spaces |
@@ -123,7 +123,11 @@ level L1 0 h:2400 slab:150
 space /L1/a bedrom X1..X2 Y1..Y2
 ```
 
-That file is green. A type is used for little more than an aggregation axis and the paleness of a drawing; it is not the entrance to any judgement, which is why it stays open. **The daylight scope is decided by `daylight:1`, not by the type** ([DAY01](./day.md)), so no verdict can vanish because of a misspelled type.
+That file is green. A type is used for little more than an aggregation axis and the paleness of a drawing, and **core never reads that position at all**, so there is nothing to close.
+
+**Facts of composition are not kept in the type position.** Outside, void and daylight all live in a declaration — `outside:1`, `void:1`, `daylight:1` are keys in the [ledger](../muro/attributes.md), so one character off stops at [ATT03](./att.md#att03). `outsid:1` is an error; nothing quietly stops being outside. It used to be otherwise: `exterior` sat in the type position, and `exteriorr` doubled the gross floor area while passing green.
+
+The [validation](../validate/index.md) face does read a few type words when it judges. That face **does not freeze**, and its spellings are not guarded ([scope](../scope.md)).
 
 ## The real work starts once syntax passes
 

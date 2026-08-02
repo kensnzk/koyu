@@ -55,7 +55,9 @@ export {
   heff,
   isCoveredAbove,
   isIndoor,
+  isOutside,
   isSemiOutdoor,
+  isVoid,
   levelsSorted,
   newUids,
   pointInPolygon,
@@ -142,11 +144,14 @@ export { daylightInputs, type DaylightInput } from "./core/light.js";
 
 // ---- 縦動線 (ADR-0021) ----
 export {
+  RUN_KEYS,
+  runDecls,
   runDrawsForLevel,
   runSolids,
   slopeText,
   verticalRuns,
   type RunArrow,
+  type RunDecl,
   type RunDevice,
   type RunDraw,
   type RunForm,
@@ -173,6 +178,22 @@ export {
   type RenamedItem,
   type SpaceItem,
 } from "./core/diff.js";
+
+// ---- 属性の台帳 — **書いてよいキーの一覧であって、読むキーの一覧ではない** ----
+//
+// 利用者の側にも境界が要る。台帳を出していなかった間、消費側のアプリは
+// 「この鍵はこの要素に書けるか」を答えるために台帳を手で写すしかなく、写しは必ずずれる。
+// `outside` と `void` を型の位置から台帳へ移した以上、その台帳は読めなければ意味がない。
+export {
+  ASSET_ELEM,
+  ATTR_LEDGER,
+  attrSpec,
+  CARRY_NAMESPACE,
+  isNamespaced,
+  known,
+  type AttrSpec,
+  type AttrTier,
+} from "./core/vocabulary.js";
 
 // ---- 生成 — **凍らない** (spec/scope.md §8)。SVGの中身は約束の外にある ----
 // 領域としては `@kensnzk/koyu/draw` にも分けてある

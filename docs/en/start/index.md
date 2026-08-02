@@ -194,7 +194,7 @@ level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2
 space /L1/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -240,7 +240,7 @@ level L1 0 h:2400 slab:150
 
 space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -295,7 +295,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
 space /L2/bed bedroom X1..X2 Y1..Y2 daylight:1
 space /L2/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -377,7 +377,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/hall hall X2..X3 Y1..Y2
 space /L2/bed bedroom X1..X2 Y1..Y2 daylight:1
 space /L2/hall hall X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
@@ -445,7 +445,7 @@ space /L1/ldk ldk X1..X2 Y1..Y2 name:LDK floor:オーク daylight:1
 space /L1/hall hall X2..X3 Y1..Y2 name:玄関ホール floor:タイル
 space /L2/bed bedroom X1..X2 Y1..Y2 name:寝室 floor:オーク daylight:1
 space /L2/hall hall X2..X3 Y1..Y2 name:階段ホール
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/ldk /L1/hall t:120 spec:PW1
   door w:800 h:2000 name:LDK扉

@@ -30,7 +30,7 @@ koyu の語を引き当てるための表である。**ここに書かれた一�
 |---|---|---|
 | 空間 (space) | 一次要素。パス・型・領域 (矩形の合併) を持つ。室・ゾーン内の一区画・外部の領域がこれになる | [space](reference/muro/space.md) |
 | パス | `/L1/A/ldk` — 空間とゾーンの同一性であり、同時に集計の階層。先頭セグメントは、同名の `level` が宣言されていればレベルになる | [space](reference/muro/space.md) |
-| 型 (type) | `space` の第2位置引数 (必須)。開かれた語彙で、構造として解釈されるのは `exterior` と `void` の二語だけである。採光判定の対象かどうかは型から推定されない | [space](reference/muro/space.md) |
+| 型 (type) | `space` の第2位置引数 (**任意**)。開かれた語彙で、**core は一切読まない** — 集計の軸と刷り字にだけ現れる自由なラベルである。外部・吹抜け・採光といった構成の事実は `outside:` `void:` `daylight:` の宣言の側にある | [space](reference/muro/space.md) |
 | 外部 (exterior) | 建物の外の領域を表す型。領域を持たなくてよい。`road:幅員` を付けると接道の対象になる | [space](reference/muro/space.md) |
 | 吹抜け (void) | 床の不在。空間の型としては床面積不算入かつ通行不可、境界の kind としては上下階の床が無いことを表す | [boundary](reference/muro/boundary.md) |
 | 境界 (boundary) | 二つの空間を結ぶ第一級の**関係**。壁芯の線分は書かず、両空間の矩形から導出される。壁は物ではなくこれである | [boundary](reference/muro/boundary.md) |

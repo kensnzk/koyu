@@ -485,7 +485,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:800
 boundary /L1/a /out t:150`);

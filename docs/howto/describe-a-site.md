@@ -22,10 +22,10 @@ mode: howto
 `/out` を一つの空間にせず、道路・隣地ごとの `exterior` に割る。**道路には幅員を `road:` (mm) で付ける** — `site` はこの印を見て接道を探す。
 
 ```muro-part
-space /out/road exterior name:南側道路 road:6000
-space /out/n exterior name:北側隣地
-space /out/e exterior name:東側隣地
-space /out/w exterior name:西側隣地
+space /out/road name:南側道路 road:6000 outside:1
+space /out/n name:北側隣地 outside:1
+space /out/e name:東側隣地 outside:1
+space /out/w name:西側隣地 outside:1
 ```
 
 ## 2. 敷地ゾーンを宣言する
@@ -90,10 +90,10 @@ level L1 0 h:2400 slab:150
 level R 2700 slab:150
 
 # 敷地の外 — 方角・性格ごとに割る。道路は road:幅員 (mm)
-space /out/road exterior name:南側道路 road:6000
-space /out/n exterior name:北側隣地
-space /out/e exterior name:東側隣地
-space /out/w exterior name:西側隣地
+space /out/road name:南側道路 road:6000 outside:1
+space /out/n name:北側隣地 outside:1
+space /out/e name:東側隣地 outside:1
+space /out/w name:西側隣地 outside:1
 
 # 敷地 — site:1 のゾーンと、その配下の地上の外部空間
 zone /site name:敷地 site:1 area:154.00

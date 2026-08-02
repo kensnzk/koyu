@@ -46,7 +46,7 @@ koyu 1.0
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
   window w:600 h:600 edge:S
@@ -74,7 +74,7 @@ grid X 0 3600 5400
 grid Y 0 4500
 level L1 0 h:2400 slab:150
 level L2 2550 h:2400 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 space /L1/b balcony X2..X3 Y1..Y2
 space /L2/a room X2..X3 Y1..Y2
@@ -105,7 +105,7 @@ koyu 1.0
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150
-space /out exterior
+space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
   window w:2400 h:1200 edge:S

@@ -36,7 +36,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/hall hall X1..X2 Y1..Y2
   area X1..X2 Y1-2000..Y2 name:はみ出し
-space /out exterior
+space /out outside:1
   area X1..X2 Y1..Y2 name:無理
 ```
 

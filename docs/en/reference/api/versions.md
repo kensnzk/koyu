@@ -24,7 +24,7 @@ console.log(SUPPORTED_LANGUAGE_VERSIONS, DEFAULT_LANGUAGE_VERSION);
 
 ## The language's version, not the tool's
 
-The `koyu 1.0` written on the first line of a `.muro` is **the version of the language's meaning.** It is not the package version (`version` in `package.json`), and it is not the format version [canonical JSON](canonical.md) announces (`koyu-canonical/1.0`).
+The `koyu 1.0` written on the first line of a `.muro` is **the version of the language's meaning.** It is not the package version (`version` in `package.json`), and it is not the format version [canonical JSON](canonical.md) announces (`koyu-canonical/1.1`).
 
 **The three move independently.** The tool can rise without the meaning of the language moving, and the language can rise without the spelling of the canonical form moving.
 

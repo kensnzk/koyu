@@ -39,7 +39,7 @@ heigh:2400           台帳に無く名前空間も無い → ATT03
 
 名前空間は**ドット区切り**で、`^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)+$` に合う綴りである。小文字で始まり、ドットを一つ以上含む。`acme.sensor` `bems.temp` `survey.measured` `acme.sub.key` はすべて通り、`Acme.sensor` `acme.Sensor` `acme_x` は通らない。中身に koyu は一切の意味を与えない — 分割の規則すら持たない。
 
-## ATT01 — 属性は正の数値で書きます
+## ATT01 — 属性は正の数値で書きます {#att01}
 
 `error`
 
@@ -68,7 +68,7 @@ h on /L1/a is written as a positive number: h:35OO
 
 **直し方** — 単位のない正の数値にする。長さはすべて mm なので単位は書かない。斜路の `slope:` は**分母だけ**を書く — `slope:12` が 1/12 である。
 
-## ATT02 — 属性の値が語彙にありません
+## ATT02 — 属性の値が語彙にありません {#att02}
 
 `error`
 
@@ -100,7 +100,7 @@ site on zone /site is one of 0 / 1: site:yes
 
 `daylight` はこの表に無い。値域は [DAY01](./day.md) が別に守っている。
 
-## ATT03 — 台帳に無い属性があります
+## ATT03 — 台帳に無い属性があります {#att03}
 
 `error`
 
@@ -149,7 +149,7 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X3 Y1..Y2 ceiling:none
   area X1..X1+1000 Y1..Y1+1000 flooring:tile
 zone /L1 name:一階 areaa:100
-space /out exterior
+space /out outside:1
 boundary /L1/a /out t:150 h:tall
   window w:1200 h:1100 edge:S at:0.5 styl:sliding
   seg w:900 edge:N at:0.5 sond:D45

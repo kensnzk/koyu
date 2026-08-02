@@ -50,14 +50,15 @@ So **this surface is exactly the set of names spelled out one by one in `src/ind
 | Surface | Values | Types |
 |---|---|---|
 | [Parsing and composition](parsing.md) | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
-| [The model and its questions](model.md) | `areaM2` `canonicalBoundaryOrder` `columnsFor` `DEFAULT_LANGUAGE_VERSION` `displayName` `effectiveUse` `heff` `isCoveredAbove` `isIndoor` `isSemiOutdoor` `levelsSorted` `newUids` `pointInPolygon` `polyBounds` `polygonAreaM2` `rectToPoly` `SourceError` `srcRef` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` `unionAreaM2` `zoneAreaM2` | `Area` `Asset` `Attrs` `AttrValue` `Boundary` `BoundaryKind` `Column` `ColumnDecl` `DrawnLine` `Edge` `GridAxis` `GridRef` `Level` `Model` `Opening` `Pt` `Rect` `Seg` `SitePolygon` `Space` `Zone` |
+| [The model and its questions](model.md) | `areaM2` `canonicalBoundaryOrder` `columnsFor` `DEFAULT_LANGUAGE_VERSION` `displayName` `effectiveUse` `heff` `isCoveredAbove` `isIndoor` `isOutside` `isSemiOutdoor` `isVoid` `levelsSorted` `newUids` `pointInPolygon` `polyBounds` `polygonAreaM2` `rectToPoly` `SourceError` `srcRef` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` `unionAreaM2` `zoneAreaM2` | `Area` `Asset` `Attrs` `AttrValue` `Boundary` `BoundaryKind` `Column` `ColumnDecl` `DrawnLine` `Edge` `GridAxis` `GridRef` `Level` `Model` `Opening` `Pt` `Rect` `Seg` `SitePolygon` `Space` `Zone` |
 | [Diagnostics](diagnostics.md) | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `CheckResult` `Diagnostic` `DiagnosticCode` |
 | [Graph and segments](queries.md) | `deriveDefaultBoundaries` `doorsBetween` `envelopeGaps` `neighbors` `passable` `placeBand` `placeOpening` `segmentsFor` | `Band` `BandCode` `BandError` `NeighborInfo` `PlacedBand` `Route` `Segment` |
 | [Derivation (Form)](derive.md) | `band` `bandLine` `columnRect` `derive` `DERIVATION_CONSTANTS` `levelPitch` `runPrism` `thicken` | `DeriveOptions` `Form` `FormBoundary` `FormColumn` `FormInput` `FormLevel` `FormOpening` `FormPanel` `FormPlan` `FormPrism` `FormRun` `FormSeg` `FormSite` `FormSpace` `FormSwing` `PlanClass` `PlanEntity` `PlanRole` `PlanSubject` |
+| [The attribute ledger](../muro/attributes.md) | `ASSET_ELEM` `ATTR_LEDGER` `attrSpec` `CARRY_NAMESPACE` `isNamespaced` `known` | `AttrSpec` `AttrTier` |
 | [Tolerances](../form/constants.md) | `TOLERANCES` | — |
 | [Slabs — floors, ceilings, roofs](solids.md) | `slabs` | `Slab` `SlabKind` |
 | [Daylight inputs](queries.md) | `daylightInputs` | `DaylightInput` |
-| [Vertical circulation](solids.md) | `runDrawsForLevel` `runSolids` `slopeText` `verticalRuns` | `RunArrow` `RunDevice` `RunDraw` `RunForm` `RunPart` `RunSolid` `Seg2` `VerticalRun` |
+| [Vertical circulation](solids.md) | `RUN_KEYS` `runDecls` `runDrawsForLevel` `runSolids` `slopeText` `verticalRuns` | `RunArrow` `RunDecl` `RunDevice` `RunDraw` `RunForm` `RunPart` `RunSolid` `Seg2` `VerticalRun` |
 | [Site](queries.md) | `siteReport` | `RoadFrontage` `SiteReport` |
 | [Diff](diff.md) | `renderDiff` `semanticDiff` | `BoundaryChange` `BoundaryItem` `ChangedItem` `ColumnItem` `FieldChange` `GridChange` `ModelDiff` `RenamedItem` `SpaceItem` |
 | [Drawing the plan](draw.md) | `svgPlan` | `PlanOptions` |

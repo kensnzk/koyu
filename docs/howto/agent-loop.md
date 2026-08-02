@@ -39,7 +39,7 @@ import ./L1.muro
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out  exterior name:外部
+space /out  name:外部 outside:1
 
 boundary /L1/b /out t:150 spec:EW edge:S
   door w:900 h:2100 name:玄関
@@ -116,7 +116,7 @@ git add . && git commit -m "before the agent edits"
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out  exterior name:外部
+space /out  name:外部 outside:1
 
 boundary /L1/a /L1/b t:120 spec:PW
   door w:800 h:2000 name:D-中扉

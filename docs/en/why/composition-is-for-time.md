@@ -49,7 +49,7 @@ import ./as-built.muro
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /L1/b t:120 spec:PW1
   door w:780 h:2000 name:D1
 boundary /L1/a /out t:150 spec:EW1

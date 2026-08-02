@@ -24,7 +24,7 @@ console.log(SUPPORTED_LANGUAGE_VERSIONS, DEFAULT_LANGUAGE_VERSION);
 
 ## 言語の版であって、ツールの版ではない
 
-`.muro` の一行目に書く `koyu 1.0` は**言語の意味論の版**である。パッケージの版 (`package.json` の `version`) とも、[正準JSON](canonical.md) が名乗る形式の版 (`koyu-canonical/1.0`) とも別のものである。
+`.muro` の一行目に書く `koyu 1.0` は**言語の意味論の版**である。パッケージの版 (`package.json` の `version`) とも、[正準JSON](canonical.md) が名乗る形式の版 (`koyu-canonical/1.1`) とも別のものである。
 
 **三つは独立に動く。**ツールが上がっても言語の意味は動かないし、言語が上がっても正準形式の綴りが動くとは限らない。
 

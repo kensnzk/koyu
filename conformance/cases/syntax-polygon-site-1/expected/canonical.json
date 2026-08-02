@@ -1,5 +1,5 @@
 {
-  "format": "koyu-canonical/1.0",
+  "format": "koyu-canonical/1.1",
   "koyu": "1.0",
   "name": "敷地の最小例",
   "unit": "mm",
@@ -51,9 +51,9 @@
   },
   "spaces": {
     "/out/road": {
-      "type": "exterior",
       "attrs": {
         "name": "前面道路",
+        "outside": 1,
         "road": 6000
       }
     },

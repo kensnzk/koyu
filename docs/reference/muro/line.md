@@ -64,7 +64,7 @@ grid Y 0 6000
 level L1 0 h:2700 slab:200
 
 space /L1/a room X1..X2 Y1..Y2 name:隅切りの室
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/a /out t:150 spec:RC
   line X1,Y2-3000 X1+3000,Y2
@@ -101,7 +101,7 @@ grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:200
 space /L1/a room X1..X2 Y1..Y2 name:室
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out t:150
   line X1,Y1 X2,Y1
 ```
@@ -119,7 +119,7 @@ grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:200
 space /L1/a room X1..X2 Y1..Y2 name:室
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out t:150
   line X1,Y1 X2,Y2
 ```

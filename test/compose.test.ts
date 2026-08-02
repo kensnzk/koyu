@@ -69,7 +69,7 @@ test("parseFiles: the same composition runs over a virtual file set (for the bro
       ].join("\n"),
       "assets.muro": "asset D1 door w:800 h:2000 style:sliding\n",
       "floors/L1.muro":
-        "space /a room X1..X2 Y1..Y2 level:L1\nboundary /a /out2 edge:S t:150\n  door D1\nspace /out2 exterior\n",
+        "space /a room X1..X2 Y1..Y2 level:L1\nboundary /a /out2 edge:S t:150\n  door D1\nspace /out2 outside:1\n",
     },
     "main.muro",
   );

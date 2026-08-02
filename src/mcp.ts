@@ -17,6 +17,7 @@ import {
   doorsBetween,
   effectiveUse,
   isSemiOutdoor,
+  isVoid,
   levelsSorted,
   newUids,
   polygonAreaM2,
@@ -73,7 +74,7 @@ function assertInside(entryDir: string, targetDir: string): void {
 function summarize(model: Model, file: string): unknown {
   const rooms = [...model.spaces.values()].filter((s) => s.rects.length > 0 && s.level);
   const indoor = rooms.filter((s) => isIndoor(model, s));
-  const semi = rooms.filter((s) => s.type !== "void" && isSemiOutdoor(model, s));
+  const semi = rooms.filter((s) => !isVoid(s) && isSemiOutdoor(model, s));
   const byLevel: Record<string, { rooms: number; subtotalM2: number }> = {};
   for (const lv of levelsSorted(model)) {
     const rs = indoor.filter((s) => s.level === lv.name);
@@ -391,7 +392,7 @@ function handle(msg: Json): void {
       result(id, {
         protocolVersion: (params.protocolVersion as string) ?? "2025-06-18",
         capabilities: { tools: {} },
-        serverInfo: { name: "koyu", version: "0.16.0" },
+        serverInfo: { name: "koyu", version: "0.17.0" },
         instructions:
           "Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written.",
       });

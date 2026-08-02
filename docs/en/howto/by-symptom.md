@@ -43,7 +43,7 @@ Message bodies can be searched for verbatim. Below are fragments of them.
 | What you see | Cause | Fix | Code |
 |---|---|---|---|
 | `Undefined grid line name: X1` | No `grid`, or it sits **after** the line that uses the grid reference | Write `grid X` and `grid Y` before the first line that uses them → [Common traps](troubleshooting.md#1-undefined-grid-line-name) | composition error |
-| `A region is given as two ranges, X?..X? and Y?..Y?` | Almost always **the type (second positional argument) is missing**, so the first half of the region is read as the type | Write `space <path> <type> X?..X? Y?..Y?` in that order → [Common traps](troubleshooting.md#4-a-region-is-given-as-two-ranges) | composition error |
+| `A region is given as two ranges, X?..X? and Y?..Y?` | A region needs **two** ranges, one on X and one on Y; only one is written | Write both axes: `space <path> [type] X?..X? Y?..Y?` → [Common traps](troubleshooting.md#4-a-region-is-given-as-two-ranges) | composition error |
 | `has a region, but its level cannot be determined` | There is no `level` line. **Writing `/L1/` in the path does not declare a level.** | Write `level L1 0 h:2400 slab:150` before the lines that use it | [SUF02](../reference/diagnostics/suf.md) |
 | `The ceiling height of … cannot be determined` | Neither the space's `h:` nor the level's `h:` exists | Write `h:` on one of them | [SUF01](../reference/diagnostics/suf.md) |
 | `The spaces do not touch, so no boundary can be derived` | They meet only at a corner. Touching requires **a shared edge with length** | Extend one rectangle so an edge is shared, or delete the `boundary` line → [Common traps](troubleshooting.md#2-the-spaces-do-not-touch) | [BND04](../reference/diagnostics/bnd.md#bnd04) |

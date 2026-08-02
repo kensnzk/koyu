@@ -45,7 +45,7 @@ level L1 0 h:2700 slab:200
 
 space /L1/office office X1..X2 Y1..Y2 name:事務室 floor:タイルカーペット
   area X1..X1+2000 Y1..Y2 name:土間 floor:モルタル
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/office /out t:180 spec:RC edge:S
   seg w:3000 at:X1+4000 spec:カーテンウォール
@@ -94,7 +94,7 @@ level L1 0 h:2700 slab:200
 zone /L1/office name:事務室
 space /L1/office/doma  hall   X1..X1+2000 Y1..Y2 name:土間 floor:モルタル
 space /L1/office/floor office X1+2000..X2 Y1..Y2 name:執務 floor:タイルカーペット
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/office/doma /L1/office/floor type:open
 

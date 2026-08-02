@@ -50,7 +50,7 @@ test("default boundary: it works between spaces with no level determined too (th
 });
 
 test("default boundary: no boundary is derived against a space with no region (exterior) — it stays declaration-only", () => {
-  const m = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /out exterior`);
+  const m = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /out outside:1`);
   assert.equal(m.boundaries.length, 0);
 });
 

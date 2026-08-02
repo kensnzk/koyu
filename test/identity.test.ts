@@ -31,7 +31,7 @@ const codes = (src: string) => checkDiagnostics(parse(`${BASE}\n${src}`)).map((d
 const TWO_ROOMS = [
   "space /L1/a room X1..X2 Y1..Y2",
   "space /L1/b room X2..X3 Y1..Y2",
-  "space /out exterior",
+  "space /out outside:1",
 ].join("\n");
 
 // ---- (1) uid を書ける対象は閉じている ----
@@ -50,7 +50,7 @@ test("identity: the ledger holds uid on space and zone and on nothing else (the 
 
 test("identity: a uid written on a space or a zone is accepted", () => {
   assert.deepEqual(
-    codes(`zone /L1/z name:Z uid:zn-1\nspace /L1/z/a room X1..X2 Y1..Y2 uid:sp-a\nspace /out exterior`),
+    codes(`zone /L1/z name:Z uid:zn-1\nspace /L1/z/a room X1..X2 Y1..Y2 uid:sp-a\nspace /out outside:1`),
     [],
   );
 });

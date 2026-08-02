@@ -35,7 +35,7 @@ raise with the architect rather than silently design around.
 
 | Rule | Level | What it means | The repair |
 |---|---|---|---|
-| `access.unreachable` | violation | a space with a region cannot reach any `exterior` space along passable boundaries | declare the boundary to the circulation space and put a `door` on it |
+| `access.unreachable` | violation | a space with a region cannot reach any `outside:1` space along passable boundaries | declare the boundary to the circulation space and put a `door` on it |
 | `access.voidonly` | violation | its only way out is through a `void` or a `shaft` — a door onto a floorless hole | give it a boundary to a space people can stand in |
 | `access.parking` | violation | a car cannot get out: a stair is a step to a car, and a door narrower than 2400 is a wall | a `type:open` boundary, a door ≥ 2400 wide, or a space carrying `ramp:` |
 | `access.throughtenant` | caution | the escape route runs through somebody else's tenancy | route it through common space, or accept it deliberately |
@@ -58,9 +58,14 @@ usual reason a repair does not take.
 
 **Passable by a person** — a `type:open` boundary, a `type:stair` boundary
 joining two levels, and a wall carrying a `door`. **A derived wall has no door,
-so it is not passable**, and neither is a window. `type:shaft` and `type:void`
-are never passable, and you cannot walk *through* a shaft or a void to somewhere
-beyond it.
+so it is not passable**, and neither is a window. `type:shaft` and `type:void` boundaries
+are never passable, and you cannot walk *through* a `void:1` space or a space
+typed `shaft` to somewhere beyond it.
+
+Note where the spelling is guarded and where it is not. `void:1` is a ledger key,
+so `voi:1` is an error (ATT03). `shaft` sits in the type position, which is open
+vocabulary — write `shaftt` and this rule quietly stops applying. Core reads no
+type word at all; the judging face does, and that face does not freeze.
 
 **Passable by a car** — `type:open`, a `door` at least 2400 wide, or a vertical
 link on a space carrying `ramp:`. A stair is, to a car, a step.
@@ -78,7 +83,7 @@ the windows on that space's boundaries, against a threshold of floor ÷ 7:
 
 | what the window faces | factor |
 |---|---|
-| an `exterior` space | 1.0 |
+| an `outside:1` space | 1.0 |
 | a semi-outdoor space open to the sky — a garden, a top-floor balcony | 1.0 |
 | a semi-outdoor space with something above it — under an eave or a balcony | 0.7 |
 | an indoor neighbour | 0 — it does not count at all |

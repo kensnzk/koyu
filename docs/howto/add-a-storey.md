@@ -90,8 +90,8 @@ space /L1/ldk  ldk     X1..X2 Y1..Y3 + X2..X3 Y1..Y2 name:LDK
 space /L1/hall hall    X2..X3 Y2..Y3 name:玄関・階段
 space /L2/bed  bedroom X1..X2 Y1..Y3 name:主寝室
 space /L2/hall hall    X2..X3 Y2..Y3 name:2階ホール
-space /L2/void void    X2..X3 Y1..Y2 name:リビング上部
-space /out exterior name:外部
+space /L2/void         X2..X3 Y1..Y2 name:リビング上部 void:1
+space /out name:外部 outside:1
 
 boundary /L1/ldk /L1/hall t:120
   door w:800 edge:E
@@ -178,7 +178,7 @@ level L2 2900
 
 space /L1/a room X1..X2 Y1..Y2 name:一階
 space /L2/b room X1..X2 Y1..Y2 name:二階
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out edge:S t:150
   door w:900
 ```

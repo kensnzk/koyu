@@ -2,10 +2,10 @@
 # /out は方角・性格ごとの複数のexterior空間に割れ (道路は road:幅員)、
 # 地上の外部空間 (庭) はL1上の実在の空間として建物の周りをタイルする。
 
-space /out/road exterior name:南側道路 road:6000
-space /out/n    exterior name:北側隣地
-space /out/e    exterior name:東側隣地
-space /out/w    exterior name:西側隣地
+space /out/road name:南側道路 road:6000 outside:1
+space /out/n    name:北側隣地 outside:1
+space /out/e    name:東側隣地 outside:1
+space /out/w    name:西側隣地 outside:1
 
 zone /site name:敷地 site:1 area:126.24
 space /site/garden garden X1-1500..X3+1500 Y1-4000..Y1 level:L1 name:南庭

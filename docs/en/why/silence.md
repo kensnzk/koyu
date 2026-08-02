@@ -62,7 +62,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out exterior name:外部
+space /out name:外部 outside:1
 boundary /L1/a /out t:150 spec:EW
 boundary /L1/b /out t:150 spec:EW
 ```
@@ -97,7 +97,7 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/room ldk X1..X2 Y1..Y2
 space /L1/balcony balcony X2..X3 Y1..Y2
-space /out exterior
+space /out outside:1
 boundary /L1/room /L1/balcony t:150
   window w:1600 h:2000
 boundary /L1/balcony /out type:open

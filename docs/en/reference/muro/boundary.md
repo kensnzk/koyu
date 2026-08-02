@@ -61,11 +61,11 @@ space /L1/hall   hall   X1..X2 Y1..Y2 name:ホール
 space /L1/lounge lounge X2..X3 Y1..Y2 name:ラウンジ
 space /L1/st     stair  X3..X4 Y1..Y2 name:階段室 stair:E
 space /L1/ev     shaft  X4..X5 Y1..Y2 name:EV1F lift:1
-space /L2/void   void   X1..X2 Y1..Y2 name:吹抜け
+space /L2/void          X1..X2 Y1..Y2 name:吹抜け void:1
 space /L2/office office X2..X3 Y1..Y2 name:事務室
 space /L2/st     stair  X3..X4 Y1..Y2 name:階段室2F
 space /L2/ev     shaft  X4..X5 Y1..Y2 name:EV2F lift:1
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /L1/hall /L1/lounge type:open
 boundary /L1/lounge /L1/st t:150 spec:RC
@@ -157,7 +157,7 @@ grid Y 0 6000
 level L1 0 h:2700 slab:200
 
 space /L1/a room X1..X2 Y1..Y2 name:隅切りの室
-space /out exterior name:外部
+space /out name:外部 outside:1
 
 boundary /out /L1/a t:150 spec:RC
   line X1,Y2-3000 X1+3000,Y2
