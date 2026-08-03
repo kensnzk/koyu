@@ -1,0 +1,43 @@
+// Public model surface. Keep this facade explicit: adding an export is adding a package promise.
+
+export type {
+  Area,
+  Asset,
+  Attrs,
+  AttrValue,
+  Boundary,
+  BoundaryKind,
+  Column,
+  ColumnDecl,
+  DrawnLine,
+  Edge,
+  GridAxis,
+  GridRef,
+  Level,
+  Model,
+  Opening,
+  Pt,
+  Rect,
+  Seg,
+  SitePolygon,
+  Space,
+  Zone,
+} from "./core/model.js";
+
+export {
+  areaM2,
+  DEFAULT_LANGUAGE_VERSION,
+  displayName,
+  effectiveUse,
+  heff,
+  isCoveredAbove,
+  isIndoor,
+  isOutside,
+  isSemiOutdoor,
+  isVoid,
+  levelsSorted,
+  newUids,
+  SUPPORTED_LANGUAGE_VERSIONS,
+  toCanonical,
+  zoneAreaM2,
+} from "./core/model.js";
