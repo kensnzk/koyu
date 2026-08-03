@@ -205,7 +205,7 @@ And `validate` keeps returning architectural findings while `check` stays green.
   {
    "rule": "envelope.gap",
    "level": "caution",
-   "message": "Perimeter not faced by any envelope: /L1/a — S 3600mm / N 3600mm / W 4500mm (11700mm over 3 run(s)). Write a boundary to the exterior",
+   "message": "Perimeter not faced by any envelope: /L1/a — N 3600mm / S 3600mm / W 4500mm (11700mm over 3 run(s)). Write a boundary to the exterior",
    "line": 1,
    "file": "<dir>/L1.muro",
    "path": [

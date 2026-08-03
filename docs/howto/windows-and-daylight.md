@@ -62,7 +62,7 @@ Width `w:` is required by the grammar; without it reading stops.
 Height `h:` is optional to the grammar, but **`light` counts only windows that have one.** A window without `h:` is not an error; it is treated as zero area, and `light` appends a note.
 
 ```text
-✖ /L1/a	Room-A	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2) ⚠ windows without h: are not counted
+  /L1/a	Room-A	window 0.00 m2 / floor 16.20 m2 = no window ⚠ windows without h: are not counted
 ```
 
 If the opening references a joinery asset, the `h:` may live on the asset ([asset](../reference/muro/asset.md)).
@@ -104,9 +104,9 @@ boundary /L1/b /out t:150 spec:EW
 
 ```text
 $ npx tsx src/cli.ts light daylight.muro
-✔ /L1/a	Room-A	window 5.72 m2 / floor 16.20 m2 = 1/2.8 (needs 1/7 ≈ 2.31 m2)
-✔ /L1/b	Room-B	window 2.86 m2 / floor 16.20 m2 = 1/5.7 (needs 1/7 ≈ 2.31 m2)
-✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
+  /L1/a	Room-A	window 5.72 m2 / floor 16.20 m2 = 1/2.8
+  /L1/b	Room-B	window 2.86 m2 / floor 16.20 m2 = 1/5.7
+2 rooms in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
 Read a line left to right: verdict, path, name, **effective** window area (after the coefficient), floor area, their ratio, the area required. A room with no window at all reads `no window`.
@@ -114,16 +114,16 @@ Read a line left to right: verdict, path, name, **effective** window area (after
 The same two rooms with the windows removed:
 
 ```text
-✖ /L1/a	Room-A	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2)
-✖ /L1/b	Room-B	window 0.00 m2 / floor 16.20 m2 = no window (needs 1/7 ≈ 2.31 m2)
-✖ Short of 1/7: 2 of 2 rooms (this is a validation judgement)
+  /L1/a	Room-A	window 0.00 m2 / floor 16.20 m2 = no window
+  /L1/b	Room-B	window 0.00 m2 / floor 16.20 m2 = no window
+2 rooms in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
-[`koyu validate`](../reference/cli/validate.md) says the same thing as `daylight.ratio` (a violation). Use that one in CI.
+[`koyu validate`](../reference/cli/validate.md) says the same thing as `koyu.schematic.daylight.ratio` (a violation). Use that one in CI.
 
 ```text
-✖ [daylight.ratio] daylight-none.muro:line 10: Insufficient daylight: /L1/a — effective window 0.00 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
-✖ [daylight.ratio] daylight-none.muro:line 11: Insufficient daylight: /L1/b — effective window 0.00 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
+✖ [koyu.schematic.daylight.ratio] daylight-none.muro:line 10: Insufficient daylight: /L1/a — effective window 0.00 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
+✖ [koyu.schematic.daylight.ratio] daylight-none.muro:line 11: Insufficient daylight: /L1/b — effective window 0.00 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
 ```
 
 ## Daylight borrowed through a semi-outdoor space
@@ -152,7 +152,7 @@ boundary /L1/bal /out edge:S t:120 spec:Balustrade air:1 h:1100
 ```
 
 ```text
-✔ /L1/liv	Living-room	window 5.72 m2 / floor 16.00 m2 = 1/2.8 (needs 1/7 ≈ 2.29 m2)
+  /L1/liv	Living-room	window 5.72 m2 / floor 16.00 m2 = 1/2.8
 ```
 
 Put a balcony on the storey above, in the same position, and the terrace is under cover: 0.7 applies. **Neither the window nor the floor has changed.**
@@ -180,14 +180,14 @@ boundary /L2/bal /out edge:S t:120 spec:Balustrade air:1 h:1100
 ```
 
 ```text
-✔ /L1/liv	Living-room	window 4.00 m2 / floor 16.00 m2 = 1/4.0 (needs 1/7 ≈ 2.29 m2)
+  /L1/liv	Living-room	window 4.00 m2 / floor 16.00 m2 = 1/4.0
 ```
 
 **A space is semi-outdoor only when it has a region and has an `open` or `air:1` boundary to the exterior.** A balcony whose balustrade is missing its `air:1` is not semi-outdoor, and a window borrowing through it counts as zero.
 
 ```text
-✖ /L1/liv	Living-room	window 0.00 m2 / floor 16.00 m2 = no window (needs 1/7 ≈ 2.29 m2)
-✖ Short of 1/7: 1 of 1 room (this is a validation judgement)
+  /L1/liv	Living-room	window 0.00 m2 / floor 16.00 m2 = no window
+1 room in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
 ## When it falls short

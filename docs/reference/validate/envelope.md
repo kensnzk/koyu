@@ -33,7 +33,7 @@ boundary /L1/b /out t:150
 ```
 
 ```text
-⚠ [koyu.schematic.envelope.gap] main.muro:line 6: /L1/a has 8000 mm of perimeter without an envelope relation
+⚠ [koyu.schematic.envelope.gap] main.muro:line 6: Perimeter not faced by any envelope: /L1/a — N 4000mm / S 4000mm (8000mm over 2 run(s)). Write a boundary to the exterior
 Validation — 0 violations / 1 caution
   koyu.profile.schematic-screen@1 — 4 evaluated / 12 not applicable / 0 indeterminate / 0 error
 ```

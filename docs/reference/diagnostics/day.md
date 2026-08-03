@@ -76,18 +76,18 @@ koyu light house.muro
 ```
 
 ```text
-✔ /L1/a	a	window 2.70 m2 / floor 14.40 m2 = 1/5.3 (needs 1/7 ≈ 2.06 m2)
-✖ /L1/b	b	window 0.16 m2 / floor 14.40 m2 = 1/90.0 (needs 1/7 ≈ 2.06 m2)
-✖ Short of 1/7: 1 of 2 rooms (this is a validation judgement)
+  /L1/a	a	window 2.70 m2 / floor 14.40 m2 = 1/5.3
+  /L1/b	b	window 0.16 m2 / floor 14.40 m2 = 1/90.0
+2 rooms in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
-The window area is the sum of `w × h` over the `window`s on that space's boundaries **that carry an `h:`**. A window with no `h:` cannot be counted — that the count is incomplete is reported by `koyu validate` as `daylight.unknown`. If the far side of a window is semi-outdoor and that semi-outdoor space has something above it (under a balcony, under an eave), a factor of 0.7 applies; if the sky is open above it, 1.0.
+The window area is the sum of `w × h` over the `window`s on that space's boundaries **that carry an `h:`**. A window with no `h:` cannot be counted — that the count is incomplete is reported by `koyu validate` as `koyu.schematic.daylight.unknown`. If the far side of a window is semi-outdoor and that semi-outdoor space has something above it (under a balcony, under an eave), a factor of 0.7 applies; if the sky is open above it, 1.0.
 
-The verdict itself — whether 1/7 is met — is an architectural judgement, so it lives in `koyu validate` as `daylight.ratio`, not in `check`. `check` says only whether the declaration can be read.
+The verdict itself — whether 1/7 is met — is an architectural judgement, so it lives in `koyu validate` as `koyu.schematic.daylight.ratio`, not in `check`. `check` says only whether the declaration can be read.
 
 ## Related
 
 - [ATT — attributes](./att.md) — the key and value checks for every other attribute
 - [VER — the language version](./ver.md) — up to 0.3 the daylight scope was inferred from the type (VER02)
-- [koyu validate](../cli/validate.md) — `daylight.ratio` / `daylight.unknown`
+- [koyu validate](../cli/validate.md) — `koyu.schematic.daylight.ratio` / `koyu.schematic.daylight.unknown`
 - [koyu check](../cli/check.md)

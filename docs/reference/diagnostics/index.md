@@ -7,7 +7,7 @@ mode: reference
 
 Every message `koyu check` returns, catalogued. There are **65** codes in **19** families: 49 errors and 16 warnings. This page shows which family a code belongs to and how heavy it is. The cause, a minimal reproduction, and the fix live on the family pages.
 
-What `check` tells you stops at **whether what is written is self-consistent as data**. It says nothing about whether the building is usable — that is what `koyu validate` says, separately, with its 15 rules. The two are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns `Finding { rule, level }`. Even the spellings differ on sight — a code is three letters plus two digits, a rule is `chapter.rule` (`site.escape`).
+What `check` tells you stops at **whether what is written is self-consistent as data**. It says nothing about whether the building is usable — that is what `koyu validate` says, separately, with its 15 rules. The two are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns `Finding { rule, level }`. Even the spellings differ on sight — a code is three letters plus two digits, a rule is `chapter.rule` (`koyu.schematic.site.escape`).
 
 **The human-facing `check` does not display codes.** Get the code with `--json` before looking anything up here; the procedure is on [Reading a diagnostic](reading.md).
 
@@ -37,9 +37,9 @@ Severity is an invariant property of a code. **The same code is never an error i
 | The floor-height arithmetic does not pass | [HGT01](hgt.md) [HGT02](hgt.md) |
 | No ceiling height or slab thickness written, and neither ceilings nor floors are generated | [SUF01](suf.md) [SUF03](suf.md) |
 | You wrote an attribute and it had no effect | [ATT01](att.md) [ATT02](att.md) [ATT03](att.md) |
-| The site's figures do not agree | `check` does not say — `koyu validate`'s `site.escape` / `site.area` do |
-| The stair's going or slope is cramped | `check` does not say — `koyu validate`'s `stair.proportion` / `run.slope` do |
-| There is a hole in the envelope | `check` does not say — `koyu validate`'s `envelope.gap` does |
+| The site's figures do not agree | `check` does not say — `koyu validate`'s `koyu.schematic.site.escape` / `koyu.schematic.site.area` do |
+| The stair's going or slope is cramped | `check` does not say — `koyu validate`'s `koyu.schematic.stair.proportion` / `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` do |
+| There is a hole in the envelope | `check` does not say — `koyu validate`'s `koyu.schematic.envelope.gap` does |
 | The file dies without a single line being read | [SYN01](syn.md) |
 
 ## Every code
@@ -231,8 +231,8 @@ SYN01 is not a check of its own but the exception thrown while reading, copied i
 koyu doors <file> /L2/bed /out/road
 ```
 
-If that answers "unreachable", the circulation is not connected. `koyu validate`'s `access.unreachable` says the same thing as a violation.
+If that answers "unreachable", the circulation is not connected. `koyu validate`'s `koyu.schematic.access.unreachable` says the same thing as a violation.
 
-**Daylight.** Not one window is needed to be green. `koyu light <file>` gives the 1/7 judgement per room, and `koyu validate`'s `daylight.ratio` reports it as a violation.
+**Daylight.** Not one window is needed to be green. `koyu light <file>` gives the 1/7 judgement per room, and `koyu validate`'s `koyu.schematic.daylight.ratio` reports it as a violation.
 
 How to call `check` and its flags is on [koyu check](../cli/check.md); the validation surface is on [koyu validate](../cli/validate.md).

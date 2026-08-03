@@ -166,7 +166,7 @@ A rentable ratio of 51.9% is what you get from carrying the core, the plant leve
 - **Underground** — a declaration (`underground:1`), never an inference. Earth-retaining walls are carried by the `spec` vocabulary, so neither boundary kinds nor attributes had to grow.
 - **Columns** — an element with no written position, emerging from grid intersections crossed with floors.
 
-What actually broke on scaling up: a stair with no landing to arrive on (a door hit the treads directly), an escalator that stood up as a single 3.2 m-wide unit, a door overlapping a column, and the inertia of "we made it diagonal once, so the void above is diagonal too". Each was found by a person looking at the derived drawing, and each was fixed in the rules. Doors overlapping columns are now caught by [`validate`](../reference/cli/validate.md) as `column.blocksdoor`.
+What actually broke on scaling up: a stair with no landing to arrive on (a door hit the treads directly), an escalator that stood up as a single 3.2 m-wide unit, a door overlapping a column, and the inertia of "we made it diagonal once, so the void above is diagonal too". Each was found by a person looking at the derived drawing, and each was fixed in the rules. Doors overlapping columns are now caught by [`validate`](../reference/cli/validate.md) as `koyu.schematic.column.blocksdoor`.
 
 ## Read next
 

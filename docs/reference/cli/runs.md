@@ -86,7 +86,7 @@ There is no vertical circulation (write stair:N / ramp:N / escalator:N / lift:1 
 
 Change the storey height and the same stair enclosure gets a different step division. There is nothing to write differently — **the number of risers changing when the storey height changes is what derivation means.** In `examples/basement` above, B2→B1 and B1→L1 are both `rise 3700mm`, so both come out as 21 risers; in a building with unequal storeys the same enclosure gets different divisions floor by floor.
 
-**Whether the derived dimensions are comfortable to climb is not said here.** Whether the form is uniquely determined is [`koyu check`](check.md)'s job, and whether the steps are cramped or the slope is outside normal use is what [`koyu validate`](validate.md) says with `stair.proportion` and `run.slope`.
+**Whether the derived dimensions are comfortable to climb is not said here.** Whether the form is uniquely determined is [`koyu check`](check.md)'s job, and whether the steps are cramped or the slope is outside normal use is what [`koyu validate`](validate.md) says with `koyu.schematic.stair.proportion` and `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope`.
 
 ## Exit codes
 
@@ -100,7 +100,7 @@ Do not read the absence of vertical circulation as a pass. Forgetting to write `
 
 ## See also
 
-- [koyu validate](validate.md) — the step and slope judgements (`stair.proportion` / `run.slope`)
+- [koyu validate](validate.md) — the step and slope judgements (`koyu.schematic.stair.proportion` / `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope`)
 - [koyu check](check.md) — the diagnostics for whether the run's form is determined
 - [koyu axo](axo.md) — seeing the derived runs as solids
 - [.muro reference](../muro/index.md) — how to write `stair`, `ramp`, `escalator` and `lift`

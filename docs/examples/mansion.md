@@ -80,17 +80,17 @@ npx tsx src/cli.ts light examples/mansion.muro
 ```
 
 ```text
-✔ /L2/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3 (needs 1/7 ≈ 2.44 m2)
-✔ /L3/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3 (needs 1/7 ≈ 2.44 m2)
-✔ /L4/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3 (needs 1/7 ≈ 2.44 m2)
-✔ /L5/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3 (needs 1/7 ≈ 2.44 m2)
-✔ /L6/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3 (needs 1/7 ≈ 2.44 m2)
-✔ /L7/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3 (needs 1/7 ≈ 2.44 m2)
-✔ /L8/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3 (needs 1/7 ≈ 2.44 m2)
-✔ /L9/A/ldk	LDK	window 5.72 m2 / floor 17.08 m2 = 1/3.0 (needs 1/7 ≈ 2.44 m2)
+  /L2/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3
+  /L3/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3
+  /L4/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3
+  /L5/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3
+  /L6/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3
+  /L7/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3
+  /L8/A/ldk	LDK	window 4.00 m2 / floor 17.08 m2 = 1/4.3
+  /L9/A/ldk	LDK	window 5.72 m2 / floor 17.08 m2 = 1/3.0
 ```
 
-(Only the eight type-A LDK lines are shown. The full output is 52 lines, ending in `✔ Every room meets 1/7 — 51 rooms in scope`.)
+(Only the eight type-A LDK lines are shown. The full output is 52 lines, ending in `51 rooms in daylight scope`.)
 
 The full-height window is 2.6 × 2.2 = 5.72 m². On floors 2 through 8 it counts as 4.00 m²; on the ninth it stays at 5.72. **Nothing sits above the ninth-floor balcony.** There is nowhere to write a roof, and "what is above" is read off the arrangement of spaces on the levels overhead.
 

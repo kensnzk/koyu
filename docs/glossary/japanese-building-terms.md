@@ -99,7 +99,7 @@ Site /site (敷地)
   Total floor area: 92.75 m2 → floor area ratio 73.5%
 ```
 
-- `declared` is the survey figure the writer put in `area:`; `derived` is what came out of the composition. If they disagree, the finding `site.area` says so.
+- `declared` is the survey figure the writer put in `area:`; `derived` is what came out of the composition. If they disagree, the finding `koyu.schematic.site.area` says so.
 - `width` is the width written in `road:`; `frontage` is the derived length of adjacency.
 - The word `rough` is a disclaimer: the treatment of canopies and balconies does not reach the resolution of practice.
 

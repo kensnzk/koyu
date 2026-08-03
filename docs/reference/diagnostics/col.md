@@ -126,5 +126,5 @@ What speaks in that state is not COL01 but [SUF01](./suf.md) — the column decl
 - [SUF — sufficiency](./suf.md) — the state where no storey height means no columns and no walls (SUF01)
 - [UID — identity](./uid.md) — a column's `name` is unique across the whole model (UID04)
 - [VER — the language version](./ver.md) — `column` is 0.5 vocabulary (VER03)
-- [koyu validate](../cli/validate.md) — `column.blocksdoor`, a derived column landing on a derived door
+- [koyu validate](../cli/validate.md) — `koyu.schematic.column.blocksdoor`, a derived column landing on a derived door
 - [koyu check](../cli/check.md)

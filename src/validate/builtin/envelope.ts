@@ -119,7 +119,7 @@ export const ENVELOPE_GAP_RULE: Rule = freezeBuiltin<Rule>({
           status,
           subjects: [spaceSubject(space.ref)],
           message: status === "fail"
-            ? `${space.ref} has ${Math.round(space.uncoveredLengthMm)} mm of perimeter without an envelope relation`
+            ? `Perimeter not faced by any envelope: ${space.ref} — ${describeRuns(space.runs)} (${Math.round(space.uncoveredLengthMm)}mm over ${space.runs.length} run(s)). Write a boundary to the exterior`
             : `${space.ref} has no uncovered envelope run`,
           evidence: [evidence],
         };
@@ -207,6 +207,11 @@ function analysisIndeterminate(
     missing: artifact.missing,
     evidence: artifact.state === "partial" ? artifact.evidence : [],
   };
+}
+
+/** `S 3600mm / N 3600mm / W 4500mm` — which way each uncovered run faces, and how long it is. */
+function describeRuns(runs: readonly EnvelopeRunFact[]): string {
+  return runs.map((run) => `${run.edge} ${Math.round(run.lengthMm)}mm`).join(" / ");
 }
 
 function compareText(a: string, b: string): number {

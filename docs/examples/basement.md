@@ -103,7 +103,7 @@ npx tsx src/cli.ts doors examples/basement/main.muro /B2/park /out
 2 doors — /B2/park → /B2/ramp → /B1/ramp → /L1/ramp → /L1/st → /out
 ```
 
-That is the route for a **person** — it goes `/L1/ramp → /L1/st → /out`, out through the stair door. The opening wide enough for a vehicle (the ramp shutter) opens onto `/road`, and is reached separately. Write it so that cars cannot get out and validation catches it as `access.parking`.
+That is the route for a **person** — it goes `/L1/ramp → /L1/st → /out`, out through the stair door. The opening wide enough for a vehicle (the ramp shutter) opens onto `/road`, and is reached separately. Write it so that cars cannot get out and validation catches it as `koyu.schematic.access.parking`.
 
 ### Do the heights fit
 

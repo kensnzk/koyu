@@ -13,7 +13,7 @@ koyu validate examples/tower/main.muro --profile koyu.profile.schematic-screen -
 
 ```text
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
-  koyu.profile.schematic-screen@1 — 11 evaluated / 5 not applicable / 0 indeterminate / 0 error
+  koyu.profile.schematic-screen@1 — 10 evaluated / 6 not applicable / 0 indeterminate / 0 error
 ```
 
 Every bundled building (`two-rooms`, `office`, `house`, `mansion`, `tower`, `basement`, `complex`, `twin`) currently comes back with nothing caught.

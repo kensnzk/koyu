@@ -165,7 +165,7 @@ stack st L1..L2 type:stair
 Write the form and leave out the vertical boundary and `check` stays green. It is `koyu validate` that says so.
 
 ```text
-⚠ [run.disconnected] nostack.muro:line 13: /L1/st has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
+⚠ [koyu.schematic.run.disconnected] nostack.muro:line 13: /L1/st has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
 ```
 
 ## Climbability is not what check guarantees
@@ -174,16 +174,16 @@ What `check` says goes as far as "the declaration determines a form uniquely". *
 
 | Verdict | When it appears |
 |---|---|
-| `stair.proportion` | The derived tread is under 240mm, or 2 × riser + tread falls outside 550–700mm |
-| `run.slope` (ramp) | The derived slope is steeper than the 1/N written as `slope:` |
-| `run.slope` (escalator) | The derived slope is outside the usual range (about 1/1.7, i.e. 30 degrees) |
-| `run.disconnected` | The form exists but no vertical boundary joins the levels |
+| `koyu.schematic.stair.proportion` | The derived tread is under 240mm, or 2 × riser + tread falls outside 550–700mm |
+| `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` (ramp) | The derived slope is steeper than the 1/N written as `slope:` |
+| `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` (escalator) | The derived slope is outside the usual range (about 1/1.7, i.e. 30 degrees) |
+| `koyu.schematic.run.disconnected` | The form exists but no vertical boundary joins the levels |
 
 ```text
 $ koyu validate a.muro
-⚠ [stair.proportion] a.muro:line 12: Derived step dimensions are cramped: 24 risers of 175mm, tread 165mm (2*riser+tread = 515mm; expected 550-700mm)
-⚠ [run.slope] a.muro:line 14: Derived slope 1/0.9 is steeper than the declared 1/12 (lengthen the run or lower the storey height)
-⚠ [run.slope] a.muro:line 15: Derived slope 1/0.9 is outside the usual escalator range (about 1/1.7 = 30 degrees)
+⚠ [koyu.schematic.stair.proportion] a.muro:line 12: Cramped step: /L1/st — derived tread 165mm, 2×riser+tread 515mm (wants tread ≥ 240mm and pace 550–700mm; deepen the shaft along travel, fold it with form:return, or raise riser:)
+⚠ [koyu.schematic.ramp.declared-slope] a.muro:line 14: Derived slope 1/0.9 is steeper than the declared 1/12: /L1/rp (lengthen the run or lower the storey height)
+⚠ [koyu.schematic.escalator.usual-slope] a.muro:line 15: Derived slope 1/0.9 is outside the usual escalator range 1/2.3–1/1.4 (about 1/1.7 = 30 degrees): /L1/es
 ```
 
 The thresholds are a coarse copy of Japanese practice and are not frozen. **These are judgements, not guarantees.**

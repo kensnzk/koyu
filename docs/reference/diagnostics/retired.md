@@ -27,18 +27,18 @@ They were retired for three different reasons.
 | Retired | Severity then | What it said then | What says it now |
 |---|---|---|---|
 | BND07 | warning | These touch, but no boundary is declared | Nothing — an undeclared contact is a wall by default |
-| ENV01 | warning | A hole in the envelope — a stretch of perimeter facing nothing | `envelope.gap` (caution) |
+| ENV01 | warning | A hole in the envelope — a stretch of perimeter facing nothing | `koyu.schematic.envelope.gap` (caution) |
 | HGT03 | warning | The storey above has no `slab`, so the height check cannot run | [SUF03](suf.md) (warning) |
 | HGT04 | warning | The ceiling height is unknown, so the height check cannot run | [SUF01](suf.md) (error) |
 | HGT05 | warning | A space with a region whose level cannot be determined | [SUF02](suf.md) (error) |
 | RUN04 | warning | No level above, so the run's shape cannot be generated | [SUF04](suf.md) (warning) |
-| RUN06 | warning | The derived steps are cramped (a narrow going, or 2R+T outside the comfortable band) | `stair.proportion` (caution) |
-| RUN07 | warning | The derived slope departs from the declaration or the usual band | `run.slope` (caution) |
-| RUN08 | warning | The run has a shape but no vertical boundary connecting the storeys | `run.disconnected` (caution) |
-| SIT03 | error | The building escapes the site outline | `site.escape` (violation) |
-| SIT05 | warning | The declared site area and the derived one disagree | `site.area` (caution) |
+| RUN06 | warning | The derived steps are cramped (a narrow going, or 2R+T outside the comfortable band) | `koyu.schematic.stair.proportion` (caution) |
+| RUN07 | warning | The derived slope departs from the declaration or the usual band | `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` (caution) |
+| RUN08 | warning | The run has a shape but no vertical boundary connecting the storeys | `koyu.schematic.run.disconnected` (caution) |
+| SIT03 | error | The building escapes the site outline | `koyu.schematic.site.escape` (violation) |
+| SIT05 | warning | The declared site area and the derived one disagree | `koyu.schematic.site.area` (caution) |
 
-Everything from `envelope.gap` down in the right-hand column is not a `koyu check` diagnostic but a **`koyu validate` rule**. They are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns `Finding { rule, level }`. `level` is `violation` (not met) or `caution` (suspect), an axis of its own — it measures architectural weight, where `severity` measures how the composition is broken.
+Everything from `koyu.schematic.envelope.gap` down in the right-hand column is not a `koyu check` diagnostic but a **`koyu validate` rule**. They are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns `Finding { rule, level }`. `level` is `violation` (not met) or `caution` (suspect), an axis of its own — it measures architectural weight, where `severity` measures how the composition is broken.
 
 ## Why the judgements left the core
 
@@ -53,7 +53,7 @@ Two problems forced the split.
 **Nothing was thrown away; it was moved.** Run `koyu validate` and those six rules still say the same things.
 
 ```sh
-koyu validate examples/tower/main.muro
+koyu validate examples/tower/main.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
 
 ## Why sufficiency became one family
@@ -79,7 +79,7 @@ The height check now looks only at whether the written values contradict; when a
 
 So a `boundary` is written only to carry an exception (`type:open`, `air:1`) or to hang an attribute or an opening on it. Write nothing and a wall is derived.
 
-**And since a wall is impassable without a door, a building with not one door written is green and sealed.** The instrument for looking at circulation is not `check` but `koyu doors`, and `koyu validate`'s `access.unreachable`.
+**And since a wall is impassable without a door, a building with not one door written is green and sealed.** The instrument for looking at circulation is not `check` but `koyu doors`, and `koyu validate`'s `koyu.schematic.access.unreachable`.
 
 ## Back to the index
 

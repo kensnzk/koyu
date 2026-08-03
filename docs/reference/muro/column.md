@@ -113,7 +113,7 @@ A declaration that stands nowhere is reported with its reason split in two. Eith
 
 So a column appears **neither in area nor in the graph `koyu doors` walks**. Floor area is the sum of the centerline areas of spaces, and column sections are not deducted. Circulation is a web of spaces and boundaries, and a column is neither a node nor an edge in it.
 
-A column shows up only on the side of form — the section in plan, the prism in three dimensions, and the validation rule `column.blocksdoor` (violation), which speaks when a derived column overlaps a derived door.
+A column shows up only on the side of form — the section in plan, the prism in three dimensions, and the validation rule `koyu.schematic.column.blocksdoor` (violation), which speaks when a derived column overlaps a derived door.
 
 A column's z range runs from the FL of its level to FL plus the storey height. Storey height is the difference to the level above, or, where there is none, the greatest ceiling height on that storey plus the roof slab thickness. **If no ceiling height can be determined, neither can the storey height, and that level gets neither columns nor walls** — SUF01 says so as an error.
 

@@ -8,9 +8,9 @@ mode: reference
 The two you call after an edit. **They say different things.**
 
 - [`check`](#check) — does what is written hold together as data. **The gatekeeper.**
-- [`validate`](#validate) — is it sound as architecture. **A judgement, not a gate.**
+- [`validate`](#validate) — is it sound as architecture, under a profile you name. **A judgement, not a gate.**
 
-They differ down to the type. `check`'s diagnostics carry `{code, severity}`; `validate`'s findings carry `{rule, level}`. The spellings differ and the two arrays cannot be concatenated. **Do not claim the building works because `check` is green.**
+They differ down to the type. `check`'s diagnostics carry `{code, severity}`; `validate` returns an `AssessmentReport` whose findings carry `{rule, level}` around outcomes carrying `{status}`. The spellings differ and the two cannot be concatenated. **Do not claim the building works because `check` is green.**
 
 Every piece of output on this page was obtained by actually running it. Absolute paths are shortened to `<abs>`.
 
@@ -192,68 +192,104 @@ Hand the same file to `validate` and three violations come out.
 
 ## validate
 
-> Architectural verdicts: daylight, envelope continuity, stair proportions, slopes, reachability, column/door collisions, and the site. **This is a different surface from the check guarantee** — findings carry rule/level, never code/severity. The surface grows and is not frozen
+> Architectural verdicts under an explicit rule profile: daylight, envelope continuity, stair proportions, slopes, reachability, column/door collisions, and the site. Returns a full AssessmentReport — the profile and rule identities, every rule's outcome, the evidence behind it, and a summary that keeps pass, not-applicable, indeterminate and error apart. **A different surface from the check guarantee**, and not frozen. `profile` is required: no jurisdiction or effective date is inferred
 
-`file` only, required. Against the sealed building above:
+Takes `file`, `profile` and `asOf` — **all three required**. Omit the profile and the call is rejected as invalid arguments before anything is judged; koyu never infers a jurisdiction from the filename, the locale or the clock. koyu ships one profile, `koyu.profile.schematic-screen`.
+
+Against the sealed building above (evidence elided as `…`):
 
 ```text
 {
+ "schema": "koyu-assessment/1",
+ "profile": { "id": "koyu.profile.schematic-screen", "revision": "1" },
+ "ruleSets": [ { "id": "koyu.ruleset.schematic-screen", "revision": "1" } ],
+ "model": { "languageVersion": "1.1", "state": "consistent", "diagnostics": [] },
+ "context": { "asOf": "2026-08-03", "schema": "koyu-context/1", "values": {} },
+ "analyses": [ … ],
+ "rules": [ … ],
  "findings": [
   {
-   "rule": "daylight.ratio",
+   "rule": { "id": "koyu.schematic.daylight.ratio", "revision": "1" },
+   "ruleSet": { "id": "koyu.ruleset.schematic-screen", "revision": "1" },
    "level": "violation",
-   "message": "Insufficient daylight: /L1/a — effective window 0.00 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)",
-   "line": 7,
-   "file": "<abs>/sealed.muro",
-   "path": [
-    "/L1/a"
-   ]
+   "outcome": {
+    "id": "/L1/a",
+    "status": "fail",
+    "subjects": [ { "kind": "space", "ref": "/L1/a" } ],
+    "message": "Insufficient daylight: /L1/a — effective window 0.00 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)",
+    "evidence": [ … ]
+   }
   },
   {
-   "rule": "access.unreachable",
+   "rule": { "id": "koyu.schematic.access.unreachable", "revision": "1" },
+   "ruleSet": { "id": "koyu.ruleset.schematic-screen", "revision": "1" },
    "level": "violation",
-   "message": "Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)",
-   "line": 7,
-   "file": "<abs>/sealed.muro",
-   "path": [
-    "/L1/a"
-   ]
+   "outcome": {
+    "id": "/L1/a",
+    "status": "fail",
+    "subjects": [ { "kind": "space", "ref": "/L1/a" } ],
+    "message": "Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)",
+    "evidence": [ … ]
+   }
   },
   {
-   "rule": "access.unreachable",
+   "rule": { "id": "koyu.schematic.access.unreachable", "revision": "1" },
+   "ruleSet": { "id": "koyu.ruleset.schematic-screen", "revision": "1" },
    "level": "violation",
-   "message": "Cannot reach the exterior: /L1/b (no passable boundary leads out — write a door)",
-   "line": 8,
-   "file": "<abs>/sealed.muro",
-   "path": [
-    "/L1/b"
-   ]
+   "outcome": {
+    "id": "/L1/b",
+    "status": "fail",
+    "subjects": [ { "kind": "space", "ref": "/L1/b" } ],
+    "message": "Cannot reach the exterior: /L1/b (no passable boundary leads out — write a door)",
+    "evidence": [ … ]
+   }
   }
  ],
- "violations": 3,
- "cautions": 0,
- "note": "These are verdicts, not the structural-consistency guarantee of koyu check"
+ "summary": {
+  "state": "complete",
+  "rules": { "evaluated": 4, "notApplicable": 12, "indeterminate": 0, "error": 0 },
+  "outcomes": { "pass": 3, "fail": 1, "indeterminate": 0 }
+ }
 }
 ```
 
 | Field | Contents |
 |---|---|
-| `findings` | The findings |
-| `violations` | How many have `level` `"violation"` |
-| `cautions` | How many have `level` `"caution"` |
-| `note` | A fixed sentence saying this is not what `check` guarantees |
+| `schema` | Always `koyu-assessment/1` |
+| `profile` `ruleSets` | What was applied, with revisions — the grounds of the verdict |
+| `model` | The language version, whether the composition is consistent, and its diagnostics |
+| `context` | The context the call supplied, echoed back so the run can be reproduced |
+| `analyses` | One result per analysis the profile reached, each carrying facts and no verdict |
+| `rules` | One entry per rule, with its state: `evaluated` / `not-applicable` / `indeterminate` / `error` |
+| `findings` | The `fail` outcomes projected out, each naming its rule, rule set and level |
+| `summary` | Counts derived from the above — never a verdict of its own |
 
-**No `ok` comes back.** This tool declares no pass or fail. Reading the counts and deciding is the caller's job.
+**No `ok` comes back.** This tool declares no overall pass or fail. Reading the report and deciding is the caller's job.
+
+### Silence is not a pass
+
+The whole reason the report is this shape is that a bare list of failures cannot tell four different situations apart.
+
+| `summary.rules` | Meaning |
+|---|---|
+| `evaluated` | The rule had subjects and reached a verdict on each |
+| `notApplicable` | Nothing in this building is the kind of thing the rule is about |
+| `indeterminate` | An input was missing, so no verdict was reached |
+| `error` | The rule or its analysis failed to run |
+
+`summary.state` is `complete` only when nothing was left indeterminate and nothing errored. **An agent that treats an empty `findings` as "the building is fine" without reading `summary.state` is reading it wrong.**
 
 ### The shape of a finding
 
-| Field | When it appears | Contents |
-|---|---|---|
-| `rule` | always | The rule name, spelled `family.name` — `daylight.ratio`, say |
-| `level` | always | `"violation"` (it was not met) or `"caution"` (it is suspect) |
-| `message` | always | The message alone; no position prefix |
-| `line` `file` | when the provenance is known | The declaring line and layer |
-| `path` | when the subject is known | The subject paths |
+| Field | Contents |
+|---|---|
+| `rule` `ruleSet` | Identities with revisions, so the finding can be traced to what produced it |
+| `level` | `"violation"` (it was not met) or `"caution"` (it is suspect) |
+| `outcome.id` | The subject this outcome is about |
+| `outcome.status` | Always `"fail"` inside `findings` — passes stay in `rules` |
+| `outcome.subjects` | The spaces, zones or runs concerned |
+| `outcome.message` | The message alone; no position prefix |
+| `outcome.evidence` | What the verdict rests on, each item naming the analysis and source line behind it |
 
 **`level` is an attribute of the rule.** The same rule never gets heavier or lighter with circumstance.
 
@@ -315,21 +351,21 @@ There are 15. `level` is fixed per rule.
 
 | Rule | `level` | What it looks at |
 |---|---|---|
-| `daylight.ratio` | violation | Effective window area below one seventh of the floor |
-| `daylight.unknown` | caution | A window with no `h:`, so the window area is not fully counted |
-| `envelope.gap` | caution | A hole in the envelope — perimeter facing nothing |
-| `stair.proportion` | caution | The derived steps are cramped |
-| `run.slope` | caution | The derived slope is too steep, or outside normal use |
-| `run.disconnected` | caution | A vertical run exists but no vertical boundary connects the storeys |
-| `access.unreachable` | violation | A room with a region cannot reach the exterior |
-| `access.voidonly` | violation | A door opens only onto a void |
-| `access.throughtenant` | caution | Escape from a stair core passes through a tenancy |
-| `access.parking` | violation | A car cannot get out of the parking |
-| `access.backofhouse` | caution | A vertical run cannot be reached from the common corridor without crossing back-of-house |
-| `column.blocksdoor` | violation | A derived column collides with a derived door |
-| `site.escape` | violation | The building escapes the site shape |
-| `site.area` | caution | The declared and derived site areas disagree |
-| `site.frontage` | violation | Road frontage under 2 m |
+| `koyu.schematic.daylight.ratio` | violation | Effective window area below one seventh of the floor |
+| `koyu.schematic.daylight.unknown` | caution | A window with no `h:`, so the window area is not fully counted |
+| `koyu.schematic.envelope.gap` | caution | A hole in the envelope — perimeter facing nothing |
+| `koyu.schematic.stair.proportion` | caution | The derived steps are cramped |
+| `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` | caution | The derived slope is too steep, or outside normal use |
+| `koyu.schematic.run.disconnected` | caution | A vertical run exists but no vertical boundary connects the storeys |
+| `koyu.schematic.access.unreachable` | violation | A room with a region cannot reach the exterior |
+| `koyu.schematic.access.voidonly` | violation | A door opens only onto a void |
+| `koyu.schematic.access.throughtenant` | caution | Escape from a stair core passes through a tenancy |
+| `koyu.schematic.access.parking` | violation | A car cannot get out of the parking |
+| `koyu.schematic.access.backofhouse` | caution | A vertical run cannot be reached from the common corridor without crossing back-of-house |
+| `koyu.schematic.column.blocksdoor` | violation | A derived column collides with a derived door |
+| `koyu.schematic.site.escape` | violation | The building escapes the site shape |
+| `koyu.schematic.site.area` | caution | The declared and derived site areas disagree |
+| `koyu.schematic.site.frontage` | violation | Road frontage under 2 m |
 
 Each one, read closely with its fix, is on [Judgement — koyu validate](../validate/index.md).
 

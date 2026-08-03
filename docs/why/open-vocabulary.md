@@ -107,8 +107,8 @@ boundary /L1/bath /out edge:S t:150
 ```
 
 ```text
-✖ /L1/bath	浴室	window 0.00 m2 / floor 4.00 m2 = no window (needs 1/7 ≈ 0.57 m2)
-✖ Short of 1/7: 1 of 1 room (this is a validation judgement)
+  /L1/bath	浴室	window 0.00 m2 / floor 4.00 m2 = no window
+1 room in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
 Change the type from `wet` to `bedroom` and nothing about the judgement moves. **Whether a judgement applies is something the author declares; it is not inferred from a room's name.**

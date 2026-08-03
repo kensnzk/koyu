@@ -161,7 +161,7 @@ stack st L1..L3 type:stair
 stack ev L1..L3 type:shaft
 ```
 
-`stair:` and `lift:` on the space decide the form; `type:stair` and `type:shaft` on the `stack` decide the topology. **A form is no proof that the graph connects** — write only the form and leave out the `stack`, and `koyu validate` says so as `run.disconnected`.
+`stair:` and `lift:` on the space decide the form; `type:stair` and `type:shaft` on the `stack` decide the topology. **A form is no proof that the graph connects** — write only the form and leave out the `stack`, and `koyu validate` says so as `koyu.schematic.run.disconnected`.
 
 Relations that cross storeys belong to no single storey's layer, so when the building is split across files they naturally sit in the entry ([import](import.md)).
 

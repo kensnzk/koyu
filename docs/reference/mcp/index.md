@@ -68,7 +68,7 @@ model_summary  →  layers  →  write_layer  →  check ──errors──→ f
 | [`write_layer`](tools-write.md#write_layer) | `file`, `layer`, `content` | Replaces a layer wholesale. Returns `written` plus the `check` from right after |
 | [`new_uids`](tools-write.md#new_uids) | `file`, `count`? | Fresh persistent identity tokens |
 | [`check`](tools-verify.md#check) | `file` | Structural consistency — `ok`, `errors`/`warnings`, `diagnostics` |
-| [`validate`](tools-verify.md#validate) | `file` | Architectural verdicts — `findings`, `violations`, `cautions` |
+| [`validate`](tools-verify.md#validate) | `file` `profile` `asOf` | Architectural verdicts under a named profile — a full `AssessmentReport` |
 | [`doors`](tools-ask.md#doors) | `file`, `from`, `to` | The fewest-doors route, or `{unreachable: true}` |
 | [`light`](tools-ask.md#light) | `file` | Floor area and effective window area for every space written `daylight:1` |
 | [`site`](tools-ask.md#site) | `file` | Site area, road frontage, coverage ratio, floor-area ratio |
@@ -80,7 +80,9 @@ model_summary  →  layers  →  write_layer  →  check ──errors──→ f
 
 A green `check` and a usable building are different things. The default between touching spaces is a wall, so a two-storey building that declares no door at all stays green in `check` while being perfectly sealed. `check` says only that what is written holds together as data; architectural soundness is what `validate` says, separately.
 
-They differ down to the type. `check`'s `diagnostics` carry `{code, severity}`; `validate`'s `findings` carry `{rule, level}`. The spellings differ and the two arrays cannot be concatenated. **Do not claim a building works because `check` is green.**
+They differ down to the type. `check`'s `diagnostics` carry `{code, severity}`; `validate` returns an `AssessmentReport` whose `findings` carry `{rule, level}`. The spellings differ and the two cannot be concatenated. **Do not claim a building works because `check` is green.**
+
+`validate` also refuses to guess its grounds: `profile` and `asOf` are required, and a call without them is rejected as invalid arguments before anything is judged. And an empty `findings` is not by itself a pass — read `summary.state`, which is `complete` only when nothing was left indeterminate and nothing errored.
 
 ## Commit before you let it write
 

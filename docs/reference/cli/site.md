@@ -71,7 +71,7 @@ Site /site (敷地)
   Total floor area: 4785.92 m2 → floor area ratio 436.0%
 ```
 
-**When the declared and derived figures disagree, `site` silently prints both.** Calling the disagreement a problem is [`koyu validate`](validate.md)'s `site.area` (caution). A building that leaves the site polygon is `site.escape` (violation); frontage under 2m is `site.frontage` (violation).
+**When the declared and derived figures disagree, `site` silently prints both.** Calling the disagreement a problem is [`koyu validate`](validate.md)'s `koyu.schematic.site.area` (caution). A building that leaves the site polygon is `koyu.schematic.site.escape` (violation); frontage under 2m is `koyu.schematic.site.frontage` (violation).
 
 ## How frontage is counted
 
@@ -103,7 +103,7 @@ The rules for what counts toward the building footprint are rough. Overhangs, th
 
 ## See also
 
-- [koyu validate](validate.md) — `site.area` / `site.escape` / `site.frontage`
+- [koyu validate](validate.md) — `koyu.schematic.site.area` / `koyu.schematic.site.escape` / `koyu.schematic.site.frontage`
 - [koyu stats](stats.md) — the total floor area broken down
 - [.muro reference](../muro/index.md) — a `zone`'s `site:` and how to write `polygon`
 - [The koyu command](index.md) — the shared promises about exit codes

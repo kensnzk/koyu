@@ -77,7 +77,7 @@ Routes across storeys come out of the same question. A stair boundary carries no
 
 **A path that does not exist gives exactly the same answer.** It is not an error. `{"to": "/nope"}`, `{"to": "/L1/x"}` (a space you forgot to write) and a genuinely sealed room are indistinguishable in this result. **Confirm the spelling with [`spaces`](tools-read.md#spaces) before you ask.**
 
-`doors` is not a verdict on whether escape is possible. For that, read `validate`'s `access.unreachable`.
+`doors` is not a verdict on whether escape is possible. For that, read `validate`'s `koyu.schematic.access.unreachable`.
 
 ---
 
@@ -139,13 +139,13 @@ A window written without `h:` **is not counted at all**, and `missingH` goes `tr
 
 ### It passes no judgement
 
-Comparing against `floorM2 / 7` is not this tool's job. **The one-seventh judgement is [`validate`](tools-verify.md#validate)'s `daylight.ratio`.** The counterpart of `missingH` is `daylight.unknown`.
+Comparing against `floorM2 / 7` is not this tool's job. **The one-seventh judgement is [`validate`](tools-verify.md#validate)'s `koyu.schematic.daylight.ratio`.** The counterpart of `missingH` is `koyu.schematic.daylight.unknown`.
 
 ---
 
 ## site
 
-> Site query: site area (declared against derived), road frontage, footprint, and the coverage and floor-area ratios
+> Site query: site area (declared against derived), road frontage, footprint, and the coverage and floor-area ratios. **Numbers only** — whether the declared and derived areas agree closely enough is a verdict, and comes from the validate tool
 
 `file` only, required.
 
@@ -155,7 +155,6 @@ Comparing against `floorM2 / 7` is not this tool's job. **The one-seventh judgem
  "polygonVertices": 5,
  "declaredAreaM2": 1097.8,
  "derivedAreaM2": 1097.8,
- "areaMatch": true,
  "footprintM2": 569.6,
  "totalFloorM2": 4785.92,
  "coverageRatio": 51.9,
@@ -185,7 +184,6 @@ Comparing against `floorM2 / 7` is not this tool's job. **The one-seventh judgem
 | `polygonVertices` | When a site shape is written | How many vertices the polygon has |
 | `declaredAreaM2` | When the zone carries `area:` | The surveyed value as written, in m² |
 | `derivedAreaM2` | When it can be derived | The area derived from the shape, in m² |
-| `areaMatch` | When **both** declared and derived exist | Whether they differ by less than 0.05 m² |
 | `footprintM2` | always | Building footprint in m² |
 | `totalFloorM2` | always | Total floor area in m² |
 | `coverageRatio` | When the site area is known | Coverage as a percentage, to one decimal |
@@ -193,6 +191,8 @@ Comparing against `floorM2 / 7` is not this tool's job. **The one-seventh judgem
 | `roads` | always (empty array if none) | Adjoining roads: `path`, `name`, `widthMm`, `frontageMm` |
 
 **The denominator of `coverageRatio` and `floorAreaRatio` is the declared area when there is one, and the derived area otherwise.**
+
+**This tool draws no line.** Whether the declared and derived areas agree closely enough used to come back here as `areaMatch`; it does not any more. That comparison is a rule — [`koyu.schematic.site.area`](../validate/site.md#site-area) — and it belongs to `validate`, where the tolerance it applies is written down and can be replaced. An adapter that answered the same question with its own threshold would eventually disagree with the rule.
 
 ### It answers even for a building with no site
 
@@ -215,7 +215,7 @@ Comparing against `floorM2 / 7` is not this tool's job. **The one-seventh judgem
 
 The coverage and floor-area limits of a zoning district are facts outside the description, so neither this tool nor `validate` holds them. **What comes back is numbers.**
 
-What `validate` says about the site is three things: whether the building escapes the site shape (`site.escape`), whether the declared and derived areas disagree (`site.area`), and whether road frontage falls under 2 m (`site.frontage`).
+What `validate` says about the site is three things: whether the building escapes the site shape (`koyu.schematic.site.escape`), whether the declared and derived areas disagree (`koyu.schematic.site.area`), and whether road frontage falls under 2 m (`koyu.schematic.site.frontage`).
 
 ---
 

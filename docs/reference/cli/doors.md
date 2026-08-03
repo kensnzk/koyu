@@ -91,7 +91,7 @@ Usage: koyu doors <file> /pathA /pathB
 
 ## One pair at a time
 
-`doors` answers about the one pair you gave it. **To ask whether any room at all fails to reach the outside, use [`koyu validate`](validate.md)** — `access.unreachable` tests reachability to the exterior for every room that has a region.
+`doors` answers about the one pair you gave it. **To ask whether any room at all fails to reach the outside, use [`koyu validate`](validate.md)** — `koyu.schematic.access.unreachable` tests reachability to the exterior for every room that has a region.
 
 ## See also
 

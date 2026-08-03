@@ -199,9 +199,9 @@ Cannot reach /L2/void from /L1/ldk
 Write `stair:` and `form:` but no `stack` and no vertical boundary, and the stair's form is derived while the circulation graph stays cut. `check` returns green. [`koyu validate`](../reference/cli/validate.md) is what catches it.
 
 ```text
-⚠ [run.disconnected] vert-nostack.muro:line 15: /L1/st has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
-⚠ [run.disconnected] vert-nostack.muro:line 15: /L2/st has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
-⚠ [run.disconnected] vert-nostack.muro:line 15: /L3/st has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
+⚠ [koyu.schematic.run.disconnected] vert-nostack.muro:line 15: /L1/st has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
+⚠ [koyu.schematic.run.disconnected] vert-nostack.muro:line 15: /L2/st has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
+⚠ [koyu.schematic.run.disconnected] vert-nostack.muro:line 15: /L3/st has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
 ```
 
 ### The steps come out cramped — stair.proportion (caution)
@@ -215,7 +215,7 @@ L1→L2	stair	Stair	rise 4200mm	return	24 risers of 175mm, tread 164mm	going 360
 ```
 
 ```text
-⚠ [stair.proportion] vert-cramped.muro:line 15: Derived step dimensions are cramped: 24 risers of 175mm, tread 164mm (2*riser+tread = 514mm; expected 550-700mm)
+⚠ [koyu.schematic.stair.proportion] vert-cramped.muro:line 15: Cramped step: /L1/st — derived tread 164mm, 2×riser+tread 514mm (wants tread ≥ 240mm and pace 550–700mm; deepen the shaft along travel, fold it with form:return, or raise riser:)
 ```
 
 **What you fix is the size of the enclosure, not the size of the step.** [Choose dimensions before you write](choose-dimensions.md) shows how to size the going from the storey height first.

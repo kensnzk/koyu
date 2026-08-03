@@ -127,13 +127,13 @@ npx tsx src/cli.ts light examples/tower/main.muro
 ```
 
 ```text
-✔ /L3/A/ldk	LDK	window 6.01 m2 / floor 33.28 m2 = 1/5.5 (needs 1/7 ≈ 4.75 m2)
-✔ /L5/A/ldk	LDK	window 6.01 m2 / floor 33.28 m2 = 1/5.5 (needs 1/7 ≈ 4.75 m2)
-✔ /L11/PA	ペントハウスA	window 15.07 m2 / floor 89.60 m2 = 1/5.9 (needs 1/7 ≈ 12.80 m2)
-✔ /L11/PB	ペントハウスB	window 15.07 m2 / floor 89.60 m2 = 1/5.9 (needs 1/7 ≈ 12.80 m2)
+  /L3/A/ldk	LDK	window 6.01 m2 / floor 33.28 m2 = 1/5.5
+  /L5/A/ldk	LDK	window 6.01 m2 / floor 33.28 m2 = 1/5.5
+  /L11/PA	ペントハウスA	window 15.07 m2 / floor 89.60 m2 = 1/5.9
+  /L11/PB	ペントハウスB	window 15.07 m2 / floor 89.60 m2 = 1/5.9
 ```
 
-(Four lines out of verdicts on 66 rooms. The output ends in `✔ Every room meets 1/7 — 66 rooms in scope`.)
+(Four lines out of verdicts on 66 rooms. The output ends in `66 rooms in daylight scope`.)
 
 **Even the presence of a roof is not declared.** What sits above a terrace is settled by whether the horizontal projection of a space on a level above overlaps it.
 
