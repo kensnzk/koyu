@@ -132,4 +132,4 @@ Only windows on boundaries **whose factor is not zero** are counted. A window fa
 ## See also
 
 - [`koyu light`](../cli/light.md) — the floor and effective window areas themselves
-- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`
+- [The validation ledger](index.md) — all sixteen rules, and why a judgement is not a diagnostic

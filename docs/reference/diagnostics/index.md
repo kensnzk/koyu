@@ -7,7 +7,7 @@ mode: reference
 
 Every message `koyu check` returns, catalogued. There are **65** codes in **19** families: 49 errors and 16 warnings. This page shows which family a code belongs to and how heavy it is. The cause, a minimal reproduction, and the fix live on the family pages.
 
-What `check` tells you stops at **whether what is written is self-consistent as data**. It says nothing about whether the building is usable — that is what `koyu validate` says, separately, with its 15 rules. The two are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns `Finding { rule, level }`. Even the spellings differ on sight — a code is three letters plus two digits, a rule is `chapter.rule` (`koyu.schematic.site.escape`).
+What `check` tells you stops at **whether what is written is self-consistent as data**. It says nothing about whether the building is usable — that is what `koyu validate` says, separately, with its 16 rules. The two are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns an `AssessmentReport` whose findings carry `{ rule, level }`. Even the spellings differ on sight — a code is three letters plus two digits, a rule is a namespaced id (`koyu.schematic.site.escape`).
 
 **The human-facing `check` does not display codes.** Get the code with `--json` before looking anything up here; the procedure is on [Reading a diagnostic](reading.md).
 

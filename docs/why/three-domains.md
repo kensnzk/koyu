@@ -10,7 +10,7 @@ koyu is made of three domains. **They are kept apart because the quality demande
 | Domain | What it holds | Size | Quality | Version |
 |---|---|---|---|---|
 | **core** | the language, its semantics, composition, identity, derivation, structural diagnostics, questions, canonical JSON | small | **must be clean** | **freezes** |
-| **validation** | architectural judgement — fifteen rules | grows | may be messy | does not freeze |
+| **validation** | architectural judgement — sixteen rules, under a profile you name | grows | may be messy | does not freeze |
 | **presentation and build** | SVG generation and outside viewers | grows | may be messy | does not freeze |
 
 **The dependency runs one way.** Validation and presentation depend on core; core depends on neither. Core runs complete on its own. That one-wayness is enforced **by a test, not by prose**.

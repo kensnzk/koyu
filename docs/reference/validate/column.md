@@ -98,4 +98,4 @@ A third is to move the wall, but that is re-deciding the plan. Either way, [`koy
 ## See also
 
 - [Reachability](access.md) — when the door is open but there is nowhere to go
-- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`
+- [The validation ledger](index.md) — all sixteen rules, and why a judgement is not a diagnostic

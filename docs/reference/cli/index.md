@@ -75,7 +75,7 @@ npx tsx src/cli.ts --help
 ```text
 Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [args...]
   check:    --json (emit Diagnostic[] as JSON) / --strict (exit 1 if there are warnings) — structural consistency only
-  validate: --json (emit Finding[] as JSON) — architectural judgement (not what check guarantees)
+  validate: --profile <id> --as-of <YYYY-MM-DD> [--json] — architectural judgement (not what check guarantees)
   layers:   the layers that took part in composition, weakest first. --attrs for the provenance of each attribute
   diff:  koyu diff <a.muro> <b.muro> [--json] — the difference in the language of composition (0=no difference / 1=differences / 2=the input is broken)
 ```
@@ -97,7 +97,7 @@ Unknown command: frobnicate
 | Command | What it answers | Flags | Exit codes |
 |---|---|---|---|
 | [`check`](check.md) | Does what is written hold together as data | `--json` `--strict` | 0 / 1 |
-| [`validate`](validate.md) | Is it sound as architecture (not what check guarantees) | `--json` | 0 / 1 |
+| [`validate`](validate.md) | Is it sound as architecture, under a named profile (not what check guarantees) | `--profile` `--as-of` `--json` | 0 / 1 / 2 |
 | [`layers`](layers.md) | Which layers composed, and which layer gave which value | `--attrs` | 0 / 1 |
 | [`diff`](diff.md) | What did this edit change about the composition | `--json` | 0 / 1 / 2 |
 | [`plan`](plan.md) | The plan drawing (SVG) | `-l` `-o` | 0 / 1 / 2 |
@@ -117,7 +117,9 @@ Every command prints usage and returns exit 2 if the subcommand name or the file
 
 A green `check` and a usable building are different things. The default between touching spaces is a wall, so a two-storey building that declares no door at all stays green in `check` while being perfectly sealed. `check` says only that what is written holds together as data; architectural soundness is what [`validate`](validate.md) says, separately.
 
-They differ down to the type. `check` returns `Diagnostic { code, severity }`; `validate` returns `Finding { rule, level }`. The spellings differ and the two arrays cannot be concatenated. Put both in CI — how to wire them up is on [Gating CI](ci.md).
+They differ down to the type. `check` returns `Diagnostic { code, severity }`; `validate` returns an `AssessmentReport` whose findings carry `{ rule, level }`. The spellings differ and the two cannot be concatenated. Put both in CI — how to wire them up is on [Gating CI](ci.md).
+
+`validate` also names its grounds: `--profile` and `--as-of` are required, and leaving one out is a usage error (exit 2) rather than a verdict.
 
 ## See also
 

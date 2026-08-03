@@ -179,4 +179,4 @@ The test is blunt: it asks whether the space is an endpoint of some `type:stair`
 
 - [`koyu runs`](../cli/runs.md) — device, rise, riser count, going, slope and run length in one list
 - [Reachability](access.md) — whether a run is stranded off the customer's route is what `koyu.schematic.access.backofhouse` says
-- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`
+- [The validation ledger](index.md) — all sixteen rules, and why a judgement is not a diagnostic

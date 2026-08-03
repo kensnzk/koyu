@@ -242,4 +242,4 @@ boundary /L1/c /L1/e
 - [`koyu doors`](../cli/doors.md) — the route between two spaces that passes fewest doors
 - [Columns](column.md) — the other reason a door does not work: something stands in it
 - [The envelope](envelope.md) — a hole in the outline means the relation to the outside was never written
-- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`
+- [The validation ledger](index.md) — all sixteen rules, and why a judgement is not a diagnostic

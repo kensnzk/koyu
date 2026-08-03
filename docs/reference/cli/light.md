@@ -91,7 +91,7 @@ And **these are inputs, not a judgement.** `check` says the composition holds to
 
 `light` shows **the inputs**: floor area, effective window area, and their ratio. [`koyu validate`](validate.md) applies `koyu.schematic.daylight.ratio` to those same numbers and returns the verdict, with the evidence behind it.
 
-The threshold lives in exactly one place. It used to be written here as well, so this command could say "needs 1/7 ≈ 2.31 m2" and print a `✔` or `✖` per room — two implementations of the same rule, which is how a tool and its own gate eventually disagree. For CI, `validate` is the gate, and it covers the other 15 rules at the same time.
+The threshold lives in exactly one place, and it is not here. A command that printed its own verdict per room would be a second implementation of the same rule, and two implementations of one rule eventually disagree. For CI, `validate` is the gate, and it covers all sixteen rules at once.
 
 ## See also
 
