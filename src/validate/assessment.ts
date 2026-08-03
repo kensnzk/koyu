@@ -1217,7 +1217,15 @@ function contextReader(
       } catch (error) {
         throw new ContextDecoderExecutionError(`${key.id}: ${safeErrorMessage(error)}`);
       }
-      if (typeof decoded !== "object" || decoded === null || typeof (decoded as { ok?: unknown }).ok !== "boolean") {
+      if (typeof decoded !== "object" || decoded === null || Array.isArray(decoded)) {
+        throw new ContextDecoderExecutionError(`${key.id}: decoder returned a malformed result`);
+      }
+      try {
+        assertJsonValue(decoded);
+      } catch (error) {
+        throw new ContextDecoderExecutionError(`${key.id}: decoder returned a malformed result (${safeErrorMessage(error)})`);
+      }
+      if (typeof decoded.ok !== "boolean") {
         throw new ContextDecoderExecutionError(`${key.id}: decoder returned a malformed result`);
       }
       if (!decoded.ok) {

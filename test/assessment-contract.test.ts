@@ -808,7 +808,14 @@ test("decoder rejection is input invalid, while decoder failure is an execution 
     revision: "1",
     description: "returns hidden executable state",
     decode: (() => {
-      const decoded = { ok: true, value: 1 } as Record<PropertyKey, unknown>;
+      const decoded = { value: 1 } as Record<PropertyKey, unknown>;
+      Object.defineProperty(decoded, "ok", {
+        enumerable: true,
+        get() {
+          hiddenDecoderReads++;
+          return true;
+        },
+      });
       decoded[Symbol("secret")] = () => "TOP_SECRET";
       Object.defineProperty(decoded, "hidden", {
         enumerable: false,
