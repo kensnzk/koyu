@@ -8,29 +8,30 @@
 
 import { mkdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { daylightInputs } from "./core/light.js";
+import { polygonAreaM2 } from "./core/model.js";
+import { check } from "./core/diagnose.js";
+import { siteReport } from "./core/site.js";
+import { checkDiagnostics } from "./diagnostics.js";
+import { svgPlan } from "./draw/index.js";
+import { doorsBetween } from "./graph.js";
 import {
   areaM2,
   isIndoor,
-  daylightInputs,
-  validate,
   displayName,
-  doorsBetween,
   effectiveUse,
   isOutside,
   isSemiOutdoor,
   isVoid,
   levelsSorted,
   newUids,
-  polygonAreaM2,
   toCanonical,
   zoneAreaM2,
   type Model,
   type Space,
-} from "./index.js";
-import { check, checkDiagnostics } from "./core/diagnose.js";
-import { svgPlan } from "./draw/plan.js";
-import { siteReport } from "./core/site.js";
+} from "./model.js";
 import { parseFile, parseFileWith } from "./parse-file.js";
+import { validate } from "./validate/index.js";
 
 // ---- モデルの読み込みと要約 ----
 

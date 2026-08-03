@@ -21,22 +21,24 @@ import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parseFile } from "../src/parse-file.js";
+import { renderDiff } from "../src/core/diff.js";
+import { daylightInputs } from "../src/core/light.js";
+import {
+  SourceError,
+  unionAreaM2,
+} from "../src/core/model.js";
+import { parse } from "../src/core/parse.js";
+import { siteReport } from "../src/core/site.js";
+import { checkDiagnostics } from "../src/diagnostics.js";
+import { semanticDiff } from "../src/diff.js";
+import { doorsBetween } from "../src/graph.js";
 import {
   areaM2,
-  checkDiagnostics,
-  daylightInputs,
-  doorsBetween,
-  parse,
-  renderDiff,
-  semanticDiff,
-  siteReport,
-  SourceError,
   toCanonical,
-  unionAreaM2,
-  validate,
   zoneAreaM2,
   type Model,
-} from "../src/index.js";
+} from "../src/model.js";
+import { validate } from "../src/validate/index.js";
 
 // ---- 課題の型 (TASK FILE FORMAT — 規範) ----
 

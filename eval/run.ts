@@ -42,7 +42,8 @@ import {
   type Task,
   type TaskClass,
 } from "./score.js";
-import { renderDiff, semanticDiff } from "../src/index.js";
+import { renderDiff } from "../src/core/diff.js";
+import { semanticDiff } from "../src/diff.js";
 import { compact, exportBuilding } from "./control/export.js";
 import { scoreControl, type ControlScore } from "./control/oracle.js";
 import { derive } from "../src/core/derive.js";
