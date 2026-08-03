@@ -19,7 +19,7 @@
 //   9. 柱が扉を塞いでいないか (位置を書かない要素どうしの衝突)
 //
 // **判定のロジックはここに無い。**問1 は core の診断そのものなので checkDiagnostics を
-// 直に読み、問2〜9 は `validate(model)` が返す Finding を読むだけである — スクリプトの
+// 直に読み、問2〜9 は `assess()` が返す AssessmentReport を読むだけである — スクリプトの
 // 中に閉じた判定は MCP からもAPIからも呼べず、機械にとって存在しないに等しい
 // (spec/validation.md)。同じ問いを別の建物へ向けたければ `koyu validate` を呼べばよい。
 //
