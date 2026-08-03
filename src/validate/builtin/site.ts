@@ -101,21 +101,18 @@ export const SITE_ANALYSIS: AnalysisDefinition<SiteAnalysisValue> = freezeBuilti
   run: ({ model }): AnalysisArtifact<SiteAnalysisValue> => {
     const coreModel = model as unknown as Model;
     const report = siteReport(coreModel);
-    const areaBasisM2 = report.declaredArea ?? report.derivedArea;
+    // The ratios and their rounding come from core, so the artifact, the CLI and the MCP
+    // adapter cannot drift apart by each dividing on their own.
     const metrics: SiteMetricsObservation = {
       siteName: report.siteZone ? namedPath(report.siteZone) : null,
       polygonVertexCount: report.polygon?.points.length ?? null,
       declaredAreaM2: report.declaredArea ?? null,
       derivedAreaM2: report.derivedArea,
-      areaBasisM2,
+      areaBasisM2: report.areaBasis,
       footprintM2: report.footprint,
       totalFloorM2: report.totalFloor,
-      coveragePercent: areaBasisM2 === 0
-        ? null
-        : Math.round((report.footprint / areaBasisM2) * 1000) / 10,
-      floorAreaRatioPercent: areaBasisM2 === 0
-        ? null
-        : Math.round((report.totalFloor / areaBasisM2) * 1000) / 10,
+      coveragePercent: report.coveragePercent ?? null,
+      floorAreaRatioPercent: report.floorAreaRatioPercent ?? null,
     };
     const polygons: SitePolygonObservation[] = [];
     const spaceRelations: SiteSpaceRelationObservation[] = [];
@@ -236,7 +233,7 @@ function evaluateSiteContainment(artifact: AnalysisArtifact<SiteAnalysisValue>):
       status: failed ? "fail" : "pass",
       subjects: [spaceSubject(relation.spaceRef)],
       message: failed
-        ? `${relation.spaceRef} is not contained by ${relation.siteRef} within the ${SITE_CONTAINMENT_TOLERANCE_MM} mm geometry tolerance`
+        ? `${relation.spaceRef} escapes the site shape (near ${witness.x},${witness.y})`
         : `${relation.spaceRef} is contained by ${relation.siteRef} within the ${SITE_CONTAINMENT_TOLERANCE_MM} mm geometry tolerance`,
       evidence: [evidence],
     };
@@ -260,7 +257,7 @@ function evaluateSiteArea(artifact: AnalysisArtifact<SiteAnalysisValue>): RuleEv
       status: failed ? "fail" : "pass",
       subjects: [siteSubject(polygon.siteRef)],
       message: failed
-        ? `${polygon.siteRef} declared and polygon areas differ by ${differenceM2} m2`
+        ? `Declared and derived site areas disagree: declared ${polygon.declaredAreaM2} m2 / derived ${polygon.roundedAreaM2.toFixed(2)} m2 (${polygon.siteRef})`
         : `${polygon.siteRef} declared and polygon areas differ by less than ${SITE_AREA_TOLERANCE_M2} m2`,
       evidence: [{
         id: "area-difference",
@@ -291,8 +288,8 @@ function evaluateSiteFrontage(artifact: AnalysisArtifact<SiteAnalysisValue>): Ru
       status: failed ? "fail" : "pass",
       subjects: [spaceSubject(road.roadRef)],
       message: failed
-        ? `${road.roadRef} has ${road.frontageMm} mm of frontage, below the ${SITE_FRONTAGE_MIN_MM} mm schematic minimum`
-        : `${road.roadRef} has at least ${SITE_FRONTAGE_MIN_MM} mm of frontage`,
+        ? `Road frontage is ${road.frontageMm}mm, under the ${SITE_FRONTAGE_MIN_MM}mm this pack screens for: ${road.roadRef} (widen the frontage onto the road)`
+        : `${road.roadRef} has ${road.frontageMm}mm of frontage, at or above the ${SITE_FRONTAGE_MIN_MM}mm minimum`,
       evidence: [{
         id: "frontage-minimum",
         kind: "comparison",

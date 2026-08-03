@@ -10,7 +10,7 @@ import type {
 import type { JsonValue } from "../src/analysis/json.js";
 import { parse } from "../src/core/parse.js";
 import { toCanonical } from "../src/core/model.js";
-import { validate as legacyValidate } from "../src/validate/index.js";
+import { documentedCases } from "./helpers/docs.js";
 import { assess, createAssessmentRegistry, runAnalysis } from "../src/validate/assessment.js";
 import {
   ENVELOPE_ANALYSIS,
@@ -102,41 +102,31 @@ test("the existing envelope and vertical-run reference fixtures map to the new s
   assertSingleFailure(assessSource(runs[3]!), RUN_DISCONNECTED_RULE_ID.id, "caution", "/L1/s");
 });
 
-test("the geometry migration remains subject, level, and source-equivalent to the legacy validator", () => {
-  const runs = referenceExamples("runs.md");
-  const cases = [
-    { source: referenceExamples("envelope.md")[0]!, oldRule: "envelope.gap", newRule: ENVELOPE_GAP_RULE_ID.id },
-    { source: runs[0]!, oldRule: "stair.proportion", newRule: STAIR_PROPORTION_RULE_ID.id },
-    { source: runs[1]!, oldRule: "run.slope", newRule: RAMP_DECLARED_SLOPE_RULE_ID.id },
-    { source: runs[2]!, oldRule: "run.slope", newRule: ESCALATOR_USUAL_SLOPE_RULE_ID.id },
-    { source: runs[3]!, oldRule: "run.disconnected", newRule: RUN_DISCONNECTED_RULE_ID.id },
-  ];
+test("each geometry rule says exactly what its documented example says it says", () => {
+  const cases = documentedCases("envelope.md").concat(documentedCases("runs.md"));
+  assert.equal(cases.length, 5);
 
-  for (const fixture of cases) {
-    const model = parse(fixture.source);
-    const legacy = legacyValidate(model).filter((finding) => finding.rule === fixture.oldRule);
-    const current = assess(model, {
-      registry: REGISTRY,
-      profile: PROFILE_REF,
-      context: CONTEXT,
-    }).findings.filter((finding) => finding.rule.id === fixture.newRule);
-    assert.equal(legacy.length, 1, fixture.oldRule);
-    assert.equal(current.length, 1, fixture.newRule);
+  for (const expected of cases) {
+    // the section heading and the verdict line must name the same rule
+    assert.equal(expected.rule, expected.section, `${expected.page}: heading and verdict disagree`);
+
+    const current = assessSource(expected.source)
+      .findings.filter((finding) => finding.rule.id === expected.rule);
+    assert.equal(current.length, 1, `${expected.page} ${expected.rule}`);
+
     const source = current[0]!.outcome.evidence
       .flatMap((item) => item.sources)
       .find((item) => item.kind === "model" && item.location?.line !== undefined);
     assert.ok(source?.kind === "model");
-    assert.deepEqual({
-      level: current[0]!.level,
-      refs: current[0]!.outcome.subjects.map((subject) => subject.ref),
-      line: source.location?.line,
-      file: source.location?.file,
-    }, {
-      level: legacy[0]!.level,
-      refs: legacy[0]!.path,
-      line: legacy[0]!.line,
-      file: legacy[0]!.file,
-    }, fixture.newRule);
+    assert.deepEqual(
+      {
+        level: current[0]!.level,
+        line: source.location?.line,
+        message: current[0]!.outcome.message,
+      },
+      { level: expected.level, line: expected.line, message: expected.message },
+      `${expected.page} ${expected.rule}`,
+    );
   }
 });
 

@@ -7,7 +7,7 @@ mode: reference
 
 | rule | level |
 |---|---|
-| [`column.blocksdoor`](#column-blocksdoor) | violation |
+| [`koyu.schematic.column.blocksdoor`](#column-blocksdoor) | violation |
 
 **When two elements both refuse to write their position, the collision shows up only in the derivation.**
 
@@ -25,7 +25,7 @@ No intersection carries two columns. When declarations overlap, **the earlier de
 
 `x:` and `y:` take **grid line names** and restrict which lines carry columns. They are not offsets.
 
-## `column.blocksdoor` — a column blocks a door {#column-blocksdoor}
+## `koyu.schematic.column.blocksdoor` — a column blocks a door {#column-blocksdoor}
 
 `violation`
 
@@ -42,8 +42,9 @@ boundary /L1/a /L1/b
 ```
 
 ```text
-✖ [column.blocksdoor] main.muro:line 8: A column blocks a door: the door (900mm wide) on /L1/a | /L1/b overlaps the column at X2/Y2
+✖ [koyu.schematic.column.blocksdoor] main.muro:line 8: /L1/a|/L1/b@0/0 intersects the derived column at X2/Y2
 Validation — 1 violation / 0 cautions
+  koyu.profile.schematic-screen@1 — 2 evaluated / 14 not applicable / 0 indeterminate / 0 error
 ```
 
 The boundary between `/L1/a` and `/L1/b` runs along Y2. A 600mm column stands at the X2/Y2 intersection. The door was placed at `at:X2` — directly on the X2 line — so its centre and the column's centre are the same point. **A grid intersection also sits on the boundary segment.** Push a door towards a grid line and it always collides.

@@ -6,8 +6,7 @@ import type { AnalysisDefinition, AnalysisRef, ContextSnapshot } from "../src/an
 import type { JsonValue } from "../src/analysis/json.js";
 import { toCanonical } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
-import { siteReport as legacySiteReport } from "../src/core/site.js";
-import { accessFindings } from "../src/validate/access.js";
+import { siteReport } from "../src/core/site.js";
 import { assess, createAssessmentRegistry, runAnalysis } from "../src/validate/assessment.js";
 import {
   COLUMN_BLOCKS_DOOR_RULE,
@@ -28,7 +27,7 @@ import {
   type SiteAnalysisValue,
 } from "../src/validate/builtin/site.js";
 import type { AssessmentReport, Profile, Rule, RuleRun, RuleSet } from "../src/validate/contracts.js";
-import { siteFindings } from "../src/validate/site.js";
+import { documentedCases } from "./helpers/docs.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const CONTEXT: ContextSnapshot = {
@@ -139,30 +138,30 @@ for (const fixture of [
     assert.equal(report.model.state, "consistent");
   });
 
-  test(`builtin migration preserves the legacy ${fixture.anchor} subject and source`, () => {
-    const sourceText = documentedFixture(fixture.page, fixture.anchor);
-    const model = parse(sourceText);
-    const legacy = (fixture.page === "column.md" ? accessFindings(model) : siteFindings(model))
-      .filter((finding) => finding.rule === fixture.oldRule);
-    const current = assess(model, { registry: REGISTRY, profile: PROFILE_REF, context: CONTEXT })
-      .findings.filter((finding) => finding.rule.id === fixture.rule);
-    assert.equal(legacy.length, 1);
+  test(`the documented ${fixture.anchor} verdict is what the rule actually says`, () => {
+    const expected = documentedCases(fixture.page).find((c) => c.rule === fixture.rule);
+    assert.ok(expected, `${fixture.page} documents no verdict for ${fixture.rule}`);
+    assert.equal(expected.rule, expected.section, "heading and verdict disagree");
+
+    const current = assess(parse(expected.source), {
+      registry: REGISTRY,
+      profile: PROFILE_REF,
+      context: CONTEXT,
+    }).findings.filter((finding) => finding.rule.id === fixture.rule);
     assert.equal(current.length, 1);
+
     const source = current[0]!.outcome.evidence
       .flatMap((item) => item.sources)
       .find((item) => item.kind === "model" && item.location?.line !== undefined);
     assert.ok(source?.kind === "model");
-    assert.deepEqual({
-      level: current[0]!.level,
-      refs: current[0]!.outcome.subjects.map((subject) => subject.ref),
-      line: source.location?.line,
-      file: source.location?.file,
-    }, {
-      level: legacy[0]!.level,
-      refs: legacy[0]!.path,
-      line: legacy[0]!.line,
-      file: legacy[0]!.file,
-    });
+    assert.deepEqual(
+      {
+        level: current[0]!.level,
+        line: source.location?.line,
+        message: current[0]!.outcome.message,
+      },
+      { level: expected.level, line: expected.line, message: expected.message },
+    );
   });
 }
 
@@ -244,7 +243,7 @@ test("frontage compares the integer-rounded measurement against 2000 mm", () => 
 test("site analysis carries the complete shared metrics used by CLI and MCP without a verdict", () => {
   const source = documentedFixture("site.md", "site-frontage");
   const model = parse(source);
-  const legacy = legacySiteReport(model);
+  const legacy = siteReport(model);
   const value = siteValue(source);
   const basis = legacy.declaredArea ?? legacy.derivedArea;
 

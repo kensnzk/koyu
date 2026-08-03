@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import type { ContextSnapshot } from "../src/analysis/contracts.js";
 import { parseFile } from "../src/parse-file.js";
 import { assess, runAnalysis } from "../src/validate/assessment.js";
-import { validate as legacyValidate, VALIDATION_RULES } from "../src/validate/index.js";
 import {
   createSchematicRegistry,
   SCHEMATIC_ANALYSES,
@@ -109,26 +108,19 @@ test("the built-in catalog holds the six analyses in the declared order", () => 
   }
 });
 
-test("every legacy rule is carried, and run.slope is the only one-to-many move", () => {
-  const legacyIds = Object.keys(VALIDATION_RULES);
-  assert.equal(legacyIds.length, 15);
-  assert.deepEqual(legacyIds.sort(), Object.keys(LEGACY_TO_NEW).sort());
-
+test("the fifteen rules that existed before the cutover are all carried, and only run.slope split", () => {
+  // The old ledger is deleted, so this is the migration record rather than a live comparison:
+  // fifteen old ids, sixteen new ones, and exactly one of them one-to-many.
+  assert.equal(Object.keys(LEGACY_TO_NEW).length, 15);
   const carried = Object.values(LEGACY_TO_NEW).flat();
+  assert.equal(carried.length, 16);
   assert.deepEqual(carried.slice().sort(), EXPECTED_RULE_ORDER.slice().sort());
 
+  const oneToMany = Object.entries(LEGACY_TO_NEW).filter(([, ids]) => ids.length > 1);
+  assert.deepEqual(oneToMany.map(([old]) => old), ["run.slope"]);
+
   const byId = new Map(SCHEMATIC_RULES.map((rule) => [rule.id, rule]));
-  for (const [legacyId, newIds] of Object.entries(LEGACY_TO_NEW)) {
-    for (const newId of newIds) {
-      const rule = byId.get(newId);
-      assert.ok(rule, newId);
-      assert.equal(
-        rule.level,
-        VALIDATION_RULES[legacyId as keyof typeof VALIDATION_RULES],
-        `${newId} must keep the level of ${legacyId}`,
-      );
-    }
-  }
+  for (const newId of carried) assert.ok(byId.get(newId), newId);
 });
 
 test("the pack is design lint, and claims neither jurisdiction nor authority", () => {
@@ -216,26 +208,23 @@ test("the whole pack runs against a bundled example and reports every rule", () 
   assert.equal(report.summary.rules.error, 0);
 });
 
-test("across every bundled example the pack finds exactly what the legacy validator found", () => {
+test("every bundled example runs the whole pack clean, with nothing left unjudged", () => {
   const registry = createSchematicRegistry();
 
   for (const name of BUNDLED_EXAMPLES) {
     const model = parseFile(fileURLToPath(new URL(`../examples/${name}`, import.meta.url)));
-    const legacy = legacyValidate(model);
     const report = assess(model, {
       registry,
       profile: SCHEMATIC_PROFILE_ID,
       context: CONTEXT,
     });
 
-    // A rule that threw would silently look like "nothing found", so the states are checked too.
+    // A rule that threw would otherwise look exactly like "nothing found".
     assert.deepEqual(report.rules.filter((run) => run.state === "error").map((r) => r.rule.id), [], name);
+    assert.deepEqual(report.rules.filter((run) => run.state === "indeterminate").map((r) => r.rule.id), [], name);
     assert.equal(report.summary.state, "complete", name);
-    assert.deepEqual(
-      report.findings.map((finding) => `${finding.rule.id}:${finding.outcome.id}`),
-      legacy.flatMap((finding) => LEGACY_TO_NEW[finding.rule]!.map((id) => `${id}:${finding.path?.[0]}`)),
-      name,
-    );
+    assert.equal(report.model.state, "consistent", name);
+    assert.deepEqual(report.findings.map((f) => `${f.rule.id}:${f.outcome.id}`), [], name);
   }
 });
 

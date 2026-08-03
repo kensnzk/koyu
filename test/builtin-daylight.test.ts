@@ -5,7 +5,7 @@ import type { ContextSnapshot } from "../src/analysis/contracts.js";
 import { daylightInputs } from "../src/core/light.js";
 import { toCanonical } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
-import { validate as legacyValidate } from "../src/validate/index.js";
+import { documentedCases } from "./helpers/docs.js";
 import { assess, createAssessmentRegistry, runAnalysis } from "../src/validate/assessment.js";
 import {
   DAYLIGHT_ANALYSIS,
@@ -72,21 +72,15 @@ test("the daylight reference fixtures map to the new schematic rule identities",
   assertSingleFailure(assessSource(fixtures[2]!), DAYLIGHT_UNKNOWN_RULE_ID.id, "caution", "/L1/a");
 });
 
-test("the daylight migration stays level, subject, and source-equivalent to the legacy validator", () => {
-  const fixtures = referenceExamples();
-  const cases = [
-    { source: fixtures[0]!, oldRule: "daylight.ratio", newRule: DAYLIGHT_RATIO_RULE_ID.id },
-    { source: fixtures[1]!, oldRule: "daylight.ratio", newRule: DAYLIGHT_RATIO_RULE_ID.id },
-    { source: fixtures[2]!, oldRule: "daylight.unknown", newRule: DAYLIGHT_UNKNOWN_RULE_ID.id },
-  ];
+test("each daylight rule says exactly what its documented example says it says", () => {
+  const cases = documentedCases("daylight.md");
+  assert.equal(cases.length, 3);
 
-  for (const fixture of cases) {
-    const model = parse(fixture.source);
-    const legacy = legacyValidate(model).filter((finding) => finding.rule === fixture.oldRule);
-    const current = assessSource(fixture.source)
-      .findings.filter((finding) => finding.rule.id === fixture.newRule);
-    assert.equal(legacy.length, 1, fixture.oldRule);
-    assert.equal(current.length, 1, fixture.newRule);
+  for (const expected of cases) {
+    assert.equal(expected.rule, expected.section, "heading and verdict disagree");
+    const current = assessSource(expected.source)
+      .findings.filter((finding) => finding.rule.id === expected.rule);
+    assert.equal(current.length, 1, expected.rule);
 
     const source = current[0]!.outcome.evidence
       .flatMap((item) => item.sources)
@@ -95,17 +89,11 @@ test("the daylight migration stays level, subject, and source-equivalent to the 
     assert.deepEqual(
       {
         level: current[0]!.level,
-        subjects: current[0]!.outcome.subjects,
-        line: source.location!.line,
+        line: source.location?.line,
         message: current[0]!.outcome.message,
       },
-      {
-        level: legacy[0]!.level,
-        subjects: [{ kind: "space", ref: legacy[0]!.path![0]! }],
-        line: legacy[0]!.line,
-        message: legacy[0]!.message,
-      },
-      fixture.newRule,
+      { level: expected.level, line: expected.line, message: expected.message },
+      expected.rule,
     );
   }
 });

@@ -7,7 +7,8 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check } from "../src/core/diagnose.js";
 import { daylightInputs } from "../src/core/light.js";
-import { validate } from "../src/validate/index.js";
+import { DAYLIGHT_RATIO_RULE_ID } from "../src/validate/builtin/index.js";
+import { caught } from "./helpers/schematic.js";
 import { doorsBetween } from "../src/core/graph.js";
 import { isSemiOutdoor, zoneAreaM2 } from "../src/core/model.js";
 import { parseFile } from "../src/parse-file.js";
@@ -63,7 +64,7 @@ test("tower: every habitable room meets the 1/7 daylight ratio (the 0.7 factor t
   const rep = daylightInputs(m);
   assert.equal(rep.length > 60, true);
   // 合否は検証の面が言う — core が返すのは床面積と有効窓面積だけ
-  assert.deepEqual(validate(m).filter((f) => f.rule === "daylight.ratio"), []);
+  assert.deepEqual(caught(m).filter((f) => f.rule === DAYLIGHT_RATIO_RULE_ID.id), []);
 });
 
 test("tower: asking about escape — four doors from the ninth-floor LDK to the road, three from the penthouse", () => {

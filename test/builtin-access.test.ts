@@ -4,7 +4,7 @@ import { test } from "node:test";
 import type { AnalysisArtifact, ContextSnapshot } from "../src/analysis/contracts.js";
 import { parse } from "../src/core/parse.js";
 import { toCanonical, type Model } from "../src/core/model.js";
-import { accessFindings } from "../src/validate/access.js";
+import { documentedCases } from "./helpers/docs.js";
 import { assess, createAssessmentRegistry, runAnalysis } from "../src/validate/assessment.js";
 import {
   ACCESS_ANALYSIS,
@@ -211,38 +211,32 @@ test("back-of-house is avoided and a target's own vertical link is not accepted 
   assert.equal(outcome(direct, ACCESS_BACKOFHOUSE_RULE_ID.id, "/L1/e").status, "pass");
 });
 
-test("the curated access matrix remains verdict-equivalent to the legacy validator", () => {
-  const sources = [
-    ...accessReferenceFailures(),
-    parkingDoorSource(2399),
-    parkingDoorSource(2400),
-    verticalParkingSource(false),
-    verticalParkingSource(true),
-    horizontalVerticalSource("vertical-only"),
-    horizontalVerticalSource("direct"),
-  ];
-  for (const source of sources) {
-    const model = parse(source);
-    const legacy = accessFindings(model)
-      .filter((finding) => finding.rule.startsWith("access."))
-      .map((finding) => ({
-        rule: finding.rule,
-        level: finding.level,
-        ref: finding.path?.[0],
-        message: finding.message,
-      }))
-      .sort(compareVerdicts);
-    const current = assess(model, {
-      registry: REGISTRY,
-      profile: PROFILE_REF,
-      context: CONTEXT,
-    }).findings.map((finding) => ({
-      rule: finding.rule.id.replace("koyu.schematic.", ""),
-      level: finding.level,
-      ref: finding.outcome.subjects[0].ref,
-      message: finding.outcome.message,
-    })).sort(compareVerdicts);
-    assert.deepEqual(current, legacy);
+test("each access rule says exactly what its documented example says it says", () => {
+  const cases = documentedCases("access.md");
+  assert.equal(cases.length, 5);
+
+  for (const expected of cases) {
+    assert.equal(expected.rule, expected.section, `${expected.page}: heading and verdict disagree`);
+
+    const current = assessSource(expected.source)
+      .findings.filter((finding) => finding.rule.id === expected.rule);
+    assert.equal(current.length, 1, expected.rule);
+
+    const source = current[0]!.outcome.evidence
+      .flatMap((item) => item.sources)
+      .find((item) => item.kind === "model" && item.location?.line !== undefined);
+    assert.ok(source?.kind === "model");
+    // access is compared on its message too: the wording tells the reader which of the five
+    // different traversals refused, and rolling them into one phrase would hide that.
+    assert.deepEqual(
+      {
+        level: current[0]!.level,
+        line: source.location?.line,
+        message: current[0]!.outcome.message,
+      },
+      { level: expected.level, line: expected.line, message: expected.message },
+      expected.rule,
+    );
   }
 });
 
@@ -422,9 +416,3 @@ function roomRef(index: number): string {
   return `r${index.toString().padStart(3, "0")}`;
 }
 
-function compareVerdicts(
-  a: { rule: string; ref: string | undefined },
-  b: { rule: string; ref: string | undefined },
-): number {
-  return a.rule.localeCompare(b.rule) || (a.ref ?? "").localeCompare(b.ref ?? "");
-}

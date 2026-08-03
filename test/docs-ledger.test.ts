@@ -17,7 +17,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { DIAGNOSTIC_CODES } from "../src/core/diagnose.js";
-import { VALIDATION_RULES } from "../src/validate/index.js";
+import { SCHEMATIC_RULES } from "../src/validate/builtin/index.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const DOCS = join(root, "docs");
@@ -97,10 +97,10 @@ test("診断コードは65件すべてが見出しを持つ", { skip: !canonical
   assert.deepEqual(missing, [], `見出しの無い診断コード: ${missing.join(", ")}`);
 });
 
-test("判定規則は15件すべてが見出しを持つ", { skip: !canonical }, () => {
+test("判定規則は16件すべてが見出しを持つ", { skip: !canonical }, () => {
   const text = corpus("reference", "validate");
-  const missing = Object.keys(VALIDATION_RULES).filter(
-    (rule) => !new RegExp(`^#{2,4}\\s.*${rule.replace(".", "\\.")}`, "m").test(text),
+  const missing = SCHEMATIC_RULES.map((rule) => rule.id).filter(
+    (rule) => !new RegExp(`^#{2,4}\\s.*${rule.replace(/\./g, "\\.")}`, "m").test(text),
   );
   assert.deepEqual(missing, [], `見出しの無い判定規則: ${missing.join(", ")}`);
 });

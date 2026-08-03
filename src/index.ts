@@ -1,211 +1,55 @@
-// koyu — 公開面 (ADR-0037)
+// koyu — the root surface (`@kensnzk/koyu`)
 //
-// **ここに書き下された名だけが約束である。**`export *` は使わない — モジュールに
-// export を足した瞬間に、誰も宣言していない約束が凍る面に増えてしまうからである。
-// 凍らせる面は、書き下されていなければならない (docs/reference/scope.md)。
+// **Only the names written down here are promised.** `export *` is never used: the moment a
+// module gains an export, a promise nobody declared would freeze into the surface. A surface
+// that freezes has to be written out by hand (docs/reference/scope.md).
 //
-// 載せる基準は一つ — **面の外に利用者がいること。**
-//   1. パッケージの外 (ugatsu / eval / scripts / editors) が実際に呼ぶ
-//   2. CLI か MCP が答えるものを API からも答えるために要る
-//      (「CLIが答えるものはすべてこのAPIが答える」— docs/reference/api/index.md)
-//   3. 公開文書が名指しで約束する導出 (docs/reference/scope.md)
-//   4. test が契約として固定している
-// core のモジュール同士が引き合うだけの配管は面ではない。型は、載せた値の署名を
-// 書き下すのに要るものだけを載せる。
+// **root is not a shorthand for every subpath.** What lives here is the minimum needed to begin
+// the standard loop — read a `.muro`, confirm it is not self-contradictory, and take the
+// canonical form — plus the types those signatures cannot be written without. Domain names
+// (`model`, `graph`, `form`, `analysis`, `validate`, `draw`, `node`) are **not** re-exported
+// from here. A caller who needs a domain names that domain, and the import line then says which
+// contract is being relied on: the face that freezes, the face that computes from external
+// conditions, the face that concludes, the presentation that may change freely, and the
+// Node-specific adapter never get mixed together.
 //
-// この一覧と docs/reference/api/index.md の表は集合として一致する — test/public-api.test.ts が縛る。
+// root is browser-safe: nothing reachable from here pulls a Node builtin.
+//
+// The twelve entry points:
+//
+//   @kensnzk/koyu                   this file — compose, check, canonicalise
+//   @kensnzk/koyu/model             Model, and the questions the model answers alone
+//   @kensnzk/koyu/diagnostics       structural-consistency diagnostics
+//   @kensnzk/koyu/graph             adjacency, passability, routes, boundary segments
+//   @kensnzk/koyu/form              the one derivation of shape
+//   @kensnzk/koyu/analysis          facts made under an explicit context and profile
+//   @kensnzk/koyu/diff              the semantic difference between two models
+//   @kensnzk/koyu/vocabulary        the attribute ledger
+//   @kensnzk/koyu/validate          the rule SPI, the runner, AssessmentReport
+//   @kensnzk/koyu/validate/builtin  the rules, rule set and profile koyu ships
+//   @kensnzk/koyu/draw              presentation of the Form
+//   @kensnzk/koyu/node              filesystem and other Node-specific adapters
+//
+// This list and the table in docs/reference/api/index.md agree as sets — test/public-api.test.ts
+// binds them.
 
 // ---- 解析と合成 (docs/reference/muro/import.md) ----
 export { parse, parseFiles, parseWith, tokenize, type LayerLoader } from "./core/parse.js";
 
-// ---- モデルの語彙 — 書かれた構成の型 ----
-export type {
-  Area,
-  Asset,
-  Attrs,
-  AttrValue,
-  Boundary,
-  BoundaryKind,
-  Column,
-  ColumnDecl,
-  DrawnLine,
-  Edge,
-  GridAxis,
-  GridRef,
-  Level,
-  Model,
-  Opening,
-  Pt,
-  Rect,
-  Seg,
-  SitePolygon,
-  Space,
-  Zone,
-} from "./core/model.js";
-
-// ---- モデルへの問い・導出・機械形式 ----
-// **合否は言わない** (docs/reference/scope.md)。数と形を返すところまでが core である
-export {
-  areaM2,
-  canonicalBoundaryOrder,
-  columnsFor,
-  DEFAULT_LANGUAGE_VERSION,
-  displayName,
-  effectiveUse,
-  heff,
-  isCoveredAbove,
-  isIndoor,
-  isOutside,
-  isSemiOutdoor,
-  isVoid,
-  levelsSorted,
-  newUids,
-  pointInPolygon,
-  polyBounds,
-  polygonAreaM2,
-  rectToPoly,
-  SourceError,
-  srcRef,
-  SUPPORTED_LANGUAGE_VERSIONS,
-  toCanonical,
-  unionAreaM2,
-  zoneAreaM2,
-} from "./core/model.js";
-
-// ---- 構造整合の診断 (ADR-0016) ----
+// ---- 構造整合の確認 — **合否は言わない。**書かれたものが矛盾していないかまで ----
 export {
   check,
   checkDiagnostics,
-  DIAGNOSTIC_CODES,
   type CheckResult,
   type Diagnostic,
   type DiagnosticCode,
 } from "./core/diagnose.js";
 
-// ---- 空間グラフと導出の部品 ----
+// ---- 機械形式と、版 ----
 export {
-  deriveDefaultBoundaries,
-  doorsBetween,
-  envelopeGaps,
-  neighbors,
-  passable,
-  placeBand,
-  placeOpening,
-  segmentsFor,
-  type Band,
-  type BandCode,
-  type BandError,
-  type NeighborInfo,
-  type PlacedBand,
-  type Route,
-  type Segment,
-} from "./core/graph.js";
-
-// ---- 形の参照実装 (ADR-0040) — **これが形の唯一の入口である** ----
-// Form は見た目を持たない (docs/reference/scope.md)。規則は docs/reference/form/index.md が持つ
-// 実体の構成子 (thicken / bandLine / band / columnRect / runPrism) も core が唯一の実装を
-// 持つ — 芯線と厚みから四辺形や角柱を起こす規則も導出の一部だからである
-export {
-  band,
-  bandLine,
-  columnRect,
-  derive,
-  DERIVATION_CONSTANTS,
-  levelPitch,
-  runPrism,
-  thicken,
-  type DeriveOptions,
-  type Form,
-  type FormBoundary,
-  type FormColumn,
-  type FormInput,
-  type FormLevel,
-  type FormOpening,
-  type FormPanel,
-  type FormPlan,
-  type FormPrism,
-  type FormRun,
-  type FormSeg,
-  type FormSite,
-  type FormSpace,
-  type FormSwing,
-  type PlanClass,
-  type PlanEntity,
-  type PlanRole,
-  type PlanSubject,
-} from "./core/derive.js";
-export { TOLERANCES } from "./core/tolerance.js";
-
-// ---- 床・天井・屋根 (ADR-0024) ----
-export { slabs, type Slab, type SlabKind } from "./core/fabric.js";
-
-// ---- 採光の入力 (ADR-0020) ----
-export { daylightInputs, type DaylightInput } from "./core/light.js";
-
-// ---- 縦動線 (ADR-0021) ----
-export {
-  RUN_KEYS,
-  runDecls,
-  runDrawsForLevel,
-  runSolids,
-  slopeText,
-  verticalRuns,
-  type RunArrow,
-  type RunDecl,
-  type RunDevice,
-  type RunDraw,
-  type RunForm,
-  type RunPart,
-  type RunSolid,
-  type Seg2,
-  type VerticalRun,
-} from "./core/vertical.js";
-
-// ---- 敷地 (ADR-0009 / ADR-0011) ----
-export { siteReport, type RoadFrontage, type SiteReport } from "./core/site.js";
-
-// ---- 構成の言葉の差分 (ADR-0018) ----
-export {
-  renderDiff,
-  semanticDiff,
-  type BoundaryChange,
-  type BoundaryItem,
-  type ChangedItem,
-  type ColumnItem,
-  type FieldChange,
-  type GridChange,
-  type ModelDiff,
-  type RenamedItem,
-  type SpaceItem,
-} from "./core/diff.js";
-
-// ---- 属性の台帳 — **書いてよいキーの一覧であって、読むキーの一覧ではない** ----
-//
-// 利用者の側にも境界が要る。台帳を出していなかった間、消費側のアプリは
-// 「この鍵はこの要素に書けるか」を答えるために台帳を手で写すしかなく、写しは必ずずれる。
-// `outside` と `void` を型の位置から台帳へ移した以上、その台帳は読めなければ意味がない。
-export {
-  ASSET_ELEM,
-  ATTR_LEDGER,
-  attrSpec,
-  CARRY_NAMESPACE,
-  isNamespaced,
-  known,
-  type AttrSpec,
-  type AttrTier,
-} from "./core/vocabulary.js";
-
-// ---- 生成 — **凍らない** (docs/reference/scope.md)。SVGの中身は約束の外にある ----
-// 領域としては `@kensnzk/koyu/draw` にも分けてある
-export { svgPlan, type PlanOptions } from "./draw/plan.js";
-export { svgAxo, type AxoOptions } from "./draw/axo.js";
-
-// ---- 検証 — **core ではない。**凍らない・増える・合否を言う (docs/reference/scope.md) ----
-// Finding は Diagnostic と別の型で、フィールド名から違う (rule/level と code/severity)。
-// 領域としては `@kensnzk/koyu/validate` にも分けてある
-export {
-  validate,
-  VALIDATION_RULES,
-  type Finding,
-  type ValidationRule,
-} from "./validate/index.js";
+  DEFAULT_LANGUAGE_VERSION,
+  SourceError,
+  SUPPORTED_LANGUAGE_VERSIONS,
+  toCanonical,
+  type Model,
+} from "./core/model.js";

@@ -7,7 +7,7 @@ import type {
   SubjectRef,
 } from "../../analysis/contracts.js";
 import type { Model, Space } from "../../core/model.js";
-import { verticalRuns } from "../../core/vertical.js";
+import { slopeText, verticalRuns } from "../../core/vertical.js";
 import type { Rule, RuleEvaluation, RuleOutcome } from "../contracts.js";
 import { freezeBuiltin } from "./freeze.js";
 
@@ -166,8 +166,8 @@ function evaluateStairProportion(
       status: failed ? "fail" : "pass",
       subjects: [runSubject(run.ref)],
       message: failed
-        ? `${run.ref} has a derived tread or pace outside the schematic band`
-        : `${run.ref} has a derived tread and pace inside the schematic band`,
+        ? `Cramped step: ${run.ref} — derived tread ${tread}mm, 2×riser+tread ${pace}mm (wants tread ≥ ${TREAD_MIN_MM}mm and pace ${STEP_RULE_MM.minimum}–${STEP_RULE_MM.maximum}mm; deepen the shaft along travel, fold it with form:return, or raise riser:)`
+        : `${run.ref} has a derived tread of ${tread}mm and a pace of ${pace}mm, both inside the schematic band`,
       evidence: [
         requiredRunEvidence(evidenceById, run.ref),
         comparisonEvidence(
@@ -215,8 +215,8 @@ function evaluateRampSlope(
       status: failed ? "fail" : "pass",
       subjects: [runSubject(run.ref)],
       message: failed
-        ? `${run.ref} is steeper than its declared 1/${run.declaredSlopeDenominator} limit`
-        : `${run.ref} is no steeper than its declared 1/${run.declaredSlopeDenominator} limit`,
+        ? `Derived slope ${slopeText(run.slope)} is steeper than the declared 1/${run.declaredSlopeDenominator}: ${run.ref} (lengthen the run or lower the storey height)`
+        : `Derived slope ${slopeText(run.slope)} is no steeper than the declared 1/${run.declaredSlopeDenominator}: ${run.ref}`,
       evidence: [
         requiredRunEvidence(evidenceById, run.ref),
         comparisonEvidence(
@@ -260,8 +260,8 @@ function evaluateEscalatorSlope(
       status: failed ? "fail" : "pass",
       subjects: [runSubject(run.ref)],
       message: failed
-        ? `${run.ref} is outside the schematic escalator slope band`
-        : `${run.ref} is inside the schematic escalator slope band`,
+        ? `Derived slope ${slopeText(run.slope)} is outside the usual escalator range ${slopeText(ESCALATOR_SLOPE_BAND.minimum)}–${slopeText(ESCALATOR_SLOPE_BAND.maximum)} (about 1/1.7 = 30 degrees): ${run.ref}`
+        : `Derived slope ${slopeText(run.slope)} is inside the usual escalator range: ${run.ref}`,
       evidence: [
         requiredRunEvidence(evidenceById, run.ref),
         comparisonEvidence(
@@ -294,7 +294,7 @@ function evaluateRunConnection(
     subjects: [runSubject(run.ref)],
     message: run.verticalBoundaryLinked
       ? `${run.ref} is an endpoint of a vertical boundary`
-      : `${run.ref} is not an endpoint of a vertical boundary`,
+      : `${run.ref} has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)`,
     evidence: [requiredRunEvidence(evidenceById, run.ref)],
   })));
 }

@@ -7,9 +7,9 @@ mode: reference
 
 | rule | level |
 |---|---|
-| [`site.escape`](#site-escape) | violation |
-| [`site.area`](#site-area) | caution |
-| [`site.frontage`](#site-frontage) | violation |
+| [`koyu.schematic.site.escape`](#site-escape) | violation |
+| [`koyu.schematic.site.area`](#site-area) | caution |
+| [`koyu.schematic.site.frontage`](#site-frontage) | violation |
 
 The site is the zone carrying `site:1`, and its shape is given by the `polygon` at the same path. **The soundness of the shape itself** — duplicate vertices, self-intersection, a polygon with no corresponding zone — is what [`koyu check`](../cli/check.md) says. Broken given data yields no shape at all, so that belongs to reading the source.
 
@@ -17,7 +17,7 @@ What this chapter holds are **judgements about the relation between the building
 
 Coverage and floor-area ratios are numbers, so [`koyu site`](../cli/site.md) returns them. Comparing them against a limit needs a fact that was never written — which zoning district this is — so there is no judgement for it.
 
-## `site.escape` — it escapes the site outline {#site-escape}
+## `koyu.schematic.site.escape` — it escapes the site outline {#site-escape}
 
 `violation`
 
@@ -35,8 +35,9 @@ space /L1/a room X2..X3 Y1..Y2
 ```
 
 ```text
-✖ [site.escape] main.muro:line 8: /L1/a escapes the site shape (near 14000,0)
+✖ [koyu.schematic.site.escape] main.muro:line 8: /L1/a escapes the site shape (near 14000,0)
 Validation — 1 violation / 0 cautions
+  koyu.profile.schematic-screen@1 — 1 evaluated / 15 not applicable / 0 indeterminate / 0 error
 ```
 
 The polygon stops at X = 10000, while `/L1/a` occupies X2..X3 = 10000..14000.
@@ -51,7 +52,7 @@ The message prints the coordinates of the first escaping point found. One space 
 
 **Fix** — bring the layout inside the site, or correct the surveyed values in the `polygon`. Above, if the polygon is right, shrink the space; if the space is right, correct the vertices to `0,0 14000,0 14000,10000 0,10000`.
 
-## `site.area` — the declared and derived site areas disagree {#site-area}
+## `koyu.schematic.site.area` — the declared and derived site areas disagree {#site-area}
 
 `caution`
 
@@ -68,8 +69,9 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```
 
 ```text
-⚠ [site.area] main.muro:line 5: Declared and derived site areas disagree: declared 120 m2 / derived 100.00 m2
+⚠ [koyu.schematic.site.area] main.muro:line 5: Declared and derived site areas disagree: declared 120 m2 / derived 100.00 m2 (/site)
 Validation — 0 violations / 1 caution
+  koyu.profile.schematic-screen@1 — 1 evaluated / 15 not applicable / 0 indeterminate / 0 error
 ```
 
 A 10 m square polygon is 100 m², but `area:` says 120.00. **One fact is written in two places, and the two disagree.** Either a mistyped vertex, a transcription error in `area:`, or a survey update that reached only one of them.
@@ -90,7 +92,7 @@ Site /site (敷地)
   Total floor area: 100.00 m2 → floor area ratio 83.3%
 ```
 
-## `site.frontage` — the road frontage is too short {#site-frontage}
+## `koyu.schematic.site.frontage` — the road frontage is too short {#site-frontage}
 
 `violation`
 
@@ -109,8 +111,9 @@ boundary /site/yard /out/road-n type:open
 ```
 
 ```text
-✖ [site.frontage] main.muro:line 8: Road frontage is too short: /out/road-n — 1500mm (needs at least 2000mm)
+✖ [koyu.schematic.site.frontage] main.muro:line 8: Road frontage is 1500mm, under the 2000mm this pack screens for: /out/road-n (widen the frontage onto the road)
 Validation — 1 violation / 0 cautions
+  koyu.profile.schematic-screen@1 — 3 evaluated / 13 not applicable / 0 indeterminate / 0 error
 ```
 
 The road meets the site over X1..X2 = 0..1500 only. What is measured is the length of the boundary segments, not the road's own width (`road:4000`).

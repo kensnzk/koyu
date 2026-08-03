@@ -14,7 +14,11 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { checkDiagnostics, DIAGNOSTIC_CODES } from "../src/core/diagnose.js";
 import { parse } from "../src/core/parse.js";
-import { validate, VALIDATION_RULES } from "../src/validate/index.js";
+import { SCHEMATIC_RULES } from "../src/validate/builtin/index.js";
+import { assessSchematic } from "./helpers/schematic.js";
+
+/** Every rule identity koyu ships, in catalog order. */
+const RULE_IDS = SCHEMATIC_RULES.map((rule) => rule.id);
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const SRC = join(root, "src");
@@ -87,7 +91,7 @@ space /out/road-n X1..X2 Y2..Y3 name:北側道路 road:4000 level:L1 outside:1
 boundary /site/yard /out/road-n`);
 
   const diags = checkDiagnostics(m);
-  const findings = validate(m);
+  const findings = assessSchematic(m).findings;
   assert.ok(findings.length > 0, "this model trips the validation (1500mm of road frontage)");
 
   for (const d of diags) {
@@ -96,38 +100,49 @@ boundary /site/yard /out/road-n`);
     assert.equal("level" in d, false);
   }
   for (const f of findings) {
+    // A finding names the rule and its level; the outcome names a status. Neither ever
+    // carries `code` or `severity`, so the two arrays cannot be concatenated by accident.
     assert.ok("rule" in f && "level" in f);
-    assert.equal("code" in f, false, "a Finding carrying code would mix with a core diagnostic");
+    assert.ok("status" in f.outcome);
+    assert.equal("code" in f, false, "a finding carrying code would mix with a core diagnostic");
     assert.equal("severity" in f, false);
+    assert.equal("code" in f.outcome, false);
+    assert.equal("severity" in f.outcome, false);
   }
 });
 
 test("domains: the ledgers do not intersect (no spelling appears on both faces)", () => {
   const codes = new Set<string>(Object.keys(DIAGNOSTIC_CODES));
-  for (const rule of Object.keys(VALIDATION_RULES)) {
+  for (const rule of RULE_IDS) {
     assert.equal(codes.has(rule), false, `${rule} is in both ledgers`);
-    // 判定の規則名は必ずドットを持つ — core のコード (3字+2桁) と字面で見分けがつく
-    assert.match(rule, /^[a-z]+\.[a-z]+$/, `a validation rule name has the form chapter.rule: ${rule}`);
+    // 判定の規則名は namespace を持つ — core のコード (3字+2桁) と字面で見分けがつく
+    assert.match(
+      rule,
+      /^koyu\.schematic\.[a-z0-9-]+\.[a-z0-9-]+$/,
+      `a built-in rule id is koyu.schematic.<chapter>.<rule>: ${rule}`,
+    );
   }
   for (const code of codes) assert.match(code, /^[A-Z]{3}\d{2}$/, `a diagnostic code is 3 letters and 2 digits: ${code}`);
 });
 
 // The page checked is the **published documentation**; `spec/` is an internal tree on its way out.
 // Rows read `| [`envelope.gap`](envelope.md#envelope-gap) | caution | … |`
+const LEVEL_OF = new Map(SCHEMATIC_RULES.map((rule) => [rule.id, rule.level]));
+
 for (const page of ["docs/reference/validate/index.md"]) {
-  test(`ledger: VALIDATION_RULES and the table in ${page} agree as sets`, () => {
+  test(`ledger: the built-in rules and the table in ${page} agree as sets`, () => {
     const md = readFileSync(join(root, page), "utf8");
     const inDocs = new Map<string, string>();
-    for (const m of md.matchAll(/^\| \[`([a-z.]+)`\]\([^)]*\) \| (violation|caution) \|/gm)) {
+    for (const m of md.matchAll(/^\| \[`([a-z.-]+)`\]\([^)]*\) \| (violation|caution) \|/gm)) {
       inDocs.set(m[1]!, m[2]!);
     }
     assert.deepEqual(
       [...inDocs.keys()].sort(),
-      Object.keys(VALIDATION_RULES).sort(),
-      `the table in ${page} and the implementation ledger disagree`,
+      [...RULE_IDS].sort(),
+      `the table in ${page} and the implementation catalog disagree`,
     );
     for (const [rule, level] of inDocs) {
-      assert.equal(level, VALIDATION_RULES[rule as keyof typeof VALIDATION_RULES], `the level of ${rule}`);
+      assert.equal(level, LEVEL_OF.get(rule), `the level of ${rule}`);
     }
   });
 }
@@ -135,13 +150,13 @@ for (const page of ["docs/reference/validate/index.md"]) {
 // Every rule must also have its own section, with its level stated there. The family pages of the
 // published documentation carry them as `## `rule` — … {#anchor}` followed by `` `violation` ``.
 for (const dir of ["docs/reference/validate"]) {
-  test(`ledger: the sections under ${dir} agree with VALIDATION_RULES as sets, and the levels match too`, () => {
+  test(`ledger: the sections under ${dir} agree with the built-in rules as sets, and the levels match too`, () => {
     const found = new Map<string, string>();
     for (const f of readdirSync(join(root, dir)).sort()) {
       if (!f.endsWith(".md")) continue;
       const lines = readFileSync(join(root, dir, f), "utf8").split("\n");
       for (let i = 0; i < lines.length; i++) {
-        const h = /^##\s+`([a-z]+\.[a-z]+)`\s+—\s+\S/.exec(lines[i]!);
+        const h = /^##\s+`(koyu\.schematic\.[a-z0-9.-]+)`\s+—\s+\S/.exec(lines[i]!);
         if (!h) continue;
         let level = "";
         for (let j = i + 1; j < lines.length && !/^##\s/.test(lines[j]!); j++) {
@@ -154,9 +169,9 @@ for (const dir of ["docs/reference/validate"]) {
         found.set(h[1]!, level);
       }
     }
-    assert.deepEqual([...found.keys()].sort(), Object.keys(VALIDATION_RULES).sort());
+    assert.deepEqual([...found.keys()].sort(), [...RULE_IDS].sort());
     for (const [rule, level] of found) {
-      assert.equal(level, VALIDATION_RULES[rule as keyof typeof VALIDATION_RULES], `the level of ${rule}`);
+      assert.equal(level, LEVEL_OF.get(rule), `the level of ${rule}`);
     }
   });
 }

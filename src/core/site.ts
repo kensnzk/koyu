@@ -38,6 +38,15 @@ export interface SiteReport {
   footprint: number;
   /** 延べ面積 m² (屋内床面積の合計) */
   totalFloor: number;
+  /** 面積率の分母 — 宣言があれば宣言、無ければ導出 */
+  areaBasis: number;
+  /**
+   * 建蔽率 % (建築面積 ÷ 分母、小数第1位)。分母が 0 なら `undefined`。
+   * **数であって合否ではない** — 指定建蔽率と比べるのは規則の側の仕事である
+   */
+  coveragePercent?: number;
+  /** 容積率 % (延べ面積 ÷ 分母、小数第1位)。分母が 0 なら `undefined` */
+  floorAreaRatioPercent?: number;
   roads: RoadFrontage[];
 }
 
@@ -78,6 +87,11 @@ export function siteReport(model: Model): SiteReport {
     roads.push({ road, width: road.attrs["road"], frontage: Math.round(frontage) });
   }
 
+  // 面積率は一箇所でだけ丸める。CLI・MCP・規則が各々で割れば、いずれ片方だけがずれる
+  const areaBasis = typeof declared === "number" ? declared : derivedArea;
+  const percent = (part: number): number | undefined =>
+    areaBasis === 0 ? undefined : Math.round((part / areaBasis) * 1000) / 10;
+
   return {
     ...(siteZone ? { siteZone } : {}),
     ...(polygon ? { polygon } : {}),
@@ -85,6 +99,9 @@ export function siteReport(model: Model): SiteReport {
     derivedArea,
     footprint,
     totalFloor,
+    areaBasis,
+    ...(percent(footprint) !== undefined ? { coveragePercent: percent(footprint) } : {}),
+    ...(percent(totalFloor) !== undefined ? { floorAreaRatioPercent: percent(totalFloor) } : {}),
     roads,
   };
 }

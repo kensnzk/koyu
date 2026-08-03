@@ -1,6 +1,6 @@
 {
   "name": "@kensnzk/koyu",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "空間を一次要素とするテキストネイティブ建築記述の探求 — writing architecture, not buildings",
   "type": "module",
   "main": "./dist/index.js",
@@ -10,21 +10,53 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./model": {
+      "types": "./dist/model.d.ts",
+      "default": "./dist/model.js"
+    },
+    "./diagnostics": {
+      "types": "./dist/diagnostics.d.ts",
+      "default": "./dist/diagnostics.js"
+    },
+    "./graph": {
+      "types": "./dist/graph.d.ts",
+      "default": "./dist/graph.js"
+    },
+    "./form": {
+      "types": "./dist/form.d.ts",
+      "default": "./dist/form.js"
+    },
+    "./analysis": {
+      "types": "./dist/analysis/index.d.ts",
+      "default": "./dist/analysis/index.js"
+    },
+    "./diff": {
+      "types": "./dist/diff.d.ts",
+      "default": "./dist/diff.js"
+    },
+    "./vocabulary": {
+      "types": "./dist/vocabulary.d.ts",
+      "default": "./dist/vocabulary.js"
+    },
     "./validate": {
       "types": "./dist/validate/index.d.ts",
       "default": "./dist/validate/index.js"
+    },
+    "./validate/builtin": {
+      "types": "./dist/validate/builtin/index.d.ts",
+      "default": "./dist/validate/builtin/index.js"
     },
     "./draw": {
       "types": "./dist/draw/index.d.ts",
       "default": "./dist/draw/index.js"
     },
-    "./examples/*": "./examples/*",
-    "./syntax": "./editors/vscode/syntaxes/koyu.tmLanguage.json",
-    "./package.json": "./package.json",
     "./node": {
       "types": "./dist/parse-file.d.ts",
       "default": "./dist/parse-file.js"
-    }
+    },
+    "./examples/*": "./examples/*",
+    "./syntax": "./editors/vscode/syntaxes/koyu.tmLanguage.json",
+    "./package.json": "./package.json"
   },
   "bin": {
     "koyu": "dist/cli.js",

@@ -7,13 +7,13 @@ mode: reference
 
 | rule | level |
 |---|---|
-| [`envelope.gap`](#envelope-gap) | caution |
+| [`koyu.schematic.envelope.gap`](#envelope-gap) | caution |
 
 **Between two spaces that touch, a wall is derived whether or not you write one.** Forget it and the wall still stands. **But a boundary to the outside is never derived** — no default boundary is drawn against a space with no region, because naming the other side is itself information.
 
 The consequence of that asymmetry is that a forgotten boundary to the outside becomes **a silently missing wall**. You only notice by looking at the drawing. This rule puts it into words.
 
-## `envelope.gap` — part of the outline faces nothing {#envelope-gap}
+## `koyu.schematic.envelope.gap` — part of the outline faces nothing {#envelope-gap}
 
 `caution`
 
@@ -33,8 +33,9 @@ boundary /L1/b /out t:150
 ```
 
 ```text
-⚠ [envelope.gap] main.muro:line 6: Perimeter not faced by any envelope: /L1/a — S 4000mm / N 4000mm (8000mm over 2 run(s)). Write a boundary to the exterior
+⚠ [koyu.schematic.envelope.gap] main.muro:line 6: /L1/a has 8000 mm of perimeter without an envelope relation
 Validation — 0 violations / 1 caution
+  koyu.profile.schematic-screen@1 — 4 evaluated / 12 not applicable / 0 indeterminate / 0 error
 ```
 
 `/L1/a` has four sides. The east side meets `/L1/b`, so it has a counterpart. One boundary was written on the west. **The north and the south face neither another space nor a declared boundary.** No wall stands there.

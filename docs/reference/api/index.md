@@ -5,7 +5,7 @@ mode: reference
 
 # TypeScript API
 
-`@kensnzk/koyu` reads `.muro`, checks it, answers questions about it, derives form from it, and emits drawings. **Everything the CLI answers, this API answers.** The [`koyu` command](../cli/index.md), the `koyu-mcp` server and this API are three entrances to the same derivations; there is no answer that only one of them has.
+`@kensnzk/koyu` reads `.muro`, checks it, answers questions about it, derives form from it, judges it under a rule profile, and emits drawings. **Everything the CLI answers, this API answers.** The [`koyu` command](../cli/index.md), the `koyu-mcp` server and this API are three entrances to the same derivations; there is no answer that only one of them has.
 
 ```sh
 npm install @kensnzk/koyu
@@ -13,29 +13,59 @@ npm install @kensnzk/koyu
 
 There are no runtime dependencies. The only modules the package pulls are Node built-ins, and those are confined to `@kensnzk/koyu/node`. It needs **Node 22 or later** (`engines.node` is `>=22`).
 
-## Entrances
+## Twelve entrances
 
 ```ts
-import { parse, checkDiagnostics, derive } from "@kensnzk/koyu";
-import { parseFile, parseFileWith } from "@kensnzk/koyu/node";
-import { validate, VALIDATION_RULES } from "@kensnzk/koyu/validate";
-import { svgPlan, svgAxo } from "@kensnzk/koyu/draw";
+import { parse, checkDiagnostics, toCanonical } from "@kensnzk/koyu";
+import { parseFile } from "@kensnzk/koyu/node";
+import { areaM2, levelsSorted } from "@kensnzk/koyu/model";
+import { derive } from "@kensnzk/koyu/form";
+import { assess } from "@kensnzk/koyu/validate";
+import { createSchematicRegistry, SCHEMATIC_PROFILE_ID } from "@kensnzk/koyu/validate/builtin";
+import { svgPlan } from "@kensnzk/koyu/draw";
 ```
+
+**The import line says which contract you are relying on.** That is the whole point of the split: the face that freezes, the face that computes from external conditions, the face that concludes, the presentation that may change freely, and the Node-specific adapter never get mixed together.
 
 | Entrance | What is in it | `node:fs` |
 |---|---|---|
-| `@kensnzk/koyu` | the whole surface — parsing, diagnostics, queries, derivation, drawing, diff, validation | **not pulled** |
+| `@kensnzk/koyu` | the minimum to begin the loop — compose, check, canonicalise | **not pulled** |
+| `@kensnzk/koyu/model` | `Model` and the questions the model answers on its own | not pulled |
+| `@kensnzk/koyu/diagnostics` | structural-consistency diagnostics and the code ledger | not pulled |
+| `@kensnzk/koyu/graph` | adjacency, passability, routes, boundary segments | not pulled |
+| `@kensnzk/koyu/form` | `derive` and the `Form` types — the one derivation of shape | not pulled |
+| `@kensnzk/koyu/analysis` | the analysis protocol: run one analysis under an explicit context and profile | not pulled |
+| `@kensnzk/koyu/diff` | the semantic difference between two models | not pulled |
+| `@kensnzk/koyu/vocabulary` | the attribute ledger | not pulled |
+| `@kensnzk/koyu/validate` | the rule SPI, the runner, `AssessmentReport` | not pulled |
+| `@kensnzk/koyu/validate/builtin` | the sixteen rules, the rule set and the profile koyu ships | not pulled |
+| `@kensnzk/koyu/draw` | `svgPlan`, `svgAxo` and their option types | not pulled |
 | `@kensnzk/koyu/node` | `parseFile` and `parseFileWith`, nothing else | pulled |
-| `@kensnzk/koyu/validate` | `validate`, `VALIDATION_RULES`, and the types `Finding` and `ValidationRule` | not pulled |
-| `@kensnzk/koyu/draw` | `svgPlan`, `svgAxo`, and the types `PlanOptions` and `AxoOptions` | not pulled |
-| `@kensnzk/koyu/examples/*` | the source of a bundled building (`examples/two-rooms.muro` and friends), for tests and evaluation | — |
+| `@kensnzk/koyu/examples/*` | the source of a bundled building, for tests and evaluation | — |
 | `@kensnzk/koyu/syntax` | the editor grammar (TextMate grammar as JSON), shared by VS Code and Shiki | — |
 
-The first four are JavaScript module entrances: you `import` names from them. The last two are data — the sources of the bundled buildings, and the grammar file — so the `node:fs` column does not apply. **This table is every subpath the package publishes.** A test binds each declared subpath to an appearance on this page, so adding an entrance without writing it here makes the test fail.
+The first twelve are JavaScript module entrances: you `import` names from them. The last two are data, so the `node:fs` column does not apply. **This table is every subpath the package publishes.** A test binds each declared subpath to an appearance on this page.
 
-**The root pulls neither `node:fs` nor `node:path`.** It runs unchanged in a browser, a web worker, or an edge runtime. Only the entrance that touches the filesystem lives under `/node`. The split exists to keep the parser itself pure: composition (resolving `import`) takes a "how do I read a layer" function from outside, and the filesystem is only one implementation of it. A browser passes a virtual file set (`parseFiles`) or its own loader (`parseWith`) — see Parsing and composition.
+**root is not a shorthand for the other eleven.** It re-exports no domain name at all — a caller who wants `areaM2` imports `/model`, and a caller who wants `derive` imports `/form`. A name absent from the table below is outside the promise of the root, however visible it is in the source.
 
-`/validate` and `/draw` are also part of what the root re-exports. They are **separate entrances so the domains do not blur**, not separate implementations: calling `validate` from the root and from `@kensnzk/koyu/validate` calls the same function. (The `/validate` module also exposes `finding`, a constructor for a `Finding`; the root does not re-export it, and a name absent from the list below is outside the promise.)
+**The root pulls neither `node:fs` nor `node:path`.** It runs unchanged in a browser, a web worker, or an edge runtime. Only the entrance that touches the filesystem lives under `/node`. The split exists to keep the parser itself pure: composition (resolving `import`) takes a "how do I read a layer" function from outside, and the filesystem is only one implementation of it. A browser passes a virtual file set (`parseFiles`) or its own loader (`parseWith`).
+
+## Nothing judges unless you name it
+
+`@kensnzk/koyu/validate` is the SPI and the runner; it holds no rules. `@kensnzk/koyu/validate/builtin` holds koyu's own pack as **a value**. Importing it registers nothing — there is no `registerRule`, no process-global registry, and no import-time side effect. You compose a registry, name a profile and a context, and pass them in.
+
+```ts
+import { assess } from "@kensnzk/koyu/validate";
+import { createSchematicRegistry, SCHEMATIC_PROFILE_ID } from "@kensnzk/koyu/validate/builtin";
+
+const report = assess(model, {
+  registry: createSchematicRegistry(),
+  profile: SCHEMATIC_PROFILE_ID,
+  context: { schema: "koyu-context/1", asOf: "2026-08-03", values: {} },
+});
+```
+
+Because the catalog is a value rather than a registration, two profiles and two packs can run in the same process, in any order, without contaminating each other. An external pack implements the same `Rule` interface these sixteen implement and gets no less access. See [the validation reference](../validate/index.md).
 
 ## The surface is written down
 
@@ -50,20 +80,8 @@ So **this surface is exactly the set of names spelled out one by one in `src/ind
 | Surface | Values | Types |
 |---|---|---|
 | Parsing and composition | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
-| The model and its questions | `areaM2` `canonicalBoundaryOrder` `columnsFor` `DEFAULT_LANGUAGE_VERSION` `displayName` `effectiveUse` `heff` `isCoveredAbove` `isIndoor` `isOutside` `isSemiOutdoor` `isVoid` `levelsSorted` `newUids` `pointInPolygon` `polyBounds` `polygonAreaM2` `rectToPoly` `SourceError` `srcRef` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` `unionAreaM2` `zoneAreaM2` | `Area` `Asset` `Attrs` `AttrValue` `Boundary` `BoundaryKind` `Column` `ColumnDecl` `DrawnLine` `Edge` `GridAxis` `GridRef` `Level` `Model` `Opening` `Pt` `Rect` `Seg` `SitePolygon` `Space` `Zone` |
-| Diagnostics | `check` `checkDiagnostics` `DIAGNOSTIC_CODES` | `CheckResult` `Diagnostic` `DiagnosticCode` |
-| Graph and segments | `deriveDefaultBoundaries` `doorsBetween` `envelopeGaps` `neighbors` `passable` `placeBand` `placeOpening` `segmentsFor` | `Band` `BandCode` `BandError` `NeighborInfo` `PlacedBand` `Route` `Segment` |
-| Derivation (Form) | `band` `bandLine` `columnRect` `derive` `DERIVATION_CONSTANTS` `levelPitch` `runPrism` `thicken` | `DeriveOptions` `Form` `FormBoundary` `FormColumn` `FormInput` `FormLevel` `FormOpening` `FormPanel` `FormPlan` `FormPrism` `FormRun` `FormSeg` `FormSite` `FormSpace` `FormSwing` `PlanClass` `PlanEntity` `PlanRole` `PlanSubject` |
-| [The attribute ledger](../muro/attributes.md) | `ASSET_ELEM` `ATTR_LEDGER` `attrSpec` `CARRY_NAMESPACE` `isNamespaced` `known` | `AttrSpec` `AttrTier` |
-| [Tolerances](../form/constants.md) | `TOLERANCES` | — |
-| Slabs — floors, ceilings, roofs | `slabs` | `Slab` `SlabKind` |
-| Daylight inputs | `daylightInputs` | `DaylightInput` |
-| Vertical circulation | `RUN_KEYS` `runDecls` `runDrawsForLevel` `runSolids` `slopeText` `verticalRuns` | `RunArrow` `RunDecl` `RunDevice` `RunDraw` `RunForm` `RunPart` `RunSolid` `Seg2` `VerticalRun` |
-| Site | `siteReport` | `RoadFrontage` `SiteReport` |
-| Diff | `renderDiff` `semanticDiff` | `BoundaryChange` `BoundaryItem` `ChangedItem` `ColumnItem` `FieldChange` `GridChange` `ModelDiff` `RenamedItem` `SpaceItem` |
-| Drawing the plan | `svgPlan` | `PlanOptions` |
-| Drawing the solid | `svgAxo` | `AxoOptions` |
-| Architectural verdicts | `validate` `VALIDATION_RULES` | `Finding` `ValidationRule` |
+| Structural consistency | `check` `checkDiagnostics` | `CheckResult` `Diagnostic` `DiagnosticCode` |
+| Canonical form and versions | `DEFAULT_LANGUAGE_VERSION` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` | `Model` |
 
 Four things put a name on the surface.
 
@@ -79,7 +97,8 @@ Plumbing that only lets core modules reach each other is not surface. Types are 
 Read a file, check it, print areas. That is one full turn of the loop.
 
 ```ts
-import { checkDiagnostics, areaM2 } from "@kensnzk/koyu";
+import { checkDiagnostics } from "@kensnzk/koyu";
+import { areaM2 } from "@kensnzk/koyu/model";
 import { parseFile } from "@kensnzk/koyu/node";
 
 const model = parseFile("examples/two-rooms.muro");
@@ -102,7 +121,7 @@ for (const s of model.spaces.values()) {
 
 `model.spaces` is a `Map<string, Space>` and `model.boundaries` is a `Boundary[]`. **A path is the identity of a space**, and a boundary belongs to neither space it joins — it is a first-class relation sitting in an array. See Model and its types.
 
-**An empty diagnostic list does not mean the building works.** `checkDiagnostics` says only that what is written is not self-contradictory as data. A two-storey house with not one door declared stays sealed shut with an empty list. The architectural judgement is made separately by `validate`.
+**An empty diagnostic list does not mean the building works.** `checkDiagnostics` says only that what is written is not self-contradictory as data. A two-storey house with not one door declared stays sealed shut with an empty list. The architectural judgement is made separately by `assess`, under a profile you name.
 
 ## Where to read a signature
 
@@ -128,9 +147,10 @@ The surface falls into three parts, and **the way it falls is itself part of the
 | Domain | What it says | Frozen? |
 |---|---|---|
 | core | consistency of the composition, and the numbers and shapes derived from it | **frozen** — a change of meaning raises the language version |
-| validation | architectural judgement (`Finding`) | not frozen — rules are added, sharpened, dropped |
+| analysis | facts computed under a named context and profile, with no verdict | the protocol is frozen; an analysis carries its own revision |
+| validation | architectural judgement (`AssessmentReport`) | not frozen — rules are added, sharpened, dropped |
 | drawing | the content of the SVG | not frozen — looks change freely |
 
-core **never passes judgement.** Areas, segments, convex pieces, solids — that is where core stops. Whether something is *enough*, or *complied with*, is validation's sentence. The split shows up in the types: core returns `Diagnostic { code, severity }` and validation returns `Finding { rule, level }`. The field names differ, so the two arrays cannot be confused for each other.
+core **never passes judgement.** Areas, segments, convex pieces, solids — that is where core stops. Whether something is *enough*, or *complied with*, is validation's sentence. The split shows up in the types: core returns `Diagnostic { code, severity }` and validation returns outcomes carrying `{ status }` inside findings carrying `{ rule, level }`. The field names differ, so the two arrays cannot be confused for each other.
 
 The bytes of the SVG that `svgPlan` and `svgAxo` return are outside the promise. **The same input yields the same form, but not the same bytes.** Colours, line styles, typefaces and symbols change without notice. To compare drawings mechanically, compare `toCanonical` or the value returned by `derive`.

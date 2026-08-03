@@ -30,7 +30,8 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkDiagnostics } from "../src/core/diagnose.ts";
 import { parseFile } from "../src/parse-file.ts";
-import { validate } from "../src/validate/index.ts";
+import { assess } from "../src/validate/index.ts";
+import { createSchematicRegistry, SCHEMATIC_PROFILE_ID } from "../src/validate/builtin/index.ts";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const EX = join(root, "examples");
@@ -43,15 +44,19 @@ const EX = join(root, "examples");
  * 抱えている caution がある。門を広げたいなら、まず例の側を直してからここに足す。
  */
 const GATED = [
-  ["access.unreachable", "外部へ到達できない室"],
-  ["daylight.ratio", "採光1/7を満たさない室"],
-  ["site.frontage", "接道2m未満の道路"],
-  ["access.voidonly", "吹抜けにしか扉が開かない区画"],
-  ["access.throughtenant", "賃貸区画を通らないと外部へ出られない階段室"],
-  ["access.parking", "車が外部へ出られない駐車場"],
-  ["access.backofhouse", "共用廊下からバックヤードを通らずに届かない縦動線"],
-  ["column.blocksdoor", "柱が塞いでいる扉"],
+  ["koyu.schematic.access.unreachable", "外部へ到達できない室"],
+  ["koyu.schematic.daylight.ratio", "採光1/7を満たさない室"],
+  ["koyu.schematic.site.frontage", "接道2m未満の道路"],
+  ["koyu.schematic.access.voidonly", "吹抜けにしか扉が開かない区画"],
+  ["koyu.schematic.access.throughtenant", "賃貸区画を通らないと外部へ出られない階段室"],
+  ["koyu.schematic.access.parking", "車が外部へ出られない駐車場"],
+  ["koyu.schematic.access.backofhouse", "共用廊下からバックヤードを通らずに届かない縦動線"],
+  ["koyu.schematic.column.blocksdoor", "柱が塞いでいる扉"],
 ];
+
+/** 判定の根拠は明示する — 基準日を時計から読むと、同じ例が日によって違う門をくぐる */
+const GATE_CONTEXT = { schema: "koyu-context/1", asOf: "2026-08-03", values: {} };
+const GATE_REGISTRY = createSchematicRegistry();
 
 /** 同梱例の入口 — ディレクトリなら main.muro、単体なら .muro そのもの */
 function entries() {
@@ -99,18 +104,29 @@ for (const file of entries()) {
   if (errs.length) problems.push(`check エラー ${errs.length}件 — ${errs[0].code} ${errs[0].message}`);
   if (warns.length) problems.push(`check 警告 ${warns.length}件 — ${warns[0].code} ${warns[0].message}`);
 
-  // 問2〜9 — 建築的な判定。門番は Finding を読むだけである
+  // 問2〜9 — 建築的な判定。門番は AssessmentReport を読むだけである
+  const report = assess(model, {
+    registry: GATE_REGISTRY,
+    profile: SCHEMATIC_PROFILE_ID,
+    context: GATE_CONTEXT,
+  });
+  // 判定できなかったものを黙って通さない — 「不明」は「合格」ではない
+  for (const run of report.rules) {
+    if (run.state === "error") problems.push(`規則が実行できなかった [${run.rule.id}] — ${run.issues[0]?.message ?? ""}`);
+    if (run.state === "indeterminate") problems.push(`入力不足で判定できない [${run.rule.id}] — ${run.evaluation.reason}`);
+  }
+
   const byRule = new Map();
-  for (const f of validate(model)) {
-    const list = byRule.get(f.rule);
+  for (const f of report.findings) {
+    const list = byRule.get(f.rule.id);
     if (list) list.push(f);
-    else byRule.set(f.rule, [f]);
+    else byRule.set(f.rule.id, [f]);
   }
   for (const [rule, label] of GATED) {
     const hits = byRule.get(rule);
     if (!hits) continue;
     problems.push(
-      `${label} ${hits.length}件 [${rule}] — ${listUp(hits.map((f) => (f.path ?? []).join("|")))}`,
+      `${label} ${hits.length}件 [${rule}] — ${listUp(hits.map((f) => f.outcome.subjects.map((s) => s.ref).join("|")))}`,
     );
   }
 

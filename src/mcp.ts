@@ -12,6 +12,8 @@ import { daylightInputs } from "./core/light.js";
 import { polygonAreaM2 } from "./core/model.js";
 import { check } from "./core/diagnose.js";
 import { siteReport } from "./core/site.js";
+import { assess } from "./validate/assessment.js";
+import { createSchematicRegistry, SCHEMATIC_PROFILE_ID } from "./validate/builtin/index.js";
 import { checkDiagnostics } from "./diagnostics.js";
 import { svgPlan } from "./draw/index.js";
 import { doorsBetween } from "./graph.js";
@@ -31,7 +33,6 @@ import {
   type Space,
 } from "./model.js";
 import { parseFile, parseFileWith } from "./parse-file.js";
-import { validate } from "./validate/index.js";
 
 // ---- モデルの読み込みと要約 ----
 
@@ -313,37 +314,52 @@ const TOOLS: Record<string, Tool> = {
   },
   validate: {
     description:
-      "Architectural verdicts: daylight, envelope continuity, stair proportions, slopes, reachability, column/door collisions, and the site. **This is a different surface from the check guarantee** — findings carry rule/level, never code/severity. The surface grows and is not frozen",
-    schema: { type: "object", properties: FILE_PROP, required: ["file"] },
+      "Architectural verdicts under an explicit rule profile: daylight, envelope continuity, stair proportions, slopes, reachability, column/door collisions, and the site. Returns a full AssessmentReport — the profile and rule identities, every rule's outcome, the evidence behind it, and a summary that keeps pass, not-applicable, indeterminate and error apart. **A different surface from the check guarantee**, and not frozen. `profile` is required: no jurisdiction or effective date is inferred",
+    schema: {
+      type: "object",
+      properties: {
+        ...FILE_PROP,
+        profile: {
+          type: "string",
+          description: `Rule profile id. koyu ships one: ${SCHEMATIC_PROFILE_ID.id}`,
+        },
+        asOf: {
+          type: "string",
+          description: "Effective date as YYYY-MM-DD. Not read from the clock, so the same input judges the same way twice",
+        },
+      },
+      required: ["file", "profile", "asOf"],
+    },
     run: (a) => {
       const m = load(str(a.file, "file"));
-      const findings = validate(m);
-      return {
-        findings,
-        violations: findings.filter((f) => f.level === "violation").length,
-        cautions: findings.filter((f) => f.level === "caution").length,
-        note: "These are verdicts, not the structural-consistency guarantee of koyu check",
-      };
+      const profile = str(a.profile, "profile");
+      if (profile !== SCHEMATIC_PROFILE_ID.id) {
+        throw new Error(`Unknown profile: ${profile} (koyu ships one: ${SCHEMATIC_PROFILE_ID.id})`);
+      }
+      return assess(m, {
+        registry: createSchematicRegistry(),
+        profile: SCHEMATIC_PROFILE_ID,
+        context: { schema: "koyu-context/1", asOf: str(a.asOf, "asOf"), values: {} },
+      });
     },
   },
   site: {
-    description: "Site query: site area (declared against derived), road frontage, footprint, and the coverage and floor-area ratios",
+    description:
+      "Site query: site area (declared against derived), road frontage, footprint, and the coverage and floor-area ratios. **Numbers only** — whether the declared and derived areas agree closely enough is a verdict, and comes from the validate tool",
     schema: { type: "object", properties: FILE_PROP, required: ["file"] },
     run: (a) => {
+      // The ratios and their rounding belong to core, which is also what the site rules read.
+      // Dividing here again is how an adapter and a rule drift apart.
       const r = siteReport(load(str(a.file, "file")));
-      const site = r.declaredArea ?? r.derivedArea;
       return {
         ...(r.siteZone ? { siteZone: r.siteZone.path } : {}),
         ...(r.polygon ? { polygonVertices: r.polygon.points.length } : {}),
         declaredAreaM2: r.declaredArea,
         derivedAreaM2: r.derivedArea,
-        ...(r.declaredArea !== undefined && r.derivedArea !== undefined
-          ? { areaMatch: Math.abs(r.declaredArea - r.derivedArea) < 0.05 }
-          : {}),
         footprintM2: r.footprint,
         totalFloorM2: r.totalFloor,
-        coverageRatio: site ? Math.round((r.footprint / site) * 1000) / 10 : undefined,
-        floorAreaRatio: site ? Math.round((r.totalFloor / site) * 1000) / 10 : undefined,
+        coverageRatio: r.coveragePercent,
+        floorAreaRatio: r.floorAreaRatioPercent,
         roads: r.roads.map((rd) => ({
           path: rd.road.path,
           name: displayName(rd.road),
@@ -399,7 +415,7 @@ function handle(msg: Json): void {
       result(id, {
         protocolVersion: (params.protocolVersion as string) ?? "2025-06-18",
         capabilities: { tools: {} },
-        serverInfo: { name: "koyu", version: "0.17.0" },
+        serverInfo: { name: "koyu", version: "0.18.0" },
         instructions:
           "Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written.",
       });
