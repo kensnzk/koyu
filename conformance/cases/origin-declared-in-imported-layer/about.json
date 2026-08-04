@@ -1,0 +1,9 @@
+{
+ "pins": [
+  "docs/reference/muro/composition.md",
+  "docs/reference/muro/import.md",
+  "docs/reference/muro/origin.md"
+ ],
+ "why": "枠を測量の層に隔離しても同じ建物である。origin と azimuth は entry でも import された層でも書けて、どちらに書いたかは正準形に残らない — 敷地形状を隔離レイヤーに置く作法が枠にもそのまま通ることを、対で留める",
+ "sameBuildingAs": "syntax-origin-azimuth"
+}

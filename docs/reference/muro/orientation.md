@@ -7,7 +7,7 @@ mode: reference
 
 **`N`, `E`, `S` and `W` are words about axes.**
 
-| Word | Axis | Direction |
+| Word | Axis | Direction when +Y is north |
 |---|---|---|
 | `N` | +Y | north |
 | `S` | −Y | south |
@@ -15,6 +15,8 @@ mode: reference
 | `W` | −X | west |
 
 They are not a compass needle. If the building is not oriented to true north, these four words still mean +X / −X / +Y / −Y in the coordinate system that `grid X` and `grid Y` set up. How coordinates are spelled is in [positions and regions](positions.md).
+
+**Which way the model actually faces is one line of its own.** [`azimuth`](azimuth.md) gives the true bearing of the +Y axis, and it is the only place in koyu that holds a compass direction. It changes nothing on this page — `edge:N` picks the +Y face at any bearing. Given `azimuth Y a`, the true bearings of the four faces are *a*, *a*+90, *a*+180 and *a*+270 for `N`, `E`, `S` and `W`.
 
 ```muro
 koyu 1.1

@@ -26,13 +26,15 @@ npx tsx src/cli.ts site examples/tower/main.muro
 ```
 
 ```text
+Frame: EPSG 6677 / easting -6250.48 m / northing -35720.115 m / elevation 3.85 m of z=0 (vertical CRS 6695)
+Bearing: +Y bears 352.4° true — 7.6° west of true north
 Site /site (敷地)
   Site shape: polygon with 5 vertices (a polygon declaration — given geometry)
   Site area: declared 1097.80 m2 / derived 1097.80 m2
   Road: /out/road-s (南側道路) width 12000mm / frontage 40600mm
   Road: /out/road-e (東側道路) width 6000mm / frontage 20200mm
   Building footprint (horizontal projection, rough): 569.60 m2 → building coverage ratio 51.9%
-  Total floor area: 4785.92 m2 → floor area ratio 436.0%
+  Total floor area: 4785.92 m2 → floor area ratio 436%
 ```
 
 Areas, totals by use, the ratio of net to common, frontage and coverage and floor area ratios, daylight inputs, circulation measured in doors, riser counts and treads and slopes, where columns stand, holes in the envelope. **Nearly everything decided at scheme design can be answered at this resolution.**

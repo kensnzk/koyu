@@ -104,7 +104,7 @@ boundary /L1/living /out t:150
   door w:900 edge:S
 ```
 
-Compass directions are read **from the rectangle of the space written first**: `N`=+Y, `S`=−Y, `E`=+X, `W`=−X. X is positive to the east and Y to the north. To confine the boundary line itself to one edge, write `edge:` on the `boundary`.
+Compass directions are read **from the rectangle of the space written first**: `N`=+Y, `S`=−Y, `E`=+X, `W`=−X. They are words about axes, not about where the building really points — that is [`azimuth`](../reference/muro/azimuth.md), and it does not change which face `edge:N` picks. To confine the boundary line itself to one edge, write `edge:` on the `boundary`.
 
 ## 4. A region is given as two ranges
 

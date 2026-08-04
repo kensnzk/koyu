@@ -15,7 +15,7 @@ mode: explanation
 - **[`boundary`](../reference/muro/boundary.md)** — that a wall is not a thing but a **relation between two spaces**. The wall centerline segment is written nowhere; it is derived from the two rectangles.
 - **Indented [`door`](../reference/muro/door.md) / [`window`](../reference/muro/window.md)** — an opening belongs to a wall (a boundary), never to a space.
 - **`/out`** — the outside is a space too. It carries no region, so the envelope boundaries have to be **written explicitly**.
-- **`edge:S`** — an opening onto the outside has to pick a side. The perimeter of `/L1/b` splits into three of them. X is east-positive and Y is north-positive, so N=+Y, S=-Y, E=+X, W=-X.
+- **`edge:S`** — an opening onto the outside has to pick a side. The perimeter of `/L1/b` splits into three of them. The four words are about axes: N=+Y, S=-Y, E=+X, W=-X.
 - **`daylight:1`** — whether the daylight check applies is never inferred from the type. Only the spaces that say so join the population `light` examines.
 
 ## The whole file

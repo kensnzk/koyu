@@ -103,6 +103,7 @@ export const DIAGNOSTIC_CODES = {
   SIT01: "error", // 敷地形状の重複頂点
   SIT02: "error", // 敷地形状の自己交差
   SIT04: "warning", // 対応するゾーンの無いpolygon
+  SIT06: "warning", // originがあってazimuthが無い — 位置は決まるが向きが決まらない (ADR-0057)
   UID01: "error", // 数字だけのuid (ADR-0015)
   UID02: "error", // 空白を含むuid
   UID03: "error", // uidの重複
@@ -1166,9 +1167,18 @@ function checkLevelSufficiency(ctx: Ctx): void {
   }
 }
 
-/** 敷地形状 — SIT01 / SIT02 / SIT04 (与件の健全性。建物との関係の判断は検証の面) */
+/** 敷地形状と測地の枠 — SIT06 / SIT01 / SIT02 / SIT04 (与件の健全性。建物との関係の判断は検証の面) */
 function checkSite(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
+  // 測地の枠 (ADR-0057): 位置だけ書いて向きを書かないモデルは配置できない。回転を受け取らなかった
+  // 消費者は 0 と仮定して最大360度間違える — 両方書かないより悪い静かな失敗なので警告する。
+  // 逆は警告しない: azimuth 単独は完結した言明である (向きを知り、位置を知らない)
+  if (model.origin && !model.azimuth) {
+    emit("SIT06", "origin is written without azimuth, so the model has a position but no bearing", {
+      line: model.origin.line,
+      file: model.origin.file,
+    });
+  }
   // 敷地形状 (ADR-0011): 形の妥当性、対応ゾーンの存在、宣言面積との照合、建物のはみ出し検査。
   // はみ出しは四隅の内包に加え、多角形の頂点の入り込みと辺の交差を見る — 凹敷地でも正しい (ADR-0013)。
   // 地上の外部空間タイル (庭・通路) は近似なので検査しない — 面積の真は多角形が持つ

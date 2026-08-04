@@ -167,6 +167,24 @@ level carries acme.x:, which is not in the ledger (level reads h / slab / pitch 
 
 Everything a level holds is a typed field, so there is no attribute dictionary to put a leftover key in. A leftover would vanish without a trace in the machine format — so unless it is refused here, `undergound:1` quietly becomes an above-ground storey.
 
+### origin holds no attribute dictionary either
+
+**[`origin`](origin.md) takes exactly `epsg`, `easting`, `northing`, `elevation` and `vertical`**, for the same reason and with the same consequence.
+
+```text
+origin carries eastign:, which is not in the ledger (origin reads epsg / easting / northing / elevation / vertical)
+```
+
+| Key | Tier | What it holds |
+|---|---|---|
+| `epsg` | structure | The EPSG code of a projected coordinate reference system. **Not resolved** — koyu checks only that it is a whole positive number |
+| `easting` | structure | The easting of `x = 0`, **in metres**. Written with `northing` |
+| `northing` | structure | The northing of `y = 0`, **in metres**. Written with `easting` |
+| `elevation` | structure | The height of `z = 0`, **in metres**. Written with `vertical` |
+| `vertical` | structure | The EPSG code of the vertical CRS `elevation` is measured in |
+
+Metres are the one exception to millimetres in the whole notation, because these are not lengths inside the model — they are a point in a foreign frame. [`azimuth`](azimuth.md) takes no `key:value` at all, so it has no ledger entry.
+
 ## Inheritance and override
 
 **There are exactly three paths along which an attribute travels between elements.**

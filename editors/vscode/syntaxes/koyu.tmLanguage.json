@@ -168,7 +168,7 @@
     },
     "keyword-directive": {
       "comment": "行頭に書く語 — src/core/parse.ts の switch (head)",
-      "match": "^(koyu|import|over|drop|asset|polygon|name|unit|grid|level|column|band|space|boundary|zone|stack)\\b",
+      "match": "^(koyu|import|over|drop|asset|polygon|origin|azimuth|name|unit|grid|level|column|band|space|boundary|zone|stack)\\b",
       "captures": { "1": { "name": "keyword.control.directive.koyu" } }
     },
     "path": {
@@ -178,7 +178,7 @@
     },
     "attr-ledger": {
       "comment": "The ledger keys that are not carrier-tier — the attributes the tools act on. ATTR_LEDGER in src/core/vocabulary.ts is the contract; free k:v gets a different colour",
-      "match": "\\b(underground|escalator|daylight|ceiling|landing|outside|hinge|level|riser|slope|stair|style|swing|tread|pitch|entry|lane|lift|form|road|slab|site|area|turn|type|edge|name|ramp|void|uid|air|use|at|h|w|t|d|x|y)(:)",
+      "match": "\\b(underground|escalator|elevation|daylight|northing|vertical|ceiling|landing|outside|easting|hinge|level|riser|slope|stair|style|swing|tread|pitch|entry|lane|lift|form|road|slab|site|area|turn|type|edge|name|ramp|void|epsg|uid|air|use|at|h|w|t|d|x|y)(:)",
       "captures": {
         "1": { "name": "entity.other.attribute-name.koyu" },
         "2": { "name": "punctuation.separator.key-value.koyu" }

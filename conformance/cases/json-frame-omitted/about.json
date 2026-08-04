@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/json/schema.md",
+  "docs/reference/muro/azimuth.md"
+ ],
+ "why": "枠を書かなければ鍵ごと出ない。**azimuth の不在は 0 ではない** — 0 は「+Y が真北である」という主張であり、不在は「向きを知らない」である。既定に落ちれば、この記法が書かれる前のすべてのファイルが黙って方位を獲得してしまう。syntax-origin-azimuth と同じ建物ではない (枠の有無は正準形の違いである)"
+}

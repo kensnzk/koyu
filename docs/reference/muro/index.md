@@ -29,6 +29,8 @@ A line that starts flush is a declaration in its own right.
 | [`zone /L3..L10/A use:exclusive`](zone.md) | a counted aggregation. No geometry; gathers the spaces under a path prefix |
 | [`asset SD1 door w:800 h:2000`](asset.md) | a door asset — the bundle of defaults an opening refers to |
 | [`polygon /site -2600,-7000 …`](polygon.md) | the site shape. **The only line that writes a shape from free vertices off the grid** |
+| [`origin epsg:6677 easting:… northing:…`](origin.md) | where the model's `(0,0,0)` sits in a coordinate reference system. **In metres.** Once |
+| [`azimuth Y 347.5`](azimuth.md) | the true bearing of the +Y axis, clockwise from true north. Once |
 | [`column 800 B2..L1`](column.md) | a column. **No position is written** — it stands where a grid intersection has floor |
 | [`import ./assets.muro`](import.md) | layers another file on. **The order is the declaration of strength**; later layers are stronger |
 | [`over /L5/A/ldk h:2600`](over-drop.md) | an override. An error if the target does not exist |
@@ -79,7 +81,9 @@ By contrast, **a boundary may refer to its spaces before they are written.** `bo
 
 ## Declared once
 
-`koyu` is written **in the base layer (the entry), once** — the version alone cannot be moved by another layer. `name`, `grid X` and `grid Y` are written **once across all layers**, and may sit in the entry or in an imported layer. Writing the same value twice is still an error — it forbids a silent override decided by composition order — except that `name` accepts a re-declaration of the identical string.
+`koyu` is written **in the base layer (the entry), once** — the version alone cannot be moved by another layer. `name`, `grid X`, `grid Y`, [`origin`](origin.md) and [`azimuth`](azimuth.md) are written **once across all layers**, and may sit in the entry or in an imported layer. Writing the same value twice is still an error — it forbids a silent override decided by composition order — except that `name` accepts a re-declaration of the identical string.
+
+`origin` and `azimuth` are the two halves of the model's frame, and **a model has one frame**. Like `polygon` they belong in the layer that holds what a survey gave.
 
 Duplicate space paths, zone paths, asset names, site shapes and level names are errors too, and both provenances are reported.
 

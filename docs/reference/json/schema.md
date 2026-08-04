@@ -19,10 +19,12 @@ The key order is fixed.
 
 | Key | Present | Content |
 |---|---|---|
-| `format` | **always** | the version of this format itself; currently `"koyu-canonical/1.1"` |
+| `format` | **always** | the version of this format itself; currently `"koyu-canonical/1.2"` |
 | `koyu` | only with a version declaration | [the language version](../muro/version.md), passed through |
 | `name` | if `name` was written | the name of the building |
 | `unit` | **always** | currently `"mm"` only |
+| `origin` | if [`origin`](../muro/origin.md) was written | `{ epsg, easting, northing, elevation?, vertical? }` — **metres**, not millimetres |
+| `azimuth` | if [`azimuth`](../muro/azimuth.md) was written | a number: the true bearing of +Y, clockwise from true north, `0 ≤ v < 360` |
 | `grid` | **always** | `{ "X": [coords…], "Y": [coords…] }` — the names `X1..` are implicit |
 | `levels` | **always** | name → `{ z, h?, slab?, underground? }`; keys in collation order |
 | `assets` | if declared | name → `{ kind, attrs? }`; keys in collation order |
@@ -31,6 +33,21 @@ The key order is fixed.
 | `zones` | if declared | path → `{ attrs? }`; keys in collation order |
 | `spaces` | **always** | path → space; keys in path collation order |
 | `boundaries` | **always** | an array; lexicographic by `between`, ties by canonical content |
+
+## origin and azimuth
+
+```json-part
+"origin": { "epsg": 6677, "easting": -8000.123, "northing": -34000.456, "elevation": 2.35, "vertical": 6695 },
+"azimuth": 347.5
+```
+
+The two halves of the model's frame. They come before `grid` because they say what the coordinate system `grid` sets up actually means.
+
+`epsg` and `vertical` are EPSG codes, carried through without being resolved. `easting`, `northing` and `elevation` are **in metres** — the one place in the format where a length is not millimetres, because these are coordinates in a foreign frame rather than lengths inside the model.
+
+**`origin` is emitted whole or not at all**, but `elevation` and `vertical` are a pair inside it: both or neither. An absent `azimuth` means the model has no bearing — it does not mean zero.
+
+**Nothing is derived from either.** Neither key changes an area, an adjacency or a shape, and neither appears in the derived [Form](../form/index.md).
 
 ## grid
 

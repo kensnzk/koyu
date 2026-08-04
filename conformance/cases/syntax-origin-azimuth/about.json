@@ -1,0 +1,8 @@
+{
+ "pins": [
+  "docs/reference/muro/origin.md",
+  "docs/reference/muro/azimuth.md",
+  "docs/reference/json/schema.md"
+ ],
+ "why": "測地の枠の綴りと、正準形式での着地。origin は epsg/easting/northing とその対の高さを持ち、値は mm ではなくメートルである。azimuth は +Y の真方位角ひとつ。二つの鍵は unit と grid の間に、この順で並ぶ — grid が張る座標系そのものを外に結びつけるので、その座標系より先に立つ。対になるのは origin-declared-in-imported-layer と json-frame-omitted である"
+}

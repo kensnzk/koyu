@@ -143,8 +143,8 @@ Site /site (敷地)
   Site shape: polygon with 4 vertices (a polygon declaration — given geometry)
   Site area (derived): 100.00 m2
   Road: /out/road-n (北側道路) width 4000mm / frontage 4000mm
-  Building footprint (horizontal projection, rough): 0.00 m2 → building coverage ratio 0.0%
-  Total floor area: 0.00 m2 → floor area ratio 0.0%
+  Building footprint (horizontal projection, rough): 0.00 m2 → building coverage ratio 0%
+  Total floor area: 0.00 m2 → floor area ratio 0%
 ```
 
 ## See also

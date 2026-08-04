@@ -61,7 +61,7 @@ boundary /L1/living /out
 ✖ b2.muro:line 7: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/living | /out)
 ```
 
-Compass directions come from the coordinate system. **X is positive east, Y is positive north, so N=+Y, S=−Y, E=+X, W=−X.** And `edge` is **the side as seen from the rectangle of `a`** — the space written first.
+Compass directions come from the coordinate system. **N=+Y, S=−Y, E=+X, W=−X** — the names come from drawing with north up, and they stay words about axes however the building actually sits ([`azimuth`](../reference/muro/azimuth.md) is where the real bearing is written). And `edge` is **the side as seen from the rectangle of `a`** — the space written first.
 
 ```muro
 grid X 0 3600

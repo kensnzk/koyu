@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/muro/origin.md",
+  "docs/reference/muro/composition.md"
+ ],
+ "why": "**モデルは一つの枠を持つ。**二度目は、同じ値であっても構成が止まる — 合成の順序で黙って決まる上書きを禁じる規律が、grid や polygon と同じくここにも効く。読みは進まないので他の期待値は持たない"
+}

@@ -484,6 +484,30 @@ function main(argv: string[]): number {
     case "site": {
       // 敷地の問い: 敷地面積・接道・建蔽率・容積率 (基本計画のボリューム検討の数字)
       const r = siteReport(model);
+      // 測地の枠 (ADR-0057) — 敷地の有無と無関係に、書かれていれば読み上げる。
+      // **方位は言葉にする。**磁北を書き写した値は範囲内の整った数で、文法では捕まらない。
+      // 人が一度声に出して読むことだけが、5〜9.5度の取り違えを捕まえる
+      if (model.origin) {
+        const o = model.origin;
+        const height =
+          o.elevation !== undefined
+            ? ` / elevation ${o.elevation} m of z=0 (vertical CRS ${o.vertical})`
+            : "";
+        console.log(`Frame: EPSG ${o.epsg} / easting ${o.easting} m / northing ${o.northing} m${height}`);
+      }
+      if (model.azimuth) {
+        const deg = model.azimuth.deg;
+        const trim = (n: number): string => String(Math.round(n * 1e4) / 1e4);
+        const words =
+          deg === 0
+            ? "due north"
+            : deg === 180
+              ? "due south"
+              : deg < 180
+                ? `${trim(deg)}° east of true north`
+                : `${trim(360 - deg)}° west of true north`;
+        console.log(`Bearing: +Y bears ${trim(deg)}° true — ${words}`);
+      }
       if (!r.siteZone && r.roads.length === 0) {
         console.log("There is no site (write site:1 on a zone and road:<width> on the road)");
         return 1;

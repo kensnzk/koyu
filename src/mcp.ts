@@ -121,6 +121,21 @@ function summarize(model: Model, file: string): unknown {
     ...(model.polygons.size
       ? { sitePolygons: [...model.polygons.keys()] }
       : {}),
+    // 測地の枠 (ADR-0057) — 書かれていれば返す。**何も導出されていない。**
+    // origin の値はメートル、azimuth は +Y の真方位角 (真北から時計回り、0以上360未満)。
+    // 不在は 0 ではなく「未知」なので、鍵ごと出ない
+    ...(model.origin
+      ? {
+          origin: {
+            epsg: model.origin.epsg,
+            easting: model.origin.easting,
+            northing: model.origin.northing,
+            ...(model.origin.elevation !== undefined ? { elevation: model.origin.elevation } : {}),
+            ...(model.origin.vertical !== undefined ? { vertical: model.origin.vertical } : {}),
+          },
+        }
+      : {}),
+    ...(model.azimuth ? { azimuth: model.azimuth.deg } : {}),
     totalFloorM2: Math.round(indoor.reduce((a, s) => a + (areaM2(s) ?? 0), 0) * 100) / 100,
     semiOutdoorM2: Math.round(semi.reduce((a, s) => a + (areaM2(s) ?? 0), 0) * 100) / 100,
     floorsM2: byLevel,
@@ -415,7 +430,7 @@ function handle(msg: Json): void {
       result(id, {
         protocolVersion: (params.protocolVersion as string) ?? "2025-06-18",
         capabilities: { tools: {} },
-        serverInfo: { name: "koyu", version: "0.18.0" },
+        serverInfo: { name: "koyu", version: "0.19.0" },
         instructions:
           "Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written.",
       });
