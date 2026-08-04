@@ -86,12 +86,12 @@ The `site` question still answers without a `polygon` — the site area is then 
 
 | Rule | Level | What it says |
 |---|---|---|
-| `site.escape` | violation | the building escapes the site shape |
-| `site.area` | caution | the declared and derived areas disagree (tolerance ±0.05 m2) |
+| `koyu.schematic.site.escape` | violation | the building escapes the site shape |
+| `koyu.schematic.site.area` | caution | the declared and derived areas disagree (tolerance ±0.05 m2) |
 
 ```text
-✖ [site.escape] esc.muro:line 8: /L1/house escapes the site shape (near 0,0)
-⚠ [site.area] site.muro:line 8: Declared and derived site areas disagree: declared 150 m2 / derived 154.00 m2
+✖ [koyu.schematic.site.escape] esc.muro:line 8: /L1/house escapes the site shape (near 0,0)
+⚠ [koyu.schematic.site.area] site.muro:line 8: Declared and derived site areas disagree: declared 150 m2 / derived 154.00 m2 (/site)
 ```
 
 The escape test reads the **derived region**, not the written allocation. So an outline cut back to follow the site with a [drawn line](line.md) passes here. Spaces declaring `outside:1`, and spaces beneath that polygon's own zone path, are left out of the test.

@@ -15,14 +15,22 @@ name, a level, and the line that caused it:
 
 ```bash
 # In the koyu repository:
-node dist/cli.js validate main.muro
+node dist/cli.js validate main.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 # Anywhere else:
-npx -p @kensnzk/koyu koyu validate main.muro
+npx -p @kensnzk/koyu koyu validate main.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
 
-**Violations block; cautions inform.** Exit is 1 when any violation stands, 0
-otherwise — so a clean exit still leaves cautions worth reading. Add `--json`
-for `Finding[]` when you are feeding another program.
+**The profile and the date are required.** koyu never guesses which rules to
+apply or what date to apply them on; a call without them stops at exit 2 before
+judging anything. koyu ships one profile, `koyu.profile.schematic-screen`.
+
+**Violations block; cautions inform.** Exit is 0 only when the whole set ran and
+nothing was violated — so a clean exit still leaves cautions worth reading, and
+a rule that could not run exits 1 rather than passing quietly. Add `--json` for
+the whole `AssessmentReport` when you are feeding another program.
+
+**An empty `findings` is not by itself a pass.** Read `summary.state`: it is
+`complete` only when nothing was left indeterminate and nothing errored.
 
 This judgement is **coarse and early**, at the resolution of a scheme design.
 It is not a compliance verdict, and passing it is not permission to build.
@@ -35,21 +43,21 @@ raise with the architect rather than silently design around.
 
 | Rule | Level | What it means | The repair |
 |---|---|---|---|
-| `access.unreachable` | violation | a space with a region cannot reach any `outside:1` space along passable boundaries | declare the boundary to the circulation space and put a `door` on it |
-| `access.voidonly` | violation | its only way out is through a `void` or a `shaft` — a door onto a floorless hole | give it a boundary to a space people can stand in |
-| `access.parking` | violation | a car cannot get out: a stair is a step to a car, and a door narrower than 2400 is a wall | a `type:open` boundary, a door ≥ 2400 wide, or a space carrying `ramp:` |
-| `access.throughtenant` | caution | the escape route runs through somebody else's tenancy | route it through common space, or accept it deliberately |
-| `access.backofhouse` | caution | the route reaches the outside only through back-of-house | give the front a way out |
-| `daylight.ratio` | violation | effective window area is under a seventh of the floor, on a space you marked `daylight:1` | add a `window` on a boundary to `/out`, or drop `daylight:1` if the room is not habitable |
-| `daylight.unknown` | caution | `daylight:1` on a space whose openings cannot be evaluated | give the boundary a real opening, or say the room is out of scope |
-| `envelope.gap` | caution | part of the outline faces nothing — a silently missing exterior wall | write `boundary /L1/room /out edge:N t:120` for the named side |
-| `stair.proportion` | caution | riser and tread fall outside workable proportions | change the storey height, the run length, or the number of flights |
-| `run.slope` | caution | a ramp is too steep | lengthen the run or reduce the rise |
-| `run.disconnected` | caution | a stair or ramp does not land in a space at one end | check the `type:stair` boundary joins the right two spaces, overlapping in plan |
-| `column.blocksdoor` | violation | a column stands in a doorway | move the column, move the door with `at:`, or narrow the opening |
-| `site.escape` | violation | a space with a region lies outside the site polygon | move the space inside, or correct the `polygon` |
-| `site.frontage` | violation | the site does not meet a road across enough width | widen the frontage, or declare the road that is actually there |
-| `site.area` | caution | the declared `area:` disagrees with the polygon | fix whichever is wrong; the polygon is the derived truth |
+| `koyu.schematic.access.unreachable` | violation | a space with a region cannot reach any `outside:1` space along passable boundaries | declare the boundary to the circulation space and put a `door` on it |
+| `koyu.schematic.access.voidonly` | violation | its only way out is through a `void` or a `shaft` — a door onto a floorless hole | give it a boundary to a space people can stand in |
+| `koyu.schematic.access.parking` | violation | a car cannot get out: a stair is a step to a car, and a door narrower than 2400 is a wall | a `type:open` boundary, a door ≥ 2400 wide, or a space carrying `ramp:` |
+| `koyu.schematic.access.throughtenant` | caution | the escape route runs through somebody else's tenancy | route it through common space, or accept it deliberately |
+| `koyu.schematic.access.backofhouse` | caution | the route reaches the outside only through back-of-house | give the front a way out |
+| `koyu.schematic.daylight.ratio` | violation | effective window area is under a seventh of the floor, on a space you marked `daylight:1` | add a `window` on a boundary to `/out`, or drop `daylight:1` if the room is not habitable |
+| `koyu.schematic.daylight.unknown` | caution | `daylight:1` on a space whose openings cannot be evaluated | give the boundary a real opening, or say the room is out of scope |
+| `koyu.schematic.envelope.gap` | caution | part of the outline faces nothing — a silently missing exterior wall | write `boundary /L1/room /out edge:N t:120` for the named side |
+| `koyu.schematic.stair.proportion` | caution | riser and tread fall outside workable proportions | change the storey height, the run length, or the number of flights |
+| `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` | caution | a ramp is too steep | lengthen the run or reduce the rise |
+| `koyu.schematic.run.disconnected` | caution | a stair or ramp does not land in a space at one end | check the `type:stair` boundary joins the right two spaces, overlapping in plan |
+| `koyu.schematic.column.blocksdoor` | violation | a column stands in a doorway | move the column, move the door with `at:`, or narrow the opening |
+| `koyu.schematic.site.escape` | violation | a space with a region lies outside the site polygon | move the space inside, or correct the `polygon` |
+| `koyu.schematic.site.frontage` | violation | the site does not meet a road across enough width | widen the frontage, or declare the road that is actually there |
+| `koyu.schematic.site.area` | caution | the declared `area:` disagrees with the polygon | fix whichever is wrong; the polygon is the derived truth |
 
 ## What passable means
 
@@ -99,14 +107,14 @@ the parser reads the second word as a broken attribute.
 
 ## Cautions are a conversation, not a task list
 
-`envelope.gap` is the one to understand rather than obey. A wall between two
+`koyu.schematic.envelope.gap` is the one to understand rather than obey. A wall between two
 touching spaces is derived whether or not you write it — but **a boundary to the
 outside is never derived**, because naming what is on the other side is itself
 information. So a forgotten exterior boundary is a wall that silently does not
 exist. The finding names the sides (`S 4000mm / N 4000mm`), which is what tells
 you which edge to write.
 
-That said, a compact plan with a few `envelope.gap` cautions is often finished
+That said, a compact plan with a few `koyu.schematic.envelope.gap` cautions is often finished
 work: the architect decided those faces later. Report them; do not invent walls
 to silence them.
 

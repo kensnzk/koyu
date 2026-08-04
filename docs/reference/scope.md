@@ -29,14 +29,14 @@ koyu is made of three domains. **They are kept apart because the quality demande
 | Domain | What it holds | Size | Quality | Version |
 |---|---|---|---|---|
 | **core** | the language, its semantics, composition, identity, [derivation](form/index.md), structural diagnostics, questions, [canonical JSON](json/index.md) | small | **must be clean** | **freezes** |
-| **validation** | [architectural judgement](validate/index.md) — fifteen rules | grows | may be messy | does not freeze |
+| **validation** | [architectural judgement](validate/index.md) — sixteen rules, under a profile you name | grows | may be messy | does not freeze |
 | **presentation and build** | SVG generation and outside viewers | grows | may be messy | does not freeze |
 
 **The dependency runs one way.** Validation and presentation depend on core; core depends on neither. Core runs complete on its own. That one-wayness is enforced by a test, not by prose.
 
 Not separating them makes two things happen at once — **mess seeps into core and freezes there, and core's caution stops validation and presentation from growing**. The separation itself is what makes it acceptable for the other two to be messy. Mess in a domain that does not freeze can be rewritten at any time, so it is cheap. Mess in a domain that freezes is permanent.
 
-Even the types are separate. Core returns `Diagnostic { code, severity }`; validation returns `Finding { rule, level }`. **Adding a judgement never moves the language version.**
+Even the types are separate. Core returns `Diagnostic { code, severity }`; validation returns an `AssessmentReport` whose findings carry `{ rule, level }` around outcomes carrying `{ status }`. **Adding a judgement never moves the language version.**
 
 ## What is guaranteed
 
@@ -63,7 +63,7 @@ Even the types are separate. Core returns `Diagnostic { code, severity }`; valid
 None of these are absent. They are **on another face** — [`koyu validate`](cli/validate.md) holds them.
 
 ```sh
-npx tsx src/cli.ts validate examples/two-rooms.muro
+npx tsx src/cli.ts validate examples/two-rooms.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
 
 ```text
@@ -86,12 +86,12 @@ Core holds the questions of quantity and graph. **It just never says pass or fai
 
 | Question | What core returns | What validation says |
 |---|---|---|
-| Daylight | floor area and effective window area | whether it meets 1/7 (`daylight.ratio`) |
-| Site | site area, frontage length, building area, total floor area and their ratios | 2m of frontage (`site.frontage`), escape beyond the line (`site.escape`) |
-| Vertical runs | riser count, riser, going, slope | whether it is cramped (`stair.proportion`), whether the slope is acceptable (`run.slope`) |
-| Envelope | outline segments facing nothing | whether that is a hole (`envelope.gap`) |
+| Daylight | floor area and effective window area | whether it meets 1/7 (`koyu.schematic.daylight.ratio`) |
+| Site | site area, frontage length, building area, total floor area and their ratios | 2m of frontage (`koyu.schematic.site.frontage`), escape beyond the line (`koyu.schematic.site.escape`) |
+| Vertical runs | riser count, riser, going, slope | whether it is cramped (`koyu.schematic.stair.proportion`), whether the slope is acceptable (`koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope`) |
+| Envelope | outline segments facing nothing | whether that is a hole (`koyu.schematic.envelope.gap`) |
 | Circulation | the minimum-door route and passability | whether you can reach the outside (`access.*`) |
-| Columns and openings | columns standing on grid intersections, openings on a segment | whether they collide (`column.blocksdoor`) |
+| Columns and openings | columns standing on grid intersections, openings on a segment | whether they collide (`koyu.schematic.column.blocksdoor`) |
 
 **Thresholds belong to architecture.** Neither 1/7 nor 2m nor 240mm is an invariant a composition must satisfy. **Core returns numbers; validation draws lines through them.**
 
@@ -115,4 +115,4 @@ Without the declaration, they cannot be told apart, and **"nothing wrong" in tha
 - [koyu check](cli/check.md) — using the gatekeeper
 - [koyu validate](cli/validate.md) — the judgement face
 - [Diagnostics](diagnostics/index.md) — 65 codes
-- [Judgements](validate/index.md) — 15 rules
+- [Judgements](validate/index.md) — 16 rules

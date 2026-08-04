@@ -107,7 +107,7 @@ Site /site (敷地)
 
 Three things to read in that.
 
-- **`area:` is a declared survey figure, reconciled against the derived area.** A disagreement is reported not by `koyu check` but by `koyu validate` as `site.area` — nothing about the composition is broken; a given and a form disagree, which is an architectural matter.
+- **`area:` is a declared survey figure, reconciled against the derived area.** A disagreement is reported not by `koyu check` but by `koyu validate` as `koyu.schematic.site.area` — nothing about the composition is broken; a given and a form disagree, which is an architectural matter.
 - The shape of the site is written separately, by [polygon](polygon.md). Without a polygon for the `site:1` zone, the derived area comes from the union of the spaces on the site and the building's horizontal projection. A polygon with no corresponding zone is the warning [SIT04](../diagnostics/sit.md).
 - **`/site` is not a level name, so the spaces beneath it inherit no level.** Drop the `level:L1` above and it becomes the error [SUF02](../diagnostics/suf.md).
 

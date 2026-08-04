@@ -88,7 +88,7 @@ The exit code stays 0 unless you pass `--strict`. **Some of these mean nothing g
 | Symptom | Cause | Tool to confirm with |
 |---|---|---|
 | A room cannot reach the outside | The default between touching spaces is **a wall with no door**. Doors are never added automatically | `koyu doors` / `koyu graph` → [Common traps](troubleshooting.md#9-green-and-no-way-out) |
-| No envelope at all | Nothing is derived against a space with no region (`/out`) | `envelope.gap` from `koyu validate` → [Common traps](troubleshooting.md#10-green-and-no-envelope) |
+| No envelope at all | Nothing is derived against a space with no region (`/out`) | `koyu.schematic.envelope.gap` from `koyu validate` → [Common traps](troubleshooting.md#10-green-and-no-envelope) |
 | An empty file is green | A composition with nothing written in it stands | Look inside with `koyu stats` / `koyu graph` |
 | A room you want in the area schedule is missing | `area` is an uncounted division. It appears in neither area nor room count | [Counted and uncounted divisions](uncounted-divisions.md) |
 | The boundary count from `check` and `boundaries` in the canonical JSON disagree | `check` counts the composed model; canonical JSON carries **only what was written** | Not a contradiction → [Common traps](troubleshooting.md#13-two-places-give-different-boundary-counts) |
@@ -101,18 +101,18 @@ Architectural judgement comes back separately from `koyu validate`. **It carries
 
 | Symptom | Rule |
 |---|---|
-| Part of the perimeter faces nothing | [`envelope.gap`](../reference/validate/envelope.md) |
-| Window area falls short of 1/7 of the floor | [`daylight.ratio`](../reference/validate/daylight.md) |
-| A window has no `h:`, so the window area is incomplete | [`daylight.unknown`](../reference/validate/daylight.md) |
-| Stair treads are cramped, or riser and tread fall outside the usual band | [`stair.proportion`](../reference/validate/runs.md) |
-| A ramp is steeper than declared | [`run.slope`](../reference/validate/runs.md) |
-| A vertical run has form but nothing connects the storeys | [`run.disconnected`](../reference/validate/runs.md) |
-| A room cannot reach the exterior | [`access.unreachable`](../reference/validate/access.md) |
-| A door opens only onto a void | [`access.voidonly`](../reference/validate/access.md) |
-| A column stands in a door | [`column.blocksdoor`](../reference/validate/column.md) |
-| The building escapes the site shape | [`site.escape`](../reference/validate/site.md) |
-| Declared and derived site area disagree | [`site.area`](../reference/validate/site.md) |
-| Road frontage is too short | [`site.frontage`](../reference/validate/site.md) |
+| Part of the perimeter faces nothing | [`koyu.schematic.envelope.gap`](../reference/validate/envelope.md) |
+| Window area falls short of 1/7 of the floor | [`koyu.schematic.daylight.ratio`](../reference/validate/daylight.md) |
+| A window has no `h:`, so the window area is incomplete | [`koyu.schematic.daylight.unknown`](../reference/validate/daylight.md) |
+| Stair treads are cramped, or riser and tread fall outside the usual band | [`koyu.schematic.stair.proportion`](../reference/validate/runs.md) |
+| A ramp is steeper than declared | [`koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope`](../reference/validate/runs.md) |
+| A vertical run has form but nothing connects the storeys | [`koyu.schematic.run.disconnected`](../reference/validate/runs.md) |
+| A room cannot reach the exterior | [`koyu.schematic.access.unreachable`](../reference/validate/access.md) |
+| A door opens only onto a void | [`koyu.schematic.access.voidonly`](../reference/validate/access.md) |
+| A column stands in a door | [`koyu.schematic.column.blocksdoor`](../reference/validate/column.md) |
+| The building escapes the site shape | [`koyu.schematic.site.escape`](../reference/validate/site.md) |
+| Declared and derived site area disagree | [`koyu.schematic.site.area`](../reference/validate/site.md) |
+| Road frontage is too short | [`koyu.schematic.site.frontage`](../reference/validate/site.md) |
 
 Every rule is on [Judgement — koyu validate](../reference/validate/index.md).
 
@@ -133,5 +133,5 @@ Every rule is on [Judgement — koyu validate](../reference/validate/index.md).
 - [Common traps](troubleshooting.md) — the entries above that need a worked fix
 - [Diagnostic code index](../reference/diagnostics/index.md) — all 65, looked up by code
 - [Reading a diagnostic](../reference/diagnostics/reading.md) — the structure of the `--json` return
-- [Judgement — koyu validate](../reference/validate/index.md) — the fifteen rules
+- [Judgement — koyu validate](../reference/validate/index.md) — the sixteen rules
 - [The scope of the promise](../reference/scope.md) — what a green `check` means

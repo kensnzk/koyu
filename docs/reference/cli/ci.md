@@ -43,14 +43,15 @@ npx tsx src/cli.ts check sealed.muro
 Exit 0. Hand the same file to [`koyu validate`](validate.md):
 
 ```sh
-npx tsx src/cli.ts validate sealed.muro
+npx tsx src/cli.ts validate sealed.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
 
 ```text
-✖ [daylight.ratio] <absolute path>/sealed.muro:line 7: Insufficient daylight: /L1/a — effective window 0.00 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
-✖ [access.unreachable] <absolute path>/sealed.muro:line 7: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
-✖ [access.unreachable] <absolute path>/sealed.muro:line 8: Cannot reach the exterior: /L1/b (no passable boundary leads out — write a door)
+✖ [koyu.schematic.daylight.ratio] <absolute path>/sealed.muro:line 6: Insufficient daylight: /L1/a — effective window 0.00 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
+✖ [koyu.schematic.access.unreachable] <absolute path>/sealed.muro:line 6: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
+✖ [koyu.schematic.access.unreachable] <absolute path>/sealed.muro:line 7: Cannot reach the exterior: /L1/b (no passable boundary leads out — write a door)
 Validation — 3 violations / 0 cautions
+  koyu.profile.schematic-screen@1 — 4 evaluated / 12 not applicable / 0 indeterminate / 0 error
 ```
 
 Exit 1. **Put only `check` in CI and those three findings are never seen by anyone.**
@@ -61,8 +62,10 @@ The minimum gate is this.
 
 ```sh
 koyu check    building/main.muro --strict
-koyu validate building/main.muro
+koyu validate building/main.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
+
+**The profile and the date are pinned in the CI script, not inferred.** That is what makes the run reproducible: the same commit judged next month judges the same way, and when a rule pack does start depending on an effective date, moving that date is a reviewable diff rather than a silent change of behaviour.
 
 `--strict` is there because warnings otherwise pass through green. "Not one floor is generated on this storey" and "the vertical run's form is not generated" are warnings, so without it they exit 0.
 
@@ -96,16 +99,21 @@ Three traps.
 
 **`diff`'s 0/1 reads the other way round.** `check`'s 0 is "it holds together"; `diff`'s 0 is "they are the same". You put `diff` in CI to protect "this generated file has not changed", and the sense inverts.
 
-**`light` returns 0 with nothing in scope.** Put `light` in CI for a model that writes no `daylight:1` and green comes back having looked at nothing. To protect daylight, `validate` is safer — `daylight.ratio` is a violation and exits 1.
+**`light` returns 0 with nothing in scope.** Put `light` in CI for a model that writes no `daylight:1` and green comes back having looked at nothing. To protect daylight, `validate` is safer — `koyu.schematic.daylight.ratio` is a violation and exits 1.
 
-**`validate` does not fail on cautions.** `envelope.gap`, `stair.proportion` and `site.area` are all cautions, so the exit code stays 0. To fail on cautions too, read `--json` and count them yourself.
+**`validate` does not fail on cautions.** `koyu.schematic.envelope.gap`, `koyu.schematic.stair.proportion` and `koyu.schematic.site.area` are all cautions, so the exit code stays 0. To fail on cautions too, read `--json` and count them yourself.
 
 ```sh
-koyu validate building/main.muro --json | node -e '
-  const f = JSON.parse(require("fs").readFileSync(0, "utf8"));
-  if (f.length) { console.error(f.map(x => `${x.level} [${x.rule}] ${x.message}`).join("\n")); process.exit(1); }
+koyu validate building/main.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03 --json | node -e '
+  const r = JSON.parse(require("fs").readFileSync(0, "utf8"));
+  if (r.findings.length) {
+    console.error(r.findings.map((x) => `${x.level} [${x.rule.id}] ${x.outcome.message}`).join("\n"));
+    process.exit(1);
+  }
 '
 ```
+
+The report also tells you when a rule could not run at all, which no count of findings can. **`summary.state` is `complete` only when nothing was left indeterminate and nothing errored** — the CLI already exits 1 in that case, but a script reading the JSON should check it rather than trusting an empty `findings`.
 
 ## Running several buildings
 
@@ -114,7 +122,7 @@ With several entries, stop as soon as one fails.
 ```sh
 for f in building/*/main.muro; do
   koyu check    "$f" --strict || exit 1
-  koyu validate "$f"          || exit 1
+  koyu validate "$f" --profile koyu.profile.schematic-screen --as-of 2026-08-03 || exit 1
 done
 ```
 
@@ -137,7 +145,7 @@ jobs:
       - run: |
           for f in building/*/main.muro; do
             npx koyu check    "$f" --strict || exit 1
-            npx koyu validate "$f"          || exit 1
+            npx koyu validate "$f" --profile koyu.profile.schematic-screen --as-of 2026-08-03 || exit 1
           done
 ```
 
@@ -172,6 +180,6 @@ A file that could not be read because of a syntax error still returns valid JSON
 ## See also
 
 - [koyu check](check.md) — `--strict` and `--json`
-- [koyu validate](validate.md) — the 15 rules and their levels
+- [koyu validate](validate.md) — the 16 rules, their levels, and the required profile
 - [Diagnostics](../diagnostics/index.md) — cause and fix for all 65 codes
 - [The koyu command](index.md) — the shared promises about exit codes

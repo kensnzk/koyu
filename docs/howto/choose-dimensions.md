@@ -57,11 +57,11 @@ For a 4,200 rise in a 2,800-wide return stair, varying only the depth in the dir
 7000	L1→L2	stair	S	rise 4200mm	return	24 risers of 175mm, tread 300mm	going 6600mm	/L1/s
 ```
 
-[`koyu validate`](../reference/cli/validate.md) flags a cramped step as `stair.proportion` (a caution). Of those six, 4,000 and 4,600 are caught; 5,000 and above pass.
+[`koyu validate`](../reference/cli/validate.md) flags a cramped step as `koyu.schematic.stair.proportion` (a caution). Of those six, 4,000 and 4,600 are caught; 5,000 and above pass.
 
 ```text
-⚠ [stair.proportion] s4000.muro:line 11: Derived step dimensions are cramped: 24 risers of 175mm, tread 164mm (2*riser+tread = 514mm; expected 550-700mm)
-⚠ [stair.proportion] s4600.muro:line 11: Derived step dimensions are cramped: 24 risers of 175mm, tread 218mm (2*riser+tread = 568mm; expected 550-700mm)
+⚠ [koyu.schematic.stair.proportion] s4000.muro:line 11: Cramped step: /L1/s — derived tread 164mm, 2×riser+tread 514mm (wants tread ≥ 240mm and pace 550–700mm; deepen the shaft along travel, fold it with form:return, or raise riser:)
+⚠ [koyu.schematic.stair.proportion] s4600.muro:line 11: Cramped step: /L1/s — derived tread 218mm, 2×riser+tread 568mm (wants tread ≥ 240mm and pace 550–700mm; deepen the shaft along travel, fold it with form:return, or raise riser:)
 ```
 
 **A taller storey needs a deeper enclosure.** Keep the width at 2,800 and raise the storey to 6,900 — a ground-floor entrance — and 7,000 of depth is what it takes to reach a 253mm tread.
@@ -100,9 +100,9 @@ L1→L2	stair	S	rise 6900mm	return	39 risers of 177mm, tread 253mm	going 9600mm	
 **One-seventh is a ratio of areas, so past a certain depth no amount of glazing reaches it.** Put a single 5,600 × 2,600 curtain wall panel into an 8,400-wide plate and vary only the depth — 10.2m and 16.8m — then run [`koyu light`](../reference/cli/light.md):
 
 ```text
-✔ /L1/shallow	Depth-10200	window 14.56 m2 / floor 85.68 m2 = 1/5.9 (needs 1/7 ≈ 12.24 m2)
-✖ /L1/deep	Depth-16800	window 14.56 m2 / floor 141.12 m2 = 1/9.7 (needs 1/7 ≈ 20.16 m2)
-✖ Short of 1/7: 1 of 2 rooms (this is a validation judgement)
+  /L1/shallow	Depth-10200	window 14.56 m2 / floor 85.68 m2 = 1/5.9
+  /L1/deep	Depth-16800	window 14.56 m2 / floor 141.12 m2 = 1/9.7
+2 rooms in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
 **Do the window arithmetic before you commit to the unit layout.** A zone that cannot make it is a candidate for a lounge or a store rather than a dwelling. The procedure is in [Open windows and pass the daylight check](windows-and-daylight.md).

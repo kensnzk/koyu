@@ -7,11 +7,11 @@ mode: reference
 
 | rule | level |
 |---|---|
-| [`access.unreachable`](#access-unreachable) | violation |
-| [`access.voidonly`](#access-voidonly) | violation |
-| [`access.throughtenant`](#access-throughtenant) | caution |
-| [`access.parking`](#access-parking) | violation |
-| [`access.backofhouse`](#access-backofhouse) | caution |
+| [`koyu.schematic.access.unreachable`](#access-unreachable) | violation |
+| [`koyu.schematic.access.voidonly`](#access-voidonly) | violation |
+| [`koyu.schematic.access.throughtenant`](#access-throughtenant) | caution |
+| [`koyu.schematic.access.parking`](#access-parking) | violation |
+| [`koyu.schematic.access.backofhouse`](#access-backofhouse) | caution |
 
 **A green `check` does not mean the building works.** The default between two touching spaces is a wall, so a two-storey building that declares not one door is completely sealed while contradicting nothing.
 
@@ -27,9 +27,9 @@ Every rule here stands on one definition.
 
 > **Note that the spelling is guarded on one side only.** `void:1` is a key in the [ledger](../muro/attributes.md), so `voi:1` stops at [ATT03](../diagnostics/att.md#att03). `shaft` is **a free word in the type position**, so `shaftt` makes this rule quietly stop applying. Core reads no type at all; the judging face does — and that face [does not freeze](../scope.md).
 
-**Passable by a car** (used only by [`access.parking`](#access-parking)) — a `type:open` boundary, a `door` at least 2400mm wide, and the vertical link of a space carrying `ramp:`. **The vertical link of a stair is, to a car, merely a step.**
+**Passable by a car** (used only by [`koyu.schematic.access.parking`](#access-parking)) — a `type:open` boundary, a `door` at least 2400mm wide, and the vertical link of a space carrying `ramp:`. **The vertical link of a stair is, to a car, merely a step.**
 
-## `access.unreachable` — the outside cannot be reached {#access-unreachable}
+## `koyu.schematic.access.unreachable` — the outside cannot be reached {#access-unreachable}
 
 `violation`
 
@@ -46,8 +46,9 @@ boundary /L1/a /out t:150
 ```
 
 ```text
-✖ [access.unreachable] main.muro:line 6: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
+✖ [koyu.schematic.access.unreachable] main.muro:line 6: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
 Validation — 1 violation / 0 cautions
+  koyu.profile.schematic-screen@1 — 2 evaluated / 14 not applicable / 0 indeterminate / 0 error
 ```
 
 The wall to the outside was written. There is no opening in it. **What is asked is reachability, not the presence of a door** — a door into a dead end still leads nowhere.
@@ -71,7 +72,7 @@ boundary /L1/a /out t:150
 
 To find where the chain breaks, [`koyu doors`](../cli/doors.md) answers with the route of fewest doors.
 
-## `access.voidonly` — the doors open only onto a void {#access-voidonly}
+## `koyu.schematic.access.voidonly` — the doors open only onto a void {#access-voidonly}
 
 `violation`
 
@@ -88,13 +89,14 @@ boundary /L1/a /L1/v type:open
 ```
 
 ```text
-✖ [access.voidonly] main.muro:line 6: Doors open only onto a void: /L1/a (they open where there is no floor, so nobody can pass)
+✖ [koyu.schematic.access.voidonly] main.muro:line 6: Doors open only onto a void: /L1/a (they open where there is no floor, so nobody can pass)
 Validation — 1 violation / 0 cautions
+  koyu.profile.schematic-screen@1 — 1 evaluated / 15 not applicable / 0 indeterminate / 0 error
 ```
 
 A void is continuous as space but **has no floor**. The door opens onto a hole: you go through it and arrive nowhere. It happens when units are lined up facing an atrium and the boundary to the corridor is forgotten. The flagship example carried twenty of them while green.
 
-This rule does not care whether an exterior exists. It also does not fire on a space with no passable boundary at all — that is [`access.unreachable`](#access-unreachable)'s job.
+This rule does not care whether an exterior exists. It also does not fire on a space with no passable boundary at all — that is [`koyu.schematic.access.unreachable`](#access-unreachable)'s job.
 
 **Fix** — write a door to a neighbour that has a floor (a corridor, a stair). If the edge onto the void really is open, it is a place to **look down from**, not to walk through: make it an `air:1` wall (a railing) rather than `type:open`.
 
@@ -108,7 +110,7 @@ space /L1/a room X2..X3 Y1..Y2
 boundary /L1/a /L1/v air:1 h:1100
 ```
 
-## `access.throughtenant` — the escape runs through a tenancy {#access-throughtenant}
+## `koyu.schematic.access.throughtenant` — the escape runs through a tenancy {#access-throughtenant}
 
 `caution`
 
@@ -130,8 +132,9 @@ boundary /L1/s /out t:150
 ```
 
 ```text
-⚠ [access.throughtenant] main.muro:line 6: Escape from /L1/s passes through rentable space (if the tenant locks up, there is no way out)
+⚠ [koyu.schematic.access.throughtenant] main.muro:line 6: Escape from /L1/s passes through rentable space (if the tenant locks up, there is no way out)
 Validation — 0 violations / 1 caution
+  koyu.profile.schematic-screen@1 — 5 evaluated / 11 not applicable / 0 indeterminate / 0 error
 ```
 
 **The moment the tenant locks up, that stair stops being an escape.** `use:` is inherited from the zone, so the judgement applies even when the individual units do not carry it, as long as a parent zone says `use:rentable`.
@@ -140,7 +143,7 @@ Validation — 0 violations / 1 caution
 
 **Fix** — write a route out that avoids the tenancy (a common corridor, a lobby). If the stair discharges directly, write a `door` on that boundary.
 
-## `access.parking` — a car cannot get out {#access-parking}
+## `koyu.schematic.access.parking` — a car cannot get out {#access-parking}
 
 `violation`
 
@@ -158,11 +161,12 @@ boundary /L1/p /out
 ```
 
 ```text
-✖ [access.parking] main.muro:line 6: No vehicle route to the exterior: /L1/p (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)
+✖ [koyu.schematic.access.parking] main.muro:line 6: No vehicle route to the exterior: /L1/p (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)
 Validation — 1 violation / 0 cautions
+  koyu.profile.schematic-screen@1 — 5 evaluated / 11 not applicable / 0 indeterminate / 0 error
 ```
 
-**People get out through a 900mm door and a stair, so [`access.unreachable`](#access-unreachable) never sees this.** That is why parking is asked with a different traveller.
+**People get out through a 900mm door and a stair, so [`koyu.schematic.access.unreachable`](#access-unreachable) never sees this.** That is why parking is asked with a different traveller.
 
 **Fix** — make the vehicle opening `door w:2400` or wider, or make the boundary `type:open`. For parking above or below grade, write `ramp:` on the ramp space and join the levels with `stack` — that vertical link is the only way a car changes level.
 
@@ -177,7 +181,7 @@ boundary /L1/p /out
   door w:2400 edge:S
 ```
 
-## `access.backofhouse` — unreachable from a common corridor without crossing the back of house {#access-backofhouse}
+## `koyu.schematic.access.backofhouse` — unreachable from a common corridor without crossing the back of house {#access-backofhouse}
 
 `caution`
 
@@ -201,8 +205,9 @@ boundary /L1/b /L1/e
 ```
 
 ```text
-⚠ [access.backofhouse] main.muro:line 8: /L1/e cannot be reached from a common corridor without passing through back-of-house (visitors cannot use this vertical circulation)
+⚠ [koyu.schematic.access.backofhouse] main.muro:line 8: /L1/e cannot be reached from a common corridor without passing through back-of-house (visitors cannot use this vertical circulation)
 Validation — 0 violations / 1 caution
+  koyu.profile.schematic-screen@1 — 5 evaluated / 11 not applicable / 0 indeterminate / 0 error
 ```
 
 A common vertical run belongs to the customer's route. If reaching its foot means crossing the back of house, no customer rides it.
@@ -237,4 +242,4 @@ boundary /L1/c /L1/e
 - [`koyu doors`](../cli/doors.md) — the route between two spaces that passes fewest doors
 - [Columns](column.md) — the other reason a door does not work: something stands in it
 - [The envelope](envelope.md) — a hole in the outline means the relation to the outside was never written
-- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`
+- [The validation ledger](index.md) — all sixteen rules, and why a judgement is not a diagnostic

@@ -15,7 +15,7 @@ import { semanticDiff, renderDiff } from "../src/core/diff.js";
 import { newUids, openingIdentity, SourceError, toCanonical } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
 import { ATTR_LEDGER } from "../src/core/vocabulary.js";
-import * as api from "../src/index.js";
+import * as modelApi from "../src/model.js";
 
 const BASE = [
   "koyu 1.1",
@@ -120,8 +120,8 @@ test("identity: newUids takes a positive integer count", () => {
   }
 });
 
-test("identity: newUids is on the public face (spec/tools.md and src/index.ts agree elsewhere)", () => {
-  assert.equal(typeof api.newUids, "function");
+test("identity: newUids is on the public model face, not on root", () => {
+  assert.equal(typeof modelApi.newUids, "function");
 });
 
 // ---- (3) 付与は明示の行為である ----

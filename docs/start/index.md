@@ -273,8 +273,8 @@ npx tsx src/cli.ts light out/house.muro
 ```
 
 ```text
-✔ /L1/ldk	ldk	window 4.32 m2 / floor 14.40 m2 = 1/3.3 (needs 1/7 ≈ 2.06 m2)
-✔ Every room meets 1/7 — 1 room in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
+  /L1/ldk	ldk	window 4.32 m2 / floor 14.40 m2 = 1/3.3
+1 room in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
 `hall` does not appear because `daylight:1` was written only on `ldk`. Type plays no part whatsoever: rewriting `hall` as `room` does not bring it into scope, and adding `daylight:1` while leaving it `hall` does. **No space type is read at all** — being outside and being a void live in the declarations `outside:1` and `void:1`, and the type position is a free label.
@@ -519,9 +519,9 @@ npx tsx src/cli.ts light out/house.muro
 
 ```text
 2 doors — /L2/bed → /L2/hall → /L1/hall → /out
-✔ /L1/ldk	LDK	window 4.32 m2 / floor 14.40 m2 = 1/3.3 (needs 1/7 ≈ 2.06 m2)
-✔ /L2/bed	寝室	window 2.16 m2 / floor 14.40 m2 = 1/6.7 (needs 1/7 ≈ 2.06 m2)
-✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
+  /L1/ldk	LDK	window 4.32 m2 / floor 14.40 m2 = 1/3.3
+  /L2/bed	寝室	window 2.16 m2 / floor 14.40 m2 = 1/6.7
+2 rooms in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
 From 30 lines of text came a two-storey house, its plan drawings, and the answers about circulation and daylight.

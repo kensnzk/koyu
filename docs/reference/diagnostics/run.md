@@ -182,32 +182,32 @@ Neither the step count nor the slope was written, and both come out. That is der
 
 | Was | Now | Level |
 |---|---|---|
-| RUN06 (cramped steps) | `stair.proportion` | caution |
-| RUN07 (steep slope) | `run.slope` | caution |
-| RUN08 (shape present, not connected) | `run.disconnected` | caution |
+| RUN06 (cramped steps) | `koyu.schematic.stair.proportion` | caution |
+| RUN07 (steep slope) | `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` | caution |
+| RUN08 (shape present, not connected) | `koyu.schematic.run.disconnected` | caution |
 
 The numbers are **never reused**.
 
 ```sh
-koyu validate ramp.muro
+koyu validate ramp.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
 
 ```text
-⚠ [run.disconnected] <absolute path>/ramp.muro:line 5: /L1/r has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
-⚠ [run.slope] <absolute path>/ramp.muro:line 5: Derived slope 1/3.3 is steeper than the declared 1/12 (lengthen the run or lower the storey height)
+⚠ [koyu.schematic.run.disconnected] <absolute path>/ramp.muro:line 5: /L1/r has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
+⚠ [koyu.schematic.ramp.declared-slope] <absolute path>/ramp.muro:line 5: Derived slope 1/3.3 is steeper than the declared 1/12: /L1/r (lengthen the run or lower the storey height)
 Validation — 0 violations / 2 cautions
 ```
 
-The file above is green under `check`. **`slope:` is not the slope you are writing; it is the steepest slope you will accept**, and it exists only to be checked against. `run.disconnected` names the hardest mismatch to notice — a stair drawn on the plan that circulation cannot pass through — which is what you get when the shape declaration (`ramp:N`) is written and the topology declaration (`stack` / `boundary type:stair`) is forgotten.
+The file above is green under `check`. **`slope:` is not the slope you are writing; it is the steepest slope you will accept**, and it exists only to be checked against. `koyu.schematic.run.disconnected` names the hardest mismatch to notice — a stair drawn on the plan that circulation cannot pass through — which is what you get when the shape declaration (`ramp:N`) is written and the topology declaration (`stack` / `boundary type:stair`) is forgotten.
 
 Cramped steps work the same way.
 
 ```sh
-koyu validate tight.muro
+koyu validate tight.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
 
 ```text
-⚠ [stair.proportion] <absolute path>/tight.muro:line 5: Derived step dimensions are cramped: 17 risers of 176mm, tread 13mm (2*riser+tread = 365mm; expected 550-700mm)
+⚠ [koyu.schematic.stair.proportion] <absolute path>/tight.muro:line 5: Cramped step: /L1/s — derived tread 13mm, 2×riser+tread 365mm (wants tread ≥ 240mm and pace 550–700mm; deepen the shaft along travel, fold it with form:return, or raise riser:)
 Validation — 0 violations / 1 caution
 ```
 
@@ -216,5 +216,5 @@ Validation — 0 violations / 1 caution
 - [SUF — sufficiency](./suf.md) — SUF04 (no level above) and SUF02 (level undetermined)
 - [VRT — vertical boundaries](./vrt.md) — the checks on the topology side
 - [VER — the language version](./ver.md) — a vertical-circulation declaration is 0.5 vocabulary (VER03)
-- [koyu validate](../cli/validate.md) — `stair.proportion` / `run.slope` / `run.disconnected`
+- [koyu validate](../cli/validate.md) — `koyu.schematic.stair.proportion` / `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` / `koyu.schematic.run.disconnected`
 - [koyu check](../cli/check.md)

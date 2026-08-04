@@ -7,8 +7,8 @@ mode: reference
 
 | rule | level |
 |---|---|
-| [`daylight.ratio`](#daylight-ratio) | violation |
-| [`daylight.unknown`](#daylight-unknown) | caution |
+| [`koyu.schematic.daylight.ratio`](#daylight-ratio) | violation |
+| [`koyu.schematic.daylight.unknown`](#daylight-unknown) | caution |
 
 **The scope of the daylight question is declared, never inferred.** A `room` is not necessarily a habitable room, and a `storage` may well be required to have a window. The one-seventh judgement applies to the spaces you wrote `daylight:1` on, and nowhere else. At what grain the question is asked — a whole dwelling, or each room it is divided into — is decided by where you write `daylight:1`.
 
@@ -35,7 +35,7 @@ Being semi-outdoor is derived too: a space that meets an exterior across a `type
 
 **The judgement is coarse.** No correction factor is applied, no use-based proportions are considered, and no distinction is drawn between buildings the rule applies to and those it does not. It is an early warning at the resolution of a scheme design, not a compliance verdict.
 
-## `daylight.ratio` — insufficient daylight {#daylight-ratio}
+## `koyu.schematic.daylight.ratio` — insufficient daylight {#daylight-ratio}
 
 `violation`
 
@@ -54,13 +54,14 @@ boundary /L1/a /out t:150
 ```
 
 ```text
-✖ [daylight.ratio] main.muro:line 6: Insufficient daylight: /L1/a — effective window 0.36 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
+✖ [koyu.schematic.daylight.ratio] main.muro:line 6: Insufficient daylight: /L1/a — effective window 0.36 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
 Validation — 1 violation / 0 cautions
+  koyu.profile.schematic-screen@1 — 6 evaluated / 10 not applicable / 0 indeterminate / 0 error
 ```
 
 A 600×600 window is 0.36 m²; the floor is 3600×4500 = 16.20 m², so 2.31 m² is required. **It is short by an order of magnitude.**
 
-**Fix** — enlarge the windows or add more. Check that `h:` has not been forgotten (if it has, the `daylight.unknown` below will be there too). If the space does not need the question asked of it, drop `daylight:1`.
+**Fix** — enlarge the windows or add more. Check that `h:` has not been forgotten (if it has, the `koyu.schematic.daylight.unknown` below will be there too). If the space does not need the question asked of it, drop `daylight:1`.
 
 [`koyu light`](../cli/light.md) lays the numbers out room by room so you can see how far short you are.
 
@@ -88,13 +89,14 @@ boundary /L2/a /out t:150
 ```
 
 ```text
-✖ [daylight.ratio] main.muro:line 7: Insufficient daylight: /L1/a — effective window 2.02 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
+✖ [koyu.schematic.daylight.ratio] main.muro:line 7: Insufficient daylight: /L1/a — effective window 2.02 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
 Validation — 1 violation / 0 cautions
+  koyu.profile.schematic-screen@1 — 6 evaluated / 10 not applicable / 0 indeterminate / 0 error
 ```
 
 The window is 2400×1200 = 2.88 m², but `/L2/a` sits on top of the balcony, so 2.88 × 0.7 = 2.02 m², short of the 2.31 m² required. Remove `/L2/a` and the same window counts as 2.88 m² and the judgement passes — **what sits above the balcony decides the daylight of the room below it.**
 
-## `daylight.unknown` — the window area is not fully counted {#daylight-unknown}
+## `koyu.schematic.daylight.unknown` — the window area is not fully counted {#daylight-unknown}
 
 `caution`
 
@@ -114,13 +116,14 @@ boundary /L1/a /out t:150
 ```
 
 ```text
-⚠ [daylight.unknown] main.muro:line 6: Window area is not fully counted: /L1/a has a window without h: (write h: on it)
+⚠ [koyu.schematic.daylight.unknown] main.muro:line 6: Window area is not fully counted: /L1/a has a window without h: (write h: on it)
 Validation — 0 violations / 1 caution
+  koyu.profile.schematic-screen@1 — 6 evaluated / 10 not applicable / 0 indeterminate / 0 error
 ```
 
 A window with no `h:` has no height, therefore no area, and it falls silently out of the sum. **Silence there makes "it is enough" indistinguishable from "it was not counted."** This caution exists solely to keep those two apart.
 
-Here the south window alone (2.88 m²) already clears one seventh, so no `daylight.ratio` appears. Both can appear together, and if every window lacks `h:` the effective area is 0.00 m² and `daylight.ratio` comes with it.
+Here the south window alone (2.88 m²) already clears one seventh, so no `koyu.schematic.daylight.ratio` appears. Both can appear together, and if every window lacks `h:` the effective area is 0.00 m² and `koyu.schematic.daylight.ratio` comes with it.
 
 Only windows on boundaries **whose factor is not zero** are counted. A window facing an indoor neighbour without `h:` says nothing, because it was never going to be counted.
 
@@ -129,4 +132,4 @@ Only windows on boundaries **whose factor is not zero** are counted. A window fa
 ## See also
 
 - [`koyu light`](../cli/light.md) — the floor and effective window areas themselves
-- [The validation ledger](index.md) — all fifteen rules, and why `Finding` is not `Diagnostic`
+- [The validation ledger](index.md) — all sixteen rules, and why a judgement is not a diagnostic

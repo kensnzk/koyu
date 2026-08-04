@@ -306,7 +306,7 @@ That one boundary is the default wall between the rooms; the perimeter has none 
 `validate` does look at this. Against the example in trap 9 it returns:
 
 ```text
-⚠ [envelope.gap] sealed.muro:line 7: Perimeter not faced by any envelope: /L1/a — S 3600mm / N 3600mm (7200mm over 2 run(s)). Write a boundary to the exterior
+⚠ [koyu.schematic.envelope.gap] sealed.muro:line 7: Perimeter not faced by any envelope: /L1/a — N 3600mm / S 3600mm (7200mm over 2 run(s)). Write a boundary to the exterior
 ```
 
 **The fix.** Declare an exterior space and write one boundary from each perimeter room. Splitting the exterior by direction or character makes `edge:` easier to write and opens up the site questions.
@@ -341,8 +341,8 @@ space /L1/bath wet X1..X2 Y1..Y2 name:浴室 daylight:1
 ```
 
 ```text
-✖ /L1/bath	浴室	window 0.00 m2 / floor 14.40 m2 = no window (needs 1/7 ≈ 2.06 m2)
-✖ Short of 1/7: 1 of 1 room (this is a validation judgement)
+  /L1/bath	浴室	window 0.00 m2 / floor 14.40 m2 = no window
+1 room in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
 Drop the `daylight:1` and it leaves the judgement without one character of the type changing.

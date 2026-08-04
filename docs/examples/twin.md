@@ -133,7 +133,7 @@ Frontage on three roads, and the declared survey figure of 23,167.40 m² matches
 ### Does it pass the architectural verdicts
 
 ```sh
-npx tsx src/cli.ts validate examples/twin/main.muro
+npx tsx src/cli.ts validate examples/twin/main.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
 
 ```text

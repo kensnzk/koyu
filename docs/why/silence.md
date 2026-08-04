@@ -78,11 +78,13 @@ boundary /L1/b /out t:150 spec:EW
 Judgement does.
 
 ```sh
-npx tsx src/cli.ts validate gap.muro
+npx tsx src/cli.ts validate gap.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
 
 ```text
-⚠ [envelope.gap] gap.muro:line 6: Perimeter not faced by any envelope: /L1/b — S 3600mm / E 4000mm / N 3600mm (11200mm over 3 run(s)). Write a boundary to the exterior
+⚠ [koyu.schematic.envelope.gap] gap.muro:line 6: Perimeter not faced by any envelope: /L1/b — E 4000mm / N 3600mm / S 3600mm (11200mm over 3 run(s)). Write a boundary to the exterior
+Validation — 0 violations / 1 caution
+  koyu.profile.schematic-screen@1 — 4 evaluated / 12 not applicable / 0 indeterminate / 0 error
 ```
 
 The rule is deliberately coarse — it looks only at **levels where at least one boundary to the exterior has been written**. It will not call a storey whose envelope has not been modelled yet "full of holes". It demands "if you started, finish"; it does not demand completeness. Coarseness is allowed because judgement lives in a domain that does not freeze ([check and validate](two-kinds-of-green.md)). The rule is [envelope.gap](../reference/validate/envelope.md).

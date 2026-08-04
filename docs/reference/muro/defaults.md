@@ -66,7 +66,7 @@ space /L1/a room X1..X2 Y1..Y2
 |---|---|
 | a `boundary` for a touching pair on one level | **a `wall` boundary is derived.** It carries no door, so it cannot be passed. It does not appear in the machine format |
 | a vertical boundary between stacked spaces | **it is a floor.** It cannot be passed. `stair` / `shaft` / `void` are the exceptions, and they are declared |
-| a `boundary` with a space that has no region (an exterior) | **nothing is derived.** There is no wall there, and the envelope has a hole — on a level where you have started writing them, `koyu validate` reports the faces left over as `envelope.gap`; on a level with none at all it says nothing |
+| a `boundary` with a space that has no region (an exterior) | **nothing is derived.** There is no wall there, and the envelope has a hole — on a level where you have started writing them, `koyu validate` reports the faces left over as `koyu.schematic.envelope.gap`; on a level with none at all it says nothing |
 | `type:` | `wall` |
 | `t:` | 100 mm for drawing and for solids. An `air:1` boundary defaults to 60 mm, capped at 80 mm |
 | `air:` | treated as a thing that blocks |
@@ -115,7 +115,7 @@ Riser count, tread and slope are never written. **What is written is the region 
 | `tread:` | a target tread of 300 mm — used when the landing is taken as the remainder |
 | `landing:` | derived (a minimum of 1100 mm). Write it and the tread becomes the remainder instead |
 | `lane:` | 1200 mm per escalator unit — the number of units follows from it |
-| `slope:` | no permitted slope was declared, so the slope is not faulted. Only escalators are checked against the usual range, by `run.slope` |
+| `slope:` | no permitted slope was declared, so the slope is not faulted. Only escalators are checked against the usual range, by `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` |
 
 ## zone / polygon / band
 
@@ -175,8 +175,8 @@ boundary /L2/a /out t:150
 Saying that it has no door is a different face (the location prefix is the resolved absolute path; it is elided below).
 
 ```text
-✖ [access.unreachable] …/sealed.muro:line 6: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
-✖ [access.unreachable] …/sealed.muro:line 7: Cannot reach the exterior: /L2/a (no passable boundary leads out — write a door)
+✖ [koyu.schematic.access.unreachable] …/sealed.muro:line 6: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
+✖ [koyu.schematic.access.unreachable] …/sealed.muro:line 7: Cannot reach the exterior: /L2/a (no passable boundary leads out — write a door)
 Validation — 2 violations / 0 cautions
 ```
 

@@ -140,7 +140,7 @@ unit 2 : t 1100…10900, s 1600…2800, down (same geometry, opposite direction 
 | `tread` | **the tightest flight** represents it |
 | `slope` | **the steepest flight** represents it |
 
-The asymmetry is what the judgements rely on — the second flight of a turning run has more steps and is therefore tighter, so looking only at the first would let a cramped flight slip past [`stair.proportion`](../validate/runs.md).
+The asymmetry is what the judgements rely on — the second flight of a turning run has more steps and is therefore tighter, so looking only at the first would let a cramped flight slip past [`koyu.schematic.stair.proportion`](../validate/runs.md).
 
 ## Solids
 

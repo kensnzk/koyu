@@ -11,13 +11,13 @@ koyu splits "correct" in two.
 |---|---|---|
 | Command | `koyu check` | `koyu validate` |
 | Return type | `Diagnostic { code, severity }` | `Finding { rule, level }` |
-| Identifier | `BND04`, `SUF01` — three letters plus two digits | `envelope.gap`, `access.unreachable` — chapter.rule |
+| Identifier | `BND04`, `SUF01` — three letters plus two digits | `koyu.schematic.envelope.gap`, `koyu.schematic.access.unreachable` — chapter.rule |
 | Weight | `error` / `warning` | `violation` / `caution` |
-| Count | **65 codes** | **15 rules** |
+| Count | **65 codes** | **16 rules** |
 | Version | **freezes** | does not freeze; grows |
 | What it says | what is written does not contradict itself as data | this is (probably) architecturally sound |
 
-**They are spelled differently on purpose.** No reader will confuse `ENV01` with `envelope.gap`.
+**They are spelled differently on purpose.** No reader will confuse `ENV01` with `koyu.schematic.envelope.gap`.
 
 ## Even the types are separate
 
@@ -44,22 +44,30 @@ npx tsx src/cli.ts check b1.muro --json
 ```
 
 ```sh
-npx tsx src/cli.ts validate gap.muro --json
+npx tsx src/cli.ts validate gap.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03 --json
 ```
 
 ```json
-[
- {
-  "rule": "envelope.gap",
-  "level": "caution",
-  "message": "Perimeter not faced by any envelope: /L1/b — S 3600mm / E 4000mm / N 3600mm (11200mm over 3 run(s)). Write a boundary to the exterior",
-  "line": 6,
-  "file": "gap.muro",
-  "path": [
-   "/L1/b"
-  ]
+{
+ "schema": "koyu-assessment/1",
+ "profile": { "id": "koyu.profile.schematic-screen", "revision": "1" },
+ "findings": [
+  {
+   "rule": { "id": "koyu.schematic.envelope.gap", "revision": "1" },
+   "level": "caution",
+   "outcome": {
+    "id": "/L1/b",
+    "status": "fail",
+    "message": "Perimeter not faced by any envelope: /L1/b — E 4000mm / N 3600mm / S 3600mm (11200mm over 3 run(s)). Write a boundary to the exterior"
+   }
+  }
+ ],
+ "summary": {
+  "state": "complete",
+  "rules": { "evaluated": 4, "notApplicable": 12, "indeterminate": 0, "error": 0 },
+  "outcomes": { "pass": 3, "fail": 1, "indeterminate": 0 }
  }
-]
+}
 ```
 
 **Being unmixable is the job of these types.** For a downstream tool to pour both into one array, it must first flatten the types — and that flattening is visible at the moment it happens.
@@ -93,7 +101,7 @@ Green judgement means only that judgement is green.
 
 ## Coarseness in practice
 
-`envelope.gap` reports holes in the envelope. Its population is **only those levels where at least one boundary to the exterior has been written**.
+`koyu.schematic.envelope.gap` reports holes in the envelope. Its population is **only those levels where at least one boundary to the exterior has been written**.
 
 It will not call a storey whose envelope has not been modelled yet "full of holes". **It demands "if you started, finish"; it does not demand completeness.**
 
@@ -105,12 +113,12 @@ Aggregate and graph queries live in core. **They never say pass or fail.**
 
 | Question | What core returns | What judgement says |
 |---|---|---|
-| Daylight | floor area and effective window area | does it meet 1/7 (`daylight.ratio`) |
-| Site | site area, frontage, footprint, gross floor area and their ratios | 2 m of frontage (`site.frontage`), escaping the site (`site.escape`) |
-| Vertical circulation | riser count, rise, tread, slope | crampedness (`stair.proportion`), slope (`run.slope`) |
-| Envelope | perimeter segments faced by nothing | is that a hole (`envelope.gap`) |
-| Circulation | fewest-door routes and passability | can you get out (`access.unreachable` and the rest) |
-| Columns and openings | columns standing on grid crossings, openings on segments | do they overlap (`column.blocksdoor`) |
+| Daylight | floor area and effective window area | does it meet 1/7 (`koyu.schematic.daylight.ratio`) |
+| Site | site area, frontage, footprint, gross floor area and their ratios | 2 m of frontage (`koyu.schematic.site.frontage`), escaping the site (`koyu.schematic.site.escape`) |
+| Vertical circulation | riser count, rise, tread, slope | crampedness (`koyu.schematic.stair.proportion`), slope (`koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope`) |
+| Envelope | perimeter segments faced by nothing | is that a hole (`koyu.schematic.envelope.gap`) |
+| Circulation | fewest-door routes and passability | can you get out (`koyu.schematic.access.unreachable` and the rest) |
+| Columns and openings | columns standing on grid crossings, openings on segments | do they overlap (`koyu.schematic.column.blocksdoor`) |
 
 **The thresholds belong to architecture.** 1/7, 2 m and 240 mm are not invariants the composition must satisfy. core goes as far as returning the number; judgement draws the line on it.
 
@@ -128,5 +136,5 @@ Fifteen rules is not a finished set. Fire compartmentation, shadow studies, setb
 
 - [Separating language, checks and drawing](three-domains.md) — the whole picture of this split
 - [Diagnostics — koyu check](../reference/diagnostics/index.md) — 65 codes
-- [Judgement — koyu validate](../reference/validate/index.md) — 15 rules
+- [Judgement — koyu validate](../reference/validate/index.md) — 16 rules
 - [Scope](../reference/scope.md)

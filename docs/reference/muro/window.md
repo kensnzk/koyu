@@ -45,19 +45,19 @@ boundary /L1/a /out t:150 edge:W
 ```
 
 ```text
-✔ /L1/a	居室	window 7.54 m2 / floor 24.00 m2 = 1/3.2 (needs 1/7 ≈ 3.43 m2)
+  /L1/a	居室	window 7.54 m2 / floor 24.00 m2 = 1/3.2
 ```
 
 Drop `h:1100` from the low window and the number falls from 7.54 to 5.72.
 
 ```text
-✔ /L1/a	居室	window 5.72 m2 / floor 24.00 m2 = 1/4.2 (needs 1/7 ≈ 3.43 m2) ⚠ windows without h: are not counted
+  /L1/a	居室	window 5.72 m2 / floor 24.00 m2 = 1/4.2 ⚠ windows without h: are not counted
 ```
 
-`koyu check` stays green. What puts it into words is validation, under the rule **`daylight.unknown`** (caution).
+`koyu check` stays green. What puts it into words is validation, under the rule **`koyu.schematic.daylight.unknown`** (caution).
 
 ```text
-⚠ [daylight.unknown] win.muro:line 9: Window area is not fully counted: /L1/a has a window without h: (write h: on it)
+⚠ [koyu.schematic.daylight.unknown] win.muro:line 9: Window area is not fully counted: /L1/a has a window without h: (write h: on it)
 ```
 
 **It does not say "there is not enough window"; it says "the count is not complete".** The report is that the source does not carry enough to answer the question either way.
@@ -91,7 +91,7 @@ Effective window area is discounted by **what lies beyond the window**.
 
 Whether a space is semi-outdoor, and whether it is covered from above, are both derived rather than declared. A space with a region that meets the outside across an `open` or `air:1` boundary is semi-outdoor.
 
-The judgement itself — effective window area ≥ floor area ÷ 7 — is passed by `koyu validate` under **`daylight.ratio`** (violation), not by `check`. It is a rough early warning with no correction factor applied, and it looks at neither use-class proportions nor which buildings the rule applies to. Where the 1/7 lands is decided by the author, in choosing where to write `daylight:1`.
+The judgement itself — effective window area ≥ floor area ÷ 7 — is passed by `koyu validate` under **`koyu.schematic.daylight.ratio`** (violation), not by `check`. It is a rough early warning with no correction factor applied, and it looks at neither use-class proportions nor which buildings the rule applies to. Where the 1/7 lands is decided by the author, in choosing where to write `daylight:1`.
 
 ## Attribute tiers
 

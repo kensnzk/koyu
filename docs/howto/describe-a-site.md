@@ -181,11 +181,11 @@ Site /site (Site)
 Change `area:` to 160.40 and `check` stays green. **Nothing about the composition is broken** — a survey figure disagreeing with a polygon is an architectural judgement, and [`koyu validate`](../reference/cli/validate.md) is what says it (the two are compared only when a polygon exists).
 
 ```text
-⚠ [site.area] site-mismatch.muro:line 17: Declared and derived site areas disagree: declared 160.4 m2 / derived 154.00 m2
+⚠ [koyu.schematic.site.area] site-mismatch.muro:line 17: Declared and derived site areas disagree: declared 160.4 m2 / derived 154.00 m2 (/site)
 Validation — 0 violations / 1 caution
 ```
 
-The rule is `site.area`, a caution. `validate --json` gives it structured.
+The rule is `koyu.schematic.site.area`, a caution. `validate --json` gives it structured.
 
 ```json
 [
@@ -202,7 +202,7 @@ The rule is `site.area`, a caution. `validate --json` gives it structured.
 ]
 ```
 
-**Violations are what stop CI** — `validate` exits 1 only when there are violations. On the site side those are `site.escape`, the building spilling outside the outline, and `site.frontage`, less than 2m of road frontage. Both are in [the site rules](../reference/validate/site.md).
+**Violations are what stop CI** — `validate` exits 1 only when there are violations. On the site side those are `koyu.schematic.site.escape`, the building spilling outside the outline, and `koyu.schematic.site.frontage`, less than 2m of road frontage. Both are in [the site rules](../reference/validate/site.md).
 
 ## On the bundled examples
 

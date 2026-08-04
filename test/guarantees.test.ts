@@ -6,7 +6,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { check } from "../src/core/diagnose.js";
-import { validate } from "../src/validate/index.js";
+import { SITE_AREA_RULE_ID, SITE_ESCAPE_RULE_ID } from "../src/validate/builtin/index.js";
+import { caught } from "./helpers/schematic.js";
 import { CANONICAL_FORMAT, compareCanonical, toCanonical } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
 
@@ -96,11 +97,11 @@ test("check: a building straddling a concave site (U-shaped) is an error even wh
 unit mm
 grid X 0 2000 28000 30000
 grid Y 0 2000 6000 12000 20000
-level L1 0
+level L1 0 h:2400 slab:150
 zone /site site:1
 polygon /site 0,0 30000,0 30000,20000 20000,20000 20000,8000 10000,8000 10000,20000 0,20000
 space /L1/hall room X2..X3 Y2..Y4`;
-  const f = validate(parse(src)).filter((x) => x.rule === "site.escape");
+  const f = caught(parse(src)).filter((x) => x.rule === SITE_ESCAPE_RULE_ID.id);
   assert.equal(f.length, 1);
   assert.match(f[0]!.message, /\/L1\/hall escapes the site shape/);
 });
@@ -110,7 +111,7 @@ test("check: a building corner sitting on the site boundary line counts as insid
 zone /site site:1
 polygon /site 0,0 8000,0 8000,8000 0,8000
 space /L1/a room X1..X3 Y1..Y3`;
-  assert.deepEqual(validate(parse(src)).filter((f) => f.rule === "site.escape"), []);
+  assert.deepEqual(caught(parse(src)).filter((f) => f.rule === SITE_ESCAPE_RULE_ID.id), []);
 });
 
 test("check: a self-intersecting site shape and a duplicate vertex are errors", () => {
@@ -123,11 +124,11 @@ test("check: a self-intersecting site shape and a duplicate vertex are errors", 
 test("validation: a disagreement between the declared and derived site area is a caution (the validation face, not core)", () => {
   const src = (area: number) =>
     `${BASE}\nzone /site site:1 area:${area}\npolygon /site 0,0 10000,0 10000,10000 0,10000`;
-  const bad = validate(parse(src(50))).filter((f) => f.rule === "site.area");
+  const bad = caught(parse(src(50))).filter((f) => f.rule === SITE_AREA_RULE_ID.id);
   assert.equal(bad.length, 1);
   assert.equal(bad[0]!.level, "caution");
   assert.match(bad[0]!.message, /Declared and derived site areas disagree: declared 50 m2 \/ derived 100\.00 m2/);
-  assert.deepEqual(validate(parse(src(100))).filter((f) => f.rule === "site.area"), []);
+  assert.deepEqual(caught(parse(src(100))).filter((f) => f.rule === SITE_AREA_RULE_ID.id), []);
   // core は面積の食い違いを言わない — 測量値との照合は建築の側の判断である
   assert.equal(
     check(parse(src(50))).warnings.some((w) => w.includes("site area")),

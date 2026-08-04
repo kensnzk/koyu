@@ -10,7 +10,8 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check, checkDiagnostics, DIAGNOSTIC_CODES, type Diagnostic } from "../src/core/diagnose.js";
-import { validate } from "../src/validate/index.js";
+import { SITE_ESCAPE_RULE_ID } from "../src/validate/builtin/index.js";
+import { assessSchematic, caught } from "./helpers/schematic.js";
 import { areaM2, isIndoor, srcRef, isOutside } from "../src/core/model.js";
 import { siteReport } from "../src/core/site.js";
 import { slabs } from "../src/core/fabric.js";
@@ -107,10 +108,10 @@ zone /site name:敷地 site:${v}
 polygon /site 0,0 5000,0 5000,5000 0,5000
 space /L1/big room X1..X2 Y1..Y2`;
   // 正しく書けば、建物が敷地からはみ出していることが検証の違反として出る
-  assert.ok(validate(parse(src("1"))).some((f) => f.rule === "site.escape"));
+  assert.ok(caught(parse(src("1"))).some((f) => f.rule === SITE_ESCAPE_RULE_ID.id));
   // 綴りを誤ると判定が走らない — だからその綴り自体を core のエラーにする
   const typo = parse(src("yes"));
-  assert.equal(validate(typo).filter((f) => f.rule === "site.escape").length, 0);
+  assert.equal(caught(typo).filter((f) => f.rule === SITE_ESCAPE_RULE_ID.id).length, 0);
   assert.ok(checkDiagnostics(typo).some((d) => d.code === "ATT02"), "it does not go green silently");
 });
 
@@ -317,23 +318,31 @@ boundary /L1/a /L1/b t:150`,
   assert.match(d.message, /^Duplicate boundary/); // 本文に位置接頭辞は無い
 });
 
-test("validation: site.escape, escaping the site — emitted as a validation Finding, not a core diagnostic", () => {
+test("validation: site escape — emitted as an assessment outcome, not a core diagnostic", () => {
+  // A current language version, and a slab, so the model is structurally consistent: the rules
+  // declare `model: "consistent"` and refuse to judge a self-contradictory composition at all.
   const m = parse(
-    `${BASE}
+    `koyu 1.1
+unit mm
+grid X 0 3640 7280
+grid Y 0 3640
+level L1 0 h:2400 slab:150
 zone /site site:1
 polygon /site -1000,-1000 9000,-1000 9000,9000 -1000,9000
 space /a room X1..X3+2000 Y1..Y2 level:L1`,
   );
   // core は黙る — はみ出しは構成の矛盾ではない (形は一意に出る)
   assert.equal(checkDiagnostics(m).filter((d) => (d.code as string).startsWith("SIT")).length, 0);
-  const f = validate(m).find((x) => x.rule === "site.escape")!;
+  const f = caught(m).find((x) => x.rule === SITE_ESCAPE_RULE_ID.id)!;
   assert.equal(f.level, "violation");
   assert.equal(f.line, 8);
   assert.deepEqual(f.path, ["/a"]);
   assert.match(f.message, /escapes the site shape/);
-  // **型が違うので混ぜられない** — Finding は code も severity も持たない
-  assert.equal("code" in f, false);
-  assert.equal("severity" in f, false);
+  // **型が違うので混ぜられない** — 判定は code も severity も持たない
+  const outcome = assessSchematic(m).findings.find((x) => x.rule.id === SITE_ESCAPE_RULE_ID.id)!;
+  assert.equal("code" in outcome.outcome, false);
+  assert.equal("severity" in outcome.outcome, false);
+  assert.equal(outcome.outcome.status, "fail");
 });
 
 test("diagnostic: UID03 duplicate uid — no position (line omitted), every owner appears in path/related", () => {

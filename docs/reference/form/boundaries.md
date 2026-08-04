@@ -92,7 +92,7 @@ Whether a segment exists and whether a person can pass are different questions.
 
 Parts of a space's outline face **neither another space nor a declared exterior boundary**. Those are holes in the envelope, and `envelopeGaps(model, space)` returns them as segments.
 
-Touching spaces default to a wall, but **no default is derived against a space with no region** (the exterior) — naming the counterpart is itself information, so it is declared. A forgotten `boundary` to the outside therefore becomes a silent absence of wall. `check` does not say so. The [judgement face](../validate/envelope.md) does, as `envelope.gap`.
+Touching spaces default to a wall, but **no default is derived against a space with no region** (the exterior) — naming the counterpart is itself information, so it is declared. A forgotten `boundary` to the outside therefore becomes a silent absence of wall. `check` does not say so. The [judgement face](../validate/envelope.md) does, as `koyu.schematic.envelope.gap`.
 
 ## Neighbouring pages
 

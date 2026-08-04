@@ -56,12 +56,12 @@ There used to be a warning for "these touch but no boundary is declared". Once t
 The seal is not overlooked. **A different surface catches it.**
 
 ```sh
-npx tsx src/cli.ts validate sealed.muro
+npx tsx src/cli.ts validate sealed.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
 
 ```text
-✖ [access.unreachable] sealed.muro:line 6: Cannot reach the exterior: /L1/hall (no passable boundary leads out — write a door)
-✖ [access.unreachable] sealed.muro:line 7: Cannot reach the exterior: /L2/bed (no passable boundary leads out — write a door)
+✖ [koyu.schematic.access.unreachable] sealed.muro:line 6: Cannot reach the exterior: /L1/hall (no passable boundary leads out — write a door)
+✖ [koyu.schematic.access.unreachable] sealed.muro:line 7: Cannot reach the exterior: /L2/bed (no passable boundary leads out — write a door)
 Validation — 2 violations / 0 cautions
 ```
 
@@ -100,7 +100,7 @@ The full list, mapped to diagnostic codes, is in [Scope](../reference/scope.md).
 | A unique form can be made from this file | **yes** |
 | This file's canonical JSON is stable | **yes** |
 | You can get out of the building | no → `doors` / `validate` |
-| The envelope is closed | no → `validate`'s `envelope.gap` |
+| The envelope is closed | no → `validate`'s `koyu.schematic.envelope.gap` |
 | There is enough daylight | no → `light` / `validate` |
 | The stair is climbable | no → `runs` / `validate` |
 | It works as a building | **no** |

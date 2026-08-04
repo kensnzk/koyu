@@ -130,8 +130,8 @@ SIT03 once meant "the building escapes the site shape" and SIT05 "the declared a
 
 | Was | Now | Level |
 |---|---|---|
-| SIT03 | `site.escape` | violation |
-| SIT05 | `site.area` | caution |
+| SIT03 | `koyu.schematic.site.escape` | violation |
+| SIT05 | `koyu.schematic.site.area` | caution |
 
 `check` stays green; only `validate` speaks.
 
@@ -155,22 +155,22 @@ koyu check bad.muro --strict
 ```
 
 ```sh
-koyu validate bad.muro
+koyu validate bad.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
 
 ```text
-⚠ [site.area] <absolute path>/bad.muro:line 4: Declared and derived site areas disagree: declared 120 m2 / derived 100.00 m2
-✖ [site.escape] <absolute path>/bad.muro:line 7: /L1/a escapes the site shape (near 12000,0)
+⚠ [koyu.schematic.site.area] <absolute path>/bad.muro:line 4: Declared and derived site areas disagree: declared 120 m2 / derived 100.00 m2 (/site)
+✖ [koyu.schematic.site.escape] <absolute path>/bad.muro:line 7: /L1/a escapes the site shape (near 12000,0)
 Validation — 1 violation / 1 caution
 ```
 
 The area comparison tolerates **±0.05 m²**. The containment test looks at the **derived region** rather than the allocation, so an outline cut to follow the site passes as written. Spaces beneath the site zone (`/site/…`) are excluded from the test — a yard or a path is part of the site.
 
-`koyu validate` also carries a minimum road frontage (`site.frontage` — 2000mm). It asks nothing of a model where no site is declared: drawing a line under a number that could not be derived would turn "not written" into "in violation".
+`koyu validate` also carries a minimum road frontage (`koyu.schematic.site.frontage` — 2000mm). It asks nothing of a model where no site is declared: drawing a line under a number that could not be derived would turn "not written" into "in violation".
 
 ## Related
 
 - [ZON — zones](./zon.md) — the checks on the zone a `polygon` pairs with
 - [ATT — attributes](./att.md) — how writing `site:yes` erases every site judgement (ATT02)
-- [koyu validate](../cli/validate.md) — `site.escape` / `site.area` / `site.frontage`
+- [koyu validate](../cli/validate.md) — `koyu.schematic.site.escape` / `koyu.schematic.site.area` / `koyu.schematic.site.frontage`
 - [koyu check](../cli/check.md)

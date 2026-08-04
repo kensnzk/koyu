@@ -56,16 +56,16 @@ Five boundaries written, seven reported: the other two are default walls between
 
 ```text
 $ npx tsx src/cli.ts validate house.muro
-⚠ [envelope.gap] house.muro:line 13: Perimeter not faced by any envelope: /L1/ldk — S 3600mm / N 3600mm (7200mm over 2 run(s)). Write a boundary to the exterior
-⚠ [envelope.gap] house.muro:line 14: Perimeter not faced by any envelope: /L1/hall — S 1800mm / N 1800mm (3600mm over 2 run(s)). Write a boundary to the exterior
-⚠ [envelope.gap] house.muro:line 15: Perimeter not faced by any envelope: /L2/bed — S 3600mm / N 3600mm (7200mm over 2 run(s)). Write a boundary to the exterior
-⚠ [envelope.gap] house.muro:line 16: Perimeter not faced by any envelope: /L2/hall — S 1800mm / N 1800mm (3600mm over 2 run(s)). Write a boundary to the exterior
-✖ [access.unreachable] house.muro:line 13: Cannot reach the exterior: /L1/ldk (no passable boundary leads out — write a door)
-✖ [access.unreachable] house.muro:line 15: Cannot reach the exterior: /L2/bed (no passable boundary leads out — write a door)
+⚠ [koyu.schematic.envelope.gap] house.muro:line 13: Perimeter not faced by any envelope: /L1/ldk — N 3600mm / S 3600mm (7200mm over 2 run(s)). Write a boundary to the exterior
+⚠ [koyu.schematic.envelope.gap] house.muro:line 14: Perimeter not faced by any envelope: /L1/hall — N 1800mm / S 1800mm (3600mm over 2 run(s)). Write a boundary to the exterior
+⚠ [koyu.schematic.envelope.gap] house.muro:line 15: Perimeter not faced by any envelope: /L2/bed — N 3600mm / S 3600mm (7200mm over 2 run(s)). Write a boundary to the exterior
+⚠ [koyu.schematic.envelope.gap] house.muro:line 16: Perimeter not faced by any envelope: /L2/hall — N 1800mm / S 1800mm (3600mm over 2 run(s)). Write a boundary to the exterior
+✖ [koyu.schematic.access.unreachable] house.muro:line 13: Cannot reach the exterior: /L1/ldk (no passable boundary leads out — write a door)
+✖ [koyu.schematic.access.unreachable] house.muro:line 15: Cannot reach the exterior: /L2/bed (no passable boundary leads out — write a door)
 Validation — 2 violations / 4 cautions
 ```
 
-`access.unreachable` is the violation, and it is the trap. **`validate` exits 1 only when there are violations** — that single command is enough to defend escape routes in CI. As a bonus, `envelope.gap` reports perimeter that faces nothing at all. The full list of rules is the [validation reference](../reference/validate/index.md).
+`koyu.schematic.access.unreachable` is the violation, and it is the trap. **`validate` exits 1 only when there are violations** — that single command is enough to defend escape routes in CI. As a bonus, `koyu.schematic.envelope.gap` reports perimeter that faces nothing at all. The full list of rules is the [validation reference](../reference/validate/index.md).
 
 ## 2. Count one route — doors
 
@@ -130,7 +130,7 @@ The violations are gone. The four remaining cautions are gaps in the envelope.
 
 ## Which boundaries are edges
 
-The graph that `doors` and `access.unreachable` walk is decided by the boundary type alone.
+The graph that `doors` and `koyu.schematic.access.unreachable` walk is decided by the boundary type alone.
 
 | Boundary | Passable | Doors counted |
 |---|---|---|
@@ -166,20 +166,20 @@ Cannot reach /L2/ev from /L1/ev
 There is one way to have a door and still not pass: a door that opens only onto a void. There is no floor, so nobody crosses.
 
 ```text
-✖ [access.unreachable] voidonly.muro:line 14: Cannot reach the exterior: /L2/bed (no passable boundary leads out — write a door)
-✖ [access.voidonly] voidonly.muro:line 14: Doors open only onto a void: /L2/bed (they open where there is no floor, so nobody can pass)
+✖ [koyu.schematic.access.unreachable] voidonly.muro:line 14: Cannot reach the exterior: /L2/bed (no passable boundary leads out — write a door)
+✖ [koyu.schematic.access.voidonly] voidonly.muro:line 14: Doors open only onto a void: /L2/bed (they open where there is no floor, so nobody can pass)
 ```
 
 The same thing happens outdoors. **Give a balcony only a `window` and nobody can step onto it.** An opening is either passage (`door`) or daylight (`window`); one opening cannot claim both. A full-height sliding assembly is written as a `door` for the sliding leaves and a `window` for the fixed panes.
 
 ## Cars that cannot get out
 
-Car parks have their own test, separate from the pedestrian one. `access.parking` is a violation when a car park has **no opening at least 2400mm wide, no `type:open` boundary and no ramp**. A basement car park served only by a person-sized door is caught here.
+Car parks have their own test, separate from the pedestrian one. `koyu.schematic.access.parking` is a violation when a car park has **no opening at least 2400mm wide, no `type:open` boundary and no ramp**. A basement car park served only by a person-sized door is caught here.
 
 ```text
-✖ [access.parking] main.muro:line 32: No vehicle route to the exterior: /B2/park (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)
-✖ [access.parking] main.muro:line 32: No vehicle route to the exterior: /B1/park (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)
-✖ [access.parking] main.muro:line 33: No vehicle route to the exterior: /B2/ramp (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)
+✖ [koyu.schematic.access.parking] main.muro:line 32: No vehicle route to the exterior: /B2/park (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)
+✖ [koyu.schematic.access.parking] main.muro:line 32: No vehicle route to the exterior: /B1/park (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)
+✖ [koyu.schematic.access.parking] main.muro:line 33: No vehicle route to the exterior: /B2/ramp (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)
 ```
 
 ## Next

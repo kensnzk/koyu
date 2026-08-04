@@ -21,22 +21,29 @@ import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parseFile } from "../src/parse-file.js";
+import { renderDiff } from "../src/core/diff.js";
+import { daylightInputs } from "../src/core/light.js";
+import {
+  SourceError,
+  unionAreaM2,
+} from "../src/core/model.js";
+import { parse } from "../src/core/parse.js";
+import { siteReport } from "../src/core/site.js";
+import { checkDiagnostics } from "../src/diagnostics.js";
+import { semanticDiff } from "../src/diff.js";
+import { doorsBetween } from "../src/graph.js";
 import {
   areaM2,
-  checkDiagnostics,
-  daylightInputs,
-  doorsBetween,
-  parse,
-  renderDiff,
-  semanticDiff,
-  siteReport,
-  SourceError,
   toCanonical,
-  unionAreaM2,
-  validate,
   zoneAreaM2,
   type Model,
-} from "../src/index.js";
+} from "../src/model.js";
+import { assess } from "../src/validate/index.js";
+import {
+  createSchematicRegistry,
+  DAYLIGHT_RATIO_RULE_ID,
+  SCHEMATIC_PROFILE_ID,
+} from "../src/validate/builtin/index.js";
 
 // ---- 課題の型 (TASK FILE FORMAT — 規範) ----
 
@@ -200,17 +207,29 @@ export function siteMetrics(model: Model): {
   };
 }
 
+/** A fixed date. The engine never supplies one, and a score must not move with the calendar. */
+const EVAL_AS_OF = "2026-08-03";
+
+/** koyu's own rule pack, composed the same way any caller composes it. */
+function schematicFindings(m: Model) {
+  return assess(m, {
+    registry: createSchematicRegistry(),
+    profile: SCHEMATIC_PROFILE_ID,
+    context: { schema: "koyu-context/1", asOf: EVAL_AS_OF, values: {} },
+  }).findings;
+}
+
 /**
  * The paths that fail the daylight question.
  *
- * `daylightInputs` derives the inputs; the judgement is `daylight.ratio` on the validation face. An
- * expression that wants "which rooms fail" must ask validation — the input records carry no verdict,
- * by design (core derives, validation judges).
+ * `daylightInputs` derives the inputs; the judgement is `koyu.schematic.daylight.ratio` on the
+ * validation face. An expression that wants "which rooms fail" must ask validation — the input
+ * records carry no verdict, by design (core derives, validation judges).
  */
 const daylightFailures = (m: Model): string[] =>
-  validate(m)
-    .filter((f) => f.rule === "daylight.ratio")
-    .flatMap((f) => f.path ?? [])
+  schematicFindings(m)
+    .filter((f) => f.rule.id === DAYLIGHT_RATIO_RULE_ID.id)
+    .flatMap((f) => f.outcome.subjects.map((s) => s.ref))
     .sort();
 
 /** assert 式に渡す補助のうち、規範の5つ (m, zoneAreaM2, daylight, doorsBetween, siteReport) の後ろに足すもの */
@@ -407,10 +426,10 @@ function runOracle(o: Oracle, m: Model, taskDir: string): OracleResult {
       }
       case "light": {
         // The judgement lives on the validation face, not in core — core only derives the inputs
-        // (floor area and effective window area). `daylight.ratio` is the rule that says 1/7.
+        // (floor area and effective window area). The rule that says 1/7 is
+        // `koyu.schematic.daylight.ratio`.
         const rs = daylightInputs(m);
-        const violations = validate(m).filter((f) => f.rule === "daylight.ratio");
-        const bad = violations.flatMap((f) => f.path ?? []);
+        const bad = daylightFailures(m);
         // 評価対象が0室のときは不合格にする。「居室を全部消せば全室合格」という
         // 真空の真は報酬ハックの入口そのものである。
         if (rs.length === 0) return done(false, "採光の評価対象が0室 (居室が消えている疑い)");

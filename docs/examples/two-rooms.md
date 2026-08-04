@@ -105,9 +105,9 @@ npx tsx src/cli.ts light examples/two-rooms.muro
 ```
 
 ```text
-✔ /L1/a	居室A	window 2.86 m2 / floor 16.20 m2 = 1/5.7 (needs 1/7 ≈ 2.31 m2)
-✔ /L1/b	居室B	window 2.86 m2 / floor 16.20 m2 = 1/5.7 (needs 1/7 ≈ 2.31 m2)
-✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
+  /L1/a	居室A	window 2.86 m2 / floor 16.20 m2 = 1/5.7
+  /L1/b	居室B	window 2.86 m2 / floor 16.20 m2 = 1/5.7
+2 rooms in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
 The 2.86 m² of window came from 2600 × 1100. **The number 2.86 appears nowhere in the source.**

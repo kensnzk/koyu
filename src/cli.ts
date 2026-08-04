@@ -18,7 +18,9 @@ import { check, checkDiagnostics, type Diagnostic } from "./core/diagnose.js";
 import { renderDiff, semanticDiff } from "./core/diff.js";
 import { doorsBetween, neighbors } from "./core/graph.js";
 import { daylightInputs } from "./core/light.js";
-import { validate, type Finding } from "./validate/index.js";
+import { assess } from "./validate/assessment.js";
+import { AssessmentConfigError, type AssessmentReport } from "./validate/contracts.js";
+import { createSchematicRegistry, SCHEMATIC_PROFILE_ID } from "./validate/builtin/index.js";
 import { siteReport } from "./core/site.js";
 import {
   areaM2,
@@ -119,13 +121,80 @@ function enumOpt<T extends string>(
   return raw as T;
 }
 
+/** The one profile koyu ships. Any other name is the caller's, and this build cannot resolve it. */
+const BUILTIN_PROFILE = SCHEMATIC_PROFILE_ID.id;
+
+/**
+ * Run a rule set over the model.
+ *
+ * The profile and the effective date are **required**. Neither is guessed from the filename,
+ * the locale, the environment or the clock: a judgement whose grounds were inferred cannot be
+ * reproduced, and one that quietly picked a default is worse than one that refused to start.
+ */
+function runAssessment(model: Model, rest: string[]): AssessmentReport {
+  const profile = opt(rest, "-p", "--profile");
+  if (!profile) {
+    die(
+      "validate needs an explicit profile: --profile <id>\n" +
+        `  koyu ships one: ${BUILTIN_PROFILE}`,
+    );
+  }
+  if (profile !== BUILTIN_PROFILE) {
+    die(`Unknown profile: ${profile}\n  koyu ships one: ${BUILTIN_PROFILE}`);
+  }
+  const asOf = opt(rest, "--as-of");
+  if (!asOf) {
+    die(
+      "validate needs an explicit effective date: --as-of YYYY-MM-DD\n" +
+        "  the date is not read from the clock, so that the same file judges the same way twice",
+    );
+  }
+
+  try {
+    return assess(model, {
+      registry: createSchematicRegistry(),
+      profile: SCHEMATIC_PROFILE_ID,
+      context: { schema: "koyu-context/1", asOf, values: {} },
+    });
+  } catch (e) {
+    // Configuration is the caller's problem, so it exits like a usage error rather than a verdict.
+    if (e instanceof AssessmentConfigError) die(`✖ ${e.message}`);
+    throw e;
+  }
+}
+
+/**
+ * 0 only when the whole set ran and nothing was violated.
+ *
+ * A caution that failed still exits 0 — it is a doubt, not a breach. But an indeterminate rule,
+ * a rule that errored, or an inconsistent model exits 1: **not being able to judge is not the
+ * same as passing**, and silence there is exactly what this exit code exists to prevent.
+ */
+function assessmentExit(report: AssessmentReport): number {
+  if (report.summary.state !== "complete") return 1;
+  if (report.model.state !== "consistent") return 1;
+  return report.findings.some((f) => f.level === "violation") ? 1 : 0;
+}
+
+/** The first model-anchored line among a finding's evidence, formatted like every other locator. */
+function firstModelLine(evidence: AssessmentReport["findings"][number]["outcome"]["evidence"]): string {
+  for (const item of evidence) {
+    for (const source of item.sources) {
+      if (source.kind === "model" && source.location?.line !== undefined) {
+        return `${srcRef(source.location.line, source.location.file)}: `;
+      }
+    }
+  }
+  return "";
+}
+
 function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   if (!cmd || !file) {
     console.log(
       "Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [args...]\n" +
         "  check:    --json (emit Diagnostic[] as JSON) / --strict (exit 1 if there are warnings) — structural consistency only\n" +
-        "  validate: --json (emit Finding[] as JSON) — architectural judgement (not what check guarantees)\n" +
+        "  validate: --profile <id> --as-of <YYYY-MM-DD> [--json] — architectural judgement (not what check guarantees)\n" +
         "  layers:   the layers that took part in composition, weakest first. --attrs for the provenance of each attribute\n" +
         "  diff:  koyu diff <a.muro> <b.muro> [--json] — the difference in the language of composition (0=no difference / 1=differences / 2=the input is broken)",
     );
@@ -210,26 +279,37 @@ function main(argv: string[]): number {
       return 1;
     }
     case "validate": {
-      // 建築的な判定 (docs/reference/scope.md)。**check の保証ではない** — 型もコードの綴りも別で、
-      // 終了コードだけが同じ流儀 (0=違反なし / 1=違反あり)
-      const findings = validate(model);
+      // 建築的な判定 (docs/reference/scope.md)。**check の保証ではない** — 型も綴りも別である。
+      //
+      // profile と基準日は呼び出し側が明示する。管轄も基準日も推測せず、内蔵 profile を
+      // 黙って選ばない — 無根拠に成功して見える判定より、入力不足で止まる方を採る。
+      const report = runAssessment(model, rest);
       if (rest.includes("--json")) {
-        console.log(JSON.stringify(findings, null, 1));
-        return findings.some((f) => f.level === "violation") ? 1 : 0;
+        console.log(JSON.stringify(report, null, 1));
+        return assessmentExit(report);
       }
-      const label = (f: Finding) => (f.level === "violation" ? "✖" : "⚠");
-      for (const f of findings) {
-        const where = f.line !== undefined ? `${srcRef(f.line, f.file)}: ` : "";
-        console.log(`${label(f)} [${f.rule}] ${where}${f.message}`);
+      for (const f of report.findings) {
+        const where = firstModelLine(f.outcome.evidence);
+        console.log(
+          `${f.level === "violation" ? "✖" : "⚠"} [${f.rule.id}] ${where}${f.outcome.message}`,
+        );
       }
-      const violations = findings.filter((f) => f.level === "violation").length;
-      const cautions = findings.length - violations;
+      const violations = report.findings.filter((f) => f.level === "violation").length;
+      const cautions = report.findings.length - violations;
       console.log(
-        findings.length === 0
+        report.findings.length === 0
           ? "✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)"
           : `Validation — ${qty(violations, "violation", "violations")} / ${qty(cautions, "caution", "cautions")}`,
       );
-      return violations > 0 ? 1 : 0;
+      console.log(
+        `  ${report.profile.id}@${report.profile.revision} — ` +
+          `${report.summary.rules.evaluated} evaluated / ${report.summary.rules.notApplicable} not applicable / ` +
+          `${report.summary.rules.indeterminate} indeterminate / ${report.summary.rules.error} error`,
+      );
+      if (report.summary.state === "incomplete") {
+        console.log("  Incomplete — something could not be judged, which is not the same as passing");
+      }
+      return assessmentExit(report);
     }
     case "layers": {
       // 合成の規則1と6 (docs/reference/muro/import.md) — 強度順序を見せ、最終値の出所を言う。
@@ -381,30 +461,25 @@ function main(argv: string[]): number {
       return 0;
     }
     case "light": {
-      // 採光は**判定**である — core が返すのは床面積と有効窓面積という数だけで、
-      // 1/7 の合否は検証の面 (validate) が言う (docs/reference/scope.md)
+      // **数だけを返す。**床面積と有効窓面積は模型から出る事実であり、そこへ線を引くのは
+      // 規則の側の仕事である。閾値をここに書けば validate と二重になり、片方だけが古くなる
+      // (docs/reference/scope.md)。合否は koyu validate が言う
       const inputs = daylightInputs(model);
       if (inputs.length === 0) {
         console.log("Nothing is in daylight scope (write daylight:1 on the rooms to be judged)");
         return 0;
       }
-      const failing = new Set(
-        validate(model).filter((f) => f.rule === "daylight.ratio").flatMap((f) => f.path ?? []),
-      );
       for (const d of inputs) {
-        const ok = !failing.has(d.space.path);
         const ratio = d.window > 0 ? `1/${(d.floor / d.window).toFixed(1)}` : "no window";
         console.log(
-          `${ok ? "✔" : "✖"} ${d.space.path}\t${displayName(d.space)}\twindow ${d.window.toFixed(2)} m2 / floor ${d.floor.toFixed(2)} m2 = ${ratio} (needs 1/7 ≈ ${(d.floor / 7).toFixed(2)} m2)` +
+          `  ${d.space.path}\t${displayName(d.space)}\twindow ${d.window.toFixed(2)} m2 / floor ${d.floor.toFixed(2)} m2 = ${ratio}` +
             (d.missingH ? " ⚠ windows without h: are not counted" : ""),
         );
       }
       console.log(
-        failing.size === 0
-          ? `✔ Every room meets 1/7 — ${qty(inputs.length, "room", "rooms")} in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)`
-          : `✖ Short of 1/7: ${failing.size} of ${qty(inputs.length, "room", "rooms")} (this is a validation judgement)`,
+        `${qty(inputs.length, "room", "rooms")} in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)`,
       );
-      return failing.size === 0 ? 0 : 1;
+      return 0;
     }
     case "site": {
       // 敷地の問い: 敷地面積・接道・建蔽率・容積率 (基本計画のボリューム検討の数字)
@@ -434,8 +509,8 @@ function main(argv: string[]): number {
           `  Road: ${road.road.path}${typeof nm === "string" ? ` (${nm})` : ""} width ${road.width}mm / frontage ${road.frontage}mm`,
         );
       }
-      console.log(`  Building footprint (horizontal projection, rough): ${r.footprint.toFixed(2)} m2 → building coverage ratio ${((r.footprint / site) * 100).toFixed(1)}%`);
-      console.log(`  Total floor area: ${r.totalFloor.toFixed(2)} m2 → floor area ratio ${((r.totalFloor / site) * 100).toFixed(1)}%`);
+      console.log(`  Building footprint (horizontal projection, rough): ${r.footprint.toFixed(2)} m2 → building coverage ratio ${r.coveragePercent ?? "—"}%`);
+      console.log(`  Total floor area: ${r.totalFloor.toFixed(2)} m2 → floor area ratio ${r.floorAreaRatioPercent ?? "—"}%`);
       return 0;
     }
     case "axo": {

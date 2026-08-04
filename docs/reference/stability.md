@@ -63,7 +63,7 @@ One point about diagnostics deserves emphasis. **Severity is an immutable proper
 **These may exist; it is explicit that they are outside the freeze.**
 
 - **Shape generation and drawing** — `svgPlan`, `svgAxo`, the CLI `plan` and `axo`, the MCP `plan_svg`. The CLI **surface** (subcommand names, arguments, exit codes) freezes; **the contents of the SVG do not**
-- **[Architectural judgement](validate/index.md)** — the fifteen rules and the output of `koyu validate`. This face grows
+- **[Architectural judgement](validate/index.md)** — the sixteen rules and the output of `koyu validate`. This face grows
 - **The MCP toolset** (12 tools) — treated as a face that grows by addition
 - **Round-tripping with and importing external formats**
 - **Surfaces for people** — editor support, authoring

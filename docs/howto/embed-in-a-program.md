@@ -41,8 +41,10 @@ Whichever you pick, **the `Model` that comes out has the same shape.** Compositi
 Load, check, judge, sum the areas. That is the whole cycle.
 
 ```ts
-import { areaM2, checkDiagnostics, isIndoor } from "@kensnzk/koyu";
-import { validate } from "@kensnzk/koyu/validate";
+import { checkDiagnostics } from "@kensnzk/koyu";
+import { areaM2, isIndoor } from "@kensnzk/koyu/model";
+import { assess } from "@kensnzk/koyu/validate";
+import { createSchematicRegistry, SCHEMATIC_PROFILE_ID } from "@kensnzk/koyu/validate/builtin";
 import { parseFile } from "@kensnzk/koyu/node";
 
 const model = parseFile("examples/house/main.muro");
@@ -50,7 +52,13 @@ const model = parseFile("examples/house/main.muro");
 const errors = checkDiagnostics(model).filter((d) => d.severity === "error");
 console.log(`${model.name} — ${model.spaces.size} spaces, ${errors.length} errors`);
 
-for (const f of validate(model)) console.log(`${f.level} [${f.rule}] ${f.message}`);
+// The grounds are named, never inferred: one registry, one profile, one date.
+const report = assess(model, {
+  registry: createSchematicRegistry(),
+  profile: SCHEMATIC_PROFILE_ID,
+  context: { schema: "koyu-context/1", asOf: "2026-08-03", values: {} },
+});
+for (const f of report.findings) console.log(`${f.level} [${f.rule.id}] ${f.outcome.message}`);
 
 let total = 0;
 for (const s of model.spaces.values()) if (isIndoor(model, s)) total += areaM2(s) ?? 0;
@@ -74,13 +82,15 @@ The area is summed by hand because **what the total means differs per program.**
 
 ```ts
 const errors = checkDiagnostics(model).filter((d) => d.severity === "error");
-for (const f of validate(model)) console.log(`${f.level} [${f.rule}] ${f.message}`);
+for (const f of report.findings) console.log(`${f.level} [${f.rule.id}] ${f.outcome.message}`);
 ```
 
 - `checkDiagnostics` returns `Diagnostic { code, severity }` — it speaks only to **whether what is written contradicts itself as data.**
-- `validate` returns `Finding { rule, level }` — it speaks to **whether it is sound as architecture.**
+- `assess` returns an `AssessmentReport` whose findings carry `{ rule, level }` — it speaks to **whether it is sound as architecture, under the profile you named.**
 
 **The field names alone make them different types.** Try to concatenate the arrays and the type falls apart. A green `check` does not mean a usable building — a building with no declared doors stays green and completely sealed. Never claim it works because it is green. What each one promises is on [The scope of the promise](../reference/scope.md).
+
+**And an empty `findings` is not by itself a pass.** Read `report.summary.state`: it is `complete` only when nothing was left indeterminate and nothing errored. A rule that could not run has told you less than a rule that passed, and the report keeps the two apart precisely so a caller cannot confuse them.
 
 **Split your exit codes the same way.** A broken composition and an architectural finding are two different events for the caller.
 
@@ -175,7 +185,7 @@ Canonical JSON carries **only what was written.** Derived default walls are not 
 
 - [TypeScript API](../reference/api/index.md) — the entrances and every name on the surface
 - [The scope of the promise](../reference/scope.md) — what a green `check` means
-- [Judgement — koyu validate](../reference/validate/index.md) — the fifteen rules
+- [Judgement — koyu validate](../reference/validate/index.md) — the sixteen rules
 - [Form](../reference/form/index.md) — the entrance to derived form
 - [Canonical JSON](../reference/json/index.md) — the ground for external connections
 - [Gatekeeping in CI](../reference/cli/ci.md) — designing exit codes when commands are enough

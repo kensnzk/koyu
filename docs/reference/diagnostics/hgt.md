@@ -145,7 +145,7 @@ boundary /L1/a /L2/v type:void
 
 **There is not one architectural judgement about height anywhere in koyu.** Eaves height, maximum height, road setback lines, north-side setback, shadow studies, minimum ceiling heights — none of these exist in `check` or in `koyu validate`. About height, koyu says only whether the written numbers add up.
 
-The two height-adjacent judgements `koyu validate` does carry are the proportion of a derived stair's tread and riser (`stair.proportion`) and a derived ramp's slope (`run.slope`). Both are cautions about a **derived shape**, not statutory height limits.
+The two height-adjacent judgements `koyu validate` does carry are the proportion of a derived stair's tread and riser (`koyu.schematic.stair.proportion`) and a derived ramp's slope (`koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope`). Both are cautions about a **derived shape**, not statutory height limits.
 
 ## Related
 

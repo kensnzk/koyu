@@ -61,11 +61,14 @@ boundary /L1/a /L1/nope
 
 const BROKEN_SYNTAX = fixture("broken-syntax.muro", "koyu 0.5\nspace ???\n");
 
+/** validate names its grounds explicitly — neither the profile nor the date is ever inferred. */
+const PROFILE_ARGS = ["--profile", "koyu.profile.schematic-screen", "--as-of", "2026-08-03"];
+
 // ---- 正常系 — 終了コード0と、一行目の形 ----
 
 const OK: Array<[string, string[], RegExp]> = [
   ["check", ["check", "examples/two-rooms.muro"], /^✔ Consistent — \d+ spaces? \/ \d+ boundar(y|ies)/],
-  ["validate", ["validate", "examples/two-rooms.muro"], /^✔ Nothing caught by validation/],
+  ["validate", ["validate", "examples/two-rooms.muro", ...PROFILE_ARGS], /^✔ Nothing caught by validation/],
   ["layers", ["layers", "examples/house/main.muro"], /^Layers \(weakest first/],
   ["diff", ["diff", "examples/two-rooms.muro", "examples/two-rooms.muro"], /^No differences$/],
   ["doors", ["doors", "examples/two-rooms.muro", "/L1/a", "/L1/b"], /^\d+ doors? — \/\S+( → \/\S+)+$/],
@@ -73,7 +76,7 @@ const OK: Array<[string, string[], RegExp]> = [
   ["stats", ["stats", "examples/two-rooms.muro"], /^\S+$/],
   ["levels", ["levels", "examples/two-rooms.muro"], /^\S+\tz:-?\d+/],
   ["runs", ["runs", "examples/basement/main.muro"], /^\S+\t(stair|ramp|escalator|lift)\t/],
-  ["light", ["light", "examples/house.muro"], /^[✔✖] \/\S+\t/],
+  ["light", ["light", "examples/house.muro"], /^ {2}\/\S+\t/],
   ["site", ["site", "examples/house.muro"], /^Site \/\S+/],
   ["json", ["json", "examples/two-rooms.muro"], /^\{$/],
 ];
@@ -212,13 +215,31 @@ boundary /L1/a /out
 `,
   );
   assert.equal(koyu("check", sealed).code, 0, "check is green — that is the point");
-  const r = koyu("validate", sealed);
+  const r = koyu("validate", sealed, ...PROFILE_ARGS);
   assert.equal(r.code, 1);
-  assert.match(r.out, /\[access\.unreachable\]/);
-  const json = koyu("validate", sealed, "--json");
+  assert.match(r.out, /\[koyu\.schematic\.access\.unreachable\]/);
+
+  const json = koyu("validate", sealed, ...PROFILE_ARGS, "--json");
   assert.equal(json.code, 1);
-  const findings = JSON.parse(json.out) as Array<{ rule: string; level: string }>;
-  assert.ok(findings.some((f) => f.rule === "access.unreachable" && f.level === "violation"));
+  const report = JSON.parse(json.out) as {
+    schema: string;
+    profile: { id: string };
+    findings: Array<{ rule: { id: string }; level: string }>;
+  };
+  assert.equal(report.schema, "koyu-assessment/1");
+  assert.equal(report.profile.id, "koyu.profile.schematic-screen");
+  assert.ok(report.findings.some(
+    (f) => f.rule.id === "koyu.schematic.access.unreachable" && f.level === "violation",
+  ));
+});
+
+test("cli: validate refuses to guess its grounds", () => {
+  const file = "examples/two-rooms.muro";
+  // **A missing ground is a usage error, not a verdict.** Exit 2 keeps it out of the 0/1 axis
+  // so no script can read "could not run" as "nothing was violated".
+  assert.equal(koyu("validate", file).code, 2, "no profile");
+  assert.equal(koyu("validate", file, "--profile", "koyu.profile.schematic-screen").code, 2, "no date");
+  assert.equal(koyu("validate", file, "--profile", "jp.bsl.made-up", "--as-of", "2026-08-03").code, 2, "unknown profile");
 });
 
 // ---- 面そのもの ----
@@ -233,6 +254,7 @@ test("cli: every subcommand the usage line advertises actually runs", () => {
     doors: ["/L1/a", "/L1/b"],
     plan: ["-o", join(tmp, "advertised-plan.svg")],
     axo: ["-o", join(tmp, "advertised-axo.svg")],
+    validate: PROFILE_ARGS,
   };
   for (const sub of m[1]!.split("|")) {
     const r = koyu(sub, "examples/two-rooms.muro", ...(extra[sub] ?? []));

@@ -7,7 +7,8 @@ import { fileURLToPath } from "node:url";
 import { check, checkDiagnostics } from "../src/core/diagnose.js";
 import { doorsBetween, segmentsFor } from "../src/core/graph.js";
 import { daylightInputs } from "../src/core/light.js";
-import { validate } from "../src/validate/index.js";
+import { DAYLIGHT_RATIO_RULE_ID } from "../src/validate/builtin/index.js";
+import { caught } from "./helpers/schematic.js";
 import { areaM2, effectiveUse } from "../src/core/model.js";
 import { isVoid } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
@@ -79,7 +80,7 @@ test("daylight: all 51 rooms meet 1/7, and through a balcony the factor is 0.7",
   const results = daylightInputs(m);
   assert.equal(results.length, 51); // (LDK+洋室)×8 + B〜E×8 + PH×3
   // 合否は core ではなく検証の面が言う (spec/scope.md §4)
-  assert.deepEqual(validate(m).filter((f) => f.rule === "daylight.ratio"), []);
+  assert.deepEqual(caught(m).filter((f) => f.rule === DAYLIGHT_RATIO_RULE_ID.id), []);
   const ldk = results.find((r) => r.space.path === "/L5/A/ldk")!;
   assert.equal(Math.round(ldk.window * 1000) / 1000, 4.004); // 5.72 × 0.7
 });
@@ -98,7 +99,7 @@ boundary /L1/a /out t:150
   assert.equal(r.length, 1);
   assert.equal(Math.round(r[0]!.window * 100) / 100, 0.36);
   // core は数を返すだけ。1/7 に足りないという判定は検証の面が言う
-  const short = validate(m).filter((f) => f.rule === "daylight.ratio");
+  const short = caught(m).filter((f) => f.rule === DAYLIGHT_RATIO_RULE_ID.id);
   assert.equal(short.length, 1); // 0.36㎡ < 16.2/7
   assert.equal(short[0]!.level, "violation");
 });
@@ -126,7 +127,7 @@ test("daylight: only daylight:1 is in scope — the type is never looked at", ()
   // 型が自由語でも、daylight:1 を書けば対象になる
   const wet = parse(daylightSrc("space /L1/a wet X1..X2 Y1..Y2 daylight:1"));
   assert.equal(daylightInputs(wet).length, 1);
-  assert.deepEqual(validate(wet).filter((f) => f.rule === "daylight.ratio"), []);
+  assert.deepEqual(caught(wet).filter((f) => f.rule === DAYLIGHT_RATIO_RULE_ID.id), []);
   // daylight:0 は既定と同じ (明記しても対象外)
   assert.equal(daylightInputs(parse(daylightSrc("space /L1/a room X1..X2 Y1..Y2 daylight:0"))).length, 0);
 });

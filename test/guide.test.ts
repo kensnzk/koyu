@@ -28,7 +28,8 @@ import { fileURLToPath } from "node:url";
 import { checkDiagnostics, DIAGNOSTIC_CODES, type Diagnostic } from "../src/core/diagnose.js";
 import { SourceError } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
-import { validate, VALIDATION_RULES, type Finding } from "../src/validate/index.js";
+import { SCHEMATIC_RULES } from "../src/validate/builtin/index.js";
+import { caught, type Caught } from "./helpers/schematic.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 /** The published tree. The unpublished parts of docs/ (ADRs, logs, reviews, loose material) are out */
@@ -257,14 +258,14 @@ test("guide: every ```muro-warn has zero errors and at least one warning (check 
 
 // ---- (3b) ```muro-fail / ```muro-caution は検証の判定を出す ----
 
-const renderF = (f: Finding) => `${f.rule}(${f.level}) ${f.message}`;
+const renderF = (f: Caught) => `${f.rule}(${f.level}) ${f.message}`;
 
-function runValidate(source: string): { thrown?: Error; errors: Diagnostic[]; findings: Finding[] } {
+function runValidate(source: string): { thrown?: Error; errors: Diagnostic[]; findings: Caught[] } {
   try {
     const m = parse(source);
     return {
       errors: checkDiagnostics(m).filter((d) => d.severity === "error"),
-      findings: validate(m),
+      findings: caught(m),
     };
   } catch (e) {
     return { thrown: e as Error, errors: [], findings: [] };
@@ -415,7 +416,7 @@ function ruleSectionsOf(path: string): Array<{ rule: string; line: number; block
   const lines = readFileSync(path, "utf8").split("\n");
   const out: Array<{ rule: string; line: number; block?: Block }> = [];
   for (let i = 0; i < lines.length; i++) {
-    const h = /^##\s+`([a-z.]+)`\s+—\s+\S/.exec(lines[i]!);
+    const h = /^##\s+`([a-z.-]+)`\s+—\s+\S/.exec(lines[i]!);
     if (h) out.push({ rule: h[1]!, line: i + 1 });
   }
   for (const s of out) {
@@ -431,7 +432,7 @@ test("ledger: each section of the validation reference carries an example that p
   const sections = validationSections();
   assert.equal(
     sections.length,
-    Object.keys(VALIDATION_RULES).length,
+    SCHEMATIC_RULES.length,
     "the number of sections does not match the ledger (set equality is what test/domains.test.ts states)",
   );
   for (const s of sections) {

@@ -23,7 +23,7 @@ import { exportBuilding } from "../eval/control/export.js";
 import { scoreControl } from "../eval/control/oracle.js";
 import { EVAL_DIR, loadTask, scoreTask } from "../eval/score.js";
 import { derive } from "../src/core/derive.js";
-import { daylightInputs } from "../src/index.js";
+import { daylightInputs } from "../src/core/light.js";
 import { parseFile } from "../src/parse-file.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));

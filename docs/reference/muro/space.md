@@ -190,8 +190,8 @@ boundary /L1/living /out edge:S t:120
 
 ```text
 $ npx tsx src/cli.ts light d1.muro
-✔ /L1/living	居間	window 4.32 m2 / floor 20.00 m2 = 1/4.6 (needs 1/7 ≈ 2.86 m2)
-✔ Every room meets 1/7 — 1 room in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
+  /L1/living	居間	window 4.32 m2 / floor 20.00 m2 = 1/4.6
+1 room in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
 A room without `daylight:` is outside the test. **The attribute names what the tool does, not a legal category** — what the 1/7 applies to is the author's call.

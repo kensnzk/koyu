@@ -103,9 +103,9 @@ npx tsx src/cli.ts light examples/house.muro
 ```
 
 ```text
-✔ /home/ldk	LDK	window 7.54 m2 / floor 39.75 m2 = 1/5.3 (needs 1/7 ≈ 5.68 m2)
-✔ /home/bed1	主寝室	window 5.72 m2 / floor 26.50 m2 = 1/4.6 (needs 1/7 ≈ 3.79 m2)
-✔ Every room meets 1/7 — 2 rooms in scope (a rough judgement with no correction factor — this is validation, not what check guarantees)
+  /home/ldk	LDK	window 7.54 m2 / floor 39.75 m2 = 1/5.3
+  /home/bed1	主寝室	window 5.72 m2 / floor 26.50 m2 = 1/4.6
+2 rooms in daylight scope — these are numbers, not a verdict (koyu validate applies the rule)
 ```
 
 The LDK's 7.54 m² is the full-height window (2.6 × 2.2 = 5.72 m²) plus the sill window (1.65 × 1.1 = 1.815 m²). The garden is open to the sky, so the coefficient applied was 1.0.
