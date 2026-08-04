@@ -1,0 +1,35 @@
+{
+  "format": "koyu-canonical/1.2",
+  "koyu": "1.1",
+  "name": "測地の最小例",
+  "unit": "mm",
+  "grid": {
+    "X": [
+      0,
+      3600
+    ],
+    "Y": [
+      0,
+      4500
+    ]
+  },
+  "levels": {
+    "L1": {
+      "z": 0,
+      "h": 2400,
+      "slab": 150
+    }
+  },
+  "spaces": {
+    "/L1/a": {
+      "type": "room",
+      "at": [
+        "X1",
+        "Y1",
+        "X2",
+        "Y2"
+      ]
+    }
+  },
+  "boundaries": []
+}

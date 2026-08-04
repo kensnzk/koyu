@@ -5,7 +5,7 @@ mode: reference
 
 # SIT — the site shape
 
-Three SIT codes are live. SIT03 and SIT05 are **retired numbers**.
+Four SIT codes are live. SIT03 and SIT05 are **retired numbers**.
 
 | Code | Severity | What it says |
 |---|---|---|
@@ -14,8 +14,11 @@ Three SIT codes are live. SIT03 and SIT05 are **retired numbers**.
 | SIT03 | — | **retired** |
 | SIT04 | warning | No zone corresponds to the `polygon` |
 | SIT05 | — | **retired** |
+| SIT06 | warning | `origin` is written without `azimuth` |
 
 **The site is the one thing in koyu whose shape is written.** Every building shape is derived from allocations and relations, but a site outline comes from a survey — it is a **given** — so `polygon` carries its vertices directly.
+
+The same is true of where that shape sits on the earth. [`origin`](../muro/origin.md) and [`azimuth`](../muro/azimuth.md) are given by survey as well, and SIT06 watches the one way the pair can be written incompletely.
 
 `polygon` has exactly one form.
 
@@ -121,6 +124,39 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```
 
 **Do not forget `site:1`.** With a zone present but `site:1` missing, `koyu site` has no subject and not one site judgement runs. Writing the zone while dropping `site:1` makes SIT04 disappear while the answers stay missing — the most confusing state of the three.
+
+## SIT06 — `origin` is written without `azimuth` {#sit06}
+
+`warning`
+
+```muro-warn
+grid X 0 10000
+grid Y 0 10000
+level L1 0 h:2400 slab:150
+origin epsg:6677 easting:-8000.123 northing:-34000.456
+space /L1/a room X1..X2 Y1..Y2
+```
+
+```text
+origin is written without azimuth, so the model has a position but no bearing
+```
+
+**Cause** — the frame is two halves. `origin` says where the model's (0,0,0) sits in a coordinate reference system; `azimuth` says which way the +Y axis points. **With only the position, nothing can be placed.** Anything projecting the model onto a map, into a city model, or into an IFC file has to assume a bearing, and the assumption it will reach for is zero — so a model rotated 30° from north lands 30° wrong, silently and at full size. Two halves missing is honest; one half missing looks complete.
+
+**The reverse is not warned about.** `azimuth` on its own is a finished statement: the bearing is known and the position is not. It is the normal state early in a project, and it is already enough for the questions that turn on which way a face looks.
+
+**Fix** — write the bearing beside the position, in the same layer.
+
+```muro
+grid X 0 10000
+grid Y 0 10000
+level L1 0 h:2400 slab:150
+origin epsg:6677 easting:-8000.123 northing:-34000.456
+azimuth Y 347.5
+space /L1/a room X1..X2 Y1..Y2
+```
+
+**If the bearing is genuinely unknown, take `origin` out rather than writing `azimuth Y 0`.** A zero is the claim that +Y is true north, and it is indistinguishable afterwards from a placeholder nobody went back to. The warning is the cheaper thing to carry.
 
 ## Retired numbers — SIT03 and SIT05
 

@@ -54,6 +54,8 @@ const COVERAGE: Array<[string, RegExp]> = [
   ["underground", /"underground": 1/],
   ["asset", /"assets": \{/],
   ["polygon", /"polygons": \{/],
+  ["origin (the frame's position, in metres)", /"origin": \{\n\s+"epsg": 6677,/],
+  ["azimuth (the frame's bearing)", /"azimuth": 3\d\d\.\d,/],
   ["column", /"columns": \[/],
   ["column grid names", /"x": \[/],
   ["zone", /"zones": \{/],
@@ -232,6 +234,14 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
   // ---- 敷地 (所与の幾何) と集約 ----
   const jitter = Math.floor(rnd() * 3) * 100;
   body.push({ lines: [`polygon /site -1000,-1000 13000,-1000 ${13000 + jitter},13000 -1000,13000`] });
+  // ---- 測地の枠 — 所与であって設計ではない。**並べ替えても同じ建物になる**ことが要点で、
+  // 値そのものは何も導出しないので、宣言の位置だけが試される (ADR-0057) ----
+  body.push({
+    lines: [
+      `origin epsg:6677 easting:${-8000 - jitter}.123 northing:-34000.456 elevation:2.35 vertical:6695`,
+    ],
+  });
+  body.push({ lines: [`azimuth Y ${(347.5 + Math.floor(rnd() * 5)).toFixed(1)}`] });
   body.push({ lines: ["zone /site name:敷地 site:1"] });
   body.push({ lines: ["space /site/yard yard X4..X5 Y2..Y3 level:L1 name:外構"] });
   body.push({ lines: ["zone /L1 name:一階"] });

@@ -89,10 +89,12 @@ drop column C1                           # a column declaration
 
 | | Statement | When the target exists | When it does not |
 |---|---|---|---|
-| **Definition** | `space` `boundary` `zone` `asset` `level` `polygon` `column` | **error** (duplicate) | defines it |
+| **Definition** | `space` `boundary` `zone` `asset` `level` `polygon` `column` `origin` `azimuth` | **error** (duplicate) | defines it |
 | **Override** | `over` | overrides it | **error** |
 
 They are different statements, and which is which follows from how they are written. Adding an opinion to something that does not exist is usually a misspelling, or a mistaken idea of the layer order.
+
+**Not every definition can be overridden.** `over` takes a path, a level or an asset, so `polygon`, `origin` and `azimuth` are outside its reach: a site outline and the frame it sits in are given once and are not argued with layer by layer. To study the same design against a different given, write a second entry that imports the same design layer.
 
 ```text
 $ koyu check main.muro

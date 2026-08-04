@@ -17,7 +17,9 @@ In koyu a shape is normally something generated — the region of a space is wri
 polygon /site -2600,-7000 38000,-7000 38000,19600 2000,21000 -2600,15000
 ```
 
-Three or more `x,y` pairs. The coordinate system is the grid's: millimetres, X east-positive, Y north-positive. Negative values are fine.
+Three or more `x,y` pairs. The coordinate system is the grid's: millimetres, +X and +Y as `grid X` and `grid Y` set them up. Negative values are fine.
+
+**These are the model's own coordinates, not a survey's.** Where the model sits on the earth and which way it faces are written separately, as [`origin`](origin.md) and [`azimuth`](azimuth.md). Boundary-point coordinates taken off a survey have to be brought into the model frame — translated, and rotated if the building is not aligned to north — before they go on this line.
 
 ## It corresponds to a zone with site:1
 

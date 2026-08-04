@@ -1,0 +1,9 @@
+koyu 1.1
+name 測地の最小例
+unit mm
+origin epsg:6677 easting:-8000.123 northing:-34000.456 elevation:2.35 vertical:6695
+azimuth Y 347.5
+grid X 0 3600
+grid Y 0 4500
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2

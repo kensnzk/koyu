@@ -101,8 +101,8 @@ Site /site (敷地)
   Site shape: polygon with 4 vertices (a polygon declaration — given geometry)
   Site area: declared 120.00 m2 / derived 120.00 m2
   Road: /road (前面道路) width 6000mm / frontage 12000mm
-  Building footprint (horizontal projection, rough): 120.00 m2 → building coverage ratio 100.0%
-  Total floor area: 120.00 m2 → floor area ratio 100.0%
+  Building footprint (horizontal projection, rough): 120.00 m2 → building coverage ratio 100%
+  Total floor area: 120.00 m2 → floor area ratio 100%
 ```
 
 Three things to read in that.

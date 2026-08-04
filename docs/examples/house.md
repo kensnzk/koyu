@@ -90,7 +90,7 @@ npx tsx src/cli.ts site examples/house.muro
 Site /site (敷地)
   Site area: declared 126.24 m2 / derived 126.24 m2
   Road: /out/road (南側道路) width 6000mm / frontage 10280mm
-  Building footprint (horizontal projection, rough): 53.00 m2 → building coverage ratio 42.0%
+  Building footprint (horizontal projection, rough): 53.00 m2 → building coverage ratio 42%
   Total floor area: 92.75 m2 → floor area ratio 73.5%
 ```
 

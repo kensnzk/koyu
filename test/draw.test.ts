@@ -104,9 +104,13 @@ test("drawing: no derivation constant is spelled in src/draw (the ledger in core
 
 // ---- 3. 平面の黒帯は Form の区間そのもの ----
 
+// azimuth is declared deliberately: the plan then draws a north arrow, and this test's population
+// of black quads has to stay exactly the cut intervals plus the columns. Without it the arrow
+// would be excluded by accident (no arrow to exclude) rather than by construction.
 const SRC = `koyu 1.1
 grid X 0 4000 8000
 grid Y 0 5000 9000
+azimuth Y 347.5
 level L1 0 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y3
 space /L1/b room X2..X3 Y1..Y2

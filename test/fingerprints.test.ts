@@ -8,6 +8,20 @@
 //
 // A failure here is therefore never "update the hash". It is either a bug, or a language change
 // that needs its own decision and a version bump.
+//
+// **The two columns do not fail for the same reasons.** The canonical hash also moves when the
+// *format* version moves, because `koyu-canonical/x.y` is the first key of every document and so
+// sits inside the bytes — that is a change of spelling, not of meaning, and it moves every example
+// at once. **The Form hash is the meaning-invariant**, and it moves only when a building really
+// became a different building. So: every canonical hash moved and no Form hash did is a format
+// bump; one canonical hash moved is that example being edited; **a Form hash moved is the language
+// moving, and nothing else looks like that.**
+//
+// The canonical column has been re-baselined twice, both times under ADR-0057: once for every
+// example, when `koyu-canonical/1.1` became `1.2`; and once for `tower` alone, when it was given
+// an `origin` and an `azimuth`. **The Form column has never been touched** — not by the format
+// bump, and not by tower gaining a frame. That second fact is the machine's proof that koyu
+// derives nothing from the frame.
 
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -20,66 +34,66 @@ import { parseFile } from "../src/parse-file.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 
-/** entry → [canonical SHA-256, Form SHA-256], measured at v0.17.0. */
+/** entry → [canonical SHA-256, Form SHA-256]. **The Form column is the one measured at v0.17.0.** */
 const BASELINE: Readonly<Record<string, readonly [string, string]>> = {
   "examples/basement/main.muro": [
-    "404fc5ae276a4bcebd40bcee84dad59e0e0871d19a89867203c3d05fb39286b2",
+    "7d42b36d4383c033bf27bbf293f217fbc96e0e021acde59d12987cb9eab5c24f",
     "6563b75ee0b10cfb5bc9a944af63eff14e2fbdf19735428f6d40dc74bb8578d9",
   ],
   "examples/complex/main.muro": [
-    "787cfc87e5c4aaf5555089f27dddffef6f82c7f32e6c2ab3b0fd437908a0e320",
+    "7ade635ac9e03d3b261f0318ba2172d6a39515dcd32414a0e715d3dbd95136c7",
     "7e3b8522272f0bf32431b3bee75776a358c0453034439cc0e2c2e98cdae847f8",
   ],
   "examples/house.muro": [
-    "19dfc7301f063c379df456474030c8c5470e99eb3fe128dd2ce4f79e1e1e5d65",
+    "4e6f9b108ab8dc72c2814f00ca02a13e92033dd10c80e2fae76675ef89b6d500",
     "43c0a10033e19eb3f3e3da11a2d7a0ef4fda5987886ea8abd25650b81ba30ad1",
   ],
   "examples/house/main.muro": [
-    "5144f112b89709ca244fb3cb09b7649df061ad77cf109e8ee95f396cebeb7e83",
+    "08c792f3e1eac1adcb81098ea26436e0d0b2e064ac6d10ae222ceb3bb01554af",
     "e3cf2f90817c9aec484833649d4b286c8f0dfc6b238bceb6b4a246434dcfb7f9",
   ],
   "examples/mansion.muro": [
-    "e07900c318b7133246022622f1e1f3ef42be3c2e4d6239cabe485fa8db533f8f",
+    "a64c2f2953e208fd1fabc4dad3d7ad63300a6ac6c225edb0d019e26b2cbd6a4d",
     "2826b693ca44b3da2203d573e5e2396b7ab6e542ca7c67cd0154c06217e105e1",
   ],
   "examples/office.muro": [
-    "d120d18f7a8d8a029d3255196175dc7b233f10f11a47990e4da6e0f1a6e453be",
+    "9a93b89e18766b08c0b2b88bb9705bc386f82c049501c0c169acd74fb091acf8",
     "e536046e5b75c3c956fd9808b6cd66d6748af538b10a5776b34ffec1ba4de454",
   ],
   "examples/steps/01-one-room.muro": [
-    "b8f7795ff8eec8f636a0da95455c2bea5be57419a38f0ac5f3d1717294fc5b9b",
+    "a05a19df3ecf84a45a1fcaa9b4d199cc2b5249b1e0c2df8d8b596413c3b7b70b",
     "9fb0d7fb5374ca8e1b98d38761f34df3d44e812ba8420a38286b6951c5f8f39f",
   ],
   "examples/steps/02-two-rooms.muro": [
-    "2569b2a8eb3aa100a4de57bc5d6d44e7f4f159c7e11136dc2a76bce22f11dd3e",
+    "a392dd9ff8bf302783b056e55de3b10683b9ce8881ee2681113009ac1874e3bf",
     "e3baa8e8f61e846ee83f025955032692898a896f8c99c235c18d8d58e08f9a65",
   ],
   "examples/steps/03-door.muro": [
-    "debd9284854db19f19e150424d8ba4bfc7f12dce8f4798670f2b275ddd20786a",
+    "a895d6015a3095f2812e0d103c60479a638f899e6ab0892c9d25b17a2dd89903",
     "682916244661f86c3502d528ff622fad0d64cfb4ad1068a9743b4c6f83490b3d",
   ],
   "examples/steps/04-exterior.muro": [
-    "47e96211aafaeb35299310ac0e295676f4ee3b4443d5e27cf5f83ca77f419d34",
+    "9d464bf0712d68b94e7cc780dc02bd022f4dae238656f487d8ef7f6d6383f109",
     "189a2ce3d8db4624da75d193a49e745a866e3ac8344282d0be8c098942158032",
   ],
   "examples/steps/05-two-storeys.muro": [
-    "cd2b1d0fa56ba35a94a2d5ad9d3e100c0c36d4d5ea4f4dc41916e7a2a93c9ca5",
+    "cda8a44507c9017762710354a8c9ea5ad00ef47a57382200b27e7d75af14c4fb",
     "1b47d3ece275091db71e862f8c4e504d84e867602c97b0a78910a13ef5f0bb40",
   ],
   "examples/steps/06-finished.muro": [
-    "318720ea50c5d4cd8d2641cdae521d5fffcd2c11556acb505c24bfeead077fec",
+    "0368af986ffc2546892ab350261c177e1332e568a9e8e3f49a39121da781fead",
     "ee5269f77e734704c5c5f05bec930859e9e18a248ff54e77b52476920e28985b",
   ],
   "examples/tower/main.muro": [
-    "d81a557c970b6e8c50126b6e33ba91b322fdba0e607a87ff60291b2d9ce3b744",
+    "9f3e4ce334d9e88d893af073ed354a5e64fd949405e6715cd72ec96a6bf368e7",
     "a483e49f4938c58ff2e3fec5b6d711071135029ff663d765d6290092d0eb24ca",
   ],
   "examples/twin/main.muro": [
-    "727bb53384d8c17e4d08036a9550400b02aaea857e667526670be9905b55f8d1",
+    "98ed8801a9f892ecb42ce287b243040a2ff05bad05f634b1013846704ad9223a",
     "37f530e039423b7a1c1aee0420a2f660d8f7ac551ad5fbbceac464cac6bee7cd",
   ],
   "examples/two-rooms.muro": [
-    "6fc26013384d8e97179f49e91900f860aeca96ebc54af18eca3e2ebe3a8b2186",
+    "e93cd6b0dee10147b78351f16f4a11832ec083d902d7863be997889b94a14236",
     "9d92220d9f2d7adc952d3cdb3a13da3cb6b32fd5991acfefd33df7ead90a1439",
   ],
 };

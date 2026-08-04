@@ -83,6 +83,8 @@ Every piece of output on this page was obtained by actually running it. Absolute
 | `byUseM2` | Area by `use`. Spaces with no determinable `use` fall into `(unspecified)` |
 | `check` | Just the `{errors, warnings}` counts. No messages |
 | `sitePolygons` | Paths of zones that have a `polygon`. **The key is absent when there are none** |
+| `origin` | The written [`origin`](../muro/origin.md) — `epsg`, `easting`, `northing`, and `elevation`/`vertical` if given. **In metres.** Absent when not written |
+| `azimuth` | The written [`azimuth`](../muro/azimuth.md): the true bearing of +Y, clockwise from true north. **Absent means the model has no bearing — it does not mean zero** |
 | `hint` | A fixed sentence aimed at the agent |
 
 ### How the counting works
@@ -127,9 +129,19 @@ Run it against an example that has a `polygon` and the polygon's area comes stra
  "sitePolygons": [
   "/site"
  ],
+ "origin": {
+  "epsg": 6677,
+  "easting": -6250.48,
+  "northing": -35720.115,
+  "elevation": 3.85,
+  "vertical": 6695
+ },
+ "azimuth": 352.4,
 ```
 
 (Excerpts of the same output against `examples/tower/main.muro`.)
+
+**Nothing is derived from `origin` or `azimuth`.** They are handed back exactly as written, for whatever places the model on a map — koyu itself computes no projection and no meridian convergence. The formula that needs both is on the [`origin`](../muro/origin.md) page.
 
 ---
 
@@ -295,7 +307,7 @@ Narrowing by `level` puts site and building spaces side by side.
 
 ```text
 {
- "format": "koyu-canonical/1.1",
+ "format": "koyu-canonical/1.2",
  "koyu": "1.0",
  "name": "二室",
  "unit": "mm",

@@ -72,6 +72,14 @@ Every outline `Form` returns is counter-clockwise (positive signed area), and re
 
 That `Form` carries no appearance is machine-enforced: the `Form` of every bundled example is serialised to JSON and checked to contain no colour spelling, no `UP`/`DN`, and no drafting word (`stroke`, `fill`, `font`, `text`, `label`, `dasharray`). **Words beyond ASCII pass only where they ride on identity written in the source** — `name`, paths, types, level names. A space named in Japanese appears in Japanese in the `Form`, because that is the identity of the subject and not its appearance. Non-ASCII on any other key fails the test.
 
+## The frame is not in the Form either
+
+[`origin`](../muro/origin.md) and [`azimuth`](../muro/azimuth.md) say where the model sits on the earth and which way it faces. **Neither appears here, and no coordinate in a `Form` is a geographic coordinate.** Every number in a `Form` is millimetres in the model's own frame, exactly as it would be with no `origin` written at all.
+
+That is the shape of the promise, not an omission. `Form` is the shape; the frame is what the shape's numbers mean, and placing the one inside the other would invite a reader to treat `Form` coordinates as coordinates on a map. Anything doing that placement reads the frame from the [canonical JSON](../json/schema.md) and applies it itself — and it needs the meridian convergence to do it, which is written out on the [`origin`](../muro/origin.md) page.
+
+**A bundled example given a frame keeps its `Form` byte for byte.** `test/fingerprints.test.ts` holds that: `examples/tower` gained an `origin` and an `azimuth`, its canonical hash moved, and its `Form` hash did not.
+
 ## What is inside Form
 
 ```ts

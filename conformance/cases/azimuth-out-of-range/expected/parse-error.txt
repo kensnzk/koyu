@@ -1,0 +1,1 @@
+azimuth is a bearing clockwise from true north, 0 <= v < 360

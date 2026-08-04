@@ -7,7 +7,7 @@ mode: explanation
 
 **1.0.0 is not the completion of features. It is the settling of the surfaces we promise not to break.** So this road is cut by "what can be frozen", not by "what will be built".
 
-The present state is **koyu 0.17.0 / muro 1.1**.
+The present state is **koyu 0.19.0 / muro 1.1**.
 
 ## There are two version lines
 
@@ -15,10 +15,10 @@ The present state is **koyu 0.17.0 / muro 1.1**.
 
 | Line | Now | What it means |
 |---|---|---|
-| Language (muro) | **1.0** | The grammar and semantics of the source. Written `koyu 1.0`. This is settled |
-| Implementation (the npm package) | **0.17.0** | The library, the CLI and the MCP server. While it is 0.x, **nothing that changes is a breaking change** |
+| Language (muro) | **1.1** | The grammar and semantics of the source. Written `koyu 1.1`. This is settled |
+| Implementation (the npm package) | **0.19.0** | The library, the CLI and the MCP server. While it is 0.x, **nothing that changes is a breaking change** |
 
-They were separated so that the implementation can keep moving after the language has settled. A file that says `koyu 1.0` reads the same whether the implementation is 0.16, 1.0 or 2.0.
+They were separated so that the implementation can keep moving after the language has settled. A file that says `koyu 1.1` reads the same whether the implementation is 0.19, 1.0 or 2.0.
 
 **Omitting the version in the source reads the file as the latest.** The accepted language versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5` and `1.0`, and a file written in an older version is checked under the acceptance conditions of that version.
 
@@ -39,7 +39,7 @@ These are the eight things 1.0.0 promises not to break. **All eight now stand in
 
 ## What is left — looking at it end to end
 
-**A surface standing and a surface being looked at are different things.** That the tests are green says something only about what the tests hold. 1.0.0 cannot be walked back, so **a person looks end to end at what the tests do not hold**. 0.17.0 is the version for doing that.
+**A surface standing and a surface being looked at are different things.** That the tests are green says something only about what the tests hold. 1.0.0 cannot be walked back, so **a person looks end to end at what the tests do not hold**. The 0.1x line is where that looking happens.
 
 There are four.
 

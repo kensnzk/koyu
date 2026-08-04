@@ -80,6 +80,14 @@ Undeclared level: ZZ9 (declared: L1 L2 R)
 
 **A green `check` does not mean `plan` will succeed.** Drawing is not what `check` inspects, and a mistyped `-l` is outside it entirely.
 
+## The north arrow
+
+**When [`azimuth`](../muro/azimuth.md) is declared, the plan draws a north arrow** in the top-right margin, pointing where true north lies on the paper. With no bearing declared there is no arrow — a model with no bearing must not be drawn as though it had one.
+
+The arrow is the reason the bearing is worth drawing at all. A reversed sign, a quadrant taken the wrong way round, a value copied off a drawing that showed magnetic north: every one of those is a well-formed number inside the accepted range, and **no check catches any of them. Looking at the arrow catches all three.**
+
+Like everything else on the paper it is presentation, and how it looks may change. What it points at may not.
+
 ## See also
 
 - [koyu axo](axo.md) — the same generate-and-look move, in three dimensions

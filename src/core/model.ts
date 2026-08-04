@@ -17,11 +17,12 @@ export const DEFAULT_LANGUAGE_VERSION = "1.1";
 
 /**
  * 機械形式 (正準JSON) が自分を名乗る版 (ADR-0036)。**言語版でもツール版でもない** —
- * 数えるのは綴りだけである。minorはキーが増えたとき (増えたキーを持たない文書のバイトは変わらない)、
- * majorは既存のキーの名前・並び・照合順・正規化・数の綴りが変わったとき (既存の文書のバイトが変わる)。
+ * 数えるのは綴りだけである。minorはキーが増えたとき、majorは既存のキーの名前・並び・照合順・
+ * 正規化・数の綴りが変わったとき。**minorでも全ての文書のバイトは動く** — この文字列自体が
+ * 第一キーだからで、増えたキーを持たない文書も先頭行だけは変わる (ADR-0051 が実測している)。
  * 意味論の版は muro が持つので、`koyu` キー (書かれた版宣言の素通し) とは別の面である
  */
-export const CANONICAL_FORMAT = "koyu-canonical/1.1";
+export const CANONICAL_FORMAT = "koyu-canonical/1.2";
 
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";
@@ -250,6 +251,13 @@ export interface Model {
   version: string;
   name?: string;
   unit: "mm";
+  /**
+   * 測地の枠 — 位置 (ADR-0057)。**core は持つだけで、投影も子午線収差角も計算しない。**
+   * モデルは一つの枠を持つ (`origin` は全レイヤーを通して一度)
+   */
+  origin?: SiteOrigin;
+  /** 測地の枠 — 真北 (ADR-0057)。**不在は 0 ではなく「未知」である** */
+  azimuth?: Azimuth;
   grid: { X: GridAxis; Y: GridAxis };
   levels: Record<string, Level>;
   spaces: Map<string, Space>;
@@ -346,6 +354,47 @@ export interface Column {
 export interface SitePolygon {
   path: string;
   points: Pt[];
+  line: number;
+  file?: string;
+}
+
+/**
+ * 測地の原点 (ADR-0057) — モデルの (0,0,0) が外の座標系のどこに座るか。測量に由来する所与で、
+ * 敷地形状 (SitePolygon) と同じ隔離レイヤーに住む。
+ *
+ * **単位はメートルであって mm ではない。** これはモデルの中の長さではなく、外の枠の中の点であり、
+ * 外の枠は自分の数字を持つ。mm を選べば `-8000.12` → `-800012` の桁埋め誤りが 7.2m のずれとして
+ * 完全に静かに通る (1000倍の誤りは騒がしいが、桁埋めの誤りは騒がない)。
+ *
+ * **EPSG コードは解釈しない。**測地系・投影・系番号・軸順を一語で言い切るので、測地系を別に綴れば
+ * 矛盾の余地ができる。core が見るのは正の整数であることだけで、コード表は持たない
+ */
+export interface SiteOrigin {
+  /** 水平 (2D 投影) CRS の EPSG コード。複合コードは受けない — `vertical` と役割を分ける */
+  epsg: number;
+  /** 東距 m。**平面直角座標系の成果では Y 欄である** */
+  easting: number;
+  /** 北距 m。**平面直角座標系の成果では X 欄である** — 通常の慣習の逆 */
+  northing: number;
+  /** モデルの z=0 の高さ m。**GL でも地盤面でも平均地盤面でもない。**`vertical` と対で書く */
+  elevation?: number;
+  /** 鉛直 CRS の EPSG コード (日本は 6695 = T.P. 系)。`elevation` と対で必須 */
+  vertical?: number;
+  line: number;
+  file?: string;
+}
+
+/**
+ * 真北 (ADR-0057) — モデルの +Y 軸の真方位角。真北から時計回りの度、0 ≤ deg < 360。
+ *
+ * **方位角であって回転角ではない。**「+Y から北へ時計回り」と綴れば逆向きの方位角になり、
+ * 建築も測量も時計回りの角を北から対象へ測るので、読者の既定の読みが定義の逆になる。
+ *
+ * `N/E/S/W` は依然として軸の語である (docs/reference/muro/orientation.md)。方位を持つ場所は
+ * ここひとつで、面の真方位角は deg / deg+90 / deg+180 / deg+270 と消費者の側で一行で出る
+ */
+export interface Azimuth {
+  deg: number;
   line: number;
   file?: string;
 }
@@ -895,6 +944,21 @@ export function toCanonical(model: Model): string {
     ...(model.versionDeclared ? { koyu: model.version } : {}),
     ...(model.name ? { name: model.name } : {}),
     unit: model.unit,
+    // 測地の枠 (ADR-0057) — **単位を言った直後、グリッドを言う前。**この二つは grid が張る
+    // 座標系そのものを外の世界に結びつけるので、その座標系より先に立つ。
+    // **値はメートル**であって mm ではない (外の枠の中の点だから)。書かれなければ鍵ごと出ない
+    ...(model.origin
+      ? {
+          origin: {
+            epsg: model.origin.epsg,
+            easting: model.origin.easting,
+            northing: model.origin.northing,
+            ...(model.origin.elevation !== undefined ? { elevation: model.origin.elevation } : {}),
+            ...(model.origin.vertical !== undefined ? { vertical: model.origin.vertical } : {}),
+          },
+        }
+      : {}),
+    ...(model.azimuth ? { azimuth: model.azimuth.deg } : {}),
     grid: { X: model.grid.X.coords, Y: model.grid.Y.coords },
     levels: sortObj(
       Object.fromEntries(

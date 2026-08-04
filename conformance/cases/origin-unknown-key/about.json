@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/muro/origin.md",
+  "docs/reference/muro/attributes.md"
+ ],
+ "why": "origin は属性の辞書を持たない (すべて型付きの欄) ので、台帳外のキーは正準形にも痕跡を残さず消える。ここで拒まなければ eastign: は「東距の無い origin」として黙って通り、しかも origin は東距と北距が対で必須なので、誤字が「原点そのものが無い」に化ける"
+}

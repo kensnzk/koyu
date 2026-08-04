@@ -385,6 +385,105 @@ function ingest(
         });
         break;
       }
+      case "origin": {
+        // 測地の枠 — 位置 (ADR-0057)。所与であって設計ではない。**core は持つだけで、投影も
+        // 子午線収差角も計算しない。**値はメートル — モデルの中の長さではなく外の枠の中の点だから
+        // origin epsg:6677 easting:-8000.123 northing:-34000.456 elevation:2.35 vertical:6695
+        if (model.origin) {
+          throw new SourceError(
+            ln,
+            `Duplicate origin: a model has one frame (first seen in ${model.origin.file ?? "the same file"} at line ${model.origin.line})`,
+          );
+        }
+        const attrs = parseAttrs(rest, ln);
+        const epsg = takeNumber(attrs, "epsg", ln, { positive: true });
+        const easting = takeNumber(attrs, "easting", ln);
+        const northing = takeNumber(attrs, "northing", ln);
+        const elevation = takeNumber(attrs, "elevation", ln);
+        const vertical = takeNumber(attrs, "vertical", ln, { positive: true });
+        // **origin は attrs を持たない。**残ったキーは正準JSONにも痕跡を残さず消えるので、
+        // ここで拒まないと `eastign:` が黙って原点の無いモデルになる (level と同じ理由 — ADR-0033)
+        for (const key of Object.keys(attrs)) {
+          throw new SourceError(
+            ln,
+            `origin carries ${key}:, which is not in the ledger (origin reads epsg / easting / northing / elevation / vertical)`,
+          );
+        }
+        if (epsg === undefined) {
+          throw new SourceError(ln, "origin requires epsg: (the EPSG code of a projected CRS)");
+        }
+        if (!Number.isInteger(epsg)) {
+          throw new SourceError(ln, `epsg is written as an EPSG code (a whole number): ${epsg}`);
+        }
+        // 東距と北距は対 — 片方だけの原点は点を指さない
+        if (easting === undefined || northing === undefined) {
+          throw new SourceError(
+            ln,
+            "origin requires easting: and northing: together (metres, in the CRS that epsg: names)",
+          );
+        }
+        // **高さは基準を言わずには受けない。**平面直角座標系の CRS は 2D で鉛直軸を持たないので、
+        // 高さだけを書けば何から測ったかが言われない。日本では T.P. / A.P. / O.P. / Y.P. が 1m 超違い、
+        // 楕円体高と正標高はジオイド高 (約30〜40m) だけ違う
+        if ((elevation === undefined) !== (vertical === undefined)) {
+          throw new SourceError(
+            ln,
+            "elevation: and vertical: are written together (a height needs the datum it is measured from)",
+          );
+        }
+        if (vertical !== undefined && !Number.isInteger(vertical)) {
+          throw new SourceError(ln, `vertical is written as an EPSG code (a whole number): ${vertical}`);
+        }
+        // 桁の上限は測地の規則ではなく書式の規則である — 正準JSONは指数表記を使わないと約束している
+        if (Math.abs(easting) > 1e7) {
+          throw new SourceError(ln, `easting is out of range for a coordinate in metres: ${easting}`);
+        }
+        if (Math.abs(northing) > 1e7) {
+          throw new SourceError(ln, `northing is out of range for a coordinate in metres: ${northing}`);
+        }
+        if (elevation !== undefined && Math.abs(elevation) > 1e4) {
+          throw new SourceError(ln, `elevation is out of range in metres: ${elevation}`);
+        }
+        model.origin = {
+          epsg,
+          easting,
+          northing,
+          ...(elevation !== undefined ? { elevation } : {}),
+          ...(vertical !== undefined ? { vertical } : {}),
+          line: ln,
+          ...(file ? { file } : {}),
+        };
+        break;
+      }
+      case "azimuth": {
+        // 測地の枠 — 真北 (ADR-0057)。**+Y 軸の真方位角**であって回転角ではない。
+        // 「+Y から北へ時計回り」と綴れば逆向きの方位角になり、読者の既定の読みが定義の逆になる
+        // azimuth Y 347.5
+        if (model.azimuth) {
+          throw new SourceError(
+            ln,
+            `Duplicate azimuth: a model has one frame (first seen in ${model.azimuth.file ?? "the same file"} at line ${model.azimuth.line})`,
+          );
+        }
+        if (rest[0] !== "Y") {
+          throw new SourceError(
+            ln,
+            `azimuth takes the form azimuth Y <degrees> (the bearing of the +Y axis): ${rest[0] ?? ""}`,
+          );
+        }
+        if (rest.length !== 2) throw new SourceError(ln, "azimuth takes one value, in degrees");
+        const deg = toNumber(rest[1]!, ln, "The azimuth");
+        // **畳まずに拒む。**370 を黙って 10 にすれば誤りが隠れる。360 も受けない (0 の二つ目の綴り)
+        if (!(deg >= 0 && deg < 360)) {
+          const hint = deg < 0 && deg > -360 ? ` (write ${deg + 360})` : "";
+          throw new SourceError(
+            ln,
+            `azimuth is a bearing clockwise from true north, 0 <= v < 360: ${deg}${hint}`,
+          );
+        }
+        model.azimuth = { deg, line: ln, ...(file ? { file } : {}) };
+        break;
+      }
       case "name": {
         const nm = rest.join(" ");
         if (!nm) throw new SourceError(ln, "name takes a value");

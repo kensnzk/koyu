@@ -266,6 +266,37 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     );
   }
 
+  // 北矢印 (ADR-0057) — azimuth が書かれているときだけ描く。**表現であって形ではない**ので
+  // Form には無く、紙の座標に直接置く。これがある理由は装飾ではない — 方位の 180度違い・
+  // 余角違い・磁北の書き写しは、どれも範囲内の整った数として通る。**絵だけが捕まえる。**
+  //
+  // 画面上の北: モデルの +Y は上、+X は右。真方位角は +Y から時計回りなので、画面でも時計回り
+  if (model.azimuth) {
+    const rad = (model.azimuth.deg * Math.PI) / 180;
+    const nx = Math.sin(rad);
+    const ny = -Math.cos(rad);
+    const cx = W - M / 2; // 右余白の中央 (通り芯記号と同じ帯に、離して置く)
+    const cy = M / 2;
+    const R = 21;
+    const px = -ny; // 軸に直交する向き (矢羽根の底辺)
+    const py = nx;
+    const r2 = (n: number): string => String(Math.round(n * 100) / 100);
+    const head = [
+      [cx + nx * R, cy + ny * R],
+      [cx + nx * R * 0.42 + px * 4.6, cy + ny * R * 0.42 + py * 4.6],
+      [cx + nx * R * 0.42 - px * 4.6, cy + ny * R * 0.42 - py * 4.6],
+    ]
+      .map(([x, y]) => `${r2(x!)},${r2(y!)}`)
+      .join(" ");
+    parts.push(
+      `<g class="north-arrow">`,
+      `<line x1="${r2(cx - nx * R * 0.8)}" y1="${r2(cy - ny * R * 0.8)}" x2="${r2(cx + nx * R)}" y2="${r2(cy + ny * R)}" stroke="${INK}" stroke-width="1"/>`,
+      `<polygon points="${head}" fill="${INK}"/>`,
+      `<text x="${r2(cx + nx * (R + 10))}" y="${r2(cy + ny * (R + 10) + 3.4)}" text-anchor="middle" font-size="9" fill="${INK}">N</text>`,
+      `</g>`,
+    );
+  }
+
   // 表題
   const title = `${model.name ?? "Untitled"} — ${level} plan`;
   parts.push(

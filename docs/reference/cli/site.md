@@ -38,12 +38,14 @@ npx tsx src/cli.ts site examples/house/main.muro
 Site /site (敷地)
   Site area: declared 126.24 m2 / derived 126.24 m2
   Road: /out/road (南側道路) width 6000mm / frontage 10280mm
-  Building footprint (horizontal projection, rough): 53.00 m2 → building coverage ratio 42.0%
+  Building footprint (horizontal projection, rough): 53.00 m2 → building coverage ratio 42%
   Total floor area: 92.75 m2 → floor area ratio 73.5%
 ```
 
 | Line | Contents |
 |---|---|
+| `Frame` | Only when [`origin`](../muro/origin.md) is declared. The EPSG code, the easting and northing **in metres**, and the height of `z = 0` if written |
+| `Bearing` | Only when [`azimuth`](../muro/azimuth.md) is declared. **The bearing in figures and again in words** |
 | `Site` | The site zone's path and display name |
 | `Site shape` | Only when a `polygon` is declared. The vertex count |
 | `Site area` | Both figures as `declared … / derived …` when `area:` is written; otherwise one figure as `Site area (derived):` |
@@ -52,6 +54,8 @@ Site /site (敷地)
 | `Total floor area` | Total floor area and floor area ratio |
 
 The denominator of the ratios is the declared value when `area:` is written, and the derived value otherwise.
+
+**The two frame lines are the only ones on this page that are not derived** — they are read straight back from what was written, and they are printed even when there is no site to report on. The bearing is repeated in words on purpose. `352.4` and `7.6° west of true north` are the same fact, but a value copied off a drawing that showed magnetic north is a well-formed number in range, and Japan's declination runs from about 5° to 9.5° west. Reading it aloud once is the only check there is.
 
 ## When the site shape is declared
 
@@ -62,13 +66,15 @@ npx tsx src/cli.ts site examples/tower/main.muro
 ```
 
 ```text
+Frame: EPSG 6677 / easting -6250.48 m / northing -35720.115 m / elevation 3.85 m of z=0 (vertical CRS 6695)
+Bearing: +Y bears 352.4° true — 7.6° west of true north
 Site /site (敷地)
   Site shape: polygon with 5 vertices (a polygon declaration — given geometry)
   Site area: declared 1097.80 m2 / derived 1097.80 m2
   Road: /out/road-s (南側道路) width 12000mm / frontage 40600mm
   Road: /out/road-e (東側道路) width 6000mm / frontage 20200mm
   Building footprint (horizontal projection, rough): 569.60 m2 → building coverage ratio 51.9%
-  Total floor area: 4785.92 m2 → floor area ratio 436.0%
+  Total floor area: 4785.92 m2 → floor area ratio 436%
 ```
 
 **When the declared and derived figures disagree, `site` silently prints both.** Calling the disagreement a problem is [`koyu validate`](validate.md)'s `koyu.schematic.site.area` (caution). A building that leaves the site polygon is `koyu.schematic.site.escape` (violation); frontage under 2m is `koyu.schematic.site.frontage` (violation).

@@ -229,7 +229,7 @@ Pick an edge with `edge:`. The compass points are these.
 | `E` | +X | right |
 | `W` | -X | left |
 
-X is positive to the east and Y positive to the north. The `edge` direction is read **from the rectangle of the space written first**.
+`N` is +Y and `E` is +X — the names come from drawing with north up. The `edge` direction is read **from the rectangle of the space written first**.
 
 Put the window and the front door on the south face: add `edge:S` on lines 13 and 15. Add `daylight:1` to `ldk` at the same time — you will use it at the end of this stage.
 

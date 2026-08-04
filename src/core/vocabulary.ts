@@ -191,6 +191,18 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
     pitch: structure(),
     underground: structure(),
   },
+
+  /**
+   * 測地の枠の位置 (ADR-0057)。level と同じく attrs を持たない — 台帳外のキーは parse が拒む。
+   * **値はメートル**であって mm ではない。EPSG コードは解釈しない不透明な整数である
+   */
+  origin: {
+    epsg: structure(),
+    easting: structure(),
+    northing: structure(),
+    elevation: structure(),
+    vertical: structure(),
+  },
 };
 
 /** その要素で、名前空間なしに書いてよいキーか */
