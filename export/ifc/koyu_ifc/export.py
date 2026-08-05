@@ -143,8 +143,20 @@ def export(data: dict) -> ifcopenshell.file:
         )
     _aggregate(f, building, list(storeys.values()), "building-storeys")
 
-    def placed_in(level_name):
-        return b.local_placement(storeys.get(level_name, building).ObjectPlacement)
+    # **Every product is placed against the building, not against its storey.**
+    #
+    # koyu's Form carries absolute coordinates — a space on the fifth floor already has its real z
+    # — so hanging a product off a storey placement that also carries the storey's elevation adds
+    # the elevation twice and lifts the whole floor. The storey keeps its own placement and its
+    # `Elevation` attribute, which is what a tool reads to know where the storey datum is; which
+    # storey a product belongs to is stated by `IfcRelContainedInSpatialStructure`, which is the
+    # normative way to say it and does not depend on the placement chain.
+    #
+    # The alternative — making every coordinate relative to its storey — is the more usual IFC
+    # shape, but koyu spaces may span storeys (an entrance hall through two floors), so there is
+    # no one storey to be relative to.
+    def placed_in(_level_name):
+        return b.local_placement(building.ObjectPlacement)
 
     elements = defaultdict(list)
 
