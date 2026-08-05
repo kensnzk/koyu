@@ -85,6 +85,29 @@ model_summary → layers → write_layer → check ──error──→ fix it a
 10. **When writing a document, paste only output you actually ran.** Never paste guessed output.
 11. **Everything inside code is written in English** — comments, identifiers, test names, assertion messages, and the `description` fields of a JSON Schema. **The published documentation is English too** — its reader is a machine, and the processor already answers in English everywhere it speaks. Japanese survives only where the reader is a person and the page is not published: the ADRs under `docs/decisions/`, and the working notes at the top of `docs/`.
 
+## How a change ships
+
+**Work on a branch. Never edit in the working tree of `main`** — cut the branch before the first edit, not after the last one.
+
+Then the road is fixed, and **it is four steps, not three.** The fourth is the one that gets forgotten.
+
+| # | Step | Who does it | What runs |
+|---|---|---|---|
+| 1 | Open the PR | you | `ci.yml` on push and pull_request — typecheck, test, `check:examples`, `gate:examples` |
+| 2 | Merge into `main` | the person | `ci.yml` again on `main` |
+| 3 | **Raise the version** | you, *inside the PR* | `test/release.test.ts` holds `package.json`, `package-lock.json`, `CITATION.cff` and `src/mcp.ts` in step |
+| 4 | **Cut the release `v<version>`** | **you** | `publish.yml` fires on `release: published`, checks the tag against `package.json`, builds, and publishes to npm |
+
+**Nothing in this repository creates the release.** `publish.yml` only consumes one. A release created by a workflow's `GITHUB_TOKEN` would not fire `release: published` at all (GitHub suppresses it to stop loops), so the step is deliberately a person's — and the agent doing the work is who performs it.
+
+```sh
+gh release create v0.19.0 --target "$(git rev-parse origin/main)" --title "v0.19.0 — …" --notes "…"
+```
+
+**A merged PR is not a shipped change.** Stopping at step 2 leaves the version raised on `main` and nothing on the registry — a state nobody notices until someone installs the package and gets the old one. **When a change raises the version, cut the release in the same sitting.** If the version was not raised, there is nothing to cut, and saying so out loud is part of finishing.
+
+Publishing needs no token: npm Trusted Publishing (OIDC) trusts `publish.yml` itself as the identity.
+
 ## When you hit an error
 
 The human-facing output of `check` carries no diagnostic codes. Add `--json` and the codes appear. To go from a code to the cause and the fix, use [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) — all 67 codes have a page per family carrying the code, its severity, and how to fix it. To go from a symptom, use [docs/howto/by-symptom.md](docs/howto/by-symptom.md).
