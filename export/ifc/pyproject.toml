@@ -1,0 +1,13 @@
+[project]
+name = "koyu-ifc"
+version = "0.1.0"
+description = "Write a koyu building out as IFC4"
+requires-python = ">=3.9"
+dependencies = ["ifcopenshell>=0.8"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["koyu_ifc"]
