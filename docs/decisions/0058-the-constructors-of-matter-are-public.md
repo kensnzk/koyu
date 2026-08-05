@@ -1,39 +1,70 @@
-# ADR-0058: 実体の構成子を公開面に出す — 書き直させない約束を、書き直せない形にする
+# ADR-0058: The constructors of matter go on the public surface
 
-- 状態: 採用
-- 日付: 2026-08-05
-- 対象: `@kensnzk/koyu/form` の `thicken` / `bandLine` / `band` / `columnRect` / `runPrism` と `FormPrism`
+- Status: accepted
+- Date: 2026-08-05
+- Subject: `thicken` / `bandLine` / `band` / `columnRect` / `runPrism` and `FormPrism`, on `@kensnzk/koyu/form`
 
-## 文脈
+## Context
 
-公開文書 `docs/reference/form/index.md` に「実体の構成子」という節があり、こう書かれていた。
+`Form` holds a wall as a centre line, a thickness and a z range. It does not hold the wall's four
+corners. Turning `(3600,0)-(3600,4500)` with a thickness of 120 into the corners `(3540,0)`
+`(3540,4500)` `(3660,4500)` `(3660,0)` is what `thicken` does, and koyu's own SVG drawing calls it.
 
-> `Form` は芯線・厚み・z を持つ。そこから実体を起こすこと自体が導出の一部なので、実装はちょうど一つある。各消費者がそれを書き直せば、部品は共有されても**組み立ての規則は共有されず**、「一つの `Form` から二つの形」の扉がまた開く。
+`docs/reference/form/index.md` lists five such functions — `thicken`, `bandLine`, `band`,
+`columnRect`, `runPrism` — and states why they exist: raising matter from centre lines is part of
+the derivation, so there is one implementation of it, and a consumer that writes its own can
+disagree with koyu about where the wall is.
 
-そして五つを表に並べていた — `thicken` `bandLine` `band` `columnRect` `runPrism`。
+**None of the five was exported.** `import { thicken } from "@kensnzk/koyu/form"` failed, and
+`test/public-api-subpaths.test.ts` listed all five as names that must not appear on that surface.
+The page described an API the package did not have.
 
-**その五つは一つも公開されていなかった。** `test/public-api-subpaths.test.ts` が `/form` の `forbidden` に名指しで並べており、`docs/reference/api/index.md` にも現れない。規範のページが持っていると言い、面が持っていなかった。
+This came out when the first serious consumer arrived. Writing a koyu building as IFC needs the
+corners of every wall, the band of every opening, the section of every column and the prism of
+every stair tread. With none of them importable, three had been written again in Python before the
+contradiction was noticed — two implementations of the same calculation, one in TypeScript and one
+in Python, either of which could round or sign differently. The same `.muro` file would then put a
+wall in one place in koyu's drawing and in another place in the IFC.
 
-食い違いが露見したのは、IFC の書き出し (`export/ifc/`) という**最初の本気の消費者**が現れたときである。壁の実体を起こすのに `thicken` が要り、開口の帯に `band` が要り、柱の断面に `columnRect` が要り、縦動線に `runPrism` が要る。どれも import できないので、**三つを Python で書き直したところで気づいた** — 文書が名指しで禁じている状態を、そのまま作っていた。
+## Decision
 
-## 決定
+**1. Export the five constructors and `FormPrism` from `@kensnzk/koyu/form`.** The page is right,
+so the surface moves to meet it rather than the page being cut down to match. The change is
+additive and breaks no existing promise.
 
-**1. 五つの構成子と `FormPrism` を `@kensnzk/koyu/form` から公開する。** 文書を実装に合わせて削るのではなく、実装を文書に合わせる。文書の言い分が正しいからである — 組み立ての規則が共有されなければ、同じ `Form` から違う形が出る。この面は凍る面だが、変更は加算であって既存の約束を一つも壊さない。
+**2. A consumer holds no geometry rule.** That is what the export buys. The IFC exporter now
+receives outlines koyu's own constructors produced and decides only which IFC entities exist and
+how they relate. There is no longer anywhere in it to write "a wall is measured from its centre
+line".
 
-**2. 消費者は幾何の規則を持たない。** これが公開の目的である。IFC の書き出しは、koyu の構成子が起こした点列を受け取り、IFC のエンティティを書くだけになる。Python 側に「壁の芯振り分けとは何か」「帯はどこに置かれるか」を書く場所が無くなる。
+**3. Do not build the machinery that would have caught this, yet.** The drift was possible because
+`test/docs-ledger.test.ts` binds the names in `src/index.ts` to the documentation and does not
+bind the twelve subpaths. Building that ledger is its own change. A second drift of the same kind
+is the signal to build it; one occurrence is an accident, two is a missing mechanism.
 
-**3. 公開面の表と規範のページを機械で結ぶ手当ては、今回はしない。** この食い違いを許したのは、`test/docs-ledger.test.ts` が `src/index.ts` の名だけを文書と突き合わせ、**副入口の名を突き合わせていない**ことである。副入口12本の名を全部台帳にするのは別の変更で、今はこの一件を直す。**同じ理由の食い違いが二度目に出たらそれをやる** — 一度目は事故、二度目は仕組みの不足である。
+## Alternatives
 
-## 代替案
+**Delete the section from the page.** Treat the implementation as correct and state that consumers
+write their own. Rejected because it weakens what `Form` promises: `docs/reference/stability.md`
+says two `Form`s from one composition is a defect, and if shape may diverge after `Form` then that
+promise stops at the package boundary rather than at the model.
 
-**文書から節を削る**案。実装が正しいとみなし、「消費者は自分で書き直す」を明文化する。退けたのは、そうすると `Form` の約束そのものが弱くなるからである — `docs/reference/stability.md` は「一つの構成から二つの `Form` が出るのは欠陥である」と書いており、`Form` から先で形が分岐してよいなら、その約束は消費者の手前で止まる。
+**Have `derive` return the raised matter.** Put wall quadrilaterals and column sections into
+`Form` itself. Rejected because `Form` grows, and because the present design — centre lines plus
+thickness, with matter raised on demand — costs nothing to a consumer that wants adjacency, areas
+or a difference rather than shape. Exporting the constructors as functions shares the rules while
+keeping that design.
 
-**`derive` が実体まで起こして返す**案。`Form` に壁の四辺形も柱の断面も入れてしまう。退けたのは `Form` が太るからで、しかも「芯線と厚みを持ち、実体は起こせる」という現在の設計は、消費者が実体を要らないとき (グラフの問い、面積、差分) に無駄を払わせない。**構成子を関数として出すのは、その設計を保ったまま規則を共有する唯一の形である。**
+## Consequences and costs
 
-## 帰結と代償
+The IFC exporter contains no geometry rule. Two implementations of "where is the face of this
+wall" have become one again.
 
-書き出しは幾何の規則をひとつも持たなくなった。`export/ifc/` の Python から `rectangle_along` と `box_across` が消え、Node の側が koyu の構成子を適用して点列を渡す。**「一つの `Form` から二つの形」は、消費者の側で構造的に起こせなくなった。**
+The cost is five more signatures that cannot change. `thicken(x1, y1, x2, y2, t)` takes bare
+numbers where a later design might prefer a `Segment`; changing it would mean adding a name rather
+than editing this one.
 
-代償は凍る面が五つ増えたことである。これらの署名は今後変えられない。`thicken(x1, y1, x2, y2, t)` のような素の数の並びは、後から `Segment` を受ける形に直したくなるかもしれない — そのときは新しい名を足すことになる。
-
-副入口の名が規範のページと機械で結ばれていない状態は残る。この一件で分かったのは、**公開文書が「ある」と言っているものを消費者が使えないという食い違いは、消費者が現れるまで誰も気づかない**ということである。IFC の書き出しがそれを一度で見つけたのは、リポジトリの中に置いたからで、別リポジトリなら穴一つにリリースが一回かかっていた。
+The subpath names remain unbound to the documentation by machine. What this episode showed is that
+a published page promising something the package does not have is invisible until a consumer needs
+it. The IFC export found it on the first attempt because it lives in this repository; from a
+separate repository the same gap would have cost a release to close.
