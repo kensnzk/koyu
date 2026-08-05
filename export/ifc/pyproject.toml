@@ -3,7 +3,14 @@ name = "koyu-ifc"
 version = "0.1.0"
 description = "Write a koyu building out as IFC4"
 requires-python = ">=3.9"
-dependencies = ["ifcopenshell>=0.8"]
+dependencies = ["ifcopenshell>=0.8", "pyproj>=3.4"]
+
+[project.scripts]
+koyu-ifc = "koyu_ifc.cli:main"
+koyu-ifc-mcp = "koyu_ifc.mcp:main"
+
+[project.optional-dependencies]
+test = ["pytest", "numpy"]
 
 [build-system]
 requires = ["setuptools>=68"]

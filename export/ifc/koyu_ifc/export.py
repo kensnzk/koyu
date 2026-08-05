@@ -1,18 +1,19 @@
 """Write one koyu building out as IFC4.
 
-The input is the single JSON document `bin/koyu-form.mjs` produces: the Form (shape) paired with
-the canonical JSON (attributes).
+The input is the single JSON document `bin/koyu-form.mjs` produces. Every outline in it was
+already raised by koyu's own constructors, so **this module holds no geometry rule at all** — it
+decides which IFC entities exist and how they are related, and nothing about where a face is.
 
-**The wall is built at full length and the opening is cut out of it.**
-`FormBoundary.material.panels` is already divided by the openings, so taking the panels as the
-material would give correct geometry on its own. But then there is no `IfcOpeningElement`, and
-**which wall a door is hosted in is nowhere in the IFC**. So the wall is built whole, the opening
-box is removed by `IfcRelVoidsElement`, and the leaf is fitted by `IfcRelFillsElement`. The panels
-are not thrown away — they are the check: the result of the boolean should equal their union.
+**The wall is built at full length and the opening is cut out of it.** koyu's `material.panels`
+is already divided by the openings, so the panels alone would give correct geometry. But then no
+`IfcOpeningElement` exists and **which wall hosts a door is nowhere in the file**. So the wall is
+built whole, the opening box is removed by `IfcRelVoidsElement`, and the leaf is fitted by
+`IfcRelFillsElement`. The panels become the check instead: the volume left after the boolean must
+equal theirs, and the two derivations never met on the way in.
 
 **There is no OwnerHistory.** IFC4 makes it optional, and koyu's position is that git holds the
-history. Inventing a person, an organisation and a timestamp here would also make the output
-different on every run.
+history. Inventing a person, an organisation and a timestamp would also make the output different
+on every run.
 """
 
 from __future__ import annotations
@@ -23,40 +24,49 @@ from pathlib import Path
 
 import ifcopenshell
 
-from .geometry import Builder, box_across, rectangle_along
+from . import georeference, properties
+from .geometry import Builder
 from .identity import global_id, space_identity, wall_identity
 
-# The cutting box is made slightly thicker than the wall. Exactly coplanar faces make the
-# boolean unstable.
-OPENING_OVERSHOOT_MM = 2.0
-# The leaf's own thickness — the door, not the wall it sits in.
 LEAF_THICKNESS_MM = 40.0
 
-
-def _direction_of_true_north(f, azimuth_deg: float):
-    """True north, expressed in the model's own coordinates.
-
-    `azimuth` is the true bearing of the +Y axis, clockwise from north, so true north is +Y turned
-    counter-clockwise by that much. At 0 it is (0,1) = +Y; at 90 it is (-1,0) = -X.
-    """
-    import math
-
-    a = math.radians(azimuth_deg)
-    return f.create_entity("IfcDirection", DirectionRatios=(-math.sin(a), math.cos(a)))
+# koyu's device names, and what IFC calls them.
+RUN_ENTITY = {
+    "stair": "IfcStair",
+    "ramp": "IfcRamp",
+    "escalator": "IfcTransportElement",
+    "lift": "IfcTransportElement",
+}
+RUN_TYPE = {
+    ("stair", "straight"): "STRAIGHT_RUN_STAIR",
+    ("stair", "return"): "HALF_TURN_STAIR",
+    ("ramp", "straight"): "STRAIGHT_RUN_RAMP",
+    ("ramp", "return"): "HALF_TURN_RAMP",
+    ("escalator", "straight"): "ESCALATOR",
+    ("escalator", "return"): "ESCALATOR",
+    ("lift", "straight"): "ELEVATOR",
+    ("lift", "return"): "ELEVATOR",
+}
 
 
 def export(data: dict) -> ifcopenshell.file:
-    form = data["form"]
     canonical = data["canonical"]
     name = canonical.get("name") or "koyu"
+    space_attrs = {p: s.get("attrs", {}) for p, s in canonical.get("spaces", {}).items()}
+    boundary_attrs = _boundary_attrs(canonical)
 
     f = ifcopenshell.file(schema="IFC4")
 
     # ---- Units. koyu is millimetres, so the numbers pass through unchanged ----
-    mm = f.create_entity("IfcSIUnit", UnitType="LENGTHUNIT", Prefix="MILLI", Name="METRE")
-    m2 = f.create_entity("IfcSIUnit", UnitType="AREAUNIT", Name="SQUARE_METRE")
-    m3 = f.create_entity("IfcSIUnit", UnitType="VOLUMEUNIT", Name="CUBIC_METRE")
-    units = f.create_entity("IfcUnitAssignment", Units=[mm, m2, m3])
+    units = f.create_entity(
+        "IfcUnitAssignment",
+        Units=[
+            f.create_entity("IfcSIUnit", UnitType="LENGTHUNIT", Prefix="MILLI", Name="METRE"),
+            f.create_entity("IfcSIUnit", UnitType="AREAUNIT", Name="SQUARE_METRE"),
+            f.create_entity("IfcSIUnit", UnitType="VOLUMEUNIT", Name="CUBIC_METRE"),
+            f.create_entity("IfcSIUnit", UnitType="PLANEANGLEUNIT", Name="RADIAN"),
+        ],
+    )
 
     # ---- The representation context. True north rides here ----
     context = f.create_entity(
@@ -68,9 +78,7 @@ def export(data: dict) -> ifcopenshell.file:
             "IfcAxis2Placement3D",
             Location=f.create_entity("IfcCartesianPoint", Coordinates=(0.0, 0.0, 0.0)),
         ),
-        TrueNorth=(
-            _direction_of_true_north(f, canonical["azimuth"]) if "azimuth" in canonical else None
-        ),
+        TrueNorth=_true_north(f, canonical.get("azimuth")),
     )
     body = f.create_entity(
         "IfcGeometricRepresentationSubContext",
@@ -80,6 +88,11 @@ def export(data: dict) -> ifcopenshell.file:
         TargetView="MODEL_VIEW",
     )
     b = Builder(f, body)
+    vocabulary = properties.Vocabulary(f)
+
+    # ---- Georeferencing. Both halves of the frame or neither ----
+    if "origin" in canonical and "azimuth" in canonical:
+        georeference.write(f, context, canonical["origin"], float(canonical["azimuth"]))
 
     # ---- Spatial structure ----
     project = f.create_entity(
@@ -92,10 +105,22 @@ def export(data: dict) -> ifcopenshell.file:
     site = f.create_entity(
         "IfcSite",
         GlobalId=global_id("site", name),
-        Name="Site",
+        Name=data["site"][0]["path"] if data["site"] else "Site",
         ObjectPlacement=b.local_placement(),
+        Representation=b.footprint(data["site"][0]["points"]) if data["site"] else None,
         CompositionType="ELEMENT",
+        RefElevation=float(canonical["origin"]["elevation"])
+        if "origin" in canonical and "elevation" in canonical["origin"]
+        else None,
     )
+    if data["site"]:
+        properties.attach_quantities(
+            f,
+            site,
+            f"site:{data['site'][0]['path']}",
+            "Qto_SiteBaseQuantities",
+            [properties.area(f, "GrossArea", data["site"][0]["areaM2"])],
+        )
     building = f.create_entity(
         "IfcBuilding",
         GlobalId=global_id("building", name),
@@ -107,7 +132,7 @@ def export(data: dict) -> ifcopenshell.file:
     _aggregate(f, site, [building], "site-building")
 
     storeys = {}
-    for level in form["levels"]:
+    for level in data["levels"]:
         storeys[level["name"]] = f.create_entity(
             "IfcBuildingStorey",
             GlobalId=global_id("storey", level["name"]),
@@ -118,98 +143,150 @@ def export(data: dict) -> ifcopenshell.file:
         )
     _aggregate(f, building, list(storeys.values()), "building-storeys")
 
+    def placed_in(level_name):
+        return b.local_placement(storeys.get(level_name, building).ObjectPlacement)
+
+    elements = defaultdict(list)
+
     # ---- Spaces ----
     spaces = {}
     by_storey_spaces = defaultdict(list)
-    for s in form["spaces"]:
-        attrs = canonical["spaces"].get(s["path"], {}).get("attrs", {})
-        solid = b.shape(
-            b.extrude(piece, float(s.get("z0", 0.0)), float(s.get("z1", 0.0)))
-            for piece in _pieces(s["outline"])
-        )
-        space = f.create_entity(
+    for s in data["spaces"]:
+        attrs = space_attrs.get(s["path"], {})
+        product = f.create_entity(
             "IfcSpace",
             GlobalId=global_id("space", space_identity(s["path"], attrs)),
             Name=s["path"],
             LongName=attrs.get("name"),
-            ObjectPlacement=b.local_placement(storeys.get(s.get("level"), building).ObjectPlacement),
-            Representation=solid,
+            ObjectPlacement=placed_in(s.get("level")),
+            Representation=b.shape(
+                b.extrude(piece, float(s.get("z0", 0.0)), float(s.get("z1", 0.0)))
+                for piece in s["outline"]
+            ),
             CompositionType="ELEMENT",
             PredefinedType="INTERNAL" if s.get("indoor") else "EXTERNAL",
         )
-        spaces[s["path"]] = space
-        by_storey_spaces[s.get("level")].append(space)
-        _koyu_pset(f, space, s, attrs)
+        spaces[s["path"]] = product
+        by_storey_spaces[s.get("level")].append(product)
+        properties.space(f, product, s, attrs)
+        if isinstance(attrs.get("use"), str):
+            vocabulary.classify(product, "use", attrs["use"])
     for level_name, members in by_storey_spaces.items():
         if level_name in storeys:
             _aggregate(f, storeys[level_name], members, f"storey-spaces-{level_name}")
 
+    # ---- The outside. A space with no region never reaches the Form, so it comes from the
+    # canonical form. IFC4 has a type for exactly this, and without it every envelope boundary
+    # would have nothing on its far side ----
+    external = {}
+    for path, s in sorted(canonical.get("spaces", {}).items()):
+        if s.get("attrs", {}).get("outside") != 1 or path in spaces:
+            continue
+        external[path] = f.create_entity(
+            "IfcExternalSpatialElement",
+            GlobalId=global_id("external", space_identity(path, s.get("attrs", {}))),
+            Name=path,
+            LongName=s.get("attrs", {}).get("name"),
+            ObjectPlacement=b.local_placement(),
+            PredefinedType="EXTERNAL",
+        )
+    if external:
+        f.create_entity(
+            "IfcRelReferencedInSpatialStructure",
+            GlobalId=global_id("references", "external"),
+            RelatingStructure=site,
+            RelatedElements=list(external.values()),
+        )
+
     # ---- Walls. Cut the openings, fit the leaves ----
     seen_ref = defaultdict(int)
-    walls = {}  # (ref, index) -> IfcWall
-    wall_of_boundary = []  # in the Form's own order
-    by_storey_elements = defaultdict(list)
-    for bd in form["boundaries"]:
-        index = seen_ref[bd["ref"]]
-        seen_ref[bd["ref"]] += 1
-        material = bd.get("material")
-        seg = bd["segment"]
-        if not material:
+    walls = {}
+    element_of_wall = []
+    for w in data["walls"]:
+        index = seen_ref[w["ref"]]
+        seen_ref[w["ref"]] += 1
+        identity = wall_identity(w["ref"], index)
+        w["identity"] = identity
+        attrs = boundary_attrs.get(w["ref"], {})
+        is_external = w["a"] not in spaces or w["b"] not in spaces
+        if not w.get("material"):
             # A boundary of kind `open` has a line and no matter. IFC keeps a type for exactly
             # this, and `IfcRelSpaceBoundary.RelatedBuildingElement` is not optional, so the
             # relation cannot be written without one.
-            identity = wall_identity(bd["ref"], index)
             virtual = f.create_entity(
                 "IfcVirtualElement",
                 GlobalId=global_id("virtual", identity),
                 Name=identity,
-                ObjectPlacement=b.local_placement(
-                    storeys.get(bd.get("level"), building).ObjectPlacement
-                ),
+                ObjectPlacement=placed_in(w.get("level")),
             )
-            wall_of_boundary.append(virtual)
-            by_storey_elements[bd.get("level")].append(virtual)
+            element_of_wall.append(virtual)
+            elements[w.get("level")].append(virtual)
             continue
-        outline = rectangle_along(seg["x1"], seg["y1"], seg["x2"], seg["y2"], float(material["t"]))
-        identity = wall_identity(bd["ref"], index)
-        wall = f.create_entity(
+        material = w["material"]
+        product = f.create_entity(
             "IfcWall",
             GlobalId=global_id("wall", identity),
             Name=identity,
-            ObjectPlacement=b.local_placement(storeys.get(bd.get("level"), building).ObjectPlacement),
+            ObjectPlacement=placed_in(w.get("level")),
             Representation=b.shape(
-                [b.extrude(outline, float(material["z0"]), float(material["z1"]))]
+                [b.extrude(material["outline"], float(material["z0"]), float(material["z1"]))]
             ),
             PredefinedType="STANDARD",
         )
-        walls[(bd["ref"], index)] = (wall, seg)
-        wall_of_boundary.append(wall)
-        by_storey_elements[bd.get("level")].append(wall)
+        walls[(w["ref"], index)] = (product, w["segment"])
+        element_of_wall.append(product)
+        elements[w.get("level")].append(product)
+        properties.wall(f, product, w, attrs, is_external)
+        if isinstance(attrs.get("spec"), str):
+            vocabulary.associate_material(product, attrs["spec"])
 
-    # An opening finds its wall through the boundary ref; where one ref gave several walls, the
-    # segment the opening sits on decides which.
-    for op in form["openings"]:
+    # ---- Door and window types. koyu's `asset` is IFC's type object, so it maps across whole ----
+    types = {}
+    for asset_name, asset in sorted(canonical.get("assets", {}).items()):
+        style = asset.get("attrs", {}).get("style")
+        is_door = asset["kind"] == "door"
+        # IFC4 requires an operation on a door type and a partitioning on a window type. koyu's
+        # `style` is a coarse word (`hinged` / `sliding` / `auto`) and IFC's enumerations name a
+        # hand as well — so rather than inventing "sliding to the left", the koyu word goes in
+        # under `USERDEFINED`, which is what that value is for. Nothing is claimed that the source
+        # did not say.
+        kind_args = (
+            {
+                "OperationType": "USERDEFINED" if isinstance(style, str) else "NOTDEFINED",
+                **({"ElementType": style} if isinstance(style, str) else {}),
+            }
+            if is_door
+            else {"PartitioningType": "NOTDEFINED"}
+        )
+        types[asset_name] = f.create_entity(
+            "IfcDoorType" if is_door else "IfcWindowType",
+            GlobalId=global_id("type", asset_name),
+            Name=asset_name,
+            PredefinedType="NOTDEFINED",
+            **kind_args,
+        )
+        properties.attach_pset(
+            f,
+            types[asset_name],
+            f"type:{asset_name}",
+            "koyu",
+            [properties.single(f, f"koyu.{k}", v) for k, v in sorted(asset.get("attrs", {}).items())],
+        )
+    by_type = defaultdict(list)
+
+    # ---- Openings ----
+    opening_attrs = _opening_attrs(canonical)
+    for op in data["openings"]:
         wall = _wall_for_opening(walls, op)
         if wall is None:
             continue
-        seg = op["segment"]
-        depth = float(op["t"]) + OPENING_OVERSHOOT_MM
         void = f.create_entity(
             "IfcOpeningElement",
             GlobalId=global_id("opening", op["ref"]),
             Name=op["ref"],
             ObjectPlacement=b.local_placement(wall.ObjectPlacement),
             Representation=b.shape(
-                [
-                    b.extrude(
-                        box_across(
-                            op["cx"], op["cy"], seg["x1"], seg["y1"], seg["x2"], seg["y2"],
-                            float(op["w"]), depth,
-                        ),
-                        float(op["z0"]),
-                        float(op["z1"]),
-                    )
-                ]
+                [b.extrude(op["cutOutline"], float(op["z0"]), float(op["z1"]))]
             ),
             PredefinedType="OPENING",
         )
@@ -219,23 +296,13 @@ def export(data: dict) -> ifcopenshell.file:
             RelatingBuildingElement=wall,
             RelatedOpeningElement=void,
         )
+        leaf = _leaf_outline(op)
         filler = f.create_entity(
             "IfcDoor" if op["kind"] == "door" else "IfcWindow",
             GlobalId=global_id("filler", op["ref"]),
             Name=op.get("name") or op["ref"],
             ObjectPlacement=b.local_placement(wall.ObjectPlacement),
-            Representation=b.shape(
-                [
-                    b.extrude(
-                        box_across(
-                            op["cx"], op["cy"], seg["x1"], seg["y1"], seg["x2"], seg["y2"],
-                            float(op["w"]), LEAF_THICKNESS_MM,
-                        ),
-                        float(op["z0"]),
-                        float(op["z1"]),
-                    )
-                ]
-            ),
+            Representation=b.shape([b.extrude(leaf, float(op["z0"]), float(op["z1"]))]),
             OverallHeight=float(op["z1"]) - float(op["z0"]),
             OverallWidth=float(op["w"]),
         )
@@ -245,52 +312,96 @@ def export(data: dict) -> ifcopenshell.file:
             RelatingOpeningElement=void,
             RelatedBuildingElement=filler,
         )
-        by_storey_elements[op.get("level")].append(filler)
-
-    # ---- Slabs and columns ----
-    for slab in form["slabs"]:
-        element = f.create_entity(
-            "IfcSlab",
-            GlobalId=global_id("slab", f"{slab['space']}/{slab['kind']}"),
-            Name=f"{slab['space']} {slab['kind']}",
-            ObjectPlacement=b.local_placement(
-                storeys.get(slab.get("level"), building).ObjectPlacement
-            ),
-            Representation=b.shape(
-                [b.extrude(_ring(slab["outline"]), float(slab["z0"]), float(slab["z1"]))]
-            ),
-            PredefinedType="ROOF" if slab["kind"] == "roof" else "FLOOR",
+        elements[op.get("level")].append(filler)
+        attrs = opening_attrs.get(op["ref"], {})
+        properties.opening(f, filler, op, attrs)
+        ref = attrs.get("ref")
+        if isinstance(ref, str) and ref in types:
+            by_type[ref].append(filler)
+    for asset_name, members in by_type.items():
+        f.create_entity(
+            "IfcRelDefinesByType",
+            GlobalId=global_id("typed", asset_name),
+            RelatedObjects=members,
+            RelatingType=types[asset_name],
         )
-        by_storey_elements[slab.get("level")].append(element)
 
-    for col in form["columns"]:
-        half_w, half_d = float(col["w"]) / 2.0, float(col["d"]) / 2.0
-        x, y = float(col["x"]), float(col["y"])
-        element = f.create_entity(
+    # ---- Slabs, columns, the uncounted segments ----
+    # A space whose region is not convex is derived as several pieces, and each piece carries its
+    # own floor. So the identity counts within (space, kind) exactly as a wall counts within a ref.
+    seen_slab = defaultdict(int)
+    for slab in data["slabs"]:
+        key = f"{slab['space']}/{slab['kind']}"
+        index = seen_slab[key]
+        seen_slab[key] += 1
+        elements[slab.get("level")].append(
+            f.create_entity(
+                "IfcSlab",
+                GlobalId=global_id("slab", f"{key}#{index}"),
+                Name=f"{slab['space']} {slab['kind']}",
+                ObjectPlacement=placed_in(slab.get("level")),
+                Representation=b.shape(
+                    [b.extrude(slab["outline"], float(slab["z0"]), float(slab["z1"]))]
+                ),
+                PredefinedType="ROOF" if slab["kind"] == "roof" else "FLOOR",
+            )
+        )
+
+    for col in data["columns"]:
+        product = f.create_entity(
             "IfcColumn",
             GlobalId=global_id("column", col["ref"]),
             Name=col["ref"],
-            ObjectPlacement=b.local_placement(
-                storeys.get(col.get("level"), building).ObjectPlacement
-            ),
+            ObjectPlacement=placed_in(col.get("level")),
             Representation=b.shape(
-                [
-                    b.extrude(
-                        [
-                            (x - half_w, y - half_d),
-                            (x + half_w, y - half_d),
-                            (x + half_w, y + half_d),
-                            (x - half_w, y + half_d),
-                        ],
-                        float(col["z0"]),
-                        float(col["z1"]),
-                    )
-                ]
+                [b.extrude(col["outline"], float(col["z0"]), float(col["z1"]))]
             ),
         )
-        by_storey_elements[col.get("level")].append(element)
+        elements[col.get("level")].append(product)
+        if isinstance(col.get("attrs", {}).get("spec"), str):
+            vocabulary.associate_material(product, col["attrs"]["spec"])
 
-    for level_name, members in by_storey_elements.items():
+    # A `seg` is an uncounted stretch of a boundary that carries its own attributes — a change of
+    # finish partway along a wall. IFC has no first-class notion of "part of a wall with different
+    # properties", so it becomes a covering on that stretch, which is what it describes.
+    for s in data["segs"]:
+        wall_ref = s["ref"].rsplit("/", 1)[0]
+        host = next((w for (r, _i), (w, _seg) in walls.items() if r == wall_ref), None)
+        product = f.create_entity(
+            "IfcCovering",
+            GlobalId=global_id("seg", s["ref"]),
+            Name=s["ref"],
+            ObjectPlacement=placed_in(s.get("level")),
+            Representation=b.shape([b.extrude(s["outline"], 0.0, float(s["t"]))]),
+            PredefinedType="CLADDING",
+        )
+        elements[s.get("level")].append(product)
+        if host is not None:
+            f.create_entity(
+                "IfcRelCoversBldgElements",
+                GlobalId=global_id("covers", s["ref"]),
+                RelatingBuildingElement=host,
+                RelatedCoverings=[product],
+            )
+
+    # ---- Vertical circulation ----
+    for r in data["runs"]:
+        tag = f"{r['path']}@{r['level']}"
+        entity = RUN_ENTITY[r["device"]]
+        product = f.create_entity(
+            entity,
+            GlobalId=global_id("run", tag),
+            Name=tag,
+            ObjectPlacement=placed_in(r.get("level")),
+            Representation=b.shape(
+                b.prism(s["outline"], s["bottom"], s["top"]) for s in r["solids"]
+            ),
+            PredefinedType=RUN_TYPE[(r["device"], r["form"])],
+        )
+        elements[r.get("level")].append(product)
+        properties.run(f, product, r)
+
+    for level_name, members in elements.items():
         if level_name in storeys and members:
             f.create_entity(
                 "IfcRelContainedInSpatialStructure",
@@ -299,23 +410,46 @@ def export(data: dict) -> ifcopenshell.file:
                 RelatedElements=members,
             )
 
+    # ---- Zones. koyu's counted aggregation is IFC's group of spaces ----
+    for path, zone in sorted(canonical.get("zones", {}).items()):
+        members = [p for q, p in spaces.items() if q == path or q.startswith(path + "/")]
+        if not members:
+            continue
+        attrs = zone.get("attrs", {})
+        group = f.create_entity(
+            "IfcZone",
+            GlobalId=global_id("zone", space_identity(path, attrs)),
+            Name=path,
+            LongName=attrs.get("name"),
+        )
+        f.create_entity(
+            "IfcRelAssignsToGroup",
+            GlobalId=global_id("assigns", path),
+            RelatedObjects=members,
+            RelatingGroup=group,
+        )
+        if isinstance(attrs.get("use"), str):
+            vocabulary.classify(group, "use", attrs["use"])
+
     # ---- Space boundaries. **What a working export drops first, koyu holds as a first-class
-    # edge.** ----
-    for bd, element in zip(form["boundaries"], wall_of_boundary):
+    # edge**, so it is written rather than inferred ----
+    for w, element in zip(data["walls"], element_of_wall):
         physical = "VIRTUAL" if element.is_a("IfcVirtualElement") else "PHYSICAL"
         for side, other in (("a", "b"), ("b", "a")):
-            space = spaces.get(bd[side])
-            if space is None:
+            subject = spaces.get(w[side]) or external.get(w[side])
+            if subject is None:
                 continue
-            external = bd[other] not in spaces
+            outside = w[other] not in spaces
             f.create_entity(
                 "IfcRelSpaceBoundary",
-                GlobalId=global_id("boundary", f"{bd['ref']}/{side}/{bd[other]}"),
-                Name=bd["ref"],
-                RelatingSpace=space,
+                # The identity carries the wall's index, because one `boundary` declaration can
+                # be realised as several segments and each gets its own relation.
+                GlobalId=global_id("boundary", f"{w['identity']}/{side}/{w[other]}"),
+                Name=w["ref"],
+                RelatingSpace=subject,
                 RelatedBuildingElement=element,
                 PhysicalOrVirtualBoundary=physical,
-                InternalOrExternalBoundary="EXTERNAL" if external else "INTERNAL",
+                InternalOrExternalBoundary="EXTERNAL" if outside else "INTERNAL",
             )
 
     return f
@@ -324,13 +458,18 @@ def export(data: dict) -> ifcopenshell.file:
 # ---- Small parts ----
 
 
-def _pieces(outline) -> list:
-    """FormSpace.outline is a list of convex pieces. One ring of points per piece."""
-    return [_ring(piece) for piece in outline]
+def _true_north(f, azimuth):
+    """True north in the model's own coordinates.
 
+    `azimuth` is the true bearing of the +Y axis, clockwise from north, so true north is +Y turned
+    counter-clockwise by that much. At 0 it is (0,1) = +Y; at 90 it is (-1,0) = -X.
+    """
+    if azimuth is None:
+        return None
+    import math
 
-def _ring(points) -> list:
-    return [(float(p["x"]), float(p["y"])) for p in points]
+    a = math.radians(float(azimuth))
+    return f.create_entity("IfcDirection", DirectionRatios=(-math.sin(a), math.cos(a)))
 
 
 def _aggregate(f, whole, parts, tag: str):
@@ -342,6 +481,38 @@ def _aggregate(f, whole, parts, tag: str):
         RelatingObject=whole,
         RelatedObjects=parts,
     )
+
+
+def _canonical_ref(bd: dict, index: int) -> str:
+    """The ref the Form gives a boundary, rebuilt from the canonical spelling.
+
+    A boundary is identified by its two ends plus its place in **canonical** order — `a|b@i`,
+    where `i` indexes the canonical boundaries array. Declaration order is a thing the canonical
+    form discards, so indexing by it would give a different spelling for the same building. Both
+    sides therefore agree without either asking the other's implementation.
+    """
+    return f"{bd['between'][0]}|{bd['between'][1]}@{index}"
+
+
+def _boundary_attrs(canonical: dict) -> dict:
+    """Boundary attributes keyed by the ref the Form uses."""
+    return {
+        _canonical_ref(bd, i): bd.get("attrs", {})
+        for i, bd in enumerate(canonical.get("boundaries", []))
+    }
+
+
+def _opening_attrs(canonical: dict) -> dict:
+    """Opening attributes keyed by ref, with the asset name kept under `ref`."""
+    out = {}
+    for i, bd in enumerate(canonical.get("boundaries", [])):
+        ref = _canonical_ref(bd, i)
+        for j, op in enumerate(bd.get("openings", [])):
+            attrs = dict(op.get("attrs", {}))
+            if isinstance(op.get("ref"), str):
+                attrs["ref"] = op["ref"]
+            out[f"{ref}/{j}"] = attrs
+    return out
 
 
 def _wall_for_opening(walls: dict, op: dict):
@@ -363,38 +534,28 @@ def _wall_for_opening(walls: dict, op: dict):
     return fallback
 
 
-def _koyu_pset(f, product, form_space: dict, attrs: dict):
-    """Carry koyu's own facts into the IFC. **The path travels, so the IFC leads back to koyu.**"""
-    values = [("koyu.path", form_space["path"])]
-    if isinstance(attrs.get("uid"), str):
-        values.append(("koyu.uid", attrs["uid"]))
-    for key in ("indoor", "semiOutdoor", "outside", "void", "covered"):
-        values.append((f"koyu.{key}", "true" if form_space.get(key) else "false"))
-    if form_space.get("areaM2") is not None:
-        values.append(("koyu.areaM2", str(form_space["areaM2"])))
-    props = [
-        f.create_entity(
-            "IfcPropertySingleValue",
-            Name=k,
-            NominalValue=f.create_entity("IfcText", wrappedValue=v),
-        )
-        for k, v in values
+def _leaf_outline(op: dict) -> list:
+    """The leaf, centred in the opening and as thin as a leaf rather than as thick as the wall."""
+    outline = op["outline"]
+    cx = sum(p[0] for p in outline) / len(outline)
+    cy = sum(p[1] for p in outline) / len(outline)
+    scale = LEAF_THICKNESS_MM / max(1.0, float(op["t"]))
+    # Shrink across the wall only: the band's long axis is the opening's width, which stays.
+    return [
+        [cx + (p[0] - cx) * (1.0 if _along(op, 0) else scale),
+         cy + (p[1] - cy) * (1.0 if _along(op, 1) else scale)]
+        for p in outline
     ]
-    pset = f.create_entity(
-        "IfcPropertySet",
-        GlobalId=global_id("pset", form_space["path"]),
-        Name="koyu",
-        HasProperties=props,
-    )
-    f.create_entity(
-        "IfcRelDefinesByProperties",
-        GlobalId=global_id("defines", form_space["path"]),
-        RelatedObjects=[product],
-        RelatingPropertyDefinition=pset,
-    )
 
 
-def main(argv: list[str]) -> int:
+def _along(op: dict, axis: int) -> bool:
+    """Whether the opening's width runs along x (axis 0) or y (axis 1)."""
+    seg = op["segment"]
+    dx, dy = abs(seg["x2"] - seg["x1"]), abs(seg["y2"] - seg["y1"])
+    return (dx >= dy) if axis == 0 else (dy > dx)
+
+
+def main(argv: list) -> int:
     if len(argv) < 3:
         print("Usage: python -m koyu_ifc.export <form.json> <out.ifc>")
         return 2
