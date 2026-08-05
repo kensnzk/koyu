@@ -174,3 +174,45 @@ def test_nothing_koyu_holds_is_dropped(pair):
     assert runs == len(data["runs"])
     # A boundary becomes a wall where it has matter and a virtual element where it does not.
     assert len(f.by_type("IfcWall")) + len(f.by_type("IfcVirtualElement")) == len(data["walls"])
+
+
+def test_every_space_sits_where_koyu_put_it(small_pair):
+    """A space's built solid occupies the coordinates koyu gave it.
+
+    **Volume cannot catch this.** A translation leaves every volume, area and adjacency exactly as
+    it was, so every other test here passes while the whole model sits somewhere else. This one
+    compares the bounding box of the built shape against the outline and z range in the source,
+    which is the only check that fails when a placement is applied twice.
+
+    The geometry engine reports metres and koyu is millimetres, hence the thousandth.
+    """
+    data, f = small_pair
+    expected = {}
+    for s in data["spaces"]:
+        if s.get("z1") is None or not s["outline"]:
+            continue
+        points = [p for piece in s["outline"] for p in piece]
+        expected[s["path"]] = (
+            min(p[0] for p in points) / 1000.0,
+            max(p[0] for p in points) / 1000.0,
+            min(p[1] for p in points) / 1000.0,
+            max(p[1] for p in points) / 1000.0,
+            s["z0"] / 1000.0,
+            s["z1"] / 1000.0,
+        )
+
+    checked = 0
+    for space in f.by_type("IfcSpace"):
+        want = expected.get(space.Name)
+        if want is None:
+            continue
+        shape = ifcopenshell.geom.create_shape(ifcopenshell.geom.settings(), space)
+        verts = np.array(shape.geometry.verts).reshape(-1, 3)
+        got = (
+            verts[:, 0].min(), verts[:, 0].max(),
+            verts[:, 1].min(), verts[:, 1].max(),
+            verts[:, 2].min(), verts[:, 2].max(),
+        )
+        assert got == pytest.approx(want, abs=0.001), space.Name
+        checked += 1
+    assert checked > 0
