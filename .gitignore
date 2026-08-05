@@ -9,3 +9,8 @@ IFC_samples/
 # Mac側の退避場所 (ブリッジは削除不可のためmvで退避)
 _to_delete/
 .claude/launch.json
+
+# Python environment for export/ifc/
+.venv-ifc/
+__pycache__/
+*.pyc
