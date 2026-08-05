@@ -8,7 +8,7 @@
 // 取り違えられないよう、フィールド名からして別であることを型と実物の両方で確かめる。
 
 import assert from "node:assert/strict";
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -175,3 +175,38 @@ for (const dir of ["docs/reference/validate"]) {
     }
   });
 }
+
+// ---- What lives outside the package may only use the face that ships ----
+
+test("domains: the IFC export reads dist/, never src/", () => {
+  // `export/ifc/` is a consumer of koyu, and it sits in this repository so that a gap it finds
+  // can be closed in one commit. The price of that convenience is the temptation to reach into
+  // `src/` — and then the public surface stops being exercised by its most important consumer.
+  //
+  // Reading `dist/` instead means the export runs against **what is actually published**, so the
+  // build is inside the test too. When this fails there are two fixes: import from `dist/`, or
+  // put the name on the public surface so there is something in `dist/` to import.
+  const dir = join(root, "export");
+  if (!existsSync(dir)) return;
+  const offenders: string[] = [];
+  const walk = (d: string): void => {
+    for (const e of readdirSync(d)) {
+      const p = join(d, e);
+      if (statSync(p).isDirectory()) {
+        if (e !== "node_modules" && !e.startsWith(".")) walk(p);
+      } else if (e.endsWith(".mjs") || e.endsWith(".js") || e.endsWith(".ts")) {
+        const src = readFileSync(p, "utf8");
+        for (const m of src.matchAll(/from\s+"([^"]+)"/g)) {
+          const spec = m[1]!;
+          if (/(^|\/)src\//.test(spec)) offenders.push(`${relative(root, p)} → ${spec}`);
+        }
+      }
+    }
+  };
+  walk(dir);
+  assert.deepEqual(
+    offenders,
+    [],
+    "the export reaches past the published face into the implementation:\n" + offenders.join("\n"),
+  );
+});
