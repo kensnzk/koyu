@@ -293,7 +293,7 @@ IFC5 が alpha である今、この位置取りを主張するのは早すぎ�
 
 ### デモ
 
-**D9 — 40MB を 200 行に.** リポジトリに既にある `IFC_samples/BLCJ_RC3000_A_Revit` `BLCJ_S1000_A_Revit1` (実務規模の Revit 書き出し) を食わせ、**人が読める `.muro`** を吐く。左右に並べた画面で、行数・トークン数・そして「読めるかどうか」を見せる。
+**D9 — 40MB を 200 行に.** 実務規模の Revit 書き出しを食わせ、**人が読める `.muro`** を吐く。左右に並べた画面で、行数・トークン数・そして「読めるかどうか」を見せる。**素材はこのリポジトリには無い** — `examples/comparison/` にあるのは手書きの `two-rooms.ifc` (7.3 KB) と `.ifcx` (20 KB) だけで、実務規模の IFC は調達からになる。
 
 **D10 — 同じ問いに同じ答え.** 生成した muro と元の IFC が、面積・隣接・扉数で一致することを試験にする。D1 (SPARQL の問いの一致) と同じ作法。**「変換した」ではなく「意味を保った」が言える。**
 
@@ -301,11 +301,13 @@ IFC5 が alpha である今、この位置取りを主張するのは早すぎ�
 
 ### Speckle に乗る — コネクタを自分で書かない
 
+> **この節は [speckle.md](speckle.md) が引き取った。** 調べ直した結果、置き場所 (軸4 の一節) も優先度 (7) も間違っており、下の記述には誤りが三つある — Automate は **OSS でも自ホストでもない**、ライセンスは Apache-2.0 **だが例外が二つある**、そして **`IFC_samples/` はこのリポジトリに無い**。判断は [speckle.md](speckle.md) を読むこと。
+
 Revit/Rhino/Grasshopper/ArchiCAD/Blender/QGIS のコネクタを自前で書くのは無理である。**Speckle が既に全部持っている。** GraphQL API と Python SDK があり、Automate (関数を差分に対して自動実行する仕組み) がある。
 
 - `koyu → Speckle`: 生成した Form を Speckle にプッシュ → Rhino/Revit で開ける
 - `Speckle → koyu`: Grasshopper で描いた敷地・ボリュームを取り込む
-- **Speckle Automate に `koyu check` / `koyu validate` を関数として置く** — 誰かが Revit からプッシュするたびに koyu の判定が回る。**これは「koyu が業界の CI になる」という絵で、実装は小さい。**
+- Speckle の **IFC 取り込み** (IfcOpenShell、IfcSpace を 3D 幾何つきで取り出す) を挟むと、**下の「入れる」が STEP を一行も読まずに書ける** — この非対称の反転が、Speckle を前に出す最大の理由である ([speckle.md](speckle.md) §5)。
 
 ### OSS
 
@@ -317,7 +319,7 @@ Revit/Rhino/Grasshopper/ArchiCAD/Blender/QGIS のコネクタを自前で書く�
 | **ThatOpen Components** | TS / MIT | Three.js + web-ifc のビューア基盤。デモの見た目 |
 | **Bonsai (旧 BlenderBIM)** | Python / GPL | Blender 上の IFC オーサリング。**空間検出の実装がある** |
 | **xbim Toolkit** | .NET / CDDL | IFC の別実装 |
-| **Speckle** | TS/Python/C# / Apache-2.0 | **コネクタ網と Automate**。自前コネクタを書かないための道 |
+| **Speckle** | TS/Python/C# / Apache-2.0 (**例外二つ** — `workspaces/` `gatekeeper/` は EE) | **コネクタ網と IFC 取り込み**。自前コネクタを書かないための道。**Automate は OSS ではなく自ホストもできない** → [speckle.md](speckle.md) |
 | **BCF (bcf-xml / ifcopenshell.bcf)** | XML / — | 指摘の流通形式 |
 | **IDS** (buildingSMART, v1.0 2024-06) | XML / — | 情報要件の記述。horizon.md の「要件ファイル」の外部参照先 |
 
