@@ -33,7 +33,7 @@ import { svgPlan } from "@kensnzk/koyu/draw";
 | `@kensnzk/koyu/model` | `Model` and the questions the model answers on its own | not pulled |
 | `@kensnzk/koyu/diagnostics` | structural-consistency diagnostics and the code ledger | not pulled |
 | `@kensnzk/koyu/graph` | adjacency, passability, routes, boundary segments | not pulled |
-| `@kensnzk/koyu/form` | `derive` and the `Form` types — the one derivation of shape | not pulled |
+| `@kensnzk/koyu/form` | `derive`, the `Form` types, and the [constructors of matter](../form/index.md) — the one derivation of shape | not pulled |
 | `@kensnzk/koyu/analysis` | the analysis protocol: run one analysis under an explicit context and profile | not pulled |
 | `@kensnzk/koyu/diff` | the semantic difference between two models | not pulled |
 | `@kensnzk/koyu/vocabulary` | the attribute ledger | not pulled |

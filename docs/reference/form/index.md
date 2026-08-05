@@ -130,6 +130,8 @@ Every element of `Form` carries its subject's identity. Boundaries, openings, `s
 | `columnRect(c)` | the section of a column |
 | `runPrism(s)` | a vertical-circulation solid as a prism (base outline plus per-vertex top/bottom z) |
 
+**All five are exported from `@kensnzk/koyu/form`**, alongside `derive` and the `Form` types. That is the whole point of them: a consumer that cannot import a constructor has to write it again, and then the rule of assembly is no longer shared even though the parts are.
+
 **The vertices of the quadrilateral run start+n → end+n → end−n → start−n**, so joining the midpoints of the two opposing sides gives the centre line back. Plan entities carry **both the footprint (the quadrilateral) and the centre line** — whether to draw something as thick or as a single line (a rail or a fence that does not enclose) is a judgement about appearance, so consumers never have to recover the axis from the footprint.
 
 ## Neighbouring pages

@@ -1,0 +1,32 @@
+# The IFC export runs on its own, because it runs on its own toolchain.
+#
+# `ci.yml` is koyu: node, and nothing installed that koyu does not depend on. This one needs
+# Python, ifcopenshell and pyproj — none of which koyu has or should have. Keeping them in
+# separate workflows keeps that separation visible rather than merely intended.
+#
+# It builds `dist/` first because **the export reads what ships, not what is in `src/`**
+# (`test/domains.test.ts` holds that), so the build is part of the test.
+name: export-ifc
+on:
+  push:
+    paths: ["export/ifc/**", "src/**", "examples/**", "package.json", ".github/workflows/export-ifc.yml"]
+  pull_request:
+    paths: ["export/ifc/**", "src/**", "examples/**", "package.json", ".github/workflows/export-ifc.yml"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: npm ci
+      # The export imports from dist/, so there is nothing to test until this has run
+      - run: npm run build
+      - run: pip install -e "export/ifc[test]"
+      # Every bundled building: schema-valid, every solid builds, and the answers agree with koyu
+      - run: pytest export/ifc/tests -q
