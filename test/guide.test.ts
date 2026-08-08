@@ -124,6 +124,16 @@ function scan(path: string): { file: string; blocks: Block[]; prose: Array<{ lin
  */
 const ROOT_PAGES = ["README.md", "README.ja.md"].map((f) => join(root, f)).filter((p) => existsSync(p));
 
+/**
+ * The skills come under the same gatekeeper, for the reason skills/README.md
+ * gives itself: "A worked example is the most-copied thing in a skill, so a
+ * defect in one propagates into every building an agent writes." It then left
+ * that to human discipline. `check:examples` held the two .muro files under
+ * koyu-design/examples/; the muro written into the prose of a SKILL.md — which
+ * is what an agent actually reads — was held by nothing.
+ */
+const SKILL_PAGES = markdownFiles(join(root, "skills"));
+
 const FILES = [
   ...PUBLISHED.flatMap((entry) => {
     const p = join(DOCS, entry);
@@ -131,6 +141,7 @@ const FILES = [
     return statSync(p).isDirectory() ? markdownFiles(p) : [p];
   }),
   ...ROOT_PAGES,
+  ...SKILL_PAGES,
 ];
 const SCANNED = FILES.map(scan);
 const BLOCKS = SCANNED.flatMap((s) => s.blocks);

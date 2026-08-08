@@ -13,7 +13,7 @@ being completely sealed.
 `koyu validate` is the separate judgement. It returns findings, each with a rule
 name, a level, and the line that caused it:
 
-```bash
+```sh
 # In the koyu repository:
 node dist/cli.js validate main.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 # Anywhere else:

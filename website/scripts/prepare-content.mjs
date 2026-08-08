@@ -54,6 +54,7 @@ const INTERNAL = [
 ];
 // Source material for the canonical pages, kept in the repo, not published.
 const INTERNAL_FILES = [
+  'docs/checklists.md',
   'docs/policy.md',
   'docs/horizon.md',
   'docs/ifc-coverage.md',

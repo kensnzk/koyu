@@ -9,7 +9,7 @@ mode: reference
 koyu 1.1
 ```
 
-**One line declaring which version of the semantics this file is read under.** Six versions are accepted, and this order is the order of old to new.
+**One line declaring which version of the semantics this file is read under.** These are the accepted versions, and the order is the order of old to new.
 
 ```text
 0.1   0.2   0.3   0.4   0.5   1.0   1.1
@@ -88,7 +88,7 @@ version to koyu 0.5
 
 ### VER04 — a 1.0 word in a file declaring 0.5 or older
 
-A processor of `0.5` or earlier does not know the composition words introduced in `1.1`. **It cannot read those lines as words at all, so neither the override nor the removal happens — it silently becomes a different building.** There are three.
+A processor of `0.5` or earlier does not know the composition words introduced in `1.0`. **It cannot read those lines as words at all, so neither the override nor the removal happens — it silently becomes a different building.** There are three.
 
 | Word | What it does |
 |---|---|

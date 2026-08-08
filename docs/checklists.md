@@ -1,0 +1,147 @@
+# Checklists for changes that ripple
+
+Some changes touch one file. Some change a fact that is restated in dozens, and those are the ones
+that rot: the restatement stays true-looking long after the source moved. Raising the language
+version from `1.0` to `1.1` left twelve places saying what had been true before it, in two trees,
+and the only correct copy of one list was in a downstream product that had fixed it for itself.
+
+**This page exists to be short.** Every line the machine already holds is named here so you do not
+read it twice — the work is the second list in each section, which is what no test can reach.
+
+Unpublished, like the rest of the loose material at the top of `docs/`.
+
+---
+
+## Raising the language version
+
+`koyu 1.1` → `koyu 1.2`. The source is `SUPPORTED_LANGUAGE_VERSIONS` and
+`DEFAULT_LANGUAGE_VERSION` in `src/core/model.ts`; everything below is downstream of those two.
+
+### Held by machine — do not hand-check
+
+| What | Which gate |
+|---|---|
+| Every version list, count and stated default in `docs/` and `skills/` | `test/restatements.test.ts` |
+| Every muro example in `skills/` and `docs/reference/muro/` declares the newest version | `test/restatements.test.ts` |
+| `docs/reference/muro/version.md` lists the versions in order and names the default | `test/release.test.ts` |
+| Every `.muro` under `examples/` that declares a version declares the newest one | `test/release.test.ts` (walks — not a list) |
+| The canonical JSON fixture still matches the implementation byte for byte | `test/release.test.ts` |
+| Every ` ```muro ` block still composes and checks green | `test/guide.test.ts` |
+
+Adding `1.2` to `SUPPORTED_LANGUAGE_VERSIONS` and moving `DEFAULT_LANGUAGE_VERSION` to it, with
+nothing else changed, turns **four of those gates red across 49 places** — measured, not
+estimated. Work down that list and the mechanical half of the bump is done.
+
+### Not held — check these by hand
+
+- **The version guards in `src/core/diagnose.ts`.** `olderThan(model.version, "1.1")`,
+  `"1.0"`, `"0.5"` — three of them, each deciding what an older file loses. A new version does not
+  move them by itself. Decide per guard whether the new version joins the branch, and expect a new
+  `VER` code with its page and its worked example if the new version retires or introduces a word.
+- **Prose that says which version a word arrived in.** Nothing machine-readable maps a word to the
+  version that introduced it, so `version.md` claimed the composition words arrived in `1.1` when
+  `VER04` is about `1.0` words — with its own pasted output saying so four lines below. Read the
+  `VER` sections whole.
+- **`conformance/cases/`.** 62 cases declare `1.1` and five deliberately declare `1.0`, `0.5`,
+  `0.4`, `0.3` and `0.1` to pin version-gated behaviour. **Do not bulk-bump.** A conformance case
+  is a pinned expectation, not an example, and the five old ones are the point.
+- **`eval/fixtures/`.** Carries version lines and no gate reads them.
+- **Anything vendored downstream.** A product that embeds a copy of the skill or the reference
+  holds its own version list, and this repository cannot see it. Last time the downstream copy was
+  the only correct one; that is luck, not a system.
+
+---
+
+## Adding or retiring a diagnostic code
+
+### Held by machine
+
+| What | Which gate |
+|---|---|
+| Every code in `DIAGNOSTIC_CODES` has a heading under `docs/reference/diagnostics/` | `test/docs-ledger.test.ts` |
+| A retired code is not explained as a live one | `test/docs-ledger.test.ts` |
+| Each family page carries an example producing exactly its own code | `test/guide.test.ts` |
+| A code named in a skill is a live code | `test/restatements.test.ts` |
+
+### Not held
+
+- **The severity in prose.** The gate checks the code has a heading, not that the page says the
+  same severity the ledger does.
+- **`docs/howto/by-symptom.md`.** Reaching a code from a symptom is prose, and a new code is
+  reachable only if someone adds the row.
+
+---
+
+## Adding or removing a CLI subcommand, an MCP tool, or a public export
+
+### Held by machine
+
+| What | Which gate |
+|---|---|
+| Every subcommand has a page under `docs/reference/cli/` | `test/docs-ledger.test.ts` |
+| Every MCP tool has a heading under `docs/reference/mcp/` | `test/docs-ledger.test.ts` |
+| Every name exported from `src/index.ts` appears in `docs/reference/api/` | `test/docs-ledger.test.ts` |
+| Every CLI invocation shown in the documentation names a real subcommand | `test/guide.test.ts` |
+| A retired spelling is not still being taught | `test/restatements.test.ts` |
+
+### Not held
+
+- **`AGENTS.md`'s own lists.** It names the subcommands and the twelve MCP tools in prose, and no
+  test reads `AGENTS.md`.
+- **The usage lines in `src/cli.ts`** against the pages, beyond the subcommand's name existing.
+- **A removed name is only retired when the old spelling is gone.** Add it to `RETIRED_SPELLINGS`
+  in `test/restatements.test.ts` so prose cannot go on teaching it.
+
+---
+
+## Changing the attribute ledger
+
+### Held by machine
+
+| What | Which gate |
+|---|---|
+| Every attribute key written in a muro block anywhere in `docs/` or `skills/` is in `ATTR_LEDGER` | `test/restatements.test.ts` |
+| The editor grammar matches the implementation and the ledger | `test/grammar.test.ts` |
+
+### Not held
+
+- **`docs/reference/muro/attributes.md` is a copy of the ledger** and is checked for the keys that
+  appear in examples, not for being complete.
+- **A removed key** disappears from the ledger silently as far as prose is concerned. Retire the
+  spelling explicitly (see above).
+
+---
+
+## Adding an example, or a skill
+
+### Held by machine
+
+| What | Which gate |
+|---|---|
+| Every `.muro` under `examples/` composes, checks `--strict`, and answers nine architectural questions | `npm run gate:examples` (walks) |
+| Every muro block in a skill is held to what its fence tag claims | `test/guide.test.ts` |
+| The version line of every example entry file | `test/release.test.ts` (walks) |
+
+### Not held
+
+- **`npm run check:examples` names its twelve files by hand.** `gate:examples` walks `examples/`,
+  so a new example there is still checked — but the two files under
+  `skills/koyu-design/examples/` are in that hand-written list and nowhere else. A third one added
+  beside them is checked by nothing.
+- **Whether a skill helps.** `eval/` runs six tasks, five of them revisions of an existing
+  description, and does not know `skills/` exists.
+
+---
+
+## When you add a gate
+
+Two rules, both learned the hard way on this page's own subject.
+
+**Watch it fail first.** A gate that has never been red is a gate you have not tested. The
+restatement checks were written against twelve real drifts and every one was read before it was
+fixed — one of them, a pasted `VER04` message, turned out to be correct and the prose beside it
+wrong.
+
+**Narrow beats thorough.** An early draft of the version-count check read "Three" in
+`stability.md` and "two" in `three-domains.md` as counts of accepted versions; both count kinds of
+version line. A gate that cries wolf gets switched off, and then it holds nothing at all.

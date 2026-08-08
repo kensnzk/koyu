@@ -101,7 +101,7 @@ the front door; `h:2400` dwelling, `h:2700` office; `slab:150`.
 One layer per level, composed by the entry file. The roof is a level with no
 `h:`, and the storeys are joined by a boundary between the stair spaces.
 
-```muro
+```muro-part
 # main.muro — the entry holds the grid, the levels, and the imports
 level L1 0 h:2700 slab:150
 level L2 3000 h:2700 slab:150
@@ -109,7 +109,7 @@ level R  6000 slab:200
 import ./L1.muro
 import ./L2.muro
 ```
-```muro
+```muro-part
 # L2.muro — its last line joins the cores; /out is declared once, in L1.muro
 boundary /L1/stair /L2/stair type:stair
 ```
@@ -120,7 +120,7 @@ them one at a time.
 
 ## Check, then hand over
 
-```bash
+```sh
 # In the koyu repository:
 node dist/cli.js check main.muro
 # Anywhere else (npx cannot resolve the bin from inside the package's own tree):

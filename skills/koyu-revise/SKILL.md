@@ -12,7 +12,7 @@ read in the language of composition rather than as text.
 
 So the loop is not write-then-check. It is **write, then prove**:
 
-```bash
+```sh
 # In the koyu repository:
 node dist/cli.js check revised.muro && node dist/cli.js diff original.muro revised.muro
 # Anywhere else:
@@ -74,7 +74,7 @@ A parent space with a region cannot hold children with regions — they overlap,
 and that is `GEO02`. Convert the parent to a `zone`, which has no geometry, and
 give the children the regions:
 
-```muro
+```muro-part
 zone  /home name:Dwelling
 space /home/ldk ldk  X1..X2 Y1..Y2 name:LDK
 space /home/bed room X2..X3 Y1..Y2 name:Bedroom
@@ -97,11 +97,11 @@ Copy the pattern already in the file rather than inventing one. A level, a layer
 for it, the import, and a boundary joining the stair spaces, which must overlap
 in plan:
 
-```muro
+```muro-part
 level L3 6000 h:2700 slab:150
 import ./L3.muro
 ```
-```muro
+```muro-part
 boundary /L2/stair /L3/stair type:stair
 ```
 
