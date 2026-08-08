@@ -151,19 +151,8 @@ test("欠番のコードを生きた診断として説明していない", { ski
 // 後もそのまま通っていた — 台帳を手で書かない掟 (AGENTS.md 3b) を守る門が、
 // 自分の中で同じ手写しをしていた。移した先は定数を読む。
 
-/**
- * 公開されない場所。website/scripts/prepare-content.mjs の INTERNAL /
- * INTERNAL_FILES と同じ集合でなければならない — 食い違うと、この門番が
- * 公開されない頁に英語を要求するか、公開される頁を見逃す。
- */
-const INTERNAL_DIRS = ["decisions", "log", "reviews", "notes", "img"];
-const INTERNAL_FILES = [
-  "policy.md",
-  "horizon.md",
-  "ifc-coverage.md",
-  "ifcx-notes.md",
-  "modules.md",
-  "terminology.md",
-  "writing-architecture.md",
-];
+// 公開されない場所の一覧はここに在った。定義されたまま一度も使われず、
+// 「website/scripts/prepare-content.mjs と同じ集合でなければならない」という
+// コメントだけが人手の同期を要求していた — 台帳の写しを門で守るのではなく、
+// 写しを消す。出所は prepare-content.mjs の INTERNAL / INTERNAL_FILES ただ一つ。
 

@@ -43,6 +43,17 @@ const GOVERNED = [
   join(root, "docs", "examples"),
 ];
 
+/**
+ * The pages at the root restate the same ledgers and were read by nothing.
+ * AGENTS.md names the current language version, the subcommands and the twelve
+ * MCP tools in its own prose; the READMEs open on a worked example.
+ */
+const GOVERNED_FILES = [
+  join(root, "AGENTS.md"),
+  join(root, "README.md"),
+  join(root, "README.ja.md"),
+];
+
 interface Line {
   readonly where: string;
   readonly text: string;
@@ -70,15 +81,17 @@ function markdown(dir: string, out: string[] = []): string[] {
  * include whitespace, and over a whole file that would join unrelated numbers
  * on neighbouring lines into a run that was never written as one.
  */
+function governedPaths(): string[] {
+  return [...GOVERNED.flatMap((tree) => markdown(tree)), ...GOVERNED_FILES.filter((p) => existsSync(p))];
+}
+
 function governedLines(): Line[] {
   const lines: Line[] = [];
-  for (const tree of GOVERNED) {
-    for (const path of markdown(tree)) {
-      const where = relative(root, path);
-      readFileSync(path, "utf8")
-        .split("\n")
-        .forEach((text, i) => lines.push({ where: `${where}:${i + 1}`, text }));
-    }
+  for (const path of governedPaths()) {
+    const where = relative(root, path);
+    readFileSync(path, "utf8")
+      .split("\n")
+      .forEach((text, i) => lines.push({ where: `${where}:${i + 1}`, text }));
   }
   return lines;
 }
@@ -98,8 +111,8 @@ const LINES = governedLines();
  */
 function governedBlocks(): Block[] {
   const blocks: Block[] = [];
-  for (const tree of GOVERNED) {
-    for (const path of markdown(tree)) {
+  {
+    for (const path of governedPaths()) {
       const where = relative(root, path);
       const lines = readFileSync(path, "utf8").split("\n");
       let start = -1;

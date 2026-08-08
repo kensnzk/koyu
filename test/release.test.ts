@@ -3,7 +3,8 @@
 // 正準JSONフィクスチャが乖離したらここで落ちる。
 
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS, toCanonical } from "../src/core/model.js";
@@ -11,6 +12,16 @@ import { parseFile } from "../src/parse-file.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p: string) => readFileSync(root + p, "utf8");
+
+/** Every .muro under a directory, so a version bump cannot miss one nobody listed. */
+function muroFiles(dir: string, out: string[] = []): string[] {
+  for (const entry of readdirSync(dir).sort()) {
+    const path = join(dir, entry);
+    if (statSync(path).isDirectory()) muroFiles(path, out);
+    else if (entry.endsWith(".muro")) out.push(path);
+  }
+  return out;
+}
 
 test("version sync: package / lockfile / CITATION / MCP", () => {
   const pkg = JSON.parse(read("package.json")) as { name: string; version: string };
@@ -43,16 +54,21 @@ test("language version sync: the published norm, the examples and the canonical 
     assert.match(md, inOrder, `the accepted versions, in order, in ${page}`);
     assert.ok(md.includes(`\`${DEFAULT_LANGUAGE_VERSION}\``), `the default when omitted, in ${page}`);
   }
-  // examplesは常に最新版で書く
-  for (const f of [
-    "examples/two-rooms.muro",
-    "examples/office.muro",
-    "examples/mansion.muro",
-    "examples/house.muro",
-    "examples/house/main.muro",
-    "examples/tower/main.muro",
-  ]) {
-    assert.match(read(f), new RegExp(`^koyu ${DEFAULT_LANGUAGE_VERSION.replace(/\./g, "\\.")}$`, "m"), f);
+  // examplesは常に最新版で書く (掟9)。
+  //
+  // Discovered, not listed. Six of the ten entry files that declare a version
+  // were named here while `check:examples` named twelve and `gate:examples`
+  // walked the tree, so basement, complex, steps/06-finished and twin could
+  // have declared anything. A hand-written list of the things a version bump
+  // must touch is the defect it is meant to catch.
+  const declared = muroFiles(root + "examples").filter((p) => /^koyu /m.test(readFileSync(p, "utf8")));
+  assert.ok(declared.length >= 10, `too few example entry files found (${declared.length}) — the walk is broken`);
+  for (const p of declared) {
+    assert.match(
+      readFileSync(p, "utf8"),
+      new RegExp(`^koyu ${DEFAULT_LANGUAGE_VERSION.replace(/\./g, "\\.")}$`, "m"),
+      p.slice(root.length),
+    );
   }
   // 正準JSONフィクスチャは実装の出力とバイト一致 (黙った乖離の防止)
   assert.equal(
