@@ -166,7 +166,7 @@ VER04  A koyu 0.5 file uses a 1.0 word: over /L1/a h:2500 (a composition overrid
 VER04  A koyu 0.5 file uses a 1.0 word: drop /L1/b (a composition removal) — raise the version to koyu 1.0
 ```
 
-A file with no version declaration is read with the semantics of the latest version, `1.0`, so it never sees this diagnostic. The accepted versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5` and `1.0`, and older-to-newer runs in that order.
+A file with no version declaration is read with the semantics of the latest version, `1.1`, so it never sees this diagnostic. The accepted versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5`, `1.0` and `1.1`, and older-to-newer runs in that order.
 
 ## See also
 

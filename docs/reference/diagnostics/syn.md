@@ -105,7 +105,7 @@ Openings, `seg` and `line` are written **indented** under a boundary; `area` and
 
 | Body | Cause | Fix |
 |---|---|---|
-| `Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0)` | A version that does not exist | Use one of the six |
+| `Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1)` | A version that does not exist | Use one the parser accepts |
 | `The koyu version is declared only in the base layer (the entry)` | A version in an imported layer | Move it to the base layer |
 | `The koyu version is declared once (already 1.0)` | The version written twice | Delete one |
 | `Cannot read file: ./assets.muro` | The `import`'s relative path is wrong | A path is resolved **relative to the file it is written in** |

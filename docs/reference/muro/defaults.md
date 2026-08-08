@@ -33,7 +33,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 | Written nothing | What happens |
 |---|---|
-| `koyu <version>` | read under the newest version, `1.0`. Write it to pin the meaning → [the version line](version.md) |
+| `koyu <version>` | read under the newest version, `1.1`. Write it to pin the meaning → [the version line](version.md) |
 | `unit mm` | mm. v0 has no other unit |
 | `name` | the building has no name |
 | `grid X` / `grid Y` | **no grid reference can be written at all.** Any line with a region stops with `Undefined grid line name` |

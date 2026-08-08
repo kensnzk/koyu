@@ -89,7 +89,7 @@ const RETIRED = [
   "SIT05",
 ];
 
-test("診断コードは65件すべてが見出しを持つ", { skip: !canonical }, () => {
+test("診断コードはすべてが見出しを持つ", { skip: !canonical }, () => {
   const text = corpus("reference", "diagnostics");
   const missing = Object.keys(DIAGNOSTIC_CODES).filter(
     (code) => !new RegExp(`^#{2,4}\\s.*\\b${code}\\b`, "m").test(text),
@@ -146,22 +146,10 @@ test("欠番のコードを生きた診断として説明していない", { ski
   assert.deepEqual(revived, [], `欠番なのに項目の見出しを持つ: ${revived.join(", ")}`);
 });
 
-test("既定の言語版が 1.0 として書かれている", { skip: !canonical }, () => {
-  const text = corpus("reference", "muro");
-  assert.ok(/koyu 1\.0/.test(text), "既定の言語版 1.0 がリファレンスに現れない");
-  // 長く 0.5 (ja) / 0.4 (en) が既定として書かれていた。位置の既定 `at:0.5` とは
-  // 別物なので、言語版を名指ししている綴りだけを見る。
-  assert.ok(
-    !/(?:言語版|language version)[^。\n]{0,20}(?:既定|defaults? (?:to|is))[^。\n]{0,10}0\.[45]/.test(
-      text,
-    ),
-    "既定の言語版を 0.4 / 0.5 と書いた箇所が残っている",
-  );
-  assert.ok(
-    !/```muro[^`]*\bkoyu 0\.[1-5]\b/s.test(text),
-    "例が古い言語版を宣言している",
-  );
-});
+// 既定の言語版と受理版の照合は test/restatements.test.ts へ移した。ここに在った
+// 検査は既定を "1.0" と直に書いており、DEFAULT_LANGUAGE_VERSION が 1.1 へ動いた
+// 後もそのまま通っていた — 台帳を手で書かない掟 (AGENTS.md 3b) を守る門が、
+// 自分の中で同じ手写しをしていた。移した先は定数を読む。
 
 /**
  * 公開されない場所。website/scripts/prepare-content.mjs の INTERNAL /

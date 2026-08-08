@@ -21,15 +21,15 @@ There are four VER codes. All are errors.
 koyu 1.1
 ```
 
-Six versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0**. Anything else stops at the parser, before any semantic check runs.
+These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1**. Anything else stops at the parser, before any semantic check runs.
 
 ```text
-Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0)
+Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1)
 ```
 
 The declaration is written **once**, in the base layer (the entry). By convention it goes on the first line. Writing it in an imported layer is an error — silent overwriting by composition order is forbidden.
 
-**A file with no version declaration is read under the latest semantics (1.0).** So no VER code ever fires for it. VER only concerns files that declare a version in order to pin their meaning.
+**A file with no version declaration is read under the latest semantics (1.1).** So no VER code ever fires for it. VER only concerns files that declare a version in order to pin their meaning.
 
 ## When an older version is accepted
 

@@ -1,4 +1,4 @@
-# muro 1.0 — the notation, the working subset
+# muro — the notation, the working subset
 
 The normative reference is [docs/reference/muro](../../docs/reference/muro/index.md)
 in the koyu repository; this file is the subset an agent needs to write a
@@ -31,7 +31,7 @@ koyu 1.1
 ```
 
 Optional. If you write it, it goes in the ENTRY layer only, exactly once — never
-in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0.
+in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1. Write `koyu 1.1`.
 
 ## grid — the reference lines
 
@@ -253,7 +253,7 @@ space /site/approach yard X1..X3 Y1-1200..Y1 level:L1 name:Approach
 boundary /site/approach /out/road edge:S t:120 spec:Fence air:1 h:1200
 ```
 
-Only then does `muro_site` have coverage and floor-area ratio to report. If the
+Only then does `koyu site` have coverage and floor-area ratio to report. If the
 brief does not turn on the site, leave all of this out — the building alone
 checks green.
 
