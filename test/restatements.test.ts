@@ -26,6 +26,10 @@ import { fileURLToPath } from "node:url";
 import { DIAGNOSTIC_CODES } from "../src/core/diagnose.js";
 import { DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS } from "../src/core/model.js";
 import { SCHEMATIC_RULES } from "../src/validate/builtin/index.js";
+import { ATTR_LEDGER } from "../src/core/vocabulary.js";
+
+/** Fences holding muro that is meant to be spelled correctly. */
+const CHECKED_MURO_FENCES = new Set(["muro", "muro-part", "muro-warn", "muro-fail", "muro-caution"]);
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 
@@ -244,6 +248,48 @@ test("a muro example declares the newest language version", () => {
     stale,
     [],
     `an example declares a superseded language version (the newest is ${DEFAULT_LANGUAGE_VERSION}):\n  ${stale.join("\n  ")}`,
+  );
+});
+
+/**
+ * Every attribute key written in a muro block is in the ledger.
+ *
+ * This is the one check a fragment can be held to. `guide.test.ts` composes
+ * and checks a ```muro block, but a ```muro-part cannot be parsed at all —
+ * measured over the corpus, 133 of 191 throw, and the causes are what makes
+ * them fragments: an undefined grid line, an undeclared level, an `import`,
+ * an `over` whose base layer is elsewhere. Feeding them a synthetic preamble
+ * makes it worse, because the fragment's own `grid` and `level` then collide
+ * with it. So the fragments stay unparsed — but a misspelled attribute key is
+ * lexical, needs no context, and `ATTR_LEDGER` is its machine source.
+ *
+ * ```muro-bad is excluded: showing a wrong spelling is its job — `nmae:`,
+ * `undergound:`, `heigh:` all live there on purpose, demonstrating ATT03.
+ */
+test("every attribute key in a muro block is in ATTR_LEDGER", () => {
+  const ledger = new Set<string>();
+  for (const kind of Object.values(ATTR_LEDGER)) for (const key of Object.keys(kind)) ledger.add(key);
+  const unknown: string[] = [];
+  for (const block of BLOCKS) {
+    if (!CHECKED_MURO_FENCES.has(block.fence)) continue;
+    for (const raw of block.text.split("\n")) {
+      // `#` starts a comment. A trailing one carries prose, and prose is
+      // where the only false positive came from: "# default: out of scope".
+      const code = raw.replace(/\s#.*$/, "");
+      if (code.trimStart().startsWith("#")) continue;
+      for (const token of code.split(/\s+/)) {
+        const key = /^([a-zA-Z][a-zA-Z0-9_-]*):/.exec(token)?.[1];
+        // A namespaced key is deliberately outside the ledger — that is the
+        // boundary between "we have not looked at this" and "we looked".
+        if (key === undefined || ledger.has(key) || key.includes(".")) continue;
+        unknown.push(`${block.where} [${block.fence}]: ${key}:`);
+      }
+    }
+  }
+  assert.deepEqual(
+    unknown,
+    [],
+    `attribute keys outside ATTR_LEDGER (namespace them, or they are ATT03):\n  ${unknown.join("\n  ")}`,
   );
 });
 

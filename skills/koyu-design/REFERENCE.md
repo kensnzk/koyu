@@ -72,7 +72,7 @@ spaces is legal and idiomatic for a roof.
 
 ## space — the primary element
 
-```muro
+```muro-part
 space /L1/entry room X1..X2 Y1..Y2 name:Entrance
 space /L1/hall hall X2..X4 Y1..Y2 name:"Entrance hall" daylight:1
 space /L1/big ldk X1..X3 Y1..Y2 + X1..X2 Y2..Y3 name:L-shaped
@@ -114,7 +114,7 @@ Add one more space and a wall appears between them. You did not draw it.
 
 ## band — a strip divided by width
 
-```muro
+```muro-part
 band X X1..X2 Y1..Y2
   space /L1/entry hall w:1500 name:Entrance
   space /L1/wc    wc   w:900  name:WC
@@ -142,7 +142,7 @@ Prefer bands to hand-computed regions. `w:1500` and `w:rest` are decisions;
 
 ## boundary — the relation, and the only way through
 
-```muro
+```muro-part
 boundary /L1/entry /L1/hall t:120 spec:PW1
   door w:900 h:2000
 boundary /L1/hall /L1/corridor type:open
@@ -179,7 +179,7 @@ reference on the segment's own axis). Use `edge:N|E|S|W` when the boundary has
 more than one segment — against an `outside:1` space it is effectively required,
 and omitting it is an OPN05 error.
 
-```muro
+```muro-part
 asset SD1 door w:800 h:2000 style:sliding name:Sliding
 asset W1 window w:2600 h:2200 sill:0
 
@@ -203,7 +203,7 @@ cannot appear in a boundary. Keys: `name:` `use:` `site:`(0/1, one per model)
 
 ## import — composition, one file per concern
 
-```muro
+```muro-part
 # main.muro — the entry
 koyu 1.1
 name Corner building
@@ -245,9 +245,9 @@ outside split into named `outside:1` spaces (a road carries `road:<mm>`), and �
 optionally — real outdoor spaces under `/site` which need an explicit
 `level:` because `/site` is not a level name:
 
-```muro
-space /out/road name:South road road:6000 outside:1
-space /out/n name:North neighbour outside:1
+```muro-part
+space /out/road name:South-road road:6000 outside:1
+space /out/n name:North-neighbour outside:1
 zone /site name:Site site:1 area:48.00
 space /site/approach yard X1..X3 Y1-1200..Y1 level:L1 name:Approach
 boundary /site/approach /out/road edge:S t:120 spec:Fence air:1 h:1200

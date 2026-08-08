@@ -22,7 +22,7 @@ question, so none of them has to hedge.
 
 **Claude Code** — copy or symlink into a skills directory:
 
-```bash
+```sh
 for s in koyu-design koyu-validate koyu-revise; do ln -s "$(pwd)/skills/$s" ~/.claude/skills/$s; done
 ```
 
@@ -31,7 +31,7 @@ for s in koyu-design koyu-validate koyu-revise; do ln -s "$(pwd)/skills/$s" ~/.c
 **Claude.ai and Claude Desktop** — zip each folder and upload it under
 Settings → Skills:
 
-```bash
+```sh
 cd skills && for s in koyu-design koyu-validate koyu-revise; do zip -r $s.zip $s; done
 ```
 
