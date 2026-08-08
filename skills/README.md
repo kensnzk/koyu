@@ -35,17 +35,41 @@ Settings → Skills:
 cd skills && for s in koyu-design koyu-validate koyu-revise; do zip -r $s.zip $s; done
 ```
 
-## Discipline
+## What holds this directory
 
-- The examples under `koyu-design/examples/` are gated by `npm run check:examples`
-  — the same gate as [examples/](../examples/).
-- `koyu-design/REFERENCE.md` is a working subset of the notation. The norm lives
-  in [docs/reference/muro](../docs/reference/muro/index.md); if behaviour
-  changes, fix both in the same change. The same applies to the rule table in
-  `koyu-validate` against [docs/reference/validate](../docs/reference/validate/index.md).
-- Every muro fragment shown in a skill must be one that actually checks green.
-  A worked example is the most-copied thing in a skill, so a defect in one
-  propagates into every building an agent writes.
-- This directory is deliberately **outside the npm package** (`files` in
-  package.json does not list it): a skill is installed by copy or zip, versioned
-  with the language here, and is not needed at runtime.
+A skill is a restatement of things the implementation owns, and a restatement
+is a copy that drifts. These rules used to be written here as discipline; each
+one now names the gate that keeps it, because a rule nothing checks is a rule
+that has already been broken somewhere you have not looked.
+
+- **Every muro block says what it is, and is held to it** — `npm test`, via
+  `test/guide.test.ts`, the same gatekeeper as `docs/`. Tag a block that is a
+  whole file ` ```muro ` and it must compose and check green; tag a fragment
+  ` ```muro-part `. There are also ` ```muro-bad ` (must fail), ` ```muro-warn `
+  (warns and nothing more), and ` ```muro-fail ` / ` ```muro-caution ` (produce
+  that verdict from `validate`). The tags themselves come from a ledger, so a
+  misspelled one cannot let a block slip past unchecked.
+- **Every attribute key is in the ledger** — `test/restatements.test.ts`,
+  against `ATTR_LEDGER`. This is the one check a fragment can be held to: a
+  fragment cannot be parsed, but a misspelling is lexical.
+- **Every ledger a skill restates agrees with its source** —
+  `test/restatements.test.ts`. The accepted language versions, the diagnostic
+  codes, the names of the validation rules. It reads `src/`, so a skill cannot
+  go on teaching a version list, a code or a spelling the implementation has
+  moved past.
+- **The examples under `koyu-design/examples/`** — `npm run check:examples`,
+  the same gate as [examples/](../examples/).
+- **The norm still lives elsewhere.** `koyu-design/REFERENCE.md` is a working
+  subset of [docs/reference/muro](../docs/reference/muro/index.md), and the
+  rule table in `koyu-validate` a subset of
+  [docs/reference/validate](../docs/reference/validate/index.md). If behaviour
+  changes, fix both in the same change — the gates above catch a stale
+  spelling, not a stale explanation.
+
+A worked example is the most-copied thing in a skill, so a defect in one
+propagates into every building an agent writes. That is why the checking is
+machine work now.
+
+This directory is deliberately **outside the npm package** (`files` in
+package.json does not list it): a skill is installed by copy or zip, versioned
+with the language here, and is not needed at runtime.
