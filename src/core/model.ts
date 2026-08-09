@@ -44,6 +44,31 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
 ];
 
 /**
+ * This implementation's own version — the one npm installs, held in step with `package.json`
+ * by `test/release.test.ts`.
+ *
+ * It sits beside `MURO_SUPPORT` because the two are one fact read from two directions: the
+ * `since` column is written in this vocabulary, and every surface that answers "which muro
+ * does this build speak" needs both halves at once.
+ */
+export const KOYU_VERSION = "0.19.0";
+
+/** What this build reads and what it writes, as one line for a person. */
+export function versionLine(): string {
+  const read = SUPPORTED_LANGUAGE_VERSIONS;
+  return `koyu ${KOYU_VERSION} — reads muro ${read[0]}–${read[read.length - 1]}, writes muro ${DEFAULT_LANGUAGE_VERSION}`;
+}
+
+/**
+ * The koyu version that first read this muro version, or `undefined` if no such version is
+ * accepted. This is the direction a downstream needs: it depends on a language version and
+ * has to turn that into a package range.
+ */
+export function koyuSince(muro: string): string | undefined {
+  return MURO_SUPPORT.find((r) => r.muro === muro)?.since;
+}
+
+/**
  * The language versions this build accepts (ADR-0017). An older version is accepted only
  * where the meaning is preserved; `check` is what decides that.
  *

@@ -64,6 +64,24 @@ npx tsx src/cli.ts check examples/house/L1.muro
 
 Never letting a calling mistake pass with exit 0 is deliberate. Handing in an unreadable scale does not produce a `width="NaN"` SVG announced as "generated".
 
+## --version
+
+**`--version` (or `-v`) is the one flag that takes no file.** It says which implementation you are running and which language it speaks, because those are two separate versions and only one of them is on npm.
+
+```sh
+npx tsx src/cli.ts --version
+```
+
+```text
+koyu 0.19.0 — reads muro 0.1–1.1, writes muro 1.1
+```
+
+The exit code is `0` — it is an answer, not a calling mistake.
+
+**Read it as three facts.** `0.19.0` is this implementation. `reads muro 0.1–1.1` is every language version it accepts, so a file declaring one of those opens here. `writes muro 1.1` is the version it assumes when a file declares none, and the version its own output is written in. When a file will not open because it declares something newer, this line is what tells you the file is fine and the tool is behind.
+
+The same pair is on `package.json` as the `muro` field, for anything that needs it without running the binary, and in the MCP server's `serverInfo`.
+
 ## There is no --help
 
 **No `--help` flag is implemented.** A call that omits the subcommand name or the file path prints usage, but that is the "you called it wrong" path, and **the exit code is 2**. Typing `--help` takes the same path, because `--help` does not fill the subcommand and file-path positions.

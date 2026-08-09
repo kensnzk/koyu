@@ -9,7 +9,12 @@
 import { mkdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { daylightInputs } from "./core/light.js";
-import { polygonAreaM2 } from "./core/model.js";
+import {
+  DEFAULT_LANGUAGE_VERSION,
+  KOYU_VERSION,
+  polygonAreaM2,
+  SUPPORTED_LANGUAGE_VERSIONS,
+} from "./core/model.js";
 import { check } from "./core/diagnose.js";
 import { siteReport } from "./core/site.js";
 import { assess } from "./validate/assessment.js";
@@ -430,7 +435,13 @@ function handle(msg: Json): void {
       result(id, {
         protocolVersion: (params.protocolVersion as string) ?? "2025-06-18",
         capabilities: { tools: {} },
-        serverInfo: { name: "koyu", version: "0.19.0" },
+        serverInfo: {
+          name: "koyu",
+          version: KOYU_VERSION,
+          // Which muro this build speaks. An agent choosing how to spell a version line
+          // has nothing else to read it from.
+          muro: { reads: SUPPORTED_LANGUAGE_VERSIONS, writes: DEFAULT_LANGUAGE_VERSION },
+        },
         instructions:
           "Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written.",
       });

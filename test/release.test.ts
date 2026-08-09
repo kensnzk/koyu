@@ -37,11 +37,27 @@ test("version sync: package / lockfile / CITATION / MCP", () => {
   // The published documentation does not carry the version in its prose — the version belongs to
   // git, not to the body of a page that is always in the present tense. `spec/` used to name it on
   // five pages and this test kept them in step; the pages are gone (ADR-0046)
+  // The MCP server no longer spells the version itself — it reads `KOYU_VERSION`, so this
+  // holds the one remaining literal. Two places carrying the same number is how they drift.
   assert.match(
-    read("src/mcp.ts"),
-    new RegExp(`version: "${pkg.version.replace(/\./g, "\\.")}"`),
-    "MCP serverInfo",
+    read("src/core/model.ts"),
+    new RegExp(`KOYU_VERSION = "${pkg.version.replace(/\./g, "\\.")}"`),
+    "KOYU_VERSION",
   );
+});
+
+/**
+ * `package.json` states which muro this build speaks, so a downstream can check it without
+ * importing the package. That makes it a restatement of `MURO_SUPPORT`, and a restatement
+ * with nothing holding it is what this whole undertaking exists to remove.
+ */
+test("the muro support declared in package.json equals the ledger", () => {
+  const pkg = JSON.parse(read("package.json")) as {
+    muro?: { reads: string[]; writes: string };
+  };
+  assert.ok(pkg.muro, "package.json declares which muro it speaks");
+  assert.deepEqual(pkg.muro!.reads, [...SUPPORTED_LANGUAGE_VERSIONS], "package.json muro.reads");
+  assert.equal(pkg.muro!.writes, DEFAULT_LANGUAGE_VERSION, "package.json muro.writes");
 });
 
 test("language version sync: the published norm, the examples and the canonical JSON fixture (ADR-0017)", () => {

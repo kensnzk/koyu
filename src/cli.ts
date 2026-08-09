@@ -35,7 +35,8 @@ import {
   type Model,
   srcRef,
   isOutside,
-  isVoid
+  isVoid,
+  versionLine
 } from "./core/model.js";
 import { parseFile } from "./parse-file.js";
 import { svgPlan } from "./draw/plan.js";
@@ -190,6 +191,12 @@ function firstModelLine(evidence: AssessmentReport["findings"][number]["outcome"
 
 function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
+  // Asked before the usage text, because it takes no file and a tool that cannot state its
+  // own version sends the reader to package.json to find out what they are running.
+  if (cmd === "--version" || cmd === "-v") {
+    console.log(versionLine());
+    return 0;
+  }
   if (!cmd || !file) {
     console.log(
       "Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [args...]\n" +
