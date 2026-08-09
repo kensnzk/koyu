@@ -5,6 +5,8 @@
 
 [日本語](README.ja.md)
 
+**muro is the notation; koyu is the toolchain that reads it, and the name of this undertaking.** A `.muro` file declares which language it is written in, and the two carry [separate version lines](docs/reference/stability.md).
+
 An exploration of text-native architectural description with **space as the primary element**. A wall is not a thing — it is the boundary between two spaces. An opening is a connection cut into a boundary. What is authored is spatial regions and the boundary relations between them; the form of building components is not source — it is generated. A whole building fits in a few hundred lines of text, which puts architecture on the same ground as git and LLMs, and makes it light enough to be a candidate for city-scale connection. The full argument (in Japanese) is in [docs/writing-architecture.md](docs/writing-architecture.md).
 
 ## Documentation

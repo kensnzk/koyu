@@ -1,6 +1,6 @@
 # AGENTS.md — for agents working on koyu
 
-koyu is a notation for writing architecture as text (`.muro`) and its processor. Space is the primary element, a wall is not a thing but the relation "the boundary between two spaces", and plans, areas and circulation are not written but derived.
+**muro is the notation** written in `.muro` files; **koyu is the processor that reads it**, and the name of this undertaking. The two carry separate version lines ([docs/reference/stability.md](docs/reference/stability.md)). Space is the primary element, a wall is not a thing but the relation "the boundary between two spaces", and plans, areas and circulation are not written but derived.
 
 This page is a **map and a body of law**, not a copy of the explanations. The same fact is never written twice — when in doubt, read the link rather than this page.
 
@@ -92,22 +92,16 @@ model_summary → layers → write_layer → check ──error──→ fix it a
 
 **Work on a branch. Never edit in the working tree of `main`** — cut the branch before the first edit, not after the last one.
 
-Then the road is fixed, and **it is four steps, not three.** The fourth is the one that gets forgotten.
+| # | Step | What runs |
+|---|---|---|
+| 1 | Open the PR | `ci.yml` on push and pull_request — typecheck, test, `check:examples`, `gate:examples` |
+| 2 | **Raise the version, inside the PR** | `test/release.test.ts` holds `package.json`, `package-lock.json`, `CITATION.cff` and `KOYU_VERSION`; and, when the language version moves, the `MURO_SUPPORT` row naming the release it ships in |
+| 3 | Merge into `main` | `ci.yml` again on `main` |
+| 4 | The release `v<version>` is published | `publish.yml` re-runs the fast checks, verifies the tag against `package.json`, builds, and publishes to npm |
 
-| # | Step | Who does it | What runs |
-|---|---|---|---|
-| 1 | Open the PR | you | `ci.yml` on push and pull_request — typecheck, test, `check:examples`, `gate:examples` |
-| 2 | Merge into `main` | the person | `ci.yml` again on `main` |
-| 3 | **Raise the version** | you, *inside the PR* | `test/release.test.ts` holds `package.json`, `package-lock.json`, `CITATION.cff` and `src/mcp.ts` in step |
-| 4 | **Cut the release `v<version>`** | **you** | `publish.yml` fires on `release: published`, checks the tag against `package.json`, builds, and publishes to npm |
+`publish.yml` fires on `release: published` and on `workflow_dispatch`, and **checks the release tag against `package.json` before publishing** — a mismatch stops it rather than shipping the wrong version. What creates the release is configured outside this repository, so do not describe that step from memory: read the workflows, or say you do not know.
 
-**Nothing in this repository creates the release.** `publish.yml` only consumes one. A release created by a workflow's `GITHUB_TOKEN` would not fire `release: published` at all (GitHub suppresses it to stop loops), so the step is deliberately a person's — and the agent doing the work is who performs it.
-
-```sh
-gh release create v0.19.0 --target "$(git rev-parse origin/main)" --title "v0.19.0 — …" --notes "…"
-```
-
-**A merged PR is not a shipped change.** Stopping at step 2 leaves the version raised on `main` and nothing on the registry — a state nobody notices until someone installs the package and gets the old one. **When a change raises the version, cut the release in the same sitting.** If the version was not raised, there is nothing to cut, and saying so out loud is part of finishing.
+**Verify rather than assume that a raised version reached the registry.** The failure that matters is `main` carrying a new version while npm still serves the old one, and nobody notices until an install comes back stale.
 
 Publishing needs no token: npm Trusted Publishing (OIDC) trusts `publish.yml` itself as the identity.
 

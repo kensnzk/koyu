@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "この探求を参照する場合は、以下の情報で引用してください。"
-title: "koyu (戸牖) — a space-first, text-native notation for architecture"
+title: "koyu (戸牖) — muro, a space-first text-native notation for architecture, and its toolchain"
 authors:
   - family-names: "Shinozaki"
     given-names: "Ken"
