@@ -140,7 +140,7 @@ npx tsx src/cli.ts validate examples/twin/main.muro --profile koyu.profile.schem
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
 ```
 
-Fifteen rules — unreachability, gaps in the envelope, columns fouling doors, ramp slope, road frontage among them — ran across all 1,808 spaces and 5,973 boundaries. **It still does not say the building works.** [`validate`](../reference/cli/validate.md) delivers judgements, not guarantees.
+Every rule — unreachability, gaps in the envelope, columns fouling doors, ramp slope, road frontage among them — ran across all 1,808 spaces and 5,973 boundaries. **It still does not say the building works.** [`validate`](../reference/cli/validate.md) delivers judgements, not guarantees.
 
 ## What the order of magnitude means
 

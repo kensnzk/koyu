@@ -26,9 +26,13 @@ import { fileURLToPath } from "node:url";
 import { DIAGNOSTIC_CODES } from "../src/core/diagnose.js";
 import {
   DEFAULT_LANGUAGE_VERSION,
+  isNewerVersion,
+  LAST_KOYU_SPELLED_VERSION,
   NEWEST_LANGUAGE_VERSION,
   SUPPORTED_LANGUAGE_VERSIONS,
 } from "../src/core/model.js";
+import { DIAGNOSTIC_CODES } from "../src/core/diagnose.js";
+import { SCHEMATIC_RULES } from "../src/validate/builtin/index.js";
 import { SCHEMATIC_RULES } from "../src/validate/builtin/index.js";
 import { ATTR_LEDGER } from "../src/core/vocabulary.js";
 
@@ -383,4 +387,63 @@ test("no retired spelling is still being taught", () => {
     }
   }
   assert.deepEqual(found, [], `retired spellings still written down:\n  ${found.join("\n  ")}`);
+});
+
+/**
+ * The word a version line is written with belongs to the version it declares.
+ *
+ * **This is the rule the whole undertaking was about, held by machine rather than by prose.**
+ * The version line is the only declaration that names the language, which is why it was the
+ * one that carried the wrong name for six versions — nothing else had to have an opinion, so
+ * nothing else could disagree out loud.
+ */
+test("a version declaration in the documentation is spelled with the word its version wants", () => {
+  const wrong: string[] = [];
+  for (const block of BLOCKS) {
+    if (!CHECKED_MURO_FENCES.has(block.fence) && block.fence !== "muro-bad") continue;
+    for (const [, word, version] of block.text.matchAll(/^(koyu|muro) (\d\.\d)$/gm)) {
+      const wants = isNewerVersion(version!, LAST_KOYU_SPELLED_VERSION) ? "muro" : "koyu";
+      if (word !== wants) wrong.push(`${block.where}: ${word} ${version} (${version} is declared \`${wants} ${version}\`)`);
+    }
+  }
+  assert.deepEqual(wrong, [], `a version line uses the wrong word for its version:\n  ${wrong.join("\n  ")}`);
+});
+
+/**
+ * A count written next to a ledger equals the ledger.
+ *
+ * Law 13 says not to write the count at all, and most of them came out. This holds the few
+ * that stayed — the tables that exist to put the two magnitudes side by side — and stops the
+ * rest from creeping back. Fifteen places said 65 against a ledger of 67 and nothing noticed,
+ * because the existing checks hold the *names* in the ledger and not the arithmetic beside it.
+ */
+test("a count written beside the diagnostics or the rules equals the ledger", () => {
+  const WORDS: Record<string, number> = {
+    ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16,
+    seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20,
+  };
+  const value = (t: string) => (/^\d+$/.test(t) ? Number(t) : WORDS[t.toLowerCase()]);
+  // Plural only. "UTF-16 code unit" is not a count of the ledger, and requiring the plural is
+  // cheaper than teaching the check what a code unit is.
+  const ledgers = [
+    { noun: /codes\b|diagnostics\b/, size: Object.keys(DIAGNOSTIC_CODES).length, name: "diagnostic codes" },
+    { noun: /rules\b/, size: SCHEMATIC_RULES.length, name: "validation rules" },
+  ];
+  const wrong: string[] = [];
+  for (const line of LINES) {
+    // `the six rules of composition` and `the rules of composition` are a different subject.
+    if (/rules of composition|composition rules/i.test(line.text)) continue;
+    // "the other 67 codes" is the ledger minus the one being discussed, and a quoted count is
+    // being reported rather than asserted — law 3b names two dead sentences on purpose.
+    const text = line.text.replace(/\bother\s+\d+/gi, "other").replace(/["'`][^"'`]*["'`]/g, "");
+    for (const ledger of ledgers) {
+      const re = new RegExp(`\\b([0-9]{1,3}|${Object.keys(WORDS).join("|")})\\s+(?:${ledger.noun.source})`, "gi");
+      for (const [, token] of text.matchAll(re)) {
+        const n = value(token!);
+        if (n === undefined || n < 5) continue; // a version number or a small tally, not a ledger size
+        if (n !== ledger.size) wrong.push(`${line.where}: ${token} ${ledger.name} (the ledger holds ${ledger.size})`);
+      }
+    }
+  }
+  assert.deepEqual(wrong, [], `a count disagrees with the ledger it names:\n  ${wrong.join("\n  ")}`);
 });

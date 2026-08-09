@@ -29,7 +29,9 @@ the point: there is no half-cut state that stays green.
 | What | Which gate |
 |---|---|
 | **The row in `MURO_SUPPORT` naming the koyu version the new muro ships in** | `test/release.test.ts` |
-| **`package.json`'s `muro.reads` / `muro.writes`** | `test/release.test.ts` |
+| **The word a version line is written with, in every muro block in `docs/` and `skills/`** | `test/restatements.test.ts` |
+| **A count written beside the diagnostics or the rules** | `test/restatements.test.ts` |
+| **`package.json`'s `muro` field** (`reads` / `newest` / `undeclared`) | `test/release.test.ts` |
 | Every version list, count and stated default in `docs/` and `skills/` | `test/restatements.test.ts` |
 | Every muro example in `skills/` and `docs/reference/muro/` declares the newest version | `test/restatements.test.ts` |
 | `docs/reference/muro/version.md` lists the versions in order and names the default | `test/release.test.ts` |
@@ -37,9 +39,13 @@ the point: there is no half-cut state that stays green.
 | The canonical JSON fixture still matches the implementation byte for byte | `test/release.test.ts` |
 | Every ` ```muro ` block still composes and checks green | `test/guide.test.ts` |
 
-Adding `1.2` to `SUPPORTED_LANGUAGE_VERSIONS` and moving `DEFAULT_LANGUAGE_VERSION` to it, with
-nothing else changed, turns **four of those gates red across 49 places** — measured, not
-estimated. Work down that list and the mechanical half of the bump is done.
+Adding the row with nothing else changed turns several of those gates red at once. Work down
+the failures and the mechanical half of the bump is done.
+
+**Two of them will point at the wrong constant unless you look.** `DEFAULT_LANGUAGE_VERSION` is
+the *undeclared* reading, frozen; the newest version is `NEWEST_LANGUAGE_VERSION`. A check that
+means "examples are written in the newest version" and reads the first one passes for as long
+as the two agree, and blocks the bump on the day they stop.
 
 ### Not held — check these by hand
 
@@ -51,13 +57,19 @@ estimated. Work down that list and the mechanical half of the bump is done.
   version that introduced it, so `version.md` claimed the composition words arrived in `1.1` when
   `VER04` is about `1.0` words — with its own pasted output saying so four lines below. Read the
   `VER` sections whole.
-- **`conformance/cases/`.** 62 cases declare `1.1` and five deliberately declare `1.0`, `0.5`,
-  `0.4`, `0.3` and `0.1` to pin version-gated behaviour. **Do not bulk-bump.** A conformance case
-  is a pinned expectation, not an example, and the five old ones are the point.
+- **`conformance/cases/`.** Most declare the version current when they were written, and a few
+  deliberately declare an old one to pin version-gated behaviour. **Do not bulk-bump.** A
+  conformance case is a pinned expectation, not an example, and the old ones are the point —
+  after the 1.2 cut the cases still spelled `koyu 1.1` are the standing proof that the old
+  spelling still reads.
 - **`eval/fixtures/`.** Carries version lines and no gate reads them.
 - **Anything vendored downstream.** A product that embeds a copy of the skill or the reference
   holds its own version list, and this repository cannot see it. Last time the downstream copy was
   the only correct one; that is luck, not a system.
+- **Downstream that *writes* a version line.** A stale reader is a nuisance; a stale writer keeps
+  minting files in the old spelling, so the migration never converges. Three generators and one
+  prompt that teaches a model the notation are named in the project issues; none is visible from
+  here.
 
 ---
 
@@ -95,8 +107,8 @@ estimated. Work down that list and the mechanical half of the bump is done.
 
 ### Not held
 
-- **`AGENTS.md`'s own lists.** It names the subcommands and the twelve MCP tools in prose, and no
-  test reads `AGENTS.md`.
+- **`AGENTS.md`'s own lists.** It names the subcommands and the MCP tools in prose, and no test
+  reads `AGENTS.md`.
 - **The usage lines in `src/cli.ts`** against the pages, beyond the subcommand's name existing.
 - **A removed name is only retired when the old spelling is gone.** Add it to `RETIRED_SPELLINGS`
   in `test/restatements.test.ts` so prose cannot go on teaching it.

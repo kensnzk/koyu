@@ -126,7 +126,7 @@ Because of that split, **adding a judgement for another jurisdiction touches not
 
 ## Judgement is a surface that grows
 
-Fifteen rules is not a finished set. Fire compartmentation, shadow studies, setback envelopes, travel distances, accessibility, whether services can be made to work — there is a great deal left that could be written as judgement.
+The rule set is not finished. Fire compartmentation, shadow studies, setback envelopes, travel distances, accessibility, whether services can be made to work — there is a great deal left that could be written as judgement.
 
 **All of it goes onto this surface.** Adding it does not change what `.muro` means, existing files still read, and canonical JSON still emits the same bytes.
 
