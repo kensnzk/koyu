@@ -14,13 +14,22 @@ Unpublished, like the rest of the loose material at the top of `docs/`.
 
 ## Raising the language version
 
-`koyu 1.1` → `koyu 1.2`. The source is `SUPPORTED_LANGUAGE_VERSIONS` and
-`DEFAULT_LANGUAGE_VERSION` in `src/core/model.ts`; everything below is downstream of those two.
+**The source is `MURO_SUPPORT` in `src/core/model.ts`, and cutting a version is adding a row
+to it.** `SUPPORTED_LANGUAGE_VERSIONS` and `DEFAULT_LANGUAGE_VERSION` are derived from that
+ledger, so **the newest version cannot move without a row** — that half of the job is now
+true by construction rather than by discipline. Everything below is downstream of the row.
+
+A row names the koyu version the language version ships in, so **the release bump and the
+language bump are one change**. Adding the row without raising `package.json` fails three
+gates at once (the ledger check, `package.json`'s `muro` field, and the examples), which is
+the point: there is no half-cut state that stays green.
 
 ### Held by machine — do not hand-check
 
 | What | Which gate |
 |---|---|
+| **The row in `MURO_SUPPORT` naming the koyu version the new muro ships in** | `test/release.test.ts` |
+| **`package.json`'s `muro.reads` / `muro.writes`** | `test/release.test.ts` |
 | Every version list, count and stated default in `docs/` and `skills/` | `test/restatements.test.ts` |
 | Every muro example in `skills/` and `docs/reference/muro/` declares the newest version | `test/restatements.test.ts` |
 | `docs/reference/muro/version.md` lists the versions in order and names the default | `test/release.test.ts` |

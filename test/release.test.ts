@@ -7,7 +7,13 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS, toCanonical } from "../src/core/model.js";
+import {
+  DEFAULT_LANGUAGE_VERSION,
+  KOYU_VERSION,
+  MURO_SUPPORT,
+  SUPPORTED_LANGUAGE_VERSIONS,
+  toCanonical,
+} from "../src/core/model.js";
 import { parseFile } from "../src/parse-file.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -43,6 +49,76 @@ test("version sync: package / lockfile / CITATION / MCP", () => {
     read("src/core/model.ts"),
     new RegExp(`KOYU_VERSION = "${pkg.version.replace(/\./g, "\\.")}"`),
     "KOYU_VERSION",
+  );
+});
+
+/** Compare two `major.minor.patch` strings. Prerelease suffixes are not used in the ledger. */
+function cmpSemver(a: string, b: string): number {
+  const pa = a.split(".").map(Number);
+  const pb = b.split(".").map(Number);
+  for (let i = 0; i < 3; i++) {
+    const d = (pa[i] ?? 0) - (pb[i] ?? 0);
+    if (d !== 0) return d;
+  }
+  return 0;
+}
+
+/**
+ * The relation between the two version lines, which nothing held until now.
+ *
+ * The decision that split the axes named the missing machine check as its own cost: the
+ * release test compared each axis against its own restatements and never against the other.
+ *
+ * **Half of the rule is now true by construction rather than by assertion.**
+ * `SUPPORTED_LANGUAGE_VERSIONS` and `DEFAULT_LANGUAGE_VERSION` are derived from
+ * `MURO_SUPPORT`, so the newest accepted version cannot move without a row being added — a
+ * language version can no longer be cut halfway. What is left to check is that the row is
+ * honest about which koyu it arrived in.
+ */
+test("the muro ledger and the koyu version agree (ADR-0042 代償1)", () => {
+  const pkg = JSON.parse(read("package.json")) as { version: string };
+  assert.equal(KOYU_VERSION, pkg.version, "KOYU_VERSION tracks package.json");
+
+  for (const row of MURO_SUPPORT) {
+    assert.match(row.muro, /^\d+\.\d+$/, `muro version is major.minor: ${row.muro}`);
+    assert.match(row.since, /^\d+\.\d+\.\d+$/, `since is a plain release: ${row.muro} -> ${row.since}`);
+    if (row.until !== null) {
+      assert.match(row.until, /^\d+\.\d+\.\d+$/, `until is a plain release: ${row.muro} -> ${row.until}`);
+    }
+  }
+
+  // Versions arrive in order, and so do the releases that carried them. Several language
+  // versions may share a release — 0.3, 0.4 and 0.5 all arrived in 0.11.0 — so this is
+  // non-decreasing, not strictly increasing.
+  for (let i = 1; i < MURO_SUPPORT.length; i++) {
+    assert.ok(
+      cmpSemver(MURO_SUPPORT[i]!.since, MURO_SUPPORT[i - 1]!.since) >= 0,
+      `the ledger is ordered by arrival: ${MURO_SUPPORT[i - 1]!.muro} (${MURO_SUPPORT[i - 1]!.since}) then ${MURO_SUPPORT[i]!.muro} (${MURO_SUPPORT[i]!.since})`,
+    );
+  }
+
+  // **The check that catches a half-cut language version.** Adding a row for a new language
+  // version means naming the release it ships in; if package.json has not been raised to
+  // that release yet, the ledger is promising a version nobody can install.
+  for (const row of MURO_SUPPORT) {
+    assert.ok(
+      cmpSemver(row.since, pkg.version) <= 0,
+      `muro ${row.muro} claims to have arrived in koyu ${row.since}, which is ahead of this package (${pkg.version}) — raise the version in the same change, or correct the row`,
+    );
+  }
+
+  // A retired version stops being accepted; retirement runs oldest-first, so the accepted
+  // versions are always a suffix of the ledger.
+  const retired = MURO_SUPPORT.filter((r) => r.until !== null).map((r) => r.muro);
+  assert.deepEqual(
+    SUPPORTED_LANGUAGE_VERSIONS.filter((v) => retired.includes(v)),
+    [],
+    "a retired version is not still accepted",
+  );
+  assert.deepEqual(
+    [...SUPPORTED_LANGUAGE_VERSIONS],
+    MURO_SUPPORT.filter((r) => r.until === null).map((r) => r.muro),
+    "the accepted versions are the ledger's live rows, in the ledger's order",
   );
 });
 
