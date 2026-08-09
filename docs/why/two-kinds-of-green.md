@@ -13,7 +13,7 @@ koyu splits "correct" in two.
 | Return type | `Diagnostic { code, severity }` | `Finding { rule, level }` |
 | Identifier | `BND04`, `SUF01` — three letters plus two digits | `koyu.schematic.envelope.gap`, `koyu.schematic.access.unreachable` — chapter.rule |
 | Weight | `error` / `warning` | `violation` / `caution` |
-| Count | **65 codes** | **16 rules** |
+| Count | **68 codes** | **16 rules** |
 | Version | **freezes** | does not freeze; grows |
 | What it says | what is written does not contradict itself as data | this is (probably) architecturally sound |
 
@@ -135,6 +135,6 @@ Fifteen rules is not a finished set. Fire compartmentation, shadow studies, setb
 ## Next
 
 - [Separating language, checks and drawing](three-domains.md) — the whole picture of this split
-- [Diagnostics — koyu check](../reference/diagnostics/index.md) — 65 codes
+- [Diagnostics — koyu check](../reference/diagnostics/index.md) — 68 codes
 - [Judgement — koyu validate](../reference/validate/index.md) — 16 rules
 - [Scope](../reference/scope.md)

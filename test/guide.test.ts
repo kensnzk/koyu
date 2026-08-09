@@ -384,12 +384,16 @@ test("ledger: each section of the diagnostics reference carries an example that 
     assert.ok(b, `the diagnostics reference:${s.line}: the ${s.code} section has no bad-example block`);
     const r = run(b.body);
     if (r.thrown) {
-      // SourceError は診断に写すと SYN01 ちょうど1件になる (ADR-0016 / CLIの check --json)
+      // A SourceError maps to exactly one diagnostic (ADR-0016 / the CLI's check --json).
+      // Its code is SYN01 unless the failure named a condition of its own — a file declaring
+      // a language version this build cannot read is one, because the caller has to act on it
+      // without matching the message text.
       assert.ok(r.thrown instanceof SourceError, `${where(b)}: an exception other than SourceError — ${r.thrown.stack}`);
+      const mapped = r.thrown.code ?? "SYN01";
       assert.equal(
         s.code,
-        "SYN01",
-        `${where(b)}: it fails at parse, so the code mapped is SYN01, but the section is ${s.code}`,
+        mapped,
+        `${where(b)}: it fails at parse, so the code mapped is ${mapped}, but the section is ${s.code}`,
       );
       continue;
     }

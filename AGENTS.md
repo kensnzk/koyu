@@ -113,7 +113,7 @@ Publishing needs no token: npm Trusted Publishing (OIDC) trusts `publish.yml` it
 
 ## When you hit an error
 
-The human-facing output of `check` carries no diagnostic codes. Add `--json` and the codes appear. To go from a code to the cause and the fix, use [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) — all 67 codes have a page per family carrying the code, its severity, and how to fix it. To go from a symptom, use [docs/howto/by-symptom.md](docs/howto/by-symptom.md).
+The human-facing output of `check` carries no diagnostic codes. Add `--json` and the codes appear. To go from a code to the cause and the fix, use [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) — all 68 codes have a page per family carrying the code, its severity, and how to fix it. To go from a symptom, use [docs/howto/by-symptom.md](docs/howto/by-symptom.md).
 
 There are three traps people hit often. `grid` and `level` have no effect unless declared **before** use (`boundary` may forward-reference). To divide a space into a plan, make the parent a `zone` rather than a `space`. An opening onto the outside has several boundary segments, so select the edge with `edge:N/E/S/W` (N=+Y, S=-Y, E=+X, W=-X). Details are in [docs/howto/troubleshooting.md](docs/howto/troubleshooting.md).
 

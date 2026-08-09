@@ -35,7 +35,7 @@ core holds this and no more.
 - **composition** — layer strength order, single-value resolution, set editing, provenance
 - **identity** — uid and path, the identity of relations
 - **derivation** — the rules that make **a unique form** out of the written composition, and their reference implementation
-- **structural diagnostics** — the 65 codes `check` returns
+- **structural diagnostics** — the 68 codes `check` returns
 - **questions** — area, graph, routes, opening area. **Never pass or fail**
 - **the machine format** — canonical JSON
 

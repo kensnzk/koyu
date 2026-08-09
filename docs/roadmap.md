@@ -34,7 +34,7 @@ These are the eight things 1.0.0 promises not to break. **All eight now stand in
 | The three attribute tiers and namespaces | The distinction between structural, interpreted and carry tiers, and the rule that a key containing a dot lands in the carry tier | ✅ The ledger is the single source for the implementation |
 | The machine format | The spelling of the canonical JSON — format version, key collation (ascending code point), NFC normalisation | ✅ |
 | The derivation rules | The definition of what is uniquely determined by the authored composition (wall segments, areas, adjacency, passability) | ✅ A reference implementation stands, and uniqueness became a predicate a machine can hold |
-| Structural-consistency diagnostics | 65 codes, with severity as an invariant property of the code | ✅ Verdicts were moved to a separate domain, and the meaning of green now matches the definition |
+| Structural-consistency diagnostics | 68 codes, with severity as an invariant property of the code | ✅ Verdicts were moved to a separate domain, and the meaning of green now matches the definition |
 | The public API and CLI | The TypeScript names and the contract of the CLI subcommands | ✅ The surface was written down, and tests hold it in set-equality with the implementation |
 
 ## What is left — looking at it end to end

@@ -126,6 +126,7 @@ export const DIAGNOSTIC_CODES = {
   VER03: "error", // koyu 0.4以前のファイルに0.5の語 (縦動線・線・柱・地下)
   VER04: "error", // koyu 0.5以前のファイルに1.0の語 (over・drop・集合編集 — ADR-0035/0038)
   VER05: "error", // koyu 1.0以前のファイルの型の位置に exterior / void (ADR-0051)
+  VER06: "error", // the file declares a language version newer than this build reads
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
 } as const satisfies Record<string, "error" | "warning">;
 

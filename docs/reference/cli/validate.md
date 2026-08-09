@@ -165,7 +165,7 @@ The exit code is 0. **To fail CI on cautions too, read `--json` and count them y
 | Returned type | `Diagnostic` | `AssessmentReport` |
 | Name | `code` (`BND04` — three letters and two digits) | `rule` (`koyu.schematic.envelope.gap` — a namespaced id) |
 | Weight | `severity`: `error` / `warning` | `level`: `violation` / `caution` |
-| Count | 65 codes | 16 rules |
+| Count | 68 codes | 16 rules |
 | Grounds | none needed | a profile and a date, always explicit |
 | What it guarantees | That what is written holds together as data | **Nothing — it is a judgement** |
 | Nature of the surface | Frozen. Adding or removing moves the language version | Not frozen. May grow, may be discarded |

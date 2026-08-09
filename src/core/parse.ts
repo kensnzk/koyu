@@ -11,6 +11,8 @@ import {
   type Boundary,
   DEFAULT_LANGUAGE_VERSION,
   type Edge,
+  isNewerVersion,
+  KOYU_VERSION,
   type Level,
   type Model,
   normalizeRegionOrder,
@@ -261,6 +263,20 @@ function ingest(
           throw new SourceError(ln, `Extra tokens on the koyu version declaration: ${rest.slice(1).join(" ")}`);
         }
         if (!SUPPORTED_LANGUAGE_VERSIONS.includes(v)) {
+          // **A file from the future is not a broken file.** It says the reader is behind, and
+          // the only useful advice is to upgrade — the opposite of the advice for a version
+          // that never existed. Both used to print the same sentence, so a viewer could not
+          // tell a stale build from a corrupt file, and one downstream rebuilt the
+          // distinction for itself out of the version list.
+          const newest = SUPPORTED_LANGUAGE_VERSIONS[SUPPORTED_LANGUAGE_VERSIONS.length - 1]!;
+          if (isNewerVersion(v, newest)) {
+            throw new SourceError(
+              ln,
+              `This file is written in muro ${v}, and this build of koyu (${KOYU_VERSION}) reads up to ${newest}. The file is not the problem — upgrade koyu`,
+              undefined,
+              "VER06",
+            );
+          }
           throw new SourceError(
             ln,
             `Unsupported koyu version: ${v} (this tool supports ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")})`,
@@ -721,7 +737,7 @@ function ingest(
     } catch (e) {
       // 合成時はどのファイルのエラーかを言葉にする
       if (e instanceof SourceError && !e.file && file) {
-        throw new SourceError(e.line, e.raw, file);
+        throw new SourceError(e.line, e.raw, file, e.code);
       }
       throw e;
     }
@@ -732,7 +748,7 @@ function ingest(
       expandBand(model, band, file);
     } catch (e) {
       if (e instanceof SourceError && !e.file && file) {
-        throw new SourceError(e.line, e.raw, file);
+        throw new SourceError(e.line, e.raw, file, e.code);
       }
       throw e;
     }

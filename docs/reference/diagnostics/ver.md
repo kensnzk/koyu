@@ -5,7 +5,7 @@ mode: reference
 
 # VER — the language version
 
-There are four VER codes. All are errors.
+All VER codes are errors.
 
 | Code | Severity | What it says |
 |---|---|---|
@@ -14,6 +14,9 @@ There are four VER codes. All are errors.
 | VER03 | error | A koyu 0.4-or-earlier file uses 0.5 vocabulary |
 | VER04 | error | A koyu 0.5-or-earlier file uses 1.0 vocabulary |
 | VER05 | error | a koyu 1.0-or-earlier file writes exterior / void in the type position |
+| VER06 | error | The file declares a version newer than this build reads |
+
+**VER06 is the one that points at the tool rather than the file.** The first five all say the same kind of thing — this file is written in an old version, and reading it under a newer one would change what it means. VER06 says the opposite: the file is fine and the reader is behind.
 
 ## Declaring the version
 
@@ -193,9 +196,40 @@ That happens silently, which is why it is **an error and not a warning** — the
 
 The same code watches the other direction. Writing `outside:` / `void:`, or omitting the type, in a 1.0-or-earlier file is 1.1 spelling and is stopped just the same — the declared version and the vocabulary have to agree.
 
+## VER06 — the file is newer than this build of koyu {#ver06}
+
+`error`
+
+```muro-bad
+koyu 9.9
+unit mm
+```
+
+```text
+This file is written in muro 9.9, and this build of koyu (0.19.0) reads up to 1.1. The file is not the problem — upgrade koyu
+```
+
+**Cause** — the declared version is later than every version this build accepts. That is not a mistake in the file. Someone wrote it with a newer koyu, and this one has not learnt that language yet.
+
+**The fix** — install a newer koyu. `koyu --version` says what this build reads:
+
+```text
+koyu 0.19.0 — reads muro 0.1–1.1, writes muro 1.1
+```
+
+**Why it is a separate code from an unreadable version.** A version that never existed is a different situation with the opposite advice, and it keeps the `SYN01` it always had:
+
+```text
+Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1)
+```
+
+Both used to print that second sentence, so nothing downstream could tell a stale build from a corrupt file without reading English prose. The split is *later than anything I know* against *not a version I have*, which is answerable; *real* against *fake* is not, and `9.9` is treated as the future because that is the more useful of the two readings.
+
+**This one is raised while reading the file, not while checking it.** A version this build cannot read is a version it cannot parse under, so it stops at parse time and `check --json` reports it as the single diagnostic — the same path `SYN01` takes.
+
 ## Why declare a version at all
 
-With no declaration a file is read under the latest semantics, and VER never fires. **You declare a version when you want a file's meaning pinned to a point in the past.** Having pinned it, mixing in newer vocabulary gets stopped — which is what these four codes are for.
+With no declaration a file is read under the latest semantics, and VER01–VER05 never fire. **You declare a version when you want a file's meaning pinned to a point in the past.** Having pinned it, mixing in newer vocabulary gets stopped — which is what those five codes are for.
 
 Put the other way round: **when you want to use newer notation, raising the version is the correct fix.** Every message shows you that one line.
 

@@ -131,7 +131,7 @@ The [validation](../validate/index.md) face does read a few type words when it j
 
 ## The real work starts once syntax passes
 
-SYN01 disappearing means only that the file became a model. From there the semantic checks — the other 64 codes — run.
+SYN01 disappearing means only that the file became a model. From there the semantic checks — the other 67 codes — run.
 
 ```sh
 koyu check house.muro --strict

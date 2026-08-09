@@ -53,6 +53,23 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
  */
 export const KOYU_VERSION = "0.19.0";
 
+/**
+ * Whether `a` names a later language version than `b`.
+ *
+ * **Not by index in the ledger** — the whole point is to answer for a version the ledger has
+ * never heard of, which is what a file from the future carries. Compared as numbers, because
+ * as strings `"0.5" > "1.0"`. A spelling that is not `major.minor` is not a version at all
+ * and is never "newer": it is unreadable, which is a different answer.
+ */
+export function isNewerVersion(a: string, b: string): boolean {
+  const shape = /^(\d+)\.(\d+)$/;
+  const pa = shape.exec(a);
+  const pb = shape.exec(b);
+  if (!pa || !pb) return false;
+  const major = Number(pa[1]) - Number(pb[1]);
+  return major !== 0 ? major > 0 : Number(pa[2]) > Number(pb[2]);
+}
+
 /** What this build reads and what it writes, as one line for a person. */
 export function versionLine(): string {
   const read = SUPPORTED_LANGUAGE_VERSIONS;
@@ -565,6 +582,19 @@ export class SourceError extends Error {
     public raw: string,
     /** 出所ファイル (合成時) */
     public file?: string,
+    /**
+     * The diagnostic code this failure carries in `check --json`, when it has one of its own.
+     *
+     * Most parse failures are just syntax and are reported as `SYN01`. A few are a named
+     * condition a caller has to be able to act on without matching the message text — a file
+     * declaring a language version this build cannot read is the case that forced this: the
+     * answer is "upgrade koyu", and a viewer wanting to say so should not be reading English.
+     *
+     * Narrow on purpose. The diagnostic ledger lives in `diagnose.ts`, which reads this
+     * module, so the union cannot be imported here — and widening it to `string` would let
+     * a typo reach `check --json` as a code no page documents.
+     */
+    public code?: "VER06",
   ) {
     super(`${file ? `${file}:` : ""}line ${line}: ${raw}`);
     this.name = "SourceError";

@@ -247,7 +247,8 @@ function main(argv: string[]): number {
     // check --json は構文・合成エラー (SourceError) でも有効JSONを返す — SYN01 の1件に写す (ADR-0016)
     if (cmd === "check" && rest.includes("--json") && e instanceof SourceError) {
       const d: Diagnostic = {
-        code: "SYN01",
+        // A parse failure that named its own condition keeps that code; the rest are syntax.
+        code: e.code ?? "SYN01",
         severity: "error",
         message: e.raw,
         ...(e.line ? { line: e.line } : {}),

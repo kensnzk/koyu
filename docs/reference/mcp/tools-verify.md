@@ -380,6 +380,6 @@ So if you gate CI on a finding count, either **accept going red when a rule is a
 - [Writing — write_layer / new_uids](tools-write.md) — the `check` carried in a `write_layer` result
 - [Asking — doors / light / site / plan_svg](tools-ask.md) — the surface that returns numbers, not verdicts
 - [The protocol](protocol.md) — why a syntax error comes back as `isError`
-- [Diagnostic codes](../diagnostics/index.md) — 65 codes, their causes and their fixes
+- [Diagnostic codes](../diagnostics/index.md) — 68 codes, their causes and their fixes
 - [Judgement — koyu validate](../validate/index.md) — the 16 rules read closely
 - [koyu check](../cli/check.md) — the CLI's `--json` and `--strict`

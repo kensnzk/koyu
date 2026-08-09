@@ -384,7 +384,7 @@ It is not a contradiction but a difference of role between two layers. A reader 
 ## Related
 
 - [Look up a diagnostic by symptom](by-symptom.md) — the symptom index
-- [Diagnostic code index](../reference/diagnostics/index.md) — all 65, looked up by code
+- [Diagnostic code index](../reference/diagnostics/index.md) — all 68, looked up by code
 - [Counted and uncounted divisions](uncounted-divisions.md) — the judgement behind trap 5
 - [The three attribute tiers](../reference/muro/attributes.md) — the ledger to check against in trap 11
 - [The scope of the promise](../reference/scope.md) — the reason shared by traps 9, 10, 12 and 13

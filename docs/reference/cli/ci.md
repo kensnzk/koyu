@@ -181,5 +181,5 @@ A file that could not be read because of a syntax error still returns valid JSON
 
 - [koyu check](check.md) — `--strict` and `--json`
 - [koyu validate](validate.md) — the 16 rules, their levels, and the required profile
-- [Diagnostics](../diagnostics/index.md) — cause and fix for all 65 codes
+- [Diagnostics](../diagnostics/index.md) — cause and fix for all 68 codes
 - [The koyu command](index.md) — the shared promises about exit codes

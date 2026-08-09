@@ -140,6 +140,6 @@ try {
 - The space graph, circulation, daylight, the site — everything the CLI answers is callable from the API, and it is all laid out in [TypeScript API](../reference/api/index.md).
 - To emit plans and axonometrics as SVG, see `svgPlan` and `svgAxo` in the [TypeScript API](../reference/api/index.md).
 - To go down to centrelines, thicknesses, columns and the solids of vertical runs, see [Form — derive(model)](../reference/form/index.md).
-- To look a diagnostic code up, see [The diagnostic code index](../reference/diagnostics/index.md) — all 65 of them.
+- To look a diagnostic code up, see [The diagnostic code index](../reference/diagnostics/index.md) — all 68 of them.
 - The shape of the canonical JSON is in [Canonical JSON](../reference/json/index.md).
 - To let an LLM agent read and write buildings, [koyu-mcp](../reference/mcp/index.md) exposes the same derivations as 12 tools.

@@ -114,5 +114,5 @@ Without the declaration, they cannot be told apart, and **"nothing wrong" in tha
 - [What koyu does not hold](not-held.md) — the resolution of this description
 - [koyu check](cli/check.md) — using the gatekeeper
 - [koyu validate](cli/validate.md) — the judgement face
-- [Diagnostics](diagnostics/index.md) — 65 codes
+- [Diagnostics](diagnostics/index.md) — 68 codes
 - [Judgements](validate/index.md) — 16 rules
