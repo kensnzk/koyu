@@ -11,7 +11,7 @@ An exploration of text-native architectural description with **space as the prim
 
 ## Documentation
 
-**[docs/](docs/index.md) is the documentation, and it is authoritative.** 167 pages in Japanese and English, laid out by what you came to do.
+**[docs/](docs/index.md) is the documentation, and it is authoritative.** 155 pages, one tree in English, laid out by what you came to do.
 
 - **[docs/start/](docs/start/index.md)** — the tutorial: one room to a two-storey house in 30–45 minutes. **If you are learning koyu, start here.**
 - **[docs/why/](docs/why/index.md)** — the explanations: why space is primary, why a boundary is a relation, why the form must be unique.
