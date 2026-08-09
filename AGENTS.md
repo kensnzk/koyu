@@ -97,6 +97,20 @@ model_summary → layers → write_layer → check ──error──→ fix it a
     - **Every link is a claim that the target still says what you think.** Carry the reader, then stop.
     - Law 3b is the same rule where a machine source exists, and law 12 is the same rule for coined phrases. This one covers what is merely surplus.
 
+## Code Review Rules
+
+### Preserve the published contract
+
+- Flag a change that silently alters accepted `.muro` meaning, canonical JSON, a public API/CLI/MCP result, or diagnostic code, severity, or ordering without classifying it under `docs/reference/stability.md`. The safe path is to preserve the contract, or make the versioned break explicit and update the authoritative documentation, focused tests, and conformance cases together.
+
+### Keep structural fact separate from architectural judgement
+
+- Flag architectural judgement entering `src/core/` or `Diagnostic`, and flag deterministic consistency guarantees moving into `src/validate/` or `Finding`. Core may report contradictions in what was written; validation may report changeable architectural judgement and must not redefine the language.
+
+### Never discard or invent source meaning
+
+- Flag any parse, composition, serialization, or editor path that can silently drop written declarations or provenance, replace an uninterpreted value with a default, emit derived walls or floors as source, or change stable `uid` identity. Preserve written and unknown data, derive outputs from the model, and refuse unsupported transformations instead of approximating them.
+
 ## How a change ships
 
 **Work on a branch. Never edit in the working tree of `main`** — cut the branch before the first edit, not after the last one.
