@@ -82,7 +82,7 @@
     "gate:examples": "node --import tsx scripts/gate.mjs",
     "plan:examples": "tsx src/cli.ts plan examples/two-rooms.muro -o out/two-rooms.svg",
     "conformance": "node --import tsx --test test/conformance.test.ts",
-    "gate:docs": "npm --prefix website run gate:canonical && npm --prefix website run check:navigation"
+    "gate:docs": "npm --prefix website run prepare:content && npm --prefix website run gate:canonical && npm --prefix website run check:navigation"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
