@@ -18,10 +18,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from koyu_ifc.export import READS_CANONICAL, export  # noqa: E402
 
 
+# A spelling this exporter does not read. **Asserted absent rather than assumed absent**: the
+# first version of this test hard-coded a value that a later commit added to the allowlist, so
+# the guard stopped firing and the test stopped testing anything while still looking deliberate.
+UNKNOWN_FORMAT = "koyu-canonical/99.0"
+
+
+def test_the_sample_is_actually_unknown():
+    assert UNKNOWN_FORMAT not in READS_CANONICAL, (
+        f"{UNKNOWN_FORMAT} has been added to READS_CANONICAL, so the refusal test below no "
+        "longer exercises a refusal — pick a spelling this exporter does not read."
+    )
+
+
 def test_a_format_this_exporter_does_not_know_is_refused():
     with pytest.raises(ValueError) as e:
-        export({"canonical": {"format": "koyu-canonical/2.0", "unit": "mm"}})
-    assert "koyu-canonical/2.0" in str(e.value)
+        export({"canonical": {"format": UNKNOWN_FORMAT, "unit": "mm"}})
+    assert UNKNOWN_FORMAT in str(e.value)
     # The message says which side is behind. The document is not the problem.
     assert "Nothing is wrong with the document" in str(e.value)
 
