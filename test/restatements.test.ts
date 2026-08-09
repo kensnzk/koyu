@@ -24,7 +24,11 @@ import { join, relative } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { DIAGNOSTIC_CODES } from "../src/core/diagnose.js";
-import { DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS } from "../src/core/model.js";
+import {
+  DEFAULT_LANGUAGE_VERSION,
+  NEWEST_LANGUAGE_VERSION,
+  SUPPORTED_LANGUAGE_VERSIONS,
+} from "../src/core/model.js";
 import { SCHEMATIC_RULES } from "../src/validate/builtin/index.js";
 import { ATTR_LEDGER } from "../src/core/vocabulary.js";
 
@@ -254,13 +258,13 @@ test("a muro example declares the newest language version", () => {
       continue;
     }
     for (const [, written] of block.text.matchAll(/^koyu (\d\.\d)\b/gm)) {
-      if (written !== DEFAULT_LANGUAGE_VERSION) stale.push(`${block.where}: koyu ${written}`);
+      if (written !== NEWEST_LANGUAGE_VERSION) stale.push(`${block.where}: koyu ${written}`);
     }
   }
   assert.deepEqual(
     stale,
     [],
-    `an example declares a superseded language version (the newest is ${DEFAULT_LANGUAGE_VERSION}):\n  ${stale.join("\n  ")}`,
+    `an example declares a superseded language version (the newest is ${NEWEST_LANGUAGE_VERSION}):\n  ${stale.join("\n  ")}`,
   );
 });
 

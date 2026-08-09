@@ -41,6 +41,7 @@ const cases: SurfaceCase[] = [
       "KOYU_VERSION",
       "koyuSince",
       "MURO_SUPPORT",
+      "NEWEST_LANGUAGE_VERSION",
       "speaksMuro",
       "SUPPORTED_LANGUAGE_VERSIONS",
       "toCanonical",

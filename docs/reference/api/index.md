@@ -81,7 +81,7 @@ So **this surface is exactly the set of names spelled out one by one in `src/ind
 |---|---|---|
 | Parsing and composition | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
 | Structural consistency | `check` `checkDiagnostics` | `CheckResult` `Diagnostic` `DiagnosticCode` |
-| Canonical form and versions | `DEFAULT_LANGUAGE_VERSION` `requireMuro` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` | `Model` |
+| Canonical form and versions | `DEFAULT_LANGUAGE_VERSION` `NEWEST_LANGUAGE_VERSION` `requireMuro` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` | `Model` |
 
 Four things put a name on the surface.
 

@@ -73,14 +73,18 @@ npx tsx src/cli.ts --version
 ```
 
 ```text
-koyu 0.19.0 — reads muro 0.1–1.1, writes muro 1.1
+koyu 0.19.0 — reads muro 0.1–1.1 (newest 1.1; a file with no version line is read as 1.1)
 ```
 
 The exit code is `0` — it is an answer, not a calling mistake.
 
-**Read it as three facts.** `0.19.0` is this implementation. `reads muro 0.1–1.1` is every language version it accepts, so a file declaring one of those opens here. `writes muro 1.1` is the version it assumes when a file declares none, and the version its own output is written in. When a file will not open because it declares something newer, this line is what tells you the file is fine and the tool is behind.
+**Read it as three facts, and note that the last two are separate.** `0.19.0` is this implementation. `reads muro 0.1–1.1` is every language version it accepts, so a file declaring one of those opens here. `newest` is the version to declare to get everything the language has.
 
-The same pair is on `package.json` as the `muro` field, for anything that needs it without running the binary, and in the MCP server's `serverInfo`.
+`a file with no version line is read as 1.1` is **frozen** and does not follow `newest` ([the version line](../muro/version.md)). They coincide today and stop coinciding the moment a newer version exists, which is exactly when a reader needs to be told.
+
+When a file will not open because it declares something newer, this line is what tells you the file is fine and the tool is behind.
+
+The same three facts are on `package.json` as the `muro` field (`reads` / `newest` / `undeclared`), for anything that needs them without running the binary, and in the MCP server's `serverInfo`.
 
 ## There is no --help
 

@@ -12,6 +12,7 @@ import { daylightInputs } from "./core/light.js";
 import {
   DEFAULT_LANGUAGE_VERSION,
   KOYU_VERSION,
+  NEWEST_LANGUAGE_VERSION,
   polygonAreaM2,
   SUPPORTED_LANGUAGE_VERSIONS,
 } from "./core/model.js";
@@ -440,7 +441,11 @@ function handle(msg: Json): void {
           version: KOYU_VERSION,
           // Which muro this build speaks. An agent choosing how to spell a version line
           // has nothing else to read it from.
-          muro: { reads: SUPPORTED_LANGUAGE_VERSIONS, writes: DEFAULT_LANGUAGE_VERSION },
+          muro: {
+            reads: SUPPORTED_LANGUAGE_VERSIONS,
+            newest: NEWEST_LANGUAGE_VERSION,
+            undeclared: DEFAULT_LANGUAGE_VERSION,
+          },
         },
         instructions:
           "Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written.",

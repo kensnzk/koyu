@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import {
   DEFAULT_LANGUAGE_VERSION,
   KOYU_VERSION,
+  NEWEST_LANGUAGE_VERSION,
   MURO_SUPPORT,
   SUPPORTED_LANGUAGE_VERSIONS,
   toCanonical,
@@ -129,11 +130,13 @@ test("the muro ledger and the koyu version agree (ADR-0042 代償1)", () => {
  */
 test("the muro support declared in package.json equals the ledger", () => {
   const pkg = JSON.parse(read("package.json")) as {
-    muro?: { reads: string[]; writes: string };
+    muro?: { reads: string[]; newest: string; undeclared: string };
   };
   assert.ok(pkg.muro, "package.json declares which muro it speaks");
   assert.deepEqual(pkg.muro!.reads, [...SUPPORTED_LANGUAGE_VERSIONS], "package.json muro.reads");
-  assert.equal(pkg.muro!.writes, DEFAULT_LANGUAGE_VERSION, "package.json muro.writes");
+  assert.equal(pkg.muro!.newest, NEWEST_LANGUAGE_VERSION, "package.json muro.newest");
+  // Separate from `newest` on purpose: they coincide today and diverge the day 1.2 lands.
+  assert.equal(pkg.muro!.undeclared, DEFAULT_LANGUAGE_VERSION, "package.json muro.undeclared");
 });
 
 test("language version sync: the published norm, the examples and the canonical JSON fixture (ADR-0017)", () => {
@@ -158,7 +161,7 @@ test("language version sync: the published norm, the examples and the canonical 
   for (const p of declared) {
     assert.match(
       readFileSync(p, "utf8"),
-      new RegExp(`^koyu ${DEFAULT_LANGUAGE_VERSION.replace(/\./g, "\\.")}$`, "m"),
+      new RegExp(`^koyu ${NEWEST_LANGUAGE_VERSION.replace(/\./g, "\\.")}$`, "m"),
       p.slice(root.length),
     );
   }

@@ -32,7 +32,7 @@ Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 
 
 The declaration is written **once**, in the base layer (the entry). By convention it goes on the first line. Writing it in an imported layer is an error — silent overwriting by composition order is forbidden.
 
-**A file with no version declaration is read under the latest semantics (1.1).** So no VER code ever fires for it. VER only concerns files that declare a version in order to pin their meaning.
+**A file with no version declaration is read as 1.1, and always will be** ([the version line](../muro/version.md)). So VER01–VER05 never fire for it: those codes concern files that declare a version in order to pin their meaning to a point in the past.
 
 ## When an older version is accepted
 
@@ -229,7 +229,7 @@ Both used to print that second sentence, so nothing downstream could tell a stal
 
 ## Why declare a version at all
 
-With no declaration a file is read under the latest semantics, and VER01–VER05 never fire. **You declare a version when you want a file's meaning pinned to a point in the past.** Having pinned it, mixing in newer vocabulary gets stopped — which is what those five codes are for.
+With no declaration a file is read as 1.1 and stays there, so VER01–VER05 never fire. **You declare a version for one of two reasons: to pin a file's meaning to a point in the past, or to opt into semantics newer than 1.1.** Having pinned it, mixing in newer vocabulary gets stopped — which is what those five codes are for.
 
 Put the other way round: **when you want to use newer notation, raising the version is the correct fix.** Every message shows you that one line.
 

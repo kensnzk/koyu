@@ -70,10 +70,17 @@ export function isNewerVersion(a: string, b: string): boolean {
   return major !== 0 ? major > 0 : Number(pa[2]) > Number(pb[2]);
 }
 
-/** What this build reads and what it writes, as one line for a person. */
+/**
+ * What this build reads, what the newest version is, and how an undeclared file is read.
+ *
+ * The last two are separate facts and only coincide today. Once a newer version exists they
+ * differ permanently, and the line has to say both or it is telling half the truth to the
+ * person most likely to be surprised by it.
+ */
 export function versionLine(): string {
   const read = SUPPORTED_LANGUAGE_VERSIONS;
-  return `koyu ${KOYU_VERSION} — reads muro ${read[0]}–${read[read.length - 1]}, writes muro ${DEFAULT_LANGUAGE_VERSION}`;
+  const range = `${read[0]}–${read[read.length - 1]}`;
+  return `koyu ${KOYU_VERSION} — reads muro ${range} (newest ${NEWEST_LANGUAGE_VERSION}; a file with no version line is read as ${DEFAULT_LANGUAGE_VERSION})`;
 }
 
 /**
@@ -131,10 +138,29 @@ export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = MURO_SUPPORT.filte
 ).map((r) => r.muro);
 
 /**
- * How a file with no version line is read — always the newest semantics, and therefore not
- * stable across tool versions. Derived, for the same reason as above.
+ * The newest language version this build accepts — what to declare to get everything.
+ * Derived, for the same reason as above.
  */
-export const DEFAULT_LANGUAGE_VERSION = SUPPORTED_LANGUAGE_VERSIONS[SUPPORTED_LANGUAGE_VERSIONS.length - 1]!;
+export const NEWEST_LANGUAGE_VERSION = SUPPORTED_LANGUAGE_VERSIONS[SUPPORTED_LANGUAGE_VERSIONS.length - 1]!;
+
+/**
+ * How a file with no version line is read. **Frozen at 1.1, and it does not follow the newest
+ * version.**
+ *
+ * It used to be the newest, which meant an undeclared file was re-read under new semantics
+ * every time the tool moved — silently, because nothing reports the absence of a declaration.
+ * That is not hypothetical: the 1.0 → 1.1 move read `exterior` out of the type position, and
+ * undeclared files written in the old dialect lost their outside spaces without a word.
+ *
+ * Freezing removes the danger rather than reporting it. **Newer semantics are opt-in: you get
+ * them by naming them.** The cost is that an undeclared file never gets new notation, which is
+ * the same statement read from the other side.
+ *
+ * This is not a version bump. Today the frozen value and the newest version are both 1.1, so
+ * no file that exists reads differently; what changes is only what happens when 1.2 lands,
+ * and what happens is nothing.
+ */
+export const DEFAULT_LANGUAGE_VERSION = "1.1";
 
 /**
  * 機械形式 (正準JSON) が自分を名乗る版 (ADR-0036)。**言語版でもツール版でもない** —

@@ -41,6 +41,7 @@ export {
   koyuSince,
   levelsSorted,
   MURO_SUPPORT,
+  NEWEST_LANGUAGE_VERSION,
   newUids,
   speaksMuro,
   SUPPORTED_LANGUAGE_VERSIONS,

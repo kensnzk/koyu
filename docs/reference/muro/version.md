@@ -15,7 +15,13 @@ koyu 1.1
 0.1   0.2   0.3   0.4   0.5   1.0   1.1
 ```
 
-**Omitted, the file is read under the newest version, `1.1`.** Omitting it does not pin the meaning across tool versions — a file whose meaning must stay fixed writes the line.
+**Omitted, the file is read as `1.1` — and always will be.** The reading of an undeclared file is frozen; it does not follow the newest version.
+
+That is a promise about the future, so it is worth saying plainly: **when a version later than 1.1 exists, a file with no version line will still be read as 1.1.** Newer semantics are opt-in, and the way you opt in is by naming the version.
+
+It used to follow the newest, which meant an undeclared file was re-read under new semantics every time the tool moved, silently — nothing reports the absence of a declaration. The 1.0 → 1.1 move stopped reading `exterior` out of the type position, and undeclared files written in the old dialect lost their outside spaces without a word. Freezing removes that rather than warning about it.
+
+The cost is the same statement from the other side: **an undeclared file never gets new notation.** Write the line to move forward.
 
 ## Newer means later in that list, not later in the alphabet
 

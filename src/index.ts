@@ -51,6 +51,7 @@ export {
 // rest of the model surface — the root stays the smallest set that gets you to a decision.
 export {
   DEFAULT_LANGUAGE_VERSION,
+  NEWEST_LANGUAGE_VERSION,
   requireMuro,
   SourceError,
   SUPPORTED_LANGUAGE_VERSIONS,
