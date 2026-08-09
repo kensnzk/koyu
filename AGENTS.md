@@ -115,16 +115,22 @@ model_summary → layers → write_layer → check ──error──→ fix it a
 
 **Work on a branch. Never edit in the working tree of `main`** — cut the branch before the first edit, not after the last one.
 
-| # | Step | What runs |
-|---|---|---|
-| 1 | Open the PR | `ci.yml` on push and pull_request — typecheck, test, `check:examples`, `gate:examples` |
-| 2 | **Raise the version, inside the PR** | `test/release.test.ts` holds `package.json`, `package-lock.json`, `CITATION.cff` and `KOYU_VERSION`; and, when the language version moves, the `MURO_SUPPORT` row naming the release it ships in |
-| 3 | Merge into `main` | `ci.yml` again on `main` |
-| 4 | The release `v<version>` is published | `publish.yml` re-runs the fast checks, verifies the tag against `package.json`, builds, and publishes to npm |
+**It is four steps, and the fourth is yours.**
 
-`publish.yml` fires on `release: published` and on `workflow_dispatch`, and **checks the release tag against `package.json` before publishing** — a mismatch stops it rather than shipping the wrong version. What creates the release is configured outside this repository, so do not describe that step from memory: read the workflows, or say you do not know.
+| # | Step | Who | What runs |
+|---|---|---|---|
+| 1 | Open the PR | you | `ci.yml` on push and pull_request — typecheck, test, `check:examples`, `gate:examples` |
+| 2 | **Raise the version, inside the PR** | you | `test/release.test.ts` holds `package.json`, `package-lock.json`, `CITATION.cff` and `KOYU_VERSION`; and, when the language version moves, the `MURO_SUPPORT` row naming the release it ships in |
+| 3 | Merge into `main` | the person | `ci.yml` again on `main` |
+| 4 | **Create the release `v<version>`** | **you** | `publish.yml` re-runs the fast checks, verifies the tag against `package.json`, builds, and publishes to npm |
 
-**Verify rather than assume that a raised version reached the registry.** The failure that matters is `main` carrying a new version while npm still serves the old one, and nobody notices until an install comes back stale.
+**Nothing creates the release but you.** `publish.yml` only consumes one — it fires on `release: published` and on `workflow_dispatch`, and nothing else in this repository or outside it makes a release. **Merging does not publish.** A release created by a workflow's own `GITHUB_TOKEN` would not fire `release: published` at all (GitHub suppresses that to stop loops), which is why the step is not automated and why it falls to the agent doing the work.
+
+Use whatever reaches GitHub from where you are — `gh release create`, the REST API, the GitHub MCP tools, the web UI. The tag must be `v<the version in package.json>`; `publish.yml` compares them and stops on a mismatch rather than shipping the wrong version.
+
+**Then confirm npm actually serves it.** The failure that matters is `main` carrying a new version while the registry still serves the old one, and nobody noticing until an install comes back stale.
+
+> **Do not re-derive this from the record.** Every release is authored by the repository owner because you create it with their credentials, so the run history looks exactly like a person doing it by hand — and reads, wrongly, as though some automation outside the repository were responsible. It is not. It is you, and if you skip it nothing ships.
 
 Publishing needs no token: npm Trusted Publishing (OIDC) trusts `publish.yml` itself as the identity.
 
