@@ -150,4 +150,4 @@ Site /site (敷地)
 ## See also
 
 - [`koyu site`](../cli/site.md) — site area, frontage, footprint, coverage and floor-area ratios as numbers
-- [The validation ledger](index.md) — all sixteen rules, and why a judgement is not a diagnostic
+- [The validation ledger](index.md) — every rule, and why a judgement is not a diagnostic

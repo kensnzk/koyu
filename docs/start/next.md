@@ -41,7 +41,7 @@ If you want "why is this way of writing rejected at all?" before the codes, star
 
 → **[koyu validate — architectural judgement](../reference/validate/index.md)**
 
-What `check` says stops at "what is written does not contradict itself as data". A room that cannot reach the outside, a hole in the envelope, a cramped stair, a ramp that is too steep, a column standing in a doorway, a building that spills off its site — 16 rules on a separate surface. **A judgement is not a guarantee.** That line itself is drawn in **[Scope — what a green check means](../reference/scope.md)**.
+What `check` says stops at "what is written does not contradict itself as data". A room that cannot reach the outside, a hole in the envelope, a cramped stair, a ramp that is too steep, a column standing in a doorway, a building that spills off its site — a separate surface. **A judgement is not a guarantee.** That line itself is drawn in **[Scope — what a green check means](../reference/scope.md)**.
 
 ## I want more commands
 

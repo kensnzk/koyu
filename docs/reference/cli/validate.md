@@ -97,7 +97,7 @@ Every outcome carries the evidence it rests on, and that evidence names the anal
 
 **`level` is an invariant property of the rule.** The same rule is never a violation one time and a caution another.
 
-## The 16 rules
+## The rules
 
 | Rule | Level | What it says |
 |---|---|---|

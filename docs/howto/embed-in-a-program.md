@@ -192,7 +192,7 @@ Canonical JSON carries **only what was written.** Derived default walls are not 
 
 - [TypeScript API](../reference/api/index.md) — the entrances and every name on the surface
 - [The scope of the promise](../reference/scope.md) — what a green `check` means
-- [Judgement — koyu validate](../reference/validate/index.md) — the sixteen rules
+- [Judgement — koyu validate](../reference/validate/index.md) — the rule ledger
 - [Form](../reference/form/index.md) — the entrance to derived form
 - [Canonical JSON](../reference/json/index.md) — the ground for external connections
 - [Gatekeeping in CI](../reference/cli/ci.md) — designing exit codes when commands are enough

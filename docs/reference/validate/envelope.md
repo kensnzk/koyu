@@ -96,4 +96,4 @@ If an edge is genuinely open, write `type:open`; if it is a railing, write `air:
 ## See also
 
 - [Reachability](access.md) — close the envelope and the next problem is getting out. Doors live there
-- [The validation ledger](index.md) — all sixteen rules, and why a judgement is not a diagnostic
+- [The validation ledger](index.md) — every rule, and why a judgement is not a diagnostic

@@ -38,7 +38,7 @@ import { svgPlan } from "@kensnzk/koyu/draw";
 | `@kensnzk/koyu/diff` | the semantic difference between two models | not pulled |
 | `@kensnzk/koyu/vocabulary` | the attribute ledger | not pulled |
 | `@kensnzk/koyu/validate` | the rule SPI, the runner, `AssessmentReport` | not pulled |
-| `@kensnzk/koyu/validate/builtin` | the sixteen rules, the rule set and the profile koyu ships | not pulled |
+| `@kensnzk/koyu/validate/builtin` | the rules, the rule set and the profile koyu ships | not pulled |
 | `@kensnzk/koyu/draw` | `svgPlan`, `svgAxo` and their option types | not pulled |
 | `@kensnzk/koyu/node` | `parseFile` and `parseFileWith`, nothing else | pulled |
 | `@kensnzk/koyu/examples/*` | the source of a bundled building, for tests and evaluation | — |
@@ -65,7 +65,7 @@ const report = assess(model, {
 });
 ```
 
-Because the catalog is a value rather than a registration, two profiles and two packs can run in the same process, in any order, without contaminating each other. An external pack implements the same `Rule` interface these sixteen implement and gets no less access. See [the validation reference](../validate/index.md).
+Because the catalog is a value rather than a registration, two profiles and two packs can run in the same process, in any order, without contaminating each other. An external pack implements the same `Rule` interface the built-in ones implement and gets no less access. See [the validation reference](../validate/index.md).
 
 ## The surface is written down
 

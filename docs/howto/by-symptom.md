@@ -131,7 +131,7 @@ Every rule is on [Judgement — koyu validate](../reference/validate/index.md).
 ## Related
 
 - [Common traps](troubleshooting.md) — the entries above that need a worked fix
-- [Diagnostic code index](../reference/diagnostics/index.md) — all 68, looked up by code
+- [Diagnostic code index](../reference/diagnostics/index.md) — looked up by code
 - [Reading a diagnostic](../reference/diagnostics/reading.md) — the structure of the `--json` return
-- [Judgement — koyu validate](../reference/validate/index.md) — the sixteen rules
+- [Judgement — koyu validate](../reference/validate/index.md) — the rule ledger
 - [The scope of the promise](../reference/scope.md) — what a green `check` means
