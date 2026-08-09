@@ -8,12 +8,57 @@ export type AttrValue = string | number;
 export type Attrs = Record<string, AttrValue>;
 
 /**
- * このツールが受理する言語版 (ADR-0017)。旧版は意味保存の場合のみ受理される (checkが検査する)。
- * **この並びが版の新旧の順である** — 版の比較はここの添字で行う (辞書順では 0.5 が 1.0 より後になる)
+ * The correspondence between the two version lines, and the only place it is recorded.
+ *
+ * muro is the language; koyu is the implementation that reads it. They are counted
+ * separately because they promise different things, and until this ledger existed nothing
+ * said which koyu implemented which muro — the published norm asserted the declaration in
+ * prose while no such declaration existed on any surface.
+ *
+ * - `muro`  the language version, as written in a `.muro` file
+ * - `since` the koyu version that first read it. **A version that shipped** — `1.0.0-rc.1`
+ *           carried muro 1.0 in the tree but never reached npm, so muro 1.0 arrived for
+ *           anyone outside this repository at 0.16.0, and that is what this records
+ * - `until` the last koyu version that reads it, once a version is retired. Empty on every
+ *           row: nothing has been retired. The field exists so that retiring is filling in
+ *           a value rather than reshaping the ledger
+ *
+ * **The order of this array is the order of the versions, oldest first.** Comparison is by
+ * index, never by spelling — as strings, "0.5" sorts after "1.0".
+ *
+ * Cutting a language version is adding a row here. `test/release.test.ts` holds that: a
+ * release that moves the newest version must carry a row whose `since` is its own version.
  */
-export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2", "0.3", "0.4", "0.5", "1.0", "1.1"];
-/** 版宣言を省略したときの解釈 — 常に最新版の意味論 (省略はツール版を跨いで意味安定ではない) */
-export const DEFAULT_LANGUAGE_VERSION = "1.1";
+export const MURO_SUPPORT: readonly { muro: string; since: string; until: string | null }[] = [
+  // The `koyu` keyword was read from the first commit, accepting whatever followed it.
+  { muro: "0.1", since: "0.0.1", until: null },
+  // 0.9.0 introduced the accepted-version list, and with it the first rejection.
+  { muro: "0.2", since: "0.9.0", until: null },
+  { muro: "0.3", since: "0.11.0", until: null },
+  { muro: "0.4", since: "0.11.0", until: null },
+  { muro: "0.5", since: "0.11.0", until: null },
+  // Not 1.0.0-rc.1. That version set muro 1.0 in the tree and was never published; the
+  // implementation version was returned to the 0.x line and shipped as 0.16.0 instead.
+  { muro: "1.0", since: "0.16.0", until: null },
+  { muro: "1.1", since: "0.17.0", until: null },
+];
+
+/**
+ * The language versions this build accepts (ADR-0017). An older version is accepted only
+ * where the meaning is preserved; `check` is what decides that.
+ *
+ * **Derived from `MURO_SUPPORT`, not declared beside it.** Two lists of one fact is how the
+ * correspondence drifted in the first place.
+ */
+export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = MURO_SUPPORT.filter(
+  (r) => r.until === null,
+).map((r) => r.muro);
+
+/**
+ * How a file with no version line is read — always the newest semantics, and therefore not
+ * stable across tool versions. Derived, for the same reason as above.
+ */
+export const DEFAULT_LANGUAGE_VERSION = SUPPORTED_LANGUAGE_VERSIONS[SUPPORTED_LANGUAGE_VERSIONS.length - 1]!;
 
 /**
  * 機械形式 (正準JSON) が自分を名乗る版 (ADR-0036)。**言語版でもツール版でもない** —
