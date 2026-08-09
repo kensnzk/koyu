@@ -88,6 +88,20 @@ model_summary → layers → write_layer → check ──error──→ fix it a
     **Files still in Japanese are records, not a standing exception.** The ADRs under `docs/decisions/` are append-only and are never edited, so the older ones stay as they were written. The working notes at the top of `docs/` are rewritten into English when they are next touched, not in a sweep.
 12. **Do not write in figures of speech.** A directory, a heading, an acceptance condition and an explanation all name what the thing does. Where a short coined phrase is tempting, write out what is being compared instead. The words this project already owns — the gatekeeper, the ledger, the frozen surfaces, the source — are its own vocabulary and stay; the rule is against importing new ones.
 
+## Code Review Rules
+
+### Preserve the published contract
+
+- Flag a change that silently alters accepted `.muro` meaning, canonical JSON, a public API/CLI/MCP result, or diagnostic code, severity, or ordering without classifying it under `docs/reference/stability.md`. The safe path is to preserve the contract, or make the versioned break explicit and update the authoritative documentation, focused tests, and conformance cases together.
+
+### Keep structural fact separate from architectural judgement
+
+- Flag architectural judgement entering `src/core/` or `Diagnostic`, and flag deterministic consistency guarantees moving into `src/validate/` or `Finding`. Core may report contradictions in what was written; validation may report changeable architectural judgement and must not redefine the language.
+
+### Never discard or invent source meaning
+
+- Flag any parse, composition, serialization, or editor path that can silently drop written declarations or provenance, replace an uninterpreted value with a default, emit derived walls or floors as source, or change stable `uid` identity. Preserve written and unknown data, derive outputs from the model, and refuse unsupported transformations instead of approximating them.
+
 ## How a change ships
 
 **Work on a branch. Never edit in the working tree of `main`** — cut the branch before the first edit, not after the last one.
