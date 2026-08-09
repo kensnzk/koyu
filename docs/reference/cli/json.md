@@ -27,8 +27,8 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```text
 {
-  "format": "koyu-canonical/1.2",
-  "koyu": "1.0",
+  "format": "koyu-canonical/1.3",
+  "muro": "1.2",
   "name": "二室",
   "unit": "mm",
   "grid": {
@@ -67,7 +67,9 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 (The head of the output.)
 
-**The first two keys name different versions.** `format` is the version of this JSON format itself; `koyu` is the language version written in the source. A source with no `koyu <version>` line produces no `koyu` key.
+**The first two keys name different versions.** `format` is the version of this JSON format itself — the spelling koyu writes. `muro` is the language version written in the source. A source that declares no version produces no `muro` key at all.
+
+The key is spelled `muro` whatever word the source used: a file written `koyu 1.1` still says `"muro": "1.1"` here. The key names the thing being versioned, not the author's spelling of the declaration.
 
 ```sh
 npx tsx src/cli.ts json derived.muro
@@ -75,7 +77,7 @@ npx tsx src/cli.ts json derived.muro
 
 ```text
 {
-  "format": "koyu-canonical/1.2",
+  "format": "koyu-canonical/1.3",
   "unit": "mm",
 ```
 

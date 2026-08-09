@@ -32,7 +32,7 @@ Two rules decide whether a plan works:
 ## A whole small building
 
 ```muro
-koyu 1.1
+muro 1.2
 name Flat on a tight site
 unit mm
 

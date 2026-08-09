@@ -17,7 +17,7 @@ A line that starts flush is a declaration in its own right.
 
 | Line | What it declares |
 |---|---|
-| [`koyu 1.0`](version.md) | the language version this file is read under. Base layer only, once |
+| [`muro 1.2`](version.md) | the language version this file is read under. Base layer only, once |
 | [`name 街角の複合ビル`](name.md) | the name of the building. The rest of the line is the value. Once |
 | [`unit mm`](name.md) | the unit of length. v0 is mm only |
 | [`grid X 0 6400 12800`](grid.md) | grid line coordinates. Once per axis; named `X1`, `X2`, … automatically |
@@ -63,7 +63,7 @@ Six rules apply to every line alike.
 | [Orientation and the a side](orientation.md) | `N`=+Y, `S`=−Y, `E`=+X, `W`=−X, and which face `edge:` picks |
 | [The three tiers of attribute](attributes.md) | structure, interpreted and carried, the namespace rule, and the ledger per element |
 | [What happens when you write nothing](defaults.md) | the one table of defaults |
-| [koyu — the version line](version.md) | which versions are accepted, and when an older one is |
+| [muro — the version line](version.md) | which versions are accepted, how the line is spelled, and when an older version is |
 
 ## Order of declaration
 

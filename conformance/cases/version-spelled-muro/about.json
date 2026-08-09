@@ -1,0 +1,6 @@
+{
+ "pins": [
+  "docs/reference/muro/version.md"
+ ],
+ "why": "From 1.2 the version line is spelled with the name of the language. muro is the language; koyu is an implementation of it, and a file declares which language it is written in, not which program will open it."
+}

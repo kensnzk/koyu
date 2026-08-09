@@ -1,0 +1,1 @@
+The muro keyword arrives in 1.2, and a 1.1 processor cannot read it — a 1.1 file declares itself "koyu 1.1"

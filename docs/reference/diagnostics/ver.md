@@ -21,13 +21,13 @@ All VER codes are errors.
 ## Declaring the version
 
 ```muro-part
-koyu 1.1
+muro 1.2
 ```
 
-These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1**. Anything else stops at the parser, before any semantic check runs.
+These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1 / 1.2**. Anything else stops at the parser, before any semantic check runs.
 
 ```text
-Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1)
+Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2)
 ```
 
 The declaration is written **once**, in the base layer (the entry). By convention it goes on the first line. Writing it in an imported layer is an error — silent overwriting by composition order is forbidden.
@@ -201,12 +201,12 @@ The same code watches the other direction. Writing `outside:` / `void:`, or omit
 `error`
 
 ```muro-bad
-koyu 9.9
+muro 9.9
 unit mm
 ```
 
 ```text
-This file is written in muro 9.9, and this build of koyu (0.19.0) reads up to 1.1. The file is not the problem — upgrade koyu
+This file is written in muro 9.9, and this build of koyu (0.20.0) reads up to 1.2. The file is not the problem — upgrade koyu
 ```
 
 **Cause** — the declared version is later than every version this build accepts. That is not a mistake in the file. Someone wrote it with a newer koyu, and this one has not learnt that language yet.
@@ -214,13 +214,13 @@ This file is written in muro 9.9, and this build of koyu (0.19.0) reads up to 1.
 **The fix** — install a newer koyu. `koyu --version` says what this build reads:
 
 ```text
-koyu 0.19.0 — reads muro 0.1–1.1, writes muro 1.1
+koyu 0.20.0 — reads muro 0.1–1.2 (newest 1.2; a file with no version line is read as 1.1)
 ```
 
 **Why it is a separate code from an unreadable version.** A version that never existed is a different situation with the opposite advice, and it keeps the `SYN01` it always had:
 
 ```text
-Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1)
+Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2)
 ```
 
 Both used to print that second sentence, so nothing downstream could tell a stale build from a corrupt file without reading English prose. The split is *later than anything I know* against *not a version I have*, which is answerable; *real* against *fake* is not, and `9.9` is treated as the future because that is the more useful of the two readings.

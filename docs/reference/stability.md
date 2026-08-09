@@ -13,21 +13,21 @@ There are three versions, counted independently. Mixing them makes it impossible
 
 | Version | What it attaches to | Currently |
 |---|---|---|
-| **The muro version** | **the language, its semantics and the rules of composition.** "A file written this way keeps meaning this" | **1.1** |
-| **The koyu version** | **the implementation.** "This implementation's surfaces will not break." It declares which muro it implements | **0.19.0** |
-| **The canonical JSON format version** | **the spelling.** The set of keys, their order, collation, normalisation, number notation | `koyu-canonical/1.2` |
+| **The muro version** | **the language, its semantics and the rules of composition.** "A file written this way keeps meaning this" | **1.2** |
+| **The koyu version** | **the implementation.** "This implementation's surfaces will not break." It declares which muro it implements — `koyu --version`, `package.json`'s `muro` field, and the MCP `serverInfo` all say so, from one ledger | **0.20.0** |
+| **The canonical JSON format version** | **the spelling.** The set of keys, their order, collation, normalisation, number notation | `koyu-canonical/1.3` |
 
 A `.muro` file declares only [the language version](muro/version.md). It announces semantics, not the maturity of a processor.
 
 ```muro-part
-koyu 1.1
+muro 1.2
 ```
 
 **A separate format version is needed because the same semantics can be respelled with different keys.** Adding the `a` key, which preserves the written direction of a boundary, changed the spelling without changing one word of the language. The converse also happens: a language version can rise without the spelling moving.
 
 ## The two lines need not arrive together
 
-As things stand, **muro has reached 1.0 and koyu is still 0.x.**
+As things stand, **muro has reached 1.2 and koyu is still 0.x.**
 
 That is not a lag; it is what having two promises means. muro 1.0 says "what could be read at this version stays readable with the same meaning"; koyu 1.0 would say "this implementation's surfaces will not break". **The language is settled and the implementation has promised no freeze at all** — the first can settle first, and it did.
 
@@ -47,7 +47,7 @@ An older declared version is **accepted only where the meaning is preserved**. C
 
 | Surface | What is promised |
 |---|---|
-| **The grammar and semantics of muro 1.1** | what could be read at this version stays readable with the same meaning |
+| **The grammar and semantics of muro 1.2** | what could be read at this version stays readable with the same meaning |
 | **The rules of composition** | layer strength order, resolution of single values, editing of sets, provenance. The same input always gives the same result |
 | **[Identity](identity.md)** | same uid, same thing. The rules for paths and names |
 | **[The three attribute tiers and namespaces](scope.md)** | including the promise that the carried tier is not read |

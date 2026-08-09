@@ -20,7 +20,7 @@ koyu does have a machine format — canonical JSON. **Two spellings sharing one 
 Here is the body of the bundled `two-rooms.muro`, comments removed.
 
 ```muro
-koyu 1.1
+muro 1.2
 name 二室
 unit mm
 grid X 0 3600 7200

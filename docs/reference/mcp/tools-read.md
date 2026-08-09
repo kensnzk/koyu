@@ -159,7 +159,7 @@ Take these two files.
 
 ```muro-part
 # main.muro — entry
-koyu 1.1
+muro 1.2
 name 二層
 unit mm
 
@@ -307,8 +307,8 @@ Narrowing by `level` puts site and building spaces side by side.
 
 ```text
 {
- "format": "koyu-canonical/1.2",
- "koyu": "1.0",
+ "format": "koyu-canonical/1.3",
+ "muro": "1.2",
  "name": "二室",
  "unit": "mm",
  "grid": {

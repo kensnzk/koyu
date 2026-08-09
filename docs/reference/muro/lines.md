@@ -14,7 +14,7 @@ keyword positional… key:value…
 The only state the reader carries is "what was the last non-indented line" — there are no brackets, no terminators, no nesting. This page covers how that line is split into tokens and turned into values. For which lines exist at all, see [every construct](index.md); for how positions are spelled, [positions and regions](positions.md); for the rules on attribute keys, [the three tiers of attribute](attributes.md).
 
 ```muro
-koyu 1.1
+muro 1.2
 name   街角   の 複合ビル
 unit mm
 

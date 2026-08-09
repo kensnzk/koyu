@@ -30,7 +30,7 @@ No intersection carries two columns. When declarations overlap, **the earlier de
 `violation`
 
 ```muro-fail
-koyu 1.1
+muro 1.2
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150
@@ -60,7 +60,7 @@ It is a violation because two physical things occupy one place. No reading permi
 **Shift the door off the line.** Add an offset in `at:`.
 
 ```muro
-koyu 1.1
+muro 1.2
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150
@@ -78,7 +78,7 @@ boundary /L1/a /L1/b
 **Or keep columns off that line.** Name the grid lines in `x:` / `y:` and narrow the column declaration instead.
 
 ```muro
-koyu 1.1
+muro 1.2
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150

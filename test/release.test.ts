@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import {
   DEFAULT_LANGUAGE_VERSION,
   KOYU_VERSION,
+  MURO_KEYWORD,
   NEWEST_LANGUAGE_VERSION,
   MURO_SUPPORT,
   SUPPORTED_LANGUAGE_VERSIONS,
@@ -156,12 +157,14 @@ test("language version sync: the published norm, the examples and the canonical 
   // walked the tree, so basement, complex, steps/06-finished and twin could
   // have declared anything. A hand-written list of the things a version bump
   // must touch is the defect it is meant to catch.
-  const declared = muroFiles(root + "examples").filter((p) => /^koyu /m.test(readFileSync(p, "utf8")));
+  // Either spelling counts as "declares a version" — the word belongs to the version, so a
+  // walk that knew only one of them would go quietly blind at the release that changed it.
+  const declared = muroFiles(root + "examples").filter((p) => /^(koyu|muro) /m.test(readFileSync(p, "utf8")));
   assert.ok(declared.length >= 10, `too few example entry files found (${declared.length}) — the walk is broken`);
   for (const p of declared) {
     assert.match(
       readFileSync(p, "utf8"),
-      new RegExp(`^koyu ${NEWEST_LANGUAGE_VERSION.replace(/\./g, "\\.")}$`, "m"),
+      new RegExp(`^${MURO_KEYWORD} ${NEWEST_LANGUAGE_VERSION.replace(/\./g, "\\.")}$`, "m"),
       p.slice(root.length),
     );
   }

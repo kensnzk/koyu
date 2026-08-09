@@ -20,7 +20,7 @@ This page is the one table of defaults. How values are written is in [the three 
 ## The smallest file
 
 ```muro
-koyu 1.1
+muro 1.2
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -33,7 +33,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 | Written nothing | What happens |
 |---|---|
-| `koyu <version>` | read under the newest version, `1.1`. Write it to pin the meaning → [the version line](version.md) |
+| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.2` to opt into current semantics → [the version line](version.md) |
 | `unit mm` | mm. v0 has no other unit |
 | `name` | the building has no name |
 | `grid X` / `grid Y` | **no grid reference can be written at all.** Any line with a region stops with `Undefined grid line name` |
@@ -155,7 +155,7 @@ Riser count, tread and slope are never written. **What is written is the region 
 **Because the default between touching spaces is a wall, a two-storey building with no door declared anywhere is completely sealed — and green.**
 
 ```muro
-koyu 1.1
+muro 1.2
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150

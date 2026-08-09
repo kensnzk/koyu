@@ -94,7 +94,10 @@ test("every include in the grammar resolves to a repository entry", () => {
     const key = p.include.slice(1);
     assert.ok(grammar.repository[key], `the repository has no ${key}`);
   }
-  assert.equal(grammar.scopeName, "source.koyu");
+  // The grammar describes the language, so its scope is the language's name — matching the
+  // extension it is registered against. It used to say `source.koyu`, which named the
+  // implementation and left the two halves of the editor integration disagreeing.
+  assert.equal(grammar.scopeName, "source.muro");
   assert.deepEqual(grammar.fileTypes, ["muro"]);
 });
 

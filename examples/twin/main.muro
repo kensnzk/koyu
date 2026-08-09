@@ -29,7 +29,7 @@
 #   koyu plan   examples/twin/main.muro -l L8    A棟基準階とB棟ホテル階
 #   koyu axo    examples/twin/main.muro -l L1,L2,L3,L4,L5
 
-koyu 1.1
+muro 1.2
 name 双塔複合建築 — 商業・事務所・ホテル・レジデンス
 unit mm
 

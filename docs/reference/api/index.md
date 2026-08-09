@@ -138,8 +138,8 @@ requireMuro("1.1"); // the version this application reads and writes
 If the installed build does not read it, the message names the fix rather than the symptom:
 
 ```text
-This build of koyu (0.19.0) does not read muro 1.3. No released koyu reads it;
-this build reads 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1.
+This build of koyu (0.20.0) does not read muro 1.3. No released koyu reads it;
+this build reads 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2.
 ```
 
 A version that exists but is newer than this build names the release to install instead; a version that has been retired says so, and points **backwards** — a newer koyu is what dropped it, so a newer koyu will not help.

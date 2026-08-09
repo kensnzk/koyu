@@ -36,7 +36,7 @@ Every rule here stands on one definition.
 A space with a region cannot reach an `outside:1` space along passable boundaries.
 
 ```muro-fail
-koyu 1.1
+muro 1.2
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -60,7 +60,7 @@ It is a violation because there is no reading of architecture in which a room yo
 **Fix** — write a `door` somewhere along the route out. A boundary to the outside has several segments, so pick one with `edge:N/E/S/W`.
 
 ```muro
-koyu 1.1
+muro 1.2
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -79,7 +79,7 @@ To find where the chain breaks, [`koyu doors`](../cli/doors.md) answers with the
 The space has passable boundaries, and every one of them leads to a space declaring `void:1`.
 
 ```muro-fail
-koyu 1.1
+muro 1.2
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -101,7 +101,7 @@ This rule does not care whether an exterior exists. It also does not fire on a s
 **Fix** — write a door to a neighbour that has a floor (a corridor, a stair). If the edge onto the void really is open, it is a place to **look down from**, not to walk through: make it an `air:1` wall (a railing) rather than `type:open`.
 
 ```muro
-koyu 1.1
+muro 1.2
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -117,7 +117,7 @@ boundary /L1/a /L1/v air:1 h:1100
 Every route out of a space whose type is `stair` passes through a `use:rentable` space.
 
 ```muro-caution
-koyu 1.1
+muro 1.2
 grid X 0 3000 9000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -150,7 +150,7 @@ Validation — 0 violations / 1 caution
 A `use:parking` space cannot reach the outside along car-passable boundaries.
 
 ```muro-fail
-koyu 1.1
+muro 1.2
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -171,7 +171,7 @@ Validation — 1 violation / 0 cautions
 **Fix** — make the vehicle opening `door w:2400` or wider, or make the boundary `type:open`. For parking above or below grade, write `ramp:` on the ramp space and join the levels with `stack` — that vertical link is the only way a car changes level.
 
 ```muro
-koyu 1.1
+muro 1.2
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -188,7 +188,7 @@ boundary /L1/p /out
 A `use:common` space declaring a vertical run (`stair:` / `escalator:`) cannot be reached from a common corridor without crossing a space whose type is `backyard`.
 
 ```muro-caution
-koyu 1.1
+muro 1.2
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
@@ -221,7 +221,7 @@ A common vertical run belongs to the customer's route. If reaching its foot mean
 **Fix** — move it where the common corridor reaches it directly, or write a door between it and the corridor. If it really is for staff, drop `use:common`.
 
 ```muro
-koyu 1.1
+muro 1.2
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300

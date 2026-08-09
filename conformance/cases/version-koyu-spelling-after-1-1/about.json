@@ -1,0 +1,6 @@
+{
+ "pins": [
+  "docs/reference/muro/version.md"
+ ],
+ "why": "One spelling per version, never both. Accepting `koyu 1.2` beside `muro 1.2` would give one declaration two forms and end the uniqueness of the canonical form, which every byte-expectation in this suite rests on."
+}

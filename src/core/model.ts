@@ -41,7 +41,25 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
   // implementation version was returned to the 0.x line and shipped as 0.16.0 instead.
   { muro: "1.0", since: "0.16.0", until: null },
   { muro: "1.1", since: "0.17.0", until: null },
+  // The version line stops answering to the implementation's name: `muro 1.2`, not `koyu 1.2`.
+  { muro: "1.2", since: "0.20.0", until: null },
 ];
+
+/** The word a version line is written with from 1.2 on. */
+export const MURO_KEYWORD = "muro";
+
+/**
+ * The last version whose line is spelled `koyu`.
+ *
+ * **One spelling per version, never both.** Up to and including this version a file declares
+ * itself `koyu <v>`, and from the next one it declares itself `muro <v>`. Accepting both for
+ * the same version would give one declaration two spellings, and the canonical form's
+ * uniqueness — which the whole conformance suite rests on — would go with it.
+ *
+ * Files written before 1.2 keep the old spelling and keep meaning exactly what they meant.
+ * Nothing migrates, and nothing has to.
+ */
+export const LAST_KOYU_SPELLED_VERSION = "1.1";
 
 /**
  * This implementation's own version — the one npm installs, held in step with `package.json`
@@ -51,7 +69,7 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
  * `since` column is written in this vocabulary, and every surface that answers "which muro
  * does this build speak" needs both halves at once.
  */
-export const KOYU_VERSION = "0.19.0";
+export const KOYU_VERSION = "0.20.0";
 
 /**
  * Whether `a` names a later language version than `b`.
@@ -167,9 +185,13 @@ export const DEFAULT_LANGUAGE_VERSION = "1.1";
  * 数えるのは綴りだけである。minorはキーが増えたとき、majorは既存のキーの名前・並び・照合順・
  * 正規化・数の綴りが変わったとき。**minorでも全ての文書のバイトは動く** — この文字列自体が
  * 第一キーだからで、増えたキーを持たない文書も先頭行だけは変わる (ADR-0051 が実測している)。
- * 意味論の版は muro が持つので、`koyu` キー (書かれた版宣言の素通し) とは別の面である
+ * 意味論の版は muro が持つので、`muro` キー (書かれた版宣言の素通し) とは別の面である。
+ *
+ * The format keeps the name `koyu` because it is the implementation's output spelling — the
+ * shape koyu writes. The key inside it names the language, and is spelled `muro` for the same
+ * reason the version line is.
  */
-export const CANONICAL_FORMAT = "koyu-canonical/1.2";
+export const CANONICAL_FORMAT = "koyu-canonical/1.3";
 
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";
@@ -1101,7 +1123,10 @@ export function toCanonical(model: Model): string {
     // 出せば、その版を著者は書いていないのに書いたことになり、しかもツールの既定が動いた日に
     // 同じ入力のバイトが変わる。決定性は形式の側の約束なので、ツールの既定に預けない
     format: CANONICAL_FORMAT,
-    ...(model.versionDeclared ? { koyu: model.version } : {}),
+    // **The key names the language, so it is spelled `muro`** — whatever word the file used.
+    // A document written `koyu 1.1` still says `"muro": "1.1"` here: the key is the name of
+    // the thing being versioned, not a copy of how the author spelled the declaration.
+    ...(model.versionDeclared ? { muro: model.version } : {}),
     ...(model.name ? { name: model.name } : {}),
     unit: model.unit,
     // 測地の枠 (ADR-0057) — **単位を言った直後、グリッドを言う前。**この二つは grid が張る

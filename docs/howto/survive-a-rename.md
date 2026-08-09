@@ -19,7 +19,7 @@ File paths in the output below are absolute when you actually run these commands
 `uid:` may be written on **`space` and `zone`, and nothing else**. That list is closed.
 
 ```muro
-koyu 1.1
+muro 1.2
 name Office
 unit mm
 

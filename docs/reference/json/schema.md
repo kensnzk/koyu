@@ -19,7 +19,7 @@ The key order is fixed.
 
 | Key | Present | Content |
 |---|---|---|
-| `format` | **always** | the version of this format itself; currently `"koyu-canonical/1.2"` |
+| `format` | **always** | the version of this format itself; currently `"koyu-canonical/1.3"` |
 | `koyu` | only with a version declaration | [the language version](../muro/version.md), passed through |
 | `name` | if `name` was written | the name of the building |
 | `unit` | **always** | currently `"mm"` only |

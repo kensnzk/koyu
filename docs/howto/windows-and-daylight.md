@@ -80,7 +80,7 @@ A boundary with a space that has no region — `/out` and its like — is whatev
 Run `light`. Exit 0 if every room in scope passes, 1 if any falls short.
 
 ```muro
-koyu 1.1
+muro 1.2
 name Daylight practice
 unit mm
 
@@ -133,7 +133,7 @@ A window that faces a balcony, a terrace or a garden is discounted. **If a space
 A sliding window (2600×2200 = 5.72 m²) onto an open terrace counts in full.
 
 ```muro
-koyu 1.1
+muro 1.2
 name Daylight through a terrace
 unit mm
 
@@ -158,7 +158,7 @@ boundary /L1/bal /out edge:S t:120 spec:Balustrade air:1 h:1100
 Put a balcony on the storey above, in the same position, and the terrace is under cover: 0.7 applies. **Neither the window nor the floor has changed.**
 
 ```muro
-koyu 1.1
+muro 1.2
 name Daylight through a terrace
 unit mm
 

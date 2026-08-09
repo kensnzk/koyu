@@ -73,14 +73,14 @@ npx tsx src/cli.ts --version
 ```
 
 ```text
-koyu 0.19.0 — reads muro 0.1–1.1 (newest 1.1; a file with no version line is read as 1.1)
+koyu 0.20.0 — reads muro 0.1–1.2 (newest 1.2; a file with no version line is read as 1.1)
 ```
 
 The exit code is `0` — it is an answer, not a calling mistake.
 
-**Read it as three facts, and note that the last two are separate.** `0.19.0` is this implementation. `reads muro 0.1–1.1` is every language version it accepts, so a file declaring one of those opens here. `newest` is the version to declare to get everything the language has.
+**Read it as three facts, and note that the last two are separate.** `0.20.0` is this implementation. `reads muro 0.1–1.2` is every language version it accepts, so a file declaring one of those opens here. `newest` is the version to declare to get everything the language has.
 
-`a file with no version line is read as 1.1` is **frozen** and does not follow `newest` ([the version line](../muro/version.md)). They coincide today and stop coinciding the moment a newer version exists, which is exactly when a reader needs to be told.
+`a file with no version line is read as 1.1` is **frozen** and does not follow `newest` ([the version line](../muro/version.md)). Since 1.2 they no longer agree, and that gap is the fact a reader most needs: an old file that names no version does not quietly become a 1.2 file.
 
 When a file will not open because it declares something newer, this line is what tells you the file is fine and the tool is behind.
 

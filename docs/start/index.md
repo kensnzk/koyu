@@ -433,7 +433,7 @@ To look things up: [Vertical circulation](../reference/muro/vertical-circulation
 Finally, add what has been left out so far.
 
 ```muro
-koyu 1.1
+muro 1.2
 name 小さな家
 
 grid X 0 3600 5400

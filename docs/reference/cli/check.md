@@ -150,7 +150,7 @@ What `check` guarantees stops at "what is written holds together as data". **It 
 The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no doors at all comes out green while perfectly sealed. The same goes for windows: none at all is still green.
 
 ```muro
-koyu 1.1
+muro 1.2
 name 密封
 unit mm
 grid X 0 3600 7200

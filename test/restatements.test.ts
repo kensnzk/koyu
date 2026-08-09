@@ -221,27 +221,42 @@ test("a count of the accepted versions equals the length of the ledger", () => {
 });
 
 /**
- * A sentence that names the version a file is read under when it declares
- * none. Narrowed to lines that also say "version" or "semantics", because the
- * positional default `at:0.5` is a different 0.5 entirely — docs-ledger's own
- * comment records that trap.
+ * A sentence that names a version by role: the newest one, or the one a file is read under
+ * when it declares none.
+ *
+ * **These were one check while the two values coincided, and splitting them was forced.** The
+ * undeclared reading is frozen at 1.1 and the newest version moves, so a line saying "newest
+ * 1.2" and a line saying "read as 1.1" are both right and disagree with each other. A single
+ * check could only have been made to pass by weakening it until it held nothing.
+ *
+ * Narrowed to lines that also say "version" or "semantics", because the positional default
+ * `at:0.5` is a different 0.5 entirely — docs-ledger's own comment records that trap.
  */
-test("the default language version claimed in prose is DEFAULT_LANGUAGE_VERSION", () => {
+test("a version named by its role in prose agrees with the ledger", () => {
   const wrong: string[] = [];
+  const roles = [
+    { word: /\b(?:latest|newest)\b/i, expected: NEWEST_LANGUAGE_VERSION, name: "the newest version" },
+    { word: /\bdefault\b|\bno version line\b|\bdeclares none\b/i, expected: DEFAULT_LANGUAGE_VERSION, name: "the undeclared reading" },
+  ];
   for (const line of LINES) {
     if (!/\b(?:version|semantics)\b/i.test(line.text)) continue;
-    for (const [, written] of line.text.matchAll(
-      /\b(?:latest|newest|default)\b[^.\n]{0,60}?\b(\d\.\d)\b/gi,
-    )) {
-      if (written !== DEFAULT_LANGUAGE_VERSION) {
-        wrong.push(`${line.where}: ${written} (the default is ${DEFAULT_LANGUAGE_VERSION})`);
+    for (const role of roles) {
+      const m = role.word.exec(line.text);
+      if (!m) continue;
+      // The version this role claims is the one right after the word naming it. Kept short
+      // on purpose: "not following the newest — ... the accepted versions are 0.1, ..." names
+      // no version for the role, and a wide window would read the list as its claim.
+      const after = line.text.slice(m.index);
+      const v = /\b(\d\.\d)\b/.exec(after.slice(0, 30));
+      if (v && v[1] !== role.expected) {
+        wrong.push(`${line.where}: ${v[1]} claimed as ${role.name} (it is ${role.expected})`);
       }
     }
   }
   assert.deepEqual(
     wrong,
     [],
-    `a stated default language version disagrees with the ledger:\n  ${wrong.join("\n  ")}`,
+    `a version named by its role disagrees with the ledger:\n  ${wrong.join("\n  ")}`,
   );
 });
 

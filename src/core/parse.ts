@@ -13,6 +13,9 @@ import {
   type Edge,
   isNewerVersion,
   KOYU_VERSION,
+  LAST_KOYU_SPELLED_VERSION,
+  MURO_KEYWORD,
+  NEWEST_LANGUAGE_VERSION,
   type Level,
   type Model,
   normalizeRegionOrder,
@@ -256,11 +259,19 @@ function ingest(
     currentSpaces = [];
     over = undefined;
     switch (head) {
-      case "koyu": {
+      // **The version line is the only declaration that names the language, which is why it
+      // was the one that carried the wrong name.** `koyu` is the implementation; the language
+      // is muro. One spelling per version, never both: two ways to write the same declaration
+      // would end the uniqueness the canonical form rests on.
+      case "koyu":
+      case "muro": {
         const v = rest[0];
-        if (!v) throw new SourceError(ln, `koyu takes a version: koyu ${DEFAULT_LANGUAGE_VERSION}`);
+        const spelling = head;
+        if (!v) {
+          throw new SourceError(ln, `${spelling} takes a version: ${MURO_KEYWORD} ${NEWEST_LANGUAGE_VERSION}`);
+        }
         if (rest.length > 1) {
-          throw new SourceError(ln, `Extra tokens on the koyu version declaration: ${rest.slice(1).join(" ")}`);
+          throw new SourceError(ln, `Extra tokens on the ${spelling} version declaration: ${rest.slice(1).join(" ")}`);
         }
         if (!SUPPORTED_LANGUAGE_VERSIONS.includes(v)) {
           // **A file from the future is not a broken file.** It says the reader is behind, and
@@ -268,27 +279,38 @@ function ingest(
           // that never existed. Both used to print the same sentence, so a viewer could not
           // tell a stale build from a corrupt file, and one downstream rebuilt the
           // distinction for itself out of the version list.
-          const newest = SUPPORTED_LANGUAGE_VERSIONS[SUPPORTED_LANGUAGE_VERSIONS.length - 1]!;
-          if (isNewerVersion(v, newest)) {
+          if (isNewerVersion(v, NEWEST_LANGUAGE_VERSION)) {
             throw new SourceError(
               ln,
-              `This file is written in muro ${v}, and this build of koyu (${KOYU_VERSION}) reads up to ${newest}. The file is not the problem — upgrade koyu`,
+              `This file is written in muro ${v}, and this build of koyu (${KOYU_VERSION}) reads up to ${NEWEST_LANGUAGE_VERSION}. The file is not the problem — upgrade koyu`,
               undefined,
               "VER06",
             );
           }
           throw new SourceError(
             ln,
-            `Unsupported koyu version: ${v} (this tool supports ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")})`,
+            `Unsupported ${spelling} version: ${v} (this tool supports ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")})`,
+          );
+        }
+        // The spelling belongs to the version. `muro` arrives in 1.2, so a 1.1 processor
+        // cannot read that line as a word at all; and from 1.2 the language stops answering
+        // to the implementation's name.
+        const wants = isNewerVersion(v, LAST_KOYU_SPELLED_VERSION) ? "muro" : "koyu";
+        if (spelling !== wants) {
+          throw new SourceError(
+            ln,
+            wants === "muro"
+              ? `muro ${v} names itself muro: write "muro ${v}". The koyu spelling names the implementation and stops at ${LAST_KOYU_SPELLED_VERSION}`
+              : `The muro keyword arrives in 1.2, and a ${v} processor cannot read it — a ${v} file declares itself "koyu ${v}"`,
           );
         }
         // 版はbase層 (entry) でのみ・一度だけ宣言する — 合成順による黙った上書きを禁じる (ADR-0017)。
         // gridの規律に合わせ、再宣言は同値でもエラー
         if (file !== undefined && model.layers[0] !== file) {
-          throw new SourceError(ln, "The koyu version is declared only in the base layer (the entry)");
+          throw new SourceError(ln, "The version is declared only in the base layer (the entry)");
         }
         if (model.versionDeclared) {
-          throw new SourceError(ln, `The koyu version is declared once (already ${model.version})`);
+          throw new SourceError(ln, `The version is declared once (already ${model.version})`);
         }
         model.version = v;
         model.versionDeclared = true;
