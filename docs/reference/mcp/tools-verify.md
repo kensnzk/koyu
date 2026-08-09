@@ -200,7 +200,7 @@ Against the sealed building above (evidence elided as `…`):
 
 ```text
 {
- "schema": "koyu-assessment/1",
+ "schema": "koyu-assessment",
  "profile": { "id": "koyu.profile.schematic-screen", "revision": "1" },
  "ruleSets": [ { "id": "koyu.ruleset.schematic-screen", "revision": "1" } ],
  "model": { "languageVersion": "1.1", "state": "consistent", "diagnostics": [] },
@@ -255,7 +255,7 @@ Against the sealed building above (evidence elided as `…`):
 
 | Field | Contents |
 |---|---|
-| `schema` | Always `koyu-assessment/1` |
+| `schema` | Always `koyu-assessment` — the name of the shape, with no version: judgements are the face that does not freeze, and nothing reads this back |
 | `profile` `ruleSets` | What was applied, with revisions — the grounds of the verdict |
 | `model` | The language version, whether the composition is consistent, and its diagnostics |
 | `context` | The context the call supplied, echoed back so the run can be reproduced |

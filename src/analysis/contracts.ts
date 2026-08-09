@@ -218,7 +218,17 @@ export interface AnalysisResult<T extends JsonValue = JsonValue> {
   readonly artifact: AnalysisArtifact<T>;
 }
 
-export const ANALYSIS_FORMAT = "koyu-analysis/1" as const;
+/**
+ * The name of the shape an analysis returns. **It carries no version, deliberately.**
+ *
+ * A version promises that something is worth checking against — and nothing checks this. It
+ * is written by `assess` and read by no one; the face it sits on is the one the project
+ * declares unfrozen, so a `/1` on it would announce a stability nobody intends to keep.
+ *
+ * The counter-example is `koyu-context/1`, the input this protocol takes: that one is checked
+ * on arrival and refused on mismatch, which is what makes its version worth carrying.
+ */
+export const ANALYSIS_FORMAT = "koyu-analysis" as const;
 
 export interface AnalysisReport<T extends JsonValue = JsonValue> {
   readonly schema: typeof ANALYSIS_FORMAT;

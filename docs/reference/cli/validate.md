@@ -64,7 +64,7 @@ Inside the square brackets is the rule name; what follows, `<resolved absolute p
 
 ```json
 {
- "schema": "koyu-assessment/1",
+ "schema": "koyu-assessment",
  "profile": { "id": "koyu.profile.schematic-screen", "revision": "1" },
  "ruleSets": [ { "id": "koyu.ruleset.schematic-screen", "revision": "1" } ],
  "model": { "languageVersion": "koyu 1.1", "state": "consistent", "diagnostics": [] },

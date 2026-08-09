@@ -49,7 +49,7 @@ npx tsx src/cli.ts validate gap.muro --profile koyu.profile.schematic-screen --a
 
 ```json
 {
- "schema": "koyu-assessment/1",
+ "schema": "koyu-assessment",
  "profile": { "id": "koyu.profile.schematic-screen", "revision": "1" },
  "findings": [
   {
