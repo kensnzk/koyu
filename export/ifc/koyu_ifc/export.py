@@ -49,8 +49,28 @@ RUN_TYPE = {
 }
 
 
+# The canonical JSON spellings this exporter knows how to read.
+#
+# **Read the version, or do not carry one.** koyu stamps `format` on every document precisely
+# so a reader can refuse a spelling it does not know; this exporter took the document apart
+# without ever looking, so a key rename would have produced a wrong IFC rather than an error.
+# It did: `koyu-canonical/1.2` became `1.3` when the language version key was renamed, and
+# nothing here noticed.
+#
+# A minor bump adds keys and leaves the ones already there alone, so reading a newer minor is
+# safe and stays listed. A major bump renames or reorders, and is not.
+READS_CANONICAL = ("koyu-canonical/1.2", "koyu-canonical/1.3")
+
+
 def export(data: dict) -> ifcopenshell.file:
     canonical = data["canonical"]
+    declared = canonical.get("format")
+    if declared not in READS_CANONICAL:
+        raise ValueError(
+            f"This is koyu-ifc, which reads {' / '.join(READS_CANONICAL)}. "
+            f"The document says {declared!r}. Nothing is wrong with the document — "
+            "the exporter has not learnt this spelling of the canonical form."
+        )
     name = canonical.get("name") or "koyu"
     space_attrs = {p: s.get("attrs", {}) for p, s in canonical.get("spaces", {}).items()}
     boundary_attrs = _boundary_attrs(canonical)
