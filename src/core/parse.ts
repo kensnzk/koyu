@@ -273,6 +273,19 @@ function ingest(
         if (rest.length > 1) {
           throw new SourceError(ln, `Extra tokens on the ${spelling} version declaration: ${rest.slice(1).join(" ")}`);
         }
+        // **A version nobody ever released has no keyword to enforce.** `muro 0.6` is not a
+        // file whose author picked the wrong word — 0.6 does not exist, and answering with
+        // "a 0.6 file declares itself koyu 0.6" would send them to write a second invalid
+        // thing. Unknown-and-not-plausibly-future is settled first, on its own terms.
+        const known = SUPPORTED_LANGUAGE_VERSIONS.includes(v);
+        const future = isNewerVersion(v, NEWEST_LANGUAGE_VERSION);
+        if (!known && !future) {
+          throw new SourceError(
+            ln,
+            `Unsupported ${spelling} version: ${v} (this tool supports ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")})`,
+          );
+        }
+
         // **The spelling belongs to the version, and that is true of every build.** Decided
         // before anything about what this build supports: `koyu 9.9` is not a file from the
         // future, it is a declaration no version ever accepts, and telling its author to
@@ -286,25 +299,21 @@ function ingest(
               : `The muro keyword arrives in 1.2, and a ${v} processor cannot read it — a ${v} file declares itself "koyu ${v}"`,
           );
         }
-        if (!SUPPORTED_LANGUAGE_VERSIONS.includes(v)) {
+
+        if (future) {
           // **A file from the future is not a broken file.** It says the reader is behind, and
           // the only useful advice is to upgrade — the opposite of the advice for a version
           // that never existed. Both used to print the same sentence, so a viewer could not
           // tell a stale build from a corrupt file, and one downstream rebuilt the
           // distinction for itself out of the version list.
-          if (isNewerVersion(v, NEWEST_LANGUAGE_VERSION)) {
-            throw new SourceError(
-              ln,
-              `This file is written in muro ${v}, and this build of koyu (${KOYU_VERSION}) reads up to ${NEWEST_LANGUAGE_VERSION}. The file is not the problem — upgrade koyu`,
-              undefined,
-              "VER06",
-            );
-          }
           throw new SourceError(
             ln,
-            `Unsupported ${spelling} version: ${v} (this tool supports ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")})`,
+            `This file is written in muro ${v}, and this build of koyu (${KOYU_VERSION}) reads up to ${NEWEST_LANGUAGE_VERSION}. The file is not the problem — upgrade koyu`,
+            undefined,
+            "VER06",
           );
         }
+
         // 版はbase層 (entry) でのみ・一度だけ宣言する — 合成順による黙った上書きを禁じる (ADR-0017)。
         // gridの規律に合わせ、再宣言は同値でもエラー
         if (file !== undefined && model.layers[0] !== file) {

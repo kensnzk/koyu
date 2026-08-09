@@ -203,7 +203,7 @@ Against the sealed building above (evidence elided as `…`):
  "schema": "koyu-assessment",
  "profile": { "id": "koyu.profile.schematic-screen", "revision": "1" },
  "ruleSets": [ { "id": "koyu.ruleset.schematic-screen", "revision": "1" } ],
- "model": { "languageVersion": "1.1", "state": "consistent", "diagnostics": [] },
+ "model": { "languageVersion": "1.2", "state": "consistent", "diagnostics": [] },
  "context": { "asOf": "2026-08-03", "schema": "koyu-context/1", "values": {} },
  "analyses": [ … ],
  "rules": [ … ],

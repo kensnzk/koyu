@@ -467,7 +467,7 @@ boundary /L2/hall /out t:150 spec:EW1
 
 Three kinds of thing were added.
 
-- **`koyu 1.0`** — the language version declaration. A file that omits it is always read with the semantics of the newest version, so its meaning can move when the tool's version moves. **Write it in every new file.**
+- **`muro 1.2`** — the language version declaration. A file that omits it is read as `1.1` and stays there: newer semantics are opt-in, and naming the version is how you opt in. **Write it in every new file**, or the notation this tutorial teaches will not all be available to you.
 - **`name`** — the building's name (it becomes the drawing title), and names for spaces, boundaries and openings.
 - **`floor:` and `spec:`** — attributes koyu does not interpret and simply carries. The stance of this notation is that the names of things (RC, LGS, EW1 …) go in the value of `spec`.
 
