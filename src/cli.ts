@@ -194,6 +194,12 @@ function main(argv: string[]): number {
   // Asked before the usage text, because it takes no file and a tool that cannot state its
   // own version sends the reader to package.json to find out what they are running.
   if (cmd === "--version" || cmd === "-v") {
+    // It takes no file, so being handed one is a calling mistake like any other. Printing the
+    // version and exiting 0 would let a wrapper that passes the wrong flag look like it worked.
+    if (file !== undefined) {
+      console.error(`--version takes no arguments: ${[file, ...rest].join(" ")}`);
+      return 2;
+    }
     console.log(versionLine());
     return 0;
   }

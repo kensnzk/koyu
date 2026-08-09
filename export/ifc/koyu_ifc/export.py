@@ -49,17 +49,18 @@ RUN_TYPE = {
 }
 
 
-# The canonical JSON spellings this exporter knows how to read.
+# The canonical JSON spellings this exporter has been checked against.
 #
 # **Read the version, or do not carry one.** koyu stamps `format` on every document precisely
 # so a reader can refuse a spelling it does not know; this exporter took the document apart
 # without ever looking, so a key rename would have produced a wrong IFC rather than an error.
-# It did: `koyu-canonical/1.2` became `1.3` when the language version key was renamed, and
-# nothing here noticed.
 #
-# A minor bump adds keys and leaves the ones already there alone, so reading a newer minor is
-# safe and stays listed. A major bump renames or reorders, and is not.
-READS_CANONICAL = ("koyu-canonical/1.2", "koyu-canonical/1.3")
+# **Listing two majors is a claim, not a convenience.** A major bump means some key was renamed
+# or reordered, so reading one is only safe for a reader that does not touch what moved. The
+# 1.x to 2.0 bump renamed the language-version key, which this exporter never reads — it takes
+# spaces, assets, zones, the geodetic frame and attributes. That is why both are listed, and it
+# is a sentence someone has to be able to write again for the next major.
+READS_CANONICAL = ("koyu-canonical/1.2", "koyu-canonical/2.0")
 
 
 def export(data: dict) -> ifcopenshell.file:

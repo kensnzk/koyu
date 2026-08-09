@@ -141,7 +141,15 @@ export function requireMuro(muro: string): void {
     );
   }
   if (row) throw new Error(`${head} It arrived in koyu ${row.since} — install koyu ${row.since} or later.`);
-  throw new Error(`${head} No released koyu reads it; this build reads ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")}.`);
+  // **No row is not evidence that no koyu reads it.** A build only carries the rows compiled
+  // into it, so a version released after this one looks exactly like a version that never
+  // existed. Saying which is which is not this build's to say; saying what it knows is.
+  const newer = isNewerVersion(muro, NEWEST_LANGUAGE_VERSION);
+  throw new Error(
+    newer
+      ? `${head} It is newer than anything this build knows (it reads up to ${NEWEST_LANGUAGE_VERSION}) — upgrade koyu.`
+      : `${head} This build reads ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")}.`,
+  );
 }
 
 /**
@@ -174,9 +182,10 @@ export const NEWEST_LANGUAGE_VERSION = SUPPORTED_LANGUAGE_VERSIONS[SUPPORTED_LAN
  * them by naming them.** The cost is that an undeclared file never gets new notation, which is
  * the same statement read from the other side.
  *
- * This is not a version bump. Today the frozen value and the newest version are both 1.1, so
- * no file that exists reads differently; what changes is only what happens when 1.2 lands,
- * and what happens is nothing.
+ * Freezing this was not itself a version bump: at the moment it froze, the frozen value and
+ * the newest version were both 1.1, so no file that existed read differently. They part
+ * company from 1.2 on, and that gap is the whole point — an old file that names no version
+ * does not quietly become a 1.2 file.
  */
 export const DEFAULT_LANGUAGE_VERSION = "1.1";
 
@@ -190,8 +199,14 @@ export const DEFAULT_LANGUAGE_VERSION = "1.1";
  * The format keeps the name `koyu` because it is the implementation's output spelling — the
  * shape koyu writes. The key inside it names the language, and is spelled `muro` for the same
  * reason the version line is.
+ *
+ * **That rename is why this is 2.0 and not 1.3.** An existing key changed its name, which the
+ * rule above puts squarely in major. Shipping it as a minor would have told every reader that
+ * `1.x` stays compatible — so a reader expecting `koyu` would have accepted the document and
+ * found no language version in it, which is the silent misread the format version exists to
+ * prevent.
  */
-export const CANONICAL_FORMAT = "koyu-canonical/1.3";
+export const CANONICAL_FORMAT = "koyu-canonical/2.0";
 
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";

@@ -31,8 +31,6 @@ import {
   NEWEST_LANGUAGE_VERSION,
   SUPPORTED_LANGUAGE_VERSIONS,
 } from "../src/core/model.js";
-import { DIAGNOSTIC_CODES } from "../src/core/diagnose.js";
-import { SCHEMATIC_RULES } from "../src/validate/builtin/index.js";
 import { SCHEMATIC_RULES } from "../src/validate/builtin/index.js";
 import { ATTR_LEDGER } from "../src/core/vocabulary.js";
 
@@ -271,15 +269,23 @@ test("a version named by its role in prose agrees with the ledger", () => {
  */
 test("a muro example declares the newest language version", () => {
   const stale: string[] = [];
+  let seen = 0;
   for (const block of BLOCKS) {
     if (!block.fence.startsWith("muro")) continue;
     if (!block.where.startsWith("skills/") && !block.where.startsWith("docs/reference/muro/")) {
       continue;
     }
-    for (const [, written] of block.text.matchAll(/^koyu (\d\.\d)\b/gm)) {
-      if (written !== NEWEST_LANGUAGE_VERSION) stale.push(`${block.where}: koyu ${written}`);
+    // **Both spellings.** A matcher that knows one of them goes blind at the release that
+    // changes it: after the 1.2 cut this found nothing at all and passed on an empty set,
+    // which is the same defect the release-file walk had and was fixed for.
+    for (const [, word, written] of block.text.matchAll(/^(koyu|muro) (\d\.\d)\b/gm)) {
+      seen++;
+      if (written !== NEWEST_LANGUAGE_VERSION) stale.push(`${block.where}: ${word} ${written}`);
     }
   }
+  // A floor, so that finding nothing is a failure rather than a pass. Vacuous green is how a
+  // check stops holding anything without ever going red.
+  assert.ok(seen >= 10, `only ${seen} version declarations found in the governed examples — the scan is broken`);
   assert.deepEqual(
     stale,
     [],

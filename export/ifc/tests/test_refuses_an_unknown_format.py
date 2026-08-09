@@ -2,7 +2,7 @@
 
 **A version nothing reads is not a version.** koyu writes `format` on every canonical document
 so that a reader can stop rather than misread; this exporter took the document apart without
-looking, and the day the language version key was renamed — `koyu-canonical/1.2` to `1.3` —
+looking, and the day the language version key was renamed — `koyu-canonical/1.2` to `2.0` —
 nothing here noticed. A wrong IFC is worse than no IFC, because it opens.
 """
 

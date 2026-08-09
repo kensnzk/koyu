@@ -138,11 +138,11 @@ requireMuro("1.1"); // the version this application reads and writes
 If the installed build does not read it, the message names the fix rather than the symptom:
 
 ```text
-This build of koyu (0.20.0) does not read muro 1.3. No released koyu reads it;
-this build reads 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2.
+This build of koyu (0.20.0) does not read muro 1.3. It is newer than anything this
+build knows (it reads up to 1.2) — upgrade koyu.
 ```
 
-A version that exists but is newer than this build names the release to install instead; a version that has been retired says so, and points **backwards** — a newer koyu is what dropped it, so a newer koyu will not help.
+**It says what this build knows, not what exists.** A build only carries the rows compiled into it, so a version released after it looks exactly like a version that never existed — and claiming "no koyu reads this" would be asserting something no build is in a position to know. A version older than the newest, but absent, gets the list instead. A version that has been retired says so and points **backwards**: a newer koyu is what dropped it, so a newer koyu will not help.
 
 `requireMuro` is on the root because asserting is the one thing a consumer *does* about versions. The ledger it reads is on `@kensnzk/koyu/model` with the rest of the model surface: `speaksMuro` is the same question without the throw, `koyuSince` answers the other direction — which release first read a version, and so what package range a language requirement implies — and `MURO_SUPPORT` is the ledger itself. `versionLine` is the sentence `koyu --version` prints.
 

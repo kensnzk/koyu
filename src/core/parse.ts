@@ -273,6 +273,19 @@ function ingest(
         if (rest.length > 1) {
           throw new SourceError(ln, `Extra tokens on the ${spelling} version declaration: ${rest.slice(1).join(" ")}`);
         }
+        // **The spelling belongs to the version, and that is true of every build.** Decided
+        // before anything about what this build supports: `koyu 9.9` is not a file from the
+        // future, it is a declaration no version ever accepts, and telling its author to
+        // upgrade would send them to fix the one thing that is not wrong.
+        const wants = isNewerVersion(v, LAST_KOYU_SPELLED_VERSION) ? "muro" : "koyu";
+        if (spelling !== wants) {
+          throw new SourceError(
+            ln,
+            wants === "muro"
+              ? `muro ${v} names itself muro: write "muro ${v}". The koyu spelling names the implementation and stops at ${LAST_KOYU_SPELLED_VERSION}`
+              : `The muro keyword arrives in 1.2, and a ${v} processor cannot read it — a ${v} file declares itself "koyu ${v}"`,
+          );
+        }
         if (!SUPPORTED_LANGUAGE_VERSIONS.includes(v)) {
           // **A file from the future is not a broken file.** It says the reader is behind, and
           // the only useful advice is to upgrade — the opposite of the advice for a version
@@ -290,18 +303,6 @@ function ingest(
           throw new SourceError(
             ln,
             `Unsupported ${spelling} version: ${v} (this tool supports ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")})`,
-          );
-        }
-        // The spelling belongs to the version. `muro` arrives in 1.2, so a 1.1 processor
-        // cannot read that line as a word at all; and from 1.2 the language stops answering
-        // to the implementation's name.
-        const wants = isNewerVersion(v, LAST_KOYU_SPELLED_VERSION) ? "muro" : "koyu";
-        if (spelling !== wants) {
-          throw new SourceError(
-            ln,
-            wants === "muro"
-              ? `muro ${v} names itself muro: write "muro ${v}". The koyu spelling names the implementation and stops at ${LAST_KOYU_SPELLED_VERSION}`
-              : `The muro keyword arrives in 1.2, and a ${v} processor cannot read it — a ${v} file declares itself "koyu ${v}"`,
           );
         }
         // 版はbase層 (entry) でのみ・一度だけ宣言する — 合成順による黙った上書きを禁じる (ADR-0017)。

@@ -37,7 +37,7 @@ The server never initiates a request. It writes no logs and no progress to stdou
 | `protocolVersion` | **Whatever the client sent, echoed back.** If `params.protocolVersion` is absent, the server announces `"2025-06-18"`. It neither negotiates nor rejects a version |
 | `capabilities` | `{"tools":{}}` — tools only. It does not declare `listChanged`, and the tool set never changes |
 | `serverInfo.name` | `"koyu"` |
-| `serverInfo.version` | `"0.19.0"` — **the implementation's version.** It moves independently of the language's |
+| `serverInfo.version` | `"0.20.0"` — **the implementation's version.** It moves independently of the language's |
 | `serverInfo.muro` | `{ reads, newest, undeclared }` — **the language versions this build speaks.** `reads` is every version it accepts; `newest` is the one to declare to get everything; `undeclared` is how a file with no version line is read, and is frozen rather than following `newest`. An agent choosing how to write a version line has nothing else to read it from |
 | `instructions` | One paragraph for the agent: the standard loop, and the difference between `check` and `validate` |
 
