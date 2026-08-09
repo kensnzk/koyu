@@ -81,7 +81,7 @@ So **this surface is exactly the set of names spelled out one by one in `src/ind
 |---|---|---|
 | Parsing and composition | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
 | Structural consistency | `check` `checkDiagnostics` | `CheckResult` `Diagnostic` `DiagnosticCode` |
-| Canonical form and versions | `DEFAULT_LANGUAGE_VERSION` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` | `Model` |
+| Canonical form and versions | `DEFAULT_LANGUAGE_VERSION` `requireMuro` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` | `Model` |
 
 Four things put a name on the surface.
 
@@ -122,6 +122,31 @@ for (const s of model.spaces.values()) {
 `model.spaces` is a `Map<string, Space>` and `model.boundaries` is a `Boundary[]`. **A path is the identity of a space**, and a boundary belongs to neither space it joins — it is a first-class relation sitting in an array. See Model and its types.
 
 **An empty diagnostic list does not mean the building works.** `checkDiagnostics` says only that what is written is not self-contradictory as data. A two-storey house with not one door declared stays sealed shut with an empty list. The architectural judgement is made separately by `assess`, under a profile you name.
+
+## Depending on a language version rather than a package range
+
+**What an application depends on is a muro version, not a koyu version.** An editor that writes `muro 1.1` needs a build that reads 1.1; which build that is, is this package's business. Expressing that as a semver range in `package.json` guesses at the answer, and the guess goes stale silently — the range keeps resolving while the language underneath it moves.
+
+`requireMuro` states the real requirement, at startup, in one line.
+
+```ts
+import { requireMuro } from "@kensnzk/koyu";
+
+requireMuro("1.1"); // the version this application reads and writes
+```
+
+If the installed build does not read it, the message names the fix rather than the symptom:
+
+```text
+This build of koyu (0.19.0) does not read muro 1.3. No released koyu reads it;
+this build reads 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1.
+```
+
+A version that exists but is newer than this build names the release to install instead; a version that has been retired says so, and points **backwards** — a newer koyu is what dropped it, so a newer koyu will not help.
+
+`requireMuro` is on the root because asserting is the one thing a consumer *does* about versions. The ledger it reads is on `@kensnzk/koyu/model` with the rest of the model surface: `speaksMuro` is the same question without the throw, `koyuSince` answers the other direction — which release first read a version, and so what package range a language requirement implies — and `MURO_SUPPORT` is the ledger itself. `versionLine` is the sentence `koyu --version` prints.
+
+**The same pair is on `package.json` as the `muro` field**, so a build script can check it without importing anything.
 
 ## Where to read a signature
 

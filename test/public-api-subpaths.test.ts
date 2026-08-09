@@ -38,8 +38,13 @@ const cases: SurfaceCase[] = [
       "isVoid",
       "levelsSorted",
       "newUids",
+      "KOYU_VERSION",
+      "koyuSince",
+      "MURO_SUPPORT",
+      "speaksMuro",
       "SUPPORTED_LANGUAGE_VERSIONS",
       "toCanonical",
+      "versionLine",
       "zoneAreaM2",
     ],
     types: [

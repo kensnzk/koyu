@@ -69,6 +69,40 @@ export function koyuSince(muro: string): string | undefined {
 }
 
 /**
+ * Whether this build reads the given muro version.
+ *
+ * **What a downstream actually depends on is a language version, not a package range.** An
+ * application that writes `muro 1.1` needs a koyu that reads 1.1; which koyu that is, is the
+ * ledger's business, not the application's. Asserting this at startup turns a version skew
+ * into one sentence instead of a parse error somewhere later.
+ */
+export function speaksMuro(muro: string): boolean {
+  return SUPPORTED_LANGUAGE_VERSIONS.includes(muro);
+}
+
+/**
+ * Throw unless this build reads the given muro version, naming what would fix it.
+ *
+ * Separate from `speaksMuro` because the useful thing at a startup check is the message: the
+ * caller knows the version it needs and nothing else, and the ledger is the only place that
+ * can say which koyu to install for it.
+ */
+export function requireMuro(muro: string): void {
+  if (speaksMuro(muro)) return;
+  const row = MURO_SUPPORT.find((r) => r.muro === muro);
+  const head = `This build of koyu (${KOYU_VERSION}) does not read muro ${muro}.`;
+  // A row with `until` set is retired, and the advice is the opposite of the usual one:
+  // a newer koyu will not help, because newer is what dropped it.
+  if (row?.until) {
+    throw new Error(
+      `${head} It was retired after koyu ${row.until} — migrate the file, or install koyu ${row.until} or earlier.`,
+    );
+  }
+  if (row) throw new Error(`${head} It arrived in koyu ${row.since} — install koyu ${row.since} or later.`);
+  throw new Error(`${head} No released koyu reads it; this build reads ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")}.`);
+}
+
+/**
  * The language versions this build accepts (ADR-0017). An older version is accepted only
  * where the meaning is preserved; `check` is what decides that.
  *
