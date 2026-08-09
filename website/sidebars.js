@@ -204,54 +204,19 @@ function build() {
   return {docs: ['index', ...sections, ...orphans]};
 }
 
-// Until the canonical tree lands, keep publishing the old two-book layout so
-// the site never goes dark mid-migration. Delete this branch with the switch.
-const LEGACY = {
-  guide: [
-    'guide/README',
-    'guide/start',
-    'guide/concepts',
-    'guide/gallery',
-    'guide/cheatsheet',
-    {
-      type: 'category',
-      label: 'How-to',
-      link: {type: 'doc', id: 'guide/howto/README'},
-      collapsed: true,
-      items: [
-        'guide/howto/add-a-level',
-        'guide/howto/unit-layout',
-        'guide/howto/daylight',
-        'guide/howto/doors-and-escape',
-        'guide/howto/site-and-far',
-        'guide/howto/split-into-files',
-        'guide/howto/identity',
-        'guide/howto/agent-mcp',
-        'guide/howto/editor',
-        'guide/howto/troubleshooting',
-      ],
-    },
-    'guide/diagnostics',
-    'guide/validation',
-    'guide/glossary',
-    'guide/cli',
-    'guide/api',
-  ],
-  reference: [
-    'spec/README',
-    'spec/scope',
-    'spec/language',
-    'spec/vocabulary',
-    'spec/composition',
-    'spec/semantics',
-    'spec/derivation',
-    'spec/validation',
-    'spec/canonical-json',
-    'spec/tools',
-    'spec/notation-v0',
-  ],
-};
-
+// The generated tree is the only source for navigation. There used to be a
+// hand-listed fallback here for the old two-book layout, kept so the site would
+// not go dark mid-migration; the migration landed and the fallback outlived it.
+// What it actually did was turn "the content has not been generated yet" into a
+// list of pages deleted in July, which reads as a broken sidebar rather than a
+// missing step.
 const canonical = existsSync(path.join(generatedDocs, 'reference'));
 
-export default canonical ? build() : LEGACY;
+if (!canonical) {
+  throw new Error(
+    'website/.generated/docs is missing — run `npm run prepare:content` in website/ first. ' +
+      'The sidebar is derived from the published tree and has no other source.',
+  );
+}
+
+export default build();

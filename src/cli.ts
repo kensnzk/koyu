@@ -35,7 +35,8 @@ import {
   type Model,
   srcRef,
   isOutside,
-  isVoid
+  isVoid,
+  versionLine
 } from "./core/model.js";
 import { parseFile } from "./parse-file.js";
 import { svgPlan } from "./draw/plan.js";
@@ -190,6 +191,18 @@ function firstModelLine(evidence: AssessmentReport["findings"][number]["outcome"
 
 function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
+  // Asked before the usage text, because it takes no file and a tool that cannot state its
+  // own version sends the reader to package.json to find out what they are running.
+  if (cmd === "--version" || cmd === "-v") {
+    // It takes no file, so being handed one is a calling mistake like any other. Printing the
+    // version and exiting 0 would let a wrapper that passes the wrong flag look like it worked.
+    if (file !== undefined) {
+      console.error(`--version takes no arguments: ${[file, ...rest].join(" ")}`);
+      return 2;
+    }
+    console.log(versionLine());
+    return 0;
+  }
   if (!cmd || !file) {
     console.log(
       "Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [args...]\n" +
@@ -240,7 +253,8 @@ function main(argv: string[]): number {
     // check --json は構文・合成エラー (SourceError) でも有効JSONを返す — SYN01 の1件に写す (ADR-0016)
     if (cmd === "check" && rest.includes("--json") && e instanceof SourceError) {
       const d: Diagnostic = {
-        code: "SYN01",
+        // A parse failure that named its own condition keeps that code; the rest are syntax.
+        code: e.code ?? "SYN01",
         severity: "error",
         message: e.raw,
         ...(e.line ? { line: e.line } : {}),

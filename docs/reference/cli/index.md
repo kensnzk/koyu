@@ -64,6 +64,28 @@ npx tsx src/cli.ts check examples/house/L1.muro
 
 Never letting a calling mistake pass with exit 0 is deliberate. Handing in an unreadable scale does not produce a `width="NaN"` SVG announced as "generated".
 
+## --version
+
+**`--version` (or `-v`) is the one flag that takes no file.** It says which implementation you are running and which language it speaks, because those are two separate versions and only one of them is on npm.
+
+```sh
+npx tsx src/cli.ts --version
+```
+
+```text
+koyu 0.20.0 — reads muro 0.1–1.2 (newest 1.2; a file with no version line is read as 1.1)
+```
+
+The exit code is `0` — it is an answer, not a calling mistake.
+
+**Read it as three facts, and note that the last two are separate.** `0.20.0` is this implementation. `reads muro 0.1–1.2` is every language version it accepts, so a file declaring one of those opens here. `newest` is the version to declare to get everything the language has.
+
+`a file with no version line is read as 1.1` is **frozen** and does not follow `newest` ([the version line](../muro/version.md)). Since 1.2 they no longer agree, and that gap is the fact a reader most needs: an old file that names no version does not quietly become a 1.2 file.
+
+When a file will not open because it declares something newer, this line is what tells you the file is fine and the tool is behind.
+
+The same three facts are on `package.json` as the `muro` field (`reads` / `newest` / `undeclared`), for anything that needs them without running the binary, and in the MCP server's `serverInfo`.
+
 ## There is no --help
 
 **No `--help` flag is implemented.** A call that omits the subcommand name or the file path prints usage, but that is the "you called it wrong" path, and **the exit code is 2**. Typing `--help` takes the same path, because `--help` does not fill the subcommand and file-path positions.

@@ -686,7 +686,10 @@ export function renderDiff(d: ModelDiff): string[] {
     else if (g.kind === "added") out.push(`+ grid ${g.axis} ${g.name} ${g.to}`);
     else out.push(`− grid ${g.axis} ${g.name} ${g.from}`);
   }
-  if (d.version) out.push(`± koyu ${d.version.from} → ${d.version.to}`);
+  // **The label names the language, not the implementation.** It also may not be the written
+  // declaration: from 1.2 the word is `muro`, so printing `koyu 1.2` would show a line the
+  // parser refuses. This is a label for a change, not a copy of either file's first line.
+  if (d.version) out.push(`± muro ${d.version.from} → ${d.version.to}`);
   if (d.name) out.push(`± name ${d.name.from ?? "—"} → ${d.name.to ?? "—"}`);
   for (const n of d.levels.added) out.push(`+ level ${n}`);
   for (const n of d.levels.removed) out.push(`− level ${n}`);

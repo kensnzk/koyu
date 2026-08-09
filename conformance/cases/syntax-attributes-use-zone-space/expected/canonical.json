@@ -1,6 +1,6 @@
 {
-  "format": "koyu-canonical/1.2",
-  "koyu": "1.1",
+  "format": "koyu-canonical/2.0",
+  "muro": "1.1",
   "name": "継承の例",
   "unit": "mm",
   "grid": {

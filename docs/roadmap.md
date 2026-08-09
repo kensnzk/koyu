@@ -7,7 +7,7 @@ mode: explanation
 
 **1.0.0 is not the completion of features. It is the settling of the surfaces we promise not to break.** So this road is cut by "what can be frozen", not by "what will be built".
 
-The present state is **koyu 0.19.0 / muro 1.1**.
+The present state is **koyu 0.20.0 / muro 1.2**.
 
 ## There are two version lines
 
@@ -15,10 +15,10 @@ The present state is **koyu 0.19.0 / muro 1.1**.
 
 | Line | Now | What it means |
 |---|---|---|
-| Language (muro) | **1.1** | The grammar and semantics of the source. Written `koyu 1.1`. This is settled |
-| Implementation (the npm package) | **0.19.0** | The library, the CLI and the MCP server. While it is 0.x, **nothing that changes is a breaking change** |
+| Language (muro) | **1.2** | The grammar and semantics of the source. Written `muro 1.2` — `koyu 1.1` and earlier keep the old word, and keep reading. This is settled |
+| Implementation (the npm package) | **0.20.0** | The library, the CLI and the MCP server. While it is 0.x, **nothing that changes is a breaking change** |
 
-They were separated so that the implementation can keep moving after the language has settled. A file that says `koyu 1.1` reads the same whether the implementation is 0.19, 1.0 or 2.0.
+They were separated so that the implementation can keep moving after the language has settled. A file that says `muro 1.2` reads the same whether the implementation is 0.20, 1.0 or 2.0.
 
 **Omitting the version in the source reads the file as the latest.** The accepted language versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5` and `1.0`, and a file written in an older version is checked under the acceptance conditions of that version.
 
@@ -34,7 +34,7 @@ These are the eight things 1.0.0 promises not to break. **All eight now stand in
 | The three attribute tiers and namespaces | The distinction between structural, interpreted and carry tiers, and the rule that a key containing a dot lands in the carry tier | ✅ The ledger is the single source for the implementation |
 | The machine format | The spelling of the canonical JSON — format version, key collation (ascending code point), NFC normalisation | ✅ |
 | The derivation rules | The definition of what is uniquely determined by the authored composition (wall segments, areas, adjacency, passability) | ✅ A reference implementation stands, and uniqueness became a predicate a machine can hold |
-| Structural-consistency diagnostics | 65 codes, with severity as an invariant property of the code | ✅ Verdicts were moved to a separate domain, and the meaning of green now matches the definition |
+| Structural-consistency diagnostics | 68 codes, with severity as an invariant property of the code | ✅ Verdicts were moved to a separate domain, and the meaning of green now matches the definition |
 | The public API and CLI | The TypeScript names and the contract of the CLI subcommands | ✅ The surface was written down, and tests hold it in set-equality with the implementation |
 
 ## What is left — looking at it end to end

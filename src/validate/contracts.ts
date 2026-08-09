@@ -144,7 +144,12 @@ export interface AssessmentSummary {
   };
 }
 
-export const ASSESSMENT_FORMAT = "koyu-assessment/1" as const;
+/**
+ * The name of the shape an assessment returns. **It carries no version**, for the same reason
+ * as `ANALYSIS_FORMAT`: judgements are the face that grows by addition and freezes nothing,
+ * and nothing reads this string back.
+ */
+export const ASSESSMENT_FORMAT = "koyu-assessment" as const;
 
 export interface AssessmentReport {
   readonly schema: typeof ASSESSMENT_FORMAT;

@@ -15,8 +15,8 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ```json
 {
-  "format": "koyu-canonical/1.2",
-  "koyu": "1.0",
+  "format": "koyu-canonical/2.0",
+  "muro": "1.2",
   "name": "二室",
   "unit": "mm",
   "grid": {
@@ -71,14 +71,14 @@ The first thing the document announces is **the version of the format itself**. 
 
 | Key | Version of what | Raised when |
 |---|---|---|
-| `format` | **the spelling of canonical JSON** — the set of keys, their order, the collation, the normalisation, the spelling of numbers. Currently `koyu-canonical/1.2` | minor when a key is added; major when an existing spelling changes |
-| `koyu` | **the language version of the source**, passed through. **Absent if it was not written** | when the semantics of the language change |
+| `format` | **the spelling of canonical JSON** — the set of keys, their order, the collation, the normalisation, the spelling of numbers. Currently `koyu-canonical/2.0` | minor when a key is added; major when an existing spelling changes |
+| `muro` | **the language version of the source**, passed through. **Absent if it was not written.** Spelled `muro` whatever word the source used — a file written `koyu 1.1` still says `"muro": "1.1"` | when the semantics of the language change |
 
 They are separate because **the same semantics can be respelled with different keys**. Adding the `a` key, which preserves the written direction of a boundary, changed the spelling without changing one word of the language. The converse also happens: a language version can rise without the spelling moving.
 
 **A minor bump still moves the bytes of every document.** `format` is the first key there is, so a document that gains none of the new keys still gains a new first line. Nothing about a minor bump is invisible; what "minor" promises is that no *existing* key changed its name, its place or its spelling.
 
-**A source with no version declaration gets no version stamped.** The default language version is "the newest this tool knows", so stamping it would claim a version the author never wrote — and the bytes of the same input would change the day the tool's default moved. Determinism is a promise this format makes, not one it delegates to a tool's default. A source whose meaning must stay fixed writes `koyu 1.0`.
+**A source with no version declaration gets no version stamped.** Stamping one would claim a version the author never wrote. A source that wants its version recorded here writes the line — `muro 1.2` from 1.2 on, `koyu 1.1` and earlier before it.
 
 ## Three stability rules
 
@@ -156,5 +156,5 @@ Under `<`, 𠮟 sorts before 﨑; in UTF-8, 﨑 comes first. Both are real Japan
 - [The schema](schema.md) — key by key
 - [koyu json](../cli/json.md) — how to get the output
 - [koyu diff](../cli/diff.md) — comparing in the language of composition
-- [The koyu version line](../muro/version.md) — where the `koyu` key comes from
+- [The muro version line](../muro/version.md) — where the `muro` key comes from
 - [Stability](../stability.md) — the three version lines kept apart

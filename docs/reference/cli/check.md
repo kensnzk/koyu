@@ -99,7 +99,7 @@ npx tsx src/cli.ts check bad.muro --json
 
 `code`, `severity` and `message` are always present; `line`, `file`, `path` and `related` appear only when the diagnostic has them.
 
-**`severity` is a property of the code.** The same code is never an error one time and a warning another. There are 65 codes in all.
+**`severity` is a property of the code.** The same code is never an error one time and a warning another.
 
 A file that **never composed into a model** — a syntax or composition error — still returns valid JSON under `--json`. It is copied into a single `SYN01`.
 
@@ -150,7 +150,7 @@ What `check` guarantees stops at "what is written holds together as data". **It 
 The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no doors at all comes out green while perfectly sealed. The same goes for windows: none at all is still green.
 
 ```muro
-koyu 1.1
+muro 1.2
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -175,7 +175,7 @@ Hand the same file to [`koyu validate`](validate.md) and three violations come o
 ## See also
 
 - [koyu validate](validate.md) — the architectural judgement `check` does not make
-- [Diagnostics](../diagnostics/index.md) — cause and fix for all 65 codes
+- [Diagnostics](../diagnostics/index.md) — cause and fix for every code
 - [Gating CI](ci.md) — why you add `--strict`
 - [koyu json](json.md) — the boundary count on the written side
 - [The koyu command](index.md) — the shared promises about entry and exit codes

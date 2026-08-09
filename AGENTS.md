@@ -1,6 +1,6 @@
 # AGENTS.md — for agents working on koyu
 
-koyu is a notation for writing architecture as text (`.muro`) and its processor. Space is the primary element, a wall is not a thing but the relation "the boundary between two spaces", and plans, areas and circulation are not written but derived.
+**muro is the notation** written in `.muro` files; **koyu is the processor that reads it**, and the name of this undertaking. The two carry separate version lines ([docs/reference/stability.md](docs/reference/stability.md)). Space is the primary element, a wall is not a thing but the relation "the boundary between two spaces", and plans, areas and circulation are not written but derived.
 
 This page is a **map and a body of law**, not a copy of the explanations. The same fact is never written twice — when in doubt, read the link rather than this page.
 
@@ -14,19 +14,24 @@ This page is a **map and a body of law**, not a copy of the explanations. The sa
 
 | Place | Contents | Discipline when touching it |
 |---|---|---|
-| `src/core/` | **The frozen region** — `parse.ts` (composition) `model.ts` `vocabulary.ts` (the attribute ledger) `poly.ts` (the single slab of geometry) `diagnose.ts` (diagnostics for structural consistency; `checkDiagnostics` is a sequence of clauses whose granularity is **one scan**) `graph.ts` `vertical.ts` (vertical circulation) `fabric.ts` (floors, ceilings, roofs) `light.ts` `site.ts` `diff.ts` | **It must be clean.** Zero runtime dependencies. If you change behaviour, fix the published documentation and the tests in the same change. |
-| `src/validate/` | **The region that does not freeze** — architectural judgement (`access.ts` `envelope.ts` `light.ts` `runs.ts` `site.ts`). Returns `Finding { rule, level }`. | **It may be dirty.** Add to it freely, throw parts away freely. One condition only — it must never be confused with what core guarantees. |
+| `src/core/` | **The frozen region** — `parse.ts` (composition) `model.ts` (the model, the version ledger `MURO_SUPPORT`, the canonical form) `vocabulary.ts` (the attribute ledger) `poly.ts` (the single slab of geometry) `tolerance.ts` `diagnose.ts` (diagnostics for structural consistency; `checkDiagnostics` is a sequence of clauses whose granularity is **one scan**) `derive.ts` (form) `graph.ts` `vertical.ts` (vertical circulation) `fabric.ts` (floors, ceilings, roofs) `light.ts` `site.ts` `diff.ts` | **It must be clean.** Zero runtime dependencies. If you change behaviour, fix the published documentation and the tests in the same change. |
+| `src/validate/` | **The region that does not freeze** — the rule interface and the runner (`contracts.ts` `assessment.ts` `index.ts`). Returns `Finding { rule, level }`. | **It may be dirty.** Add to it freely, throw parts away freely. One condition only — it must never be confused with what core guarantees. |
+| `src/validate/builtin/` | The rules koyu itself ships, as a **value** rather than a registration — `access.ts` `daylight.ts` `door-column-collisions.ts` `envelope.ts` `freeze.ts` `site.ts` `vertical-runs.ts`. | Adding a judgement happens here and under [docs/reference/validate/](docs/reference/validate/index.md), and nowhere else. **The language version does not move.** |
+| `src/analysis/` | The analysis protocol — `contracts.ts` holds `koyu-context/1`, the input contract `assessment.ts` checks on arrival. | The one versioned contract in the tree that something actually verifies. Keep it that way. |
 | `src/draw/` | **The region that does not freeze** — `plan.ts` `axo.ts` (SVG generation). Outside the freeze ([docs/reference/stability.md](docs/reference/stability.md)). | Appearance may change freely. **The shape may not.** |
-| directly under `src/` | `index.ts` (the public surface) `cli.ts` `mcp.ts` `parse-file.ts` | `test/domains.test.ts` enforces the one-way dependency by machine. |
-| `docs/` | **The published documentation. This is authoritative.** One tree, in English (`npm run gate:docs` counts the pages and checks every one is reachable). `start/` (tutorial) `why/` (explanation) `howto/` (procedures) `reference/` (normative — `muro/` `diagnostics/` `validate/` `cli/` `mcp/` `api/` `form/` `json/`) `examples/` `glossary.md` | **One page, one job.** Keep each page self-contained — never delegate to an ADR. If you change behaviour, fix the relevant page in the same change. |
+| directly under `src/` | `index.ts` (the public surface) `cli.ts` `mcp.ts` `parse-file.ts`, and the **subpath entry points** that re-export a domain: `model.ts` `diagnostics.ts` `graph.ts` `form.ts` `diff.ts` `vocabulary.ts`. | `test/domains.test.ts` enforces the one-way dependency by machine; `test/public-api-subpaths.test.ts` holds each subpath's exports against an approved list. |
+| `docs/` | **The published documentation. This is authoritative.** One tree, in English (`npm run gate:docs` counts the pages and checks every one is reachable). `start/` (tutorial) `why/` (explanation) `howto/` (procedures) `reference/` (normative — `muro/` `diagnostics/` `validate/` `cli/` `mcp/` `api/` `form/` `json/`) `examples/` `glossary/` `glossary.md` `img/` | **One page, one job.** Keep each page self-contained — never delegate to an ADR. If you change behaviour, fix the relevant page in the same change. |
 | `docs/decisions/` | **ADRs** — why it was decided this way and what was rejected. **Not published.** | Decisions are append-only. **Never edited afterwards** (editing destroys the point of the record). To reverse one, write a new ADR. |
 | `docs/log/` `docs/reviews/` `docs/notes/` | Work records, design reviews and working notes. **Not published.** | |
-| `docs/policy.md` and the other loose .md files | `checklists.md` (what a rippling change must touch, and which gate already holds each part) `policy.md` `writing-architecture.md` `modules.md` `horizon.md` `ifc-coverage.md` `terminology.md`. **Unpublished** raw material. | |
+| `docs/policy.md` and the other loose .md files | `checklists.md` (what a rippling change must touch, and which gate already holds each part) `policy.md` `writing-architecture.md` `modules.md` `horizon.md` `ifc-coverage.md` `ifcx-notes.md` `terminology.md`. **Unpublished** raw material. **`roadmap.md` is not among them** — the sidebar publishes it, so it is held to everything `docs/` is held to. | |
 | `examples/` | The bundled buildings — `two-rooms` `office` `mansion` `house.muro` `house/` `tower/` `basement/` (the minimal example of vertical circulation) `complex/` (31,606 m2 gross) `twin/` (a twin-tower redevelopment of 141,449 m2 gross) `comparison/`. `steps/` holds where each stage of the [tutorial](docs/start/index.md) lands. | Once touched, `npm run check:examples` is the gatekeeper. |
-| `conformance/` | **The substance of muro's definition.** Each case is complete with inputs and expectations alone and references not a single function of the processor — an implementation in another language can sit the exam. 135 cases, 105 normative statements. Expectations come in four kinds (the canonical form as bytes; diagnostics and the shape structurally; one point of the shape by JSON Pointer). Judgements from `validate` are excluded (that face does not freeze). | **Keep cases minimal.** An expectation may start as the implementation's output, but confirm one at a time that the norm actually says so — an expectation that is merely a copy turns misbehaviour into canon. Pin equivalences with pairs (a single case is no more than a copy of the implementation). |
+| `conformance/` | **The substance of muro's definition.** Each case is complete with inputs and expectations alone and references not a single function of the processor — an implementation in another language can sit the exam. Expectations come in four kinds (the canonical form as bytes; diagnostics and the shape structurally; one point of the shape by JSON Pointer). Judgements from `validate` are excluded (that face does not freeze). | **Keep cases minimal.** An expectation may start as the implementation's output, but confirm one at a time that the norm actually says so — an expectation that is merely a copy turns misbehaviour into canon. Pin equivalences with pairs (a single case is no more than a copy of the implementation). |
 | `test/` | `node --test`. `domains.test.ts` (separation of the regions) `composition.test.ts` (the six rules of composition) `diagnostics.test.ts` (the diagnostics contract) and others. | Guarantees are fixed by tests. Prose in a specification has not landed anything. |
 | `eval/` | The harness for agent-editing evals (`run.ts` `score.ts` `tasks/` `fixtures/` `control/`). | |
 | `skills/` | Agent skills, one per question the processor answers — [koyu-design](skills/koyu-design/SKILL.md) writes a building (`check`), [koyu-validate](skills/koyu-validate/SKILL.md) judges and repairs one (`validate`), [koyu-revise](skills/koyu-revise/SKILL.md) changes one without breaking the rest (`diff`). Installed by copy or zip ([skills/README.md](skills/README.md)); deliberately outside the npm package. | Its examples sit under `check:examples`. The notation subset and the rule table are restatements — if behaviour changes, fix the skill and the page under [docs/reference/](docs/reference/index.md) in the same change. **Every muro fragment in a skill must check green**; it is the most-copied text we ship. |
+| `website/` | The Docusaurus site. It reads `docs/` through `website/scripts/prepare-content.mjs` and the sidebar is **derived from the published tree, never hand-listed**. | `npm run gate:docs` generates the content first, then checks every page is reachable. |
+| `export/ifc/` | IFC export, in Python (`koyu_ifc/`) on its own toolchain — `export-ifc.yml` runs it, deliberately apart from `ci.yml`. | It reads canonical JSON from `dist/`, so **it reads what ships, not what is in `src/`**. |
+| `scripts/` | `gate.mjs` — the example gatekeeper behind `npm run gate:examples`. | |
 | `editors/vscode/` | Editor support ([docs/reference/cli/editor.md](docs/reference/cli/editor.md)) — `syntaxes/koyu.tmLanguage.json` is **the one grammar** (shared by VS Code and Shiki/Docusaurus); `extension.js` only relays `koyu check --json`. | Add a word and fix the grammar too. `test/grammar.test.ts` binds it to the implementation and the ledger. |
 
 ## Commands
@@ -51,13 +56,13 @@ npx tsx src/cli.ts json  examples/two-rooms.muro            # canonical JSON
 
 The subcommands are `check` `validate` `layers` `diff` `plan` `axo` `doors` `graph` `stats` `levels` `runs` `light` `site` `json`. The contract and the actual output for each has its own page under [docs/reference/cli/](docs/reference/cli/index.md).
 
-There is no dedicated `--help`. A call missing its arguments (including `--help`) prints the usage and returns **exit code 2**. The usage lines omit `plan`'s `-l/-o` and `doors`'s two path arguments, so for those read [docs/reference/cli/plan.md](docs/reference/cli/plan.md) and [doors.md](docs/reference/cli/doors.md).
+`--version` (or `-v`) takes no file and exits 0 — it prints which implementation you are running and which muro it reads and writes, which are separate versions. There is no dedicated `--help`. A call missing its arguments (including `--help`) prints the usage and returns **exit code 2**. The usage lines omit `plan`'s `-l/-o` and `doors`'s two path arguments, so for those read [docs/reference/cli/plan.md](docs/reference/cli/plan.md) and [doors.md](docs/reference/cli/doors.md).
 
 ## The MCP server
 
 `koyu-mcp` is a dependency-free stdio MCP server ([docs/reference/mcp/](docs/reference/mcp/index.md)). It is stateless: every tool takes the entry `.muro` path as `file` and composes from scratch each time. The source of truth is the filesystem and the history belongs to git.
 
-There are 12 tools — `model_summary` `check` `layers` `write_layer` `new_uids` `doors` `spaces` `light` `validate` `site` `plan_svg` `canonical_json`.
+The tools are `model_summary` `check` `layers` `write_layer` `new_uids` `doors` `spaces` `light` `validate` `site` `plan_svg` `canonical_json`.
 
 The standard loop is this.
 
@@ -78,7 +83,7 @@ model_summary → layers → write_layer → check ──error──→ fix it a
 4. **The published documentation is written in the present tense and rewritten in place.** Do not accumulate dates, "addenda", or "in v0.9 this was…". Versions belong to git.
 5. **A diagnostic always carries a code, and severity is an attribute of the code** ([docs/reference/diagnostics/index.md](docs/reference/diagnostics/index.md)). The same code is never an error in one case and a warning in another. Add a code and add a section to the right family under [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) (`test/docs-ledger.test.ts` catches omissions).
    **The population is the written declarations, provenance is always present, and the order is the order of the scan** ([docs/reference/diagnostics/reading.md](docs/reference/diagnostics/reading.md)). Check the values of interpreted attributes (the starred ones in the ledger) — never let a value that was written but not interpreted fall silently to a default. When touching `checkDiagnostics`, keep the granularity of the clauses at one scan (splitting by code family breaks the order).
-6. **A change to the semantics of the language raises the language version** ([docs/reference/muro/version.md](docs/reference/muro/version.md)). The current one is `koyu 1.1`. What counts as meaning-preserving is defined by [docs/reference/stability.md](docs/reference/stability.md). Write the migration in an ADR and bring the examples up to the newest version. **Work through [docs/checklists.md](docs/checklists.md) → *Raising the language version*** — the version guards in `diagnose.ts`, the conformance cases deliberately pinned to old versions, and any vendored copy downstream are the parts no gate reaches.
+6. **A change to the semantics of the language raises the language version** ([docs/reference/muro/version.md](docs/reference/muro/version.md)). The current one is `muro 1.2`. **muro names the language; koyu names this implementation** — the version line is spelled `muro` from 1.2 and `koyu` at 1.1 and earlier, one spelling per version. What counts as meaning-preserving is defined by [docs/reference/stability.md](docs/reference/stability.md). Write the migration in an ADR and bring the examples up to the newest version. **Work through [docs/checklists.md](docs/checklists.md) → *Raising the language version*** — the version guards in `diagnose.ts`, the conformance cases deliberately pinned to old versions, and any vendored copy downstream are the parts no gate reaches.
 7. **The ledger is the contract for vocabulary** (the three tiers of attributes in [docs/reference/scope.md](docs/reference/scope.md)). The single source in the implementation is `ATTR_LEDGER` in `src/core/vocabulary.ts`, and [docs/reference/muro/attributes.md](docs/reference/muro/attributes.md) is its copy. **A key absent from the ledger cannot be written unless it carries a namespace (`acme.sensor`)** — the boundary exists to distinguish "we have not looked at this" from "we looked and it is fine".
 8. **Zero runtime dependencies.** Add nothing outside devDependencies.
 9. **Examples are written in the newest language version.** Introduce new notation and bring the examples along — the release test checks this.
@@ -87,6 +92,10 @@ model_summary → layers → write_layer → check ──error──→ fix it a
     **The reason is not consistency, it is plainness.** Written in Japanese, an explanation reaches for a compressed word, and the compression is usually a figure of speech — a gatekeeper, a door that opens, a ledger. The reader then has to unpack the figure before reading the point. English pulls the same sentence towards saying the thing outright. (It is not a cure: see law 12.) The second reason is that writing in one language and translating into another produces worse prose than writing in the target language from the start, and drafting in Japanese made that happen repeatedly.
     **Files still in Japanese are records, not a standing exception.** The ADRs under `docs/decisions/` are append-only and are never edited, so the older ones stay as they were written. The working notes at the top of `docs/` are rewritten into English when they are next touched, not in a sweep.
 12. **Do not write in figures of speech.** A directory, a heading, an acceptance condition and an explanation all name what the thing does. Where a short coined phrase is tempting, write out what is being compared instead. The words this project already owns — the gatekeeper, the ledger, the frozen surfaces, the source — are its own vocabulary and stay; the rule is against importing new ones.
+13. **Write the least that does the job.** A sentence the reader does not need is not free: it has to stay true, and when it stops being true it contradicts the page it sits on. `README.md` said "167 pages in Japanese and English" three lines below this page's "one tree, in English", and called the verdict ledger fifteen where it holds sixteen. **Neither could have been wrong if it had not been written.**
+    - **Do not restate a count.** Name the thing and link to the ledger; the ledger says how many. A count is worth writing only where something reads it.
+    - **Every link is a claim that the target still says what you think.** Carry the reader, then stop.
+    - Law 3b is the same rule where a machine source exists, and law 12 is the same rule for coined phrases. This one covers what is merely surplus.
 
 ## Code Review Rules
 
@@ -106,28 +115,28 @@ model_summary → layers → write_layer → check ──error──→ fix it a
 
 **Work on a branch. Never edit in the working tree of `main`** — cut the branch before the first edit, not after the last one.
 
-Then the road is fixed, and **it is four steps, not three.** The fourth is the one that gets forgotten.
+**It is four steps, and the fourth is yours.**
 
-| # | Step | Who does it | What runs |
+| # | Step | Who | What runs |
 |---|---|---|---|
 | 1 | Open the PR | you | `ci.yml` on push and pull_request — typecheck, test, `check:examples`, `gate:examples` |
-| 2 | Merge into `main` | the person | `ci.yml` again on `main` |
-| 3 | **Raise the version** | you, *inside the PR* | `test/release.test.ts` holds `package.json`, `package-lock.json`, `CITATION.cff` and `src/mcp.ts` in step |
-| 4 | **Cut the release `v<version>`** | **you** | `publish.yml` fires on `release: published`, checks the tag against `package.json`, builds, and publishes to npm |
+| 2 | **Raise the version, inside the PR** | you | `test/release.test.ts` holds `package.json`, `package-lock.json`, `CITATION.cff` and `KOYU_VERSION`; and, when the language version moves, the `MURO_SUPPORT` row naming the release it ships in |
+| 3 | Merge into `main` | the person | `ci.yml` again on `main` |
+| 4 | **Create the release `v<version>`** | **you** | `publish.yml` re-runs the fast checks, verifies the tag against `package.json`, builds, and publishes to npm |
 
-**Nothing in this repository creates the release.** `publish.yml` only consumes one. A release created by a workflow's `GITHUB_TOKEN` would not fire `release: published` at all (GitHub suppresses it to stop loops), so the step is deliberately a person's — and the agent doing the work is who performs it.
+**Nothing creates the release but you.** `publish.yml` only consumes one — it fires on `release: published` and on `workflow_dispatch`, and nothing else in this repository or outside it makes a release. **Merging does not publish.** A release created by a workflow's own `GITHUB_TOKEN` would not fire `release: published` at all (GitHub suppresses that to stop loops), which is why the step is not automated and why it falls to the agent doing the work.
 
-```sh
-gh release create v0.19.0 --target "$(git rev-parse origin/main)" --title "v0.19.0 — …" --notes "…"
-```
+Use whatever reaches GitHub from where you are — `gh release create`, the REST API, the GitHub MCP tools, the web UI. The tag must be `v<the version in package.json>`; `publish.yml` compares them and stops on a mismatch rather than shipping the wrong version.
 
-**A merged PR is not a shipped change.** Stopping at step 2 leaves the version raised on `main` and nothing on the registry — a state nobody notices until someone installs the package and gets the old one. **When a change raises the version, cut the release in the same sitting.** If the version was not raised, there is nothing to cut, and saying so out loud is part of finishing.
+**Then confirm npm actually serves it.** The failure that matters is `main` carrying a new version while the registry still serves the old one, and nobody noticing until an install comes back stale.
+
+> **Do not re-derive this from the record.** Every release is authored by the repository owner because you create it with their credentials, so the run history looks exactly like a person doing it by hand — and reads, wrongly, as though some automation outside the repository were responsible. It is not. It is you, and if you skip it nothing ships.
 
 Publishing needs no token: npm Trusted Publishing (OIDC) trusts `publish.yml` itself as the identity.
 
 ## When you hit an error
 
-The human-facing output of `check` carries no diagnostic codes. Add `--json` and the codes appear. To go from a code to the cause and the fix, use [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) — all 67 codes have a page per family carrying the code, its severity, and how to fix it. To go from a symptom, use [docs/howto/by-symptom.md](docs/howto/by-symptom.md).
+The human-facing output of `check` carries no diagnostic codes. Add `--json` and the codes appear. To go from a code to the cause and the fix, use [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) — every code has a section in its family page carrying its severity and how to fix it. To go from a symptom, use [docs/howto/by-symptom.md](docs/howto/by-symptom.md).
 
 There are three traps people hit often. `grid` and `level` have no effect unless declared **before** use (`boundary` may forward-reference). To divide a space into a plan, make the parent a `zone` rather than a `space`. An opening onto the outside has several boundary segments, so select the edge with `edge:N/E/S/W` (N=+Y, S=-Y, E=+X, W=-X). Details are in [docs/howto/troubleshooting.md](docs/howto/troubleshooting.md).
 

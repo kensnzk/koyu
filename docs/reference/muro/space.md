@@ -178,7 +178,7 @@ Three worth naming.
 ## daylight — the scope is declared
 
 ```muro
-koyu 1.1
+muro 1.2
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150

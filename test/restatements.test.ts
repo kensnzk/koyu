@@ -24,7 +24,13 @@ import { join, relative } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { DIAGNOSTIC_CODES } from "../src/core/diagnose.js";
-import { DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS } from "../src/core/model.js";
+import {
+  DEFAULT_LANGUAGE_VERSION,
+  isNewerVersion,
+  LAST_KOYU_SPELLED_VERSION,
+  NEWEST_LANGUAGE_VERSION,
+  SUPPORTED_LANGUAGE_VERSIONS,
+} from "../src/core/model.js";
 import { SCHEMATIC_RULES } from "../src/validate/builtin/index.js";
 import { ATTR_LEDGER } from "../src/core/vocabulary.js";
 
@@ -217,27 +223,42 @@ test("a count of the accepted versions equals the length of the ledger", () => {
 });
 
 /**
- * A sentence that names the version a file is read under when it declares
- * none. Narrowed to lines that also say "version" or "semantics", because the
- * positional default `at:0.5` is a different 0.5 entirely — docs-ledger's own
- * comment records that trap.
+ * A sentence that names a version by role: the newest one, or the one a file is read under
+ * when it declares none.
+ *
+ * **These were one check while the two values coincided, and splitting them was forced.** The
+ * undeclared reading is frozen at 1.1 and the newest version moves, so a line saying "newest
+ * 1.2" and a line saying "read as 1.1" are both right and disagree with each other. A single
+ * check could only have been made to pass by weakening it until it held nothing.
+ *
+ * Narrowed to lines that also say "version" or "semantics", because the positional default
+ * `at:0.5` is a different 0.5 entirely — docs-ledger's own comment records that trap.
  */
-test("the default language version claimed in prose is DEFAULT_LANGUAGE_VERSION", () => {
+test("a version named by its role in prose agrees with the ledger", () => {
   const wrong: string[] = [];
+  const roles = [
+    { word: /\b(?:latest|newest)\b/i, expected: NEWEST_LANGUAGE_VERSION, name: "the newest version" },
+    { word: /\bdefault\b|\bno version line\b|\bdeclares none\b/i, expected: DEFAULT_LANGUAGE_VERSION, name: "the undeclared reading" },
+  ];
   for (const line of LINES) {
     if (!/\b(?:version|semantics)\b/i.test(line.text)) continue;
-    for (const [, written] of line.text.matchAll(
-      /\b(?:latest|newest|default)\b[^.\n]{0,60}?\b(\d\.\d)\b/gi,
-    )) {
-      if (written !== DEFAULT_LANGUAGE_VERSION) {
-        wrong.push(`${line.where}: ${written} (the default is ${DEFAULT_LANGUAGE_VERSION})`);
+    for (const role of roles) {
+      const m = role.word.exec(line.text);
+      if (!m) continue;
+      // The version this role claims is the one right after the word naming it. Kept short
+      // on purpose: "not following the newest — ... the accepted versions are 0.1, ..." names
+      // no version for the role, and a wide window would read the list as its claim.
+      const after = line.text.slice(m.index);
+      const v = /\b(\d\.\d)\b/.exec(after.slice(0, 30));
+      if (v && v[1] !== role.expected) {
+        wrong.push(`${line.where}: ${v[1]} claimed as ${role.name} (it is ${role.expected})`);
       }
     }
   }
   assert.deepEqual(
     wrong,
     [],
-    `a stated default language version disagrees with the ledger:\n  ${wrong.join("\n  ")}`,
+    `a version named by its role disagrees with the ledger:\n  ${wrong.join("\n  ")}`,
   );
 });
 
@@ -248,19 +269,27 @@ test("the default language version claimed in prose is DEFAULT_LANGUAGE_VERSION"
  */
 test("a muro example declares the newest language version", () => {
   const stale: string[] = [];
+  let seen = 0;
   for (const block of BLOCKS) {
     if (!block.fence.startsWith("muro")) continue;
     if (!block.where.startsWith("skills/") && !block.where.startsWith("docs/reference/muro/")) {
       continue;
     }
-    for (const [, written] of block.text.matchAll(/^koyu (\d\.\d)\b/gm)) {
-      if (written !== DEFAULT_LANGUAGE_VERSION) stale.push(`${block.where}: koyu ${written}`);
+    // **Both spellings.** A matcher that knows one of them goes blind at the release that
+    // changes it: after the 1.2 cut this found nothing at all and passed on an empty set,
+    // which is the same defect the release-file walk had and was fixed for.
+    for (const [, word, written] of block.text.matchAll(/^(koyu|muro) (\d\.\d)\b/gm)) {
+      seen++;
+      if (written !== NEWEST_LANGUAGE_VERSION) stale.push(`${block.where}: ${word} ${written}`);
     }
   }
+  // A floor, so that finding nothing is a failure rather than a pass. Vacuous green is how a
+  // check stops holding anything without ever going red.
+  assert.ok(seen >= 10, `only ${seen} version declarations found in the governed examples — the scan is broken`);
   assert.deepEqual(
     stale,
     [],
-    `an example declares a superseded language version (the newest is ${DEFAULT_LANGUAGE_VERSION}):\n  ${stale.join("\n  ")}`,
+    `an example declares a superseded language version (the newest is ${NEWEST_LANGUAGE_VERSION}):\n  ${stale.join("\n  ")}`,
   );
 });
 
@@ -364,4 +393,63 @@ test("no retired spelling is still being taught", () => {
     }
   }
   assert.deepEqual(found, [], `retired spellings still written down:\n  ${found.join("\n  ")}`);
+});
+
+/**
+ * The word a version line is written with belongs to the version it declares.
+ *
+ * **This is the rule the whole undertaking was about, held by machine rather than by prose.**
+ * The version line is the only declaration that names the language, which is why it was the
+ * one that carried the wrong name for six versions — nothing else had to have an opinion, so
+ * nothing else could disagree out loud.
+ */
+test("a version declaration in the documentation is spelled with the word its version wants", () => {
+  const wrong: string[] = [];
+  for (const block of BLOCKS) {
+    if (!CHECKED_MURO_FENCES.has(block.fence) && block.fence !== "muro-bad") continue;
+    for (const [, word, version] of block.text.matchAll(/^(koyu|muro) (\d\.\d)$/gm)) {
+      const wants = isNewerVersion(version!, LAST_KOYU_SPELLED_VERSION) ? "muro" : "koyu";
+      if (word !== wants) wrong.push(`${block.where}: ${word} ${version} (${version} is declared \`${wants} ${version}\`)`);
+    }
+  }
+  assert.deepEqual(wrong, [], `a version line uses the wrong word for its version:\n  ${wrong.join("\n  ")}`);
+});
+
+/**
+ * A count written next to a ledger equals the ledger.
+ *
+ * Law 13 says not to write the count at all, and most of them came out. This holds the few
+ * that stayed — the tables that exist to put the two magnitudes side by side — and stops the
+ * rest from creeping back. Fifteen places said 65 against a ledger of 67 and nothing noticed,
+ * because the existing checks hold the *names* in the ledger and not the arithmetic beside it.
+ */
+test("a count written beside the diagnostics or the rules equals the ledger", () => {
+  const WORDS: Record<string, number> = {
+    ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16,
+    seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20,
+  };
+  const value = (t: string) => (/^\d+$/.test(t) ? Number(t) : WORDS[t.toLowerCase()]);
+  // Plural only. "UTF-16 code unit" is not a count of the ledger, and requiring the plural is
+  // cheaper than teaching the check what a code unit is.
+  const ledgers = [
+    { noun: /codes\b|diagnostics\b/, size: Object.keys(DIAGNOSTIC_CODES).length, name: "diagnostic codes" },
+    { noun: /rules\b/, size: SCHEMATIC_RULES.length, name: "validation rules" },
+  ];
+  const wrong: string[] = [];
+  for (const line of LINES) {
+    // `the six rules of composition` and `the rules of composition` are a different subject.
+    if (/rules of composition|composition rules/i.test(line.text)) continue;
+    // "the other 67 codes" is the ledger minus the one being discussed, and a quoted count is
+    // being reported rather than asserted — law 3b names two dead sentences on purpose.
+    const text = line.text.replace(/\bother\s+\d+/gi, "other").replace(/["'`][^"'`]*["'`]/g, "");
+    for (const ledger of ledgers) {
+      const re = new RegExp(`\\b([0-9]{1,3}|${Object.keys(WORDS).join("|")})\\s+(?:${ledger.noun.source})`, "gi");
+      for (const [, token] of text.matchAll(re)) {
+        const n = value(token!);
+        if (n === undefined || n < 5) continue; // a version number or a small tally, not a ledger size
+        if (n !== ledger.size) wrong.push(`${line.where}: ${token} ${ledger.name} (the ledger holds ${ledger.size})`);
+      }
+    }
+  }
+  assert.deepEqual(wrong, [], `a count disagrees with the ledger it names:\n  ${wrong.join("\n  ")}`);
 });

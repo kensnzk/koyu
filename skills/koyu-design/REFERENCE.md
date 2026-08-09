@@ -27,11 +27,13 @@ before the opening that references it. Boundaries may name spaces declared later
 ## The version line
 
 ```muro
-koyu 1.1
+muro 1.2
 ```
 
 Optional. If you write it, it goes in the ENTRY layer only, exactly once — never
-in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1. Write `koyu 1.1`.
+in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2.
+Write `muro 1.2`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
+and earlier. A file with no version line is read as 1.1 and stays there.
 
 ## grid — the reference lines
 
@@ -205,7 +207,7 @@ cannot appear in a boundary. Keys: `name:` `use:` `site:`(0/1, one per model)
 
 ```muro-part
 # main.muro — the entry
-koyu 1.1
+muro 1.2
 name Corner building
 unit mm
 grid X 0 6400 12800

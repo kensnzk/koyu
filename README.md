@@ -5,16 +5,18 @@
 
 [日本語](README.ja.md)
 
+**muro is the notation; koyu is the toolchain that reads it, and the name of this undertaking.** A `.muro` file declares which language it is written in, and the two carry [separate version lines](docs/reference/stability.md).
+
 An exploration of text-native architectural description with **space as the primary element**. A wall is not a thing — it is the boundary between two spaces. An opening is a connection cut into a boundary. What is authored is spatial regions and the boundary relations between them; the form of building components is not source — it is generated. A whole building fits in a few hundred lines of text, which puts architecture on the same ground as git and LLMs, and makes it light enough to be a candidate for city-scale connection. The full argument (in Japanese) is in [docs/writing-architecture.md](docs/writing-architecture.md).
 
 ## Documentation
 
-**[docs/](docs/index.md) is the documentation, and it is authoritative.** 167 pages in Japanese and English, laid out by what you came to do.
+**[docs/](docs/index.md) is the documentation, and it is authoritative.** Laid out by what you came to do.
 
 - **[docs/start/](docs/start/index.md)** — the tutorial: one room to a two-storey house in 30–45 minutes. **If you are learning koyu, start here.**
 - **[docs/why/](docs/why/index.md)** — the explanations: why space is primary, why a boundary is a relation, why the form must be unique.
 - **[docs/howto/](docs/howto/index.md)** — recipes, by goal and by symptom.
-- **[docs/reference/](docs/reference/index.md)** — the normative reference: [every `.muro` word](docs/reference/muro/index.md), [all 65 diagnostics](docs/reference/diagnostics/index.md), [the 15 verdicts](docs/reference/validate/index.md), [the CLI](docs/reference/cli/index.md), [the MCP server](docs/reference/mcp/index.md), [the API](docs/reference/api/index.md), [the derived form](docs/reference/form/index.md), [canonical JSON](docs/reference/json/index.md).
+- **[docs/reference/](docs/reference/index.md)** — the normative reference: [every `.muro` word](docs/reference/muro/index.md), [the diagnostics](docs/reference/diagnostics/index.md), [the verdicts](docs/reference/validate/index.md), [the CLI](docs/reference/cli/index.md), [the MCP server](docs/reference/mcp/index.md), [the API](docs/reference/api/index.md), [the derived form](docs/reference/form/index.md), [canonical JSON](docs/reference/json/index.md).
 - **[AGENTS.md](AGENTS.md)** — the entry point for LLM agents working in this repository.
 
 One room is written like this. Four lines, and it is a complete file.

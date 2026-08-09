@@ -194,7 +194,7 @@ Metres are the one exception to millimetres in the whole notation, because these
 Only the axis of aggregation is genuinely inherited. The `use` of the **deepest zone** whose path is a prefix of the space's path is handed down, and **a declaration on the space wins.**
 
 ```muro
-koyu 1.1
+muro 1.2
 name 継承の例
 grid X 0 4000 8000
 grid Y 0 4000

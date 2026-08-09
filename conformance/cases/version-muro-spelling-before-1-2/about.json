@@ -1,0 +1,6 @@
+{
+ "pins": [
+  "docs/reference/muro/version.md"
+ ],
+ "why": "The word belongs to the version. A 1.1 processor cannot read `muro` as a word at all, so a file claiming 1.1 may not use it — the same reasoning as any other word introduced by a version."
+}

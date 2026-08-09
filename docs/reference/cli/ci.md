@@ -20,7 +20,7 @@ koyu check building/main.muro
 The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no doors at all comes out green.
 
 ```muro
-koyu 1.1
+muro 1.2
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -180,6 +180,6 @@ A file that could not be read because of a syntax error still returns valid JSON
 ## See also
 
 - [koyu check](check.md) — `--strict` and `--json`
-- [koyu validate](validate.md) — the 16 rules, their levels, and the required profile
-- [Diagnostics](../diagnostics/index.md) — cause and fix for all 65 codes
+- [koyu validate](validate.md) — the rules, their levels, and the required profile
+- [Diagnostics](../diagnostics/index.md) — cause and fix for every code
 - [The koyu command](index.md) — the shared promises about exit codes

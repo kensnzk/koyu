@@ -5,7 +5,9 @@ mode: explanation
 
 # koyu — writing architecture as text
 
-koyu is a notation for writing architecture as text (`.muro`) and the toolchain that reads it.
+**muro is the notation** — the language a `.muro` file is written in. **koyu is the toolchain that reads it** — the CLI, the API, the MCP server, the drawings. **koyu is also the name of the undertaking**, this documentation included, which is why the two meet on this page.
+
+The distinction is not housekeeping: the two carry [separate version lines](reference/stability.md), and a file declares which language it is written in, not which program will open it.
 
 **Space is the primary element.** A wall is not a thing; it is the boundary relation between two spaces. An opening is a connection cut into that boundary. What gets authored is spatial regions and the boundary relations between them — plans, areas and circulation are not written but derived.
 

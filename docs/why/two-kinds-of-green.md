@@ -13,7 +13,7 @@ koyu splits "correct" in two.
 | Return type | `Diagnostic { code, severity }` | `Finding { rule, level }` |
 | Identifier | `BND04`, `SUF01` — three letters plus two digits | `koyu.schematic.envelope.gap`, `koyu.schematic.access.unreachable` — chapter.rule |
 | Weight | `error` / `warning` | `violation` / `caution` |
-| Count | **65 codes** | **16 rules** |
+| Count | **68 codes** | **16 rules** |
 | Version | **freezes** | does not freeze; grows |
 | What it says | what is written does not contradict itself as data | this is (probably) architecturally sound |
 
@@ -49,7 +49,7 @@ npx tsx src/cli.ts validate gap.muro --profile koyu.profile.schematic-screen --a
 
 ```json
 {
- "schema": "koyu-assessment/1",
+ "schema": "koyu-assessment",
  "profile": { "id": "koyu.profile.schematic-screen", "revision": "1" },
  "findings": [
   {
@@ -126,7 +126,7 @@ Because of that split, **adding a judgement for another jurisdiction touches not
 
 ## Judgement is a surface that grows
 
-Fifteen rules is not a finished set. Fire compartmentation, shadow studies, setback envelopes, travel distances, accessibility, whether services can be made to work — there is a great deal left that could be written as judgement.
+The rule set is not finished. Fire compartmentation, shadow studies, setback envelopes, travel distances, accessibility, whether services can be made to work — there is a great deal left that could be written as judgement.
 
 **All of it goes onto this surface.** Adding it does not change what `.muro` means, existing files still read, and canonical JSON still emits the same bytes.
 
@@ -135,6 +135,6 @@ Fifteen rules is not a finished set. Fire compartmentation, shadow studies, setb
 ## Next
 
 - [Separating language, checks and drawing](three-domains.md) — the whole picture of this split
-- [Diagnostics — koyu check](../reference/diagnostics/index.md) — 65 codes
+- [Diagnostics — koyu check](../reference/diagnostics/index.md) — 68 codes
 - [Judgement — koyu validate](../reference/validate/index.md) — 16 rules
 - [Scope](../reference/scope.md)

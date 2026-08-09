@@ -19,7 +19,7 @@ mode: reference
 | Requires | Node 22 or later |
 | Tools | 12 |
 
-The version `serverInfo` announces is the implementation's (`0.17.0`), not the notation's (`koyu 1.1`). The two versions move independently.
+`serverInfo` announces both, separately, because they are separate promises: `version` is the implementation's (`0.20.0`), and `muro` is the language it reads and writes. The two move independently, and until they were both stated an agent had no way to ask which language this build spoke.
 
 ## It is stateless
 

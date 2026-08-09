@@ -239,7 +239,7 @@ The exit code is 2 and the declared level names are printed alongside. `koyu lev
 Between touching spaces, a **wall with no door** is derived when nothing is declared. **Doors are never added automatically.** A two-storey house with only the envelope and the stair declared seals every room while `check` stays green.
 
 ```muro
-koyu 1.1
+muro 1.2
 name 密封された二室
 unit mm
 grid X 0 3600 7200
@@ -384,7 +384,7 @@ It is not a contradiction but a difference of role between two layers. A reader 
 ## Related
 
 - [Look up a diagnostic by symptom](by-symptom.md) — the symptom index
-- [Diagnostic code index](../reference/diagnostics/index.md) — all 65, looked up by code
+- [Diagnostic code index](../reference/diagnostics/index.md) — looked up by code
 - [Counted and uncounted divisions](uncounted-divisions.md) — the judgement behind trap 5
 - [The three attribute tiers](../reference/muro/attributes.md) — the ledger to check against in trap 11
 - [The scope of the promise](../reference/scope.md) — the reason shared by traps 9, 10, 12 and 13

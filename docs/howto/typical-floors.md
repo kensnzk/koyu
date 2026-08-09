@@ -79,7 +79,7 @@ over level L6 h:3200 slab:1000
 
 ```muro-part
 # main.muro
-koyu 1.1
+muro 1.2
 name Office with a typical floor
 unit mm
 

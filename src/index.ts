@@ -46,8 +46,13 @@ export {
 } from "./core/diagnose.js";
 
 // ---- 機械形式と、版 ----
+// `requireMuro` is the one thing a consumer *does* about versions: assert, at startup, that
+// this build reads the language it writes. The ledger behind it lives on `/model` with the
+// rest of the model surface — the root stays the smallest set that gets you to a decision.
 export {
   DEFAULT_LANGUAGE_VERSION,
+  NEWEST_LANGUAGE_VERSION,
+  requireMuro,
   SourceError,
   SUPPORTED_LANGUAGE_VERSIONS,
   toCanonical,

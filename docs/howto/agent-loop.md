@@ -24,7 +24,7 @@ Every output below was actually run. Absolute paths are abbreviated to `<dir>/`.
 A single-storey pair of rooms. There is one entrance door, and nothing at all between the two rooms.
 
 ```muro-part
-koyu 1.1
+muro 1.2
 name 平屋
 unit mm
 

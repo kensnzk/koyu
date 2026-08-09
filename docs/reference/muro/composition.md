@@ -16,7 +16,7 @@ Composition keeps six rules. **It is usable only when all six hold.** The conseq
 **The order of the `import` lines is the declaration of strength.** The tree of nested imports flattened depth-first is the layer order, and **later layers are stronger**. The entry is index 0 and the weakest. A layer imported twice keeps its first position — it is composed only once.
 
 ```muro-part
-koyu 1.1
+muro 1.2
 grid X 0 4000 8000
 level L1 0 h:2700 slab:300
 import ./plan.muro        # layer 1
@@ -166,7 +166,7 @@ VER04  A koyu 0.5 file uses a 1.0 word: over /L1/a h:2500 (a composition overrid
 VER04  A koyu 0.5 file uses a 1.0 word: drop /L1/b (a composition removal) — raise the version to koyu 1.0
 ```
 
-A file with no version declaration is read with the semantics of the latest version, `1.1`, so it never sees this diagnostic. The accepted versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5`, `1.0` and `1.1`, and older-to-newer runs in that order.
+A file with no version declaration is read as `1.1` — frozen, not following the newest — so it never sees this diagnostic. The accepted versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5`, `1.0`, `1.1` and `1.2`, and older-to-newer runs in that order.
 
 ## See also
 

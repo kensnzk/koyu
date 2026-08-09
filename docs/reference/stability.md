@@ -7,31 +7,34 @@ mode: reference
 
 **1.0 is not the completion of features. It is the fixing of the surfaces promised not to break.**
 
-## Three version lines
+## The version lines
 
-There are three versions, counted independently. Mixing them makes it impossible to say which promise was broken.
+Each is counted independently. Mixing them makes it impossible to say which promise was broken.
 
 | Version | What it attaches to | Currently |
 |---|---|---|
-| **The muro version** | **the language, its semantics and the rules of composition.** "A file written this way keeps meaning this" | **1.1** |
-| **The koyu version** | **the implementation.** "This implementation's surfaces will not break." It declares which muro it implements | **0.19.0** |
-| **The canonical JSON format version** | **the spelling.** The set of keys, their order, collation, normalisation, number notation | `koyu-canonical/1.2` |
+| **The muro version** | **the language, its semantics and the rules of composition.** "A file written this way keeps meaning this" | **1.2** |
+| **The koyu version** | **the implementation.** "This implementation's surfaces will not break." It declares which muro it implements — `koyu --version`, `package.json`'s `muro` field, and the MCP `serverInfo` all say so, from one ledger | **0.20.0** |
+| **The canonical JSON format version** | **the spelling.** The set of keys, their order, collation, normalisation, number notation | `koyu-canonical/2.0` |
+| **The assessment context version** | **the input `koyu validate` takes** — the effective date and the external values a judgement is made against | `koyu-context/1` |
 
 A `.muro` file declares only [the language version](muro/version.md). It announces semantics, not the maturity of a processor.
 
+**A version is carried where something checks it, and nowhere else.** `koyu-context/1` is on this list because `validate` reads the string on arrival and refuses an input that does not match it. The shapes `validate` *returns* — `koyu-assessment`, `koyu-analysis` — carry no version at all: nothing reads them back, and judgement is [the face that does not freeze](../why/three-domains.md), so a version on it would announce a stability nobody intends to keep.
+
 ```muro-part
-koyu 1.1
+muro 1.2
 ```
 
 **A separate format version is needed because the same semantics can be respelled with different keys.** Adding the `a` key, which preserves the written direction of a boundary, changed the spelling without changing one word of the language. The converse also happens: a language version can rise without the spelling moving.
 
 ## The two lines need not arrive together
 
-As things stand, **muro has reached 1.0 and koyu is still 0.x.**
+As things stand, **muro has reached 1.2 and koyu is still 0.x.**
 
 That is not a lag; it is what having two promises means. muro 1.0 says "what could be read at this version stays readable with the same meaning"; koyu 1.0 would say "this implementation's surfaces will not break". **The language is settled and the implementation has promised no freeze at all** — the first can settle first, and it did.
 
-Outside viewers carry their own versions and declare which muro they follow. The validation face has no version and grows by addition.
+Outside viewers carry their own versions and declare which muro they follow.
 
 ## What "meaning-preserving" means
 
@@ -47,7 +50,7 @@ An older declared version is **accepted only where the meaning is preserved**. C
 
 | Surface | What is promised |
 |---|---|
-| **The grammar and semantics of muro 1.1** | what could be read at this version stays readable with the same meaning |
+| **The grammar and semantics of muro 1.2** | what could be read at this version stays readable with the same meaning |
 | **The rules of composition** | layer strength order, resolution of single values, editing of sets, provenance. The same input always gives the same result |
 | **[Identity](identity.md)** | same uid, same thing. The rules for paths and names |
 | **[The three attribute tiers and namespaces](scope.md)** | including the promise that the carried tier is not read |

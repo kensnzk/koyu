@@ -8,11 +8,185 @@ export type AttrValue = string | number;
 export type Attrs = Record<string, AttrValue>;
 
 /**
- * このツールが受理する言語版 (ADR-0017)。旧版は意味保存の場合のみ受理される (checkが検査する)。
- * **この並びが版の新旧の順である** — 版の比較はここの添字で行う (辞書順では 0.5 が 1.0 より後になる)
+ * The correspondence between the two version lines, and the only place it is recorded.
+ *
+ * muro is the language; koyu is the implementation that reads it. They are counted
+ * separately because they promise different things, and until this ledger existed nothing
+ * said which koyu implemented which muro — the published norm asserted the declaration in
+ * prose while no such declaration existed on any surface.
+ *
+ * - `muro`  the language version, as written in a `.muro` file
+ * - `since` the koyu version that first read it. **A version that shipped** — `1.0.0-rc.1`
+ *           carried muro 1.0 in the tree but never reached npm, so muro 1.0 arrived for
+ *           anyone outside this repository at 0.16.0, and that is what this records
+ * - `until` the last koyu version that reads it, once a version is retired. Empty on every
+ *           row: nothing has been retired. The field exists so that retiring is filling in
+ *           a value rather than reshaping the ledger
+ *
+ * **The order of this array is the order of the versions, oldest first.** Comparison is by
+ * index, never by spelling — as strings, "0.5" sorts after "1.0".
+ *
+ * Cutting a language version is adding a row here. `test/release.test.ts` holds that: a
+ * release that moves the newest version must carry a row whose `since` is its own version.
  */
-export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = ["0.1", "0.2", "0.3", "0.4", "0.5", "1.0", "1.1"];
-/** 版宣言を省略したときの解釈 — 常に最新版の意味論 (省略はツール版を跨いで意味安定ではない) */
+export const MURO_SUPPORT: readonly { muro: string; since: string; until: string | null }[] = [
+  // The `koyu` keyword was read from the first commit, accepting whatever followed it.
+  { muro: "0.1", since: "0.0.1", until: null },
+  // 0.9.0 introduced the accepted-version list, and with it the first rejection.
+  { muro: "0.2", since: "0.9.0", until: null },
+  { muro: "0.3", since: "0.11.0", until: null },
+  { muro: "0.4", since: "0.11.0", until: null },
+  { muro: "0.5", since: "0.11.0", until: null },
+  // Not 1.0.0-rc.1. That version set muro 1.0 in the tree and was never published; the
+  // implementation version was returned to the 0.x line and shipped as 0.16.0 instead.
+  { muro: "1.0", since: "0.16.0", until: null },
+  { muro: "1.1", since: "0.17.0", until: null },
+  // The version line stops answering to the implementation's name: `muro 1.2`, not `koyu 1.2`.
+  { muro: "1.2", since: "0.20.0", until: null },
+];
+
+/** The word a version line is written with from 1.2 on. */
+export const MURO_KEYWORD = "muro";
+
+/**
+ * The last version whose line is spelled `koyu`.
+ *
+ * **One spelling per version, never both.** Up to and including this version a file declares
+ * itself `koyu <v>`, and from the next one it declares itself `muro <v>`. Accepting both for
+ * the same version would give one declaration two spellings, and the canonical form's
+ * uniqueness — which the whole conformance suite rests on — would go with it.
+ *
+ * Files written before 1.2 keep the old spelling and keep meaning exactly what they meant.
+ * Nothing migrates, and nothing has to.
+ */
+export const LAST_KOYU_SPELLED_VERSION = "1.1";
+
+/**
+ * This implementation's own version — the one npm installs, held in step with `package.json`
+ * by `test/release.test.ts`.
+ *
+ * It sits beside `MURO_SUPPORT` because the two are one fact read from two directions: the
+ * `since` column is written in this vocabulary, and every surface that answers "which muro
+ * does this build speak" needs both halves at once.
+ */
+export const KOYU_VERSION = "0.20.0";
+
+/**
+ * Whether `a` names a later language version than `b`.
+ *
+ * **Not by index in the ledger** — the whole point is to answer for a version the ledger has
+ * never heard of, which is what a file from the future carries. Compared as numbers, because
+ * as strings `"0.5" > "1.0"`. A spelling that is not `major.minor` is not a version at all
+ * and is never "newer": it is unreadable, which is a different answer.
+ */
+export function isNewerVersion(a: string, b: string): boolean {
+  const shape = /^(\d+)\.(\d+)$/;
+  const pa = shape.exec(a);
+  const pb = shape.exec(b);
+  if (!pa || !pb) return false;
+  const major = Number(pa[1]) - Number(pb[1]);
+  return major !== 0 ? major > 0 : Number(pa[2]) > Number(pb[2]);
+}
+
+/**
+ * What this build reads, what the newest version is, and how an undeclared file is read.
+ *
+ * The last two are separate facts and only coincide today. Once a newer version exists they
+ * differ permanently, and the line has to say both or it is telling half the truth to the
+ * person most likely to be surprised by it.
+ */
+export function versionLine(): string {
+  const read = SUPPORTED_LANGUAGE_VERSIONS;
+  const range = `${read[0]}–${read[read.length - 1]}`;
+  return `koyu ${KOYU_VERSION} — reads muro ${range} (newest ${NEWEST_LANGUAGE_VERSION}; a file with no version line is read as ${DEFAULT_LANGUAGE_VERSION})`;
+}
+
+/**
+ * The koyu version that first read this muro version, or `undefined` if no such version is
+ * accepted. This is the direction a downstream needs: it depends on a language version and
+ * has to turn that into a package range.
+ */
+export function koyuSince(muro: string): string | undefined {
+  return MURO_SUPPORT.find((r) => r.muro === muro)?.since;
+}
+
+/**
+ * Whether this build reads the given muro version.
+ *
+ * **What a downstream actually depends on is a language version, not a package range.** An
+ * application that writes `muro 1.1` needs a koyu that reads 1.1; which koyu that is, is the
+ * ledger's business, not the application's. Asserting this at startup turns a version skew
+ * into one sentence instead of a parse error somewhere later.
+ */
+export function speaksMuro(muro: string): boolean {
+  return SUPPORTED_LANGUAGE_VERSIONS.includes(muro);
+}
+
+/**
+ * Throw unless this build reads the given muro version, naming what would fix it.
+ *
+ * Separate from `speaksMuro` because the useful thing at a startup check is the message: the
+ * caller knows the version it needs and nothing else, and the ledger is the only place that
+ * can say which koyu to install for it.
+ */
+export function requireMuro(muro: string): void {
+  if (speaksMuro(muro)) return;
+  const row = MURO_SUPPORT.find((r) => r.muro === muro);
+  const head = `This build of koyu (${KOYU_VERSION}) does not read muro ${muro}.`;
+  // A row with `until` set is retired, and the advice is the opposite of the usual one:
+  // a newer koyu will not help, because newer is what dropped it.
+  if (row?.until) {
+    throw new Error(
+      `${head} It was retired after koyu ${row.until} — migrate the file, or install koyu ${row.until} or earlier.`,
+    );
+  }
+  if (row) throw new Error(`${head} It arrived in koyu ${row.since} — install koyu ${row.since} or later.`);
+  // **No row is not evidence that no koyu reads it.** A build only carries the rows compiled
+  // into it, so a version released after this one looks exactly like a version that never
+  // existed. Saying which is which is not this build's to say; saying what it knows is.
+  const newer = isNewerVersion(muro, NEWEST_LANGUAGE_VERSION);
+  throw new Error(
+    newer
+      ? `${head} It is newer than anything this build knows (it reads up to ${NEWEST_LANGUAGE_VERSION}) — upgrade koyu.`
+      : `${head} This build reads ${SUPPORTED_LANGUAGE_VERSIONS.join(", ")}.`,
+  );
+}
+
+/**
+ * The language versions this build accepts (ADR-0017). An older version is accepted only
+ * where the meaning is preserved; `check` is what decides that.
+ *
+ * **Derived from `MURO_SUPPORT`, not declared beside it.** Two lists of one fact is how the
+ * correspondence drifted in the first place.
+ */
+export const SUPPORTED_LANGUAGE_VERSIONS: readonly string[] = MURO_SUPPORT.filter(
+  (r) => r.until === null,
+).map((r) => r.muro);
+
+/**
+ * The newest language version this build accepts — what to declare to get everything.
+ * Derived, for the same reason as above.
+ */
+export const NEWEST_LANGUAGE_VERSION = SUPPORTED_LANGUAGE_VERSIONS[SUPPORTED_LANGUAGE_VERSIONS.length - 1]!;
+
+/**
+ * How a file with no version line is read. **Frozen at 1.1, and it does not follow the newest
+ * version.**
+ *
+ * It used to be the newest, which meant an undeclared file was re-read under new semantics
+ * every time the tool moved — silently, because nothing reports the absence of a declaration.
+ * That is not hypothetical: the 1.0 → 1.1 move read `exterior` out of the type position, and
+ * undeclared files written in the old dialect lost their outside spaces without a word.
+ *
+ * Freezing removes the danger rather than reporting it. **Newer semantics are opt-in: you get
+ * them by naming them.** The cost is that an undeclared file never gets new notation, which is
+ * the same statement read from the other side.
+ *
+ * Freezing this was not itself a version bump: at the moment it froze, the frozen value and
+ * the newest version were both 1.1, so no file that existed read differently. They part
+ * company from 1.2 on, and that gap is the whole point — an old file that names no version
+ * does not quietly become a 1.2 file.
+ */
 export const DEFAULT_LANGUAGE_VERSION = "1.1";
 
 /**
@@ -20,9 +194,19 @@ export const DEFAULT_LANGUAGE_VERSION = "1.1";
  * 数えるのは綴りだけである。minorはキーが増えたとき、majorは既存のキーの名前・並び・照合順・
  * 正規化・数の綴りが変わったとき。**minorでも全ての文書のバイトは動く** — この文字列自体が
  * 第一キーだからで、増えたキーを持たない文書も先頭行だけは変わる (ADR-0051 が実測している)。
- * 意味論の版は muro が持つので、`koyu` キー (書かれた版宣言の素通し) とは別の面である
+ * 意味論の版は muro が持つので、`muro` キー (書かれた版宣言の素通し) とは別の面である。
+ *
+ * The format keeps the name `koyu` because it is the implementation's output spelling — the
+ * shape koyu writes. The key inside it names the language, and is spelled `muro` for the same
+ * reason the version line is.
+ *
+ * **That rename is why this is 2.0 and not 1.3.** An existing key changed its name, which the
+ * rule above puts squarely in major. Shipping it as a minor would have told every reader that
+ * `1.x` stays compatible — so a reader expecting `koyu` would have accepted the document and
+ * found no language version in it, which is the silent misread the format version exists to
+ * prevent.
  */
-export const CANONICAL_FORMAT = "koyu-canonical/1.2";
+export const CANONICAL_FORMAT = "koyu-canonical/2.0";
 
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";
@@ -461,6 +645,19 @@ export class SourceError extends Error {
     public raw: string,
     /** 出所ファイル (合成時) */
     public file?: string,
+    /**
+     * The diagnostic code this failure carries in `check --json`, when it has one of its own.
+     *
+     * Most parse failures are just syntax and are reported as `SYN01`. A few are a named
+     * condition a caller has to be able to act on without matching the message text — a file
+     * declaring a language version this build cannot read is the case that forced this: the
+     * answer is "upgrade koyu", and a viewer wanting to say so should not be reading English.
+     *
+     * Narrow on purpose. The diagnostic ledger lives in `diagnose.ts`, which reads this
+     * module, so the union cannot be imported here — and widening it to `string` would let
+     * a typo reach `check --json` as a code no page documents.
+     */
+    public code?: "VER06",
   ) {
     super(`${file ? `${file}:` : ""}line ${line}: ${raw}`);
     this.name = "SourceError";
@@ -941,7 +1138,10 @@ export function toCanonical(model: Model): string {
     // 出せば、その版を著者は書いていないのに書いたことになり、しかもツールの既定が動いた日に
     // 同じ入力のバイトが変わる。決定性は形式の側の約束なので、ツールの既定に預けない
     format: CANONICAL_FORMAT,
-    ...(model.versionDeclared ? { koyu: model.version } : {}),
+    // **The key names the language, so it is spelled `muro`** — whatever word the file used.
+    // A document written `koyu 1.1` still says `"muro": "1.1"` here: the key is the name of
+    // the thing being versioned, not a copy of how the author spelled the declaration.
+    ...(model.versionDeclared ? { muro: model.version } : {}),
     ...(model.name ? { name: model.name } : {}),
     unit: model.unit,
     // 測地の枠 (ADR-0057) — **単位を言った直後、グリッドを言う前。**この二つは grid が張る

@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "name": "koyu",
-  "scopeName": "source.koyu",
+  "name": "muro",
+  "scopeName": "source.muro",
   "fileTypes": ["muro"],
   "information_for_contributors": [
     "koyu (.muro) の TextMate 文法。VS Code と Shiki (Docusaurus) が同じこの一枚を読む — ADR-0031。",
@@ -39,7 +39,7 @@
   "repository": {
     "string": {
       "comment": "引用符の中は空白も # も保たれる (tokenize) — コメントより先に食う",
-      "name": "string.quoted.double.koyu",
+      "name": "string.quoted.double.muro",
       "begin": "\"",
       "end": "\"",
       "patterns": [{ "match": "." }]
@@ -47,180 +47,180 @@
     "comment": {
       "comment": "引用符の外の # 以降は行末までコメント",
       "match": "#.*$",
-      "name": "comment.line.number-sign.koyu"
+      "name": "comment.line.number-sign.muro"
     },
     "line-version": {
-      "match": "^(koyu)[ \\t]+([0-9][0-9.]*)",
+      "match": "^(koyu|muro)[ \\t]+([0-9][0-9.]*)",
       "captures": {
-        "1": { "name": "keyword.control.directive.koyu" },
-        "2": { "name": "constant.numeric.version.koyu" }
+        "1": { "name": "keyword.control.directive.muro" },
+        "2": { "name": "constant.numeric.version.muro" }
       }
     },
     "line-unit": {
       "match": "^(unit)[ \\t]+([^\\s#]+)",
       "captures": {
-        "1": { "name": "keyword.control.directive.koyu" },
-        "2": { "name": "constant.language.koyu" }
+        "1": { "name": "keyword.control.directive.muro" },
+        "2": { "name": "constant.language.muro" }
       }
     },
     "line-name": {
       "comment": "建物の名 — 行の残りが自由語 (日本語可)",
       "match": "^(name)[ \\t]+([^#\\n]*)",
       "captures": {
-        "1": { "name": "keyword.control.directive.koyu" },
-        "2": { "name": "string.unquoted.koyu" }
+        "1": { "name": "keyword.control.directive.muro" },
+        "2": { "name": "string.unquoted.muro" }
       }
     },
     "line-import": {
       "match": "^(import)[ \\t]+([^\\s#]+)",
       "captures": {
-        "1": { "name": "keyword.control.import.koyu" },
-        "2": { "name": "string.unquoted.path.koyu" }
+        "1": { "name": "keyword.control.import.muro" },
+        "2": { "name": "string.unquoted.path.muro" }
       }
     },
     "line-asset": {
       "comment": "asset <名> door|window ...",
       "match": "^(asset)[ \\t]+(?![^\\s#\"]*:)([^\\s#]+)[ \\t]+(door|window)\\b",
       "captures": {
-        "1": { "name": "keyword.control.directive.koyu" },
-        "2": { "name": "entity.name.function.asset.koyu" },
-        "3": { "name": "support.type.koyu" }
+        "1": { "name": "keyword.control.directive.muro" },
+        "2": { "name": "entity.name.function.asset.muro" },
+        "3": { "name": "support.type.muro" }
       }
     },
     "line-grid": {
       "match": "^(grid)[ \\t]+([XY])\\b",
       "captures": {
-        "1": { "name": "keyword.control.directive.koyu" },
-        "2": { "name": "constant.language.axis.koyu" }
+        "1": { "name": "keyword.control.directive.muro" },
+        "2": { "name": "constant.language.axis.muro" }
       }
     },
     "line-level": {
       "comment": "level <名|等差範囲> <z> ... — 名はモデル全体の参照子",
       "match": "^(level)[ \\t]+(?![^\\s#\"]*:)([^\\s#]+)",
       "captures": {
-        "1": { "name": "keyword.control.directive.koyu" },
-        "2": { "name": "entity.name.type.level.koyu" }
+        "1": { "name": "keyword.control.directive.muro" },
+        "2": { "name": "entity.name.type.level.muro" }
       }
     },
     "line-stack": {
       "match": "^(stack)[ \\t]+(?![^\\s#\"]*:)([^\\s#]+)",
       "captures": {
-        "1": { "name": "keyword.control.directive.koyu" },
-        "2": { "name": "entity.name.function.stack.koyu" }
+        "1": { "name": "keyword.control.directive.muro" },
+        "2": { "name": "entity.name.function.stack.muro" }
       }
     },
     "line-band": {
       "match": "^(band)[ \\t]+([XY])\\b",
       "captures": {
-        "1": { "name": "keyword.control.directive.koyu" },
-        "2": { "name": "constant.language.axis.koyu" }
+        "1": { "name": "keyword.control.directive.muro" },
+        "2": { "name": "constant.language.axis.muro" }
       }
     },
     "line-boundary": {
       "comment": "boundary <パス> <パス> — 壁は物ではなく二つの空間の関係である",
       "match": "^(boundary)[ \\t]+(/[^\\s#\"]+)[ \\t]+(/[^\\s#\"]+)",
       "captures": {
-        "1": { "name": "keyword.control.directive.koyu" },
-        "2": { "name": "entity.name.type.path.koyu" },
-        "3": { "name": "entity.name.type.path.koyu" }
+        "1": { "name": "keyword.control.directive.muro" },
+        "2": { "name": "entity.name.type.path.muro" },
+        "3": { "name": "entity.name.type.path.muro" }
       }
     },
     "line-zone": {
       "match": "^(zone)[ \\t]+(/[^\\s#\"]+)",
       "captures": {
-        "1": { "name": "keyword.control.directive.koyu" },
-        "2": { "name": "entity.name.type.path.koyu" }
+        "1": { "name": "keyword.control.directive.muro" },
+        "2": { "name": "entity.name.type.path.muro" }
       }
     },
     "line-polygon": {
       "match": "^(polygon)[ \\t]+(/[^\\s#\"]+)",
       "captures": {
-        "1": { "name": "keyword.control.directive.koyu" },
-        "2": { "name": "entity.name.type.path.koyu" }
+        "1": { "name": "keyword.control.directive.muro" },
+        "2": { "name": "entity.name.type.path.muro" }
       }
     },
     "line-space": {
       "comment": "space <パス> <型> ... — 字下げした space は帯 (band) の要素。型は開かれた語彙",
       "match": "^([ \\t]*)(space)[ \\t]+(/[^\\s#\"]+)(?:[ \\t]+(?![^\\s#\"]*:)([^\\s#]+))?",
       "captures": {
-        "2": { "name": "keyword.control.directive.koyu" },
-        "3": { "name": "entity.name.type.path.koyu" },
-        "4": { "name": "support.type.koyu" }
+        "2": { "name": "keyword.control.directive.muro" },
+        "3": { "name": "entity.name.type.path.muro" },
+        "4": { "name": "support.type.muro" }
       }
     },
     "line-opening": {
       "comment": "door/window の第1トークンが k:v でなければアセット参照 (ADR-0010)",
       "match": "^([ \\t]+)(door|window)[ \\t]+(?![^\\s#\"]*:)([^\\s#]+)",
       "captures": {
-        "2": { "name": "keyword.other.child.koyu" },
-        "3": { "name": "entity.name.function.asset.koyu" }
+        "2": { "name": "keyword.other.child.muro" },
+        "3": { "name": "entity.name.function.asset.muro" }
       }
     },
     "keyword-child": {
       "comment": "字下げして書く語 — src/core/parse.ts の indented 分岐。+ / - / = は over の下の集合編集 (ADR-0035)",
       "match": "^[ \\t]+(door|window|seg|line|area|space)\\b",
-      "captures": { "1": { "name": "keyword.other.child.koyu" } }
+      "captures": { "1": { "name": "keyword.other.child.muro" } }
     },
     "keyword-edit": {
       "comment": "over の下の集合編集 — + 追加 / - 削除 / = 置換 (ADR-0035)",
       "match": "^[ \\t]+([+=-])(?=[ \\t])",
-      "captures": { "1": { "name": "keyword.operator.edit.koyu" } }
+      "captures": { "1": { "name": "keyword.operator.edit.muro" } }
     },
     "keyword-directive": {
       "comment": "行頭に書く語 — src/core/parse.ts の switch (head)",
-      "match": "^(koyu|import|over|drop|asset|polygon|origin|azimuth|name|unit|grid|level|column|band|space|boundary|zone|stack)\\b",
-      "captures": { "1": { "name": "keyword.control.directive.koyu" } }
+      "match": "^(koyu|muro|import|over|drop|asset|polygon|origin|azimuth|name|unit|grid|level|column|band|space|boundary|zone|stack)\\b",
+      "captures": { "1": { "name": "keyword.control.directive.muro" } }
     },
     "path": {
       "comment": "空間・ゾーンのパス — /L1/a /out /L2..L9/A",
       "match": "(?:^|[ \\t])(/[^\\s#\"]*)",
-      "captures": { "1": { "name": "entity.name.type.path.koyu" } }
+      "captures": { "1": { "name": "entity.name.type.path.muro" } }
     },
     "attr-ledger": {
       "comment": "The ledger keys that are not carrier-tier — the attributes the tools act on. ATTR_LEDGER in src/core/vocabulary.ts is the contract; free k:v gets a different colour",
       "match": "\\b(underground|escalator|elevation|daylight|northing|vertical|ceiling|landing|outside|easting|hinge|level|riser|slope|stair|style|swing|tread|pitch|entry|lane|lift|form|road|slab|site|area|turn|type|edge|name|ramp|void|epsg|uid|air|use|at|h|w|t|d|x|y)(:)",
       "captures": {
-        "1": { "name": "entity.other.attribute-name.koyu" },
-        "2": { "name": "punctuation.separator.key-value.koyu" }
+        "1": { "name": "entity.other.attribute-name.muro" },
+        "2": { "name": "punctuation.separator.key-value.muro" }
       }
     },
     "attr-free": {
       "comment": "台帳に無い k:v — 運ばれるが解釈されない (規則2・3)",
       "match": "\\b([A-Za-z_][A-Za-z0-9_-]*)(:)",
       "captures": {
-        "1": { "name": "variable.other.property.koyu" },
-        "2": { "name": "punctuation.separator.key-value.koyu" }
+        "1": { "name": "variable.other.property.muro" },
+        "2": { "name": "punctuation.separator.key-value.muro" }
       }
     },
     "gridref": {
       "comment": "通り芯参照とオフセット — X2 / X2+600 / X1..X2 / X1+3200..X2+3200",
       "match": "\\b([XY][0-9]+)((?:[+-][0-9]+)?)(?:(\\.\\.)([XY][0-9]+)((?:[+-][0-9]+)?))?",
       "captures": {
-        "1": { "name": "constant.language.gridref.koyu" },
-        "2": { "name": "constant.numeric.offset.koyu" },
-        "3": { "name": "keyword.operator.range.koyu" },
-        "4": { "name": "constant.language.gridref.koyu" },
-        "5": { "name": "constant.numeric.offset.koyu" }
+        "1": { "name": "constant.language.gridref.muro" },
+        "2": { "name": "constant.numeric.offset.muro" },
+        "3": { "name": "keyword.operator.range.muro" },
+        "4": { "name": "constant.language.gridref.muro" },
+        "5": { "name": "constant.numeric.offset.muro" }
       }
     },
     "range": {
       "comment": "レベルの範囲 — B2..L5 L14..L19",
       "match": "\\b([A-Za-z][A-Za-z0-9_]*)(\\.\\.)([A-Za-z][A-Za-z0-9_]*)\\b",
       "captures": {
-        "1": { "name": "entity.name.type.level.koyu" },
-        "2": { "name": "keyword.operator.range.koyu" },
-        "3": { "name": "entity.name.type.level.koyu" }
+        "1": { "name": "entity.name.type.level.muro" },
+        "2": { "name": "keyword.operator.range.muro" },
+        "3": { "name": "entity.name.type.level.muro" }
       }
     },
     "union": {
       "comment": "領域の合併 — L字は矩形を + でつなぐ",
       "match": "(?<=[ \\t])\\+(?=[ \\t])",
-      "name": "keyword.operator.union.koyu"
+      "name": "keyword.operator.union.muro"
     },
     "number": {
       "comment": "長さはmm、面積は㎡、比率は0..1。名の中の数字 (南区画01) は数値ではないので、前後が区切りのときだけ採る",
       "match": "(?<![^\\s,:])-?[0-9]+(?:\\.[0-9]+)?(?![^\\s,#])",
-      "name": "constant.numeric.koyu"
+      "name": "constant.numeric.muro"
     }
   }
 }

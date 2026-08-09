@@ -174,9 +174,11 @@ console.log(DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS);
   '0.1', '0.2',
   '0.3', '0.4',
   '0.5', '1.0',
-  '1.1'
+  '1.1', '1.2'
 ]
 ```
+
+**The two numbers on that line are different facts.** `DEFAULT_LANGUAGE_VERSION` is how a file with **no** version line is read, and it is frozen at `1.1`; the newest accepted version is `1.2`. Reach for `NEWEST_LANGUAGE_VERSION` when you mean the latter.
 
 **The language version and the implementation version move separately.** The version in `package.json` is the implementation's; what a `.muro` file declares is the language's. What is promised not to break is on [The frozen surfaces](../reference/stability.md).
 
@@ -190,7 +192,7 @@ Canonical JSON carries **only what was written.** Derived default walls are not 
 
 - [TypeScript API](../reference/api/index.md) — the entrances and every name on the surface
 - [The scope of the promise](../reference/scope.md) — what a green `check` means
-- [Judgement — koyu validate](../reference/validate/index.md) — the sixteen rules
+- [Judgement — koyu validate](../reference/validate/index.md) — the rule ledger
 - [Form](../reference/form/index.md) — the entrance to derived form
 - [Canonical JSON](../reference/json/index.md) — the ground for external connections
 - [Gatekeeping in CI](../reference/cli/ci.md) — designing exit codes when commands are enough

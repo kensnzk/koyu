@@ -1,4 +1,7 @@
 {
-  "pins": ["docs/reference/json/schema.md", "docs/reference/json/index.md"],
-  "why": "koyu キーは書かれた版宣言の素通しである。宣言があるので出る。対になる json-version-omitted では出ない — 出せば著者が書いていない版を書いたことになり、しかもツールの既定が動いた日に同じ入力のバイトが変わる"
+ "pins": [
+  "docs/reference/json/schema.md",
+  "docs/reference/json/index.md"
+ ],
+ "why": "The version key is a pass-through of the written declaration, so it appears when a version was declared and not otherwise (the pair json-version-omitted). **The key is spelled `muro` although this source is spelled `koyu 1.1`**: the key names the thing being versioned — the language — and not the author's spelling of the declaration."
 }

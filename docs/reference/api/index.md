@@ -38,7 +38,7 @@ import { svgPlan } from "@kensnzk/koyu/draw";
 | `@kensnzk/koyu/diff` | the semantic difference between two models | not pulled |
 | `@kensnzk/koyu/vocabulary` | the attribute ledger | not pulled |
 | `@kensnzk/koyu/validate` | the rule SPI, the runner, `AssessmentReport` | not pulled |
-| `@kensnzk/koyu/validate/builtin` | the sixteen rules, the rule set and the profile koyu ships | not pulled |
+| `@kensnzk/koyu/validate/builtin` | the rules, the rule set and the profile koyu ships | not pulled |
 | `@kensnzk/koyu/draw` | `svgPlan`, `svgAxo` and their option types | not pulled |
 | `@kensnzk/koyu/node` | `parseFile` and `parseFileWith`, nothing else | pulled |
 | `@kensnzk/koyu/examples/*` | the source of a bundled building, for tests and evaluation | — |
@@ -65,7 +65,7 @@ const report = assess(model, {
 });
 ```
 
-Because the catalog is a value rather than a registration, two profiles and two packs can run in the same process, in any order, without contaminating each other. An external pack implements the same `Rule` interface these sixteen implement and gets no less access. See [the validation reference](../validate/index.md).
+Because the catalog is a value rather than a registration, two profiles and two packs can run in the same process, in any order, without contaminating each other. An external pack implements the same `Rule` interface the built-in ones implement and gets no less access. See [the validation reference](../validate/index.md).
 
 ## The surface is written down
 
@@ -81,7 +81,7 @@ So **this surface is exactly the set of names spelled out one by one in `src/ind
 |---|---|---|
 | Parsing and composition | `parse` `parseFiles` `parseWith` `tokenize` | `LayerLoader` |
 | Structural consistency | `check` `checkDiagnostics` | `CheckResult` `Diagnostic` `DiagnosticCode` |
-| Canonical form and versions | `DEFAULT_LANGUAGE_VERSION` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` | `Model` |
+| Canonical form and versions | `DEFAULT_LANGUAGE_VERSION` `NEWEST_LANGUAGE_VERSION` `requireMuro` `SourceError` `SUPPORTED_LANGUAGE_VERSIONS` `toCanonical` | `Model` |
 
 Four things put a name on the surface.
 
@@ -122,6 +122,31 @@ for (const s of model.spaces.values()) {
 `model.spaces` is a `Map<string, Space>` and `model.boundaries` is a `Boundary[]`. **A path is the identity of a space**, and a boundary belongs to neither space it joins — it is a first-class relation sitting in an array. See Model and its types.
 
 **An empty diagnostic list does not mean the building works.** `checkDiagnostics` says only that what is written is not self-contradictory as data. A two-storey house with not one door declared stays sealed shut with an empty list. The architectural judgement is made separately by `assess`, under a profile you name.
+
+## Depending on a language version rather than a package range
+
+**What an application depends on is a muro version, not a koyu version.** An editor that writes `muro 1.1` needs a build that reads 1.1; which build that is, is this package's business. Expressing that as a semver range in `package.json` guesses at the answer, and the guess goes stale silently — the range keeps resolving while the language underneath it moves.
+
+`requireMuro` states the real requirement, at startup, in one line.
+
+```ts
+import { requireMuro } from "@kensnzk/koyu";
+
+requireMuro("1.1"); // the version this application reads and writes
+```
+
+If the installed build does not read it, the message names the fix rather than the symptom:
+
+```text
+This build of koyu (0.20.0) does not read muro 1.3. It is newer than anything this
+build knows (it reads up to 1.2) — upgrade koyu.
+```
+
+**It says what this build knows, not what exists.** A build only carries the rows compiled into it, so a version released after it looks exactly like a version that never existed — and claiming "no koyu reads this" would be asserting something no build is in a position to know. A version older than the newest, but absent, gets the list instead. A version that has been retired says so and points **backwards**: a newer koyu is what dropped it, so a newer koyu will not help.
+
+`requireMuro` is on the root because asserting is the one thing a consumer *does* about versions. The ledger it reads is on `@kensnzk/koyu/model` with the rest of the model surface: `speaksMuro` is the same question without the throw, `koyuSince` answers the other direction — which release first read a version, and so what package range a language requirement implies — and `MURO_SUPPORT` is the ledger itself. `versionLine` is the sentence `koyu --version` prints.
+
+**The same pair is on `package.json` as the `muro` field**, so a build script can check it without importing anything.
 
 ## Where to read a signature
 

@@ -9,7 +9,7 @@ A key-by-key reference for [canonical JSON](index.md). Every example here was pr
 
 ## What is omitted
 
-**A key with no value is not emitted.** `koyu`, `h`, `slab`, `t`, `edge`, `attrs`, `line` and the rest appear only if the source wrote them. Empty blocks (`assets`, `polygons`, `columns`, `zones`, `areas`, `openings`, `segs`) are not emitted either.
+**A key with no value is not emitted.** `muro`, `h`, `slab`, `t`, `edge`, `attrs`, `line` and the rest appear only if the source wrote them. Empty blocks (`assets`, `polygons`, `columns`, `zones`, `areas`, `openings`, `segs`) are not emitted either.
 
 Attribute values are **numbers if they have numeric form, strings otherwise**. `underground` is emitted as `1` only when true; `air` is emitted as `true` only when true.
 
@@ -19,8 +19,8 @@ The key order is fixed.
 
 | Key | Present | Content |
 |---|---|---|
-| `format` | **always** | the version of this format itself; currently `"koyu-canonical/1.2"` |
-| `koyu` | only with a version declaration | [the language version](../muro/version.md), passed through |
+| `format` | **always** | the version of this format itself; currently `"koyu-canonical/2.0"` |
+| `muro` | only with a version declaration | [the language version](../muro/version.md), passed through. **Spelled `muro` whatever word the source used** — a file written `koyu 1.1` still says `"muro": "1.1"`, because the key names the thing being versioned |
 | `name` | if `name` was written | the name of the building |
 | `unit` | **always** | currently `"mm"` only |
 | `origin` | if [`origin`](../muro/origin.md) was written | `{ epsg, easting, northing, elevation?, vertical? }` — **metres**, not millimetres |

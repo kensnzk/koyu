@@ -29,7 +29,7 @@ koyu is made of three domains. **They are kept apart because the quality demande
 | Domain | What it holds | Size | Quality | Version |
 |---|---|---|---|---|
 | **core** | the language, its semantics, composition, identity, [derivation](form/index.md), structural diagnostics, questions, [canonical JSON](json/index.md) | small | **must be clean** | **freezes** |
-| **validation** | [architectural judgement](validate/index.md) — sixteen rules, under a profile you name | grows | may be messy | does not freeze |
+| **validation** | [architectural judgement](validate/index.md) — under a profile you name | grows | may be messy | does not freeze |
 | **presentation and build** | SVG generation and outside viewers | grows | may be messy | does not freeze |
 
 **The dependency runs one way.** Validation and presentation depend on core; core depends on neither. Core runs complete on its own. That one-wayness is enforced by a test, not by prose.
@@ -114,5 +114,5 @@ Without the declaration, they cannot be told apart, and **"nothing wrong" in tha
 - [What koyu does not hold](not-held.md) — the resolution of this description
 - [koyu check](cli/check.md) — using the gatekeeper
 - [koyu validate](cli/validate.md) — the judgement face
-- [Diagnostics](diagnostics/index.md) — 65 codes
-- [Judgements](validate/index.md) — 16 rules
+- [Diagnostics](diagnostics/index.md)
+- [Judgements](validate/index.md)

@@ -23,7 +23,7 @@
     "grammars": [
       {
         "language": "koyu",
-        "scopeName": "source.koyu",
+        "scopeName": "source.muro",
         "path": "./syntaxes/koyu.tmLanguage.json"
       }
     ],

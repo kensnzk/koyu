@@ -64,7 +64,7 @@ Inside the square brackets is the rule name; what follows, `<resolved absolute p
 
 ```json
 {
- "schema": "koyu-assessment/1",
+ "schema": "koyu-assessment",
  "profile": { "id": "koyu.profile.schematic-screen", "revision": "1" },
  "ruleSets": [ { "id": "koyu.ruleset.schematic-screen", "revision": "1" } ],
  "model": { "languageVersion": "koyu 1.1", "state": "consistent", "diagnostics": [] },
@@ -97,7 +97,7 @@ Every outcome carries the evidence it rests on, and that evidence names the anal
 
 **`level` is an invariant property of the rule.** The same rule is never a violation one time and a caution another.
 
-## The 16 rules
+## The rules
 
 | Rule | Level | What it says |
 |---|---|---|
@@ -165,7 +165,7 @@ The exit code is 0. **To fail CI on cautions too, read `--json` and count them y
 | Returned type | `Diagnostic` | `AssessmentReport` |
 | Name | `code` (`BND04` — three letters and two digits) | `rule` (`koyu.schematic.envelope.gap` — a namespaced id) |
 | Weight | `severity`: `error` / `warning` | `level`: `violation` / `caution` |
-| Count | 65 codes | 16 rules |
+| Count | 68 codes | 16 rules |
 | Grounds | none needed | a profile and a date, always explicit |
 | What it guarantees | That what is written holds together as data | **Nothing — it is a judgement** |
 | Nature of the surface | Frozen. Adding or removing moves the language version | Not frozen. May grow, may be discarded |

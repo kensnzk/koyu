@@ -226,7 +226,7 @@ boundary /L1/a /out
     profile: { id: string };
     findings: Array<{ rule: { id: string }; level: string }>;
   };
-  assert.equal(report.schema, "koyu-assessment/1");
+  assert.equal(report.schema, "koyu-assessment");
   assert.equal(report.profile.id, "koyu.profile.schematic-screen");
   assert.ok(report.findings.some(
     (f) => f.rule.id === "koyu.schematic.access.unreachable" && f.level === "violation",

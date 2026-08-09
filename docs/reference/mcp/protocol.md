@@ -29,7 +29,7 @@ The server never initiates a request. It writes no logs and no progress to stdou
 ```
 
 ```text
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.17.0"},"instructions":"Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written."}}
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.20.0","muro":{"reads":["0.1","0.2","0.3","0.4","0.5","1.0","1.1","1.2"],"newest":"1.2","undeclared":"1.1"}},"instructions":"Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written."}}
 ```
 
 | Field | Contents |
@@ -37,7 +37,8 @@ The server never initiates a request. It writes no logs and no progress to stdou
 | `protocolVersion` | **Whatever the client sent, echoed back.** If `params.protocolVersion` is absent, the server announces `"2025-06-18"`. It neither negotiates nor rejects a version |
 | `capabilities` | `{"tools":{}}` — tools only. It does not declare `listChanged`, and the tool set never changes |
 | `serverInfo.name` | `"koyu"` |
-| `serverInfo.version` | `"0.17.0"` — **the implementation's version.** It moves independently of the notation's (`koyu 1.1`) |
+| `serverInfo.version` | `"0.20.0"` — **the implementation's version.** It moves independently of the language's |
+| `serverInfo.muro` | `{ reads, newest, undeclared }` — **the language versions this build speaks.** `reads` is every version it accepts; `newest` is the one to declare to get everything; `undeclared` is how a file with no version line is read, and is frozen rather than following `newest`. An agent choosing how to write a version line has nothing else to read it from |
 | `instructions` | One paragraph for the agent: the standard loop, and the difference between `check` and `validate` |
 
 `initialize` creates no state. **A `tools/call` sent without `initialize` works** — the server does not remember whether it was initialised. A well-behaved client sends it; when you are checking things by hand you can skip it.

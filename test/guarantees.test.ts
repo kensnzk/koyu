@@ -194,8 +194,13 @@ test("parse: a bare name is an error", () => {
 
 test("parse: the koyu line is two tokens and written once (no version, extra tokens and redeclaration are errors)", () => {
   assert.throws(() => parse("koyu\nunit mm"), /koyu takes a version/);
+  assert.throws(() => parse("muro\nunit mm"), /muro takes a version/);
   assert.throws(() => parse("koyu 0.2 extra\nunit mm"), /Extra tokens on the koyu version declaration/);
-  assert.throws(() => parse("koyu 0.4\nkoyu 0.4\nunit mm"), /The koyu version is declared once/);
+  assert.throws(() => parse("muro 1.2 extra\nunit mm"), /Extra tokens on the muro version declaration/);
+  assert.throws(() => parse("koyu 0.4\nkoyu 0.4\nunit mm"), /The version is declared once/);
+  // One spelling per version, never both — the canonical form's uniqueness depends on it.
+  assert.throws(() => parse("muro 1.1\nunit mm"), /a 1.1 file declares itself "koyu 1.1"/);
+  assert.throws(() => parse("koyu 1.2\nunit mm"), /muro 1.2 names itself muro/);
 });
 
 // ---- 機械形式の版と決定性 (ADR-0036) ----
@@ -205,12 +210,14 @@ test("canonical JSON: the document names its own format version first, and the l
   const declared = JSON.parse(toCanonical(parse(`koyu 0.5\n${src}`))) as Record<string, unknown>;
   assert.equal(Object.keys(declared)[0], "format", "the first key names the format");
   assert.equal(declared["format"], CANONICAL_FORMAT);
-  assert.equal(declared["koyu"], "0.5");
+  // The key is `muro` even though this source is spelled `koyu 0.5`. The key names the thing
+  // being versioned — the language — not the author's spelling of the declaration.
+  assert.equal(declared["muro"], "0.5");
   // 版宣言を省いたファイルに最新版を刻まない — 著者が書いていない版を名乗らせないためであり、
   // ツールの既定が動いた日に同じ入力のバイトが変わらないためである
   const omitted = JSON.parse(toCanonical(parse(src))) as Record<string, unknown>;
   assert.equal(omitted["format"], CANONICAL_FORMAT);
-  assert.ok(!("koyu" in omitted), "an undeclared language version is not stamped into the machine format");
+  assert.ok(!("muro" in omitted), "an undeclared language version is not stamped into the machine format");
 });
 
 test("canonical JSON: the top-level keys are in the fixed schema order, and the source-derived keys are collated", () => {
@@ -235,7 +242,7 @@ test("canonical JSON: the top-level keys are in the fixed schema order, and the 
   // 最上位はスキーマが決める固定順である (照合順ではない — grid は unit の後に来る)
   assert.deepEqual(Object.keys(doc), [
     "format",
-    "koyu",
+    "muro",
     "name",
     "unit",
     "grid",
