@@ -6,7 +6,7 @@
 
 **記法の名前は muro、それを読む処理系の名前が koyu であり、koyu はこの企ての名前でもある。**`.muro` のファイルが名乗るのは自分が書かれた言語であって、どの処理系で開くかではない。二つは[別々の版](docs/reference/stability.md)を持つ。
 
-空間を一次要素とするテキストネイティブな建築記述の探求。壁は物ではなく二つの空間の境界という関係である。原本に書かれるのは空間の領域と境界の関係であり、部材の形はソースではなく生成物である。建物一棟を数百行のテキストで書き、git・LLMと同じ土俵に載せ、都市接続の候補になる軽さを狙う。主張の全文は [docs/writing-architecture.md](docs/writing-architecture.md)。
+空間を一次要素とするテキストネイティブな建築記述の探求。壁は物ではなく二つの空間の境界という関係である。原本に書かれるのは空間の領域と境界の関係であり、部材の形はソースではなく生成物である。建物一棟を数百行のテキストで書き、git・LLMと同じ土俵に載せ、都市接続の候補になる軽さを狙う。
 
 ## ドキュメント
 
@@ -84,7 +84,7 @@ npm run koyu -- site   examples/tower/main.muro      # ショーケース: polyg
 
 ## LLM接続
 
-`koyu-mcp` は依存ゼロのMCPサーバー (stdio、ADR-0012)。LLMエージェントが建物を読み (`layers`)、編集し (`write_layer`)、`check` がビルドの門番になる — エラーは出所レイヤー:行つき。`doors` / `light` / `site` は同じ記述への異なる問い。延床4,786㎡のショーケース一棟が原本8,099トークン (実測 — IFC4は14倍、IFCXは25倍: [examples/comparison/](examples/comparison/README.md)) なので、一棟がコンテキストに余裕で載る。エージェントが正しく*編集*できるかは次の分水嶺 — 編集evalは計画段階でまだ実施していない ([docs/horizon.md](docs/horizon.md))。三軸の構想 (デジタルツイン・W3C BOTへのオントロジー整列・都市接続) も同文書。
+`koyu-mcp` は依存ゼロのMCPサーバー (stdio、ADR-0012)。LLMエージェントが建物を読み (`layers`)、編集し (`write_layer`)、`check` がビルドの門番になる — エラーは出所レイヤー:行つき。`doors` / `light` / `site` は同じ記述への異なる問い。延床4,786㎡のショーケース一棟が原本8,099トークン (実測 — IFC4は14倍、IFCXは25倍: [examples/comparison/](examples/comparison/README.md)) なので、一棟がコンテキストに余裕で載る。
 
 登録は一行 (`claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp`)。Claude Code・Claude Desktop・その他クライアントでの設定と標準ループは [docs/howto/install-mcp.md](docs/howto/install-mcp.md)、ループの実例は [agent-loop.md](docs/howto/agent-loop.md)。
 
@@ -92,7 +92,7 @@ MCPサーバーとCLIは*確かめる*側。muroで仕事をするための知�
 
 ## 構成
 
-規範は [docs/reference/](docs/reference/index.md) に体系化してある — 記法・診断・判定・CLI・MCP・API・導出される形・正準JSON。**この木が正である。**ADR ([docs/decisions/](docs/decisions/)) は「なぜ」を持つが後から直さないので、現在の真ではなく履歴である。IFC4とのカバレッジ照合は [docs/ifc-coverage.md](docs/ifc-coverage.md)、行程は [docs/roadmap.md](docs/roadmap.md) (Linear: [koyu](https://linear.app/munipersonal/project/koyu-2789f588a03a/overview) と対応)、日々の記録は [docs/log/](docs/log/)。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。実装は src/ に約7,500行 (パーサ・グラフ・チェック・平面図生成・CLI・MCPサーバー)、テストは test/。IFCXの読解メモは [docs/ifcx-notes.md](docs/ifcx-notes.md)、同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。
+規範は [docs/reference/](docs/reference/index.md) に体系化してある — 記法・診断・判定・CLI・MCP・API・導出される形・正準JSON。**この木が正である。** ADR ([docs/decisions/](docs/decisions/)) は「なぜ」を持つが後から直さないので、現在の真ではなく履歴である。行程は [docs/roadmap.md](docs/roadmap.md)。同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。実装は src/ に約7,500行 (パーサ・グラフ・チェック・平面図生成・CLI・MCPサーバー)、テストは test/。
 
 ## 技術方針
 
@@ -108,4 +108,4 @@ TypeScriptで書き、実行時依存はゼロに保つ。BIM/IFC系のツール
 
 ## ライセンス
 
-コード (src/, test/, examples/ ほか) は [Apache License 2.0](LICENSE)。文書 (docs/, 原稿「[建築を書く](docs/writing-architecture.md)」) は [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja)。引用情報は [CITATION.cff](CITATION.cff)。
+コード (src/, test/, examples/ ほか) は [Apache License 2.0](LICENSE)。文書 (docs/) は [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja)。引用情報は [CITATION.cff](CITATION.cff)。
