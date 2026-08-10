@@ -7,7 +7,7 @@
 
 **muro is the notation; koyu is the toolchain that reads it, and the name of this undertaking.** A `.muro` file declares which language it is written in, and the two carry [separate version lines](docs/reference/stability.md).
 
-An exploration of text-native architectural description with **space as the primary element**. A wall is not a thing — it is the boundary between two spaces. An opening is a connection cut into a boundary. What is authored is spatial regions and the boundary relations between them; the form of building components is not source — it is generated. A whole building fits in a few hundred lines of text, which puts architecture on the same ground as git and LLMs, and makes it light enough to be a candidate for city-scale connection. The full argument (in Japanese) is in [docs/writing-architecture.md](docs/writing-architecture.md).
+An exploration of text-native architectural description with **space as the primary element**. A wall is not a thing — it is the boundary between two spaces. An opening is a connection cut into a boundary. What is authored is spatial regions and the boundary relations between them; the form of building components is not source — it is generated. A whole building fits in a few hundred lines of text, which puts architecture on the same ground as git and LLMs, and makes it light enough to be a candidate for city-scale connection.
 
 ## Documentation
 
@@ -92,7 +92,7 @@ npm run koyu -- site   examples/tower/main.muro      # showcase: polygon site, t
 
 ## LLM connection
 
-`koyu-mcp` is a zero-dependency MCP server over stdio (ADR-0012): an LLM agent reads the building (`layers`), edits it (`write_layer`), and `check` acts as the build gate — errors come back with layer:line provenance. `doors` / `light` / `site` / `stats` are the same description read different ways. The whole 4,786m² showcase is 8,099 tokens as source (measured; IFC4 is 14x, IFCX 25x — see [examples/comparison/](examples/comparison/README.md)), so a whole building fits in one context with room to work. Whether an agent can *edit* it correctly is the next watershed — an edit eval is planned, not yet run ([docs/horizon.md](docs/horizon.md)). The horizon design (digital twin, ontology alignment via W3C BOT, city connection) is in the same document.
+`koyu-mcp` is a zero-dependency MCP server over stdio (ADR-0012): an LLM agent reads the building (`layers`), edits it (`write_layer`), and `check` acts as the build gate — errors come back with layer:line provenance. `doors` / `light` / `site` / `stats` are the same description read different ways. The whole 4,786m² showcase is 8,099 tokens as source (measured; IFC4 is 14x, IFCX 25x — see [examples/comparison/](examples/comparison/README.md)), so a whole building fits in one context with room to work.
 
 Registering it is one line (`claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp`). Setup for Claude Code, Claude Desktop, and other clients, plus the standard loop, is in [docs/howto/install-mcp.md](docs/howto/install-mcp.md).
 
@@ -100,7 +100,7 @@ The MCP server and the CLI are the half that *judges*; the knowledge for working
 
 ## Layout
 
-The documentation lives in [docs/](docs/index.md) — tutorial, explanations, how-to, and the normative reference (the notation, diagnostics, verdicts, CLI, MCP, API, the derived form, canonical JSON). **That tree is authoritative**; ADRs in [docs/decisions/](docs/decisions/) record why each decision was made and are never amended, so they are history rather than current truth. Coverage against the IFC4 architectural core is [docs/ifc-coverage.md](docs/ifc-coverage.md); the roadmap is [docs/roadmap.md](docs/roadmap.md); daily logs are in [docs/log/](docs/log/). The implementation is ~7,500 lines in src/ (parser, graph, checks, plan generation, CLI, MCP server), tests in test/. Reading notes on IFCX are in [docs/ifcx-notes.md](docs/ifcx-notes.md); the same two rooms written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).
+The documentation lives in [docs/](docs/index.md) — tutorial, explanations, how-to, and the normative reference (the notation, diagnostics, verdicts, CLI, MCP, API, the derived form, canonical JSON). **That tree is authoritative**; ADRs in [docs/decisions/](docs/decisions/) record why each decision was made and are never amended, so they are history rather than current truth. The roadmap is [docs/roadmap.md](docs/roadmap.md). The implementation is ~7,500 lines in src/ (parser, graph, checks, plan generation, CLI, MCP server), tests in test/. The same two rooms written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).
 
 ## Technical stance
 
@@ -116,4 +116,4 @@ The file extension is `.muro` (室, *muro* — room). The unit a file holds is n
 
 ## License
 
-Code (src/, test/, examples/, …) is under the [Apache License 2.0](LICENSE). Documents (docs/, and the essay "[建築を書く / Writing Architecture](docs/writing-architecture.md)") are under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Citation metadata is in [CITATION.cff](CITATION.cff).
+Code (src/, test/, examples/, …) is under the [Apache License 2.0](LICENSE). Documents under docs/ are under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Citation metadata is in [CITATION.cff](CITATION.cff).
