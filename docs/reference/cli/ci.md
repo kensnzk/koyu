@@ -20,7 +20,7 @@ koyu check building/main.muro
 The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no doors at all comes out green.
 
 ```muro
-muro 1.2
+muro 1.3
 name 密封
 unit mm
 grid X 0 3600 7200

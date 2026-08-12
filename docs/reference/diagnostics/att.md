@@ -24,7 +24,7 @@ Attributes come in three tiers. **Which tier a key belongs to is decided by the 
 | Tier | koyu | Examples |
 |---|---|---|
 | **Structure** | always reads it; `parse` lifts it into a typed field | `space`'s `level:` `w:`; `boundary`'s `type:` `t:` `air:` `edge:`; an opening's `w:` `h:` `at:` `edge:` `hinge:` `swing:`; `column`'s `d:` `x:` `y:` |
-| **Interpreted** | reads it, and the value domain is fixed | `space`'s `h:` `use:` `road:` `daylight:` `ceiling:` `uid:` `name:` and the vertical-circulation set; `zone`'s `name:` `use:` `site:` `area:` `uid:`; `boundary`'s `h:` `name:`; an opening's `style:` `name:` |
+| **Interpreted** | reads it, and the value domain is fixed | `space`'s `h:` `road:` `daylight:` `ceiling:` `uid:` `name:` and the vertical-circulation set; `zone`'s `name:` `site:` `area:` `uid:`; `boundary`'s `h:` `name:`; an opening's `style:` `name:` |
 | **Carry** | **never reads it.** It is only transported | `space`'s `floor:` `spec:`; `boundary`'s `spec:` `fire:` `sound:`; an opening's `sill:` `spec:` `fire:`; `area`'s `floor:` `spec:`; `seg`'s `spec:` `fire:` `sound:`; `column`'s `spec:` |
 
 The structure and interpreted tiers are read by koyu, so the ledger is the contract. The carry tier is only transported, so anyone may write anything.

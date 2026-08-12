@@ -33,6 +33,19 @@ export interface AttrSpec {
   of?: Array<string | number>;
   /** 正の数値でなければ ATT01 */
   num?: true;
+  /**
+   * The key may be written up to and including muro `after`, and not after it.
+   *
+   * **A retired key stays in the ledger.** Taking the row out would make the key unknown at
+   * every version at once, because `checkAttrValues` reads `attrSpec` alone and never sees
+   * `model.version` — a file declaring an older version would start failing with ATT03 for a
+   * word that version legitimately has. The row is what keeps the old reading alive; VER07 is
+   * what stops the new one.
+   *
+   * `instead` names what to write from the next version, and is carried here so that no state
+   * exists where a key is retired with nothing offered in its place.
+   */
+  retired?: { after: string; instead: string };
 }
 
 /** 台帳を読みやすく書くための小道具 */
@@ -41,6 +54,10 @@ const one = (...of: Array<string | number>): AttrSpec => ({ tier: "interpreted",
 const free = (): AttrSpec => ({ tier: "interpreted" });
 const carry = (): AttrSpec => ({ tier: "carry" });
 const structure = (): AttrSpec => ({ tier: "structure" });
+const retired = (after: string, instead: string, base: AttrSpec = free()): AttrSpec => ({
+  ...base,
+  retired: { after, instead },
+});
 
 /**
  * 運搬層の名前空間の綴り — **ドット区切り** (`acme.sensor` `bems.temp` `survey.measured`)。
@@ -86,7 +103,14 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
 
     // 解釈 — core が読む
     h: num(), // 天井高 mm。高さ不変量と矩計が読む
-    use: free(), // 集計軸。zone から継承
+    // Retired after muro 1.2. It was never a use: ADR-0005 introduced it to answer the ratio of
+    // common to exclusive area, and it held one grouping per space, so tenancy, fire compartment
+    // and department all competed for it. A room's purpose is the type position; any other
+    // division of the building is a namespaced key, of which a space may carry as many as it likes.
+    use: retired(
+      "1.2",
+      "a namespaced key of your own (lease.category:, fire.compartment:, dept.name:)",
+    ),
     road: num(), // outside:1 の幅員 mm。接道の導出
     daylight: free(), // 採光の問いの対象 (ADR-0020)。値域は DAY01 が守るので台帳では重ねない
     ceiling: one(0, 1), // 0 = 天井を張らない (ADR-0024)
@@ -114,7 +138,11 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
 
   zone: {
     name: free(),
-    use: free(), // 配下へ継承される集計軸
+    // Retired after muro 1.2, for the reason given on the space row above.
+    use: retired(
+      "1.2",
+      "a namespaced key of your own (lease.category:, fire.compartment:, dept.name:)",
+    ),
     site: one(0, 1), // 敷地の集約 (ADR-0009)
     area: num(), // 敷地の宣言面積 ㎡ (測量値)
     uid: free(),

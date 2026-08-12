@@ -155,8 +155,8 @@ grid Y 0 6000
 level L1 0 h:2700 slab:150
 space /out outside:1
 space /L1/s stair X1..X2 Y1..Y2
-space /L1/t room X2..X3 Y1..Y2 use:rentable
-space /L1/c corridor X1..X2 Y1+6000..Y1+12000 use:common
+space /L1/t room X2..X3 Y1..Y2 lease.category:rentable
+space /L1/c corridor X1..X2 Y1+6000..Y1+12000 lease.category:common
 boundary /L1/s /L1/t
   door w:900
 boundary /L1/t /out
@@ -353,7 +353,7 @@ grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
 space /out outside:1
-space /L1/p room X1..X2 Y1..Y2 use:parking
+space /L1/p parking X1..X2 Y1..Y2
 boundary /L1/p /out
   door w:${widthMm} edge:S`;
 }
@@ -365,9 +365,9 @@ grid Y 0 6000
 level B1 -3000 h:2700 slab:300 underground:1
 level L1 0 h:2700 slab:300
 space /out outside:1
-space /B1/p parking X1..X2 Y1..Y2 use:parking
-space /B1/r ramp X2..X3 Y1..Y2 use:parking${declaredRamp ? " ramp:E" : ""}
-space /L1/r parking X2..X3 Y1..Y2 use:parking
+space /B1/p parking X1..X2 Y1..Y2
+space /B1/r ramp X2..X3 Y1..Y2 ${declaredRamp ? " ramp:E" : ""}
+space /L1/r parking X2..X3 Y1..Y2
 boundary /B1/p /B1/r type:open
 boundary /L1/r /out
   door w:2400 edge:E
@@ -381,9 +381,9 @@ grid X 0 3000 6000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
-space /${corridorLevel}/c corridor X1..X2 Y1..Y2 use:common
-space /L1/e room X2..X3 Y1..Y2 use:common escalator:N
-space /L2/e room X2..X3 Y1..Y2 use:common
+space /${corridorLevel}/c corridor X1..X2 Y1..Y2 lease.category:common
+space /L1/e room X2..X3 Y1..Y2 lease.category:common escalator:N
+space /L2/e room X2..X3 Y1..Y2 lease.category:common
 stack e L1..L2 type:stair
 boundary /${corridorLevel}/c /${corridorLevel}/e
   door w:900`;

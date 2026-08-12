@@ -12,39 +12,39 @@
 
 # 吹抜けは**床の不在**である。区画の扉を吹抜けに開くと、そこは床の無い所なので出られない。
 # 西列の区画は回廊に面させ、回廊がモールへ回り込む — 吹抜けの縁は手すりになる
-space /L2..L5/wgal corridor X2..X2+2400 Y1..Y6 + X2+2400..X3 Y2..Y2+3600 name:西回廊 use:common floor:石張り
+space /L2..L5/wgal corridor X2..X2+2400 Y1..Y6 + X2+2400..X3 Y2..Y2+3600 name:西回廊 lease.category:common floor:石張り
 space /L2..L5/atrium X2+2400..X3 Y1..Y2 + X2+2400..X3 Y2+3600..Y4 + X2+5600..X3 Y4..Y4+12000 + X2+2400..X3 Y4+12000..Y6 name:吹抜け void:1
-space /L2..L5/mall corridor X3..X8 Y2..Y2+3600 name:モール use:common floor:石張り
-space /L2..L5/north backyard X4..X7 Y5..Y6 name:北側サービス use:common
-space /L2..L5/bohW backyard X3..X4 Y4-3200..Y6 name:バックヤード西 use:common
-space /L2..L5/bohE backyard X7..X8 Y4-3200..Y6 name:バックヤード東 use:common
-space /L2..L4/es escalator X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター use:common escalator:N
-space /L5/es corridor X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター上部 use:common
+space /L2..L5/mall corridor X3..X8 Y2..Y2+3600 name:モール lease.category:common floor:石張り
+space /L2..L5/north backyard X4..X7 Y5..Y6 name:北側サービス lease.category:common
+space /L2..L5/bohW backyard X3..X4 Y4-3200..Y6 name:バックヤード西 lease.category:common
+space /L2..L5/bohE backyard X7..X8 Y4-3200..Y6 name:バックヤード東 lease.category:common
+space /L2..L4/es escalator X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター lease.category:common escalator:N
+space /L5/es corridor X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター上部 lease.category:common
 
 # ---- 西列: 吹抜けに面する区画 (南→北に5区画) ----
 band Y X1..X2 Y1..Y6
-  space /L2..L5/w01 shop w:8000 name:西区画01 use:rentable
-  space /L2..L5/w02 shop w:8000 name:西区画02 use:rentable
-  space /L2..L5/w03 shop w:8000 name:西区画03 use:rentable
-  space /L2..L5/w04 shop w:8000 name:西区画04 use:rentable
-  space /L2..L5/w05 shop w:rest name:西区画05 use:rentable
+  space /L2..L5/w01 shop w:8000 name:西区画01 lease.category:rentable
+  space /L2..L5/w02 shop w:8000 name:西区画02 lease.category:rentable
+  space /L2..L5/w03 shop w:8000 name:西区画03 lease.category:rentable
+  space /L2..L5/w04 shop w:8000 name:西区画04 lease.category:rentable
+  space /L2..L5/w05 shop w:rest name:西区画05 lease.category:rentable
 
 # ---- モールの南列 (西→東に5区画) ----
 band X X3..X8 Y1..Y2
-  space /L2..L5/s01 shop w:8000 name:南区画01 use:rentable
-  space /L2..L5/s02 shop w:8000 name:南区画02 use:rentable
-  space /L2..L5/s03 shop w:8000 name:南区画03 use:rentable
-  space /L2..L5/s04 shop w:8000 name:南区画04 use:rentable
-  space /L2..L5/s05 shop w:rest name:南区画05 use:rentable
+  space /L2..L5/s01 shop w:8000 name:南区画01 lease.category:rentable
+  space /L2..L5/s02 shop w:8000 name:南区画02 lease.category:rentable
+  space /L2..L5/s03 shop w:8000 name:南区画03 lease.category:rentable
+  space /L2..L5/s04 shop w:8000 name:南区画04 lease.category:rentable
+  space /L2..L5/s05 shop w:rest name:南区画05 lease.category:rentable
 
 # ---- モールの北列 (西→東に5区画) ----
 band X X3..X8 Y2+3600..Y4-3200
-  space /L2..L5/n01 shop w:8000 name:北区画01 use:rentable
-  space /L2..L5/n02 shop w:6000 name:北区画02 use:rentable
-  space /L2..L5/ncorr corridor w:4000 name:北連絡通路 use:common floor:石張り   # モールとコアを結ぶ — 避難は他人の区画を通らない
-  space /L2..L5/n03 shop w:8000 name:北区画03 use:rentable
-  space /L2..L5/n04 shop w:8000 name:北区画04 use:rentable
-  space /L2..L5/n05 shop w:rest name:北区画05 use:rentable
+  space /L2..L5/n01 shop w:8000 name:北区画01 lease.category:rentable
+  space /L2..L5/n02 shop w:6000 name:北区画02 lease.category:rentable
+  space /L2..L5/ncorr corridor w:4000 name:北連絡通路 lease.category:common floor:石張り   # モールとコアを結ぶ — 避難は他人の区画を通らない
+  space /L2..L5/n03 shop w:8000 name:北区画03 lease.category:rentable
+  space /L2..L5/n04 shop w:8000 name:北区画04 lease.category:rentable
+  space /L2..L5/n05 shop w:rest name:北区画05 lease.category:rentable
 
 # ---- 区画はモールに面して開く (自動ドア) ----
 boundary /L2..L5/s01 /L2..L5/mall t:120 spec:店舗サッシ

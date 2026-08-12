@@ -57,6 +57,25 @@ Add a grid coordinate only when the new line is genuinely a reference line the
 building is organised on — and then expect to fix every existing reference above
 it, and to say so.
 
+## The version line is not a tidy-up
+
+A file that declares an older `muro` version, or declares none at all, is read at
+that version and goes on meaning exactly what it meant. **Raising the line
+changes the file**: a key the newer version retired becomes a `VER07` error the
+moment the line moves, and nothing migrates on its own.
+
+```text
+A muro 1.3 file carries use: on /L1/a — use is retired after muro 1.2. Write a namespaced
+key of your own (lease.category:, fire.compartment:, dept.name:) instead, or keep the file
+at muro 1.2
+```
+
+So raise it only when the revision genuinely needs newer notation, and then
+rewrite what was retired in the same edit — with `use:`, a room's purpose belongs
+in the type position, and every other division of the building (tenancy, fire
+compartment, department) is a namespaced key you choose. Either way the `diff`
+must show only what was asked for.
+
 ## Adding a room
 
 1. Put it where it can be reached. Hang it off the circulation hub — the space

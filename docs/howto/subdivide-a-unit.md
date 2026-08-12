@@ -19,7 +19,7 @@ File paths in the output below are absolute when you actually run these commands
 Keep the dwelling's `space` line and add child spaces, and parent and children overlap.
 
 ```muro-bad
-muro 1.2
+muro 1.3
 name Subdividing a dwelling
 unit mm
 
@@ -28,7 +28,7 @@ grid Y 0 5600 7600
 level L3 8000 h:2500 slab:450
 level L4 11000 slab:450
 
-space /L3/A unit X1..X2 Y1..Y2 + X2..X3 Y1..Y1+2400 name:Type-A use:exclusive
+space /L3/A unit X1..X2 Y1..Y2 + X2..X3 Y1..Y1+2400 name:Type-A lease.category:exclusive
 
 space /L3/A/ldk  ldk     X1+3200..X2 Y1..Y1+4000 + X2..X3 Y1..Y1+2400 name:LDK
 space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:Bedroom-1
@@ -46,7 +46,7 @@ space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:Bedroom-1
 Change the dwelling's line from `space` to `zone`. A zone carries no geometry: it is an **aggregation that gathers the spaces under a path prefix**. It takes neither a region nor a type.
 
 ```muro-part
-zone /L3/A name:Type-A use:exclusive
+zone /L3/A name:Type-A lease.category:exclusive
 ```
 
 Forget to delete the `space` line and a space sits at the same path as a zone — ZON02, a warning.
@@ -96,7 +96,7 @@ boundary /L3/A/hall /L3/corridor t:180 spec:RC
 ## Check it
 
 ```muro
-muro 1.2
+muro 1.3
 name Subdividing a dwelling
 unit mm
 
@@ -105,14 +105,14 @@ grid Y 0 5600 7600
 level L3 8000 h:2500 slab:450
 level L4 11000 slab:450
 
-zone /L3/A name:Type-A use:exclusive
+zone /L3/A name:Type-A lease.category:exclusive
 
 space /L3/A/ldk  ldk     X1+3200..X2 Y1..Y1+4000 + X2..X3 Y1..Y1+2400 name:LDK
 space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:Bedroom-1
 space /L3/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:Bedroom-2
 space /L3/A/wet  wet     X1+3200..X1+8000 Y1+4000..Y2 name:Bathroom-block
 space /L3/A/hall hall    X1+8000..X2 Y1+4000..Y2 name:Entry
-space /L3/corridor corridor X1..X3 Y2..Y3 name:Internal-corridor use:common
+space /L3/corridor corridor X1..X3 Y2..Y3 name:Internal-corridor lease.category:common
 
 boundary /L3/A/ldk /L3/A/bed1 t:120 spec:LGS
   door w:800
@@ -137,7 +137,7 @@ Five boundaries are declared; ten are reported. **The other five are default wal
 [`koyu stats`](../reference/cli/stats.md) still speaks in the language of the dwelling after the subdivision.
 
 ```text
-$ npx tsx src/cli.ts stats unit.muro
+$ npx tsx src/cli.ts stats unit.muro --by lease.category
 L3
   /L3/A/ldk	LDK	ldk	33.28 m2
   /L3/A/bed1	Bedroom-1	bedroom	10.24 m2
@@ -154,10 +154,10 @@ By zone (counted aggregation):
   wet: 7.68 m2
   hall: 2.56 m2
   corridor: 25.60 m2
-By use: exclusive 61.44 m2 (70.6%) / common 25.60 m2 (29.4%)
+By lease.category: exclusive 61.44 m2 (70.6%) / common 25.60 m2 (29.4%)
 ```
 
-The `By zone` line is the dwelling's area, and the exclusive/common split falls out without another line of source. `use:exclusive` is inherited by every space under the zone.
+The `By zone` line is the dwelling's area, and the exclusive/common split falls out without another line of source. `lease.category:exclusive` is inherited by every space under the zone.
 
 Whether you can walk from the corridor to each room is [`koyu doors`](../reference/cli/doors.md)'s answer.
 

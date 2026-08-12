@@ -20,7 +20,7 @@ This page is the one table of defaults. How values are written is in [the three 
 ## The smallest file
 
 ```muro
-muro 1.2
+muro 1.3
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -33,7 +33,7 @@ space /L1/a room X1..X2 Y1..Y2
 
 | Written nothing | What happens |
 |---|---|
-| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.2` to opt into current semantics → [the version line](version.md) |
+| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.3` to opt into current semantics → [the version line](version.md) |
 | `unit mm` | mm. v0 has no other unit |
 | `name` | the building has no name |
 | `grid X` / `grid Y` | **no grid reference can be written at all.** Any line with a region stops with `Undefined grid line name` |
@@ -52,7 +52,7 @@ space /L1/a room X1..X2 Y1..Y2
 | `h:` | the level's `h:`. With neither, `SUF01` (error) |
 | `daylight:` | **out of scope for the daylight question.** It is never inferred from the type — neither `room` nor `ldk` puts a space in scope |
 | `ceiling:` | a ceiling is derived as the outline of the room × its ceiling height. `ceiling:0` builds none |
-| `use:` | inherited from the deepest zone ancestor. With none there either, the space has no axis of aggregation |
+| a namespaced key (`lease.category:`, `fire.compartment:`, …) | the value of the deepest zone ancestor carrying that key. With none there either, the space is in no grouping for it — [`stats --by`](../cli/stats.md) totals it under `(unspecified)` rather than dropping it |
 | `road:` | not a road. It contributes no width to frontage |
 | `uid:` | the path is the identity. Rename it and the correspondence is cut |
 | `stair:` `ramp:` `escalator:` `lift:` | not a vertical circulation. Just a space |
@@ -155,7 +155,7 @@ Riser count, tread and slope are never written. **What is written is the region 
 **Because the default between touching spaces is a wall, a two-storey building with no door declared anywhere is completely sealed — and green.**
 
 ```muro
-muro 1.2
+muro 1.3
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -178,6 +178,7 @@ Saying that it has no door is a different face (the location prefix is the resol
 ✖ [koyu.schematic.access.unreachable] …/sealed.muro:line 6: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
 ✖ [koyu.schematic.access.unreachable] …/sealed.muro:line 7: Cannot reach the exterior: /L2/a (no passable boundary leads out — write a door)
 Validation — 2 violations / 0 cautions
+  koyu.profile.schematic-screen@1 — 2 evaluated / 14 not applicable / 0 indeterminate / 0 error
 ```
 
 What `check` says goes exactly as far as "what was written does not contradict itself as data". **Never claim it works on the strength of green.**

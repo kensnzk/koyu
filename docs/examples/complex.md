@@ -34,15 +34,15 @@ The composition:
 The core layer. **Twenty-one levels of core in nine lines.**
 
 ```muro-part
-space /B2..L19/ps shaft X4..X4+1400 Y4..Y5 name:PS・EPS use:common
-space /B2..L19/st1 stair X4+1400..X4+4100 Y4..Y5 name:階段1 use:common stair:N form:return
-space /B2..L19/ev1 shaft X4+4100..X4+8900 Y4..Y5 name:EVバンク1 use:common lift:1
-space /B2..L19/ev2 shaft X4+8900..X4+13700 Y4..Y5 name:EVバンク2 use:common lift:1
-space /B2..L19/wcm service X4+13700..X4+16900 Y4..Y5 name:男子便所 use:common
-space /B2..L19/wcw service X4+16900..X4+19900 Y4..Y5 name:女子便所 use:common
-space /B2..L19/tea service X4+19900..X4+21300 Y4..Y5 name:給湯室 use:common
-space /B2..L19/st2 stair X4+21300..X7 Y4..Y5 name:階段2 use:common stair:N form:return
-space /B2..L19/hall corridor X4..X7 Y4-3200..Y4 name:EVホール use:common
+space /B2..L19/ps shaft X4..X4+1400 Y4..Y5 name:PS・EPS lease.category:common
+space /B2..L19/st1 stair X4+1400..X4+4100 Y4..Y5 name:階段1 lease.category:common stair:N form:return
+space /B2..L19/ev1 shaft X4+4100..X4+8900 Y4..Y5 name:EVバンク1 lease.category:common lift:1
+space /B2..L19/ev2 shaft X4+8900..X4+13700 Y4..Y5 name:EVバンク2 lease.category:common lift:1
+space /B2..L19/wcm service X4+13700..X4+16900 Y4..Y5 name:男子便所 lease.category:common
+space /B2..L19/wcw service X4+16900..X4+19900 Y4..Y5 name:女子便所 lease.category:common
+space /B2..L19/tea service X4+19900..X4+21300 Y4..Y5 name:給湯室 lease.category:common
+space /B2..L19/st2 stair X4+21300..X7 Y4..Y5 name:階段2 lease.category:common stair:N form:return
+space /B2..L19/hall corridor X4..X7 Y4-3200..Y4 name:EVホール lease.category:common
 ```
 
 **The lift lobby runs the full width, and the stairs, lavatories, tea point and risers all open directly off it.** Entering the lavatories through the tea point, or the stair through a riser, closes as a plan and fails as a building — and it was the derived drawing that made that visible.
@@ -72,10 +72,10 @@ Hotel rooms are divided by bands. **Six levels × thirteen rooms = seventy-eight
 
 ```muro-part
 band X X2..X8 Y2..Y2+9000
-  space /L14..L19/r01 room w:6000 name:客室01 use:rentable daylight:0
-  space /L14..L19/r02 room w:6000 name:客室02 use:rentable daylight:0
-  space /L14..L19/r03 room w:6000 name:客室03 use:rentable daylight:0
-  space /L14..L19/r08 room w:rest name:客室08 use:rentable daylight:0
+  space /L14..L19/r01 room w:6000 name:客室01 lease.category:rentable daylight:0
+  space /L14..L19/r02 room w:6000 name:客室02 lease.category:rentable daylight:0
+  space /L14..L19/r03 room w:6000 name:客室03 lease.category:rentable daylight:0
+  space /L14..L19/r08 room w:rest name:客室08 lease.category:rentable daylight:0
 ```
 
 `daylight:0` is the designer's judgement that the 1/7 rule does not apply to this room. It is not a statement about window size — a room of identical dimensions is in scope as a habitable room in an apartment building and out of scope as a hotel guest room. **The writer makes the judgement and the tool obeys it.**
@@ -134,10 +134,10 @@ Site /site (敷地)
 
 No site area is declared (`area:`), so only `derived` appears. Declare it and the two are reconciled.
 
-### How does floor area split by use
+### How much of the floor area is rentable
 
 ```sh
-npx tsx src/cli.ts stats examples/complex/main.muro
+npx tsx src/cli.ts stats examples/complex/main.muro --by lease.category
 ```
 
 ```text
@@ -150,12 +150,12 @@ Total 31606.24 m2 (indoor floor area)
   shop: 4680.00 m2
   office: 7526.40 m2
   room: 4204.80 m2
-By use: common 12809.44 m2 (40.5%) / parking 2385.60 m2 (7.5%) / rentable 16411.20 m2 (51.9%)
+By lease.category: common 12809.44 m2 (40.5%) / (unspecified) 2385.60 m2 (7.5%) / rentable 16411.20 m2 (51.9%)
 ```
 
 (The last eight lines.)
 
-A rentable ratio of 51.9% is what you get from carrying the core, the plant level and the back of house honestly.
+A rentable ratio of 51.9% is what you get from carrying the core, the plant level and the back of house honestly. The car park and its ramp are neither let nor common, so they carry no `lease.category` and land in `(unspecified)` — the type position already says `parking` and `ramp`, which is where the by-type lines above count them.
 
 ## Was scale the wall
 

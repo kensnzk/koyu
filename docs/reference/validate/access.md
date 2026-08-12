@@ -36,7 +36,7 @@ Every rule here stands on one definition.
 A space with a region cannot reach an `outside:1` space along passable boundaries.
 
 ```muro-fail
-muro 1.2
+muro 1.3
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -60,7 +60,7 @@ It is a violation because there is no reading of architecture in which a room yo
 **Fix** — write a `door` somewhere along the route out. A boundary to the outside has several segments, so pick one with `edge:N/E/S/W`.
 
 ```muro
-muro 1.2
+muro 1.3
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -79,7 +79,7 @@ To find where the chain breaks, [`koyu doors`](../cli/doors.md) answers with the
 The space has passable boundaries, and every one of them leads to a space declaring `void:1`.
 
 ```muro-fail
-muro 1.2
+muro 1.3
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -101,7 +101,7 @@ This rule does not care whether an exterior exists. It also does not fire on a s
 **Fix** — write a door to a neighbour that has a floor (a corridor, a stair). If the edge onto the void really is open, it is a place to **look down from**, not to walk through: make it an `air:1` wall (a railing) rather than `type:open`.
 
 ```muro
-muro 1.2
+muro 1.3
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -114,16 +114,16 @@ boundary /L1/a /L1/v air:1 h:1100
 
 `caution`
 
-Every route out of a space whose type is `stair` passes through a `use:rentable` space.
+Every route out of a space whose type is `stair` passes through a `lease.category:rentable` space.
 
 ```muro-caution
-muro 1.2
+muro 1.3
 grid X 0 3000 9000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
 space /out outside:1
 space /L1/s stair X1..X2 Y1..Y2
-space /L1/t room X2..X3 Y1..Y2 use:rentable
+space /L1/t room X2..X3 Y1..Y2 lease.category:rentable
 boundary /L1/s /L1/t
   door w:900
 boundary /L1/t /out
@@ -137,7 +137,7 @@ Validation — 0 violations / 1 caution
   koyu.profile.schematic-screen@1 — 5 evaluated / 11 not applicable / 0 indeterminate / 0 error
 ```
 
-**The moment the tenant locks up, that stair stops being an escape.** `use:` is inherited from the zone, so the judgement applies even when the individual units do not carry it, as long as a parent zone says `use:rentable`.
+**The moment the tenant locks up, that stair stops being an escape.** `lease.category:` resolves through the zones above a space, so the judgement applies even when the individual units do not carry it, as long as a parent zone says `lease.category:rentable`.
 
 **Why this is a caution** — whether it may pass through is a fact on the side of the lease and the jurisdiction, and it is not in what was written. Designs that run a dedicated passage through a tenancy do exist. It is worth doubting, but there is nothing here on which to rule.
 
@@ -147,15 +147,17 @@ Validation — 0 violations / 1 caution
 
 `violation`
 
-A `use:parking` space cannot reach the outside along car-passable boundaries.
+A space typed `parking` or `ramp` cannot reach the outside along car-passable boundaries.
+
+**The population is the type position, not a key.** Where cars belong is the room's purpose, and that is what the type says; a key would be a second place to write the same fact.
 
 ```muro-fail
-muro 1.2
+muro 1.3
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
 space /out outside:1
-space /L1/p room X1..X2 Y1..Y2 use:parking
+space /L1/p parking X1..X2 Y1..Y2
 boundary /L1/p /out
   door w:900 edge:S
 ```
@@ -171,12 +173,12 @@ Validation — 1 violation / 0 cautions
 **Fix** — make the vehicle opening `door w:2400` or wider, or make the boundary `type:open`. For parking above or below grade, write `ramp:` on the ramp space and join the levels with `stack` — that vertical link is the only way a car changes level.
 
 ```muro
-muro 1.2
+muro 1.3
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
 space /out outside:1
-space /L1/p room X1..X2 Y1..Y2 use:parking
+space /L1/p parking X1..X2 Y1..Y2
 boundary /L1/p /out
   door w:2400 edge:S
 ```
@@ -185,18 +187,18 @@ boundary /L1/p /out
 
 `caution`
 
-A `use:common` space declaring a vertical run (`stair:` / `escalator:`) cannot be reached from a common corridor without crossing a space whose type is `backyard`.
+A `lease.category:common` space declaring a vertical run (`stair:` / `escalator:`) cannot be reached from a common corridor without crossing a space whose type is `backyard`.
 
 ```muro-caution
-muro 1.2
+muro 1.3
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
-space /L1/c corridor X1..X2 Y1..Y2 use:common
+space /L1/c corridor X1..X2 Y1..Y2 lease.category:common
 space /L1/b backyard X2..X3 Y1..Y2
-space /L1/e room X3..X4 Y1..Y2 use:common escalator:N
-space /L2/e room X3..X4 Y1..Y2 use:common
+space /L1/e room X3..X4 Y1..Y2 lease.category:common escalator:N
+space /L2/e room X3..X4 Y1..Y2 lease.category:common
 stack e L1..L2 type:stair
 boundary /L1/c /L1/b
   door w:900
@@ -214,22 +216,22 @@ A common vertical run belongs to the customer's route. If reaching its foot mean
 
 **Entry to the space itself must be horizontal.** Allow its own vertical link and the circle "come down that escalator from the floor above and you arrive at its foot" closes, letting a stranded run pass unnoticed. So the check only considers routes that do not use a `type:stair` boundary incident to the space in question.
 
-**A building with no common corridor (type `corridor` and `use:common`) is never asked.** A house draws no customer/staff distinction, and its stair should not be reported as stranded.
+**A building with no common corridor (type `corridor` and `lease.category:common`) is never asked.** A house draws no customer/staff distinction, and its stair should not be reported as stranded.
 
 **Why this is a caution** — "every common vertical run is for customers" is a coarse inference. A common stair meant for staff can be misread as a customer's.
 
-**Fix** — move it where the common corridor reaches it directly, or write a door between it and the corridor. If it really is for staff, drop `use:common`.
+**Fix** — move it where the common corridor reaches it directly, or write a door between it and the corridor. If it really is for staff, drop `lease.category:common`.
 
 ```muro
-muro 1.2
+muro 1.3
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /L1/b backyard X1..X2 Y1..Y2
-space /L1/c corridor X2..X3 Y1..Y2 use:common
-space /L1/e room X3..X4 Y1..Y2 use:common escalator:N
-space /L2/e room X3..X4 Y1..Y2 use:common
+space /L1/c corridor X2..X3 Y1..Y2 lease.category:common
+space /L1/e room X3..X4 Y1..Y2 lease.category:common escalator:N
+space /L2/e room X3..X4 Y1..Y2 lease.category:common
 stack e L1..L2 type:stair
 boundary /L1/b /L1/c
   door w:900

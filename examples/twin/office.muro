@@ -5,14 +5,14 @@
 #
 # **南西の隅は斜めに落とす。**基壇の隅切りと同じ向きの線が、塔にも一本だけ通る。
 
-space /L6..L20/aoff1 room X3..X11 Y6..Y7 name:貸室南 use:rentable
-space /L6..L20/aoff2 room X3..X11 Y8+4200..Y10 name:貸室北 use:rentable
-space /L6..L20/aoffW room X3..X4 Y7..Y8+4200 name:貸室西 use:rentable
-space /L6..L20/aoffE room X10..X11 Y7..Y8+4200 name:貸室東 use:rentable
-space /L21..L34/aoff1 room X3..X11 Y6..Y7 name:貸室南 use:rentable
-space /L21..L34/aoff2 room X3..X11 Y8+4200..Y10 name:貸室北 use:rentable
-space /L21..L34/aoffW room X3..X4 Y7..Y8+4200 name:貸室西 use:rentable
-space /L21..L34/aoffE room X10..X11 Y7..Y8+4200 name:貸室東 use:rentable
+space /L6..L20/aoff1 room X3..X11 Y6..Y7 name:貸室南 lease.category:rentable
+space /L6..L20/aoff2 room X3..X11 Y8+4200..Y10 name:貸室北 lease.category:rentable
+space /L6..L20/aoffW room X3..X4 Y7..Y8+4200 name:貸室西 lease.category:rentable
+space /L6..L20/aoffE room X10..X11 Y7..Y8+4200 name:貸室東 lease.category:rentable
+space /L21..L34/aoff1 room X3..X11 Y6..Y7 name:貸室南 lease.category:rentable
+space /L21..L34/aoff2 room X3..X11 Y8+4200..Y10 name:貸室北 lease.category:rentable
+space /L21..L34/aoffW room X3..X4 Y7..Y8+4200 name:貸室西 lease.category:rentable
+space /L21..L34/aoffE room X10..X11 Y7..Y8+4200 name:貸室東 lease.category:rentable
 
 boundary /L6..L20/aoffW /L6..L20/ahall t:120 spec:スチールパーティション
   door FD2 name:貸室入口西
@@ -82,7 +82,7 @@ boundary /L6..L20/aoff1 /out edge:W t:250 spec:カーテンウォール
 boundary /L21..L34/aoff1 /out edge:W t:250 spec:カーテンウォール
 
 # ---- M2 中間機械階 — 客の階数に現れない ----
-space /M2/amach service X3..X11 Y6..Y7 + X3..X4 Y7..Y8+4200 + X10..X11 Y7..Y8+4200 + X3..X11 Y8+4200..Y10 name:中間機械室 use:common
+space /M2/amach service X3..X11 Y6..Y7 + X3..X4 Y7..Y8+4200 + X10..X11 Y7..Y8+4200 + X3..X11 Y8+4200..Y10 name:中間機械室 lease.category:common
 boundary /M2/amach /M2/ahall type:open
 # 隅切りは塔屋まで通す — 斜めの面が途中で消えると別の塔に見える
 boundary /M2/amach /out t:250 spec:ルーバー
@@ -93,7 +93,7 @@ boundary /M2/amach /out edge:W t:250 spec:ルーバー
 boundary /M2/amach /out edge:E t:250 spec:ルーバー
 
 # ---- R1 塔屋 ----
-space /R1/ptop service X3..X11 Y6..Y7 + X3..X4 Y7..Y8+4200 + X10..X11 Y7..Y8+4200 + X3..X11 Y8+4200..Y10 name:塔屋・冷却塔 use:common
+space /R1/ptop service X3..X11 Y6..Y7 + X3..X4 Y7..Y8+4200 + X10..X11 Y7..Y8+4200 + X3..X11 Y8+4200..Y10 name:塔屋・冷却塔 lease.category:common
 boundary /R1/ptop /R1/ahall type:open
 boundary /R1/ptop /out t:250 spec:ルーバー
   line X3+4200,Y6 X3,Y6+4200

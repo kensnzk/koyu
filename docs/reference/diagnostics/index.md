@@ -5,7 +5,7 @@ mode: reference
 
 # The diagnostic code index
 
-Every message `koyu check` returns, catalogued. There are **67** codes in **19** families: 50 errors and 17 warnings. This page shows which family a code belongs to and how heavy it is. The cause, a minimal reproduction, and the fix live on the family pages.
+Every message `koyu check` returns, catalogued. There are **69** codes in **19** families: 52 errors and 17 warnings. This page shows which family a code belongs to and how heavy it is. The cause, a minimal reproduction, and the fix live on the family pages.
 
 What `check` tells you stops at **whether what is written is self-consistent as data**. It says nothing about whether the building is usable — that is what `koyu validate` says, separately, with its 16 rules. The two are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns an `AssessmentReport` whose findings carry `{ rule, level }`. Even the spellings differ on sight — a code is three letters plus two digits, a rule is a namespaced id (`koyu.schematic.site.escape`).
 
@@ -198,7 +198,7 @@ RUN04, RUN06, RUN07 and RUN08 are [retired numbers](retired.md).
 | [COL01](col.md) | warning | Not one column stands for this declaration |
 | [COL02](col.md) | warning | An earlier declaration already took the same intersections |
 
-### VER — language-version acceptance (4)
+### VER — language-version acceptance (7)
 
 | Code | severity | One line |
 |---|---|---|
@@ -208,6 +208,7 @@ RUN04, RUN06, RUN07 and RUN08 are [retired numbers](retired.md).
 | [VER04](ver.md) | error | A koyu 0.5-or-earlier file uses 1.0 vocabulary |
 | [VER05](ver.md) | error | A koyu 1.0-or-earlier file writes exterior / void in the type position |
 | [VER06](ver.md) | error | The file declares a language version newer than this build reads |
+| [VER07](ver.md) | error | The file declares a version in which a key it writes is retired |
 
 ### SYN — syntax and composition (1)
 

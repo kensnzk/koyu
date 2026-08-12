@@ -8,36 +8,36 @@
 #
 # 区画は帯 (band) が割る (ADR-0019)。幅の数字を書き換えれば隣の位置は自動で動く。
 
-space /L1/ramp parking X1..X2 Y1..Y1+7000 name:車路出口 use:parking
-space /L1/atrium corridor X2..X2+2400 Y1..Y6 + X2+5600..X3 Y1..Y6 + X2+2400..X2+5600 Y1..Y4 + X2+2400..X2+5600 Y4+12000..Y6 name:貫通通路 use:common floor:石張り
-space /L1/mall corridor X3..X8 Y2..Y2+3600 name:モール use:common floor:石張り
-space /L1/bohW backyard X3..X4 Y4-3200..Y6 name:バックヤード西 use:common
-space /L1/bohE backyard X7..X8 Y4-3200..Y6 name:荷捌き・搬入 use:common
-space /L1/north backyard X4..X7 Y5..Y6 name:北側サービス use:common
+space /L1/ramp parking X1..X2 Y1..Y1+7000 name:車路出口
+space /L1/atrium corridor X2..X2+2400 Y1..Y6 + X2+5600..X3 Y1..Y6 + X2+2400..X2+5600 Y1..Y4 + X2+2400..X2+5600 Y4+12000..Y6 name:貫通通路 lease.category:common floor:石張り
+space /L1/mall corridor X3..X8 Y2..Y2+3600 name:モール lease.category:common floor:石張り
+space /L1/bohW backyard X3..X4 Y4-3200..Y6 name:バックヤード西 lease.category:common
+space /L1/bohE backyard X7..X8 Y4-3200..Y6 name:荷捌き・搬入 lease.category:common
+space /L1/north backyard X4..X7 Y5..Y6 name:北側サービス lease.category:common
 # エスカレーターは吹抜けの中に立つ — 客はモールと貫通通路から乗る。
 # バックヤードの奥に置くと、平面としては閉じていても客は辿り着けない
-space /L1/es escalator X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター use:common escalator:N
+space /L1/es escalator X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター lease.category:common escalator:N
 
 band Y X1..X2 Y1+7000..Y6
-  space /L1/w01 shop w:8000 name:西区画01 use:rentable
-  space /L1/w02 shop w:8000 name:西区画02 use:rentable
-  space /L1/w03 shop w:8000 name:西区画03 use:rentable
-  space /L1/w04 shop w:rest name:西区画04 use:rentable
+  space /L1/w01 shop w:8000 name:西区画01 lease.category:rentable
+  space /L1/w02 shop w:8000 name:西区画02 lease.category:rentable
+  space /L1/w03 shop w:8000 name:西区画03 lease.category:rentable
+  space /L1/w04 shop w:rest name:西区画04 lease.category:rentable
 
 band X X3..X8 Y1..Y2
-  space /L1/s01 shop w:8000 name:南区画01 use:rentable
-  space /L1/s02 shop w:8000 name:南区画02 use:rentable
-  space /L1/s03 shop w:8000 name:南区画03 use:rentable
-  space /L1/s04 shop w:8000 name:南区画04 use:rentable
-  space /L1/s05 shop w:rest name:南区画05 use:rentable
+  space /L1/s01 shop w:8000 name:南区画01 lease.category:rentable
+  space /L1/s02 shop w:8000 name:南区画02 lease.category:rentable
+  space /L1/s03 shop w:8000 name:南区画03 lease.category:rentable
+  space /L1/s04 shop w:8000 name:南区画04 lease.category:rentable
+  space /L1/s05 shop w:rest name:南区画05 lease.category:rentable
 
 band X X3..X8 Y2+3600..Y4-3200
-  space /L1/n01 shop w:8000 name:北区画01 use:rentable
-  space /L1/n02 shop w:6000 name:北区画02 use:rentable
-  space /L1/ncorr corridor w:4000 name:北連絡通路 use:common floor:石張り   # モールとコアを結ぶ — 避難は他人の区画を通らない
-  space /L1/n03 shop w:8000 name:北区画03 use:rentable
-  space /L1/n04 shop w:8000 name:北区画04 use:rentable
-  space /L1/n05 shop w:rest name:北区画05 use:rentable
+  space /L1/n01 shop w:8000 name:北区画01 lease.category:rentable
+  space /L1/n02 shop w:6000 name:北区画02 lease.category:rentable
+  space /L1/ncorr corridor w:4000 name:北連絡通路 lease.category:common floor:石張り   # モールとコアを結ぶ — 避難は他人の区画を通らない
+  space /L1/n03 shop w:8000 name:北区画03 lease.category:rentable
+  space /L1/n04 shop w:8000 name:北区画04 lease.category:rentable
+  space /L1/n05 shop w:rest name:北区画05 lease.category:rentable
 
 # ---- 所与の斜め: 隣地境界なりの隅切り ----
 boundary /L1/w04 /out t:300 spec:カーテンウォール

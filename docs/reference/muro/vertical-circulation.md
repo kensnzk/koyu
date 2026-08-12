@@ -199,7 +199,7 @@ In three dimensions a stair flight of k risers carries **k−1 treads** (the top
 ## A complete example
 
 ```muro
-muro 1.2
+muro 1.3
 name 階段室のある小さなコア
 unit mm
 
@@ -210,10 +210,10 @@ level L1 0 h:3600 slab:600
 level L2 4200 h:3600 slab:600
 level R  8400 slab:500
 
-space /L1..L2/hall   hall   X1..X4 Y1..Y2 name:ホール use:common
-space /L1..L2/st     stair  X1..X2 Y2..Y3 name:階段 use:common stair:N form:return turn:R
-space /L1..L2/ev     shaft  X2..X3 Y2..Y3 name:昇降機 use:common lift:1
-space /L1..L2/office office X3..X4 Y2..Y3 name:事務室 use:exclusive
+space /L1..L2/hall   hall   X1..X4 Y1..Y2 name:ホール lease.category:common
+space /L1..L2/st     stair  X1..X2 Y2..Y3 name:階段 lease.category:common stair:N form:return turn:R
+space /L1..L2/ev     shaft  X2..X3 Y2..Y3 name:昇降機 lease.category:common lift:1
+space /L1..L2/office office X3..X4 Y2..Y3 name:事務室 lease.category:exclusive
 
 space /out name:外部 outside:1
 

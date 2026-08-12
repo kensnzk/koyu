@@ -109,7 +109,7 @@ Anything outside those three words is ATT02 (error).
 ## Written out
 
 ```muro
-muro 1.2
+muro 1.3
 name 扉の書き方
 unit mm
 

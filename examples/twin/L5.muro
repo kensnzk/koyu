@@ -8,22 +8,22 @@
 # 途方もない量のダクトが要るからである。
 
 # A棟の足元 — 宴会場
-space /L5/ball room X4..X11 Y8+4200..Y10 name:大宴会場 use:common
-space /L5/bq room X4..X11 Y6..Y7 name:中宴会場 use:common
-space /L5/acorr5 corridor X3..X4 Y6..Y10 name:西サービス通路 use:common
-space /L5/foyer corridor X11..X13 Y6..Y10 name:ホワイエ use:common floor:石張り
-space /L5/pantry service X10..X11 Y7..Y8+4200 name:パントリー use:common
+space /L5/ball room X4..X11 Y8+4200..Y10 name:大宴会場 lease.category:common
+space /L5/bq room X4..X11 Y6..Y7 name:中宴会場 lease.category:common
+space /L5/acorr5 corridor X3..X4 Y6..Y10 name:西サービス通路 lease.category:common
+space /L5/foyer corridor X11..X13 Y6..Y10 name:ホワイエ lease.category:common floor:石張り
+space /L5/pantry service X10..X11 Y7..Y8+4200 name:パントリー lease.category:common
 
 # B棟の足元 — フロント・ラウンジ
-space /L5/hfoy corridor X13..X19 Y7..Y7+2400 name:フロント前 use:common floor:石張り
-space /L5/lounge room X14..X17 Y6..Y7 name:ラウンジ use:common
-space /L5/recep service X17..X19 Y6..Y7 name:フロント・事務 use:common
-space /L5/cloak service X14..X15+5600 Y7+2400..Y8+4200 name:クローク・控室 use:common
-space /L5/prep service X18..X19 Y7+2400..Y8+4200 name:配膳準備 use:common
+space /L5/hfoy corridor X13..X19 Y7..Y7+2400 name:フロント前 lease.category:common floor:石張り
+space /L5/lounge room X14..X17 Y6..Y7 name:ラウンジ lease.category:common
+space /L5/recep service X17..X19 Y6..Y7 name:フロント・事務 lease.category:common
+space /L5/cloak service X14..X15+5600 Y7+2400..Y8+4200 name:クローク・控室 lease.category:common
+space /L5/prep service X18..X19 Y7+2400..Y8+4200 name:配膳準備 lease.category:common
 
 # 屋上庭園 (緑化) — セットバックの屋根
-space /L5/gdnS terrace X3..X19 Y5..Y6 name:南屋上庭園 use:common floor:緑化
-space /L5/gdnN terrace X13..X19 Y9..Y10 + X13..X14 Y7+2400..Y9 + X13..X14 Y6..Y7 name:北東屋上庭園 use:common floor:緑化
+space /L5/gdnS terrace X3..X19 Y5..Y6 name:南屋上庭園 lease.category:common floor:緑化
+space /L5/gdnN terrace X13..X19 Y9..Y10 + X13..X14 Y7+2400..Y9 + X13..X14 Y6..Y7 name:北東屋上庭園 lease.category:common floor:緑化
 
 boundary /L5/foyer /L5/ball t:180 spec:LGS
   door FD2 at:0.667 name:大宴会場
@@ -79,8 +79,8 @@ boundary /L5/prep /out edge:E t:250 spec:PC板
 boundary /L5/hfoy /out edge:E t:250 spec:PC板
 
 # ---- M1 機械階 — 宴会場の直上。客の階数に現れない ----
-space /M1/machA service X3..X11 Y6..Y7 + X3..X4 Y7..Y8+4200 + X10..X11 Y7..Y8+4200 + X3..X11 Y8+4200..Y10 name:A棟低層機械室 use:common
-space /M1/machB service X14..X19 Y6..Y7+2400 + X14..X15+5600 Y7+2400..Y8+4200 + X15+5600..X16 Y7+2400..Y7+5600 + X16..X17 Y7+2400..Y8+4200 + X17..X17+2800 Y7+2400..Y7+5600 + X17+2800..X19 Y7+2400..Y8+4200 name:B棟低層機械室 use:common
+space /M1/machA service X3..X11 Y6..Y7 + X3..X4 Y7..Y8+4200 + X10..X11 Y7..Y8+4200 + X3..X11 Y8+4200..Y10 name:A棟低層機械室 lease.category:common
+space /M1/machB service X14..X19 Y6..Y7+2400 + X14..X15+5600 Y7+2400..Y8+4200 + X15+5600..X16 Y7+2400..Y7+5600 + X16..X17 Y7+2400..Y8+4200 + X17..X17+2800 Y7+2400..Y7+5600 + X17+2800..X19 Y7+2400..Y8+4200 name:B棟低層機械室 lease.category:common
 boundary /M1/machA /M1/ahall type:open
 boundary /M1/machB /M1/bst1 edge:W t:250 spec:RC
   door FD1 name:階段1から機械室

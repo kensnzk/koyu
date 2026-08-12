@@ -5,10 +5,10 @@
 # 土に接する壁は spec 語彙が運ぶ (spec:RC土圧壁)。境界の型は増やさない — 物の名は spec である。
 # 採光は daylight:1 を書いた室にしか掛からないので、地下は自動的に判定の外にある。
 
-space /B2..B1/ramp ramp X1..X4 Y1..Y1+7000 name:車路 use:parking ramp:E form:return slope:6
-space /B2..B1/park parking X4..X8 Y1..Y1+7000 + X1..X8 Y1+7000..Y4-3200 name:駐車場 use:parking
-space /B2..B1/mech machine X1..X4 Y4-3200..Y5 name:機械室 use:common
-space /B2..B1/store backyard X7..X8 Y4-3200..Y5 name:荷捌き・倉庫 use:common
+space /B2..B1/ramp ramp X1..X4 Y1..Y1+7000 name:車路 ramp:E form:return slope:6
+space /B2..B1/park parking X4..X8 Y1..Y1+7000 + X1..X8 Y1+7000..Y4-3200 name:駐車場
+space /B2..B1/mech machine X1..X4 Y4-3200..Y5 name:機械室 lease.category:common
+space /B2..B1/store backyard X7..X8 Y4-3200..Y5 name:荷捌き・倉庫 lease.category:common
 
 boundary /B2..B1/park /B2..B1/ramp type:open
 boundary /B2..B1/park /B2..B1/mech t:250 spec:RC

@@ -8,72 +8,72 @@
 # レベルスパン (/L3..L10/A) の一行に uid を書くと 8 レベル分が同じ uid になり
 # 重複エラーになるため、この層だけスパンを畳まずに書き下している。
 # 幾何・属性は examples/tower と完全に同一であり、加えたのは uid だけである。
-zone /L3/A name:Aタイプ use:exclusive uid:zn-L3-A
+zone /L3/A name:Aタイプ lease.category:exclusive uid:zn-L3-A
 space /L3/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク uid:sp-L3-A-ldk daylight:1
 space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1 uid:sp-L3-A-bed1 daylight:1
 space /L3/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2 uid:sp-L3-A-bed2 daylight:1
 space /L3/A/wet wet X1+3200..X2+1600 Y1+4000..Y2 name:水回り uid:sp-L3-A-wet
 space /L3/A/hall hall X2+1600..X2+3200 Y1+4000..Y2 name:玄関 uid:sp-L3-A-hall
 
-zone /L4/A name:Aタイプ use:exclusive uid:zn-L4-A
+zone /L4/A name:Aタイプ lease.category:exclusive uid:zn-L4-A
 space /L4/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク uid:sp-L4-A-ldk daylight:1
 space /L4/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1 uid:sp-L4-A-bed1 daylight:1
 space /L4/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2 uid:sp-L4-A-bed2 daylight:1
 space /L4/A/wet wet X1+3200..X2+1600 Y1+4000..Y2 name:水回り uid:sp-L4-A-wet
 space /L4/A/hall hall X2+1600..X2+3200 Y1+4000..Y2 name:玄関 uid:sp-L4-A-hall
 
-zone /L5/A name:Aタイプ use:exclusive uid:zn-L5-A
+zone /L5/A name:Aタイプ lease.category:exclusive uid:zn-L5-A
 space /L5/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク uid:sp-L5-A-ldk daylight:1
 space /L5/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1 uid:sp-L5-A-bed1 daylight:1
 space /L5/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2 uid:sp-L5-A-bed2 daylight:1
 space /L5/A/wet wet X1+3200..X2+1600 Y1+4000..Y2 name:水回り uid:sp-L5-A-wet
 space /L5/A/hall hall X2+1600..X2+3200 Y1+4000..Y2 name:玄関 uid:sp-L5-A-hall
 
-zone /L6/A name:Aタイプ use:exclusive uid:zn-L6-A
+zone /L6/A name:Aタイプ lease.category:exclusive uid:zn-L6-A
 space /L6/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク uid:sp-L6-A-ldk daylight:1
 space /L6/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1 uid:sp-L6-A-bed1 daylight:1
 space /L6/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2 uid:sp-L6-A-bed2 daylight:1
 space /L6/A/wet wet X1+3200..X2+1600 Y1+4000..Y2 name:水回り uid:sp-L6-A-wet
 space /L6/A/hall hall X2+1600..X2+3200 Y1+4000..Y2 name:玄関 uid:sp-L6-A-hall
 
-zone /L7/A name:Aタイプ use:exclusive uid:zn-L7-A
+zone /L7/A name:Aタイプ lease.category:exclusive uid:zn-L7-A
 space /L7/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク uid:sp-L7-A-ldk daylight:1
 space /L7/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1 uid:sp-L7-A-bed1 daylight:1
 space /L7/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2 uid:sp-L7-A-bed2 daylight:1
 space /L7/A/wet wet X1+3200..X2+1600 Y1+4000..Y2 name:水回り uid:sp-L7-A-wet
 space /L7/A/hall hall X2+1600..X2+3200 Y1+4000..Y2 name:玄関 uid:sp-L7-A-hall
 
-zone /L8/A name:Aタイプ use:exclusive uid:zn-L8-A
+zone /L8/A name:Aタイプ lease.category:exclusive uid:zn-L8-A
 space /L8/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク uid:sp-L8-A-ldk daylight:1
 space /L8/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1 uid:sp-L8-A-bed1 daylight:1
 space /L8/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2 uid:sp-L8-A-bed2 daylight:1
 space /L8/A/wet wet X1+3200..X2+1600 Y1+4000..Y2 name:水回り uid:sp-L8-A-wet
 space /L8/A/hall hall X2+1600..X2+3200 Y1+4000..Y2 name:玄関 uid:sp-L8-A-hall
 
-zone /L9/A name:Aタイプ use:exclusive uid:zn-L9-A
+zone /L9/A name:Aタイプ lease.category:exclusive uid:zn-L9-A
 space /L9/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク uid:sp-L9-A-ldk daylight:1
 space /L9/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1 uid:sp-L9-A-bed1 daylight:1
 space /L9/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2 uid:sp-L9-A-bed2 daylight:1
 space /L9/A/wet wet X1+3200..X2+1600 Y1+4000..Y2 name:水回り uid:sp-L9-A-wet
 space /L9/A/hall hall X2+1600..X2+3200 Y1+4000..Y2 name:玄関 uid:sp-L9-A-hall
 
-zone /L10/A name:Aタイプ use:exclusive uid:zn-L10-A
+zone /L10/A name:Aタイプ lease.category:exclusive uid:zn-L10-A
 space /L10/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク uid:sp-L10-A-ldk daylight:1
 space /L10/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:洋室1 uid:sp-L10-A-bed1 daylight:1
 space /L10/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:洋室2 uid:sp-L10-A-bed2 daylight:1
 space /L10/A/wet wet X1+3200..X2+1600 Y1+4000..Y2 name:水回り uid:sp-L10-A-wet
 space /L10/A/hall hall X2+1600..X2+3200 Y1+4000..Y2 name:玄関 uid:sp-L10-A-hall
 
-space /L3..L10/B unit X3..X4+3200 Y1..Y2 + X2+3200..X3 Y1+2400..Y2 name:Bタイプ use:exclusive daylight:1
-space /L3..L10/C unit X4+3200..X6 Y1..Y2 name:Cタイプ use:exclusive daylight:1
-space /L3..L10/D unit X1+3200..X2+3200 Y3..Y4 name:Dタイプ use:exclusive daylight:1
-space /L3..L10/E unit X2+3200..X4 Y3..Y4 name:Eタイプ use:exclusive daylight:1
-space /L3..L10/F unit X4+3200..X5+3200 Y3..Y4 name:Fタイプ use:exclusive daylight:1
+space /L3..L10/B unit X3..X4+3200 Y1..Y2 + X2+3200..X3 Y1+2400..Y2 name:Bタイプ lease.category:exclusive daylight:1
+space /L3..L10/C unit X4+3200..X6 Y1..Y2 name:Cタイプ lease.category:exclusive daylight:1
+space /L3..L10/D unit X1+3200..X2+3200 Y3..Y4 name:Dタイプ lease.category:exclusive daylight:1
+space /L3..L10/E unit X2+3200..X4 Y3..Y4 name:Eタイプ lease.category:exclusive daylight:1
+space /L3..L10/F unit X4+3200..X5+3200 Y3..Y4 name:Fタイプ lease.category:exclusive daylight:1
 
-space /L3..L11/corridor corridor X1..X6 Y2..Y3 + X4..X4+3200 Y3..Y3+3200 name:内廊下 use:common
-space /L3..L11/st2 stair X1..X1+3200 Y3..Y4 name:西階段 use:common
-space /L3..L11/ev shaft X4..X4+3200 Y3+3200..Y4 name:EV use:common
-space /L3..L11/st1 stair X5+3200..X6 Y3..Y4 name:東階段 use:common
+space /L3..L11/corridor corridor X1..X6 Y2..Y3 + X4..X4+3200 Y3..Y3+3200 name:内廊下 lease.category:common
+space /L3..L11/st2 stair X1..X1+3200 Y3..Y4 name:西階段 lease.category:common
+space /L3..L11/ev shaft X4..X4+3200 Y3+3200..Y4 name:EV lease.category:common
+space /L3..L11/st1 stair X5+3200..X6 Y3..Y4 name:東階段 lease.category:common
 
 space /L4..L10/bA balcony X1..X3 Y1-1500..Y1 name:バルコニーA
 space /L4..L10/bB balcony X3..X4+3200 Y1-1500..Y1 name:バルコニーB

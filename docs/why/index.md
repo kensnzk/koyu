@@ -104,7 +104,7 @@ Frontage, footprint and gross floor area are written nowhere. They are derived f
 **5. Find out what "green" means.** The following eleven lines pass `check` — and you cannot get out of the building.
 
 ```muro
-muro 1.2
+muro 1.3
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:300

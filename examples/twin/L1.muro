@@ -7,48 +7,48 @@
 # 両脇はスパン一杯のカーテンウォール (CW1) — 扉を穿つのではなく、面が開く。
 
 # 貫通アトリウム — 南広場から北の緑地まで抜ける。二つの塔の間そのもの
-space /L1/atrium corridor X11..X12 Y4..Y12 + X12+3200..X14 Y4..Y12 + X12..X12+3200 Y4..Y6+2100 + X12..X12+3200 Y6+19100..Y12 name:貫通アトリウム use:common floor:石張り
-space /L1/es1 escalator X12..X12+3200 Y6+2100..Y6+19100 name:エスカレーター use:common escalator:N
+space /L1/atrium corridor X11..X12 Y4..Y12 + X12+3200..X14 Y4..Y12 + X12..X12+3200 Y4..Y6+2100 + X12..X12+3200 Y6+19100..Y12 name:貫通アトリウム lease.category:common floor:石張り
+space /L1/es1 escalator X12..X12+3200 Y6+2100..Y6+19100 name:エスカレーター lease.category:common escalator:N
 
 # 南の店舗列 (隅切りが両端に載る)
 band X X2..X11 Y4..Y5
-  space /L1/s01 shop w:25200 name:南区画01 use:rentable
-  space /L1/s02 shop w:25200 name:南区画02 use:rentable
-  space /L1/s03 shop w:rest name:南区画03 use:rentable
-space /L1/s04 shop X14..X19 Y4..Y5 name:南区画04 use:rentable
-space /L1/mallSw corridor X2..X11 Y5..Y6 name:南モール西 use:common floor:石張り
-space /L1/mallSe corridor X14..X19 Y5..Y6 name:南モール東 use:common floor:石張り
+  space /L1/s01 shop w:25200 name:南区画01 lease.category:rentable
+  space /L1/s02 shop w:25200 name:南区画02 lease.category:rentable
+  space /L1/s03 shop w:rest name:南区画03 lease.category:rentable
+space /L1/s04 shop X14..X19 Y4..Y5 name:南区画04 lease.category:rentable
+space /L1/mallSw corridor X2..X11 Y5..Y6 name:南モール西 lease.category:common floor:石張り
+space /L1/mallSe corridor X14..X19 Y5..Y6 name:南モール東 lease.category:common floor:石張り
 
 # 中央帯 — A棟コアの周りに物販
-space /L1/w02 shop X4..X8 Y6..Y7 name:西区画02 use:rentable
-space /L1/w03 shop X8..X11 Y6..Y7 name:西区画03 use:rentable
+space /L1/w02 shop X4..X8 Y6..Y7 name:西区画02 lease.category:rentable
+space /L1/w03 shop X8..X11 Y6..Y7 name:西区画03 lease.category:rentable
 # A棟エントランスホール — 西面の4スパン (Y6..Y10) を占め、L2まで吹き抜ける。
 # 南北モールと直結し、EVホールへも直結。エスカレーター2本 (es3 上り / es4 下り) を刳り抜く
-space /L1/alobby corridor X2..X4 Y6..Y6+6400 + X2..X2+2600 Y6+6400..Y7+4200 + X2+4200..X4 Y6+6400..Y7+4200 + X2..X2+600 Y7+4200..Y8+4200 + X2+2200..X2+2600 Y7+4200..Y8+4200 + X2+4200..X4 Y7+4200..Y8+4200 + X2..X2+600 Y8+4200..Y9+2000 + X2+2200..X4 Y8+4200..Y9+2000 + X2..X4 Y9+2000..Y10 name:A棟エントランスホール use:common floor:石張り
-space /L1/es3 escalator X2+600..X2+2200 Y7+4200..Y9+2000 name:上りエスカレーター use:common escalator:N
-space /L1/es4 escalator X2+2600..X2+4200 Y6+6400..Y8+4200 name:下りエスカレーター use:common escalator:S
-space /L1/eside shop X10..X11 Y7..Y8+4200 name:東脇区画 use:rentable
-space /L1/w05 shop X4..X8 Y8+4200..Y10 name:西区画06 use:rentable
-space /L1/w06 shop X8..X11 Y8+4200..Y10 name:西区画07 use:rentable
+space /L1/alobby corridor X2..X4 Y6..Y6+6400 + X2..X2+2600 Y6+6400..Y7+4200 + X2+4200..X4 Y6+6400..Y7+4200 + X2..X2+600 Y7+4200..Y8+4200 + X2+2200..X2+2600 Y7+4200..Y8+4200 + X2+4200..X4 Y7+4200..Y8+4200 + X2..X2+600 Y8+4200..Y9+2000 + X2+2200..X4 Y8+4200..Y9+2000 + X2..X4 Y9+2000..Y10 name:A棟エントランスホール lease.category:common floor:石張り
+space /L1/es3 escalator X2+600..X2+2200 Y7+4200..Y9+2000 name:上りエスカレーター lease.category:common escalator:N
+space /L1/es4 escalator X2+2600..X2+4200 Y6+6400..Y8+4200 name:下りエスカレーター lease.category:common escalator:S
+space /L1/eside shop X10..X11 Y7..Y8+4200 name:東脇区画 lease.category:rentable
+space /L1/w05 shop X4..X8 Y8+4200..Y10 name:西区画06 lease.category:rentable
+space /L1/w06 shop X8..X11 Y8+4200..Y10 name:西区画07 lease.category:rentable
 
 # B棟側 — ホテルの1階専用ロビー (客用EVで5階のフロントへ)
-space /L1/hlobby corridor X14..X17 Y6..Y7+2400 + X14..X15+5600 Y7+2400..Y8+4200 + X15+5600..X16 Y7+2400..Y7+5600 name:ホテル1階ロビー use:common floor:石張り
-space /L1/hsrv service X17..X17+2800 Y7+2400..Y7+5600 name:ベルデスク・バック use:common
-space /L1/e01 shop X17..X19 Y6..Y7+2400 name:東区画01 use:rentable
-space /L1/e02 shop X17+2800..X19 Y7+2400..Y8+4200 name:東区画02 use:rentable
+space /L1/hlobby corridor X14..X17 Y6..Y7+2400 + X14..X15+5600 Y7+2400..Y8+4200 + X15+5600..X16 Y7+2400..Y7+5600 name:ホテル1階ロビー lease.category:common floor:石張り
+space /L1/hsrv service X17..X17+2800 Y7+2400..Y7+5600 name:ベルデスク・バック lease.category:common
+space /L1/e01 shop X17..X19 Y6..Y7+2400 name:東区画01 lease.category:rentable
+space /L1/e02 shop X17+2800..X19 Y7+2400..Y8+4200 name:東区画02 lease.category:rentable
 
 # 北帯 — モールと店舗列、北東は荷捌きと防災センター
-space /L1/mallNw corridor X2..X11 Y10..Y11 name:北モール西 use:common floor:石張り
-space /L1/mallNe corridor X14..X19 Y10..Y11 name:北モール東 use:common floor:石張り
+space /L1/mallNw corridor X2..X11 Y10..Y11 name:北モール西 lease.category:common floor:石張り
+space /L1/mallNe corridor X14..X19 Y10..Y11 name:北モール東 lease.category:common floor:石張り
 band X X2..X11 Y11..Y12
-  space /L1/n01 shop w:25200 name:北区画01 use:rentable
-  space /L1/n02 shop w:25200 name:北区画02 use:rentable
-  space /L1/n03 shop w:rest name:北区画03 use:rentable
-space /L1/bousai service X14..X16 Y11..Y12 name:防災センター use:common
-space /L1/load backyard X16..X19 Y11..Y12 name:荷捌き use:common
-space /L1/n04 shop X14..X16 Y9..Y10 name:北区画04 use:rentable
+  space /L1/n01 shop w:25200 name:北区画01 lease.category:rentable
+  space /L1/n02 shop w:25200 name:北区画02 lease.category:rentable
+  space /L1/n03 shop w:rest name:北区画03 lease.category:rentable
+space /L1/bousai service X14..X16 Y11..Y12 name:防災センター lease.category:common
+space /L1/load backyard X16..X19 Y11..Y12 name:荷捌き lease.category:common
+space /L1/n04 shop X14..X16 Y9..Y10 name:北区画04 lease.category:rentable
 # 車路 — B1 から 1/6 で上がる直進斜路 (25.2m)。出口は東広場
-space /L1/ramp parking X16..X19 Y9..Y10 name:車路 use:parking ramp:E
+space /L1/ramp parking X16..X19 Y9..Y10 name:車路 ramp:E
 
 # ---- 動線 ----
 boundary /L1/atrium /L1/es1 type:open

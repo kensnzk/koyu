@@ -37,9 +37,9 @@ boundary /L1/hall /L2/void type:void
 An uncounted subdivision changes the material without dividing the room.
 
 ```muro-part
-space /L1/hall     hall     X1..X2 Y1..Y2       name:エントランスホール use:common floor:フローリング h:6700
+space /L1/hall     hall     X1..X2 Y1..Y2       name:エントランスホール lease.category:common floor:フローリング h:6700
   area X1..X1+1800 Y1..Y2 name:土間 floor:モルタル
-space /L1/office   office   X2..X4 Y1..Y2       name:事務室 use:rentable
+space /L1/office   office   X2..X4 Y1..Y2       name:事務室 lease.category:rentable
 boundary /L1/office /L1/corridor t:120 spec:LGS
   door w:900
   seg at:0.75 w:3600 spec:ガラスパーティション
@@ -85,7 +85,7 @@ The line under each level is the section stack-up. `check` verifies the invarian
 It does not.
 
 ```sh
-npx tsx src/cli.ts stats examples/office.muro
+npx tsx src/cli.ts stats examples/office.muro --by lease.category
 ```
 
 ```text
@@ -117,10 +117,10 @@ Total 419.84 m2 (indoor floor area)
   ev: 25.60 m2
   wc: 51.20 m2
   machine: 51.20 m2
-By use: common 235.52 m2 (56.1%) / rentable 184.32 m2 (43.9%)
+By lease.category: common 235.52 m2 (56.1%) / rentable 184.32 m2 (43.9%)
 ```
 
-Only the `void` row carries `(not counted as floor area)`. The rentable ratio of 43.9% comes out of the `use:` aggregation; it is written nowhere.
+Only the `void` row carries `(not counted as floor area)`. The rentable ratio of 43.9% is written nowhere — it falls out of counting by `lease.category`, the key this example writes.
 
 ## Read next
 

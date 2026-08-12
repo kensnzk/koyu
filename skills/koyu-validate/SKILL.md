@@ -46,8 +46,8 @@ raise with the architect rather than silently design around.
 | `koyu.schematic.access.unreachable` | violation | a space with a region cannot reach any `outside:1` space along passable boundaries | declare the boundary to the circulation space and put a `door` on it |
 | `koyu.schematic.access.voidonly` | violation | its only way out is through a `void` or a `shaft` — a door onto a floorless hole | give it a boundary to a space people can stand in |
 | `koyu.schematic.access.parking` | violation | a car cannot get out: a stair is a step to a car, and a door narrower than 2400 is a wall | a `type:open` boundary, a door ≥ 2400 wide, or a space carrying `ramp:` |
-| `koyu.schematic.access.throughtenant` | caution | the escape route runs through somebody else's tenancy | route it through common space, or accept it deliberately |
-| `koyu.schematic.access.backofhouse` | caution | the route reaches the outside only through back-of-house | give the front a way out |
+| `koyu.schematic.access.throughtenant` | caution | escape from a stair reaches the outside only through rentable space — if the tenant locks up, there is no way out | route it through common space, or accept it deliberately |
+| `koyu.schematic.access.backofhouse` | caution | a common stair or escalator is reachable from the common corridor only by passing through back-of-house, so visitors cannot use it | open a route from the corridor that avoids the back-of-house space |
 | `koyu.schematic.daylight.ratio` | violation | effective window area is under a seventh of the floor, on a space you marked `daylight:1` | add a `window` on a boundary to `/out`, or drop `daylight:1` if the room is not habitable |
 | `koyu.schematic.daylight.unknown` | caution | `daylight:1` on a space whose openings cannot be evaluated | give the boundary a real opening, or say the room is out of scope |
 | `koyu.schematic.envelope.gap` | caution | part of the outline faces nothing — a silently missing exterior wall | write `boundary /L1/room /out edge:N t:120` for the named side |
@@ -59,9 +59,19 @@ raise with the architect rather than silently design around.
 | `koyu.schematic.site.frontage` | violation | the site does not meet a road across enough width | widen the frontage, or declare the road that is actually there |
 | `koyu.schematic.site.area` | caution | the declared `area:` disagrees with the polygon | fix whichever is wrong; the polygon is the derived truth |
 
+**Not every rule looks at every space.** `access.parking` judges only the spaces
+whose TYPE is `parking` or `ramp`. `access.throughtenant` judges only the spaces
+typed `stair`, and the route it wants is one to the outside that never enters a
+space whose `lease.category` is `rentable`. `access.backofhouse` judges only the
+spaces carrying `stair:` or `escalator:` and `lease.category:common`, and the
+route it wants starts at a `corridor` also carrying `lease.category:common` and
+never enters a space typed `backyard`. Write neither the type nor the key and the
+rule reports itself not applicable — which is not a pass: it produces no finding
+and is counted in `summary.rules.notApplicable`.
+
 ## What passable means
 
-Three of the access rules stand on one definition, and misreading it is the
+Every access rule stands on what counts as passable, and misreading that is the
 usual reason a repair does not take.
 
 **Passable by a person** — a `type:open` boundary, a `type:stair` boundary
@@ -70,13 +80,20 @@ so it is not passable**, and neither is a window. `type:shaft` and `type:void` b
 are never passable, and you cannot walk *through* a `void:1` space or a space
 typed `shaft` to somewhere beyond it.
 
+**Passable by a car** — `type:open`, a `door` at least 2400 wide, or a vertical
+link on a space carrying `ramp:`. A stair is, to a car, a step.
+
 Note where the spelling is guarded and where it is not. `void:1` is a ledger key,
 so `voi:1` is an error (ATT03). `shaft` sits in the type position, which is open
 vocabulary — write `shaftt` and this rule quietly stops applying. Core reads no
 type word at all; the judging face does, and that face does not freeze.
-
-**Passable by a car** — `type:open`, a `door` at least 2400 wide, or a vertical
-link on a space carrying `ramp:`. A stair is, to a car, a step.
+`lease.category` is guarded no better: it is a carried namespaced key, and a
+namespace is precisely the statement that koyu has not looked at the word, so
+`lease.categry:common` is accepted in silence while the tenancy rules stop
+applying to that space. When a finding you expected is missing, check the
+spelling of the type and of the key before you look at the geometry — `koyu stats
+--by lease.category` prints the buckets, and a misspelling lands in
+`(unspecified)`.
 
 So the commonest violation in a new building is not a mistake in the drawing: it
 is a boundary nobody wrote. `koyu doors <file> <from> <to>` shows the route it

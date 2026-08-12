@@ -12,47 +12,47 @@ space /L2/avoid X12+3200..X13 Y5..Y11 + X12..X12+3200 Y5..Y6+5600 + X12..X12+320
 space /L3/avoid X12+3200..X13 Y5..Y11 + X12..X12+3200 Y5..Y7 + X12..X12+3200 Y8+3600..Y11 name:吹抜け void:1
 # L4 の吹抜けは基壇のセットバックに合わせて短い — 段々は吹抜けにも及ぶ
 space /L4/avoid X12+3200..X13 Y6..Y10 + X12..X12+3200 Y6..Y7 + X12..X12+3200 Y8+3600..Y10 name:吹抜け void:1
-space /L2..L4/es2 escalator X12..X12+3200 Y7..Y7+12000 name:エスカレーター use:common escalator:N
-space /L2/es1 corridor X12..X12+3200 Y6+5600..Y7 name:エスカレーター乗降 use:common
+space /L2..L4/es2 escalator X12..X12+3200 Y7..Y7+12000 name:エスカレーター lease.category:common escalator:N
+space /L2/es1 corridor X12..X12+3200 Y6+5600..Y7 name:エスカレーター乗降 lease.category:common
 boundary /L1/atrium /L2/avoid type:void
 boundary /L2/avoid /L3/avoid type:void
 boundary /L3/avoid /L4/avoid type:void
 boundary /L2/es1 /L2/es2 type:open
 
 # ---- L2 — L1と同じ外形 ----
-space /L2/gal corridor X11..X12 Y4..Y12 + X13..X14 Y4..Y12 + X12..X13 Y4..Y5 + X12..X13 Y11..Y12 name:回廊 use:common floor:石張り
+space /L2/gal corridor X11..X12 Y4..Y12 + X13..X14 Y4..Y12 + X12..X13 Y4..Y5 + X12..X13 Y11..Y12 name:回廊 lease.category:common floor:石張り
 boundary /L2/gal /L2/avoid t:60 spec:手すり air:1 h:1100
 boundary /L2/gal /L2/es2 type:open
 band X X2..X11 Y4..Y5
-  space /L2/s01 shop w:25200 name:南区画01 use:rentable
-  space /L2/s02 shop w:rest name:南区画02 use:rentable
-space /L2/s04 shop X14..X19 Y4..Y5 name:南区画03 use:rentable
-space /L2/mallSw corridor X2..X11 Y5..Y6 name:南モール西 use:common floor:石張り
-space /L2/mallSe corridor X14..X19 Y5..Y6 name:南モール東 use:common floor:石張り
+  space /L2/s01 shop w:25200 name:南区画01 lease.category:rentable
+  space /L2/s02 shop w:rest name:南区画02 lease.category:rentable
+space /L2/s04 shop X14..X19 Y4..Y5 name:南区画03 lease.category:rentable
+space /L2/mallSw corridor X2..X11 Y5..Y6 name:南モール西 lease.category:common floor:石張り
+space /L2/mallSe corridor X14..X19 Y5..Y6 name:南モール東 lease.category:common floor:石張り
 # 西の1スパン (X2..X3) はエントランス吹抜け — 1階の大開口の上をガラスが2層で立つ
 space /L2/alvoid X2..X3 Y7..Y9 name:エントランス吹抜け void:1
-space /L2/es4 corridor X2..X3 Y6..Y7 name:下りエスカレーター乗り場 use:common
-space /L2/es3 corridor X2..X3 Y9..Y10 name:上りエスカレーター降り場 use:common
-space /L2/w01 corridor X3..X4 Y6..Y7 name:西通路南 use:common
-space /L2/w02 shop X4..X8 Y6..Y7 name:西区画02 use:rentable
-space /L2/w03 shop X8..X11 Y6..Y7 name:西区画03 use:rentable
-space /L2/e01 shop X14..X17 Y6..Y7+5600 name:東区画01 use:rentable
-space /L2/e02 shop X17..X19 Y6..Y7+5600 + X17+2800..X19 Y7+5600..Y8+4200 name:東区画02 use:rentable
-space /L2/acorr corridor X3..X4 Y7..Y8+4200 name:A棟西通路 use:common
-space /L2/eside shop X10..X11 Y7..Y8+4200 name:東脇区画 use:rentable
-space /L2/e03 shop X14..X15+5600 Y7+5600..Y8+4200 name:東区画03 use:rentable
-space /L2/bcorr corridor X16..X17 Y7+5600..Y8+4200 name:B棟階段付室 use:common
-space /L2/w04 corridor X3..X4 Y8+4200..Y10 name:西通路北 use:common
-space /L2/w05 shop X4..X8 Y8+4200..Y10 name:西区画05 use:rentable
-space /L2/w06 shop X8..X11 Y8+4200..Y10 name:西区画06 use:rentable
-space /L2/n04 shop X14..X16 Y9..Y10 name:北区画04 use:rentable
-space /L2/n05 shop X16..X19 Y9..Y10 name:北区画05 use:rentable
-space /L2/mallNw corridor X2..X11 Y10..Y11 name:北モール西 use:common floor:石張り
-space /L2/mallNe corridor X14..X19 Y10..Y11 name:北モール東 use:common floor:石張り
+space /L2/es4 corridor X2..X3 Y6..Y7 name:下りエスカレーター乗り場 lease.category:common
+space /L2/es3 corridor X2..X3 Y9..Y10 name:上りエスカレーター降り場 lease.category:common
+space /L2/w01 corridor X3..X4 Y6..Y7 name:西通路南 lease.category:common
+space /L2/w02 shop X4..X8 Y6..Y7 name:西区画02 lease.category:rentable
+space /L2/w03 shop X8..X11 Y6..Y7 name:西区画03 lease.category:rentable
+space /L2/e01 shop X14..X17 Y6..Y7+5600 name:東区画01 lease.category:rentable
+space /L2/e02 shop X17..X19 Y6..Y7+5600 + X17+2800..X19 Y7+5600..Y8+4200 name:東区画02 lease.category:rentable
+space /L2/acorr corridor X3..X4 Y7..Y8+4200 name:A棟西通路 lease.category:common
+space /L2/eside shop X10..X11 Y7..Y8+4200 name:東脇区画 lease.category:rentable
+space /L2/e03 shop X14..X15+5600 Y7+5600..Y8+4200 name:東区画03 lease.category:rentable
+space /L2/bcorr corridor X16..X17 Y7+5600..Y8+4200 name:B棟階段付室 lease.category:common
+space /L2/w04 corridor X3..X4 Y8+4200..Y10 name:西通路北 lease.category:common
+space /L2/w05 shop X4..X8 Y8+4200..Y10 name:西区画05 lease.category:rentable
+space /L2/w06 shop X8..X11 Y8+4200..Y10 name:西区画06 lease.category:rentable
+space /L2/n04 shop X14..X16 Y9..Y10 name:北区画04 lease.category:rentable
+space /L2/n05 shop X16..X19 Y9..Y10 name:北区画05 lease.category:rentable
+space /L2/mallNw corridor X2..X11 Y10..Y11 name:北モール西 lease.category:common floor:石張り
+space /L2/mallNe corridor X14..X19 Y10..Y11 name:北モール東 lease.category:common floor:石張り
 band X X2..X11 Y11..Y12
-  space /L2/n01 shop w:25200 name:北区画01 use:rentable
-  space /L2/n02 shop w:rest name:北区画02 use:rentable
-space /L2/nE shop X14..X19 Y11..Y12 name:北東区画 use:rentable
+  space /L2/n01 shop w:25200 name:北区画01 lease.category:rentable
+  space /L2/n02 shop w:rest name:北区画02 lease.category:rentable
+space /L2/nE shop X14..X19 Y11..Y12 name:北東区画 lease.category:rentable
 boundary /L2/gal /L2/mallSw type:open
 boundary /L2/gal /L2/mallSe type:open
 boundary /L2/gal /L2/mallNw type:open
@@ -111,37 +111,37 @@ boundary /L2/nE /L2/mallNe t:120 spec:店舗サッシ
   door SD1 at:0.3
 
 # ---- L3 — 西・北を退く ----
-space /L3/gal corridor X13..X14 Y4..Y11 + X12..X13 Y4..Y5 name:回廊東 use:common floor:石張り
-space /L3/galW corridor X11..X12 Y4..Y11 name:回廊西 use:common floor:石張り
+space /L3/gal corridor X13..X14 Y4..Y11 + X12..X13 Y4..Y5 name:回廊東 lease.category:common floor:石張り
+space /L3/galW corridor X11..X12 Y4..Y11 name:回廊西 lease.category:common floor:石張り
 boundary /L3/gal /L3/avoid t:60 spec:手すり air:1 h:1100
 boundary /L3/galW /L3/avoid t:60 spec:手すり air:1 h:1100
 boundary /L3/galW /L3/mallSw type:open
 boundary /L3/galW /L3/mallNw type:open
 boundary /L3/galW /L3/es2 type:open
 band X X3..X11 Y4..Y5
-  space /L3/s01 shop w:25200 name:南区画01 use:rentable
-  space /L3/s02 shop w:rest name:南区画02 use:rentable
-space /L3/s04 shop X14..X19 Y4..Y5 name:南区画03 use:rentable
-space /L3/mallSw corridor X3..X11 Y5..Y6 name:南モール西 use:common floor:石張り
-space /L3/mallSe corridor X14..X19 Y5..Y6 name:南モール東 use:common floor:石張り
-space /L3/w01 corridor X3..X4 Y6..Y7 name:西通路南 use:common
-space /L3/w02 shop X4..X8 Y6..Y7 name:西区画02 use:rentable
-space /L3/w03 shop X8..X11 Y6..Y7 name:西区画03 use:rentable
-space /L3/e01 shop X14..X17 Y6..Y7+5600 name:東区画01 use:rentable
-space /L3/e02 shop X17..X19 Y6..Y7+5600 + X17+2800..X19 Y7+5600..Y8+4200 name:東区画02 use:rentable
-space /L3/acorr corridor X3..X4 Y7..Y8+4200 name:A棟西通路 use:common
-space /L3/eside shop X10..X11 Y7..Y8+4200 name:東脇区画 use:rentable
-space /L3/e03 shop X14..X15+5600 Y7+5600..Y8+4200 name:東区画03 use:rentable
-space /L3/bcorr corridor X16..X17 Y7+5600..Y8+4200 name:B棟階段付室 use:common
-space /L3/w04 corridor X3..X4 Y8+4200..Y9 name:西通路北 use:common
-space /L3/w05 shop X4..X8 Y8+4200..Y9 name:西区画05 use:rentable
-space /L3/w06 shop X8..X11 Y8+4200..Y9 name:西区画06 use:rentable
-space /L3/mallNw corridor X3..X11 Y9..Y10 name:北モール西 use:common floor:石張り
+  space /L3/s01 shop w:25200 name:南区画01 lease.category:rentable
+  space /L3/s02 shop w:rest name:南区画02 lease.category:rentable
+space /L3/s04 shop X14..X19 Y4..Y5 name:南区画03 lease.category:rentable
+space /L3/mallSw corridor X3..X11 Y5..Y6 name:南モール西 lease.category:common floor:石張り
+space /L3/mallSe corridor X14..X19 Y5..Y6 name:南モール東 lease.category:common floor:石張り
+space /L3/w01 corridor X3..X4 Y6..Y7 name:西通路南 lease.category:common
+space /L3/w02 shop X4..X8 Y6..Y7 name:西区画02 lease.category:rentable
+space /L3/w03 shop X8..X11 Y6..Y7 name:西区画03 lease.category:rentable
+space /L3/e01 shop X14..X17 Y6..Y7+5600 name:東区画01 lease.category:rentable
+space /L3/e02 shop X17..X19 Y6..Y7+5600 + X17+2800..X19 Y7+5600..Y8+4200 name:東区画02 lease.category:rentable
+space /L3/acorr corridor X3..X4 Y7..Y8+4200 name:A棟西通路 lease.category:common
+space /L3/eside shop X10..X11 Y7..Y8+4200 name:東脇区画 lease.category:rentable
+space /L3/e03 shop X14..X15+5600 Y7+5600..Y8+4200 name:東区画03 lease.category:rentable
+space /L3/bcorr corridor X16..X17 Y7+5600..Y8+4200 name:B棟階段付室 lease.category:common
+space /L3/w04 corridor X3..X4 Y8+4200..Y9 name:西通路北 lease.category:common
+space /L3/w05 shop X4..X8 Y8+4200..Y9 name:西区画05 lease.category:rentable
+space /L3/w06 shop X8..X11 Y8+4200..Y9 name:西区画06 lease.category:rentable
+space /L3/mallNw corridor X3..X11 Y9..Y10 name:北モール西 lease.category:common floor:石張り
 band X X3..X11 Y10..Y11
-  space /L3/n01 shop w:25200 name:北区画01 use:rentable
-  space /L3/n02 shop w:rest name:北区画02 use:rentable
-space /L3/nE shop X14..X19 Y10..Y11 name:北東区画 use:rentable
-space /L3/mallNe corridor X14..X19 Y9..Y10 name:北モール東 use:common floor:石張り
+  space /L3/n01 shop w:25200 name:北区画01 lease.category:rentable
+  space /L3/n02 shop w:rest name:北区画02 lease.category:rentable
+space /L3/nE shop X14..X19 Y10..Y11 name:北東区画 lease.category:rentable
+space /L3/mallNe corridor X14..X19 Y9..Y10 name:北モール東 lease.category:common floor:石張り
 boundary /L3/gal /L3/mallSe type:open
 boundary /L3/gal /L3/mallNe type:open
 boundary /L3/n01 /L3/mallNw t:120 spec:店舗サッシ
@@ -185,24 +185,24 @@ boundary /L3/w06 /L3/mallNw t:120 spec:店舗サッシ
   door SD1
 
 # ---- L4 — さらに退く。飲食の階 ----
-space /L4/gal corridor X11..X12 Y5..Y10 + X13..X14 Y5..Y10 + X12..X13 Y5..Y6 name:回廊 use:common floor:石張り
+space /L4/gal corridor X11..X12 Y5..Y10 + X13..X14 Y5..Y10 + X12..X13 Y5..Y6 name:回廊 lease.category:common floor:石張り
 boundary /L4/gal /L4/avoid t:60 spec:手すり air:1 h:1100
 boundary /L4/gal /L4/es2 type:open
-space /L4/mallSw corridor X3..X11 Y5..Y6 name:南モール西 use:common floor:石張り
-space /L4/mallSe corridor X14..X19 Y5..Y6 name:南モール東 use:common floor:石張り
-space /L4/w01 corridor X3..X4 Y6..Y7 name:西通路南 use:common
-space /L4/w02 shop X4..X8 Y6..Y7 name:西区画02 use:rentable
-space /L4/w03 shop X8..X11 Y6..Y7 name:西区画03 use:rentable
-space /L4/e01 shop X14..X17 Y6..Y7+5600 name:東区画01 use:rentable
-space /L4/e02 shop X17..X19 Y6..Y7+5600 + X17+2800..X19 Y7+5600..Y8+4200 name:東区画02 use:rentable
-space /L4/acorr corridor X3..X4 Y7..Y8+4200 name:A棟西通路 use:common
-space /L4/eside shop X10..X11 Y7..Y8+4200 name:東脇区画 use:rentable
-space /L4/e03 shop X14..X15+5600 Y7+5600..Y8+4200 name:東区画03 use:rentable
-space /L4/bcorr corridor X16..X17 Y7+5600..Y8+4200 name:B棟階段付室 use:common
-space /L4/w04 corridor X3..X8 Y8+4200..Y9 name:西通路北 use:common
-space /L4/w06 shop X8..X11 Y8+4200..Y9 name:西区画05 use:rentable
-space /L4/mallNw corridor X3..X11 Y9..Y10 name:北モール西 use:common floor:石張り
-space /L4/mallNe corridor X14..X19 Y9..Y10 name:北モール東 use:common floor:石張り
+space /L4/mallSw corridor X3..X11 Y5..Y6 name:南モール西 lease.category:common floor:石張り
+space /L4/mallSe corridor X14..X19 Y5..Y6 name:南モール東 lease.category:common floor:石張り
+space /L4/w01 corridor X3..X4 Y6..Y7 name:西通路南 lease.category:common
+space /L4/w02 shop X4..X8 Y6..Y7 name:西区画02 lease.category:rentable
+space /L4/w03 shop X8..X11 Y6..Y7 name:西区画03 lease.category:rentable
+space /L4/e01 shop X14..X17 Y6..Y7+5600 name:東区画01 lease.category:rentable
+space /L4/e02 shop X17..X19 Y6..Y7+5600 + X17+2800..X19 Y7+5600..Y8+4200 name:東区画02 lease.category:rentable
+space /L4/acorr corridor X3..X4 Y7..Y8+4200 name:A棟西通路 lease.category:common
+space /L4/eside shop X10..X11 Y7..Y8+4200 name:東脇区画 lease.category:rentable
+space /L4/e03 shop X14..X15+5600 Y7+5600..Y8+4200 name:東区画03 lease.category:rentable
+space /L4/bcorr corridor X16..X17 Y7+5600..Y8+4200 name:B棟階段付室 lease.category:common
+space /L4/w04 corridor X3..X8 Y8+4200..Y9 name:西通路北 lease.category:common
+space /L4/w06 shop X8..X11 Y8+4200..Y9 name:西区画05 lease.category:rentable
+space /L4/mallNw corridor X3..X11 Y9..Y10 name:北モール西 lease.category:common floor:石張り
+space /L4/mallNe corridor X14..X19 Y9..Y10 name:北モール東 lease.category:common floor:石張り
 boundary /L4/gal /L4/mallSw type:open
 boundary /L4/gal /L4/mallSe type:open
 boundary /L4/gal /L4/mallNw type:open
@@ -236,10 +236,10 @@ boundary /L4/eside /L4/gal t:120 spec:店舗サッシ
 
 # ---- セットバックの屋根 = テラス緑化 ----
 # 退いた分の屋根がそのまま庭になる。縁はパラペット+手すり (air:1 — 半屋外に導出される)
-space /L3/tW terrace X2..X3 Y4..Y12 name:西テラス use:common floor:緑化
-space /L3/tN terrace X3..X19 Y11..Y12 name:北テラス use:common floor:緑化
-space /L4/tS terrace X3..X19 Y4..Y5 name:南テラス use:common floor:緑化
-space /L4/tN terrace X3..X19 Y10..Y11 name:北テラス use:common floor:緑化
+space /L3/tW terrace X2..X3 Y4..Y12 name:西テラス lease.category:common floor:緑化
+space /L3/tN terrace X3..X19 Y11..Y12 name:北テラス lease.category:common floor:緑化
+space /L4/tS terrace X3..X19 Y4..Y5 name:南テラス lease.category:common floor:緑化
+space /L4/tN terrace X3..X19 Y10..Y11 name:北テラス lease.category:common floor:緑化
 boundary /L3/w01 /L3/tW t:300 spec:カーテンウォール
   door AD2 name:西テラスへ
 boundary /L3/gal /L3/tN t:300 spec:カーテンウォール

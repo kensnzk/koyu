@@ -24,7 +24,7 @@ Every output below was actually run. Absolute paths are abbreviated to `<dir>/`.
 A single-storey pair of rooms. There is one entrance door, and nothing at all between the two rooms.
 
 ```muro-part
-muro 1.2
+muro 1.3
 name 平屋
 unit mm
 
@@ -62,8 +62,8 @@ One call returns the layer composition, the levels, the zones, the areas and the
  "name": "平屋",
  "unit": "mm",
  "layers": [
-  "<dir>/L1.muro",
-  "<dir>/main.muro"
+  "<dir>/main.muro",
+  "<dir>/L1.muro"
  ],
  "levels": [
   {
@@ -84,9 +84,6 @@ One call returns the layer composition, the levels, the zones, the areas and the
    "rooms": 2,
    "subtotalM2": 32.4
   }
- },
- "byUseM2": {
-  "(unspecified)": 32.4
  },
  "check": {
   "errors": 0,
@@ -197,35 +194,57 @@ After one door, the same question answers:
 }
 ```
 
-And `validate` keeps returning architectural findings while `check` stays green.
+And `validate` keeps returning architectural findings while `check` stays green. It takes `profile` and `asOf` as well as `file`, and infers neither. Here is the `findings` part of its report, with the evidence elided as `…`.
 
 ```text
-{
  "findings": [
   {
-   "rule": "envelope.gap",
    "level": "caution",
-   "message": "Perimeter not faced by any envelope: /L1/a — N 3600mm / S 3600mm / W 4500mm (11700mm over 3 run(s)). Write a boundary to the exterior",
-   "line": 1,
-   "file": "<dir>/L1.muro",
-   "path": [
-    "/L1/a"
-   ]
+   "outcome": {
+    "evidence": [ … ],
+    "id": "/L1/a",
+    "message": "Perimeter not faced by any envelope: /L1/a — N 3600mm / S 3600mm / W 4500mm (11700mm over 3 run(s)). Write a boundary to the exterior",
+    "status": "fail",
+    "subjects": [
+     {
+      "kind": "space",
+      "ref": "/L1/a"
+     }
+    ]
+   },
+   "rule": {
+    "id": "koyu.schematic.envelope.gap",
+    "revision": "1"
+   },
+   "ruleSet": {
+    "id": "koyu.ruleset.schematic-screen",
+    "revision": "1"
+   }
   },
   {
-   "rule": "envelope.gap",
    "level": "caution",
-   "message": "Perimeter not faced by any envelope: /L1/b — E 4500mm / N 3600mm (8100mm over 2 run(s)). Write a boundary to the exterior",
-   "line": 2,
-   "file": "<dir>/L1.muro",
-   "path": [
-    "/L1/b"
-   ]
+   "outcome": {
+    "evidence": [ … ],
+    "id": "/L1/b",
+    "message": "Perimeter not faced by any envelope: /L1/b — E 4500mm / N 3600mm (8100mm over 2 run(s)). Write a boundary to the exterior",
+    "status": "fail",
+    "subjects": [
+     {
+      "kind": "space",
+      "ref": "/L1/b"
+     }
+    ]
+   },
+   "rule": {
+    "id": "koyu.schematic.envelope.gap",
+    "revision": "1"
+   },
+   "ruleSet": {
+    "id": "koyu.ruleset.schematic-screen",
+    "revision": "1"
+   }
   }
  ],
- "violations": 0,
- "cautions": 2
-}
 ```
 
 Not one exterior wall has been written. `check` never mentioned it — boundaries against a space with no region are not derived.

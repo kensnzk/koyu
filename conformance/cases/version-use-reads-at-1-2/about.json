@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/muro/version.md",
+  "docs/reference/stability.md"
+ ],
+ "why": "A file declaring muro 1.2 goes on writing use: after 1.3 retires it, and goes on meaning what it meant. The canonical bytes are the whole claim: use stays an entry in attrs, and the zone's value is not materialised onto the space beneath it — inheritance is resolved when asked, not when written."
+}

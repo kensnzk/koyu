@@ -22,13 +22,16 @@ Every piece of output on this page was obtained by actually running it. Absolute
 
 ## model_summary
 
-> Summary of the building: name, levels, layer composition, zones, door/window assets, areas, and check counts. Call this first
+> Summary of the building: name, levels, layer composition, zones, door/window assets, areas, and check counts. Call this first. Pass by:["lease.category"] to also get floor area grouped by those attribute keys
 
 ```json
 {"name": "model_summary", "arguments": {"file": "<abs>/examples/two-rooms.muro"}}
 ```
 
-`file` only, required.
+| Argument | Required | Contents |
+|---|---|---|
+| `file` | yes | The entry `.muro` path |
+| `by` | no | Attribute keys to group indoor floor area by. **There is no default key**: omit it and nothing is grouped |
 
 ```text
 {
@@ -57,15 +60,27 @@ Every piece of output on this page was obtained by actually running it. Absolute
    "subtotalM2": 32.4
   }
  },
- "byUseM2": {
-  "(unspecified)": 32.4
- },
  "check": {
   "errors": 0,
   "warnings": 0
  },
  "hint": "Read layer contents with layers, check with check, and edit with write_layer (check is the gatekeeper). Architectural verdicts come from validate."
 }
+```
+
+Pass `by` and one `byM2` entry appears per key.
+
+```json
+{"name": "model_summary", "arguments": {"file": "<abs>/examples/office.muro", "by": ["lease.category"]}}
+```
+
+```text
+ "byM2": {
+  "lease.category": {
+   "common": 235.52,
+   "rentable": 184.32
+  }
+ },
 ```
 
 | Field | Contents |
@@ -80,7 +95,7 @@ Every piece of output on this page was obtained by actually running it. Absolute
 | `totalFloorM2` | Indoor floor area |
 | `semiOutdoorM2` | Semi-outdoor area. **Not part of the floor area** |
 | `floorsM2` | `{rooms, subtotalM2}` per level |
-| `byUseM2` | Area by `use`. Spaces with no determinable `use` fall into `(unspecified)` |
+| `byM2` | Indoor floor area by each key in `by` — the space's own declaration wins, otherwise the deepest zone whose path is a prefix supplies the value. A space carrying no value falls into `(unspecified)` rather than being dropped. **The key is absent when `by` was not passed** |
 | `check` | Just the `{errors, warnings}` counts. No messages |
 | `sitePolygons` | Paths of zones that have a `polygon`. **The key is absent when there are none** |
 | `origin` | The written [`origin`](../muro/origin.md) — `epsg`, `easting`, `northing`, and `elevation`/`vertical` if given. **In metres.** Absent when not written |
@@ -159,7 +174,7 @@ Take these two files.
 
 ```muro-part
 # main.muro — entry
-muro 1.2
+muro 1.3
 name 二層
 unit mm
 
@@ -186,11 +201,11 @@ Calling it with `main.muro` as the entry gives this.
 [
  {
   "file": "<abs>/tiny/main.muro",
-  "source": "# main.muro — entry\nkoyu 1.0\nname 二層\nunit mm\n\ngrid X 0 3600 7200\ngrid Y 0 4500\nlevel L1 0 h:2400 slab:150\n\nimport ./L1.muro\n"
+  "source": "# main.muro — entry\nmuro 1.3\nname 二層\nunit mm\n\ngrid X 0 3600 7200\ngrid Y 0 4500\nlevel L1 0 h:2400 slab:150\n\nimport ./L1.muro\n"
  },
  {
   "file": "<abs>/tiny/L1.muro",
-  "source": "# L1.muro\nspace /L1/a room X1..X2 Y1..Y2 name:居室A\nspace /L1/b room X2..X3 Y1..Y2 name:居室B\nspace /out name:外部\n\nboundary /L1/b /out t:150\n  door w:900 h:2100 edge:S name:玄関\n"
+  "source": "# L1.muro\nspace /L1/a room X1..X2 Y1..Y2 name:居室A\nspace /L1/b room X2..X3 Y1..Y2 name:居室B\nspace /out name:外部 outside:1\n\nboundary /L1/b /out t:150\n  door w:900 h:2100 edge:S name:玄関\n"
  }
 ]
 ```
@@ -252,8 +267,8 @@ The entry itself is always included.
  },
  {
   "path": "/out",
-  "type": "exterior",
   "name": "外部",
+  "outside": true,
   "semiOutdoor": false,
   "layer": "<abs>/examples/two-rooms.muro"
  }
@@ -263,16 +278,17 @@ The entry itself is always included.
 | Field | Contents |
 |---|---|
 | `path` | The space's path |
-| `type` | The type as written (`room`, `ldk`, `hall`, `exterior`, `void`, …) |
+| `type` | The room's purpose as written (`room`, `ldk`, `hall`, …). **The key is absent when no type was written** |
 | `name` | The value of `name:` if there is one, otherwise the last path segment |
 | `level` | Its level. **The key is absent when there is none** |
 | `areaM2` | Floor area to wall centrelines. **The key is absent for a space with no region** |
+| `outside` `void` | The written [`outside:1` / `void:1`](../muro/space.md). **Each key is absent when the space does not declare it** |
 | `semiOutdoor` | Whether it was judged semi-outdoor |
 | `layer` | Absolute path of the layer that declared it |
 
-`/out` above shows both absences at once: an `exterior` with neither a region nor a level gets neither `level` nor `areaM2`.
+`/out` above shows three absences at once: it declares no type, no region and no level, so `type`, `areaM2` and `level` are all missing.
 
-**Nothing is filtered out.** `exterior`, `void` and region-less spaces are all in the list. If you want to count what is indoor, read `semiOutdoor` and `type` yourself. If all you want is the totals, [`model_summary`](#model_summary) is faster.
+**Nothing is filtered out.** Spaces outside the building, voids and region-less spaces are all in the list. If you want to count what is indoor, read `outside`, `void` and `semiOutdoor` yourself — never the type, which is open vocabulary and decides nothing about floor area. If all you want is the totals, [`model_summary`](#model_summary) is faster.
 
 Narrowing by `level` puts site and building spaces side by side.
 
@@ -308,7 +324,7 @@ Narrowing by `level` puts site and building spaces side by side.
 ```text
 {
  "format": "koyu-canonical/2.0",
- "muro": "1.2",
+ "muro": "1.3",
  "name": "二室",
  "unit": "mm",
  "grid": {

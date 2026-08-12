@@ -12,40 +12,40 @@
 
 # ---- A棟コア (B2〜R1) ----
 # 南列: 設備帯 (奥) + シャフト (手前=ホール側)
-space /B2..R1/aeps1 shaft X5..X7 Y7..Y7+1800 h:2800 name:A棟EPS・PS南 use:common
-space /B2..R1/aevLs1 shaft X5..X5+2800 Y7+1800..Y7+4200 name:A棟低層EV南1 use:common lift:1
-space /B2..R1/aevLs2 shaft X5+2800..X5+5600 Y7+1800..Y7+4200 name:A棟低層EV南2 use:common lift:1
-space /B2..R1/aevLs3 shaft X5+5600..X6 Y7+1800..Y7+4200 name:A棟低層EV南3 use:common lift:1
-space /B2..R1/aevHs1 shaft X6..X6+2800 Y7+1800..Y7+4200 name:A棟高層EV南1 use:common lift:1
-space /B2..R1/aevHs2 shaft X6+2800..X6+5600 Y7+1800..Y7+4200 name:A棟高層EV南2 use:common lift:1
-space /B2..R1/aevHs3 shaft X6+5600..X7 Y7+1800..Y7+4200 name:A棟高層EV南3 use:common lift:1
-space /B2..L34/ast1 stair X4..X4+7000 Y7+1400..Y7+4200 name:A棟階段1 use:common stair:E form:return
-space /R1/ast1t service X4..X4+7000 Y7+1400..Y7+4200 name:階段1塔屋 use:common
-space /B2..R1/aps1 shaft X4..X4+7000 Y7..Y7+1400 h:2800 name:A棟PS1 use:common
-space /B2..R1/agomi service X4+7000..X5 Y7..Y7+4200 h:2800 name:A棟ごみ置場 use:common
-space /B2..R1/afr1 shaft X7..X7+2800 Y7+1800..Y7+4200 name:A棟荷物用EV1 use:common lift:1
-space /B2..R1/afr2 shaft X7+2800..X7+5600 Y7+1800..Y7+4200 name:A棟荷物用EV2 use:common lift:1
-space /B2..R1/ads1 shaft X7..X7+5600 Y7..Y7+1800 h:2800 name:A棟DS南 use:common
-space /B2..R1/awcm service X7+5600..X8+4200 Y7..Y7+4200 h:2800 name:A棟男子便所 use:common
-space /B2..R1/awcw service X8+4200..X10 Y7..Y7+4200 h:2800 name:A棟女子便所 use:common
+space /B2..R1/aeps1 shaft X5..X7 Y7..Y7+1800 h:2800 name:A棟EPS・PS南 lease.category:common
+space /B2..R1/aevLs1 shaft X5..X5+2800 Y7+1800..Y7+4200 name:A棟低層EV南1 lease.category:common lift:1
+space /B2..R1/aevLs2 shaft X5+2800..X5+5600 Y7+1800..Y7+4200 name:A棟低層EV南2 lease.category:common lift:1
+space /B2..R1/aevLs3 shaft X5+5600..X6 Y7+1800..Y7+4200 name:A棟低層EV南3 lease.category:common lift:1
+space /B2..R1/aevHs1 shaft X6..X6+2800 Y7+1800..Y7+4200 name:A棟高層EV南1 lease.category:common lift:1
+space /B2..R1/aevHs2 shaft X6+2800..X6+5600 Y7+1800..Y7+4200 name:A棟高層EV南2 lease.category:common lift:1
+space /B2..R1/aevHs3 shaft X6+5600..X7 Y7+1800..Y7+4200 name:A棟高層EV南3 lease.category:common lift:1
+space /B2..L34/ast1 stair X4..X4+7000 Y7+1400..Y7+4200 name:A棟階段1 lease.category:common stair:E form:return
+space /R1/ast1t service X4..X4+7000 Y7+1400..Y7+4200 name:階段1塔屋 lease.category:common
+space /B2..R1/aps1 shaft X4..X4+7000 Y7..Y7+1400 h:2800 name:A棟PS1 lease.category:common
+space /B2..R1/agomi service X4+7000..X5 Y7..Y7+4200 h:2800 name:A棟ごみ置場 lease.category:common
+space /B2..R1/afr1 shaft X7..X7+2800 Y7+1800..Y7+4200 name:A棟荷物用EV1 lease.category:common lift:1
+space /B2..R1/afr2 shaft X7+2800..X7+5600 Y7+1800..Y7+4200 name:A棟荷物用EV2 lease.category:common lift:1
+space /B2..R1/ads1 shaft X7..X7+5600 Y7..Y7+1800 h:2800 name:A棟DS南 lease.category:common
+space /B2..R1/awcm service X7+5600..X8+4200 Y7..Y7+4200 h:2800 name:A棟男子便所 lease.category:common
+space /B2..R1/awcw service X8+4200..X10 Y7..Y7+4200 h:2800 name:A棟女子便所 lease.category:common
 
 # 北列
-space /B2..R1/asto service X4..X5 Y8..Y8+4200 h:2800 name:A棟倉庫・メール use:common
-space /B2..R1/aeps2 shaft X5..X7 Y8+2400..Y8+4200 h:2800 name:A棟EPS・PS北 use:common
-space /B2..R1/aevLn1 shaft X5..X5+2800 Y8..Y8+2400 name:A棟低層EV北1 use:common lift:1
-space /B2..R1/aevLn2 shaft X5+2800..X5+5600 Y8..Y8+2400 name:A棟低層EV北2 use:common lift:1
-space /B2..R1/aevLn3 shaft X5+5600..X6 Y8..Y8+2400 name:A棟低層EV北3 use:common lift:1
-space /B2..R1/aevHn1 shaft X6..X6+2800 Y8..Y8+2400 name:A棟高層EV北1 use:common lift:1
-space /B2..R1/aevHn2 shaft X6+2800..X6+5600 Y8..Y8+2400 name:A棟高層EV北2 use:common lift:1
-space /B2..R1/aevHn3 shaft X6+5600..X7 Y8..Y8+2400 name:A棟高層EV北3 use:common lift:1
-space /B2..L34/ast2 stair X7..X7+7000 Y8..Y8+2800 name:A棟階段2 use:common stair:E form:return
-space /R1/ast2t service X7..X7+7000 Y8..Y8+2800 name:階段2塔屋 use:common
-space /B2..R1/aps2 shaft X7..X7+7000 Y8+2800..Y8+4200 h:2800 name:A棟PS2 use:common
-space /B2..R1/autl service X7+7000..X8+4200 Y8..Y8+4200 h:2800 name:A棟湯沸・掃除 use:common
-space /B2..R1/asec service X8+4200..X10 Y8..Y8+4200 h:2800 name:A棟リフレッシュ use:common
+space /B2..R1/asto service X4..X5 Y8..Y8+4200 h:2800 name:A棟倉庫・メール lease.category:common
+space /B2..R1/aeps2 shaft X5..X7 Y8+2400..Y8+4200 h:2800 name:A棟EPS・PS北 lease.category:common
+space /B2..R1/aevLn1 shaft X5..X5+2800 Y8..Y8+2400 name:A棟低層EV北1 lease.category:common lift:1
+space /B2..R1/aevLn2 shaft X5+2800..X5+5600 Y8..Y8+2400 name:A棟低層EV北2 lease.category:common lift:1
+space /B2..R1/aevLn3 shaft X5+5600..X6 Y8..Y8+2400 name:A棟低層EV北3 lease.category:common lift:1
+space /B2..R1/aevHn1 shaft X6..X6+2800 Y8..Y8+2400 name:A棟高層EV北1 lease.category:common lift:1
+space /B2..R1/aevHn2 shaft X6+2800..X6+5600 Y8..Y8+2400 name:A棟高層EV北2 lease.category:common lift:1
+space /B2..R1/aevHn3 shaft X6+5600..X7 Y8..Y8+2400 name:A棟高層EV北3 lease.category:common lift:1
+space /B2..L34/ast2 stair X7..X7+7000 Y8..Y8+2800 name:A棟階段2 lease.category:common stair:E form:return
+space /R1/ast2t service X7..X7+7000 Y8..Y8+2800 name:階段2塔屋 lease.category:common
+space /B2..R1/aps2 shaft X7..X7+7000 Y8+2800..Y8+4200 h:2800 name:A棟PS2 lease.category:common
+space /B2..R1/autl service X7+7000..X8+4200 Y8..Y8+4200 h:2800 name:A棟湯沸・掃除 lease.category:common
+space /B2..R1/asec service X8+4200..X10 Y8..Y8+4200 h:2800 name:A棟リフレッシュ lease.category:common
 
 # 乗場ホール — 対面バンクの間、幅4,200
-space /B2..R1/ahall corridor X4..X10 Y7+4200..Y8 h:2800 name:A棟EVホール use:common
+space /B2..R1/ahall corridor X4..X10 Y7+4200..Y8 h:2800 name:A棟EVホール lease.category:common
 
 boundary /B2..L34/ahall /B2..L34/ast1 t:250 spec:RC
   door FD1 at:0.3 name:階段1防火戸
@@ -87,26 +87,26 @@ boundary /B2..R1/ahall /B2..R1/agomi t:180 spec:LGS
   door D1 name:ごみ置場
 
 # ---- B棟コア (中央列 X16..X17 が廊下からシャフト帯まで貫く) ----
-space /B1..L1/bhall1 corridor X16..X17 Y7+2400..Y8+4200 h:2800 name:B棟EVホール低層 use:common
-space /L5/bhall2 corridor X16..X17 Y7+2400..Y8+4200 h:2800 name:B棟EVホール use:common
-space /L6..L18/bhall2 corridor X16..X17 Y7+2400..Y8+4200 h:2800 name:B棟EVホール use:common
-space /L5/bsrv service X15+5600..X16 Y7+2400..Y7+5600 h:2800 name:B棟サービス・リネン use:common
-space /L6..L18/bsrv service X15+5600..X16 Y7+2400..Y7+5600 h:2800 name:B棟サービス・リネン use:common
-space /B2..L18/bev1 shaft X16..X16+2800 Y8+4200..Y8+6600 name:B棟客用EV1 use:common lift:1
-space /B2..L18/bev2 shaft X16+2800..X16+5600 Y8+4200..Y8+6600 name:B棟客用EV2 use:common lift:1
-space /B2..L18/bev3 shaft X16+5600..X17 Y8+4200..Y8+6600 name:B棟客用EV3 use:common lift:1
-space /B2..L18/bds2 shaft X17..X17+2800 Y8+4200..Y9 h:2800 name:B棟DS use:common
-space /B2..L18/beps shaft X16..X17 Y8+6600..Y9 h:2800 name:B棟EPS use:common
-space /B2..L18/bst1 stair X15+5600..X16 Y7+5600..Y8+4200 name:B棟階段1 use:common stair:N form:return
-space /B2..L18/bst2 stair X17..X17+2800 Y7+5600..Y8+4200 name:B棟階段2 use:common stair:N form:return
-space /B2..L18/bsv1 shaft X17+2800..X17+5600 Y8+4200..Y8+6600 name:B棟サービスEV1 use:common lift:1
-space /B2..L18/bsv2 shaft X17+5600..X18 Y8+4200..Y8+6600 name:B棟サービスEV2 use:common lift:1
+space /B1..L1/bhall1 corridor X16..X17 Y7+2400..Y8+4200 h:2800 name:B棟EVホール低層 lease.category:common
+space /L5/bhall2 corridor X16..X17 Y7+2400..Y8+4200 h:2800 name:B棟EVホール lease.category:common
+space /L6..L18/bhall2 corridor X16..X17 Y7+2400..Y8+4200 h:2800 name:B棟EVホール lease.category:common
+space /L5/bsrv service X15+5600..X16 Y7+2400..Y7+5600 h:2800 name:B棟サービス・リネン lease.category:common
+space /L6..L18/bsrv service X15+5600..X16 Y7+2400..Y7+5600 h:2800 name:B棟サービス・リネン lease.category:common
+space /B2..L18/bev1 shaft X16..X16+2800 Y8+4200..Y8+6600 name:B棟客用EV1 lease.category:common lift:1
+space /B2..L18/bev2 shaft X16+2800..X16+5600 Y8+4200..Y8+6600 name:B棟客用EV2 lease.category:common lift:1
+space /B2..L18/bev3 shaft X16+5600..X17 Y8+4200..Y8+6600 name:B棟客用EV3 lease.category:common lift:1
+space /B2..L18/bds2 shaft X17..X17+2800 Y8+4200..Y9 h:2800 name:B棟DS lease.category:common
+space /B2..L18/beps shaft X16..X17 Y8+6600..Y9 h:2800 name:B棟EPS lease.category:common
+space /B2..L18/bst1 stair X15+5600..X16 Y7+5600..Y8+4200 name:B棟階段1 lease.category:common stair:N form:return
+space /B2..L18/bst2 stair X17..X17+2800 Y7+5600..Y8+4200 name:B棟階段2 lease.category:common stair:N form:return
+space /B2..L18/bsv1 shaft X17+2800..X17+5600 Y8+4200..Y8+6600 name:B棟サービスEV1 lease.category:common lift:1
+space /B2..L18/bsv2 shaft X17+5600..X18 Y8+4200..Y8+6600 name:B棟サービスEV2 lease.category:common lift:1
 # サービスEVの乗場前室 — 客用ホールを通らずにリネン・配膳が回る
-space /L5/bslob corridor X17+2800..X18 Y7+2400..Y8+4200 + X17..X17+2800 Y7+2400..Y7+5600 h:2800 name:B棟サービス前室 use:common
-space /L6..L18/bslob corridor X17+2800..X18 Y7+2400..Y8+4200 + X17..X17+2800 Y7+2400..Y7+5600 h:2800 name:B棟サービス前室 use:common
-space /B2..L18/bps shaft X17+2800..X18 Y8+6600..Y9 h:2800 name:B棟PS・DS use:common
-space /B2..L18/blin shaft X14..X16 Y8+4200..Y9 h:2800 name:B棟DS・EPS帯西 use:common
-space /B2..L18/blin2 shaft X18..X19 Y8+4200..Y9 h:2800 name:B棟DS・EPS帯東 use:common
+space /L5/bslob corridor X17+2800..X18 Y7+2400..Y8+4200 + X17..X17+2800 Y7+2400..Y7+5600 h:2800 name:B棟サービス前室 lease.category:common
+space /L6..L18/bslob corridor X17+2800..X18 Y7+2400..Y8+4200 + X17..X17+2800 Y7+2400..Y7+5600 h:2800 name:B棟サービス前室 lease.category:common
+space /B2..L18/bps shaft X17+2800..X18 Y8+6600..Y9 h:2800 name:B棟PS・DS lease.category:common
+space /B2..L18/blin shaft X14..X16 Y8+4200..Y9 h:2800 name:B棟DS・EPS帯西 lease.category:common
+space /B2..L18/blin2 shaft X18..X19 Y8+4200..Y9 h:2800 name:B棟DS・EPS帯東 lease.category:common
 
 boundary /B1..L1/bhall1 /B1..L1/bev1 t:250 spec:RC
 boundary /B1..L1/bhall1 /B1..L1/bev2 t:250 spec:RC

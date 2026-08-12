@@ -23,7 +23,7 @@ npm install --save-dev tsx
 Put `"type": "module"` in `package.json`. For the building to read, drop in `house.muro` — the thirty lines from stage 6 of [the tutorial](index.md) will do exactly as they are.
 
 ```muro-part
-muro 1.2
+muro 1.3
 name 小さな家
 
 grid X 0 3600 5400

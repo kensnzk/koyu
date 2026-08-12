@@ -131,6 +131,30 @@ as the two agree, and blocks the bump on the day they stop.
 - **A removed key** disappears from the ledger silently as far as prose is concerned. Retire the
   spelling explicitly (see above).
 
+### Retiring a key
+
+**The row stays.** `checkAttrValues` reads `attrSpec` and never sees `model.version`, so deleting a
+row makes the key unknown at *every* version at once — a file declaring an older version starts
+failing `ATT03` for a word that version legitimately has. Mark it `retired: { after, instead }`
+instead, and let `VER07` stop it from the version after `after`.
+
+**The guard runs the other way round from the three in `checkLanguageVersion`.** They ask
+`olderThan(model.version, X)`, with the file's version on the left. A retirement asks
+`olderThan(spec.retired.after, model.version)`, with the ledger's version on the left. Written the
+familiar way it fires on every file that is not exactly the retiring version.
+
+**`retired.after` must be a version the ledger knows.** `olderThan` compares by index, and
+`indexOf` returns `-1` for a version it has never heard of, which makes the guard true everywhere.
+`test/vocabulary.test.ts` holds this.
+
+**Two conformance cases, not one.** The case that proves the new error is the easy half. The two
+that matter are the ones that prove the *old* reading survives — one file declaring the last
+version that may write the key, and one declaring no version at all. Both write the retired key and
+both must stay green forever. They are the cases that go red if someone later deletes the row.
+
+**Not held anywhere:** whether the value the key held has somewhere to go. Say it in the diagnostic
+(`instead`), not only in the documentation — the message is what the author reads.
+
 ---
 
 ## Adding an example, or a skill

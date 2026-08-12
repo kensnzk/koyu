@@ -26,8 +26,8 @@ Between two spaces whose plans overlap there is a **floor**, whether or not you 
 A vertical relation is a relation between two spaces, so **both ends have to exist**. A stair needs a stair space on every storey it serves; a shaft needs a shaft space on every storey it passes.
 
 ```muro-part
-space /L1..L3/st stair X2..X3 Y1..Y2 name:Stair use:common stair:N form:return
-space /L1..L3/ev shaft X3..X4 Y1..Y2 name:Lift  use:common lift:1
+space /L1..L3/st stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:N form:return
+space /L1..L3/ev shaft X3..X4 Y1..Y2 name:Lift  lease.category:common lift:1
 ```
 
 A path whose head is a span, `L1..L3`, expands over the declared levels in z order. [Write a typical floor once](typical-floors.md) covers that notation.
@@ -76,7 +76,7 @@ A relation that spans storeys belongs to no storey's layer. Put it in the base l
 ## Check it
 
 ```muro
-muro 1.2
+muro 1.3
 name Connecting storeys
 unit mm
 
@@ -90,12 +90,12 @@ level R 12600 slab:600
 
 space /out name:Outside outside:1
 
-space /L1..L3/st   stair X2..X3 Y1..Y2 name:Stair use:common stair:N form:return
-space /L1..L3/ev   shaft X3..X4 Y1..Y2 name:Lift use:common lift:1
-space /L1..L3/hall hall  X2..X4 Y2..Y3 name:Lift-lobby use:common
+space /L1..L3/st   stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:N form:return
+space /L1..L3/ev   shaft X3..X4 Y1..Y2 name:Lift lease.category:common lift:1
+space /L1..L3/hall hall  X2..X4 Y2..Y3 name:Lift-lobby lease.category:common
 
-space /L1/lobby     hall X1..X2 Y1..Y3 name:Entrance use:common
-space /L2..L3/office room X1..X2 Y1..Y3 name:Tenancy use:exclusive
+space /L1/lobby     hall X1..X2 Y1..Y3 name:Entrance lease.category:common
+space /L2..L3/office room X1..X2 Y1..Y3 name:Tenancy lease.category:exclusive
 
 boundary /L1..L3/hall /L1..L3/st t:200 spec:RC
   door w:900 name:Stair-fire-door

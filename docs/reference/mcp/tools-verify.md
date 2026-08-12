@@ -48,7 +48,7 @@ Every piece of output on this page was obtained by actually running it. Absolute
 ### When there are warnings
 
 ```muro-warn
-muro 1.2
+muro 1.3
 name 警告
 unit mm
 grid X 0 3600 7200
@@ -85,7 +85,7 @@ space /out name:外部 outside:1
 ### When there are errors
 
 ```muro-bad
-muro 1.2
+muro 1.3
 name 二重宣言
 unit mm
 grid X 0 3600 7200
@@ -164,7 +164,7 @@ boundary /L1/a /L1/b t:150
 The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no door written at all stays sealed and green.
 
 ```muro-fail
-muro 1.2
+muro 1.3
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -203,7 +203,7 @@ Against the sealed building above (evidence elided as `…`):
  "schema": "koyu-assessment",
  "profile": { "id": "koyu.profile.schematic-screen", "revision": "1" },
  "ruleSets": [ { "id": "koyu.ruleset.schematic-screen", "revision": "1" } ],
- "model": { "languageVersion": "1.2", "state": "consistent", "diagnostics": [] },
+ "model": { "languageVersion": "1.3", "state": "consistent", "diagnostics": [] },
  "context": { "asOf": "2026-08-03", "schema": "koyu-context/1", "values": {} },
  "analyses": [ … ],
  "rules": [ … ],
@@ -247,8 +247,8 @@ Against the sealed building above (evidence elided as `…`):
  ],
  "summary": {
   "state": "complete",
-  "rules": { "evaluated": 4, "notApplicable": 12, "indeterminate": 0, "error": 0 },
-  "outcomes": { "pass": 3, "fail": 1, "indeterminate": 0 }
+  "rules": { "evaluated": 3, "notApplicable": 13, "indeterminate": 0, "error": 0 },
+  "outcomes": { "pass": 1, "fail": 3, "indeterminate": 0 }
  }
 }
 ```
@@ -296,7 +296,7 @@ The whole reason the report is this shape is that a bare list of failures cannot
 Violations and cautions mix freely in one response.
 
 ```muro-caution
-muro 1.2
+muro 1.3
 name 窓の高さ
 unit mm
 grid X 0 3600 7200
@@ -380,6 +380,6 @@ So if you gate CI on a finding count, either **accept going red when a rule is a
 - [Writing — write_layer / new_uids](tools-write.md) — the `check` carried in a `write_layer` result
 - [Asking — doors / light / site / plan_svg](tools-ask.md) — the surface that returns numbers, not verdicts
 - [The protocol](protocol.md) — why a syntax error comes back as `isError`
-- [Diagnostic codes](../diagnostics/index.md) — 68 codes, their causes and their fixes
+- [Diagnostic codes](../diagnostics/index.md) — 69 codes, their causes and their fixes
 - [Judgement — koyu validate](../validate/index.md) — the 16 rules read closely
 - [koyu check](../cli/check.md) — the CLI's `--json` and `--strict`

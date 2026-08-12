@@ -6,15 +6,15 @@
 #
 # 割付は上に立つ二つのコアの実形を避けて縫う。コアは B2 から立ち上がっている。
 
-space /B2..B1/park parking X2..X4 Y4..Y12 + X10..X11 Y4..Y12 + X4..X10 Y4..Y7 + X4..X10 Y8+4200..Y12 name:駐車場西 use:parking
-space /B2..B1/parkE parking X11..X16 Y4..Y7 + X14..X16 Y7..Y7+2400 + X16..X17 Y7..Y7+2400 + X16..X17 Y4..Y7 + X11..X14 Y7..Y12 + X14..X16 Y9..Y11 name:駐車場東 use:parking
-space /B2..B1/ramp parking X16..X19 Y9..Y10 name:車路 use:parking ramp:E
-space /B2..B1/mech service X17..X19 Y4..Y7 name:熱源機械室 use:common
-space /B2..B1/elec service X17..X19 Y7..Y7+5600 + X17+2800..X19 Y7+5600..Y8+4200 name:受変電・発電機 use:common
-space /B2..B1/mon service X14..X16 Y7+2400..Y7+5600 + X14..X15+5600 Y7+5600..Y8+4200 name:中央監視・MDF use:common
-space /B2/bhpit service X16..X17 Y7+2400..Y8+4200 h:2800 name:B棟EVピット点検 use:common
-space /B2..B1/gomi service X17..X19 Y10..Y11 name:ごみ処理 use:common
-space /B2..B1/store backyard X14..X19 Y11..Y12 + X16..X17 Y10..Y11 name:倉庫・搬入通路 use:common
+space /B2..B1/park parking X2..X4 Y4..Y12 + X10..X11 Y4..Y12 + X4..X10 Y4..Y7 + X4..X10 Y8+4200..Y12 name:駐車場西
+space /B2..B1/parkE parking X11..X16 Y4..Y7 + X14..X16 Y7..Y7+2400 + X16..X17 Y7..Y7+2400 + X16..X17 Y4..Y7 + X11..X14 Y7..Y12 + X14..X16 Y9..Y11 name:駐車場東
+space /B2..B1/ramp parking X16..X19 Y9..Y10 name:車路 ramp:E
+space /B2..B1/mech service X17..X19 Y4..Y7 name:熱源機械室 lease.category:common
+space /B2..B1/elec service X17..X19 Y7..Y7+5600 + X17+2800..X19 Y7+5600..Y8+4200 name:受変電・発電機 lease.category:common
+space /B2..B1/mon service X14..X16 Y7+2400..Y7+5600 + X14..X15+5600 Y7+5600..Y8+4200 name:中央監視・MDF lease.category:common
+space /B2/bhpit service X16..X17 Y7+2400..Y8+4200 h:2800 name:B棟EVピット点検 lease.category:common
+space /B2..B1/gomi service X17..X19 Y10..Y11 name:ごみ処理 lease.category:common
+space /B2..B1/store backyard X14..X19 Y11..Y12 + X16..X17 Y10..Y11 name:倉庫・搬入通路 lease.category:common
 
 boundary /B2..B1/park /B2..B1/parkE type:open
 boundary /B2..B1/parkE /B2..B1/ramp t:300 spec:RC

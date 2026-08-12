@@ -113,7 +113,7 @@ A type of joinery. `kind` is `door` or `window`. Openings reach it through `ref`
 ## zones
 
 ```json-part
-"zones": { "/L3/A": { "attrs": { "name": "Aタイプ", "use": "exclusive" } } }
+"zones": { "/L3/A": { "attrs": { "lease.category": "exclusive", "name": "Aタイプ" } } }
 ```
 
 A zone carries attributes only. No region, no type.
@@ -127,7 +127,7 @@ A zone carries attributes only. No region, no type.
     ["X1", "Y1-4600", "X3", "Y2"],
     ["X3", "Y1-4600", "X4", "Y1"]
   ],
-  "attrs": { "floor": "モルタル", "name": "店舗1", "use": "rentable" },
+  "attrs": { "floor": "モルタル", "lease.category": "rentable", "name": "店舗1" },
   "areas": [
     { "at": ["X1", "Y1-4600", "X2", "Y1-2600"], "attrs": { "floor": "タイル", "name": "土間" } }
   ]

@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check } from "../src/core/diagnose.js";
 import { doorsBetween } from "../src/core/graph.js";
-import { areaM2, effectiveUse, isSemiOutdoor, zoneAreaM2 } from "../src/core/model.js";
+import { areaM2, effectiveAttr, isSemiOutdoor, zoneAreaM2 } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
 
 const src = readFileSync(
@@ -62,7 +62,7 @@ test("eight doors from the second-floor bedroom to the ninth-floor bedroom", () 
 test("area: 1704 m2 of exclusive floor — unchanged by splitting into a layout or by adding balconies", () => {
   const m = parse(src);
   const exclusive = [...m.spaces.values()]
-    .filter((s) => effectiveUse(m, s) === "exclusive" && !isSemiOutdoor(m, s))
+    .filter((s) => effectiveAttr(m, s, "lease.category") === "exclusive" && !isSemiOutdoor(m, s))
     .reduce((sum, s) => sum + (areaM2(s) ?? 0), 0);
   assert.equal(Math.round(exclusive * 100) / 100, 1704);
   assert.equal(zoneAreaM2(m, "/L5/A"), 34.8); // 住戸=ゾーンの面積は室の合計 (半屋外は数えない)

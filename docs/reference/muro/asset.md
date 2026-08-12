@@ -30,7 +30,7 @@ boundary /home/ldk /home/hall1 t:120 spec:LGS
 The asset's attributes become the defaults, and **the instance's attributes override them**.
 
 ```muro
-muro 1.2
+muro 1.3
 unit mm
 grid X 0 3600 7200
 grid Y 0 4500
@@ -98,7 +98,7 @@ A key outside the ledger needs a namespace containing a dot.
 The `name` in `asset W1 window … name:掃き出し窓` is **the name of a type of leaf**, not of an individual. So hanging the same asset twice on one wall does not collide.
 
 ```muro
-muro 1.2
+muro 1.3
 unit mm
 grid X 0 7200
 grid Y 0 4500

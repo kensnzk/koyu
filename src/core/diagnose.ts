@@ -127,6 +127,7 @@ export const DIAGNOSTIC_CODES = {
   VER04: "error", // koyu 0.5以前のファイルに1.0の語 (over・drop・集合編集 — ADR-0035/0038)
   VER05: "error", // koyu 1.0以前のファイルの型の位置に exterior / void (ADR-0051)
   VER06: "error", // the file declares a language version newer than this build reads
+  VER07: "error", // the file declares a version in which a key it writes is retired (ADR-0061)
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
 } as const satisfies Record<string, "error" | "warning">;
 
@@ -602,7 +603,7 @@ function checkColumns(ctx: Ctx): void {
   }
 }
 
-/** 言語版の受理条件 — VER01〜VER05 */
+/** 言語版の受理条件 — VER01〜VER05 と VER07 (VER06 は parse が投げる) */
 function checkLanguageVersion(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
   // 言語版の受理条件 (ADR-0017): 旧版は意味保存の場合のみ受理する。
@@ -720,6 +721,27 @@ function checkLanguageVersion(ctx: Ctx): void {
         file: e.file,
         ...(paths.length > 0 ? { path: paths } : {}),
       });
+    }
+  }
+
+  // A retired key is VER03/VER04 read from the other end. Those fire when a file declares an old
+  // version and writes a word that version does not yet have; this one fires when a file declares
+  // a new version and writes a word that version no longer has. Both say the same thing — the
+  // declared version and the vocabulary have to agree (ADR-0061).
+  //
+  // **The comparison runs the other way round from the three guards above.** They ask "is this
+  // file older than X", so the file's version sits on the left. Here the question is "has the
+  // file moved past the version this key was retired after", so the ledger's version sits on the
+  // left and the file's on the right.
+  for (const [where, subj, at] of attrSubjects(model)) {
+    for (const key of Object.keys(subj.of)) {
+      const gone = attrSpec(subj.elem, key)?.retired;
+      if (!gone || !olderThan(gone.after, model.version)) continue;
+      emit(
+        "VER07",
+        `A muro ${model.version} file carries ${key}: on ${where} — ${key} is retired after muro ${gone.after}. Write ${gone.instead} instead, or keep the file at muro ${gone.after}`,
+        at,
+      );
     }
   }
 }

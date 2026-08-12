@@ -44,8 +44,8 @@ level R 25200 slab:600
 A path on a space, a zone or a boundary whose first segment reads `L2..L6` expands over the **declared levels between the two z values, in ascending z order**. The prefixes need not match — z decides the order, not the spelling of the name.
 
 ```muro-part
-space /L2..L6/office room  X1..X2 Y1..Y2 name:Tenancy use:exclusive daylight:1
-space /L2..L6/core   stair X2..X3 Y1..Y2 name:Stair use:common stair:N form:return
+space /L2..L6/office room  X1..X2 Y1..Y2 name:Tenancy lease.category:exclusive daylight:1
+space /L2..L6/core   stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:N form:return
 
 boundary /L2..L6/office /L2..L6/core t:200 spec:RC
   door w:900 name:Stair-door
@@ -69,7 +69,7 @@ Leave the typical layer alone. Write the exception in its own file and **import 
 
 ```muro-part
 # L6.muro — the top floor becomes the staff canteen
-over /L6/office h:3200 use:common name:Staff-canteen
+over /L6/office h:3200 lease.category:common name:Staff-canteen
 over level L6 h:3200 slab:1000
 ```
 
@@ -79,7 +79,7 @@ over level L6 h:3200 slab:1000
 
 ```muro-part
 # main.muro
-muro 1.2
+muro 1.3
 name Office with a typical floor
 unit mm
 
@@ -99,8 +99,8 @@ stack core L1..L6 type:stair
 
 ```muro-part
 # typical.muro — twelve lines that describe five storeys
-space /L2..L6/office room  X1..X2 Y1..Y2 name:Tenancy use:exclusive daylight:1
-space /L2..L6/core   stair X2..X3 Y1..Y2 name:Stair use:common stair:N form:return
+space /L2..L6/office room  X1..X2 Y1..Y2 name:Tenancy lease.category:exclusive daylight:1
+space /L2..L6/core   stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:N form:return
 
 boundary /L2..L6/office /L2..L6/core t:200 spec:RC
   door w:900 name:Stair-door
@@ -139,9 +139,10 @@ L1	z:0	h:2800	slab:1400
 Per-space ceiling height: /L6/office h:3200
 ```
 
-[`koyu stats`](../reference/cli/stats.md) counts L6 under its own name and use.
+[`koyu stats`](../reference/cli/stats.md) counts L6 under its own name, and under the lease category the exception layer gave it.
 
 ```text
+$ npx tsx src/cli.ts stats main.muro --by lease.category
 L6
   /L6/office	Staff-canteen	room	70.56 m2
   /L6/core	Stair	stair	70.56 m2
@@ -150,8 +151,10 @@ Total 846.72 m2 (indoor floor area)
   hall: 70.56 m2
   stair: 423.36 m2
   room: 352.80 m2
-By use: common 564.48 m2 (66.7%) / exclusive 282.24 m2 (33.3%)
+By lease.category: common 564.48 m2 (66.7%) / exclusive 282.24 m2 (33.3%)
 ```
+
+(L1 through L5 are left out.)
 
 Which layer supplied which value is [`koyu layers --attrs`](../reference/cli/layers.md)'s answer.
 
@@ -167,8 +170,8 @@ Attribute provenance:
   level:L6:h	← 3 L6.muro
   level:L6:slab	← 3 L6.muro
   space:/L6/office:h	← 3 L6.muro
+  space:/L6/office:lease.category	← 3 L6.muro
   space:/L6/office:name	← 3 L6.muro
-  space:/L6/office:use	← 3 L6.muro
 ```
 
 Circulation expands too. From the top floor to the street, descending five storeys costs no extra doors.

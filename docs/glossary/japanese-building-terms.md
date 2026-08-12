@@ -18,9 +18,9 @@ The output of koyu and the bundled examples use **terms from Japanese architectu
 | 敷地面積 site area | The horizontal projected area of the site | `Site area` from `site`. Derived by the shoelace formula if a `polygon` exists, otherwise as the union of the spaces within the site and the building projection. Write a survey figure in `zone /site … area:` and the two are reconciled |
 | 建蔽率 building coverage ratio | Building footprint ÷ site area. A term of Article 53 of the Japanese Building Standards Act | `site` derives it as `building coverage ratio`. It is never checked against a permitted limit |
 | 容積率 floor area ratio (FAR) | Gross floor area ÷ site area. A term of Article 52 | `site` derives it as `floor area ratio`. Neither the restriction by front-road width nor the exemptions (parking, common corridors) are applied |
-| 専有面積 net (exclusive) floor area | The part a unit owner uses alone | The aggregation of `use:exclusive`. Bundle it in a zone and a dwelling divided into rooms counts as one dwelling alongside one that is not |
-| 共用部 common area | Corridors, stairs, lift lobbies — what everyone uses | The aggregation of `use:common` |
-| レンタブル比 rentable ratio | Lettable area as a share of gross floor area | The percentage for `use:rentable` in the `By use:` line of `stats` |
+| 専有面積 net (exclusive) floor area | The part a unit owner uses alone | The `exclusive` figure on the `By lease.category:` line of `stats --by lease.category`. The key is the author's own — koyu carries it and reads nothing into it. Write it on a zone and a dwelling divided into rooms counts as one dwelling alongside one that is not |
+| 共用部 common area | Corridors, stairs, lift lobbies — what everyone uses | The `common` figure on the same line |
+| レンタブル比 rentable ratio | Lettable area as a share of gross floor area | The percentage beside the `rentable` figure, taken against `Total` |
 | 壁芯 wall centerline | The middle of the wall thickness. Japanese area measurement is based on it | Areas and wall segments are all centerline-based. The thickness `t` is split evenly to either side |
 
 ## Height and section
@@ -57,7 +57,7 @@ The output of koyu and the bundled examples use **terms from Japanese architectu
 | 半屋外 semi-outdoor | A part open to the air but roofed or enclosed (a balcony, an external stair, a terrace) | **Derived, not declared.** A space with a region carrying an `open` or `air:1` boundary with the outside becomes one, drops out of the interior floor area, and is reported separately |
 | 戸境壁 party wall | The wall between two dwellings | Written with the boundary's `spec` and `sound:` (acoustic grade) |
 | 内廊下 interior corridor | A common corridor running inside the building | A `corridor`-typed space. It does not become semi-outdoor unless it faces the outside |
-| 防火区画 fire compartment | A range subdivided to contain a fire | Carried by `fire:` (a fire rating) on the boundary and by the door assets (`fire:特定防火設備` and the like). Whether a compartment is properly formed is not judged |
+| 防火区画 fire compartment | A range subdivided to contain a fire | Carried by `fire:` (a fire rating) on the boundary and by the door assets (`fire:特定防火設備` and the like). Which compartment a room falls in is a key of the author's own, such as `fire.compartment:`. Whether a compartment is properly formed is not judged |
 | バックヤード back of house | The operational part the public does not see | A `backyard`-typed space. Whether a common corridor can reach vertical circulation without passing through one is what `validate` looks at |
 
 ## Vertical circulation

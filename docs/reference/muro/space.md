@@ -39,7 +39,11 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b X1..X2 Y1..Y2
 ```
 
-**koyu never reads the type position.** The word appears in the aggregation axis ([stats](../cli/stats.md) subtotals by type) and in the lettering on a plan, and is the entrance to no verdict. Misspelling it therefore does nothing: write `bedrom` for `bedroom` and you get no error, just one more row under a new type. That is acceptable precisely because no meaning is kept there.
+**The type is the room's purpose** — what the room is for, in whatever word you use for it. Every other division of the building (a tenancy, a fire compartment, a department) is a namespaced [attribute](attributes.md), and a space may carry as many of those as it likes; the purpose is the one thing there is only ever one of.
+
+**core reads no meaning from the type position.** The word appears in the aggregation axis ([stats](../cli/stats.md) subtotals by type) and in the lettering on a plan, and no shape follows from it. Misspelling it produces no error: write `bedrom` for `bedroom` and you get one more row under a new type.
+
+**Judgement may read it.** [`koyu.schematic.access.parking`](../validate/access.md#access-parking) takes its population from the words `parking` and `ramp`, so `parkign` drops that room out of the rule quietly. Nothing guards a free word — which is why the facts of composition are not written here.
 
 Write no type and the canonical form carries no `type` key. **No default word is fabricated.**
 
@@ -103,7 +107,7 @@ An `area` indented under a `space` is an uncounted subdivision of the room: a ch
 If the **first segment** of the path has the form `L3..L10`, the line expands over the declared levels in ascending z. This is how a typical floor is written once.
 
 ```muro-part
-space /L2..L9/B unit X2..X3 Y1..Y2 name:Bタイプ use:exclusive
+space /L2..L9/B unit X2..X3 Y1..Y2 name:Bタイプ lease.category:exclusive
 ```
 
 Several paths on one line must name the same span. Indented `area` lines are attached to every expanded space.
@@ -130,7 +134,6 @@ They fall into three tiers. **Structure** is lifted into typed fields by the par
 | Key | Value | Meaning |
 |---|---|---|
 | `h:` | positive number, mm | Ceiling height. Defaults to the level's `h:`. Read by the height invariant and the section stack-up |
-| `use:` | free word | The aggregation axis (`rentable`, `exclusive`, `common`, …). Inherited from a [zone](zone.md); a declaration on the space wins |
 | `road:` | positive number, mm | The width of an `exterior` space — the mark of a road. `site` derives frontage from it |
 | `daylight:` | `0` / `1` | Declares that the daylight check applies. Only a space with `1` gets `light`'s 1/7 test. Out of scope by default. Not inherited |
 | `ceiling:` | `0` / `1` | `0` hangs no ceiling (an exposed soffit). One is hung by default |
@@ -146,6 +149,7 @@ They fall into three tiers. **Structure** is lifted into typed fields by the par
 | `tread:` | positive number, mm | The target going. Default 300 |
 | `lane:` | positive number, mm | The width of one unit or lane. 1200 by default for an escalator |
 | `slope:` | positive number | The denominator of the permitted ramp gradient (`slope:6` = up to 1/6). A limit for the check, not a gradient to build |
+| `use:` | free word | **Retired after muro 1.2.** A file declaring 1.3 or later that writes it is [VER07](../diagnostics/ver.md#ver07). The room's purpose is the type position; any other division is a namespaced key |
 
 **Values are checked too.** A non-number is [ATT01](../diagnostics/att.md) and a word outside the ledger's set is [ATT02](../diagnostics/att.md) (`daylight` is guarded by [DAY01](../diagnostics/day.md), and `form` and the directions of ascent by the [RUN](../diagnostics/run.md) family). What you wrote and the tool failed to interpret does not fall silently back to the default.
 
@@ -178,7 +182,7 @@ Three worth naming.
 ## daylight — the scope is declared
 
 ```muro
-muro 1.2
+muro 1.3
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150
@@ -229,9 +233,9 @@ Voids, the outside, semi-outdoor spaces and vertical circulation never get a cei
 Stairs, ramps, escalators and lifts are declared with the key that names the device and the direction of ascent. **No riser count, going, landing or gradient is written** — they are derived from the region and the storey height.
 
 ```muro-part
-space /B2..B1/ramp ramp X3..X5 Y1..Y2 name:車路 use:parking ramp:E form:return slope:6
-space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 use:common stair:N form:return
-space /B2..B1/ev shaft X3+2600..X3+5200 Y2..Y2+5400 name:EV use:common lift:1
+space /B2..B1/ramp ramp X3..X5 Y1..Y2 name:車路 ramp:E form:return slope:6
+space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 lease.category:common stair:N form:return
+space /B2..B1/ev shaft X3+2600..X3+5200 Y2..Y2+5400 name:EV lease.category:common lift:1
 ```
 
 ```text
@@ -239,6 +243,10 @@ $ npx tsx src/cli.ts runs examples/basement/main.muro
 B2→B1	lift	EV	/B2/ev
 B2→B1	ramp	車路	rise 3700mm	return	slope 1/7.2	going 26800mm	/B2/ramp
 B2→B1	stair	避難階段	rise 3700mm	return	21 risers of 176mm, tread 300mm	going 6000mm	/B2/st
+B1→L1	lift	EV	/B1/ev
+B1→L1	ramp	車路	rise 3700mm	return	slope 1/7.2	going 26800mm	/B1/ramp
+B1→L1	stair	避難階段	rise 3700mm	return	21 risers of 176mm, tread 300mm	going 6000mm	/B1/st
+L1→R	lift	EV	/L1/ev
 ```
 
 One space carries one device (two is [RUN01](../diagnostics/run.md)), and its region must be a single rectangle. **Which storeys it connects belongs to the vertical [boundary](boundary.md), not to the space** — the device declaration is a rule for generating form, not a topology. The whole set of rules is in [vertical circulation](vertical-circulation.md).

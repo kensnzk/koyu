@@ -121,17 +121,21 @@ L1→L2	stair	S	rise 6900mm	return	39 risers of 177mm, tread 253mm	going 9600mm	
 ## What the rentable ratio really is
 
 - A single-use office **typical floor** runs 70–80% rentable. **Across the whole building it falls to 60–70%** — the ground-floor lobby and the plant floors eat it.
-- A large mixed-use scheme falls further. The bundled `examples/twin/` measures as follows: against 141,448.56 m² of floor area, rentable plus exclusive is 46.8%, and 52.2% of the above-ground part once the car park is set aside.
+- A large mixed-use scheme falls further. The bundled `examples/twin/` measures as follows: against 141,448.56 m² of floor area, rentable plus exclusive is 46.7%, and 52.2% of the above-ground part once the car park is set aside.
+
+The ratio is not a figure koyu keeps. Write which spaces are let and which are common as a `lease.category:` on the space or on the zone above it, then ask [`koyu stats`](../reference/cli/stats.md) to count by that key.
 
 ```text
-$ npx tsx src/cli.ts stats examples/twin/main.muro
+$ npx tsx src/cli.ts stats examples/twin/main.muro --by lease.category
 Total 141448.56 m2 (indoor floor area)
 Outdoor 24911.04 m2 (plazas, open ground and the like — not counted as floor area)
 Semi-outdoor 6534.08 m2 (balconies, external stairs and the like — whether they count is a matter of regulatory detail, so it is reported separately)
-By use: common 60487.47 m2 (42.8%) / parking 14868.00 m2 (10.5%) / rentable 63462.21 m2 (44.9%) / exclusive 2630.88 m2 (1.9%)
+By lease.category: common 60487.47 m2 (42.8%) / (unspecified) 14868.00 m2 (10.5%) / rentable 63462.21 m2 (44.9%) / exclusive 2630.88 m2 (1.9%)
 ```
 
-That is an honest number with two cores, two plant floors, a hall, banqueting and planted roof terraces all piled into `common`.
+(The breakdown by type between those lines is left out.)
+
+That is an honest number with two cores, two plant floors, a hall, banqueting and planted roof terraces all piled into `common`. The car park is neither let nor common, so it carries no `lease.category` and lands in `(unspecified)` rather than being dropped — which is why the areas still add up to Total.
 
 ```text
 $ npx tsx src/cli.ts site examples/twin/main.muro
