@@ -1,0 +1,175 @@
+# 15階建て内廊下型集合住宅 — IFC4比較用
+# 1Fは共用部・設備、2〜15Fは基準階。基準階は8戸/階、合計112戸。
+# 比較のため、住戸内部の間取りは展開せず「住戸」を一つの空間として扱う。
+# 同じ設計内容を後でIFC4として直接記述し、表現量・構造・トークン量を比較する。
+
+muro 1.2
+name 15階建て内廊下型集合住宅
+unit mm
+
+grid X 0 6000 12000 18000 24000 28000
+grid Y 0 7500 10500 18000
+
+level L1 0 h:2800 slab:600
+level L2 3800 h:2400 slab:500
+level L3..L15 6700 pitch:2900 h:2400 slab:500
+level R 44400 slab:600
+
+space /out name:外部 outside:1
+
+# ============ 1階 — 共用部・設備 ============
+space /L1/hall      hall     X1..X3 Y1..Y2 name:エントランスホール use:common
+space /L1/lounge    meeting  X3..X5 Y1..Y2 name:ラウンジ・管理室 use:common
+space /L1/corridor  corridor X1..X5 Y2..Y3 name:共用廊下 use:common
+space /L1/bicycle   bicycle  X1..X3 Y3..Y4 name:駐輪場 use:common
+space /L1/plant     machine  X3..X5 Y3..Y4 name:機械・電気室 use:common
+space /L1/stair     stair    X5..X6 Y1..Y2 name:避難階段 use:common
+space /L1/ev        ev       X5..X6 Y2..Y3 name:EV use:common
+space /L1/ps        shaft    X5..X6 Y3..Y4 name:PS・MB use:common
+
+boundary /L1/hall /L1/lounge t:120 spec:LGS
+  door w:900
+boundary /L1/hall /L1/corridor type:open
+boundary /L1/lounge /L1/corridor t:120 spec:LGS
+  door w:900
+boundary /L1/bicycle /L1/corridor t:180 spec:RC
+  door w:1800 name:駐輪場入口
+boundary /L1/plant /L1/corridor t:180 spec:RC fire:60
+  door w:900
+boundary /L1/bicycle /L1/plant t:180 spec:RC
+boundary /L1/lounge /L1/stair t:180 spec:RC fire:60
+  door w:900 name:階段防火戸
+boundary /L1/corridor /L1/ev t:200 spec:RC
+  door w:900 name:EV扉
+boundary /L1/plant /L1/ps t:180 spec:RC
+boundary /L1/stair /L1/ev t:200 spec:RC
+boundary /L1/ev /L1/ps t:200 spec:RC
+
+boundary /L1/hall /out t:200 spec:EW fire:60
+  door w:1800 edge:S name:エントランス
+  window w:2400 edge:W sill:600
+boundary /L1/lounge /out t:200 spec:EW fire:60
+  window w:3600 edge:S sill:700
+boundary /L1/corridor /out t:200 spec:EW
+  window w:1200 edge:W sill:800
+boundary /L1/bicycle /out t:200 spec:EW
+  door w:1800 edge:W name:駐輪場外部口
+boundary /L1/plant /out t:200 spec:EW fire:60
+boundary /L1/stair /out t:200 spec:EW fire:60
+  door w:900 edge:E name:避難出口
+boundary /L1/ps /out t:200 spec:EW
+
+# ============ 2〜15階 — 基準階 ============
+# 8戸/階。各住戸は45㎡。14層を一度だけ記述する。
+space /L2..L15/A unit X1..X2 Y1..Y2 name:Aタイプ use:exclusive daylight:1
+space /L2..L15/B unit X2..X3 Y1..Y2 name:Bタイプ use:exclusive daylight:1
+space /L2..L15/C unit X3..X4 Y1..Y2 name:Cタイプ use:exclusive daylight:1
+space /L2..L15/D unit X4..X5 Y1..Y2 name:Dタイプ use:exclusive daylight:1
+space /L2..L15/E unit X1..X2 Y3..Y4 name:Eタイプ use:exclusive daylight:1
+space /L2..L15/F unit X2..X3 Y3..Y4 name:Fタイプ use:exclusive daylight:1
+space /L2..L15/G unit X3..X4 Y3..Y4 name:Gタイプ use:exclusive daylight:1
+space /L2..L15/H unit X4..X5 Y3..Y4 name:Hタイプ use:exclusive daylight:1
+space /L2..L15/corridor corridor X1..X5 Y2..Y3 name:内廊下 use:common
+space /L2..L15/stair stair X5..X6 Y1..Y2 name:避難階段 use:common
+space /L2..L15/ev ev X5..X6 Y2..Y3 name:EV use:common
+space /L2..L15/ps shaft X5..X6 Y3..Y4 name:PS・MB use:common
+
+# 南側バルコニー
+space /L2..L15/A-bal balcony X1..X2 Y1-1500..Y1 name:Aバルコニー use:exclusive
+space /L2..L15/B-bal balcony X2..X3 Y1-1500..Y1 name:Bバルコニー use:exclusive
+space /L2..L15/C-bal balcony X3..X4 Y1-1500..Y1 name:Cバルコニー use:exclusive
+space /L2..L15/D-bal balcony X4..X5 Y1-1500..Y1 name:Dバルコニー use:exclusive
+
+# 北側バルコニー
+space /L2..L15/E-bal balcony X1..X2 Y4..Y4+1500 name:Eバルコニー use:exclusive
+space /L2..L15/F-bal balcony X2..X3 Y4..Y4+1500 name:Fバルコニー use:exclusive
+space /L2..L15/G-bal balcony X3..X4 Y4..Y4+1500 name:Gバルコニー use:exclusive
+space /L2..L15/H-bal balcony X4..X5 Y4..Y4+1500 name:Hバルコニー use:exclusive
+
+# --- 住戸間界壁 ---
+boundary /L2..L15/A /L2..L15/B t:180 spec:RC fire:60 sound:D-50
+boundary /L2..L15/B /L2..L15/C t:180 spec:RC fire:60 sound:D-50
+boundary /L2..L15/C /L2..L15/D t:180 spec:RC fire:60 sound:D-50
+boundary /L2..L15/E /L2..L15/F t:180 spec:RC fire:60 sound:D-50
+boundary /L2..L15/F /L2..L15/G t:180 spec:RC fire:60 sound:D-50
+boundary /L2..L15/G /L2..L15/H t:180 spec:RC fire:60 sound:D-50
+
+# --- 住戸と内廊下 ---
+boundary /L2..L15/A /L2..L15/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L15/B /L2..L15/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L15/C /L2..L15/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L15/D /L2..L15/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L15/E /L2..L15/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L15/F /L2..L15/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L15/G /L2..L15/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+boundary /L2..L15/H /L2..L15/corridor t:180 spec:RC fire:60
+  door w:900 name:玄関
+
+# --- コア ---
+boundary /L2..L15/D /L2..L15/stair t:200 spec:RC fire:60
+boundary /L2..L15/H /L2..L15/ps t:180 spec:RC
+boundary /L2..L15/corridor /L2..L15/stair t:200 spec:RC fire:60
+  door w:900 name:階段防火戸
+boundary /L2..L15/corridor /L2..L15/ev t:200 spec:RC
+  door w:900 name:EV扉
+boundary /L2..L15/stair /L2..L15/ev t:200 spec:RC
+boundary /L2..L15/ev /L2..L15/ps t:200 spec:RC
+
+# --- バルコニー側開口 ---
+boundary /L2..L15/A /L2..L15/A-bal t:180 spec:EW
+  door w:1200 h:2200 name:掃き出し戸
+  window w:2400 h:2200 sill:0
+boundary /L2..L15/B /L2..L15/B-bal t:180 spec:EW
+  door w:1200 h:2200 name:掃き出し戸
+  window w:2400 h:2200 sill:0
+boundary /L2..L15/C /L2..L15/C-bal t:180 spec:EW
+  door w:1200 h:2200 name:掃き出し戸
+  window w:2400 h:2200 sill:0
+boundary /L2..L15/D /L2..L15/D-bal t:180 spec:EW
+  door w:1200 h:2200 name:掃き出し戸
+  window w:2400 h:2200 sill:0
+boundary /L2..L15/E /L2..L15/E-bal t:180 spec:EW
+  door w:1200 h:2200 name:掃き出し戸
+  window w:2400 h:2200 sill:0
+boundary /L2..L15/F /L2..L15/F-bal t:180 spec:EW
+  door w:1200 h:2200 name:掃き出し戸
+  window w:2400 h:2200 sill:0
+boundary /L2..L15/G /L2..L15/G-bal t:180 spec:EW
+  door w:1200 h:2200 name:掃き出し戸
+  window w:2400 h:2200 sill:0
+boundary /L2..L15/H /L2..L15/H-bal t:180 spec:EW
+  door w:1200 h:2200 name:掃き出し戸
+  window w:2400 h:2200 sill:0
+
+# バルコニー外周は手すり。air:1により遮蔽しない境界として扱う。
+boundary /L2..L15/A-bal /out t:120 spec:手すり air:1 h:1100
+boundary /L2..L15/B-bal /out t:120 spec:手すり air:1 h:1100
+boundary /L2..L15/C-bal /out t:120 spec:手すり air:1 h:1100
+boundary /L2..L15/D-bal /out t:120 spec:手すり air:1 h:1100
+boundary /L2..L15/E-bal /out t:120 spec:手すり air:1 h:1100
+boundary /L2..L15/F-bal /out t:120 spec:手すり air:1 h:1100
+boundary /L2..L15/G-bal /out t:120 spec:手すり air:1 h:1100
+boundary /L2..L15/H-bal /out t:120 spec:手すり air:1 h:1100
+
+# 残る外周壁。南北面はバルコニー境界が担う。
+boundary /L2..L15/A /out t:180 spec:EW fire:60
+  window w:1200 h:1200 edge:W sill:900
+boundary /L2..L15/E /out t:180 spec:EW fire:60
+  window w:1200 h:1200 edge:W sill:900
+boundary /L2..L15/corridor /out t:180 spec:EW
+  window w:1200 edge:W sill:800 name:廊下突き当り窓
+boundary /L2..L15/stair /out t:180 spec:EW fire:60
+  window w:900 edge:E sill:1200
+boundary /L2..L15/ps /out t:180 spec:EW
+
+# ============ 垂直 ============
+# 床はlevelのslabから導出する。積層する縦動線だけ宣言する。
+stack ev L1..L15 type:shaft
+stack stair L1..L15 type:stair
