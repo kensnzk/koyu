@@ -218,7 +218,7 @@ L1→L2	stair	Stair	rise 4200mm	return	24 risers of 175mm, tread 164mm	going 360
 ⚠ [koyu.schematic.stair.proportion] vert-cramped.muro:line 15: Cramped step: /L1/st — derived tread 164mm, 2×riser+tread 514mm (wants tread ≥ 240mm and pace 550–700mm; deepen the shaft along travel, fold it with form:return, or raise riser:)
 ```
 
-**What you fix is the size of the enclosure, not the size of the step.** [Choose dimensions before you write](choose-dimensions.md) shows how to size the going from the storey height first.
+**What you fix is the size of the enclosure, not the size of the step.** [What koyu derives from the dimensions you write](choose-dimensions.md) varies one enclosure through six depths and prints the step each one produces.
 
 ### Escaping through a shaft
 
@@ -228,4 +228,4 @@ Of all the reasons `doors` says "cannot reach", `shaft` and `void` are the harde
 
 - [Find spaces you cannot reach](find-unreachable.md) — test the route you think you built
 - [Write a typical floor once](typical-floors.md) — when the same core repeats
-- [Choose dimensions before you write](choose-dimensions.md) — real sizes for stairs and shafts
+- [What koyu derives from the dimensions you write](choose-dimensions.md) — what an enclosure size does to the step

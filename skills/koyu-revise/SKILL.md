@@ -1,6 +1,6 @@
 ---
 name: koyu-revise
-description: Change a building that already exists in muro without breaking what was already right — add a room, subdivide a dwelling, widen a corridor, add a storey, record what the site actually built, rename a space without orphaning references. Use this skill whenever someone hands you an existing `.muro` file and asks for a change — "この間取りに書斎を足して", "add a room to this plan", "部屋を分けたい", "make the corridor wider", "as-built を反映して", "rename this space" — and whenever a revision must keep the rest of the description intact. Do NOT use it for writing a building from scratch (that is koyu-design) or for judging whether a plan works (that is koyu-validate).
+description: Change a building that already exists in muro without breaking what was already right — add a room, subdivide a dwelling, widen a corridor, add a storey, record what the site actually built, rename a space without orphaning references. Use this skill whenever someone hands you an existing `.muro` file and asks for a change — "この間取りに書斎を足して", "add a room to this plan", "部屋を分けたい", "make the corridor wider", "as-built を反映して", "rename this space" — and whenever a revision must keep the rest of the description intact. Do NOT use it for writing a building from scratch (that is koyu-author) or for judging whether a plan works (that is koyu-validate).
 ---
 
 # Changing a description that already exists
@@ -78,8 +78,9 @@ must show only what was asked for.
 
 ## Adding a room
 
-1. Put it where it can be reached. Hang it off the circulation hub — the space
-   the entrance and the other rooms already open onto — not off a bedroom.
+1. Decide which existing space it opens onto. The notation does not make that
+   decision for you, and it governs everything below: a space is reachable only
+   through a boundary somebody declared.
 2. Write its region with offsets from an existing grid reference.
 3. **Declare the boundary and put a door on it.** A wall is derived from two
    spaces touching; a door never is. Without the door the room is sealed, and

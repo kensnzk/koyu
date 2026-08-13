@@ -89,18 +89,9 @@ This is easy to get wrong.
 
 **A 2 m-wide lift and a 30 m-deep tenancy both come out green.** They are not contradictions in the composition ([What check guarantees](green-is-not-a-building.md)).
 
-So writing a building that is *plausible* at scheme-design resolution means **taking dimensions from reality**. For reference, a few values taken from Japanese practice and from real products.
+So a description at this resolution is only as plausible as the dimensions written into it, and **those come from somewhere koyu cannot see.** A lift that fits a real machine, a tenancy depth that works, a corridor wide enough for the traffic it carries: each of those follows from the regulations and the building conventions of the place it is being built, which differ by country and change over time. The notation is the same everywhere; the numbers are not, and this repository holds no view on them ([AGENTS.md](https://github.com/kensnzk/koyu/blob/main/AGENTS.md) law 14).
 
-| Element | Value | Basis |
-|---|---|---|
-| basic span, offices and retail | 8,400 | the modal value for large Japanese offices; also divides into three parking bays (2,800 × 3) |
-| lift shaft, 1600 kg class, one car | 2,800 W × 2,400 D | a 2,150 × 1,600 car plus counterweight plus structural allowance |
-| office typical storey height | 4,200 | 2,800 ceiling plus 1,400 void |
-| office tenancy depth (core to window) | 8.4–12.6 m | beyond 18 m both the working environment and the structure break down |
-| hotel guest room | 4,200 wide × 8,400 deep ≈ 35 m² | width is half a span |
-| double-loaded corridor | 2,400 | the standard for hotels and housing |
-
-**Decide the dimensions, then write the spaces.** Do it the other way round and `check` passes but you do not have a building. This is design knowledge, not a norm — **what koyu guards is consistency, not realism.**
+**What koyu guards is consistency, not realism.** That is a division of labour rather than a shortcoming: it lets the same notation carry a building designed under any set of conventions, and it is why the thresholds `validate` does apply are declared as one profile that can be replaced rather than as part of the language.
 
 ## Upstream and downstream
 

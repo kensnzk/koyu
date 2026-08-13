@@ -52,7 +52,13 @@ const INTERNAL = [
   'docs/reviews/',
   'docs/notes/',
 ];
-// Source material for the canonical pages, kept in the repo, not published.
+// Loose .md under docs/ that must not reach the site. This is a DENY-LIST, not
+// an inventory: a name stays here after its file is deleted, because nothing
+// downstream would catch the file coming back. A loose page that is absent from
+// this list is copied to the site and the navigation gate passes — it is
+// reachable, so it counts as published and nothing objects. Of the names below
+// only checklists.md exists as of 0.21; the rest were deleted on 2026-08-10 and
+// are held here so the names cannot be republished by accident.
 const INTERNAL_FILES = [
   'docs/checklists.md',
   'docs/policy.md',

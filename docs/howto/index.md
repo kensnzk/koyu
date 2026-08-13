@@ -24,7 +24,7 @@ Every page has the same three parts: what it assumes, the steps, and how to chec
 | Keep a reference alive across a rename | [Survive a rename](survive-a-rename.md) |
 | Lay measured reality over the plan | [Write as-built](write-as-built.md) |
 | Decide what appears in the area schedule | [Counted and uncounted divisions](uncounted-divisions.md) |
-| Settle dimensions before writing | [Choose dimensions](choose-dimensions.md) |
+| See what a dimension you wrote decides | [What koyu derives from the dimensions you write](choose-dimensions.md) |
 
 ## Running the tools
 
