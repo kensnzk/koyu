@@ -197,7 +197,7 @@ Every `✖` line prints the area required. Reach it by one of:
 - **Enlarge the window, or add more of them.** Effective window area is the sum over every boundary of that space.
 - **If it borrows through a semi-outdoor space, move the window onto a boundary that faces the exterior directly.** The coefficient becomes 1.0.
 - **If the room need not be judged, drop `daylight:1`.** Write `daylight:0` to keep the intent visible.
-- **Make the floor smaller.** One-seventh is a ratio of areas, so a deep room can fail even with glazing across its whole face. [Choose dimensions before you write](choose-dimensions.md) has the rules of thumb.
+- **Make the floor smaller.** One-seventh is a ratio of areas, so a deep room can fail even with glazing across its whole face. [What koyu derives from the dimensions you write](choose-dimensions.md) runs the same window against two depths.
 
 `light` is a rough early warning with no correction factors. It is not a compliance judgement. What it does and does not claim is in [the daylight rule](../reference/validate/daylight.md).
 

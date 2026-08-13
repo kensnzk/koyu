@@ -45,7 +45,7 @@ space /B2..L19/st2 stair X4+21300..X7 Y4..Y5 name:階段2 lease.category:common 
 space /B2..L19/hall corridor X4..X7 Y4-3200..Y4 name:EVホール lease.category:common
 ```
 
-**The lift lobby runs the full width, and the stairs, lavatories, tea point and risers all open directly off it.** Entering the lavatories through the tea point, or the stair through a riser, closes as a plan and fails as a building — and it was the derived drawing that made that visible.
+**The lift lobby runs the full width, and the stairs, lavatories, tea point and risers all open directly off it.** Which space opens onto which stands up only as far as the boundaries were written: two spaces that merely touch have a wall between them and no door is derived. `koyu doors` is what settles whether the arrangement is the one that was meant — the plan alone will not say.
 
 Diagonals appear only where the line is given (the site boundary).
 
@@ -155,7 +155,7 @@ By lease.category: common 12809.44 m2 (40.5%) / (unspecified) 2385.60 m2 (7.5%) 
 
 (The last eight lines.)
 
-A rentable ratio of 51.9% is what you get from carrying the core, the plant level and the back of house honestly. The car park and its ramp are neither let nor common, so they carry no `lease.category` and land in `(unspecified)` — the type position already says `parking` and `ramp`, which is where the by-type lines above count them.
+The 51.9% is derived, not declared: it is what counting by `lease.category` produces once the core, the plant level and the back of house are all in the description. The car park and its ramp are neither let nor common, so they carry no `lease.category` and land in `(unspecified)` — the type position already says `parking` and `ramp`, which is where the by-type lines above count them.
 
 ## Was scale the wall
 

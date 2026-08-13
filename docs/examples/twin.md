@@ -109,7 +109,7 @@ By lease.category: common 60487.47 m2 (42.8%) / (unspecified) 14868.00 m2 (10.5%
 
 (The `Outdoor` line and the breakdown by type are left out.)
 
-`rentable` and `exclusive` together are 66093.09 m2 — 46.7% earning floor area. **A very large mixed-use building has its floor eaten by cores, plant levels, halls and planted terraces.** That figure is not declared; it falls out of counting by `lease.category`. Draw a thinner core and it rises — and then the lavatories and the risers no longer fit.
+`rentable` and `exclusive` together are 66093.09 m2 — 46.7% of the floor area. **That figure is not declared anywhere; it falls out of counting by `lease.category`.** Whether it is a good number for a building of this kind is a question about the design, and koyu has no view on it — what koyu supplies is that the number moves the moment the description does.
 
 `(unspecified)` is the car park, which is neither let nor common and so carries no `lease.category`. Its area is counted like any other, which is why the buckets add up to Total.
 
