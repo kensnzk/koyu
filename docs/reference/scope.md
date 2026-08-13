@@ -100,12 +100,14 @@ Core holds the questions of quantity and graph. **It just never says pass or fai
 | Tier | Examples | How core treats it |
 |---|---|---|
 | **Structural** | path, region, level, the other end of a relation, `kind` | **always read.** If it is broken, nothing is read |
-| **Interpreted** | `h` `use` `daylight` `road` `site` `style` … | the ledger defines the value domain, and core **reads it** |
+| **Interpreted** | `h` `ceiling` `daylight` `road` `site` `style` … | the ledger defines the value domain, and core **reads it** |
 | **Carried** | `acme.sensor` `bems.temp` `survey.measured` … | **not read.** Open, with a namespace |
 
 **The carried tier carries a namespace** (dot-separated). An unknown key without one is **an error** ([ATT03](diagnostics/att.md)) — so that a one-letter slip like `heigh:2400` cannot silently do nothing. That is the only shape in which "not looked at" and "looked at and fine" can be told apart.
 
 Without the declaration, they cannot be told apart, and **"nothing wrong" in that state means nothing. Being able to carry something without judging it is a legitimate state, and saying so explicitly is the condition of that freedom.**
+
+**Not read is not the same as unreachable.** A caller may name a carried key and get the values back grouped — [`koyu stats --by lease.category`](cli/stats.md) totals floor area by that key's effective value. Core forms no opinion even then: it checks no value, derives nothing from one, and groups by equality of the string alone, so it answers the same way for a key it has never seen. What the key means is the caller's, which is why it stays on the list of what is not guaranteed.
 
 ## Neighbouring pages
 

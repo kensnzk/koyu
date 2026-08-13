@@ -9,7 +9,7 @@ import type {
 import { passable } from "../../core/graph.js";
 import {
   canonicalSpaceOrder,
-  effectiveUse,
+  effectiveAttr,
   isOutside,
   isVoid,
   type Boundary,
@@ -101,7 +101,7 @@ export const ACCESS_ANALYSIS: AnalysisDefinition<AccessAnalysisValue> = freezeBu
       .filter((space) =>
         space.type === "corridor"
         && space.rects.length > 0
-        && effectiveUse(coreModel, space) === "common"
+        && leaseCategory(coreModel, space) === "common"
       )
       .map((space) => space.path);
 
@@ -124,13 +124,13 @@ export const ACCESS_ANALYSIS: AnalysisDefinition<AccessAnalysisValue> = freezeBu
       .map((space) => routeObservation(
         space.path,
         findRoute(coreModel, [space.path], exterior, {
-          avoid: (candidate) => effectiveUse(coreModel, candidate) === "rentable",
+          avoid: (candidate) => leaseCategory(coreModel, candidate) === "rentable",
         }),
       ));
 
     const vehicleCanPass = carPassable(coreModel);
     const vehicleExteriorRoutes = spaces
-      .filter((space) => baseAccessPopulation(space) && effectiveUse(coreModel, space) === "parking")
+      .filter((space) => baseAccessPopulation(space) && isVehicleSpace(space))
       .map((space) => routeObservation(
         space.path,
         findRoute(coreModel, [space.path], exterior, { canPass: vehicleCanPass }),
@@ -141,7 +141,7 @@ export const ACCESS_ANALYSIS: AnalysisDefinition<AccessAnalysisValue> = freezeBu
         space.rects.length > 0
         && space.type !== "shaft"
         && (space.attrs["stair"] != null || space.attrs["escalator"] != null)
-        && effectiveUse(coreModel, space) === "common"
+        && leaseCategory(coreModel, space) === "common"
       )
       .map((space) => {
         const horizontalEntry = (boundary: Boundary): boolean =>
@@ -280,7 +280,7 @@ export const ACCESS_PARKING_RULE: Rule = freezeBuiltin<Rule>({
     if (artifact.state !== "complete") return analysisIndeterminate(artifact);
     if (artifact.value.exteriorRefs.length === 0) return notApplicable("No exterior space is declared");
     if (artifact.value.vehicleExteriorRoutes.length === 0) {
-      return notApplicable("No regioned eligible space has effective use parking");
+      return notApplicable("No regioned eligible space is typed parking or ramp");
     }
     const evidenceById = evidenceMap(artifact);
     return applicable(artifact.value.vehicleExteriorRoutes.map((route): RuleOutcome => ({
@@ -476,6 +476,32 @@ function carPassable(model: Model): CanPass {
     }
     return boundary.openings.some((opening) => opening.kind === "door" && opening.w >= CAR_WIDTH_MIN);
   };
+}
+
+/**
+ * The lease division a space falls in, as this rule pack reads it.
+ *
+ * `lease.category` is a carried namespaced key, so core gives it no meaning and nothing guards
+ * its spelling: write `lease.categry:common` and the rules below quietly stop applying to that
+ * space. That is the same exposure the free type words already carry here, and it is a
+ * consequence of judgement living on the face that does not freeze rather than in the language.
+ *
+ * It resolves through the zones above a space, so writing it once on a tenancy zone reaches
+ * every room beneath.
+ */
+function leaseCategory(model: Model, space: Space): string | undefined {
+  const v = effectiveAttr(model, space, "lease.category");
+  return typeof v === "string" ? v : undefined;
+}
+
+/**
+ * Whether cars belong in this space.
+ *
+ * This is the room's purpose, so it is read from the type position rather than from a key.
+ * On the bundled examples it selects exactly the spaces the retired `use:parking` selected.
+ */
+function isVehicleSpace(space: Space): boolean {
+  return space.type === "parking" || space.type === "ramp";
 }
 
 function baseAccessPopulation(space: Space): boolean {

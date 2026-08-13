@@ -28,11 +28,11 @@ mode: explanation
 Eight typical floors start here. `/L2..L9/` expands eight times.
 
 ```muro-part
-zone /L2..L9/A name:Aタイプ use:exclusive
+zone /L2..L9/A name:Aタイプ lease.category:exclusive
 space /L2..L9/A/ldk     ldk     X1+2600..X2 Y1..Y2-1800 + X1..X1+2600 Y1..Y1+1400 name:LDK
 space /L2..L9/A/bedroom bedroom X1..X1+2600 Y1+1400..Y2-1800 name:洋室
 space /L2..L9/A/balcony balcony X1..X2 Y1-1400..Y1 name:バルコニー
-space /L2..L9/B unit X2..X3 Y1..Y2               name:Bタイプ use:exclusive
+space /L2..L9/B unit X2..X3 Y1..Y2               name:Bタイプ lease.category:exclusive
 ```
 
 Vertical circulation is the last two lines.
@@ -99,7 +99,7 @@ The full-height window is 2.6 × 2.2 = 5.72 m². On floors 2 through 8 it counts
 They can. The zone keeps the word "one dwelling".
 
 ```sh
-npx tsx src/cli.ts stats examples/mansion.muro
+npx tsx src/cli.ts stats examples/mansion.muro --by lease.category
 ```
 
 ```text
@@ -121,7 +121,7 @@ The totals at the end read:
 ```text
 Total 2366.40 m2 (indoor floor area)
 Semi-outdoor 162.16 m2 (balconies, external stairs and the like — whether they count is a matter of regulatory detail, so it is reported separately)
-By use: common 662.40 m2 (28.0%) / exclusive 1704.00 m2 (72.0%)
+By lease.category: common 662.40 m2 (28.0%) / exclusive 1704.00 m2 (72.0%)
 ```
 
 The 162.16 m² of semi-outdoor is the balconies and the external stair. **Whether they count is a matter of regulatory detail, so they are never folded into the total.**

@@ -43,6 +43,10 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
   { muro: "1.1", since: "0.17.0", until: null },
   // The version line stops answering to the implementation's name: `muro 1.2`, not `koyu 1.2`.
   { muro: "1.2", since: "0.20.0", until: null },
+  // 1.3 adds no notation. It retires `use`, whose job was never a use — it held one grouping per
+  // space, so tenancy, fire compartment and department all competed for it. VER07 stops it here;
+  // the ledger row stays so that every version up to 1.2 goes on reading it (ADR-0061).
+  { muro: "1.3", since: "0.21.0", until: null },
 ];
 
 /** The word a version line is written with from 1.2 on. */
@@ -69,7 +73,7 @@ export const LAST_KOYU_SPELLED_VERSION = "1.1";
  * `since` column is written in this vocabulary, and every surface that answers "which muro
  * does this build speak" needs both halves at once.
  */
-export const KOYU_VERSION = "0.20.0";
+export const KOYU_VERSION = "0.21.0";
 
 /**
  * Whether `a` names a later language version than `b`.
@@ -846,17 +850,29 @@ export function isIndoor(model: Model, s: Space): boolean {
   return !isSemiOutdoor(model, s);
 }
 
-/** 実効use属性 — 自分に無ければ、最も深いゾーン祖先から継承する */
-export function effectiveUse(model: Model, s: Space): string | undefined {
-  const own = s.attrs["use"];
-  if (typeof own === "string") return own;
-  let best: string | undefined;
+/**
+ * The value a space carries for `key`: its own declaration, else the one on the deepest zone
+ * whose path is a prefix of the space's.
+ *
+ * **The caller names the key, and core forms no opinion about what it means.** That is what
+ * makes this legitimate for a carried namespaced key such as `lease.category`: asking is not
+ * reading. Core still gives the key no meaning, decides nothing by it, and would answer the
+ * same way for a key it has never seen.
+ *
+ * The resolution is the one `use` had before it was retired, with the literal `"use"` moved out
+ * to the caller. Non-string values resolve too — a space that writes `dept.name:2024` now
+ * answers with the number rather than falling through to its zone, which is what was written.
+ */
+export function effectiveAttr(model: Model, s: Space, key: string): AttrValue | undefined {
+  const own = s.attrs[key];
+  if (own !== undefined) return own;
+  let best: AttrValue | undefined;
   let bestLen = -1;
   for (const z of model.zones.values()) {
     if (s.path.startsWith(z.path + "/") && z.path.length > bestLen) {
-      const u = z.attrs["use"];
-      if (typeof u === "string") {
-        best = u;
+      const v = z.attrs[key];
+      if (v !== undefined) {
+        best = v;
         bestLen = z.path.length;
       }
     }

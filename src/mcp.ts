@@ -27,7 +27,7 @@ import {
   areaM2,
   isIndoor,
   displayName,
-  effectiveUse,
+  effectiveAttr,
   isOutside,
   isSemiOutdoor,
   isVoid,
@@ -80,7 +80,7 @@ function assertInside(entryDir: string, targetDir: string): void {
   }
 }
 
-function summarize(model: Model, file: string): unknown {
+function summarize(model: Model, file: string, by: readonly string[] = []): unknown {
   const rooms = [...model.spaces.values()].filter((s) => s.rects.length > 0 && s.level);
   const indoor = rooms.filter((s) => isIndoor(model, s));
   const semi = rooms.filter((s) => !isVoid(s) && isSemiOutdoor(model, s));
@@ -93,10 +93,17 @@ function summarize(model: Model, file: string): unknown {
       subtotalM2: Math.round(rs.reduce((a, s) => a + (areaM2(s) ?? 0), 0) * 100) / 100,
     };
   }
-  const byUse: Record<string, number> = {};
-  for (const s of indoor) {
-    const u = effectiveUse(model, s) ?? "(unspecified)";
-    byUse[u] = Math.round(((byUse[u] ?? 0) + (areaM2(s) ?? 0)) * 100) / 100;
+  // One grouping per key the caller asked for, and none at all when it asked for none.
+  // A default key would put back the single privileged grouping that `use` was.
+  const byM2: Record<string, Record<string, number>> = {};
+  for (const key of by) {
+    const bucket: Record<string, number> = {};
+    for (const s of indoor) {
+      const v = effectiveAttr(model, s, key);
+      const label = v === undefined ? "(unspecified)" : String(v);
+      bucket[label] = Math.round(((bucket[label] ?? 0) + (areaM2(s) ?? 0)) * 100) / 100;
+    }
+    byM2[key] = bucket;
   }
   const r = check(model);
   return {
@@ -145,7 +152,7 @@ function summarize(model: Model, file: string): unknown {
     totalFloorM2: Math.round(indoor.reduce((a, s) => a + (areaM2(s) ?? 0), 0) * 100) / 100,
     semiOutdoorM2: Math.round(semi.reduce((a, s) => a + (areaM2(s) ?? 0), 0) * 100) / 100,
     floorsM2: byLevel,
-    byUseM2: byUse,
+    ...(by.length > 0 ? { byM2 } : {}),
     check: { errors: r.errors.length, warnings: r.warnings.length },
     hint: "Read layer contents with layers, check with check, and edit with write_layer (check is the gatekeeper). Architectural verdicts come from validate.",
   };
@@ -184,14 +191,35 @@ const str = (v: unknown, name: string): string => {
   return v;
 };
 
+/** An optional array of attribute keys. Absent is not the same as empty, but both group nothing. */
+const keys = (v: unknown, name: string): string[] => {
+  if (v === undefined) return [];
+  if (!Array.isArray(v) || v.some((k) => typeof k !== "string" || !k)) {
+    throw new Error(`${name} (an array of attribute keys) must hold non-empty strings`);
+  }
+  return v as string[];
+};
+
 const TOOLS: Record<string, Tool> = {
   model_summary: {
     description:
-      "Summary of the building: name, levels, layer composition, zones, door/window assets, areas, and check counts. Call this first",
-    schema: { type: "object", properties: FILE_PROP, required: ["file"] },
+      "Summary of the building: name, levels, layer composition, zones, door/window assets, areas, and check counts. Call this first. Pass by:[\"lease.category\"] to also get floor area grouped by those attribute keys",
+    schema: {
+      type: "object",
+      properties: {
+        ...FILE_PROP,
+        by: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Attribute keys to group indoor floor area by, e.g. [\"lease.category\"]. A space's own declaration wins, otherwise the deepest zone above it supplies the value; a space with no value falls into \"(unspecified)\". Omit for no grouping — there is no default key",
+        },
+      },
+      required: ["file"],
+    },
     run: (a) => {
       const file = str(a.file, "file");
-      return summarize(load(file), file);
+      return summarize(load(file), file, keys(a.by, "by"));
     },
   },
   check: {

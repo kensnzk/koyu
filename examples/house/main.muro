@@ -4,7 +4,7 @@
 # 合成時にコンフリクト (パス・アセット・グリッドの重複) が検査され、一棟としてビルドされる。
 #   koyu check examples/house/main.muro がそのビルドの門番になる。
 
-muro 1.2
+muro 1.3
 name 小さな戸建住宅
 unit mm
 
@@ -20,7 +20,7 @@ import ./site.muro
 import ./L1.muro
 import ./L2.muro
 
-zone /home name:住戸 use:exclusive
+zone /home name:住戸 lease.category:exclusive
 
 # ---- 垂直: 階を跨ぐ関係は base 層が持つ (内部階段と部分吹抜け) ----
 boundary /home/hall1 /home/hall2 type:stair

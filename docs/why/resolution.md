@@ -37,11 +37,14 @@ Site /site (敷地)
   Total floor area: 4785.92 m2 → floor area ratio 436%
 ```
 
-Areas, totals by use, the ratio of net to common, frontage and coverage and floor area ratios, daylight inputs, circulation measured in doors, riser counts and treads and slopes, where columns stand, holes in the envelope. **Nearly everything decided at scheme design can be answered at this resolution.**
+Areas, totals by any key the spaces carry, the ratio of net to common, frontage and coverage and floor area ratios, daylight inputs, circulation measured in doors, riser counts and treads and slopes, where columns stand, holes in the envelope. **Nearly everything decided at scheme design can be answered at this resolution.**
 
 ```text
-By use: rentable 558.08 m2 (11.7%) / common 1611.52 m2 (33.7%) / exclusive 2616.32 m2 (54.7%)
+$ npx tsx src/cli.ts stats examples/tower/main.muro --by lease.category
+By lease.category: rentable 558.08 m2 (11.7%) / common 1611.52 m2 (33.7%) / exclusive 2616.32 m2 (54.7%)
 ```
+
+(The last line. Which key to count by is the caller's choice — nothing in the notation privileges this one.)
 
 ## What cannot be said at this resolution
 

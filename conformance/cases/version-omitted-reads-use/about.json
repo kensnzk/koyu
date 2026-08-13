@@ -1,0 +1,6 @@
+{
+ "pins": [
+  "docs/reference/muro/version.md"
+ ],
+ "why": "A file with no version line is read as 1.1 and always will be, so retiring use after 1.2 cannot reach it. This is the case that would go red if the ledger row were deleted instead of marked retired, because the ledger check does not read the version."
+}

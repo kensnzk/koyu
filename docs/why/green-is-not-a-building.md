@@ -19,7 +19,7 @@ This page draws that line with a worked example. The exact list of promises is i
 These eleven lines are green.
 
 ```muro
-muro 1.2
+muro 1.3
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:300

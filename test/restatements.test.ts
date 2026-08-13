@@ -383,6 +383,46 @@ const RETIRED_SPELLINGS: readonly { readonly pattern: RegExp; readonly instead: 
   },
 ];
 
+/**
+ * A key the ledger has retired may not be taught as a live one.
+ *
+ * **The muro blocks are already held**: every block in the governed trees declares the newest
+ * version and is composed and checked by `test/guide.test.ts`, so one writing a retired key stops
+ * at VER07. Prose is what nothing held — and prose is what a generator reads when it copies an
+ * attribute list out of a skill, which is how the retired key got written into buildings in the
+ * first place.
+ *
+ * The pages that document the retirement have to spell it to document it, so they are named here.
+ * **Nothing else may.**
+ */
+const RETIREMENT_IS_THE_SUBJECT: readonly string[] = [
+  "docs/reference/diagnostics/ver.md", // the VER07 section, its reproduction and its pasted output
+  "docs/reference/muro/space.md", // the ledger row saying the key is retired
+  "docs/reference/muro/zone.md", // the same row on the other element
+  "skills/koyu-revise/SKILL.md", // the worked example of repairing a file that carries one
+];
+
+test("a key the ledger retired is not taught as a live one", () => {
+  const retired = new Set<string>();
+  for (const keys of Object.values(ATTR_LEDGER)) {
+    for (const [key, spec] of Object.entries(keys)) if (spec.retired) retired.add(key);
+  }
+  assert.ok(retired.size > 0, "the ledger holds no retired key — this scan proves nothing");
+
+  const found: string[] = [];
+  for (const line of LINES) {
+    const where = line.where.split(":")[0]!;
+    if (RETIREMENT_IS_THE_SUBJECT.includes(where)) continue;
+    for (const key of retired) {
+      // Not preceded by a dot or a word character, so `acme.use:` and `misuse:` do not match.
+      if (new RegExp(`(^|[^.\\w-])${key}:`).test(line.text)) {
+        found.push(`${line.where}: ${key}: is retired — write a namespaced key of your own`);
+      }
+    }
+  }
+  assert.deepEqual(found, [], `a retired key is still being taught:\n  ${found.join("\n  ")}`);
+});
+
 test("no retired spelling is still being taught", () => {
   const found: string[] = [];
   for (const line of LINES) {

@@ -27,12 +27,12 @@ before the opening that references it. Boundaries may name spaces declared later
 ## The version line
 
 ```muro
-muro 1.2
+muro 1.3
 ```
 
 Optional. If you write it, it goes in the ENTRY layer only, exactly once — never
-in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2.
-Write `muro 1.2`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
+in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3.
+Write `muro 1.3`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
 and earlier. A file with no version line is read as 1.1 and stays there.
 
 ## grid — the reference lines
@@ -86,10 +86,11 @@ space /out name:Outside outside:1
 - The PATH is identity. `/L1/entry` — the first segment binds the space to the
   declared level `L1`. Segments are single tokens: use [a-z0-9-] (Japanese is
   also fine). Never put `..` or `:` or whitespace in a segment.
-- The TYPE is OPTIONAL and the vocabulary is OPEN: room, ldk, corridor, hall,
-  stair, ev, shaft, wc, office, unit, balcony, garden — any word, or none.
-  **koyu reads no type word at all**: it is a label for aggregation and for the
-  lettering on a plan. Facts of composition are attributes instead — `outside:1`
+- The TYPE is the room's PURPOSE. It is OPTIONAL and the vocabulary is OPEN:
+  room, ldk, corridor, hall, stair, ev, shaft, wc, office, unit, balcony,
+  garden, parking, ramp — any word, or none. **`check` reads no type word at
+  all**; some `validate` rules do, so the purpose written here decides which of
+  them apply. Facts of composition are attributes instead — `outside:1`
   (outside the building; may be split, e.g. /out/road) and `void:1` (an atrium:
   no floor, no area, impassable). Misspell one of those and it is an error
   (ATT03), which is the point of putting them there.
@@ -99,9 +100,17 @@ space /out name:Outside outside:1
   emit them ascending. A region is optional (an `outside:1` space needs none).
 - Never nest two spaces with regions — overlapping regions are a GEO02 error.
   To subdivide, make the parent a `zone` (which has no geometry).
-- Attributes: `name:` `h:` `use:` `daylight:`(0/1) `ceiling:`(0/1) `level:`
-  `uid:` `floor:` `spec:` `stair:`(N/E/S/W) `lift:`(1) and a few more. Any key
-  outside the ledger is an ATT03 error unless it is namespaced (`acme.note:x`).
+- Attributes: `name:` `h:` `daylight:`(0/1) `ceiling:`(0/1) `level:` `uid:`
+  `floor:` `spec:` `stair:`(N/E/S/W) `lift:`(1) and a few more. Any key outside
+  the ledger is an ATT03 error unless it is namespaced (`acme.note:x`).
+- A NAMESPACED key is how every division of the building other than purpose is
+  written — a tenancy `lease.category:common`, a fire compartment
+  `fire.compartment:A`, a department `dept.name:sales`. `check` carries them
+  without reading them (the tenancy rules of `validate` read `lease.category`),
+  a space may carry as many as it likes, and a `zone` passes its own down to
+  everything beneath. `koyu stats --by lease.category` totals the areas by one.
+  There is no privileged key and no default: nothing is grouped unless you name
+  the key.
 
 Minimum useful file — four lines, one room, and it checks green:
 
@@ -195,19 +204,21 @@ The first bare token after `door` is an ASSET NAME, not a label — labels go in
 ## zone — aggregation without geometry
 
 ```muro
-zone /home name:Dwelling use:exclusive
+zone /home name:Dwelling lease.category:exclusive
 zone /site name:Site site:1 area:126.24
 ```
 
 A zone gathers every space whose path starts with its own. It has no region and
-cannot appear in a boundary. Keys: `name:` `use:` `site:`(0/1, one per model)
-`area:`(declared site area in m²) `uid:`.
+cannot appear in a boundary. Keys: `name:` `site:`(0/1, one per model)
+`area:`(declared site area in m²) `uid:`, plus any namespaced key, which every
+space beneath inherits: the space's own declaration wins, otherwise the deepest
+zone above it supplies the value.
 
 ## import — composition, one file per concern
 
 ```muro-part
 # main.muro — the entry
-muro 1.2
+muro 1.3
 name Corner building
 unit mm
 grid X 0 6400 12800

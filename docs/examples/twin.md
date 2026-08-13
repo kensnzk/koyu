@@ -60,14 +60,14 @@ The hotel floors and the residential floors of tower B carry different judgement
 
 ```muro-part
 band X X14..X19 Y6..Y7
-  space /L6..L12/hs01 room w:4200 name:客室S01 use:rentable daylight:0
-  space /L6..L12/hs02 room w:4200 name:客室S02 use:rentable daylight:0
+  space /L6..L12/hs01 room w:4200 name:客室S01 lease.category:rentable daylight:0
+  space /L6..L12/hs02 room w:4200 name:客室S02 lease.category:rentable daylight:0
 ```
 
 ```muro-part
 band X X14..X19 Y6..Y7
-  space /L13..L18/rs01 unit w:8400 name:住戸S01 use:exclusive daylight:1
-  space /L13..L18/rs02 unit w:8400 name:住戸S02 use:exclusive daylight:1
+  space /L13..L18/rs01 unit w:8400 name:住戸S01 lease.category:exclusive daylight:1
+  space /L13..L18/rs02 unit w:8400 name:住戸S02 lease.category:exclusive daylight:1
 ```
 
 The same five-bay band: ten hotel rooms above, five dwellings below. **The `daylight:` values are opposite because whether a room is in scope for daylight changes with its use.**
@@ -75,8 +75,8 @@ The same five-bay band: ten hotel rooms above, five dwellings below. **The `dayl
 The typical office floor of tower A is written twice — the low band and the high band are separated by M2.
 
 ```muro-part
-space /L6..L20/aoff1 room X3..X11 Y6..Y7 name:貸室南 use:rentable
-space /L21..L34/aoff1 room X3..X11 Y6..Y7 name:貸室南 use:rentable
+space /L6..L20/aoff1 room X3..X11 Y6..Y7 name:貸室南 lease.category:rentable
+space /L21..L34/aoff1 room X3..X11 Y6..Y7 name:貸室南 lease.category:rentable
 ```
 
 ![twin L8](../img/twin-L8.svg)
@@ -98,18 +98,20 @@ npx tsx src/cli.ts doors examples/twin/main.muro /L30/aoff1 /road-s
 ### How much of the floor area earns
 
 ```sh
-npx tsx src/cli.ts stats examples/twin/main.muro
+npx tsx src/cli.ts stats examples/twin/main.muro --by lease.category
 ```
 
 ```text
 Total 141448.56 m2 (indoor floor area)
 Semi-outdoor 6534.08 m2 (balconies, external stairs and the like — whether they count is a matter of regulatory detail, so it is reported separately)
-By use: common 60487.47 m2 (42.8%) / parking 14868.00 m2 (10.5%) / rentable 63462.21 m2 (44.9%) / exclusive 2630.88 m2 (1.9%)
+By lease.category: common 60487.47 m2 (42.8%) / (unspecified) 14868.00 m2 (10.5%) / rentable 63462.21 m2 (44.9%) / exclusive 2630.88 m2 (1.9%)
 ```
 
-(The last three lines.)
+(The `Outdoor` line and the breakdown by type are left out.)
 
-`rentable` 44.9% plus `exclusive` 1.9% gives 46.7% earning floor area. **A very large mixed-use building has its floor eaten by cores, plant levels, halls and planted terraces.** That figure is not declared; it falls out of the `use:` aggregation. Draw a thinner core and it rises — and then the lavatories and the risers no longer fit.
+`rentable` and `exclusive` together are 66093.09 m2 — 46.7% earning floor area. **A very large mixed-use building has its floor eaten by cores, plant levels, halls and planted terraces.** That figure is not declared; it falls out of counting by `lease.category`. Draw a thinner core and it rises — and then the lavatories and the risers no longer fit.
+
+`(unspecified)` is the car park, which is neither let nor common and so carries no `lease.category`. Its area is counted like any other, which is why the buckets add up to Total.
 
 ### How is the site read
 

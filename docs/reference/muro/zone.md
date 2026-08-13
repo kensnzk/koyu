@@ -6,7 +6,7 @@ mode: reference
 # zone — the counted aggregation
 
 ```muro-part
-zone /L3..L10/A name:Aタイプ use:exclusive
+zone /L3..L10/A name:Aタイプ lease.category:exclusive
 zone /site name:敷地 site:1 area:1097.80
 ```
 
@@ -22,13 +22,13 @@ Beneath the zone `/L1/A` is every space whose path begins `/L1/A/`. A space at t
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
-zone /L1/A name:Aタイプ use:exclusive
+zone /L1/A name:Aタイプ lease.category:exclusive
 space /L1/A/ldk ldk X1..X2 Y1..Y2
-space /L1/A/room room X2..X3 Y1..Y2 use:common
+space /L1/A/room room X2..X3 Y1..Y2 lease.category:common
 ```
 
 ```text
-$ npx tsx src/cli.ts stats z2.muro
+$ npx tsx src/cli.ts stats z2.muro --by lease.category
 L1
   /L1/A/ldk	ldk	ldk	14.40 m2
   /L1/A/room	room	room	14.40 m2
@@ -38,10 +38,12 @@ By zone (counted aggregation):
   /L1/A	Aタイプ	28.80 m2
   ldk: 14.40 m2
   room: 14.40 m2
-By use: exclusive 14.40 m2 (50.0%) / common 14.40 m2 (50.0%)
+By lease.category: exclusive 14.40 m2 (50.0%) / common 14.40 m2 (50.0%)
 ```
 
-`use:` is inherited by everything beneath, and **a declaration on the space wins**. Above, `/L1/A/ldk` inherits `exclusive` from the zone while `/L1/A/room` keeps the `common` it wrote itself. Where zones nest, the deepest zone is the source of inheritance.
+**A namespaced key not written on the space is taken from the deepest zone above it that carries it.** Above, `/L1/A/ldk` takes `lease.category:exclusive` from the zone while `/L1/A/room` keeps the `common` it wrote itself.
+
+A zone carries as many such keys as you write on it, and none of them crowds out the others. The `By lease.category:` line appears only because `--by` asked for that key; [stats](../cli/stats.md) groups by no key of its own.
 
 ## To divide into rooms, make the parent a zone
 
@@ -63,15 +65,15 @@ Rewrite `space /L1/A unit X1..X3 Y1..Y2` as `zone /L1/A name:Aタイプ` and it 
 
 ## The attributes
 
-Five keys may be written on a zone, plus any namespaced key containing a dot. A key in neither category is the error [ATT03](../diagnostics/att.md).
+The keys writable on a zone are the ones listed here, plus any namespaced key containing a dot. A key in neither category is the error [ATT03](../diagnostics/att.md). A division of the building — a tenancy, a fire compartment, a department — is written as a namespaced key.
 
 | Key | Value | Meaning |
 |---|---|---|
 | `name:` | free word | Display name, shown in listings and totals |
-| `use:` | free word | The aggregation axis. Inherited by the spaces beneath; a declaration on the space wins |
 | `site:` | `0` / `1` | The mark of the site. The zone with `1` is what `site` asks about. One per model |
 | `area:` | positive number, m² | The declared site area (a survey figure). Reconciled against the derived area |
 | `uid:` | opaque token | Persistent identity across renames. Digits alone, or whitespace, is an error. Unique across the whole model, spanning space and zone |
+| `use:` | free word | **Retired after muro 1.2.** A file declaring 1.3 or later that writes it is [VER07](../diagnostics/ver.md#ver07) |
 
 `road:` belongs to the `exterior` space that is the road, not to a zone. On a zone it is stopped.
 
@@ -84,7 +86,7 @@ Five keys may be written on a zone, plus any namespaced key containing a dot. A 
 The zone carrying `site:1` is the site. Site area, road frontage, building coverage and floor area ratio are all derived starting from it.
 
 ```muro
-muro 1.2
+muro 1.3
 grid X 0 12000
 grid Y 0 10000
 level L1 0 h:3000 slab:200
@@ -116,7 +118,7 @@ Three things to read in that.
 If the first segment of the path has the form `L3..L10`, it expands over the declared levels in ascending z, exactly as for a [space](space.md). This is how the same zone is placed on every typical floor.
 
 ```muro-part
-zone /L3..L10/A name:Aタイプ use:exclusive
+zone /L3..L10/A name:Aタイプ lease.category:exclusive
 ```
 
 ## Diagnostics

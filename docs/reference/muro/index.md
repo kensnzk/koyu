@@ -26,7 +26,7 @@ A line that starts flush is a declaration in its own right.
 | [`band X X1..X3 Y1..Y2`](band.md) | a band — divides by dimension and order rather than by position. Members are indented `space` lines |
 | [`boundary /L5/A/hall /L5/corridor`](boundary.md) | **a boundary** — the relation joining two spaces. A wall is a relation, not a thing |
 | [`stack ev L1..L11 type:shaft`](stack.md) | a vertical stack, declared at once. Puts a vertical boundary on each consecutive pair of levels |
-| [`zone /L3..L10/A use:exclusive`](zone.md) | a counted aggregation. No geometry; gathers the spaces under a path prefix |
+| [`zone /L3..L10/A lease.category:exclusive`](zone.md) | a counted aggregation. No geometry; gathers the spaces under a path prefix |
 | [`asset SD1 door w:800 h:2000`](asset.md) | a door asset — the bundle of defaults an opening refers to |
 | [`polygon /site -2600,-7000 …`](polygon.md) | the site shape. **The only line that writes a shape from free vertices off the grid** |
 | [`origin epsg:6677 easting:… northing:…`](origin.md) | where the model's `(0,0,0)` sits in a coordinate reference system. **In metres.** Once |

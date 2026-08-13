@@ -1,0 +1,8 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/ver.md",
+  "docs/reference/muro/attributes.md",
+  "docs/reference/diagnostics/reading.md"
+ ],
+ "why": "use is retired after muro 1.2, so a file declaring 1.3 may not write it. One diagnostic per written declaration: the space and the zone each carry use: and each gets one, while /L1/A/ldk inherits the zone's value and gets none — inheritance is not a written declaration. The two come out space before zone, which is the order of the scan and not the order of the lines: the space is on line 7 and the zone on line 5."
+}

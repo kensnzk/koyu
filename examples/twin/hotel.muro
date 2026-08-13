@@ -6,22 +6,22 @@
 # **客室に daylight:1 は書かない。**採光 (法28条) の対象は令19条の列挙で決まり、
 # 旅館・ホテルは無い。同じ板の上のレジデンス (L13〜) には書く — 判断は用途で変わる。
 
-space /L6..L12/corr corridor X14..X19 Y7..Y7+2400 name:客室廊下 use:common
+space /L6..L12/corr corridor X14..X19 Y7..Y7+2400 name:客室廊下 lease.category:common
 band X X14..X19 Y6..Y7
-  space /L6..L12/hs01 room w:4200 name:客室S01 use:rentable daylight:0
-  space /L6..L12/hs02 room w:4200 name:客室S02 use:rentable daylight:0
-  space /L6..L12/hs03 room w:4200 name:客室S03 use:rentable daylight:0
-  space /L6..L12/hs04 room w:4200 name:客室S04 use:rentable daylight:0
-  space /L6..L12/hs05 room w:4200 name:客室S05 use:rentable daylight:0
-  space /L6..L12/hs06 room w:4200 name:客室S06 use:rentable daylight:0
-  space /L6..L12/hs07 room w:4200 name:客室S07 use:rentable daylight:0
-  space /L6..L12/hs08 room w:4200 name:客室S08 use:rentable daylight:0
-  space /L6..L12/hs09 room w:4200 name:客室S09 use:rentable daylight:0
-  space /L6..L12/hs10 room w:rest name:客室S10 use:rentable daylight:0
-space /L6..L12/hn01 room X14..X14+4700 Y7+2400..Y8+4200 name:客室N01 use:rentable daylight:0
-space /L6..L12/hn02 room X14+4700..X15+900 Y7+2400..Y8+4200 name:客室N02 use:rentable daylight:0
-space /L6..L12/hn03 room X15+900..X15+5600 Y7+2400..Y8+4200 name:客室N03 use:rentable daylight:0
-space /L6..L12/hn04 room X18..X19 Y7+2400..Y8+4200 name:客室N04スイート use:rentable daylight:0
+  space /L6..L12/hs01 room w:4200 name:客室S01 lease.category:rentable daylight:0
+  space /L6..L12/hs02 room w:4200 name:客室S02 lease.category:rentable daylight:0
+  space /L6..L12/hs03 room w:4200 name:客室S03 lease.category:rentable daylight:0
+  space /L6..L12/hs04 room w:4200 name:客室S04 lease.category:rentable daylight:0
+  space /L6..L12/hs05 room w:4200 name:客室S05 lease.category:rentable daylight:0
+  space /L6..L12/hs06 room w:4200 name:客室S06 lease.category:rentable daylight:0
+  space /L6..L12/hs07 room w:4200 name:客室S07 lease.category:rentable daylight:0
+  space /L6..L12/hs08 room w:4200 name:客室S08 lease.category:rentable daylight:0
+  space /L6..L12/hs09 room w:4200 name:客室S09 lease.category:rentable daylight:0
+  space /L6..L12/hs10 room w:rest name:客室S10 lease.category:rentable daylight:0
+space /L6..L12/hn01 room X14..X14+4700 Y7+2400..Y8+4200 name:客室N01 lease.category:rentable daylight:0
+space /L6..L12/hn02 room X14+4700..X15+900 Y7+2400..Y8+4200 name:客室N02 lease.category:rentable daylight:0
+space /L6..L12/hn03 room X15+900..X15+5600 Y7+2400..Y8+4200 name:客室N03 lease.category:rentable daylight:0
+space /L6..L12/hn04 room X18..X19 Y7+2400..Y8+4200 name:客室N04スイート lease.category:rentable daylight:0
 
 boundary /L6..L12/corr /L6..L12/bhall2 type:open
 boundary /L6..L12/corr /L6..L12/bslob t:180 spec:LGS

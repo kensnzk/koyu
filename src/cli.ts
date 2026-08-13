@@ -25,7 +25,7 @@ import { siteReport } from "./core/site.js";
 import {
   areaM2,
   displayName,
-  effectiveUse,
+  effectiveAttr,
   heff,
   isSemiOutdoor,
   levelsSorted,
@@ -93,6 +93,24 @@ function opt(rest: string[], ...names: string[]): string | undefined {
     if (i >= 0 && rest[i + 1]) return rest[i + 1];
   }
   return undefined;
+}
+
+/**
+ * A repeatable option, in written order.
+ *
+ * **A missing value is the caller's mistake, not an empty result.** `--by` with nothing after it
+ * used to be indistinguishable from no `--by` at all, which would report "grouped by nothing"
+ * while looking like it had grouped.
+ */
+function optAll(rest: string[], name: string): string[] {
+  const found: string[] = [];
+  for (let i = 0; i < rest.length; i++) {
+    if (rest[i] !== name) continue;
+    const v = rest[i + 1];
+    if (v === undefined || v.startsWith("-")) die(`${name} takes an attribute key: ${name} lease.category`);
+    found.push(v);
+  }
+  return found;
 }
 
 /**
@@ -410,7 +428,10 @@ function main(argv: string[]): number {
       const spaces = [...model.spaces.values()];
       let total = 0;
       const byType = new Map<string, number>();
-      const byUse = new Map<string, number>();
+      // One grouping per --by, in the order they were written, and none at all without one.
+      // A default key would put back the single privileged grouping that `use` was (ADR-0061).
+      const byKey = optAll(rest, "--by");
+      const grouped = new Map<string, Map<string, number>>(byKey.map((k) => [k, new Map()]));
       let semiTotal = 0;
       let outdoorTotal = 0;
       for (const l of levels) {
@@ -442,8 +463,13 @@ function main(argv: string[]): number {
           // "(untyped)" は集計の見出しであって、その空間の型ではない (mcp の "(unspecified)" と同じ構え)
           const label = s.type ?? "(untyped)";
           byType.set(label, (byType.get(label) ?? 0) + a);
-          const use = effectiveUse(model, s);
-          if (use) byUse.set(use, (byUse.get(use) ?? 0) + a);
+          for (const [key, bucket] of grouped) {
+            const v = effectiveAttr(model, s, key);
+            // A space that carries no value gets a heading rather than being dropped, so the
+            // buckets add up to Total and a gap in the description is visible instead of silent.
+            const b = v === undefined ? "(unspecified)" : String(v);
+            bucket.set(b, (bucket.get(b) ?? 0) + a);
+          }
           console.log(`  ${s.path}\t${displayName(s)}\t${label}\t${a.toFixed(2)} m2`);
         }
         console.log(`  Subtotal ${sub.toFixed(2)} m2`);
@@ -466,11 +492,11 @@ function main(argv: string[]): number {
         }
       }
       for (const [t, a] of byType) console.log(`  ${t}: ${a.toFixed(2)} m2`);
-      if (byUse.size > 0) {
-        const parts = [...byUse.entries()].map(
-          ([u, a]) => `${u} ${a.toFixed(2)} m2 (${((a / total) * 100).toFixed(1)}%)`,
+      for (const [key, bucket] of grouped) {
+        const parts = [...bucket.entries()].map(
+          ([v, a]) => `${v} ${a.toFixed(2)} m2 (${((a / total) * 100).toFixed(1)}%)`,
         );
-        console.log(`By use: ${parts.join(" / ")}`);
+        console.log(`By ${key}: ${parts.join(" / ")}`);
       }
       return 0;
     }

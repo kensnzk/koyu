@@ -21,7 +21,7 @@ mode: explanation
 ## The whole file
 
 ```muro
-muro 1.2
+muro 1.3
 name 二室
 unit mm
 

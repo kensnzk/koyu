@@ -18,7 +18,7 @@ An `area` is not a room. **It appears in no area total, no room count and no gra
 
 - Gross floor area comes from the parent space's region. No number of `area` lines raises or lowers it.
 - Adjacency and passage belong to the parent space. An `area` cannot carry a [boundary](boundary.md), and no door or window can be placed on one.
-- It appears in neither the zone totals nor the `use` totals.
+- It appears in neither the zone totals nor any [`stats --by`](../cli/stats.md) grouping.
 
 A region and overriding attributes are all it can hold, and that is the whole of it. The moment you want to count what you are dividing, the answer is not an `area` but two `space` lines — make the parent a [zone](zone.md) and put spaces with regions beneath it.
 
@@ -61,10 +61,10 @@ Three keys may be written on an `area`, plus any namespaced key containing a dot
 | `spec:` | carry | The name of the thing. Carried, never interpreted |
 | `<namespace>.<key>:` | carry | Anyone may write a dotted key, and core gives its content no meaning at all |
 
-Neither `use:` nor `h:` nor `daylight:` can be written. An `area` is not a room, so it does not carry a room's attributes.
+Neither `h:` nor `daylight:` can be written. An `area` is not a room, so it does not carry a room's attributes.
 
 ```text
-✖ ar.muro:line 5: area (/L1/a) carries use:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.use:common)
+✖ ar.muro:line 5: area (/L1/a) carries daylight:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.daylight:1)
 ```
 
 ### The name is the identity

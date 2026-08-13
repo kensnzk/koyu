@@ -59,7 +59,7 @@ The cut merges the allocations inside the window and then redivides them across 
 **Which side to keep is not written.** Every convex piece touching the window is measured whole, and the side with the greater area is kept. For an envelope cut, the bias of the side that has a region is the side kept. For two spaces, both biases are taken, and if exactly one of them is zero, the opposite of the other is used.
 
 ```muro
-muro 1.2
+muro 1.3
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -97,7 +97,7 @@ It is not recomputed later because by then the form has **already been cut**, an
 A line tracing the default adjacency line cuts nothing.
 
 ```muro-warn
-muro 1.2
+muro 1.3
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -115,7 +115,7 @@ boundary /L1/a /out t:150
 A line across the diagonal of a square leaves equal areas either side, so no side can be chosen.
 
 ```muro-bad
-muro 1.2
+muro 1.3
 unit mm
 grid X 0 6000
 grid Y 0 6000

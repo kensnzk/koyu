@@ -98,7 +98,7 @@ The rules of the notation itself are in the [notation reference](../reference/mu
 |---|---|---|
 | Whether the composition is broken | [`check`](../reference/cli/check.md) | Every example |
 | Whether anything is architecturally wrong | [`validate`](../reference/cli/validate.md) | Every example |
-| Areas and the split by use | [`stats`](../reference/cli/stats.md) | [office](office.md) / [twin](twin.md) |
+| Areas, and the split by a carried key | [`stats`](../reference/cli/stats.md) | [office](office.md) / [twin](twin.md) |
 | How many doors to get outside | [`doors`](../reference/cli/doors.md) | [two-rooms](two-rooms.md) / [mansion](mansion.md) |
 | The adjacency as a whole | [`graph`](../reference/cli/graph.md) | [two-rooms](two-rooms.md) |
 | The section stack-up | [`levels`](../reference/cli/levels.md) | [office](office.md) / [basement](basement.md) |

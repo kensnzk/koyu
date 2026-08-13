@@ -73,14 +73,14 @@ npx tsx src/cli.ts --version
 ```
 
 ```text
-koyu 0.20.0 — reads muro 0.1–1.2 (newest 1.2; a file with no version line is read as 1.1)
+koyu 0.21.0 — reads muro 0.1–1.3 (newest 1.3; a file with no version line is read as 1.1)
 ```
 
 The exit code is `0` — it is an answer, not a calling mistake.
 
-**Read it as three facts, and note that the last two are separate.** `0.20.0` is this implementation. `reads muro 0.1–1.2` is every language version it accepts, so a file declaring one of those opens here. `newest` is the version to declare to get everything the language has.
+**Read it as three facts, and note that the last two are separate.** The first number is this implementation. `reads` is every language version it accepts, so a file declaring one of those opens here. `newest` is the version to declare to get everything the language has.
 
-`a file with no version line is read as 1.1` is **frozen** and does not follow `newest` ([the version line](../muro/version.md)). Since 1.2 they no longer agree, and that gap is the fact a reader most needs: an old file that names no version does not quietly become a 1.2 file.
+`a file with no version line is read as 1.1` is **frozen** and does not follow `newest` ([the version line](../muro/version.md)). They no longer agree, and that gap is the fact a reader most needs: an old file that names no version does not quietly become a file at the newest version.
 
 When a file will not open because it declares something newer, this line is what tells you the file is fine and the tool is behind.
 
@@ -126,7 +126,7 @@ Unknown command: frobnicate
 | [`axo`](axo.md) | The axonometric (SVG) | `-o` `-d` `-l` `-s` `--no-walls` `--ceilings` | 0 / 1 / 2 |
 | [`doors`](doors.md) | How many doors from here to there | — | 0 / 1 / 2 |
 | [`graph`](graph.md) | What is this space next to, and how | — | 0 / 1 |
-| [`stats`](stats.md) | What are the areas | — | 0 / 1 |
+| [`stats`](stats.md) | What are the areas | `--by` | 0 / 1 / 2 |
 | [`levels`](levels.md) | How do the heights stack up | — | 0 / 1 |
 | [`runs`](runs.md) | How was the vertical circulation derived | — | 0 / 1 |
 | [`light`](light.md) | Do the rooms in daylight scope meet 1/7 | — | 0 / 1 |

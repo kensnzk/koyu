@@ -29,7 +29,7 @@ const cases: SurfaceCase[] = [
       "areaM2",
       "DEFAULT_LANGUAGE_VERSION",
       "displayName",
-      "effectiveUse",
+      "effectiveAttr",
       "heff",
       "isCoveredAbove",
       "isIndoor",

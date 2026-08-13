@@ -35,10 +35,10 @@ column 800 B2..L1
 The two basement levels. The same layout is written once as `/B2..B1/`.
 
 ```muro-part
-space /B2..B1/park parking X1..X3 Y1..Y3 name:駐車場 use:parking
-space /B2..B1/ramp ramp X3..X5 Y1..Y2 name:車路 use:parking ramp:E form:return slope:6
-space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 use:common stair:N form:return
-space /B2..B1/ev shaft X3+2600..X3+5200 Y2..Y2+5400 name:EV use:common lift:1
+space /B2..B1/park parking X1..X3 Y1..Y3 name:駐車場
+space /B2..B1/ramp ramp X3..X5 Y1..Y2 name:車路 ramp:E form:return slope:6
+space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 lease.category:common stair:N form:return
+space /B2..B1/ev shaft X3+2600..X3+5200 Y2..Y2+5400 name:EV lease.category:common lift:1
 ```
 
 `ramp:E` is "a ramp rising east", `stair:N` is "a stair rising north", `lift:1` is "a lift". `form:return` makes it a scissor arrangement. **Those four words are the whole of vertical circulation in this notation.**

@@ -24,7 +24,7 @@ import { join, relative } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { checkDiagnostics } from "../src/core/diagnose.js";
-import { isIndoor } from "../src/core/model.js";
+import { effectiveAttr, isIndoor, SUPPORTED_LANGUAGE_VERSIONS } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
 import { ATTR_LEDGER, attrSpec } from "../src/core/vocabulary.js";
 
@@ -190,4 +190,56 @@ test("vocabulary: raising the version is the other way out, and it silences all 
     parse(LEGACY.replace("koyu 1.0", "koyu 1.1")),
   ).filter((d) => d.code === "VER05");
   assert.deepEqual(raised, [], "a 1.1 file may spell exterior in the type position — it is just a label there");
+});
+
+// A retired key: the row stays so the old reading survives, and VER07 stops the new one.
+//
+// Deleting the row instead would be the tempting move and it is the one that breaks the promise.
+// `checkAttrValues` reads `attrSpec` and never sees `model.version`, so a missing row is ATT03 at
+// every version at once — a muro 1.1 file would start failing for a word 1.1 legitimately has.
+// The last two tests here are the ones that would go red if someone did that.
+
+const WITH_USE = (version: string) => `${version}grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+zone /L1/A name:A use:exclusive
+space /L1/A/ldk ldk X1..X2 Y1..Y2 name:LDK
+space /L1/A/hall hall X2..X3 Y1..Y2 name:Hall use:common
+`;
+
+test("vocabulary: every retired key names a version the ledger knows", () => {
+  // `olderThan` compares by index and `indexOf` returns -1 for a version it has never heard of,
+  // which would make the guard true at every version. A typo here would retire the key retroactively.
+  const bad: string[] = [];
+  for (const [elem, keys] of Object.entries(ATTR_LEDGER)) {
+    for (const [key, spec] of Object.entries(keys)) {
+      if (spec.retired && !SUPPORTED_LANGUAGE_VERSIONS.includes(spec.retired.after)) {
+        bad.push(`${elem}.${key}: retired after ${spec.retired.after}`);
+      }
+    }
+  }
+  assert.deepEqual(bad, [], "a retired key names a version outside SUPPORTED_LANGUAGE_VERSIONS");
+});
+
+test("vocabulary: a file past the retiring version is refused, once per written declaration", () => {
+  const d = checkDiagnostics(parse(WITH_USE("muro 1.3\n"))).filter((x) => x.code === "VER07");
+  assert.equal(d.length, 2, "the space and the zone each wrote it; the space that inherits did not");
+  assert.deepEqual([...new Set(d.map((x) => x.severity))], ["error"]);
+  // Both ways out are in the message, because either one is a real answer.
+  assert.match(d[0]!.message, /Write a namespaced key of your own/);
+  assert.match(d[0]!.message, /or keep the file at muro 1\.2/);
+});
+
+test("vocabulary: the version it was retired after still reads it, and so does an undeclared file", () => {
+  for (const version of ["muro 1.2\n", "koyu 1.1\n", ""]) {
+    const m = parse(WITH_USE(version));
+    assert.deepEqual(
+      checkDiagnostics(m).filter((d) => d.code === "VER07"),
+      [],
+      `${version.trim() || "undeclared"} may write a key retired after 1.2`,
+    );
+    // and it still means what it meant — the zone hands its value down
+    assert.equal(effectiveAttr(m, m.spaces.get("/L1/A/ldk")!, "use"), "exclusive");
+    assert.equal(effectiveAttr(m, m.spaces.get("/L1/A/hall")!, "use"), "common");
+  }
 });

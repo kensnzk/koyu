@@ -2,11 +2,11 @@
 #
 # 重厚な複合建築の断面には、用途の層と層の間に「使わない階」がある。空調機・受変電・
 # 受水槽が集まるこの階は、賃貸面積にも居室にも数えられないが、床面積には数えられる。
-# use:common がそれを言い、daylight を書かないことで採光の判定からも外れる。
+# lease.category:common がそれを言い、daylight を書かないことで採光の判定からも外れる。
 
-space /L6/ahu machine X1..X4 Y2..Y5 name:空調機械室 use:common
-space /L6/elec machine X4..X7 Y2..Y4-3200 name:電気室・受変電 use:common
-space /L6/tank machine X7..X8 Y2..Y5 name:受水槽・ポンプ室 use:common
+space /L6/ahu machine X1..X4 Y2..Y5 name:空調機械室 lease.category:common
+space /L6/elec machine X4..X7 Y2..Y4-3200 name:電気室・受変電 lease.category:common
+space /L6/tank machine X7..X8 Y2..Y5 name:受水槽・ポンプ室 lease.category:common
 
 boundary /L6/ahu /L6/elec t:250 spec:RC
   door MD1

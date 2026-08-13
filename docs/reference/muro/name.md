@@ -100,7 +100,7 @@ A decimal such as `0.1` may appear in a length, but the offset in a [grid refere
 Neither line is indented. `name` and `unit` may sit anywhere among the other declarations, but `grid` and `level` have to precede their **use**, which in practice fixes the opening of a file to this order.
 
 ```muro-part
-muro 1.2
+muro 1.3
 name 街角の複合ビル
 unit mm
 grid X 0 6400 12800

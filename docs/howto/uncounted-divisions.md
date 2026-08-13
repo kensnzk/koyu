@@ -23,7 +23,7 @@ If either is yes, it is a **counted division** — write two spaces. If both are
 | How it is written | Area schedule | Circulation graph | What it carries |
 |---|---|---|---|
 | Two [`space`](../reference/muro/space.md) lines | **A row each** | **An edge** | Region, type, every attribute |
-| [`zone`](../reference/muro/zone.md) | One row, the sum of its members | None (it has no geometry) | Aggregation and an inherited `use:` |
+| [`zone`](../reference/muro/zone.md) | One row, the sum of its members | None (it has no geometry) | Aggregation, and attributes its members inherit (`lease.category:` and the like) |
 | [`area`](../reference/muro/area.md) (inside a space) | **None** | None | An extent plus `name:` `floor:` `spec:` |
 | [`seg`](../reference/muro/seg.md) (on a boundary) | **None** | None (it puts no hole in the wall) | A run, and attribute overrides on it |
 
@@ -34,7 +34,7 @@ If either is yes, it is a **counted division** — write two spaces. If both are
 Write the threshold as an extent inside the office. While we are here, write the fact that only part of the exterior wall is a curtain wall, with a `seg`.
 
 ```muro
-muro 1.2
+muro 1.3
 name 数えない分節
 unit mm
 
@@ -82,7 +82,7 @@ The threshold is absent from the graph too. The office is one node, with one doo
 The same building, with the threshold and the working floor as separate spaces. **The parent is a `zone`, not a `space`** — a space with a region under another space with a region always overlaps.
 
 ```muro
-muro 1.2
+muro 1.3
 name 数える分節
 unit mm
 
@@ -143,10 +143,10 @@ That is what "dividing makes circulation a question" amounts to. Do not divide a
 
 An `area` is not a room, so **it has none of a room's attributes.**
 
-The writable keys are `name:`, `floor:`, `spec:`, and namespaced keys containing a dot. `use:`, `h:` and `daylight:` cannot be written.
+The writable keys are `name:`, `floor:`, `spec:`, and namespaced keys containing a dot. Room attributes such as `h:` and `daylight:` cannot be written. Add `h:2200` to the `area` line above and `check` refuses it.
 
 ```text
-✖ ar.muro:line 5: area (/L1/a) carries use:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.use:common)
+✖ ar.muro:line 11: area (/L1/office) carries h:, which is not in the ledger (check the spelling, or add a namespace if the value is only carried — e.g. acme.h:2200)
 ```
 
 Three more limits.
@@ -190,7 +190,7 @@ Either way the change shows up in the [canonical JSON](../reference/json/index.m
 | Only part of a wall has a different spec or fire rating | `seg` |
 | You want a row in the area schedule | Two `space` lines |
 | You want to ask whether it can be walked through | Two `space` lines |
-| You want the `use:` totals split | Two `space` lines |
+| You want the `lease.category:` totals split | Two `space` lines |
 | The ceiling height differs | Two `space` lines (`h:` is a room attribute) |
 | You want a separate daylight judgement | Two `space` lines (`daylight:` is a room attribute) |
 | A grouping with no shape — a dwelling unit, a department, the site | `zone` |

@@ -1,19 +1,19 @@
 # 1階の層 — 商業と共用部。低層部は塔状部より南へ4.6m張り出す。
 # 店舗前面は自動ドア (アセットAD1 — 平面は引き戸系の表現)、位置は通り芯基準の明示。
 
-space /L1/s1 shop X1..X3 Y1-4600..Y2 + X3..X4 Y1-4600..Y1 name:店舗1 use:rentable floor:モルタル
+space /L1/s1 shop X1..X3 Y1-4600..Y2 + X3..X4 Y1-4600..Y1 name:店舗1 lease.category:rentable floor:モルタル
   area X1..X2 Y1-4600..Y1-2600 name:土間 floor:タイル
-space /L1/s2 shop X4..X5 Y1-4600..Y2 name:店舗2 use:rentable
-space /L1/hall lobby X5..X6 Y1-4600..Y2 h:7000 name:エントランスホール use:common floor:タイル
-space /L1/back backyard X3..X4 Y1..Y2 name:荷解き・倉庫 use:common
-space /L1/corridor corridor X1..X6 Y2..Y3 + X4..X4+3200 Y3..Y3+3200 name:管理廊下 use:common
-space /L1/st2 stair X1..X1+3200 Y3..Y4 name:西階段 use:common
-space /L1/garb service X1+3200..X2+3200 Y3..Y4 name:ゴミ置場 use:common
-space /L1/mech machine X2+3200..X3+1600 Y3..Y4 name:機械室 use:common
-space /L1/elec machine X3+1600..X4 Y3..Y4 name:電気室 use:common
-space /L1/ev shaft X4..X4+3200 Y3+3200..Y4 name:EV use:common
-space /L1/mgr office X4+3200..X5+3200 Y3..Y4 name:管理室・防災センター use:common
-space /L1/st1 stair X5+3200..X6 Y3..Y4 name:東階段 use:common
+space /L1/s2 shop X4..X5 Y1-4600..Y2 name:店舗2 lease.category:rentable
+space /L1/hall lobby X5..X6 Y1-4600..Y2 h:7000 name:エントランスホール lease.category:common floor:タイル
+space /L1/back backyard X3..X4 Y1..Y2 name:荷解き・倉庫 lease.category:common
+space /L1/corridor corridor X1..X6 Y2..Y3 + X4..X4+3200 Y3..Y3+3200 name:管理廊下 lease.category:common
+space /L1/st2 stair X1..X1+3200 Y3..Y4 name:西階段 lease.category:common
+space /L1/garb service X1+3200..X2+3200 Y3..Y4 name:ゴミ置場 lease.category:common
+space /L1/mech machine X2+3200..X3+1600 Y3..Y4 name:機械室 lease.category:common
+space /L1/elec machine X3+1600..X4 Y3..Y4 name:電気室 lease.category:common
+space /L1/ev shaft X4..X4+3200 Y3+3200..Y4 name:EV lease.category:common
+space /L1/mgr office X4+3200..X5+3200 Y3..Y4 name:管理室・防災センター lease.category:common
+space /L1/st1 stair X5+3200..X6 Y3..Y4 name:東階段 lease.category:common
 
 # ---- 内部 ----
 boundary /L1/s1 /L1/s2 t:150 spec:LGS

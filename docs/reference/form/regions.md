@@ -91,7 +91,7 @@ It is not recomputed later, because by then the counterpart is **the already-cut
 ## Write one
 
 ```muro
-muro 1.2
+muro 1.3
 unit mm
 grid X 0 6000
 grid Y 0 6000

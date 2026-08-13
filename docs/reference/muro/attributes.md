@@ -23,8 +23,8 @@ How a line is spelled (where the `:` falls, how values are typed, what a repeat 
 | Tier | Examples | How core treats it |
 |---|---|---|
 | **Structure** | the path, the region, the level, the other end of a relation, `type` `t` `air` `edge` `w` `at` `hinge` `swing` `d` `x` `y` | **Always read.** If it is broken the file is not read at all — it stops on the spot |
-| **Interpreted** | `outside` `void` `h` `use` `road` `daylight` `site` `area` `style` `ceiling` `uid` `name` `stair` `riser` … | **Read.** The ledger defines the range of values, and a value outside it produces a diagnostic |
-| — | the **type** of a space (the second positional) | **Not read.** A free label, optional, appearing only in aggregation and in lettering |
+| **Interpreted** | `outside` `void` `h` `road` `daylight` `site` `area` `style` `ceiling` `uid` `name` `stair` `riser` … | **Read.** The ledger defines the range of values, and a value outside it produces a diagnostic |
+| — | the **type** of a space (the second positional) | **Not read.** The room's purpose, written as a free word, appearing only in aggregation and in lettering |
 | **Carried** | `spec` `fire` `sound` `floor` `sill`, and any namespaced key | **Not read.** Carried, nothing more |
 
 **Structure keys do not survive as attributes.** `type:`, `t:`, `air:`, `edge:`, `w:`, `at:`, `hinge:`, `swing:`, `d:`, `x:` and `y:` are lifted into fields of the element as the file is read, and their values are checked right there. So they never appear as `ATT01` or `ATT02` — a non-numeric `t:` stops earlier, with `The attribute t is written as a number`.
@@ -88,7 +88,7 @@ turn on /L1/b is one of R / L: turn:X
 | `outside` | interpreted | `0` / `1` | outside the building. **May have no region.** Not counted in floor area |
 | `void` | interpreted | `0` / `1` | a void. Having no floor it is not counted in floor area, and is not passable |
 | `h` | interpreted | positive number, mm | ceiling height. Defaults to the level's `h` |
-| `use` | interpreted | free | the axis of aggregation. Inherited from a zone |
+| `use` | interpreted | free | **Retired after muro 1.2.** A file declaring 1.3 or later that writes it is [VER07](../diagnostics/ver.md#ver07); write a namespaced key of your own instead |
 | `road` | interpreted | positive number, mm | the width of an `outside:1` — the mark of a road. Read when frontage is derived |
 | `daylight` | interpreted | `0` / `1` | declares whether the daylight question applies |
 | `ceiling` | interpreted | `0` / `1` | `0` means no ceiling is built |
@@ -112,7 +112,7 @@ turn on /L1/b is one of R / L: turn:X
 | Key | Tier | Value | Meaning |
 |---|---|---|---|
 | `name` | interpreted | free | display name |
-| `use` | interpreted | free | the axis of aggregation, inherited by the spaces below |
+| `use` | interpreted | free | **Retired after muro 1.2**, as on `space` |
 | `site` | interpreted | `0` / `1` | marks the site aggregation |
 | `area` | interpreted | positive number, m² | the declared (surveyed) site area, reconciled against the derived one |
 | `uid` | interpreted | an opaque token | same rule as space |
@@ -189,26 +189,31 @@ Metres are the one exception to millimetres in the whole notation, because these
 
 **There are exactly three paths along which an attribute travels between elements.**
 
-### `use` is inherited from zone to space
+### A zone hands a key down to the spaces beneath it
 
-Only the axis of aggregation is genuinely inherited. The `use` of the **deepest zone** whose path is a prefix of the space's path is handed down, and **a declaration on the space wins.**
+The value comes from the **deepest zone** whose path is a prefix of the space's path, and **a declaration on the space wins.**
+
+**Which key travels is chosen by whatever asks for it.** Core hands nothing down of its own accord; the resolution runs when something names a key — [`koyu stats --by`](../cli/stats.md), the MCP `model_summary`, a validation rule reading the key it cares about. A space is therefore grouped along as many divisions at once as it carries.
 
 ```muro
-muro 1.2
+muro 1.3
 name 継承の例
 grid X 0 4000 8000
 grid Y 0 4000
 level L1 0 h:2400 slab:150
-zone /L1/A name:Aタイプ use:exclusive
+zone /L1/A name:Aタイプ lease.category:exclusive fire.compartment:c3
 space /L1/A/ldk  ldk  X1..X2 Y1..Y2 name:LDK
-space /L1/A/hall hall X2..X3 Y1..Y2 name:玄関 use:common
+space /L1/A/hall hall X2..X3 Y1..Y2 name:玄関 lease.category:common
 ```
+
+Ask for both groupings — `koyu stats --by lease.category --by fire.compartment` — and the last two lines of the totals are these.
 
 ```text
-By use: exclusive 16.00 m2 (50.0%) / common 16.00 m2 (50.0%)
+By lease.category: exclusive 16.00 m2 (50.0%) / common 16.00 m2 (50.0%)
+By fire.compartment: c3 32.00 m2 (100.0%)
 ```
 
-`/L1/A/ldk` received `exclusive` from the zone without writing it; `/L1/A/hall` overrode it with its own `common`.
+`/L1/A/ldk` received `exclusive` from the zone without writing it; `/L1/A/hall` overrode it with its own `common`. Neither wrote `fire.compartment`, so both fall in the compartment the zone names.
 
 ### `floor` overrides space → area, and `spec` overrides boundary → seg, over an interval
 

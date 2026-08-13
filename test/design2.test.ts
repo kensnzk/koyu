@@ -9,7 +9,7 @@ import { doorsBetween, segmentsFor } from "../src/core/graph.js";
 import { daylightInputs } from "../src/core/light.js";
 import { DAYLIGHT_RATIO_RULE_ID } from "../src/validate/builtin/index.js";
 import { caught } from "./helpers/schematic.js";
-import { areaM2, effectiveUse } from "../src/core/model.js";
+import { areaM2, effectiveAttr } from "../src/core/model.js";
 import { isVoid } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
 
@@ -46,11 +46,14 @@ test("several segments for one pair: the LDK and the bedroom touch on two edges 
   assert.deepEqual(r.errors, []); // door edge:W で曖昧が解けている
 });
 
-test("use inherited from the zone: the rooms of a layout inherit the dwelling's exclusive", () => {
+test("an attribute inherited from the zone: the rooms of a layout inherit the dwelling's lease category", () => {
   const m = parse(mansion);
-  assert.equal(effectiveUse(m, m.spaces.get("/L2/A/ldk")!), "exclusive");
-  assert.equal(effectiveUse(m, m.spaces.get("/L2/B")!), "exclusive");
-  assert.equal(effectiveUse(m, m.spaces.get("/L2/corridor")!), "common");
+  const at = (path: string) => effectiveAttr(m, m.spaces.get(path)!, "lease.category");
+  assert.equal(at("/L2/A/ldk"), "exclusive");
+  assert.equal(at("/L2/B"), "exclusive");
+  assert.equal(at("/L2/corridor"), "common");
+  // The key is the caller's, so a key nobody wrote resolves to nothing rather than to a default.
+  assert.equal(effectiveAttr(m, m.spaces.get("/L2/A/ldk")!, "fire.compartment"), undefined);
 });
 
 test("void: the height invariant is exempted declaratively by a void boundary", () => {

@@ -15,19 +15,22 @@ All VER codes are errors.
 | VER04 | error | A koyu 0.5-or-earlier file uses 1.0 vocabulary |
 | VER05 | error | a koyu 1.0-or-earlier file writes exterior / void in the type position |
 | VER06 | error | The file declares a version newer than this build reads |
+| VER07 | error | The file declares a version in which a key it writes is retired |
 
-**VER06 is the one that points at the tool rather than the file.** The first five all say the same kind of thing — this file is written in an old version, and reading it under a newer one would change what it means. VER06 says the opposite: the file is fine and the reader is behind.
+**VER06 is the one that points at the tool rather than the file.** Five of the others say the same kind of thing — this file is written in an old version, and reading it under a newer one would change what it means. VER06 says the opposite: the file is fine and the reader is behind.
+
+**VER07 reads those five from the other end.** They fire when a file declares an old version and writes a word that version does not yet have; VER07 fires when a file declares a new version and writes a word that version no longer has. Both say the same thing: the declared version and the vocabulary have to agree.
 
 ## Declaring the version
 
 ```muro-part
-muro 1.2
+muro 1.3
 ```
 
-These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1 / 1.2**. Anything else stops at the parser, before any semantic check runs.
+These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1 / 1.2 / 1.3**. Anything else stops at the parser, before any semantic check runs.
 
 ```text
-Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2)
+Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3)
 ```
 
 The declaration is written **once**, in the base layer (the entry). By convention it goes on the first line. Writing it in an imported layer is an error — silent overwriting by composition order is forbidden.
@@ -206,7 +209,7 @@ unit mm
 ```
 
 ```text
-This file is written in muro 9.9, and this build of koyu (0.20.0) reads up to 1.2. The file is not the problem — upgrade koyu
+This file is written in muro 9.9, and this build of koyu (0.21.0) reads up to 1.3. The file is not the problem — upgrade koyu
 ```
 
 **Cause** — the declared version is later than every version this build accepts. That is not a mistake in the file. Someone wrote it with a newer koyu, and this one has not learnt that language yet.
@@ -214,18 +217,54 @@ This file is written in muro 9.9, and this build of koyu (0.20.0) reads up to 1.
 **The fix** — install a newer koyu. `koyu --version` says what this build reads:
 
 ```text
-koyu 0.20.0 — reads muro 0.1–1.2 (newest 1.2; a file with no version line is read as 1.1)
+koyu 0.21.0 — reads muro 0.1–1.3 (newest 1.3; a file with no version line is read as 1.1)
 ```
 
 **Why it is a separate code from an unreadable version.** A version that never existed is a different situation with the opposite advice, and it keeps the `SYN01` it always had:
 
 ```text
-Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2)
+Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3)
 ```
 
 Both used to print that second sentence, so nothing downstream could tell a stale build from a corrupt file without reading English prose. The split is *later than anything I know* against *not a version I have*, which is answerable; *real* against *fake* is not, and `9.9` is treated as the future because that is the more useful of the two readings.
 
 **This one is raised while reading the file, not while checking it.** A version this build cannot read is a version it cannot parse under, so it stops at parse time and `check --json` reports it as the single diagnostic — the same path `SYN01` takes.
+
+## VER07 — the file declares a version in which a key it writes is retired {#ver07}
+
+`error`
+
+```muro-bad
+muro 1.3
+grid X 0 4000 8000
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+zone /L1/A name:Aタイプ use:exclusive
+space /L1/A/ldk ldk X1..X2 Y1..Y2 name:LDK
+```
+
+```text
+✖ ver07.muro:line 5: A muro 1.3 file carries use: on zone /L1/A — use is retired after muro 1.2. Write a namespaced key of your own (lease.category:, fire.compartment:, dept.name:) instead, or keep the file at muro 1.2
+```
+
+**Cause** — `use` is retired after muro 1.2. It was never an architectural use: it held one grouping per space, so a tenancy, a fire compartment and a department all competed for the same key, and whichever you wrote shut the others out. A room's purpose is the [type position](../muro/space.md); every other division of the building is a namespaced key, and a space may carry as many of those as it likes.
+
+**The fix — write a namespaced key of your own.** The name is yours; core reads none of them.
+
+```muro
+muro 1.3
+grid X 0 4000 8000
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+zone /L1/A name:Aタイプ lease.category:exclusive fire.compartment:c3
+space /L1/A/ldk ldk X1..X2 Y1..Y2 name:LDK
+```
+
+[`koyu stats --by <key>`](../cli/stats.md) totals floor area by any key you name, so the figures `By use:` used to give come back the moment you ask for them — and so do the ones it could never give.
+
+**The other way out is to keep the file at muro 1.2.** A file that declares 1.2 or earlier goes on writing `use:`, goes on inheriting it from its zones, and goes on meaning exactly what it meant. Nothing migrates on its own.
+
+**Why the key stays in the ledger.** Taking the row out of `ATTR_LEDGER` would make `use:` unknown at *every* version at once, because the ledger check does not read the version — so a muro 1.1 file would start failing with [ATT03](att.md#att03) for a word 1.1 legitimately has. The row is what keeps the old reading alive; VER07 is what stops the new one.
 
 ## Why declare a version at all
 

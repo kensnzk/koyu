@@ -32,7 +32,7 @@ Two rules decide whether a plan works:
 ## A whole small building
 
 ```muro
-muro 1.2
+muro 1.3
 name Flat on a tight site
 unit mm
 
@@ -82,10 +82,19 @@ why the bedroom has one. Everything else above generalises:
   own band the other way, or let it span the width.
 - Grid lines are auto-named X1, X2… west→east and Y1, Y2… south→north. Offsets
   like `Y2+1800` are legal wherever a grid reference is.
-- The path `/L1/name` binds the space to that level. The type word (`room`,
-  `ldk`, `hall`, `wc`…) is free vocabulary and **optional** — koyu never reads
-  it. Facts of composition are declared: `outside:1` (outside the building; may
-  have no region) and `void:1` (no floor, no area, impassable).
+- The path `/L1/name` binds the space to that level. **The type word is the
+  room's purpose** — `room`, `ldk`, `hall`, `wc`, `parking`… — free vocabulary
+  and **optional**. `check` reads none of it, though some `validate` rules do: a
+  car park is the spaces typed `parking` or `ramp`. `name:` is the individual
+  label, not the purpose. Facts of composition are declared instead: `outside:1`
+  (outside the building; may have no region) and `void:1` (no floor, no area,
+  impassable).
+- **Every other division of the building is a namespaced key you choose** —
+  `lease.category:common`, `fire.compartment:A`, `dept.name:sales` — on a space,
+  or on a `zone` so that everything beneath it inherits the value. A space may
+  carry as many as it likes and none of them is privileged, so write one only
+  when the brief turns on that division. `koyu stats --by lease.category` totals
+  the areas by it.
 - Openings sit indented under a boundary and need `w:`. Against `/out` the
   boundary always has several segments, so give `edge:N|E|S|W`. Two openings on
   one boundary both default to the centre — separate them with `at:0.3` (a

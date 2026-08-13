@@ -70,7 +70,7 @@ interface Diagnostic {
 
 | Field | Always present | Contents |
 |---|---|---|
-| `code` | yes | One of the ledger's 68 codes: three letters for the area plus a two-digit serial |
+| `code` | yes | One of the ledger's 69 codes: three letters for the area plus a two-digit serial |
 | `severity` | yes | `"error"` or `"warning"`. **An invariant property of the code**, never varying with the case |
 | `message` | yes | **The body only.** It does not include the position prefix (`file:line N: `) |
 | `line` | when the diagnostic has a position | The 1-based line of its provenance. Diagnostics with no written line — a derived default boundary, say — omit it |

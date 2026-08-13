@@ -20,7 +20,7 @@ Between two spaces that touch, and about which nothing has been declared, a **wa
 `validate` lists **every** room that cannot reach the exterior. You do not have to nominate a starting point.
 
 ```muro
-muro 1.2
+muro 1.3
 name A sealed house
 unit mm
 

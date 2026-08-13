@@ -43,7 +43,7 @@ Whether it can be placed is decided in the same order as for an opening — take
 They replace the boundary's `spec` for that stretch alone.
 
 ```muro
-muro 1.2
+muro 1.3
 name 分節の書き方
 unit mm
 
