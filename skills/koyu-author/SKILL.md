@@ -1,17 +1,21 @@
 ---
-name: koyu-design
-description: Design buildings by writing muro, the text notation where space is the primary element and walls, floors and openings are derived rather than drawn. Use this skill whenever the user asks for a building, a floor plan, a spatial programme or a change to one — "間取りを考えて", "design a floor plan", "lay out a 1LDK", "この敷地に平屋を", "add a room to this plan", "make the corridor wider" — and whenever .muro files, koyu or ugatsu are mentioned. Use it even when the request names no notation: producing muro and letting koyu check it is how a plan gets made here. Do NOT use it for website or UI layout, garden and landscape plans, PCB or mechanical layout, seating charts, or arranging furniture inside a room that already exists.
+name: koyu-author
+description: Write muro, the text notation where space is the primary element and walls, floors and openings are derived rather than drawn. Use this skill whenever a building has to be written down as `.muro` — "間取りを考えて", "design a floor plan", "lay out a 1LDK", "この敷地に平屋を", "add a room to this plan", "make the corridor wider" — and whenever .muro files, koyu or ugatsu are mentioned. Use it even when the request names no notation: producing muro and letting koyu check it is how a plan gets written here. Do NOT use it for website or UI layout, garden and landscape plans, PCB or mechanical layout, seating charts, or arranging furniture inside a room that already exists.
 ---
 
-# Designing in muro
+# Writing muro
 
 muro describes a building by its **spaces** and the **relations between them**.
 A wall is not drawn: it is the boundary between two spaces, derived from where
 they touch. Floors and ceilings come from `slab:` and `h:`. Openings are cut
 into boundaries. You write the spatial configuration; the geometry is generated.
 
-Speed is the point. The architect judges a plan at a glance and asks for the
-next version, so the first one should reach them in a couple of minutes.
+**What this skill covers is the notation.** Which rooms a building should have,
+how big they should be and what opens onto what are architectural decisions, and
+they stay yours — koyu neither supplies them nor checks them, and the answers
+depend on where you are building in a way the notation never does. What follows
+is how to write a decision down so that koyu accepts it and derives the form you
+meant.
 
 | What you were asked for | Where to go |
 |---|---|
@@ -20,14 +24,14 @@ next version, so the first one should reach them in a couple of minutes.
 | Sites, zones, courtyards, L-shaped rooms, level ranges, assets | [REFERENCE.md](REFERENCE.md), the section by that name |
 | A check error naming syntax you do not recognise | [REFERENCE.md](REFERENCE.md) |
 
-Two rules decide whether a plan works:
+Two facts about the notation decide whether what you write means what you meant:
 
-- **Two touching spaces with nothing declared between them = a wall.** Never
-  write walls → declare a `boundary` only to open it, to put a door or window
-  in it, or to give it thickness.
-- **A derived wall has no door, so nobody can pass it.** Decide circulation
-  first — entrance → living space or corridor → everything else — then hang the
-  rooms off it, and walk the route in your head before writing it down.
+- **Two touching spaces with nothing declared between them are already a wall.**
+  Never write walls → declare a `boundary` only to open it, to put a door or
+  window in it, or to give it thickness.
+- **A derived wall has no door, so nobody can pass it.** Which rooms open onto
+  which is your decision; the notation only records it. Declare the boundary and
+  put a door on it, or the room is sealed — and `check` will not say a word.
 
 ## A whole small building
 
@@ -70,16 +74,16 @@ boundary /L1/bed /out t:120
   window w:1600 edge:N sill:800 h:1400
 ```
 
-A room marked `daylight:1` is a habitable room, so give it a window — which is
-why the bedroom has one. Everything else above generalises:
+A room marked `daylight:1` is a habitable room, so `validate` will ask it for a
+window — which is why the bedroom has one. Everything else above generalises:
 
 - **`band` is the move.** `band <X|Y> <Xrange> <Yrange>` divides a strip into
   spaces by width — members carry `w:<mm>`, one may carry `w:rest`, and the
   widths fill the strip exactly. "Corridor 1500, the rest is the dwelling" is a
   decision; coordinates are arithmetic. A band is **one-dimensional**: a member
   touches its two strip-neighbours plus whatever lies across the long edge — so
-  a hall mid-band serves only the two rooms beside it. Run circulation in its
-  own band the other way, or let it span the width.
+  a space mid-band adjoins only the two beside it. Anything that has to reach
+  further runs in its own band the other way, or spans the width.
 - Grid lines are auto-named X1, X2… west→east and Y1, Y2… south→north. Offsets
   like `Y2+1800` are legal wherever a grid reference is.
 - The path `/L1/name` binds the space to that level. **The type word is the
@@ -101,7 +105,8 @@ why the bedroom has one. Everything else above generalises:
   ratio) or `at:X2+450` (a grid reference).
 - Quote names containing spaces: `name:"Waiting room"`.
 
-Values worth reusing rather than re-deriving: `t:100` between rooms, `t:120`–`180`
+Dimensions are yours to decide. These are only the values that make an example
+read as a building rather than as a diagram: `t:100` between rooms, `t:120`–`180`
 to the outside; doors `w:700` wc, `w:750` bath and washroom, `w:900` rooms and
 the front door; `h:2400` dwelling, `h:2700` office; `slab:150`.
 
@@ -139,14 +144,14 @@ npx -p @kensnzk/koyu koyu check main.muro
 It runs in well under a second. If the `koyu` MCP server is connected instead of
 a shell, its `check` tool is the same judge.
 
-Green means one form derives from the description — that the building is
-*consistent*, not that it is good. Whether it is good is the architect's call,
-made by looking at the plan, which is why getting it in front of them beats
-polishing it.
+Green means one form derives from the description — that the description is
+*consistent*, not that the building is any good. `check` reads no type word, no
+dimension and no route: a sealed building with rooms 900mm across is green. What
+`validate` judges, and what it does not, is [koyu-validate](../koyu-validate/SKILL.md).
 
 Check, fix everything listed in one edit, check again, and stop. If the second
-pass is green, hand over rather than re-reading the file for improvements. If a
-third pass still fails, the plan is wrong rather than the syntax — say so.
+pass is green, hand over. If a third pass still fails, the notation is not the
+problem — say which decision the file cannot express.
 
 The deliverable is **the `.muro` files themselves**; they open at
 [ugatsu.dev](https://ugatsu.dev) by drag and drop (plan, 3D, areas, space
@@ -167,4 +172,4 @@ actually about areas, daylight, circulation or the site.
 Worked examples that check green:
 [examples/flat-1ldk.muro](examples/flat-1ldk.muro) (two bands, 33.62 m²) and
 [examples/office/](examples/office/main.muro) (three layers, stair-joined,
-138.24 m²).
+138.24 m²). They are here to show what the notation does, not what to build.

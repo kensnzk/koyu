@@ -3,7 +3,7 @@
 // docs/ and skills/ both restate facts that src/ owns — the accepted language
 // versions, the diagnostic codes, the names of the validation rules. A
 // restatement is a copy, and a copy drifts. The accepted-version list in
-// skills/koyu-design/REFERENCE.md stayed at 1.0 across a whole language
+// skills/koyu-author/REFERENCE.md stayed at 1.0 across a whole language
 // release while SUPPORTED_LANGUAGE_VERSIONS had moved to 1.1, the same list
 // pasted into docs/howto/embed-in-a-program.md went stale the same way, and
 // the only correct copy in existence was one a downstream product had fixed

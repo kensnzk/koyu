@@ -1,6 +1,6 @@
 ---
 name: koyu-validate
-description: Judge a building written in muro and repair what is wrong with it — rooms nobody can reach, bedrooms with no daylight, missing exterior walls, stairs at impossible proportions, a building that escapes its site. Use this skill whenever someone asks whether a plan works, wants it reviewed or checked over, hands you koyu validate output or a `.muro` file to look at, or says something like "この間取り大丈夫？", "review this plan", "何か問題ある？", "fix the findings", "なぜ届かないの". Use it after koyu-design produces a plan and before anyone is shown it. Do NOT use it for writing a new building from a brief (that is koyu-design), for building-code compliance certification, or for structural, energy or cost analysis, none of which koyu performs.
+description: Judge a building written in muro and repair what is wrong with it — rooms nobody can reach, bedrooms with no daylight, missing exterior walls, stairs at impossible proportions, a building that escapes its site. Use this skill whenever someone asks whether a plan works, wants it reviewed or checked over, hands you koyu validate output or a `.muro` file to look at, or says something like "この間取り大丈夫？", "review this plan", "何か問題ある？", "fix the findings", "なぜ届かないの". Use it after koyu-author writes a plan and before anyone is shown it. Do NOT use it for writing a new building from a brief (that is koyu-author), for building-code compliance certification, or for structural, energy or cost analysis, none of which koyu performs.
 ---
 
 # Judging a building, and repairing it
@@ -35,11 +35,17 @@ the whole `AssessmentReport` when you are feeding another program.
 This judgement is **coarse and early**, at the resolution of a scheme design.
 It is not a compliance verdict, and passing it is not permission to build.
 
+**What this skill covers is the judgement and what it names.** A finding says
+what is wrong and which muro expression caused it. Which repair to choose when
+several would clear it, and which cautions are worth acting on at all, are
+architectural decisions — `validate` does not make them and neither does this
+skill.
+
 ## Read the finding, then repair it
 
-Findings name their own repair once you know the vocabulary. Work down the
-violations first, re-run, and stop when they are gone — cautions are advice you
-raise with the architect rather than silently design around.
+Findings name their own repair once you know the vocabulary. Violations are what
+the exit code turns on, so clear those and re-run; a caution never blocks and
+never has to be cleared.
 
 | Rule | Level | What it means | The repair |
 |---|---|---|---|
@@ -122,18 +128,18 @@ Two things bite while writing the repair itself: an opening on a boundary to
 and a `name:` value containing a space must be quoted (`name:"West window"`) or
 the parser reads the second word as a broken attribute.
 
-## Cautions are a conversation, not a task list
+## What a caution reports
 
-`koyu.schematic.envelope.gap` is the one to understand rather than obey. A wall between two
+`koyu.schematic.envelope.gap` is the one to understand before acting on it. A wall between two
 touching spaces is derived whether or not you write it — but **a boundary to the
 outside is never derived**, because naming what is on the other side is itself
 information. So a forgotten exterior boundary is a wall that silently does not
 exist. The finding names the sides (`S 4000mm / N 4000mm`), which is what tells
 you which edge to write.
 
-That said, a compact plan with a few `koyu.schematic.envelope.gap` cautions is often finished
-work: the architect decided those faces later. Report them; do not invent walls
-to silence them.
+Read the set of them as an inventory of faces nobody has declared yet. Whether
+each one should be declared is a decision about the building, which no rule
+settles — report them rather than adding walls to make them stop.
 
 ## The loop
 
@@ -142,8 +148,9 @@ to silence them.
 2. `validate`, and read every violation with its line.
 3. Repair the violations in one edit, using the table above.
 4. `validate` again. Stop when violations are zero.
-5. Tell the person what you fixed, and list the cautions you left standing and
-   why. The cautions are usually where the design conversation actually is.
+5. Tell the person what you fixed, and list the cautions you left standing.
+   Which of those to take up is theirs to decide, so hand them over rather than
+   deciding for them.
 
 The reference for every rule, with a failing example each, is
 [docs/reference/validate](../../docs/reference/validate/index.md) in this

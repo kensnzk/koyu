@@ -171,7 +171,7 @@ both must stay green forever. They are the cases that go red if someone later de
 
 - **`npm run check:examples` names its twelve files by hand.** `gate:examples` walks `examples/`,
   so a new example there is still checked — but the two files under
-  `skills/koyu-design/examples/` are in that hand-written list and nowhere else. A third one added
+  `skills/koyu-author/examples/` are in that hand-written list and nowhere else. A third one added
   beside them is checked by nothing.
 - **Whether a skill helps.** `eval/` runs six tasks, five of them revisions of an existing
   description, and does not know `skills/` exists.
