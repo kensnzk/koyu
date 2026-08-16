@@ -7,10 +7,11 @@
 // どれもソースには無く、規則から現れる。
 //
 // **ここに形の規則は一つも無い** (ADR-0040)。輪郭も厚みも z 範囲も `derive(model)` が返す
-// `Form` に既に入っており、芯線から実体を起こす構成子 (`thicken` / `columnRect` / `runPrism`)
-// も core が唯一の実装を持つ。この頁が決めるのは投影・陰影・重ね順・紙面だけである。
+// `Form` に既に入っており、芯線から実体を起こす構成子 (`columnRect` / `runPrism`) も
+// core が唯一の実装を持つ。壁は接合の済んだ足あとをそのまま受け取る (角を直す処理はここに無い)。
+// この頁が決めるのは投影・陰影・重ね順・紙面だけである。
 
-import { columnRect, derive, runPrism, thicken } from "../core/derive.js";
+import { columnRect, derive, runPrism } from "../core/derive.js";
 import { type Model, type Pt } from "../core/model.js";
 
 export interface AxoOptions {
@@ -109,9 +110,7 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   if (opts.walls !== false) {
     for (const b of form.boundaries) {
       if (!b.material || (b.level !== undefined && !names.has(b.level))) continue;
-      for (const p of b.material.panels) {
-        add(thicken(p.x1, p.y1, p.x2, p.y2, b.material.t), p.z0, p.z1, C.wall);
-      }
+      for (const p of b.material.panels) add(p.footprint, p.z0, p.z1, C.wall);
     }
   }
 

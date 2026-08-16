@@ -1,25 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2198" height="1568" viewBox="0 0 2198 1568" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
 <rect width="2198" height="1568" fill="#faf8f4"/>
 <path d="M 84 1484 L 2114 1484 L 2114 154 L 314 84 L 84 384 Z" fill="none" stroke="#8a8171" stroke-width="1.1" stroke-dasharray="14 3 2.5 3 2.5 3"/>
-<path d="M 84 1484 L 2114 1484 L 2114 1364 L 84 1364 Z" fill="#f8f5ec"/>
-<path d="M 1814 1364 L 2114 1364 L 2114 854 L 1814 854 Z" fill="#f8f5ec"/>
-<path d="M 1814 854 L 2114 854 L 2114 354 L 1814 354 Z" fill="#f8f5ec"/>
-<path d="M 144 1364 L 214 1364 L 214 474 L 144 474 Z" fill="#f8f5ec"/>
-<path d="M 214 474 L 1814 474 L 1814 354 L 214 354 Z" fill="#f8f5ec"/>
-<path d="M 214 1364 L 854 1364 L 854 854 L 214 854 Z" fill="#f1ebdd"/>
-<path d="M 854 1364 L 1174 1364 L 1174 1134 L 854 1134 Z" fill="#f1ebdd"/>
-<path d="M 1174 1364 L 1494 1364 L 1494 854 L 1174 854 Z" fill="#f1ebdd"/>
-<path d="M 1494 1364 L 1814 1364 L 1814 854 L 1494 854 Z" fill="#f1ebdd"/>
 <path d="M 854 1134 L 1174 1134 L 1174 854 L 854 854 Z" fill="#f1ebdd"/>
 <path d="M 214 854 L 1814 854 L 1814 754 L 214 754 Z" fill="#f1ebdd"/>
 <path d="M 1174 754 L 1334 754 L 1334 594 L 1174 594 Z" fill="#f1ebdd"/>
-<path d="M 214 754 L 374 754 L 374 474 L 214 474 Z" fill="#f1ebdd"/>
-<path d="M 374 754 L 694 754 L 694 474 L 374 474 Z" fill="#f1ebdd"/>
-<path d="M 694 754 L 934 754 L 934 474 L 694 474 Z" fill="#f1ebdd"/>
 <path d="M 934 754 L 1174 754 L 1174 474 L 934 474 Z" fill="#f1ebdd"/>
 <path d="M 1174 594 L 1334 594 L 1334 474 L 1174 474 Z" fill="#f1ebdd"/>
+<path d="M 374 754 L 694 754 L 694 474 L 374 474 Z" fill="#f1ebdd"/>
+<path d="M 1494 1364 L 1814 1364 L 1814 854 L 1494 854 Z" fill="#f1ebdd"/>
+<path d="M 694 754 L 934 754 L 934 474 L 694 474 Z" fill="#f1ebdd"/>
 <path d="M 1334 754 L 1654 754 L 1654 474 L 1334 474 Z" fill="#f1ebdd"/>
+<path d="M 214 1364 L 854 1364 L 854 854 L 214 854 Z" fill="#f1ebdd"/>
+<path d="M 854 1364 L 1174 1364 L 1174 1134 L 854 1134 Z" fill="#f1ebdd"/>
+<path d="M 1174 1364 L 1494 1364 L 1494 854 L 1174 854 Z" fill="#f1ebdd"/>
 <path d="M 1654 754 L 1814 754 L 1814 474 L 1654 474 Z" fill="#f1ebdd"/>
+<path d="M 214 754 L 374 754 L 374 474 L 214 474 Z" fill="#f1ebdd"/>
+<path d="M 1814 854 L 2114 854 L 2114 354 L 1814 354 Z" fill="#f8f5ec"/>
+<path d="M 214 474 L 1814 474 L 1814 354 L 214 354 Z" fill="#f8f5ec"/>
+<path d="M 1814 1364 L 2114 1364 L 2114 854 L 1814 854 Z" fill="#f8f5ec"/>
+<path d="M 84 1484 L 2114 1484 L 2114 1364 L 84 1364 Z" fill="#f8f5ec"/>
+<path d="M 144 1364 L 214 1364 L 214 474 L 144 474 Z" fill="#f8f5ec"/>
 <rect x="214" y="1264" width="320" height="100" fill="#e7dfcc" fill-opacity="0.55" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="4 3"/>
 <text x="220" y="1276" font-size="8.5" fill="#8a8171">土間 · タイル</text>
 <line x1="214" y1="58" x2="214" y2="1510" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
@@ -52,66 +52,66 @@
 <line x1="58" y1="474" x2="2140" y2="474" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="44" cy="474" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="44" y="477.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y4</text>
-<path d="M 854 850.25 L 991.5 850.25 L 991.5 857.75 L 854 857.75 Z" fill="#1f1f1f"/>
-<path d="M 1036.5 850.25 L 1174 850.25 L 1174 857.75 L 1036.5 857.75 Z" fill="#1f1f1f"/>
-<path d="M 850.25 1134 L 850.25 1016.5 L 857.75 1016.5 L 857.75 1134 Z" fill="#1f1f1f"/>
-<path d="M 850.25 971.5 L 850.25 854 L 857.75 854 L 857.75 971.5 Z" fill="#1f1f1f"/>
-<path d="M 854 1130.25 L 1174 1130.25 L 1174 1137.75 L 854 1137.75 Z" fill="#1f1f1f"/>
-<path d="M 1170.25 1134 L 1170.25 1016.5 L 1177.75 1016.5 L 1177.75 1134 Z" fill="#1f1f1f"/>
-<path d="M 1170.25 971.5 L 1170.25 854 L 1177.75 854 L 1177.75 971.5 Z" fill="#1f1f1f"/>
-<path d="M 934 749 L 1031.5 749 L 1031.5 759 L 934 759 Z" fill="#1f1f1f"/>
-<path d="M 1076.5 749 L 1174 749 L 1174 759 L 1076.5 759 Z" fill="#1f1f1f"/>
-<path d="M 1169 754 L 1169 594 L 1179 594 L 1179 754 Z" fill="#1f1f1f"/>
-<path d="M 1174 589 L 1334 589 L 1334 599 L 1174 599 Z" fill="#1f1f1f"/>
-<path d="M 374 750.25 L 511.5 750.25 L 511.5 757.75 L 374 757.75 Z" fill="#1f1f1f"/>
-<path d="M 556.5 750.25 L 694 750.25 L 694 757.75 L 556.5 757.75 Z" fill="#1f1f1f"/>
-<path d="M 1494 850.25 L 1609 850.25 L 1609 857.75 L 1494 857.75 Z" fill="#1f1f1f"/>
-<path d="M 1699 850.25 L 1814 850.25 L 1814 857.75 L 1699 857.75 Z" fill="#1f1f1f"/>
-<path d="M 694 749 L 791.5 749 L 791.5 759 L 694 759 Z" fill="#1f1f1f"/>
-<path d="M 836.5 749 L 934 749 L 934 759 L 836.5 759 Z" fill="#1f1f1f"/>
-<path d="M 1334 750.25 L 1471.5 750.25 L 1471.5 757.75 L 1334 757.75 Z" fill="#1f1f1f"/>
-<path d="M 1516.5 750.25 L 1654 750.25 L 1654 757.75 L 1516.5 757.75 Z" fill="#1f1f1f"/>
-<path d="M 1330.25 754 L 1330.25 594 L 1337.75 594 L 1337.75 754 Z" fill="#1f1f1f"/>
-<path d="M 214 850.25 L 514 850.25 L 514 857.75 L 214 857.75 Z" fill="#1f1f1f"/>
-<path d="M 554 850.25 L 854 850.25 L 854 857.75 L 554 857.75 Z" fill="#1f1f1f"/>
-<path d="M 1174 850.25 L 1314 850.25 L 1314 857.75 L 1174 857.75 Z" fill="#1f1f1f"/>
-<path d="M 1354 850.25 L 1494 850.25 L 1494 857.75 L 1354 857.75 Z" fill="#1f1f1f"/>
-<path d="M 1654 749 L 1711.5 749 L 1711.5 759 L 1654 759 Z" fill="#1f1f1f"/>
-<path d="M 1756.5 749 L 1814 749 L 1814 759 L 1756.5 759 Z" fill="#1f1f1f"/>
-<path d="M 214 749 L 271.5 749 L 271.5 759 L 214 759 Z" fill="#1f1f1f"/>
-<path d="M 316.5 749 L 374 749 L 374 759 L 316.5 759 Z" fill="#1f1f1f"/>
-<path d="M 1809 854 L 1809 826.5 L 1819 826.5 L 1819 854 Z" fill="#1f1f1f"/>
-<path d="M 1809 781.5 L 1809 754 L 1819 754 L 1819 781.5 Z" fill="#1f1f1f"/>
-<path d="M 209 854 L 209 754 L 219 754 L 219 854 Z" fill="#1f1f1f"/>
-<path d="M 1169 594 L 1169 474 L 1179 474 L 1179 594 Z" fill="#1f1f1f"/>
-<path d="M 929 754 L 929 474 L 939 474 L 939 754 Z" fill="#1f1f1f"/>
-<path d="M 934 469 L 1174 469 L 1174 479 L 934 479 Z" fill="#1f1f1f"/>
-<path d="M 1329 594 L 1329 474 L 1339 474 L 1339 594 Z" fill="#1f1f1f"/>
-<path d="M 1174 469 L 1334 469 L 1334 479 L 1174 479 Z" fill="#1f1f1f"/>
-<path d="M 689 754 L 689 474 L 699 474 L 699 754 Z" fill="#1f1f1f"/>
-<path d="M 369 754 L 369 474 L 379 474 L 379 754 Z" fill="#1f1f1f"/>
-<path d="M 374 469 L 504 469 L 504 479 L 374 479 Z" fill="#1f1f1f"/>
-<path d="M 564 469 L 694 469 L 694 479 L 564 479 Z" fill="#1f1f1f"/>
-<path d="M 1490.25 1364 L 1490.25 854 L 1497.75 854 L 1497.75 1364 Z" fill="#1f1f1f"/>
-<path d="M 1809 1364 L 1809 1150.25 L 1819 1150.25 L 1819 1364 Z" fill="#1f1f1f"/>
-<path d="M 1809 1067.75 L 1809 854 L 1819 854 L 1819 1067.75 Z" fill="#1f1f1f"/>
-<path d="M 1494 1361.5 L 1609 1361.5 L 1609 1366.5 L 1494 1366.5 Z" fill="#1f1f1f"/>
-<path d="M 1699 1361.5 L 1814 1361.5 L 1814 1366.5 L 1699 1366.5 Z" fill="#1f1f1f"/>
-<path d="M 694 469 L 934 469 L 934 479 L 694 479 Z" fill="#1f1f1f"/>
-<path d="M 1649 754 L 1649 474 L 1659 474 L 1659 754 Z" fill="#1f1f1f"/>
-<path d="M 1334 469 L 1654 469 L 1654 479 L 1334 479 Z" fill="#1f1f1f"/>
-<path d="M 1170.25 1364 L 1170.25 1134 L 1177.75 1134 L 1177.75 1364 Z" fill="#1f1f1f"/>
-<path d="M 214 1361.5 L 489 1361.5 L 489 1366.5 L 214 1366.5 Z" fill="#1f1f1f"/>
-<path d="M 579 1361.5 L 1174 1361.5 L 1174 1366.5 L 579 1366.5 Z" fill="#1f1f1f"/>
-<path d="M 209 1364 L 209 854 L 219 854 L 219 1364 Z" fill="#1f1f1f"/>
-<path d="M 1174 1361.5 L 1289 1361.5 L 1289 1366.5 L 1174 1366.5 Z" fill="#1f1f1f"/>
-<path d="M 1379 1361.5 L 1494 1361.5 L 1494 1366.5 L 1379 1366.5 Z" fill="#1f1f1f"/>
-<path d="M 1809 754 L 1809 636.5 L 1819 636.5 L 1819 754 Z" fill="#1f1f1f"/>
-<path d="M 1809 591.5 L 1809 474 L 1819 474 L 1819 591.5 Z" fill="#1f1f1f"/>
-<path d="M 1654 469 L 1814 469 L 1814 479 L 1654 479 Z" fill="#1f1f1f"/>
-<path d="M 214 469 L 374 469 L 374 479 L 214 479 Z" fill="#1f1f1f"/>
-<path d="M 209 754 L 209 636.5 L 219 636.5 L 219 754 Z" fill="#1f1f1f"/>
-<path d="M 209 591.5 L 209 474 L 219 474 L 219 591.5 Z" fill="#1f1f1f"/>
+<path d="M 857.75 850.25 L 991.5 850.25 L 991.5 857.75 L 857.75 857.75 Z" fill="#1f1f1f"/>
+<path d="M 1036.5 850.25 L 1177.75 850.25 L 1177.75 857.75 L 1036.5 857.75 Z" fill="#1f1f1f"/>
+<path d="M 850.25 1137.75 L 850.25 1016.5 L 857.75 1016.5 L 857.75 1137.75 Z" fill="#1f1f1f"/>
+<path d="M 850.25 971.5 L 850.25 857.75 L 857.75 857.75 L 857.75 971.5 Z" fill="#1f1f1f"/>
+<path d="M 857.75 1130.25 L 1177.75 1130.25 L 1177.75 1137.75 L 857.75 1137.75 Z" fill="#1f1f1f"/>
+<path d="M 1170.25 1130.25 L 1170.25 1016.5 L 1177.75 1016.5 L 1177.75 1130.25 Z" fill="#1f1f1f"/>
+<path d="M 1170.25 971.5 L 1170.25 857.75 L 1177.75 857.75 L 1177.75 971.5 Z" fill="#1f1f1f"/>
+<path d="M 939 749 L 1031.5 749 L 1031.5 759 L 939 759 Z" fill="#1f1f1f"/>
+<path d="M 1076.5 749 L 1179 749 L 1179 759 L 1076.5 759 Z" fill="#1f1f1f"/>
+<path d="M 1169 749 L 1169 589 L 1179 589 L 1179 749 Z" fill="#1f1f1f"/>
+<path d="M 1179 589 L 1339 589 L 1339 599 L 1179 599 Z" fill="#1f1f1f"/>
+<path d="M 379 750.25 L 511.5 750.25 L 511.5 757.75 L 379 757.75 Z" fill="#1f1f1f"/>
+<path d="M 556.5 750.25 L 689 750.25 L 689 757.75 L 556.5 757.75 Z" fill="#1f1f1f"/>
+<path d="M 1497.75 850.25 L 1609 850.25 L 1609 857.75 L 1497.75 857.75 Z" fill="#1f1f1f"/>
+<path d="M 1699 850.25 L 1809 850.25 L 1809 857.75 L 1699 857.75 Z" fill="#1f1f1f"/>
+<path d="M 699 749 L 791.5 749 L 791.5 759 L 699 759 Z" fill="#1f1f1f"/>
+<path d="M 836.5 749 L 939 749 L 939 759 L 836.5 759 Z" fill="#1f1f1f"/>
+<path d="M 1337.75 750.25 L 1471.5 750.25 L 1471.5 757.75 L 1337.75 757.75 Z" fill="#1f1f1f"/>
+<path d="M 1516.5 750.25 L 1649 750.25 L 1649 757.75 L 1516.5 757.75 Z" fill="#1f1f1f"/>
+<path d="M 1330.25 757.75 L 1330.25 599 L 1337.75 599 L 1337.75 757.75 Z" fill="#1f1f1f"/>
+<path d="M 219 850.25 L 514 850.25 L 514 857.75 L 219 857.75 Z" fill="#1f1f1f"/>
+<path d="M 554 850.25 L 857.75 850.25 L 857.75 857.75 L 554 857.75 Z" fill="#1f1f1f"/>
+<path d="M 1177.75 850.25 L 1314 850.25 L 1314 857.75 L 1177.75 857.75 Z" fill="#1f1f1f"/>
+<path d="M 1354 850.25 L 1497.75 850.25 L 1497.75 857.75 L 1354 857.75 Z" fill="#1f1f1f"/>
+<path d="M 1659 749 L 1711.5 749 L 1711.5 759 L 1659 759 Z" fill="#1f1f1f"/>
+<path d="M 1756.5 749 L 1819 749 L 1819 759 L 1756.5 759 Z" fill="#1f1f1f"/>
+<path d="M 219 749 L 271.5 749 L 271.5 759 L 219 759 Z" fill="#1f1f1f"/>
+<path d="M 316.5 749 L 379 749 L 379 759 L 316.5 759 Z" fill="#1f1f1f"/>
+<path d="M 1809 850.25 L 1809 826.5 L 1819 826.5 L 1819 850.25 Z" fill="#1f1f1f"/>
+<path d="M 1809 781.5 L 1809 759 L 1819 759 L 1819 781.5 Z" fill="#1f1f1f"/>
+<path d="M 209 850.25 L 209 749 L 219 749 L 219 850.25 Z" fill="#1f1f1f"/>
+<path d="M 1169 589 L 1169 479 L 1179 479 L 1179 589 Z" fill="#1f1f1f"/>
+<path d="M 929 749 L 929 479 L 939 479 L 939 749 Z" fill="#1f1f1f"/>
+<path d="M 939 469 L 1179 469 L 1179 479 L 939 479 Z" fill="#1f1f1f"/>
+<path d="M 1329 589 L 1329 479 L 1339 479 L 1339 589 Z" fill="#1f1f1f"/>
+<path d="M 1179 469 L 1339 469 L 1339 479 L 1179 479 Z" fill="#1f1f1f"/>
+<path d="M 689 759 L 689 479 L 699 479 L 699 759 Z" fill="#1f1f1f"/>
+<path d="M 369 749 L 369 479 L 379 479 L 379 749 Z" fill="#1f1f1f"/>
+<path d="M 379 469 L 504 469 L 504 479 L 379 479 Z" fill="#1f1f1f"/>
+<path d="M 564 469 L 699 469 L 699 479 L 564 479 Z" fill="#1f1f1f"/>
+<path d="M 1490.25 1366.5 L 1490.25 857.75 L 1497.75 857.75 L 1497.75 1366.5 Z" fill="#1f1f1f"/>
+<path d="M 1809 1366.5 L 1809 1150.25 L 1819 1150.25 L 1819 1366.5 Z" fill="#1f1f1f"/>
+<path d="M 1809 1067.75 L 1809 850.25 L 1819 850.25 L 1819 1067.75 Z" fill="#1f1f1f"/>
+<path d="M 1497.75 1361.5 L 1609 1361.5 L 1609 1366.5 L 1497.75 1366.5 Z" fill="#1f1f1f"/>
+<path d="M 1699 1361.5 L 1809 1361.5 L 1809 1366.5 L 1699 1366.5 Z" fill="#1f1f1f"/>
+<path d="M 699 469 L 939 469 L 939 479 L 699 479 Z" fill="#1f1f1f"/>
+<path d="M 1649 759 L 1649 479 L 1659 479 L 1659 759 Z" fill="#1f1f1f"/>
+<path d="M 1339 469 L 1659 469 L 1659 479 L 1339 479 Z" fill="#1f1f1f"/>
+<path d="M 1170.25 1366.5 L 1170.25 1137.75 L 1177.75 1137.75 L 1177.75 1366.5 Z" fill="#1f1f1f"/>
+<path d="M 219 1361.5 L 489 1361.5 L 489 1366.5 L 219 1366.5 Z" fill="#1f1f1f"/>
+<path d="M 579 1361.5 L 1170.25 1361.5 L 1170.25 1366.5 L 579 1366.5 Z" fill="#1f1f1f"/>
+<path d="M 209 1366.5 L 209 850.25 L 219 850.25 L 219 1366.5 Z" fill="#1f1f1f"/>
+<path d="M 1177.75 1361.5 L 1289 1361.5 L 1289 1366.5 L 1177.75 1366.5 Z" fill="#1f1f1f"/>
+<path d="M 1379 1361.5 L 1490.25 1361.5 L 1490.25 1366.5 L 1379 1366.5 Z" fill="#1f1f1f"/>
+<path d="M 1809 749 L 1809 636.5 L 1819 636.5 L 1819 749 Z" fill="#1f1f1f"/>
+<path d="M 1809 591.5 L 1809 479 L 1819 479 L 1819 591.5 Z" fill="#1f1f1f"/>
+<path d="M 1659 469 L 1819 469 L 1819 479 L 1659 479 Z" fill="#1f1f1f"/>
+<path d="M 219 469 L 379 469 L 379 479 L 219 479 Z" fill="#1f1f1f"/>
+<path d="M 209 749 L 209 636.5 L 219 636.5 L 219 749 Z" fill="#1f1f1f"/>
+<path d="M 209 591.5 L 209 469 L 219 469 L 219 591.5 Z" fill="#1f1f1f"/>
 <line x1="1814" y1="354" x2="2114" y2="354" stroke="#1f1f1f" stroke-width="1.4"/>
 <line x1="214" y1="354" x2="1814" y2="354" stroke="#1f1f1f" stroke-width="1.4"/>
 <line x1="2114" y1="854" x2="2114" y2="354" stroke="#1f1f1f" stroke-width="1.4"/>
@@ -164,59 +164,64 @@
 <path d="M 1769 636.5 A 45 45 0 0 1 1814 591.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
 <line x1="214" y1="636.5" x2="259" y2="636.5" stroke="#1f1f1f" stroke-width="1.4"/>
 <path d="M 259 636.5 A 45 45 0 0 0 214 591.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<text x="1099" y="1420" text-anchor="middle" font-size="14" fill="#1f1f1f">歩道状空地</text>
-<text x="1099" y="1437" text-anchor="middle" font-size="10" fill="#8a8171">plaza · 97.44 m2 · semi-outdoor</text>
-<text x="1099" y="1451" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/walk</text>
-<text x="1964" y="1105" text-anchor="middle" font-size="14" fill="#1f1f1f">駐車場・荷捌き</text>
-<text x="1964" y="1122" text-anchor="middle" font-size="10" fill="#8a8171">parking · 61.2 m2 · semi-outdoor</text>
-<text x="1964" y="1136" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/park</text>
-<text x="1964" y="600" text-anchor="middle" font-size="14" fill="#1f1f1f">駐輪場</text>
-<text x="1964" y="617" text-anchor="middle" font-size="10" fill="#8a8171">yard · 60 m2 · semi-outdoor</text>
-<text x="1964" y="631" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/cycle</text>
-<text x="179" y="915" text-anchor="middle" font-size="14" fill="#1f1f1f">西側通路</text>
-<text x="179" y="932" text-anchor="middle" font-size="10" fill="#8a8171">yard · 24.92 m2 · semi-outdoor</text>
-<text x="179" y="946" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/west</text>
-<text x="1014" y="410" text-anchor="middle" font-size="14" fill="#1f1f1f">北側植栽帯</text>
-<text x="1014" y="427" text-anchor="middle" font-size="10" fill="#8a8171">yard · 76.8 m2 · semi-outdoor</text>
-<text x="1014" y="441" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/green</text>
-<text x="534" y="1105" text-anchor="middle" font-size="14" fill="#1f1f1f">店舗1</text>
-<text x="534" y="1122" text-anchor="middle" font-size="10" fill="#8a8171">shop · 160 m2</text>
-<text x="534" y="1136" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/s1</text>
-<text x="1334" y="1105" text-anchor="middle" font-size="14" fill="#1f1f1f">店舗2</text>
-<text x="1334" y="1122" text-anchor="middle" font-size="10" fill="#8a8171">shop · 65.28 m2</text>
-<text x="1334" y="1136" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/s2</text>
-<text x="1654" y="1105" text-anchor="middle" font-size="14" fill="#1f1f1f">エントランスホール</text>
-<text x="1654" y="1122" text-anchor="middle" font-size="10" fill="#8a8171">lobby · 65.28 m2</text>
-<text x="1654" y="1136" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/hall</text>
 <text x="1014" y="990" text-anchor="middle" font-size="14" fill="#1f1f1f">荷解き・倉庫</text>
 <text x="1014" y="1007" text-anchor="middle" font-size="10" fill="#8a8171">backyard · 35.84 m2</text>
 <text x="1014" y="1021" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/back</text>
 <text x="1014" y="800" text-anchor="middle" font-size="14" fill="#1f1f1f">管理廊下</text>
 <text x="1014" y="817" text-anchor="middle" font-size="10" fill="#8a8171">corridor · 74.24 m2</text>
 <text x="1014" y="831" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/corridor</text>
-<text x="294" y="610" text-anchor="middle" font-size="14" fill="#1f1f1f">西階段</text>
-<text x="294" y="627" text-anchor="middle" font-size="10" fill="#8a8171">stair · 17.92 m2</text>
-<text x="294" y="641" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/st2</text>
-<text x="534" y="610" text-anchor="middle" font-size="14" fill="#1f1f1f">ゴミ置場</text>
-<text x="534" y="627" text-anchor="middle" font-size="10" fill="#8a8171">service · 35.84 m2</text>
-<text x="534" y="641" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/garb</text>
-<text x="814" y="610" text-anchor="middle" font-size="14" fill="#1f1f1f">機械室</text>
-<text x="814" y="627" text-anchor="middle" font-size="10" fill="#8a8171">machine · 26.88 m2</text>
-<text x="814" y="641" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/mech</text>
 <text x="1054" y="610" text-anchor="middle" font-size="14" fill="#1f1f1f">電気室</text>
 <text x="1054" y="627" text-anchor="middle" font-size="10" fill="#8a8171">machine · 26.88 m2</text>
 <text x="1054" y="641" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/elec</text>
 <text x="1254" y="530" text-anchor="middle" font-size="14" fill="#1f1f1f">EV</text>
 <text x="1254" y="547" text-anchor="middle" font-size="10" fill="#8a8171">shaft · 7.68 m2</text>
 <text x="1254" y="561" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/ev</text>
+<text x="534" y="610" text-anchor="middle" font-size="14" fill="#1f1f1f">ゴミ置場</text>
+<text x="534" y="627" text-anchor="middle" font-size="10" fill="#8a8171">service · 35.84 m2</text>
+<text x="534" y="641" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/garb</text>
+<text x="1654" y="1105" text-anchor="middle" font-size="14" fill="#1f1f1f">エントランスホール</text>
+<text x="1654" y="1122" text-anchor="middle" font-size="10" fill="#8a8171">lobby · 65.28 m2</text>
+<text x="1654" y="1136" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/hall</text>
+<text x="814" y="610" text-anchor="middle" font-size="14" fill="#1f1f1f">機械室</text>
+<text x="814" y="627" text-anchor="middle" font-size="10" fill="#8a8171">machine · 26.88 m2</text>
+<text x="814" y="641" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/mech</text>
 <text x="1494" y="610" text-anchor="middle" font-size="14" fill="#1f1f1f">管理室・防災センター</text>
 <text x="1494" y="627" text-anchor="middle" font-size="10" fill="#8a8171">office · 35.84 m2</text>
 <text x="1494" y="641" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/mgr</text>
+<text x="534" y="1105" text-anchor="middle" font-size="14" fill="#1f1f1f">店舗1</text>
+<text x="534" y="1122" text-anchor="middle" font-size="10" fill="#8a8171">shop · 160 m2</text>
+<text x="534" y="1136" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/s1</text>
+<text x="1334" y="1105" text-anchor="middle" font-size="14" fill="#1f1f1f">店舗2</text>
+<text x="1334" y="1122" text-anchor="middle" font-size="10" fill="#8a8171">shop · 65.28 m2</text>
+<text x="1334" y="1136" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/s2</text>
 <text x="1734" y="610" text-anchor="middle" font-size="14" fill="#1f1f1f">東階段</text>
 <text x="1734" y="627" text-anchor="middle" font-size="10" fill="#8a8171">stair · 17.92 m2</text>
 <text x="1734" y="641" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/st1</text>
+<text x="294" y="610" text-anchor="middle" font-size="14" fill="#1f1f1f">西階段</text>
+<text x="294" y="627" text-anchor="middle" font-size="10" fill="#8a8171">stair · 17.92 m2</text>
+<text x="294" y="641" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/st2</text>
+<text x="1964" y="600" text-anchor="middle" font-size="14" fill="#1f1f1f">駐輪場</text>
+<text x="1964" y="617" text-anchor="middle" font-size="10" fill="#8a8171">yard · 60 m2 · semi-outdoor</text>
+<text x="1964" y="631" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/cycle</text>
+<text x="1014" y="410" text-anchor="middle" font-size="14" fill="#1f1f1f">北側植栽帯</text>
+<text x="1014" y="427" text-anchor="middle" font-size="10" fill="#8a8171">yard · 76.8 m2 · semi-outdoor</text>
+<text x="1014" y="441" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/green</text>
+<text x="1964" y="1105" text-anchor="middle" font-size="14" fill="#1f1f1f">駐車場・荷捌き</text>
+<text x="1964" y="1122" text-anchor="middle" font-size="10" fill="#8a8171">parking · 61.2 m2 · semi-outdoor</text>
+<text x="1964" y="1136" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/park</text>
+<text x="1099" y="1420" text-anchor="middle" font-size="14" fill="#1f1f1f">歩道状空地</text>
+<text x="1099" y="1437" text-anchor="middle" font-size="10" fill="#8a8171">plaza · 97.44 m2 · semi-outdoor</text>
+<text x="1099" y="1451" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/walk</text>
+<text x="179" y="915" text-anchor="middle" font-size="14" fill="#1f1f1f">西側通路</text>
+<text x="179" y="932" text-anchor="middle" font-size="10" fill="#8a8171">yard · 24.92 m2 · semi-outdoor</text>
+<text x="179" y="946" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/west</text>
 <path d="M 1494 1364 L 1814 1364 L 1814 854 L 1494 854 Z" fill="none" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>
 <text x="1654" y="1149" text-anchor="middle" font-size="9" fill="#b3ab9c">void above</text>
+<g class="north-arrow">
+<line x1="2158.22" y1="58.65" x2="2153.22" y2="21.18" stroke="#1f1f1f" stroke-width="1"/>
+<polygon points="2153.22,21.18 2159.39,32.65 2150.27,33.87" fill="#1f1f1f"/>
+<text x="2151.9" y="14.67" text-anchor="middle" font-size="9" fill="#1f1f1f">N</text>
+</g>
 <text x="22" y="1550" font-size="12" fill="#1f1f1f">街角の複合ビル — 低層商業+高層住宅 — L1 plan</text>
 <text x="2176" y="1550" text-anchor="end" font-size="9" fill="#a49b8a">koyu — generated from spaces (wall centrelines, mm)</text>
 </svg>

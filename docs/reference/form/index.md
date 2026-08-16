@@ -132,7 +132,9 @@ Every element of `Form` carries its subject's identity. Boundaries, openings, `s
 
 **All five are exported from `@kensnzk/koyu/form`**, alongside `derive` and the `Form` types. That is the whole point of them: a consumer that cannot import a constructor has to write it again, and then the rule of assembly is no longer shared even though the parts are.
 
-**The vertices of the quadrilateral run start+n → end+n → end−n → start−n**, so joining the midpoints of the two opposing sides gives the centre line back. Plan entities carry **both the footprint (the quadrilateral) and the centre line** — whether to draw something as thick or as a single line (a rail or a fence that does not enclose) is a judgement about appearance, so consumers never have to recover the axis from the footprint.
+**The vertices of the quadrilateral run start+n → end+n → end−n → start−n**, so joining the midpoints of the two opposing sides gives the centre line back.
+
+The body of a wall is not one of these constructors' results, because [a junction has already been settled in it](bodies.md): where two walls meet, one runs through and the other stops at its face, so the body runs past the end of its centre line or stops short of it. `FormPanel.footprint` and the plan entity of an interval carry **both that body and the centre line** — the axis cannot be read off the body, and whether to draw something as thick or as a single line (a rail or a fence that does not enclose) is a judgement about appearance.
 
 ## Neighbouring pages
 

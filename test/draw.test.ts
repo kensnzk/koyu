@@ -204,25 +204,35 @@ test("drawing: every black band of the plan is a cut interval of the Form — no
 
 // ---- 4. 区間は足あとと芯線の両方を持つ ----
 
-test("drawing: a wall interval carries both its footprint and its centreline, and the centreline is the axis of the footprint", () => {
+test("drawing: a wall interval carries both its body and its centreline, because the one cannot be read off the other", () => {
   const form = derive(parse(SRC));
+  const thick = new Map(form.boundaries.filter((b) => b.material).map((b) => [b.ref, b.material!.t]));
   let seen = 0;
+  let joined = 0;
   for (const plan of form.plans) {
     for (const e of plan.entities) {
       if (e.of !== "boundary" || !e.polygon) continue;
       seen++;
-      assert.ok(e.lines?.length === 1, `${e.ref}: an interval with a footprint carries its centreline`);
+      assert.ok(e.lines?.length === 1, `${e.ref}: an interval with a body carries its centreline`);
       const q = e.polygon;
       const g = e.lines[0]!;
-      // 芯線は「向かい合う二辺の中点を結んだ線」— 描画側が四辺形から復元しなくてよい根拠
+      // 接合の済んだ実体では、向かい合う二辺の中点は芯線に戻らない —
+      // **これが両方を載せる理由である。**描画側は四辺形から芯線を復元できない
       const a = { x: (q[0]!.x + q[3]!.x) / 2, y: (q[0]!.y + q[3]!.y) / 2 };
       const b = { x: (q[1]!.x + q[2]!.x) / 2, y: (q[1]!.y + q[2]!.y) / 2 };
-      for (const [got, want] of [[a.x, g.x1], [a.y, g.y1], [b.x, g.x2], [b.y, g.y2]]) {
-        assert.ok(Math.abs(got! - want!) < 1e-9, `${e.ref}: the centreline is the axis of the footprint`);
+      if (![[a.x, g.x1], [a.y, g.y1], [b.x, g.x2], [b.y, g.y2]].every(([got, want]) => Math.abs(got! - want!) < 1e-9)) {
+        joined++;
+      }
+      // 接合が動かすのは芯線に沿った端だけである — 実体は壁厚の帯から出ない
+      const len = Math.hypot(g.x2 - g.x1, g.y2 - g.y1);
+      for (const p of q) {
+        const across = Math.abs((g.x2 - g.x1) * (p.y - g.y1) - (g.y2 - g.y1) * (p.x - g.x1)) / len;
+        assert.ok(across <= thick.get(e.ref)! / 2 + 1e-9, `${e.ref}: the body is wider than the wall`);
       }
     }
   }
   assert.ok(seen > 0, "the model has walls to look at");
+  assert.ok(joined > 0, "the model has joined corners, where the body is not the centreline thickened");
 });
 
 test("derive: the constructors agree — a band is its own centreline thickened, and a box prism is flat", () => {

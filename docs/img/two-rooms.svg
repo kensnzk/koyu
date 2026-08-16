@@ -17,17 +17,17 @@
 <line x1="58" y1="84" x2="470" y2="84" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="44" cy="84" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="44" y="87.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y2</text>
-<path d="M 261 309 L 261 216 L 267 216 L 267 309 Z" fill="#1f1f1f"/>
-<path d="M 261 177 L 261 84 L 267 84 L 267 177 Z" fill="#1f1f1f"/>
-<path d="M 84 305.25 L 109 305.25 L 109 312.75 L 84 312.75 Z" fill="#1f1f1f"/>
-<path d="M 239 305.25 L 264 305.25 L 264 312.75 L 239 312.75 Z" fill="#1f1f1f"/>
-<path d="M 84 80.25 L 264 80.25 L 264 87.75 L 84 87.75 Z" fill="#1f1f1f"/>
-<path d="M 80.25 309 L 80.25 84 L 87.75 84 L 87.75 309 Z" fill="#1f1f1f"/>
-<path d="M 264 305.25 L 331.5 305.25 L 331.5 312.75 L 264 312.75 Z" fill="#1f1f1f"/>
-<path d="M 376.5 305.25 L 444 305.25 L 444 312.75 L 376.5 312.75 Z" fill="#1f1f1f"/>
-<path d="M 440.25 309 L 440.25 261.5 L 447.75 261.5 L 447.75 309 Z" fill="#1f1f1f"/>
-<path d="M 440.25 131.5 L 440.25 84 L 447.75 84 L 447.75 131.5 Z" fill="#1f1f1f"/>
-<path d="M 264 80.25 L 444 80.25 L 444 87.75 L 264 87.75 Z" fill="#1f1f1f"/>
+<path d="M 261 305.25 L 261 216 L 267 216 L 267 305.25 Z" fill="#1f1f1f"/>
+<path d="M 261 177 L 261 87.75 L 267 87.75 L 267 177 Z" fill="#1f1f1f"/>
+<path d="M 87.75 305.25 L 109 305.25 L 109 312.75 L 87.75 312.75 Z" fill="#1f1f1f"/>
+<path d="M 239 305.25 L 267 305.25 L 267 312.75 L 239 312.75 Z" fill="#1f1f1f"/>
+<path d="M 87.75 80.25 L 267 80.25 L 267 87.75 L 87.75 87.75 Z" fill="#1f1f1f"/>
+<path d="M 80.25 312.75 L 80.25 80.25 L 87.75 80.25 L 87.75 312.75 Z" fill="#1f1f1f"/>
+<path d="M 267 305.25 L 331.5 305.25 L 331.5 312.75 L 267 312.75 Z" fill="#1f1f1f"/>
+<path d="M 376.5 305.25 L 447.75 305.25 L 447.75 312.75 L 376.5 312.75 Z" fill="#1f1f1f"/>
+<path d="M 440.25 305.25 L 440.25 261.5 L 447.75 261.5 L 447.75 305.25 Z" fill="#1f1f1f"/>
+<path d="M 440.25 131.5 L 440.25 87.75 L 447.75 87.75 L 447.75 131.5 Z" fill="#1f1f1f"/>
+<path d="M 267 80.25 L 447.75 80.25 L 447.75 87.75 L 267 87.75 Z" fill="#1f1f1f"/>
 <line x1="264" y1="216" x2="225" y2="216" stroke="#1f1f1f" stroke-width="1.4"/>
 <path d="M 225 216 A 39 39 0 0 1 264 177" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
 <line x1="109" y1="309" x2="239" y2="309" stroke="#1f1f1f" stroke-width="1"/>

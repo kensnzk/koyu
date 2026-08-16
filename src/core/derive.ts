@@ -46,7 +46,8 @@ import {
   isOutside,
   isVoid
 } from "./model.js";
-import { EPS, SPAN_EPS } from "./tolerance.js";
+import { clipHalf } from "./poly.js";
+import { EPS, PARALLEL_EPS, POINT_EPS, SPAN_EPS } from "./tolerance.js";
 import {
   CUT_HEIGHT,
   ARROW_SPAN_MIN,
@@ -163,6 +164,12 @@ export interface FormPanel {
   y2: number;
   z0: number;
   z1: number;
+  /**
+   * The body of this interval, with the junctions at both ends resolved. It is the centre line
+   * thickened where nothing joins; where walls meet it runs on past the end or stops short of it,
+   * so **the centre line above is not the axis of this outline** and cannot be recovered from it
+   */
+  footprint: Pt[];
 }
 
 /** 境界の実体 — 芯線分と、物があるならその材 */
@@ -371,6 +378,7 @@ const sameSegment = (a: Segment, b: Segment): boolean =>
  */
 function panelsOf(
   seg: Segment,
+  t: number,
   z0: number,
   z1: number,
   holes: Array<{ lo: number; hi: number; z0: number; z1: number }>,
@@ -381,7 +389,8 @@ function panelsOf(
     if (u1 - u0 <= SPAN_EPS || b - a <= SPAN_EPS) return;
     const p = alongPoint(seg, u0, len);
     const q = alongPoint(seg, u1, len);
-    out.push({ x1: p.x, y1: p.y, x2: q.x, y2: q.y, z0: a, z1: b });
+    // The body before any junction is resolved — `joinWalls` rewrites the ends that meet a wall
+    out.push({ x1: p.x, y1: p.y, x2: q.x, y2: q.y, z0: a, z1: b, footprint: thicken(p.x, p.y, q.x, q.y, t) });
   };
   let cursor = 0;
   for (const h of [...holes].sort((p, q) => p.lo - q.lo)) {
@@ -533,6 +542,251 @@ export function runPrism(s: RunSolid): FormPrism {
     return s.z0 + u * (s.z1 - s.z0);
   });
   return { poly, bottom: top.map((z) => z - s.t), top };
+}
+
+// ---- Wall joins ----------------------------------------------------------
+//
+// A boundary segment is a centre line, so thickening it about that line leaves the corner of a
+// junction empty. Two walls meeting at a right angle each stop at the point they share, and the
+// square of t/2 by t/2 outside it belongs to neither: `examples/two-rooms.muro` had one such hole
+// at each of the four corners of the building, and `examples/complex` had 206.
+//
+// **Nothing is merged.** A wall stays one body per interval, keeping its own identity, thickness
+// and z range. What the join decides is which of the walls meeting at a point runs through and
+// where the others stop: **the winner runs through, and every wall that ends at the node is cut
+// back to the winner's face.** Two bodies that meet along that face close the corner between them
+// without becoming one body — which is also why a losing end is cut rather than left overlapping.
+//
+// The election is a total order, so one model always gives one shape (promise 1 of the shape):
+//
+//   1. a wall that does not end at the node beats one that does — it is already running through
+//   2. the thicker wall wins
+//   3. the centre line that comes first in ascending coordinate order wins
+//
+// Nothing in it reads declaration order, and nothing reads which boundary a segment came from.
+
+/** A half plane — the points `x` with `(x − q)·m ≥ 0`. The face a losing end is cut back to */
+interface Trim {
+  q: Pt;
+  m: Pt;
+}
+
+/** A wall taking part in the joins of one level */
+interface JoinBody {
+  panels: FormPanel[];
+  /** half the thickness */
+  a: number;
+  /** unit direction of the centre line, and the normal to its left */
+  u: Pt;
+  n: Pt;
+  /** the two ends of the centre line, in its own direction */
+  ends: [Pt, Pt];
+  /** how far the body runs past each end. Only the winner of a node extends */
+  ext: [number, number];
+  trim: [Trim | undefined, Trim | undefined];
+}
+
+/** An end of a wall at a node, or — with no `end` — a wall running through it */
+interface Incident {
+  body: JoinBody;
+  end?: 0 | 1;
+}
+
+const dot = (a: Pt, b: Pt): number => a.x * b.x + a.y * b.y;
+const cross = (a: Pt, b: Pt): number => a.x * b.y - a.y * b.x;
+const along = (p: Pt, d: Pt, k: number): Pt => ({ x: p.x + d.x * k, y: p.y + d.y * k });
+const same = (p: Pt, q: Pt): boolean => Math.abs(p.x - q.x) <= POINT_EPS && Math.abs(p.y - q.y) <= POINT_EPS;
+
+/** Where the line through `p` along `d` meets the line through `q` along `e` (parallel: none) */
+function meet(p: Pt, d: Pt, q: Pt, e: Pt): Pt | undefined {
+  const den = cross(d, e);
+  if (Math.abs(den) < PARALLEL_EPS) return undefined;
+  return along(p, d, cross({ x: q.x - p.x, y: q.y - p.y }, e) / den);
+}
+
+/** The direction out of a wall at one of its ends (an end runs against it) */
+const outward = (b: JoinBody, end: 0 | 1): Pt =>
+  end === 0 ? { x: -b.u.x, y: -b.u.y } : b.u;
+
+/** The direction into a wall from one of its ends */
+const inward = (b: JoinBody, end: 0 | 1): Pt => outward(b, end === 0 ? 1 : 0);
+
+/** The centre line in ascending coordinate order — the spelling the election breaks ties by */
+function lineKey(b: JoinBody): [number, number, number, number] {
+  const [p, q] = b.ends;
+  const first = p.x < q.x || (p.x === q.x && p.y <= q.y);
+  return first ? [p.x, p.y, q.x, q.y] : [q.x, q.y, p.x, p.y];
+}
+
+/** The election. Negative when `x` beats `y` */
+function beats(x: Incident, y: Incident): number {
+  if ((x.end === undefined) !== (y.end === undefined)) return x.end === undefined ? -1 : 1;
+  if (x.body.a !== y.body.a) return y.body.a - x.body.a;
+  const kx = lineKey(x.body);
+  const ky = lineKey(y.body);
+  for (let i = 0; i < 4; i++) if (kx[i]! !== ky[i]!) return kx[i]! - ky[i]!;
+  return 0;
+}
+
+/**
+ * How far the winner has to run past the node so that its face carries the whole cut edge of a
+ * losing end. The loser is cut back to the winner's face, and that cut edge reaches as far as the
+ * loser's own sides do — at a right angle exactly half the loser's thickness, further where the
+ * loser leans back over the winner. A loser running along the winner needs no extension: the two
+ * simply butt.
+ */
+function extensionFor(winner: Incident, loser: Incident, p: Pt): number {
+  if (winner.end === undefined) return 0;
+  const w = outward(winner.body, winner.end);
+  const v = inward(loser.body, loser.end!);
+  if (Math.abs(cross(winner.body.u, v)) < PARALLEL_EPS) return 0;
+  const side = dot(v, winner.body.n) >= 0 ? 1 : -1;
+  const face = along(p, winner.body.n, side * winner.body.a);
+  let e = 0;
+  for (const s of [1, -1]) {
+    const q = meet(face, winner.body.u, along(p, loser.body.n, s * loser.body.a), v);
+    if (q) e = Math.max(e, dot({ x: q.x - p.x, y: q.y - p.y }, w));
+  }
+  return e;
+}
+
+/** The face a losing end is cut back to — the winner's side, or its end cap when the two run along each other */
+function trimFor(winner: Incident, loser: Incident, p: Pt): Trim | undefined {
+  const v = inward(loser.body, loser.end!);
+  if (Math.abs(cross(winner.body.u, v)) < PARALLEL_EPS) {
+    if (winner.end === undefined) return undefined;
+    const w = outward(winner.body, winner.end);
+    return { q: along(p, w, winner.body.ext[winner.end]), m: w };
+  }
+  const side = dot(v, winner.body.n) >= 0 ? 1 : -1;
+  return {
+    q: along(p, winner.body.n, side * winner.body.a),
+    m: { x: winner.body.n.x * side, y: winner.body.n.y * side },
+  };
+}
+
+/** Whether `p` lies on the centre line of `b` without being one of its ends */
+function runsThrough(b: JoinBody, p: Pt): boolean {
+  if (same(p, b.ends[0]) || same(p, b.ends[1])) return false;
+  const d = { x: p.x - b.ends[0].x, y: p.y - b.ends[0].y };
+  const s = dot(d, b.u);
+  const len = dot({ x: b.ends[1].x - b.ends[0].x, y: b.ends[1].y - b.ends[0].y }, b.u);
+  return s > 0 && s < len && Math.abs(cross(b.u, d)) <= POINT_EPS;
+}
+
+/** Rounded to the millimetre — coordinates are millimetres, so a node is one cell */
+const cellKey = (p: Pt): string => `${Math.round(p.x)}|${Math.round(p.y)}`;
+
+/**
+ * Join the walls of one level, in place. Two passes: every winner is elected and extended before
+ * any loser is cut back, because a loser is cut back to the winner's **extended** face.
+ */
+function joinLevel(bodies: JoinBody[]): void {
+  const nodes = new Map<string, { p: Pt; ends: Incident[] }>();
+  for (const body of bodies) {
+    for (const end of [0, 1] as const) {
+      const p = body.ends[end];
+      const k = cellKey(p);
+      const node = nodes.get(k) ?? { p, ends: [] };
+      node.ends.push({ body, end });
+      nodes.set(k, node);
+    }
+  }
+
+  // Walls that may run through a node without ending there, looked up by the line they lie on
+  const byX = new Map<number, JoinBody[]>();
+  const byY = new Map<number, JoinBody[]>();
+  const oblique: JoinBody[] = [];
+  for (const b of bodies) {
+    const [p, q] = b.ends;
+    const index = Math.abs(p.y - q.y) <= EPS ? byY : Math.abs(p.x - q.x) <= EPS ? byX : undefined;
+    if (index === undefined) {
+      oblique.push(b);
+      continue;
+    }
+    const at = Math.round(index === byY ? p.y : p.x);
+    const g = index.get(at) ?? [];
+    g.push(b);
+    index.set(at, g);
+  }
+  const through = (p: Pt): JoinBody[] => {
+    const out: JoinBody[] = [];
+    for (const d of [-1, 0, 1]) {
+      for (const b of byY.get(Math.round(p.y) + d) ?? []) if (runsThrough(b, p)) out.push(b);
+      for (const b of byX.get(Math.round(p.x) + d) ?? []) if (runsThrough(b, p)) out.push(b);
+    }
+    for (const b of oblique) if (runsThrough(b, p)) out.push(b);
+    return out;
+  };
+
+  const elected: Array<{ p: Pt; winner: Incident; ends: Incident[] }> = [];
+  for (const node of nodes.values()) {
+    const incident: Incident[] = [...through(node.p).map((body) => ({ body })), ...node.ends];
+    if (incident.length < 2) continue;
+    const winner = incident.reduce((best, i) => (beats(i, best) < 0 ? i : best));
+    elected.push({ p: node.p, winner, ends: node.ends });
+    if (winner.end === undefined) continue;
+    let e = winner.body.ext[winner.end];
+    for (const loser of node.ends) {
+      if (loser.body === winner.body && loser.end === winner.end) continue;
+      e = Math.max(e, extensionFor(winner, loser, node.p));
+    }
+    winner.body.ext[winner.end] = e;
+  }
+
+  for (const { p, winner, ends } of elected) {
+    for (const loser of ends) {
+      if (loser.body === winner.body && loser.end === winner.end) continue;
+      loser.body.trim[loser.end!] = trimFor(winner, loser, p);
+    }
+  }
+
+  for (const body of bodies) {
+    if (body.ext[0] === 0 && body.ext[1] === 0 && !body.trim[0] && !body.trim[1]) continue;
+    for (const panel of body.panels) {
+      const at: [boolean, boolean] = [
+        same({ x: panel.x1, y: panel.y1 }, body.ends[0]),
+        same({ x: panel.x2, y: panel.y2 }, body.ends[1]),
+      ];
+      const s = at[0] ? along({ x: panel.x1, y: panel.y1 }, body.u, -body.ext[0]) : { x: panel.x1, y: panel.y1 };
+      const t = at[1] ? along({ x: panel.x2, y: panel.y2 }, body.u, body.ext[1]) : { x: panel.x2, y: panel.y2 };
+      let foot = thicken(s.x, s.y, t.x, t.y, body.a * 2);
+      for (const end of [0, 1] as const) {
+        const cut = at[end] ? body.trim[end] : undefined;
+        if (!cut) continue;
+        // The directed line whose left side is `m`. **A cut that would leave nothing does not
+        // happen** — a wall swallowed whole by the one it runs into keeps the body it had
+        const kept = clipHalf(foot, cut.q, { x: cut.q.x + cut.m.y, y: cut.q.y - cut.m.x }, true);
+        if (kept.length >= 3) foot = kept;
+      }
+      panel.footprint = foot;
+    }
+  }
+}
+
+/** Close the junctions of every wall of the model. Levels are joined independently */
+function joinWalls(boundaries: FormBoundary[]): void {
+  const byLevel = new Map<string, JoinBody[]>();
+  for (const b of boundaries) {
+    if (!b.material || b.material.panels.length === 0) continue;
+    const seg = b.segment;
+    const len = segmentLength(seg);
+    if (len <= EPS) continue;
+    const u = { x: (seg.x2 - seg.x1) / len, y: (seg.y2 - seg.y1) / len };
+    const k = b.level ?? "";
+    const g = byLevel.get(k) ?? [];
+    g.push({
+      panels: b.material.panels,
+      a: b.material.t / 2,
+      u,
+      n: { x: -u.y, y: u.x },
+      ends: [{ x: seg.x1, y: seg.y1 }, { x: seg.x2, y: seg.y2 }],
+      ext: [0, 0],
+      trim: [undefined, undefined],
+    });
+    byLevel.set(k, g);
+  }
+  for (const bodies of byLevel.values()) joinLevel(bodies);
 }
 
 const spans = (z0: number, z1: number, z: number): boolean => z >= z0 - SPAN_EPS && z <= z1 + SPAN_EPS;
@@ -691,11 +945,15 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
         air: b.air === true,
         segment: seg,
         ...(b.kind === "wall" && z0 !== undefined && top !== undefined && len > EPS
-          ? { material: { t, z0, z1: top, panels: panelsOf(seg, z0, top, holes) } }
+          ? { material: { t, z0, z1: top, panels: panelsOf(seg, t, z0, top, holes) } }
           : {}),
       });
     }
   }
+
+  // The bodies of the walls are settled here, once every wall of every level is known — a
+  // junction is a fact about two walls, so no single boundary can answer it on its own
+  joinWalls(boundaries);
 
   // ---- 柱 ----
   const columns: FormColumn[] = [];
@@ -771,14 +1029,15 @@ function planOf(
       });
       continue;
     }
-    // 区間は**足あと (厚みのある四辺形) と芯線の両方**を持つ。厚みを持つものとして描くか
-    // 一本の線として描くか (遮蔽しない手すり・柵) は見た目の判断なので、消費者が選ぶ
+    // 区間は**足あと (接合の済んだ実体) と芯線の両方**を持つ。厚みを持つものとして描くか
+    // 一本の線として描くか (遮蔽しない手すり・柵) は見た目の判断なので、消費者が選ぶ。
+    // 接合で足あとの軸は芯線から離れるので、四辺形から芯線を復元することはできない
     for (const p of b.material.panels) {
       entities.push({
         class: spans(p.z0, p.z1, cutZ) ? "cut" : p.z1 < cutZ ? "below" : "above",
         of: "boundary",
         ref: b.ref,
-        polygon: thicken(p.x1, p.y1, p.x2, p.y2, b.material.t),
+        polygon: p.footprint,
         lines: [{ x1: p.x1, y1: p.y1, x2: p.x2, y2: p.y2 }],
       });
     }

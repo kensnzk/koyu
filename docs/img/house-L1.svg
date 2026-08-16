@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="682" height="782" viewBox="0 0 682 782" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
 <rect width="682" height="782" fill="#faf8f4"/>
-<path d="M 84 698 L 598 698 L 598 498 L 84 498 Z" fill="#f8f5ec"/>
-<path d="M 84 498 L 159 498 L 159 84 L 84 84 Z" fill="#f8f5ec"/>
-<path d="M 523 498 L 598 498 L 598 84 L 523 84 Z" fill="#f8f5ec"/>
-<path d="M 159 134 L 523 134 L 523 84 L 159 84 Z" fill="#f8f5ec"/>
+<path d="M 341 316 L 523 316 L 523 134 L 341 134 Z" fill="#f1ebdd"/>
 <path d="M 159 498 L 341 498 L 341 134 L 159 134 Z" fill="#f1ebdd"/>
 <path d="M 341 498 L 523 498 L 523 316 L 341 316 Z" fill="#f1ebdd"/>
-<path d="M 341 316 L 523 316 L 523 134 L 341 134 Z" fill="#f1ebdd"/>
+<path d="M 523 498 L 598 498 L 598 84 L 523 84 Z" fill="#f8f5ec"/>
+<path d="M 84 698 L 598 698 L 598 498 L 84 498 Z" fill="#f8f5ec"/>
+<path d="M 159 134 L 523 134 L 523 84 L 159 84 Z" fill="#f8f5ec"/>
+<path d="M 84 498 L 159 498 L 159 84 L 84 84 Z" fill="#f8f5ec"/>
 <line x1="159" y1="58" x2="159" y2="724" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="159" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="159" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X1</text>
@@ -25,18 +25,18 @@
 <line x1="58" y1="134" x2="624" y2="134" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="44" cy="134" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="44" y="137.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y3</text>
-<path d="M 338 316 L 338 245 L 344 245 L 344 316 Z" fill="#1f1f1f"/>
-<path d="M 338 205 L 338 134 L 344 134 L 344 205 Z" fill="#1f1f1f"/>
-<path d="M 341 313 L 523 313 L 523 319 L 341 319 Z" fill="#1f1f1f"/>
-<path d="M 519.25 316 L 519.25 247.5 L 526.75 247.5 L 526.75 316 Z" fill="#1f1f1f"/>
-<path d="M 519.25 202.5 L 519.25 134 L 526.75 134 L 526.75 202.5 Z" fill="#1f1f1f"/>
-<path d="M 341 130.25 L 523 130.25 L 523 137.75 L 341 137.75 Z" fill="#1f1f1f"/>
-<path d="M 519.25 498 L 519.25 316 L 526.75 316 L 526.75 498 Z" fill="#1f1f1f"/>
-<path d="M 159 494.25 L 276 494.25 L 276 501.75 L 159 501.75 Z" fill="#1f1f1f"/>
-<path d="M 406 494.25 L 523 494.25 L 523 501.75 L 406 501.75 Z" fill="#1f1f1f"/>
-<path d="M 159 130.25 L 341 130.25 L 341 137.75 L 159 137.75 Z" fill="#1f1f1f"/>
-<path d="M 155.25 498 L 155.25 357.25 L 162.75 357.25 L 162.75 498 Z" fill="#1f1f1f"/>
-<path d="M 155.25 274.75 L 155.25 134 L 162.75 134 L 162.75 274.75 Z" fill="#1f1f1f"/>
+<path d="M 338 319 L 338 245 L 344 245 L 344 319 Z" fill="#1f1f1f"/>
+<path d="M 338 205 L 338 137.75 L 344 137.75 L 344 205 Z" fill="#1f1f1f"/>
+<path d="M 344 313 L 519.25 313 L 519.25 319 L 344 319 Z" fill="#1f1f1f"/>
+<path d="M 519.25 313 L 519.25 247.5 L 526.75 247.5 L 526.75 313 Z" fill="#1f1f1f"/>
+<path d="M 519.25 202.5 L 519.25 137.75 L 526.75 137.75 L 526.75 202.5 Z" fill="#1f1f1f"/>
+<path d="M 344 130.25 L 526.75 130.25 L 526.75 137.75 L 344 137.75 Z" fill="#1f1f1f"/>
+<path d="M 519.25 494.25 L 519.25 313 L 526.75 313 L 526.75 494.25 Z" fill="#1f1f1f"/>
+<path d="M 162.75 494.25 L 276 494.25 L 276 501.75 L 162.75 501.75 Z" fill="#1f1f1f"/>
+<path d="M 406 494.25 L 526.75 494.25 L 526.75 501.75 L 406 501.75 Z" fill="#1f1f1f"/>
+<path d="M 162.75 130.25 L 344 130.25 L 344 137.75 L 162.75 137.75 Z" fill="#1f1f1f"/>
+<path d="M 155.25 501.75 L 155.25 357.25 L 162.75 357.25 L 162.75 501.75 Z" fill="#1f1f1f"/>
+<path d="M 155.25 274.75 L 155.25 130.25 L 162.75 130.25 L 162.75 274.75 Z" fill="#1f1f1f"/>
 <line x1="598" y1="498" x2="598" y2="84" stroke="#1f1f1f" stroke-width="1.4"/>
 <line x1="598" y1="698" x2="598" y2="498" stroke="#1f1f1f" stroke-width="1.4"/>
 <line x1="523" y1="84" x2="598" y2="84" stroke="#1f1f1f" stroke-width="1.4"/>
@@ -50,32 +50,32 @@
 <line x1="523" y1="134" x2="523" y2="84" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>
 <line x1="84" y1="498" x2="159" y2="498" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>
 <line x1="159" y1="134" x2="159" y2="84" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>
-<line x1="341" y1="245" x2="381" y2="245" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 381 245 A 40 40 0 0 0 341 205" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="346.5" y1="285" x2="346.5" y2="245" stroke="#1f1f1f" stroke-width="2"/>
+<line x1="346.5" y1="245" x2="341" y2="245" stroke="#1f1f1f" stroke-width="0.7"/>
 <line x1="523" y1="247.5" x2="478" y2="247.5" stroke="#1f1f1f" stroke-width="1.4"/>
 <path d="M 478 247.5 A 45 45 0 0 1 523 202.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
 <line x1="276" y1="498" x2="406" y2="498" stroke="#1f1f1f" stroke-width="1"/>
 <line x1="159" y1="357.25" x2="159" y2="274.75" stroke="#1f1f1f" stroke-width="1"/>
 <line x1="318.5" y1="698" x2="318.5" y2="653" stroke="#1f1f1f" stroke-width="1.4"/>
 <path d="M 318.5 653 A 45 45 0 0 1 363.5 698" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<text x="341" y="594" text-anchor="middle" font-size="14" fill="#1f1f1f">南庭</text>
-<text x="341" y="611" text-anchor="middle" font-size="10" fill="#8a8171">garden · 41.12 m2 · semi-outdoor</text>
-<text x="341" y="625" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/garden</text>
-<text x="121.5" y="287" text-anchor="middle" font-size="14" fill="#1f1f1f">西側通路</text>
-<text x="121.5" y="304" text-anchor="middle" font-size="10" fill="#8a8171">yard · 12.42 m2 · semi-outdoor</text>
-<text x="121.5" y="318" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/west</text>
-<text x="560.5" y="287" text-anchor="middle" font-size="14" fill="#1f1f1f">東側通路</text>
-<text x="560.5" y="304" text-anchor="middle" font-size="10" fill="#8a8171">yard · 12.42 m2 · semi-outdoor</text>
-<text x="560.5" y="318" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/east</text>
-<text x="341" y="105" text-anchor="middle" font-size="14" fill="#1f1f1f">北側通路</text>
-<text x="341" y="122" text-anchor="middle" font-size="10" fill="#8a8171">yard · 7.28 m2 · semi-outdoor</text>
-<text x="341" y="136" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/north</text>
-<text x="250" y="312" text-anchor="middle" font-size="14" fill="#1f1f1f">LDK</text>
-<text x="250" y="329" text-anchor="middle" font-size="10" fill="#8a8171">ldk · 39.75 m2</text>
-<text x="250" y="343" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/home/ldk</text>
 <text x="432" y="221" text-anchor="middle" font-size="14" fill="#1f1f1f">玄関・階段</text>
 <text x="432" y="238" text-anchor="middle" font-size="10" fill="#8a8171">hall · 13.25 m2</text>
 <text x="432" y="252" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/home/hall1</text>
+<text x="250" y="312" text-anchor="middle" font-size="14" fill="#1f1f1f">LDK</text>
+<text x="250" y="329" text-anchor="middle" font-size="10" fill="#8a8171">ldk · 39.75 m2</text>
+<text x="250" y="343" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/home/ldk</text>
+<text x="560.5" y="287" text-anchor="middle" font-size="14" fill="#1f1f1f">東側通路</text>
+<text x="560.5" y="304" text-anchor="middle" font-size="10" fill="#8a8171">yard · 12.42 m2 · semi-outdoor</text>
+<text x="560.5" y="318" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/east</text>
+<text x="341" y="594" text-anchor="middle" font-size="14" fill="#1f1f1f">南庭</text>
+<text x="341" y="611" text-anchor="middle" font-size="10" fill="#8a8171">garden · 41.12 m2 · semi-outdoor</text>
+<text x="341" y="625" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/garden</text>
+<text x="341" y="105" text-anchor="middle" font-size="14" fill="#1f1f1f">北側通路</text>
+<text x="341" y="122" text-anchor="middle" font-size="10" fill="#8a8171">yard · 7.28 m2 · semi-outdoor</text>
+<text x="341" y="136" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/north</text>
+<text x="121.5" y="287" text-anchor="middle" font-size="14" fill="#1f1f1f">西側通路</text>
+<text x="121.5" y="304" text-anchor="middle" font-size="10" fill="#8a8171">yard · 12.42 m2 · semi-outdoor</text>
+<text x="121.5" y="318" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/site/west</text>
 <path d="M 341 498 L 523 498 L 523 316 L 341 316 Z" fill="none" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="6 4"/>
 <text x="432" y="447" text-anchor="middle" font-size="9" fill="#b3ab9c">void above</text>
 <text x="22" y="764" font-size="12" fill="#1f1f1f">小さな戸建住宅 — L1 plan</text>
