@@ -43,18 +43,22 @@ const digest = (file: string): string =>
  * 座標・厚み・z 範囲・分類・並び — Form に載るものはすべてここに効く。
  */
 const GOLDEN: Record<string, string> = {
-  "examples/two-rooms.muro": "9d92220d9f2d7adc",
-  "examples/office.muro": "e536046e5b75c3c9",
-  "examples/house/main.muro": "e3cf2f90817c9aec",
-  "examples/basement/main.muro": "6563b75ee0b10cfb",
-  "examples/tower/main.muro": "a483e49f4938c58f",
-  "examples/complex/main.muro": "7e3b8522272f0bf3",
+  "examples/two-rooms.muro": "642a6ecea5c4b05f",
+  "examples/office.muro": "7cf1f4c1fe0aa530",
+  "examples/house/main.muro": "9622d2a0f166f76d",
+  "examples/basement/main.muro": "1fa571a563ca4bcb",
+  "examples/tower/main.muro": "0c035e5be800bec7",
+  "examples/complex/main.muro": "d1d2cb12161f84b5",
 };
 
 test("derive: the Form of every bundled example matches its golden", () => {
   const now: Record<string, string> = {};
   for (const f of EXAMPLES) now[f] = digest(f);
-  assert.deepEqual(now, GOLDEN, "the derived Form moved — fix spec/derivation.md and the golden in the same change");
+  assert.deepEqual(
+    now,
+    GOLDEN,
+    "the derived Form moved — fix docs/reference/form/ and the golden in the same change",
+  );
 });
 
 test("derive: the Form is stable (deriving twice from the same source gives the same bytes)", () => {

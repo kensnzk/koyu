@@ -84,6 +84,44 @@ A door rises from the floor, so no sill wall appears. A window would produce bot
 
 **With this rule, "paint the black band of the wall in the paper colour so it reads as a hole" simply does not exist as an operation.** In plan and in solid alike, the wall is a list of intervals that already has the hole in it.
 
+Each interval carries **`footprint`** — its body, with the junctions at both of its ends already settled. That is what the next section is about, and it is the reason the interval carries a body at all rather than leaving the reader to thicken the centre line: at a junction, the body is no longer the centre line thickened.
+
+## Where two walls meet
+
+A centre line thickened about itself stops at its own end, so two walls meeting at a right angle leave the square of t/2 by t/2 outside the point they share belonging to neither of them. **The junction is derived, so nothing downstream has a corner to repair.**
+
+**Nothing is merged.** A wall stays one body per interval, with its own identity, its own thickness and its own z range. What the junction decides is which of the walls meeting at a point runs through it, and where the others stop.
+
+> **The winner runs through, and every wall that ends at the node is cut back to the winner's face.**
+
+The election is a total order, so one model always gives one shape ([promise 1](index.md)).
+
+1. A wall that does not end at the node beats one that does — it is already running through
+2. The **thicker** wall wins
+3. The centre line that comes first in ascending coordinate order wins
+
+Nothing in it reads declaration order, and nothing reads which boundary a segment came from — the same three rules answer a corner, a T and a cross.
+
+The winner runs on past the node just far enough that its face carries the whole cut edge of every wall stopping against it: half the loser's thickness at a right angle, further where the loser leans back over it. Two walls running **along** each other are not a junction — they simply butt, and neither moves. A cut that would leave nothing at all does not happen: a wall swallowed whole by the one it runs into keeps the body it had.
+
+**In two cases the cut gives way to an overlap, because the alternative is a hole.**
+
+- **A cut reaches only as high as the wall that made it.** A rail (`air:1`) is up to 80mm thick and stops at 1100mm, so it wins against a wall thinner than itself and stops far below its top. Cutting that wall back over its whole height would take a slice out of it above the rail and leave a notch there. Where the winner does not span the interval's z range, the interval keeps its body.
+- **A losing end is cut against the winner and against nothing else.** Two ends leaning to the same side of the winner are each cut to that one face, so their bodies overlap between the face and the point where their centre lines part. It takes a wall neither parallel nor perpendicular to the winner to reach that state: with axis-parallel walls a node has at most one end per side.
+
+The four walls of a rectangular room therefore tile the ring they stand in exactly — no corner hole, and no corner counted twice.
+
+```text
+room 4000 × 3000, t 100, walls in ascending coordinate order
+
+  west   runs through both of its corners : body x −50 … 50,   y −50 … 3050
+  south  stops against the west wall      : body x  50 … 4050, y −50 … 50
+  north  stops against the west wall      : body x  50 … 4050, y 2950 … 3050
+  east   stops against both               : body x 3950 … 4050, y 50 … 2950
+```
+
+**The centre line is untouched by any of this.** `FormPanel`'s `x1,y1,x2,y2` still runs from one end of the interval to the other, and `FormBoundary.segment` is still the whole segment: the junction moves matter, not relations. So at a junction the centre line is **not** the axis of the body and cannot be recovered from it, which is why both are carried.
+
 ## Where a door opens, and its trace
 
 The side it opens into is `swing:a/b`, or, unwritten, "a if a has a region, otherwise b".

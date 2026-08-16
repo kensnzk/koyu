@@ -1,16 +1,19 @@
-// koyu — 軸測図 (アクソメ) の生成 (ADR-0026)
-// 平面図が「そのレベルで切った断面」であるのに対し、これは立体をそのまま投影した図である。
-// WebGLも実行環境も要らない — 平面と同じく SVG のテキストが出るので、
-// 生成して見る、という同じ手で立体を確かめられる。
+// koyu — the axonometric (ADR-0026)
+// A plan is "the section cut at that level"; this is the solid itself, projected. It needs neither
+// WebGL nor a runtime — the text of an SVG comes out, exactly as it does for a plan, so a solid is
+// checked by the same move: generate it and look.
 //
-// 描くのは**生成物だけ**である。床・屋根、壁 (境界から)、柱 (通りの交点から)、縦動線。
-// どれもソースには無く、規則から現れる。
+// **Only what is generated is drawn.** Floors and roofs, walls (from the boundaries), columns
+// (from the grid intersections), vertical circulation. None of it is in the source; all of it
+// appears out of the rules.
 //
-// **ここに形の規則は一つも無い** (ADR-0040)。輪郭も厚みも z 範囲も `derive(model)` が返す
-// `Form` に既に入っており、芯線から実体を起こす構成子 (`thicken` / `columnRect` / `runPrism`)
-// も core が唯一の実装を持つ。この頁が決めるのは投影・陰影・重ね順・紙面だけである。
+// **There is not one rule of shape here** (ADR-0040). Outlines, thicknesses and z ranges are
+// already in the `Form` that `derive(model)` returns, and the constructors that raise matter from
+// a centre line (`columnRect` / `runPrism`) have their one implementation in core. A wall arrives
+// as a body with its junctions already settled — there is no corner to repair here. What this page
+// decides is the projection, the shading, the stacking order and the page.
 
-import { columnRect, derive, runPrism, thicken } from "../core/derive.js";
+import { columnRect, derive, runPrism } from "../core/derive.js";
 import { type Model, type Pt } from "../core/model.js";
 
 export interface AxoOptions {
@@ -109,9 +112,7 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   if (opts.walls !== false) {
     for (const b of form.boundaries) {
       if (!b.material || (b.level !== undefined && !names.has(b.level))) continue;
-      for (const p of b.material.panels) {
-        add(thicken(p.x1, p.y1, p.x2, p.y2, b.material.t), p.z0, p.z1, C.wall);
-      }
+      for (const p of b.material.panels) add(p.footprint, p.z0, p.z1, C.wall);
     }
   }
 

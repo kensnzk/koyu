@@ -68,7 +68,7 @@ derive(model, { cut: 900 })
 
 If a boundary has matter, each of [the intervals it was split into by openings](bodies.md) becomes one entity. Its z range is compared with the cut plane: spanning it gives `cut`, a top below it gives `below`, otherwise `above`. A boundary with no matter (`type:open`) carries only its centre segment.
 
-**An interval carries both the footprint (the thick quadrilateral) and the centre line.** Drawing it as thick or as a single line (a rail or fence that does not enclose) is a judgement about appearance, so consumers never have to recover the axis from the footprint.
+**An interval carries both the footprint and the centre line.** The footprint is the body with [its junctions settled](bodies.md), so at a corner it is not the centre line thickened and the axis cannot be recovered from it. Drawing the interval as thick or as a single line (a rail or fence that does not enclose) is a judgement about appearance; **repairing a corner is not one, and there is nothing left on the drawing side to repair.**
 
 An opening carries the band of the leaf itself, and a door is followed by a `swing` entity. Sliding and automatic doors have no arc — only the segment from hinge to leaf tip.
 

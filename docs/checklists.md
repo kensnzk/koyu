@@ -73,6 +73,57 @@ as the two agree, and blocks the bump on the day they stop.
 
 ---
 
+## Raising the koyu version
+
+### Held by machine
+
+| What | Which gate |
+|---|---|
+| `package.json`, `package-lock.json`, `CITATION.cff` and `KOYU_VERSION` agree | `test/release.test.ts` |
+| The row in `MURO_SUPPORT` naming the release a language version ships in | `test/release.test.ts` |
+
+### Not held
+
+- **The pasted outputs that carry the version.** `koyu --version` and the MCP `serverInfo` print
+  it, and five published pages quote them: `reference/stability.md` (the version table),
+  `reference/cli/index.md`, `reference/mcp/protocol.md`, `reference/mcp/install.md` and
+  `reference/diagnostics/ver.md` (twice — a pasted line and a sentence). Run the two commands and
+  paste what they say; nothing compares these with the implementation.
+- **Creating the release.** Merging does not publish. The tag `v<version>` is made by hand after
+  the merge, and `publish.yml` only consumes it (AGENTS.md, *How a change ships*).
+
+---
+
+## Changing a rule of derivation
+
+The shape moves for every building the rule reaches, so every pinned shape moves with it — and
+**the canonical form does not move at all**, because no source is read differently. That pair,
+the Form column moving while the canonical column stands still, is the signature to check the
+change by; anything else means something was changed that was not meant to be.
+
+### Held by machine
+
+| What | Which gate |
+|---|---|
+| The `Form` golden of the sampled examples | `test/derive.test.ts` |
+| The `Form` hash of every bundled entry, against the canonical hash beside it | `test/fingerprints.test.ts` |
+| The whole `Form` of every conformance case that pins one | `test/conformance.test.ts` |
+| That the drawing side did not grow a rule of its own to compensate | `test/draw.test.ts` |
+
+### Not held
+
+- **`docs/img/`.** The plans are generated output kept as files, and nothing regenerates them or
+  compares them with what the processor now produces. Regenerate every one the rule reaches
+  (`npx tsx src/cli.ts plan <entry> -l <level> -o docs/img/<name>.svg`, default scale and cut) —
+  four of them are not plain examples: `start-05-L2-sealed` is `examples/steps/05` with the
+  upstairs door taken out, and the two `start-index-*` are the snippets written on `docs/index.md`.
+- **The IFC export.** It builds a wall from the segment on its own toolchain, so a rule that
+  changes bodies does not reach it and its agreement test keeps passing either way.
+- **Downstream viewers.** They derive their own shape from the same rules and this repository
+  cannot see them.
+
+---
+
 ## Adding or retiring a diagnostic code
 
 ### Held by machine
