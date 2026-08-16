@@ -73,7 +73,7 @@ npx tsx src/cli.ts --version
 ```
 
 ```text
-koyu 0.21.0 — reads muro 0.1–1.3 (newest 1.3; a file with no version line is read as 1.1)
+koyu 0.22.0 — reads muro 0.1–1.3 (newest 1.3; a file with no version line is read as 1.1)
 ```
 
 The exit code is `0` — it is an answer, not a calling mistake.

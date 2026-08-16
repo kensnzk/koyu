@@ -73,6 +73,27 @@ as the two agree, and blocks the bump on the day they stop.
 
 ---
 
+## Raising the koyu version
+
+### Held by machine
+
+| What | Which gate |
+|---|---|
+| `package.json`, `package-lock.json`, `CITATION.cff` and `KOYU_VERSION` agree | `test/release.test.ts` |
+| The row in `MURO_SUPPORT` naming the release a language version ships in | `test/release.test.ts` |
+
+### Not held
+
+- **The pasted outputs that carry the version.** `koyu --version` and the MCP `serverInfo` print
+  it, and five published pages quote them: `reference/stability.md` (the version table),
+  `reference/cli/index.md`, `reference/mcp/protocol.md`, `reference/mcp/install.md` and
+  `reference/diagnostics/ver.md` (twice — a pasted line and a sentence). Run the two commands and
+  paste what they say; nothing compares these with the implementation.
+- **Creating the release.** Merging does not publish. The tag `v<version>` is made by hand after
+  the merge, and `publish.yml` only consumes it (AGENTS.md, *How a change ships*).
+
+---
+
 ## Changing a rule of derivation
 
 The shape moves for every building the rule reaches, so every pinned shape moves with it — and

@@ -61,6 +61,15 @@ The winner runs on past the node just far enough that its face carries the whole
 wall stopping against it. Two walls running along each other are not a junction — they butt, and
 neither moves.
 
+**In two cases the cut gives way to an overlap, because the alternative is a hole.** A cut reaches
+only as high as the wall that made it: a rail is thicker than a wall thinner than 80mm and stops at
+1100mm, so cutting that wall back over its whole height would notch it above the rail — where the
+winner does not span the interval's z range, the interval keeps its body. And a losing end is cut
+against the winner and against nothing else, so two ends leaning to the same side of the winner
+overlap each other between its face and the point where their centre lines part; reaching that
+state takes a wall neither parallel nor perpendicular to the winner, because axis-parallel walls
+give a node at most one end per side.
+
 The rule is written out on [Matter](../reference/form/bodies.md).
 
 ## Alternatives
@@ -78,6 +87,15 @@ rule does not, and it decides it worse where the thicknesses differ: a mitre bet
 and a 100mm wall leaves a step on both faces, while a butt joint against the thicker wall is what
 gets built. The winner rule also states which wall is continuous, which is the thing a later
 question about structure would want to read.
+
+**Resolve every junction exactly — per z band, and losers against each other.** It would remove the
+two overlaps above. Rejected for now on both halves. Resolving per z band means one interval
+becoming several, and an interval is "what an opening split the wall into" — a list that the IFC
+export's agreement check and the reference both read that way, so lengthening it for a reason that
+is not an opening changes what an interval means. Trimming losers against each other means a full
+mutual sweep at a node, and what it buys is matter counted twice in a case that needs an oblique
+wall to arise at all. **An overlap is not a hole**, and the hole is what this ADR is about; if a
+consumer turns up that cannot take the overlap, that is the signal to do the exact version.
 
 **Raise the body with a constructor, as [ADR-0058](0058-the-constructors-of-matter-are-public.md)
 decided.** That ADR rejected putting wall quadrilaterals into `Form` on the grounds that "the

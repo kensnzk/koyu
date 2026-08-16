@@ -104,6 +104,11 @@ Nothing in it reads declaration order, and nothing reads which boundary a segmen
 
 The winner runs on past the node just far enough that its face carries the whole cut edge of every wall stopping against it: half the loser's thickness at a right angle, further where the loser leans back over it. Two walls running **along** each other are not a junction — they simply butt, and neither moves. A cut that would leave nothing at all does not happen: a wall swallowed whole by the one it runs into keeps the body it had.
 
+**In two cases the cut gives way to an overlap, because the alternative is a hole.**
+
+- **A cut reaches only as high as the wall that made it.** A rail (`air:1`) is up to 80mm thick and stops at 1100mm, so it wins against a wall thinner than itself and stops far below its top. Cutting that wall back over its whole height would take a slice out of it above the rail and leave a notch there. Where the winner does not span the interval's z range, the interval keeps its body.
+- **A losing end is cut against the winner and against nothing else.** Two ends leaning to the same side of the winner are each cut to that one face, so their bodies overlap between the face and the point where their centre lines part. It takes a wall neither parallel nor perpendicular to the winner to reach that state: with axis-parallel walls a node has at most one end per side.
+
 The four walls of a rectangular room therefore tile the ring they stand in exactly — no corner hole, and no corner counted twice.
 
 ```text

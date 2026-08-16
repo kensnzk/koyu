@@ -216,14 +216,16 @@ test("drawing: a wall interval carries both its body and its centreline, because
       assert.ok(e.lines?.length === 1, `${e.ref}: an interval with a body carries its centreline`);
       const q = e.polygon;
       const g = e.lines[0]!;
-      // 接合の済んだ実体では、向かい合う二辺の中点は芯線に戻らない —
-      // **これが両方を載せる理由である。**描画側は四辺形から芯線を復元できない
+      // In a body whose junctions are settled, the midpoints of the two opposing sides do not give
+      // the centre line back — **which is why both are carried.** The drawing side cannot recover
+      // the axis from the outline
       const a = { x: (q[0]!.x + q[3]!.x) / 2, y: (q[0]!.y + q[3]!.y) / 2 };
       const b = { x: (q[1]!.x + q[2]!.x) / 2, y: (q[1]!.y + q[2]!.y) / 2 };
       if (![[a.x, g.x1], [a.y, g.y1], [b.x, g.x2], [b.y, g.y2]].every(([got, want]) => Math.abs(got! - want!) < 1e-9)) {
         joined++;
       }
-      // 接合が動かすのは芯線に沿った端だけである — 実体は壁厚の帯から出ない
+      // A junction moves only the ends, along the centre line — the body never leaves the band of
+      // the wall's own thickness
       const len = Math.hypot(g.x2 - g.x1, g.y2 - g.y1);
       for (const p of q) {
         const across = Math.abs((g.x2 - g.x1) * (p.y - g.y1) - (g.y2 - g.y1) * (p.x - g.x1)) / len;

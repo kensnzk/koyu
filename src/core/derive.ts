@@ -555,7 +555,13 @@ export function runPrism(s: RunSolid): FormPrism {
 // and z range. What the join decides is which of the walls meeting at a point runs through and
 // where the others stop: **the winner runs through, and every wall that ends at the node is cut
 // back to the winner's face.** Two bodies that meet along that face close the corner between them
-// without becoming one body — which is also why a losing end is cut rather than left overlapping.
+// without becoming one body, and the cut is what keeps them from occupying the same matter twice.
+//
+// **The cut is against the winner, and against nothing else.** Two losing ends leaning to the same
+// side of the winner are each cut to that one face and not to each other, so their bodies overlap
+// between the face and the point where their centre lines part. It takes a wall that is neither
+// parallel nor perpendicular to reach that state — with axis-parallel walls a node has at most one
+// end per side — and an overlap is not a hole.
 //
 // The election is a total order, so one model always gives one shape (promise 1 of the shape):
 //
@@ -569,6 +575,9 @@ export function runPrism(s: RunSolid): FormPrism {
 interface Trim {
   q: Pt;
   m: Pt;
+  /** the z range of the wall that won — a cut reaches only as high as the matter that makes it */
+  z0: number;
+  z1: number;
 }
 
 /** A wall taking part in the joins of one level */
@@ -576,6 +585,9 @@ interface JoinBody {
   panels: FormPanel[];
   /** half the thickness */
   a: number;
+  /** the z range of the whole wall */
+  z0: number;
+  z1: number;
   /** unit direction of the centre line, and the normal to its left */
   u: Pt;
   n: Pt;
@@ -653,25 +665,31 @@ function extensionFor(winner: Incident, loser: Incident, p: Pt): number {
 /** The face a losing end is cut back to — the winner's side, or its end cap when the two run along each other */
 function trimFor(winner: Incident, loser: Incident, p: Pt): Trim | undefined {
   const v = inward(loser.body, loser.end!);
+  const z = { z0: winner.body.z0, z1: winner.body.z1 };
   if (Math.abs(cross(winner.body.u, v)) < PARALLEL_EPS) {
     if (winner.end === undefined) return undefined;
     const w = outward(winner.body, winner.end);
-    return { q: along(p, w, winner.body.ext[winner.end]), m: w };
+    return { q: along(p, w, winner.body.ext[winner.end]), m: w, ...z };
   }
   const side = dot(v, winner.body.n) >= 0 ? 1 : -1;
   return {
     q: along(p, winner.body.n, side * winner.body.a),
     m: { x: winner.body.n.x * side, y: winner.body.n.y * side },
+    ...z,
   };
 }
 
-/** Whether `p` lies on the centre line of `b` without being one of its ends */
+/**
+ * Whether `p` lies on the centre line of `b` without being one of its ends.
+ * **Lying on the line is `EPS`**, the same tolerance the rest of the geometry uses for two edges
+ * being collinear — not `POINT_EPS`, which is the wider "on the edge of a region" of a column
+ */
 function runsThrough(b: JoinBody, p: Pt): boolean {
   if (same(p, b.ends[0]) || same(p, b.ends[1])) return false;
   const d = { x: p.x - b.ends[0].x, y: p.y - b.ends[0].y };
   const s = dot(d, b.u);
   const len = dot({ x: b.ends[1].x - b.ends[0].x, y: b.ends[1].y - b.ends[0].y }, b.u);
-  return s > 0 && s < len && Math.abs(cross(b.u, d)) <= POINT_EPS;
+  return s > 0 && s < len && Math.abs(cross(b.u, d)) <= EPS;
 }
 
 /** Rounded to the millimetre — coordinates are millimetres, so a node is one cell */
@@ -754,6 +772,11 @@ function joinLevel(bodies: JoinBody[]): void {
       for (const end of [0, 1] as const) {
         const cut = at[end] ? body.trim[end] : undefined;
         if (!cut) continue;
+        // **A cut reaches only as high as the wall that made it.** A rail wins a junction against
+        // a wall thinner than itself, and cutting the wall back over its whole height would take
+        // a slice out of it above the rail's own top and leave a notch there. Where the winner
+        // does not span the interval, the interval keeps its body and the two overlap instead
+        if (panel.z0 < cut.z0 - SPAN_EPS || panel.z1 > cut.z1 + SPAN_EPS) continue;
         // The directed line whose left side is `m`. **A cut that would leave nothing does not
         // happen** — a wall swallowed whole by the one it runs into keeps the body it had
         const kept = clipHalf(foot, cut.q, { x: cut.q.x + cut.m.y, y: cut.q.y - cut.m.x }, true);
@@ -778,6 +801,8 @@ function joinWalls(boundaries: FormBoundary[]): void {
     g.push({
       panels: b.material.panels,
       a: b.material.t / 2,
+      z0: b.material.z0,
+      z1: b.material.z1,
       u,
       n: { x: -u.y, y: u.x },
       ends: [{ x: seg.x1, y: seg.y1 }, { x: seg.x2, y: seg.y2 }],
@@ -1029,9 +1054,11 @@ function planOf(
       });
       continue;
     }
-    // 区間は**足あと (接合の済んだ実体) と芯線の両方**を持つ。厚みを持つものとして描くか
-    // 一本の線として描くか (遮蔽しない手すり・柵) は見た目の判断なので、消費者が選ぶ。
-    // 接合で足あとの軸は芯線から離れるので、四辺形から芯線を復元することはできない
+    // An interval carries **both the footprint (its body, with the junctions settled) and the
+    // centre line**. Whether to draw it as something thick or as a single line (a rail or a fence
+    // that does not enclose) is a judgement about appearance, so the consumer chooses.
+    // The junction takes the axis of the body off the centre line, so the centre line cannot be
+    // recovered from the outline
     for (const p of b.material.panels) {
       entities.push({
         class: spans(p.z0, p.z1, cutZ) ? "cut" : p.z1 < cutZ ? "below" : "above",

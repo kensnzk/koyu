@@ -8,13 +8,17 @@
 //
 // The population of the second half is every wall of a level at once, so a body that grew into a
 // wall on the other side of the building would fail it just as loudly as one that grew into its
-// own neighbour.
+// own neighbour. It is asserted of the fixtures here, where every wall meets on an axis and rises
+// to the same height — **the two places the cut deliberately gives way to an overlap** are a
+// winner that does not reach the top of what it cuts, and two losing ends leaning the same way,
+// and both are cases where the alternative to overlapping is a hole.
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 
+import { checkDiagnostics } from "../src/core/diagnose.js";
 import { derive, type Form } from "../src/core/derive.js";
 import { parse } from "../src/core/parse.js";
 import { areaOf, pointIn, unionArea } from "../src/core/poly.js";
@@ -279,6 +283,40 @@ test("wall join: an opening keeps its place and its width — the join moves end
   );
   assertClosed(form, "with a door");
   assertNoOverlap(form, "with a door");
+});
+
+// ---- A cut reaches only as high as the wall that made it -----------------
+
+const RAIL_AND_WALL = `muro 1.3
+grid X 0 4000 8000
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /L1/deck terrace X2..X3 Y1..Y2 outside:1
+space /out outside:1
+boundary /L1/a /L1/deck t:50
+boundary /L1/deck /out air:1 t:80
+`;
+
+test("wall join: a rail that wins a junction takes no slice out of a wall above its own top", () => {
+  const form = derive(parse(RAIL_AND_WALL));
+  assert.deepEqual(
+    checkDiagnostics(parse(RAIL_AND_WALL)).filter((d) => d.severity === "error"),
+    [],
+    "the fixture is a building koyu accepts",
+  );
+  const rail = form.boundaries.find((b) => b.air)!;
+  const wall = form.boundaries.find((b) => b.material && !b.air)!;
+  assert.ok(rail.material!.t > wall.material!.t, "the rail is the thicker of the two, so it wins the election");
+  assert.ok(rail.material!.z1 < wall.material!.z1, "and it stops far below the top of the wall");
+
+  // Cutting the wall back at both ends would leave a 40mm notch running from the top of the rail
+  // to the top of the wall, because there is no rail up there to fill it
+  for (const p of wall.material!.panels) {
+    const ys = p.footprint.map((q) => q.y);
+    assert.deepEqual([Math.min(...ys), Math.max(...ys)], [0, 4000], "the wall keeps its whole body");
+  }
+  assertClosed(form, "a rail meeting a thinner wall");
 });
 
 // ---- Every bundled building ---------------------------------------------
