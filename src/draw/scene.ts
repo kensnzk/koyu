@@ -262,6 +262,7 @@ export function sceneOf(form: Form): Scene {
           role: "body",
           ref: body.ref,
           ...(body.kind !== undefined ? { kind: body.kind } : {}),
+          ...(body.level !== undefined ? { level: body.level } : {}),
           solid,
           facts: {},
         });

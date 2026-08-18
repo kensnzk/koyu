@@ -1,6 +1,6 @@
 {
   "name": "@kensnzk/koyu",
-  "version": "0.24.0",
+  "version": "0.25.0",
   "muro": {
     "reads": [
       "0.1",

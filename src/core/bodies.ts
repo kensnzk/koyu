@@ -23,6 +23,8 @@ export interface FormBody {
   of: FormSubject;
   ref: string;
   kind?: string;
+  /** the authored level this body belongs to, where the Form says so */
+  level?: string;
   poly: Pt[];
   /** underside z per vertex, mm. `bottom.length === poly.length` */
   bottom: number[];
@@ -78,7 +80,15 @@ export function formBodies(form: Form): FormBody[] {
     out.push({ of: "column", ref: c.ref, ...flat(columnRect(c), c.z0, c.z1) });
   }
   for (const sl of form.slabs) {
-    out.push({ of: "slab", ref: sl.space, kind: sl.kind, ...flat(sl.outline, sl.z0, sl.z1) });
+    // **面は自分の階を持って出る。**持たずに出せば、読む側が空間のパスから引き直すことに
+    // なり、二つの消費者が同じ引き直しを別々に書く — 実際にそうなった
+    out.push({
+      of: "slab",
+      ref: sl.space,
+      kind: sl.kind,
+      level: sl.level,
+      ...flat(sl.outline, sl.z0, sl.z1),
+    });
   }
   for (const run of form.runs) {
     for (const s of run.solids) {

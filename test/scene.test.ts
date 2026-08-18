@@ -170,3 +170,22 @@ test("scene: a large model still folds its extent", () => {
   assert.ok(mark, "a level still gets a seat");
   for (const v of Object.values(mark!.mark!.extent)) assert.ok(Number.isFinite(v), "the extent is finite");
 });
+
+// ---- 8. 面は自分の階を持つ ----
+
+test("scene: a slab carries the level it spans", () => {
+  for (const f of EXAMPLES) {
+    const form = derive(parseFile(join(root, f)));
+    const byRef = new Map(form.slabs.map((s) => [`${s.space}|${s.kind}`, s.level]));
+    let checked = 0;
+    for (const n of sceneOf(form).nodes) {
+      if (n.of !== "slab") continue;
+      // 面が階を持たないと、読む側が空間のパスから引き直すことになる。二つのビューアが
+      // 同じ引き直しを別々に書いていた — 持たせるのが正しい
+      assert.equal(n.level, byRef.get(`${n.ref}|${n.kind}`), `${f}: ${n.ref} の階が Form と違う`);
+      assert.ok(n.level !== undefined, `${f}: ${n.ref} が階を持たない`);
+      checked += 1;
+    }
+    assert.ok(checked > 0, `${f} has slabs to check`);
+  }
+});
