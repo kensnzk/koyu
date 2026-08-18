@@ -32,3 +32,4 @@ export {
   type SceneSubject,
 } from "./scene.js";
 export { svgSection, svgElevation, type SectionOptions, type ElevationOptions } from "./section.js";
+export { writtenOf, type Written } from "./written.js";

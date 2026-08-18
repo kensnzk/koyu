@@ -10,10 +10,11 @@
 // 切断線を平行な二本の斜線として引くか、矢印に "UP" と書くかは、ここが決める。
 
 import { derive } from "../core/derive.js";
-import { canonicalBoundaryOrder, displayName, polyBounds, type Model, type Pt } from "../core/model.js";
+import { displayName, polyBounds, type Model, type Pt } from "../core/model.js";
 import { slopeText } from "../core/vertical.js";
 import { planMarks, type Mark } from "./marks.js";
 import { esc, Extent, FAINT, GRID, INK, openSheet, PAPER, ROOM } from "./sheet.js";
+import { writtenOf } from "./written.js";
 
 export interface PlanOptions {
   level?: string;
@@ -131,7 +132,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   // 印 — 形の写しは `planMarks` にある。**この頁が足すのは色・線幅・線種・記号・注記の言葉だけ**
   // である。ugatsu も architype も同じ印から別の見た目を引く。
   const marks = planMarks(form, level);
-  const ordered = canonicalBoundaryOrder(model);
+  const written = writtenOf(model);
   const segByRef = new Map(form.segs.map((g) => [g.ref, g]));
   for (const k of marks) {
     switch (k.role) {
@@ -149,7 +150,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
       // 注記が別の境界のものになる
       case "seg": {
         parts.push(fill(k.polygon!, "#77716a"));
-        const spec = ordered[k.written!.boundary]?.segs[k.written!.index!]?.attrs["spec"];
+        const spec = written.segSpec(k.written!.boundary, k.written!.index!);
         const g = segByRef.get(k.ref);
         if (typeof spec === "string" && g) {
           const h = g.segment.horizontal;
