@@ -39,7 +39,7 @@ import { svgPlan } from "@kensnzk/koyu/draw";
 | `@kensnzk/koyu/vocabulary` | the attribute ledger | not pulled |
 | `@kensnzk/koyu/validate` | the rule SPI, the runner, `AssessmentReport` | not pulled |
 | `@kensnzk/koyu/validate/builtin` | the rules, the rule set and the profile koyu ships | not pulled |
-| `@kensnzk/koyu/draw` | `svgPlan`, `svgAxo`, `svgSection`, `svgElevation` and their option types | not pulled |
+| `@kensnzk/koyu/draw` | `svgPlan`, `svgAxo`, `svgSection`, `svgElevation` and their option types; and the base every drawing is made from — [`planMarks`](../form/marks.md) for a plan, [`sceneOf`](../form/scene.md) for a 3D scene | not pulled |
 | `@kensnzk/koyu/node` | `parseFile` and `parseFileWith`, nothing else | pulled |
 | `@kensnzk/koyu/examples/*` | the source of a bundled building, for tests and evaluation | — |
 | `@kensnzk/koyu/syntax` | the editor grammar (TextMate grammar as JSON), shared by VS Code and Shiki | — |
@@ -177,5 +177,9 @@ The surface falls into three parts, and **the way it falls is itself part of the
 | drawing | the content of the SVG | not frozen — looks change freely |
 
 core **never passes judgement.** Areas, segments, convex pieces, solids — that is where core stops. Whether something is *enough*, or *complied with*, is validation's sentence. The split shows up in the types: core returns `Diagnostic { code, severity }` and validation returns outcomes carrying `{ status }` inside findings carrying `{ rule, level }`. The field names differ, so the two arrays cannot be confused for each other.
+
+`planMarks` and `sceneOf` sit under the SVG rather than beside it. They carry no colour, no line
+type and no word, so an outside viewer draws the same plan and the same scene koyu draws without
+re-deriving a single shape — and without inheriting koyu's palette or koyu's language.
 
 The bytes of the SVG that `svgPlan` and `svgAxo` return are outside the promise. **The same input yields the same form, but not the same bytes.** Colours, line styles, typefaces and symbols change without notice. To compare drawings mechanically, compare `toCanonical` or the value returned by `derive`.

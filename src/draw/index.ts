@@ -8,5 +8,28 @@
 // **凍る面と凍らない面を、import 一行で見分けられるようにするため**である。
 
 export { svgPlan, type PlanOptions } from "./plan.js";
+export {
+  planMarks,
+  SLIDE_POCKET,
+  type Mark,
+  type MarkArc,
+  type MarkNote,
+  type MarkOptions,
+  type MarkRole,
+  type MarkSubject,
+} from "./marks.js";
 export { svgAxo, type AxoOptions } from "./axo.js";
+export {
+  sceneOf,
+  type Scene,
+  type SceneFacts,
+  type SceneLevel,
+  type SceneLine,
+  type SceneMark,
+  type SceneNode,
+  type ScenePrism,
+  type SceneRole,
+  type SceneSubject,
+} from "./scene.js";
 export { svgSection, svgElevation, type SectionOptions, type ElevationOptions } from "./section.js";
+export { writtenOf, type Written } from "./written.js";

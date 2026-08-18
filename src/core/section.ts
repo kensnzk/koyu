@@ -1,9 +1,9 @@
 // koyu — the section and the elevation (ADR-0064)
 //
-// **This reads a `Form` and nothing else.** Every body it cuts was already raised by `derive`, and
-// the constructors it calls to raise the rest (`band` / `columnRect` / `runPrism`) are the
-// published ones. It composes no matter; it re-frames what came out of the one entry point to
-// shape, which is what `planOf` does for a horizontal plane and this does for a vertical one.
+// **This reads a `Form` and nothing else.** Every body it cuts was raised by `derive` and
+// enumerated by `formBodies` (bodies.ts). It composes no matter; it re-frames what came out of the
+// one entry point to shape, which is what `planOf` does for a horizontal plane and this does for a
+// vertical one.
 //
 // **Why it is here and not in `src/draw/`.** Everything a section needs is public on `Form`, so a
 // renderer could compute one without tripping a single import gate. What forbids it is not a test
@@ -17,7 +17,8 @@
 // with its windows, the stair beyond the cut — and none of that falls out of cutting. Nor does the
 // decision to throw the near half away, which is a choice of viewpoint and has to be an input.
 
-import { band, columnRect, runPrism, type Form } from "./derive.js";
+import { formBodies, type FormBody } from "./bodies.js";
+import type { Form } from "./derive.js";
 import type { Edge, Pt } from "./model.js";
 import { crossing, hull, signedArea } from "./poly.js";
 import { EPS } from "./tolerance.js";
@@ -80,16 +81,6 @@ export interface FormSection {
   entities: SectionEntity[];
 }
 
-/** A body of the `Form`, in the one shape every body reduces to. */
-interface Body {
-  of: SectionSubject;
-  ref: string;
-  kind?: string;
-  poly: Pt[];
-  bottom: number[];
-  top: number[];
-}
-
 /** The direction of view as a unit vector in plan. */
 function look(edge: Edge): Pt {
   return edge === "N"
@@ -133,59 +124,19 @@ function rightOf(d: Pt): Pt {
   return { x: d.y, y: -d.x };
 }
 
-/** Every body of the Form, in canonical order. **The order is inherited, never re-established.** */
-function bodiesOf(form: Form): Body[] {
-  const out: Body[] = [];
-  const flat = (poly: Pt[], z0: number, z1: number): Pick<Body, "poly" | "bottom" | "top"> => ({
-    poly,
-    bottom: poly.map(() => z0),
-    top: poly.map(() => z1),
-  });
-
-  // Spaces come first because space is the primary element. A space is a void: the plane opens it,
-  // but from outside you see the matter that bounds it, never the void itself — so a space that
-  // stands wholly beyond the plane is dropped rather than painted (see `entitiesOf`).
-  for (const s of form.spaces) {
-    if (s.z0 === undefined || s.z1 === undefined) continue; // no ceiling height, no volume (SUF01)
-    // **Outside and semi-outdoor spaces have no volume to cut.** A storey's ceiling height reaches
-    // them, so they carry a z range, but no ceiling is derived over them (fabric.ts excludes both)
-    // and there is nothing above them to bound the air. Cutting one paints a garden as a room.
-    if (s.outside || s.semiOutdoor) continue;
-    for (const piece of s.outline) {
-      out.push({ of: "space", ref: s.path, ...(s.type ? { kind: s.type } : {}), ...flat(piece, s.z0, s.z1) });
-    }
-  }
-  for (const b of form.boundaries) {
-    if (!b.material) continue; // type:open — a relation with no matter to cut
-    for (const p of b.material.panels) {
-      out.push({ of: "boundary", ref: b.ref, kind: b.kind, ...flat(p.footprint, p.z0, p.z1) });
-    }
-  }
-  for (const o of form.openings) {
-    out.push({
-      of: "opening",
-      ref: o.ref,
-      kind: o.kind,
-      ...flat(band(o.segment, o.cx, o.cy, o.w, o.t), o.z0, o.z1),
-    });
-  }
-  for (const c of form.columns) {
-    out.push({ of: "column", ref: c.ref, ...flat(columnRect(c), c.z0, c.z1) });
-  }
-  for (const sl of form.slabs) {
-    out.push({ of: "slab", ref: sl.space, kind: sl.kind, ...flat(sl.outline, sl.z0, sl.z1) });
-  }
-  for (const run of form.runs) {
-    for (const s of run.solids) {
-      const pr = runPrism(s);
-      out.push({ of: "run", ref: run.path, kind: run.device, poly: pr.poly, bottom: pr.bottom, top: pr.top });
-    }
-  }
-  return out;
+/**
+ * The bodies a vertical plane may cut. **Outside and semi-outdoor spaces are dropped.** A storey's
+ * ceiling height reaches them, so they carry a z range, but no ceiling is derived over them
+ * (fabric.ts excludes both) and there is nothing above them to bound the air. Cutting one paints a
+ * garden as a room. A 3D scene keeps them, which is why the enumeration itself does not judge.
+ */
+function cuttableBodies(form: Form): FormBody[] {
+  const airless = new Set(form.spaces.filter((s) => s.outside || s.semiOutdoor).map((s) => s.path));
+  return formBodies(form).filter((b) => !(b.of === "space" && airless.has(b.ref)));
 }
 
 /** The polygon a body leaves on the plane, or `undefined` where the plane only grazes a corner. */
-function cutOf(body: Body, axis: SectionAxis, at: number, u: (p: Pt) => number): SectionPt[] | undefined {
+function cutOf(body: FormBody, axis: SectionAxis, at: number, u: (p: Pt) => number): SectionPt[] | undefined {
   const met = crossing(body.poly, axis, at);
   if (!met) return undefined;
   const n = body.poly.length;
@@ -217,7 +168,7 @@ function cutOf(body: Body, axis: SectionAxis, at: number, u: (p: Pt) => number):
  * fitted to it. Where the top and bottom do not vary (everything but a ramp or an escalator) that
  * hull is a rectangle, and it is taken directly.
  */
-function shadowOf(body: Body, u: (p: Pt) => number): SectionPt[] | undefined {
+function shadowOf(body: FormBody, u: (p: Pt) => number): SectionPt[] | undefined {
   let uLo = Infinity;
   let uHi = -Infinity;
   let zLo = Infinity;
@@ -251,7 +202,7 @@ function shadowOf(body: Body, u: (p: Pt) => number): SectionPt[] | undefined {
   return ring.length >= 3 ? ring.map((p) => ({ u: p.x, z: p.y })) : undefined;
 }
 
-function entitiesOf(bodies: Body[], spec: SectionSpec): SectionEntity[] {
+function entitiesOf(bodies: FormBody[], spec: SectionSpec): SectionEntity[] {
   const d = look(spec.look);
   const r = rightOf(d);
   const u = (p: Pt): number => p.x * r.x + p.y * r.y;
@@ -319,7 +270,7 @@ export function sectionForm(form: Form, spec: SectionSpec): FormSection {
     at: spec.at,
     ...(spec.atRef !== undefined ? { atRef: spec.atRef } : {}),
     look: spec.look,
-    entities: entitiesOf(bodiesOf(form), spec),
+    entities: entitiesOf(cuttableBodies(form), spec),
   };
 }
 
@@ -337,7 +288,7 @@ export function elevationForm(form: Form, face: Edge): FormSection {
   const from: Edge = face === "N" ? "S" : face === "S" ? "N" : face === "E" ? "W" : "E";
   const axis = axisOf(from);
   const d = look(from);
-  const bodies = bodiesOf(form);
+  const bodies = cuttableBodies(form);
   // The near extreme along the line of sight: looking towards the larger coordinate puts the plane
   // at the smallest, and looking towards the smaller puts it at the largest.
   const towardsLarger = (axis === "X" ? d.x : d.y) > 0;
