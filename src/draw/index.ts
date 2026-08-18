@@ -19,4 +19,16 @@ export {
   type MarkSubject,
 } from "./marks.js";
 export { svgAxo, type AxoOptions } from "./axo.js";
+export {
+  sceneOf,
+  type Scene,
+  type SceneFacts,
+  type SceneLevel,
+  type SceneLine,
+  type SceneMark,
+  type SceneNode,
+  type ScenePrism,
+  type SceneRole,
+  type SceneSubject,
+} from "./scene.js";
 export { svgSection, svgElevation, type SectionOptions, type ElevationOptions } from "./section.js";
