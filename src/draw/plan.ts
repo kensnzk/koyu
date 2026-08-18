@@ -9,9 +9,10 @@
 // 扉の軌跡の中心と半径と掃き方向・切断面を跨ぐ位置は Form が持つ。1/4円を破線で描くか、
 // 切断線を平行な二本の斜線として引くか、矢印に "UP" と書くかは、ここが決める。
 
-import { band, derive, type PlanEntity } from "../core/derive.js";
+import { derive } from "../core/derive.js";
 import { canonicalBoundaryOrder, displayName, polyBounds, type Model, type Pt } from "../core/model.js";
 import { slopeText } from "../core/vertical.js";
+import { planMarks, type Mark } from "./marks.js";
 import { esc, Extent, FAINT, GRID, INK, openSheet, PAPER, ROOM } from "./sheet.js";
 
 export interface PlanOptions {
@@ -127,112 +128,100 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     );
   }
 
-  // 壁 — Form が返す「開口で割られた区間」をそのまま塗る。
-  // **欠き取り (紙の色で塗り潰して穴に見せる手) は無い** — 壁は最初から穴の空いた列である
-  const byRef = new Map(form.boundaries.map((b) => [b.ref, b]));
-  for (const e of plan.entities) {
-    if (e.of !== "boundary") continue;
-    const b = byRef.get(e.ref);
-    if (!e.polygon) {
-      // 物を持たない境界 (open): 構成の線として破線で示す (基本計画の抽象度)
-      for (const g of e.lines ?? []) parts.push(line(g, FAINT, 1, "6 4"));
-      continue;
-    }
-    if (e.class === "above") continue; // 垂れ壁は切断面より上 — 平面には出ない
-    if (b?.air) {
-      // 遮蔽しない物 (手すり・柵): 細実線 — 「囲われていない」ことが図から読めるように。
-      // 切断面より上でも下でも一本の線で描く (厚みを持たない作図表現)。
-      // **芯線は Form が持つ** — 足あとの四辺形から復元しない
-      for (const g of e.lines ?? []) parts.push(line(g, INK, 1.4));
-      continue;
-    }
-    // 切断面が切った区間だけを黒帯にする。腰壁 (class:below) は開口の下なので描かない —
-    // **これが「欠き取り」の代わりである**。紙の色で塗り潰す操作はもう無い
-    if (e.class === "cut") parts.push(fill(e.polygon, INK));
-  }
-
-  // 数えない分節 (seg): 壁材が途中から変わる区間 — 色調を変えて示す。
-  // 帯の形は core の構成子が起こす。ここから引くのは注記の言葉 (`spec`) だけで、
-  // それは形ではないので Form には載らない — 添字は宣言の並びの位置 = seg の同一性である
+  // 印 — 形の写しは `planMarks` にある。**この頁が足すのは色・線幅・線種・記号・注記の言葉だけ**
+  // である。ugatsu も architype も同じ印から別の見た目を引く。
+  const marks = planMarks(form, level);
   const ordered = canonicalBoundaryOrder(model);
-  for (const g of form.segs) {
-    if (g.level !== level) continue;
-    parts.push(fill(band(g.segment, g.cx, g.cy, g.w, g.t), "#77716a"));
-    // `g.boundary` は **Form の境界の添字 = 正準順の添字**である (docs/reference/form/index.md)。
-    // 宣言順の配列を引くと、宣言順を入れ替えただけで注記が別の境界のものになる
-    const spec = ordered[g.boundary]?.segs[g.index]?.attrs["spec"];
-    if (typeof spec === "string") {
-      const h = g.segment.horizontal;
-      parts.push(
-        `<text x="${sx(g.cx) + (h ? 0 : 8)}" y="${sy(g.cy) + (h ? -7 : 3)}" text-anchor="${h ? "middle" : "start"}" font-size="8" fill="#77716a">${esc(spec)}</text>`,
-      );
-    }
-  }
-
-  // 開口 — 窓は芯線一本、扉は葉と軌跡 (1/4円の破線)
-  const openings = new Map(form.openings.map((o) => [o.ref, o]));
-  for (const e of plan.entities) {
-    if (e.of !== "opening") continue;
-    const o = openings.get(e.ref);
-    if (!o) continue;
-    if (e.class === "swing") {
-      if (o.sliding) {
-        // 引戸・自動ドア: 開き軌跡ではなく吊元側の控え (戸袋側) にパネルを描く
-        const off = 110; // 壁面からの控え mm (作図表現)
-        const sw = o.swing!;
-        const ux = (sw.leaf.x - sw.hinge.x) / o.w;
-        const uy = (sw.leaf.y - sw.hinge.y) / o.w;
-        const ax = (sw.jamb.x - sw.hinge.x) / o.w;
-        const ay = (sw.jamb.y - sw.hinge.y) / o.w;
-        const s1 = { x: sw.hinge.x - ax * o.w + ux * off, y: sw.hinge.y - ay * o.w + uy * off };
-        const s2 = { x: sw.hinge.x + ux * off, y: sw.hinge.y + uy * off };
-        parts.push(
-          line({ x1: s1.x, y1: s1.y, x2: s2.x, y2: s2.y }, INK, 2),
-          line({ x1: s2.x, y1: s2.y, x2: sw.hinge.x, y2: sw.hinge.y }, INK, 0.7),
-        );
-        continue;
+  const segByRef = new Map(form.segs.map((g) => [g.ref, g]));
+  for (const k of marks) {
+    switch (k.role) {
+      // 空間の面と分節の帯は下 (`rooms` / `form.segs`) から引く — 切られた面ではなく外形を塗り、
+      // 分節には Form しか持たない座と向きが要るため。上部吹抜けは空間ラベルより後ろに置く
+      case "space":
+      case "space-semi-outdoor":
+      case "space-void":
+      case "void-hatch":
+      case "void-above":
+        break;
+      // 数えない分節 (seg): 壁材が途中から変わる区間 — 色調を変えて示す。
+      // ここから引くのは注記の言葉 (`spec`) だけで、それは形ではないので Form には載らない。
+      // **`written.boundary` は正準順の添字である** — 宣言順の配列を引くと、並べ替えただけで
+      // 注記が別の境界のものになる
+      case "seg": {
+        parts.push(fill(k.polygon!, "#77716a"));
+        const spec = ordered[k.written!.boundary]?.segs[k.written!.index!]?.attrs["spec"];
+        const g = segByRef.get(k.ref);
+        if (typeof spec === "string" && g) {
+          const h = g.segment.horizontal;
+          parts.push(
+            `<text x="${sx(g.cx) + (h ? 0 : 8)}" y="${sy(g.cy) + (h ? -7 : 3)}" text-anchor="${h ? "middle" : "start"}" font-size="8" fill="#77716a">${esc(spec)}</text>`,
+          );
+        }
+        break;
       }
-      if (e.lines) for (const g of e.lines) parts.push(line(g, INK, 1.4));
-      if (e.arc) {
-        const r = e.arc.r * scale;
+      // 物を持たない境界 (open): 構成の線として破線で示す (基本計画の抽象度)
+      case "open":
+        for (const g of k.lines ?? []) parts.push(line(g, FAINT, 1, "6 4"));
+        break;
+      // 遮蔽しない物 (手すり・柵): 細実線 — 「囲われていない」ことが図から読めるように。
+      // **芯線は Form が持つ** — 足あとの四辺形から復元しない
+      case "rail":
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 1.4));
+        break;
+      // 切断面が切った区間と柱を黒帯にする。腰壁は開口の下なので印にならない —
+      // **これが「欠き取り」の代わりである**。紙の色で塗り潰す操作はもう無い
+      case "wall":
+      case "column":
+        parts.push(fill(k.polygon!, INK));
+        break;
+      // 引戸・自動ドア: 開き軌跡ではなく吊元側の控え (戸袋側) にパネルを描く
+      case "slide-panel":
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 2));
+        break;
+      case "slide-tail":
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.7));
+        break;
+      case "door-leaf":
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 1.4));
+        break;
+      case "door-arc": {
+        const a = k.arc!;
+        const r = a.r * scale;
         // 掃引方向: 世界の反時計回りは、y を反転した紙の上では時計回りになる
-        const sweep = e.arc.ccw ? 0 : 1;
+        const sweep = a.ccw ? 0 : 1;
         parts.push(
-          `<path d="M ${sx(e.arc.from.x)} ${sy(e.arc.from.y)} A ${r} ${r} 0 0 ${sweep} ${sx(e.arc.to.x)} ${sy(e.arc.to.y)}" fill="none" stroke="${INK}" stroke-width="0.7" stroke-dasharray="3 2.5"/>`,
+          `<path d="M ${sx(a.from.x)} ${sy(a.from.y)} A ${r} ${r} 0 0 ${sweep} ${sx(a.to.x)} ${sy(a.to.y)}" fill="none" stroke="${INK}" stroke-width="0.7" stroke-dasharray="3 2.5"/>`,
         );
+        break;
       }
-      continue;
-    }
-    if (o.kind !== "door" && e.lines) {
-      // 窓: 芯線一本
-      for (const g of e.lines) parts.push(line(g, INK, 1));
-    }
-  }
-
-  // 柱 (ADR-0023) — 位置はどこにも書かれていない。通り芯の交点と床の交わりから現れる
-  for (const e of plan.entities) {
-    if (e.of === "column" && e.polygon) parts.push(fill(e.polygon, INK));
-  }
-
-  // 縦動線 (ADR-0021) — そのレベルで切った姿。上る走りは切断線で切れ、
-  // その先には下りる走り (下階の走りを上から見たもの) が現れる
-  const runs = new Map(form.runs.map((r) => [r.path, r]));
-  for (const e of plan.entities) {
-    if (e.of !== "run") continue;
-    if (e.role === "outline") for (const g of e.lines ?? []) parts.push(line(g, INK, 1.1));
-    else if (e.role === "tread") for (const g of e.lines ?? []) parts.push(line(g, INK, 0.7));
-    else if (e.role === "break") for (const g of e.lines ?? []) parts.push(...breakMark(g, line));
-    else if (e.role === "arrow") parts.push(...arrow(e, line, sx, sy));
-    else if (e.class === "anchor" && e.anchor) {
-      const r = runs.get(e.ref);
-      if (!r) continue;
-      const text =
-        r.device === "stair"
-          ? `${r.risers}段 蹴上${Math.round(r.riser)}/踏面${Math.round(r.tread)}`
-          : `${r.lanes > 1 ? `${r.lanes}台 ` : ""}勾配 ${slopeText(r.slope)}`;
-      parts.push(
-        `<text x="${sx(e.anchor.x)}" y="${sy(e.anchor.y) + 42}" text-anchor="middle" font-size="8" fill="#8a8171">${esc(text)}</text>`,
-      );
+      case "window":
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 1));
+        break;
+      case "run-outline":
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 1.1));
+        break;
+      case "run-tread":
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.7));
+        break;
+      case "run-break":
+        for (const g of k.lines ?? []) parts.push(...breakMark(g, line));
+        break;
+      case "run-arrow":
+        parts.push(...arrow(k, line, sx, sy));
+        break;
+      // 注記の言葉と丸めはここで初めて生まれる — 印が運ぶのは丸めない事実だけである
+      case "run-note": {
+        const n = k.note;
+        if (!n || n.of === "direction") break; // 座の注記は向きではない
+        const text =
+          n.of === "stair"
+            ? `${n.risers}段 蹴上${Math.round(n.riser)}/踏面${Math.round(n.tread)}`
+            : `${n.lanes > 1 ? `${n.lanes}台 ` : ""}勾配 ${slopeText(n.slope)}`;
+        parts.push(
+          `<text x="${sx(k.at!.x)}" y="${sy(k.at!.y) + 42}" text-anchor="middle" font-size="8" fill="#8a8171">${esc(text)}</text>`,
+        );
+        break;
+      }
     }
   }
 
@@ -254,13 +243,12 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     );
   }
 
-  // 切断面より上のものの投影 (上部吹抜け — 作図慣習)
-  for (const e of plan.entities) {
-    if (e.class !== "above" || e.of !== "space" || !e.polygon) continue;
-    const r = polyBounds(e.polygon);
+  // 切断面より上のものの投影 (上部吹抜け — 作図慣習)。空間ラベルの後に置く
+  for (const k of marks) {
+    if (k.role !== "void-above") continue;
     parts.push(
-      `<path d="${path2d(e.polygon)}" fill="none" stroke="${FAINT}" stroke-width="0.8" stroke-dasharray="6 4"/>`,
-      `<text x="${sx((r.x1 + r.x2) / 2)}" y="${sy((r.y1 + r.y2) / 2) + 40}" text-anchor="middle" font-size="9" fill="${FAINT}">void above</text>`,
+      `<path d="${path2d(k.polygon!)}" fill="none" stroke="${FAINT}" stroke-width="0.8" stroke-dasharray="6 4"/>`,
+      `<text x="${sx(k.at!.x)}" y="${sy(k.at!.y) + 40}" text-anchor="middle" font-size="9" fill="${FAINT}">void above</text>`,
     );
   }
 
@@ -334,12 +322,12 @@ function breakMark(g: { x1: number; y1: number; x2: number; y2: number }, line: 
 
 /** 矢印 — 三角の頭と "UP"/"DN" の言葉は、どちらも見た目である */
 function arrow(
-  e: PlanEntity,
+  k: Mark,
   line: Line,
   sx: (x: number) => number,
   sy: (y: number) => number,
 ): string[] {
-  const g = e.lines?.[0];
+  const g = k.lines?.[0];
   if (!g) return [];
   const dx = g.x2 - g.x1;
   const dy = g.y2 - g.y1;
@@ -351,7 +339,7 @@ function arrow(
   return [
     line(g, INK, 1),
     `<path d="M ${sx(g.x2)} ${sy(g.y2)} L ${sx(g.x2 - hx + px)} ${sy(g.y2 - hy + py)} L ${sx(g.x2 - hx - px)} ${sy(g.y2 - hy - py)} Z" fill="${INK}"/>`,
-    `<text x="${sx(g.x1) + 4}" y="${sy(g.y1) + 4}" font-size="9" fill="${INK}">${e.anchor?.up ? "UP" : "DN"}</text>`,
+    `<text x="${sx(g.x1) + 4}" y="${sy(g.y1) + 4}" font-size="9" fill="${INK}">${k.note?.of === "direction" && k.note.up ? "UP" : "DN"}</text>`,
   ];
 }
 
