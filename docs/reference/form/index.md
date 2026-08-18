@@ -145,5 +145,7 @@ The body of a wall is not one of these constructors' results, because [a junctio
 - [Constants and tolerances](constants.md) — eighteen and seven
 - [The plan](plan.md) — a classified set of 2D entities
 - [The section](section.md) — the same, for a vertical plane
+- [The marks of a plan](marks.md) — what a drawing is made of, once
+- [The scene](scene.md) — the same in three dimensions, as data
 - [Scope](../scope.md) — what a green `check` means
 - [Stability](../stability.md) — `Form` freezes; the SVG does not
