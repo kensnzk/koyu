@@ -7,7 +7,7 @@ mode: explanation
 
 **1.0.0 is not the completion of features. It is the settling of the surfaces we promise not to break.** So this road is cut by "what can be frozen", not by "what will be built".
 
-The present state is **koyu 0.20.0 / muro 1.2**.
+The present state is **koyu 0.23.0 / muro 1.3**.
 
 ## There are two version lines
 
@@ -15,12 +15,12 @@ The present state is **koyu 0.20.0 / muro 1.2**.
 
 | Line | Now | What it means |
 |---|---|---|
-| Language (muro) | **1.2** | The grammar and semantics of the source. Written `muro 1.2` — `koyu 1.1` and earlier keep the old word, and keep reading. This is settled |
-| Implementation (the npm package) | **0.20.0** | The library, the CLI and the MCP server. While it is 0.x, **nothing that changes is a breaking change** |
+| Language (muro) | **1.3** | The grammar and semantics of the source. Written `muro 1.2` — `koyu 1.1` and earlier keep the old word, and keep reading. This is settled |
+| Implementation (the npm package) | **0.23.0** | The library, the CLI and the MCP server. While it is 0.x, **nothing that changes is a breaking change** |
 
-They were separated so that the implementation can keep moving after the language has settled. A file that says `muro 1.2` reads the same whether the implementation is 0.20, 1.0 or 2.0.
+They were separated so that the implementation can keep moving after the language has settled. A file that says `muro 1.3` reads the same whether the implementation is 0.23, 1.0 or 2.0.
 
-**Omitting the version in the source reads the file as the latest.** The accepted language versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5` and `1.0`, and a file written in an older version is checked under the acceptance conditions of that version.
+**Omitting the version in the source reads the file as the latest.** The accepted language versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5`, `1.0`, `1.1`, `1.2` and `1.3`, and a file written in an older version is checked under the acceptance conditions of that version.
 
 ## The eight surfaces to be frozen
 
@@ -34,7 +34,7 @@ These are the eight things 1.0.0 promises not to break. **All eight now stand in
 | The three attribute tiers and namespaces | The distinction between structural, interpreted and carry tiers, and the rule that a key containing a dot lands in the carry tier | ✅ The ledger is the single source for the implementation |
 | The machine format | The spelling of the canonical JSON — format version, key collation (ascending code point), NFC normalisation | ✅ |
 | The derivation rules | The definition of what is uniquely determined by the authored composition (wall segments, areas, adjacency, passability) | ✅ A reference implementation stands, and uniqueness became a predicate a machine can hold |
-| Structural-consistency diagnostics | 68 codes, with severity as an invariant property of the code | ✅ Verdicts were moved to a separate domain, and the meaning of green now matches the definition |
+| Structural-consistency diagnostics | 69 codes, with severity as an invariant property of the code | ✅ Verdicts were moved to a separate domain, and the meaning of green now matches the definition |
 | The public API and CLI | The TypeScript names and the contract of the CLI subcommands | ✅ The surface was written down, and tests hold it in set-equality with the implementation |
 
 ## What is left — looking at it end to end
@@ -45,10 +45,10 @@ There are four.
 
 | Surface | What to look at | Why tests do not suffice |
 |---|---|---|
-| **MCP** | Drive all 12 tools over stdio for real; watch the inputs, the outputs and the failure behaviour | It is a surface exposed outward, and there is no record of it having been driven end to end |
+| **MCP** | Drive all 14 tools over stdio for real; watch the inputs, the outputs and the failure behaviour | It is a surface exposed outward, and there is no record of it having been driven end to end |
 | **Documentation** | Whether this body of writing describes **the present**, and whether the pasted output is real | The truth of a sentence is not machine-readable |
 | **Drawing** | What is actually drawn in a browser — plans, axonometrics, themes, editing | The agreement of form can be held; **appearance** is not (that is by design) |
-| **The public surface** | What goes into `npm pack`, and whether all 14 subcommands really run | The contents of a package and its execution live outside the tests |
+| **The public surface** | What goes into `npm pack`, and whether all 16 subcommands really run | The contents of a package and its execution live outside the tests |
 
 **What gets found and fixed ships as 0.16.x, and when it comes through clean, 1.0.0 is cut.**
 
@@ -70,7 +70,7 @@ The tests hold the implication itself — they **confirm the canonical forms are
 **The core no longer moves.** What grows is verdicts and expression.
 
 - **Verdicts** — compartments, travel distance, smoke control, area ratios by use. When a second jurisdiction arrives, it gets its own chapter. Adding a rule costs one line in the ledger and one section of prose, and **the language version does not move**.
-- **Expression** — dimension lines, grid bubbles, door and window drafting conventions, scale, pitched roofs. **Drawing accuracy is not among the things being frozen.**
+- **Expression** — dimension lines, door and window drafting conventions, scale, pitched roofs. The [section and the elevation](reference/form/section.md) landed, and grid bubbles with them. **Drawing accuracy is not among the things being frozen.**
 - **External connections** — RDF/BOT output, geodesy, one-way import from IFC. **These stay outside the core.**
 
 ## What is not being taken on

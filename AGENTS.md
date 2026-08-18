@@ -14,11 +14,11 @@ This page is a **map and a body of law**, not a copy of the explanations. The sa
 
 | Place | Contents | Discipline when touching it |
 |---|---|---|
-| `src/core/` | **The frozen region** — `parse.ts` (composition) `model.ts` (the model, the version ledger `MURO_SUPPORT`, the canonical form) `vocabulary.ts` (the attribute ledger) `poly.ts` (the single slab of geometry) `tolerance.ts` `diagnose.ts` (diagnostics for structural consistency; `checkDiagnostics` is a sequence of clauses whose granularity is **one scan**) `derive.ts` (form) `graph.ts` `vertical.ts` (vertical circulation) `fabric.ts` (floors, ceilings, roofs) `light.ts` `site.ts` `diff.ts` | **It must be clean.** Zero runtime dependencies. If you change behaviour, fix the published documentation and the tests in the same change. |
+| `src/core/` | **The frozen region** — `parse.ts` (composition) `model.ts` (the model, the version ledger `MURO_SUPPORT`, the canonical form) `vocabulary.ts` (the attribute ledger) `poly.ts` (the single slab of geometry) `section.ts` (the vertical cut) `tolerance.ts` `diagnose.ts` (diagnostics for structural consistency; `checkDiagnostics` is a sequence of clauses whose granularity is **one scan**) `derive.ts` (form) `graph.ts` `vertical.ts` (vertical circulation) `fabric.ts` (floors, ceilings, roofs) `light.ts` `site.ts` `diff.ts` | **It must be clean.** Zero runtime dependencies. If you change behaviour, fix the published documentation and the tests in the same change. |
 | `src/validate/` | **The region that does not freeze** — the rule interface and the runner (`contracts.ts` `assessment.ts` `index.ts`). Returns `Finding { rule, level }`. | **It may be dirty.** Add to it freely, throw parts away freely. One condition only — it must never be confused with what core guarantees. |
 | `src/validate/builtin/` | The rules koyu itself ships, as a **value** rather than a registration — `access.ts` `daylight.ts` `door-column-collisions.ts` `envelope.ts` `freeze.ts` `site.ts` `vertical-runs.ts`. | Adding a judgement happens here and under [docs/reference/validate/](docs/reference/validate/index.md), and nowhere else. **The language version does not move.** |
 | `src/analysis/` | The analysis protocol — `contracts.ts` holds `koyu-context/1`, the input contract `assessment.ts` checks on arrival. | The one versioned contract in the tree that something actually verifies. Keep it that way. |
-| `src/draw/` | **The region that does not freeze** — `plan.ts` `axo.ts` (SVG generation). Outside the freeze ([docs/reference/stability.md](docs/reference/stability.md)). | Appearance may change freely. **The shape may not.** |
+| `src/draw/` | **The region that does not freeze** — `plan.ts` `axo.ts` `section.ts` (SVG generation, on the shared `sheet.ts`). Outside the freeze ([docs/reference/stability.md](docs/reference/stability.md)). | Appearance may change freely. **The shape may not.** |
 | directly under `src/` | `index.ts` (the public surface) `cli.ts` `mcp.ts` `parse-file.ts`, and the **subpath entry points** that re-export a domain: `model.ts` `diagnostics.ts` `graph.ts` `form.ts` `diff.ts` `vocabulary.ts`. | `test/domains.test.ts` enforces the one-way dependency by machine; `test/public-api-subpaths.test.ts` holds each subpath's exports against an approved list. |
 | `docs/` | **The published documentation. This is authoritative.** One tree, in English (`npm run gate:docs` counts the pages and checks every one is reachable). `start/` (tutorial) `why/` (explanation) `howto/` (procedures) `reference/` (normative — `muro/` `diagnostics/` `validate/` `cli/` `mcp/` `api/` `form/` `json/`) `examples/` `glossary/` `glossary.md` `img/` | **One page, one job.** Keep each page self-contained — never delegate to an ADR. If you change behaviour, fix the relevant page in the same change. |
 | `docs/decisions/` | **ADRs** — why it was decided this way and what was rejected. **Not published.** | Decisions are append-only. **Never edited afterwards** (editing destroys the point of the record). To reverse one, write a new ADR. |
@@ -50,19 +50,21 @@ npx tsx src/cli.ts check bad.muro --json                    # with diagnostic co
 npx tsx src/cli.ts check bad.muro --strict                  # warnings also exit 1
 npx tsx src/cli.ts plan  examples/office.muro -l L2 -o out/office-L2.svg
 npx tsx src/cli.ts axo   examples/complex/main.muro -o out/axo.svg   # solids come out as SVG too
+npx tsx src/cli.ts section examples/house/main.muro --at X2+900          # the cut is named by a grid line, never by a coordinate
+npx tsx src/cli.ts elevation examples/house/main.muro --face S
 npx tsx src/cli.ts doors examples/mansion.muro /L9/A/ldk /out
 npx tsx src/cli.ts json  examples/two-rooms.muro            # canonical JSON
 ```
 
-The subcommands are `check` `validate` `layers` `diff` `plan` `axo` `doors` `graph` `stats` `levels` `runs` `light` `site` `json`. The contract and the actual output for each has its own page under [docs/reference/cli/](docs/reference/cli/index.md).
+The subcommands are `check` `validate` `layers` `diff` `plan` `axo` `section` `elevation` `doors` `graph` `stats` `levels` `runs` `light` `site` `json`. The contract and the actual output for each has its own page under [docs/reference/cli/](docs/reference/cli/index.md).
 
-`--version` (or `-v`) takes no file and exits 0 — it prints which implementation you are running and which muro it reads and writes, which are separate versions. There is no dedicated `--help`. A call missing its arguments (including `--help`) prints the usage and returns **exit code 2**. The usage lines omit `plan`'s `-l/-o` and `doors`'s two path arguments, so for those read [docs/reference/cli/plan.md](docs/reference/cli/plan.md) and [doors.md](docs/reference/cli/doors.md).
+`--version` (or `-v`) takes no file and exits 0 — it prints which implementation you are running and which muro it reads and writes, which are separate versions. There is no dedicated `--help`. A call missing its arguments (including `--help`) prints the usage and returns **exit code 2**. The usage lines omit `plan`'s `-l/-o` and `doors`'s two path arguments, so for those read [docs/reference/cli/plan.md](docs/reference/cli/plan.md) and [doors.md](docs/reference/cli/doors.md). `section`'s required `--at` is on [section.md](docs/reference/cli/section.md).
 
 ## The MCP server
 
 `koyu-mcp` is a dependency-free stdio MCP server ([docs/reference/mcp/](docs/reference/mcp/index.md)). It is stateless: every tool takes the entry `.muro` path as `file` and composes from scratch each time. The source of truth is the filesystem and the history belongs to git.
 
-The tools are `model_summary` `check` `layers` `write_layer` `new_uids` `doors` `spaces` `light` `validate` `site` `plan_svg` `canonical_json`.
+The tools are `model_summary` `check` `layers` `write_layer` `new_uids` `doors` `spaces` `light` `validate` `site` `plan_svg` `section_svg` `elevation_svg` `canonical_json`.
 
 The standard loop is this.
 

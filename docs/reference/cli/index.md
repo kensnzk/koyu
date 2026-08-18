@@ -5,7 +5,7 @@ mode: reference
 
 # The koyu command
 
-`koyu` takes one `.muro` file, composes it, and answers a question about it. All 14 subcommands share the same derivations; the CLI, the MCP server, and the public API are different entrances to the same answers.
+`koyu` takes one `.muro` file, composes it, and answers a question about it. All 16 subcommands share the same derivations; the CLI, the MCP server, and the public API are different entrances to the same answers.
 
 ## Running it
 
@@ -27,7 +27,7 @@ npm run koyu -- check examples/two-rooms.muro
 ## The common shape
 
 ```text
-koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <entry.muro> [args...]
+koyu <check|validate|layers|diff|plan|axo|section|elevation|doors|graph|stats|levels|runs|light|site|json> <entry.muro> [args...]
 ```
 
 **What you pass is always one path, the entry.** Even for a building split into layers with `import`, pass only the base layer's file (`examples/house/main.muro`, say). Composition happens from scratch on every run, and no intermediate state is stored anywhere.
@@ -95,7 +95,7 @@ npx tsx src/cli.ts --help
 ```
 
 ```text
-Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [args...]
+Usage: koyu <check|validate|layers|diff|plan|axo|section|elevation|doors|graph|stats|levels|runs|light|site|json> <file.muro> [args...]
   check:    --json (emit Diagnostic[] as JSON) / --strict (exit 1 if there are warnings) — structural consistency only
   validate: --profile <id> --as-of <YYYY-MM-DD> [--json] — architectural judgement (not what check guarantees)
   layers:   the layers that took part in composition, weakest first. --attrs for the provenance of each attribute
@@ -114,7 +114,7 @@ npx tsx src/cli.ts frobnicate examples/two-rooms.muro
 Unknown command: frobnicate
 ```
 
-## The 14 subcommands
+## The 16 subcommands
 
 | Command | What it answers | Flags | Exit codes |
 |---|---|---|---|
@@ -124,6 +124,8 @@ Unknown command: frobnicate
 | [`diff`](diff.md) | What did this edit change about the composition | `--json` | 0 / 1 / 2 |
 | [`plan`](plan.md) | The plan drawing (SVG) | `-l` `-o` | 0 / 1 / 2 |
 | [`axo`](axo.md) | The axonometric (SVG) | `-o` `-d` `-l` `-s` `--no-walls` `--ceilings` | 0 / 1 / 2 |
+| [`section`](section.md) | The section cut at a grid reference (SVG) | `--at` `--look` `-s` `-o` | 0 / 1 / 2 |
+| [`elevation`](elevation.md) | The elevation of one face (SVG) | `--face` `-s` `-o` | 0 / 1 / 2 |
 | [`doors`](doors.md) | How many doors from here to there | — | 0 / 1 / 2 |
 | [`graph`](graph.md) | What is this space next to, and how | — | 0 / 1 |
 | [`stats`](stats.md) | What are the areas | `--by` | 0 / 1 / 2 |

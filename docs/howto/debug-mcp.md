@@ -199,4 +199,4 @@ Inside JSON, a multi-line `content` is spelled with `\n` (backslash, then n), no
 - [Register the MCP server with a client](install-mcp.md) — its step 4 is the doorway to this page
 - [The standard loop for letting an agent write](agent-loop.md) — turn what you verified by hand into the order of work
 - [Write — write_layer / new_uids](../reference/mcp/tools-write.md) — the blast radius of a write
-- [koyu-mcp](../reference/mcp/index.md) — statelessness and the twelve tools
+- [koyu-mcp](../reference/mcp/index.md) — statelessness and the fourteen tools

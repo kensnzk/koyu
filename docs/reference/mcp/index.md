@@ -17,13 +17,13 @@ mode: reference
 | Runtime dependencies | None |
 | Environment variables, authentication, network | None |
 | Requires | Node 22 or later |
-| Tools | 12 |
+| Tools | 14 |
 
 `serverInfo` announces both, separately, because they are separate promises: `version` is the implementation's (`0.20.0`), and `muro` is the language it reads and writes. The two move independently, and until they were both stated an agent had no way to ask which language this build spoke.
 
 ## It is stateless
 
-**All 12 tools take a required `file` argument.** `file` is the path of the entry `.muro`; for a building split into layers with `import`, pass the base layer's file.
+**All 14 tools take a required `file` argument.** `file` is the path of the entry `.muro`; for a building split into layers with `import`, pass the base layer's file.
 
 One call goes: resolve the path, read the entry, follow the `import`s, compose, answer the question, forget. **There is no session, no open document, no cache, no undo stack.** Call it twice with the same arguments and it composes twice.
 
@@ -57,7 +57,7 @@ model_summary  →  layers  →  write_layer  →  check ──errors──→ f
 4. **[`check`](tools-verify.md#check) is the gatekeeper.** If errors come back, fix them and write again.
 5. **Confirm the consequences with [`doors`](tools-ask.md#doors) / [`light`](tools-ask.md#light) / [`site`](tools-ask.md#site).** Move a partition and circulation and daylight change; change an area and coverage changes. `check` was not looking at any of that.
 
-## The 12 tools
+## The 14 tools
 
 | Tool | Arguments | What comes back |
 |---|---|---|
@@ -73,6 +73,8 @@ model_summary  →  layers  →  write_layer  →  check ──errors──→ f
 | [`light`](tools-ask.md#light) | `file` | Floor area and effective window area for every space written `daylight:1` |
 | [`site`](tools-ask.md#site) | `file` | Site area, road frontage, coverage ratio, floor-area ratio |
 | [`plan_svg`](tools-ask.md#plan_svg) | `file`, `level` | The plan SVG for that level, as a string |
+| [`section_svg`](tools-ask.md#section_svg) | `file`, `at`, `look`? | The section cut at a grid reference, as a string |
+| [`elevation_svg`](tools-ask.md#elevation_svg) | `file`, `face` | The elevation of one face, as a string |
 
 `?` marks an optional argument. The JSON-RPC surface — what `initialize` announces, the shape of a `tools/call` result, how errors come back — is on [The protocol](protocol.md).
 

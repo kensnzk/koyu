@@ -105,6 +105,7 @@ For the two spaces joined by a `void` boundary, **the derived shape of the upper
 ## Neighbouring pages
 
 - [Form](index.md) — what `Form` holds and does not hold
+- [The section](section.md) — the vertical plane, and why it needs two classes where this needs five
 - [Matter](bodies.md) — walls, openings, columns and slabs before the cut
 - [The arithmetic of vertical runs](vertical-runs.md) — how a run is divided
 - [Constants and tolerances](constants.md) — `CUT_HEIGHT` and `STEP_MARK`
