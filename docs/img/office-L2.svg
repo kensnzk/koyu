@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1128" height="768" viewBox="0 0 1128 768" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
 <rect width="1128" height="768" fill="#faf8f4"/>
+<g transform="translate(9.11 9.27) scale(0.02179)"><path d="M1027.53 171.361L224.461 171.363L224.392 1043.39L361.454 1043.42L361.567 308.689L889.587 308.679L889.581 904.864L566.4 904.876L566.387 524.585L419.01 452.015L419.047 1043.39L1027.51 1043.43L1027.53 171.361Z" fill="#171A18"/><path d="M707 445.022L811.864 445L811.858 613.697C811.831 648.974 812.209 684.759 811.831 720L707.005 719.933L707 445.022Z" fill="#A84940"/></g>
 <path d="M 84 364 L 404 364 L 404 284 L 84 284 Z" fill="#f1ebdd"/>
 <path d="M 244 284 L 404 284 L 404 84 L 244 84 Z" fill="#f1ebdd"/>
 <path d="M 724 284 L 1044 284 L 1044 84 L 724 84 Z" fill="#f1ebdd"/>
@@ -111,5 +112,4 @@
 <text x="639" y="197" text-anchor="middle" font-size="10" fill="#8a8171">wc · 13.6 m2</text>
 <text x="639" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L2/wc-w</text>
 <text x="22" y="750" font-size="12" fill="#1f1f1f">小さなオフィス — L2 plan</text>
-<text x="1106" y="750" text-anchor="end" font-size="9" fill="#a49b8a">koyu — generated from spaces (wall centrelines, mm)</text>
 </svg>

@@ -12,7 +12,7 @@
 import { band, derive, type PlanEntity } from "../core/derive.js";
 import { canonicalBoundaryOrder, displayName, polyBounds, type Model, type Pt } from "../core/model.js";
 import { slopeText } from "../core/vertical.js";
-import { esc, Extent, INK, openSheet, PAPER } from "./sheet.js";
+import { esc, Extent, FAINT, GRID, INK, openSheet, PAPER, ROOM } from "./sheet.js";
 
 export interface PlanOptions {
   level?: string;
@@ -21,10 +21,6 @@ export interface PlanOptions {
   /** 切断面の高さ mm (FLから) — **形を決める引数**なので Form の入力へ渡る */
   cut?: number;
 }
-
-const ROOM = "#f1ebdd";
-const GRID = "#b5aa94";
-const FAINT = "#b3ab9c";
 
 export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   const level = opts.level ?? Object.keys(model.levels)[0];
@@ -301,10 +297,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
 
   // 表題
   const title = `${model.name ?? "Untitled"} — ${level} plan`;
-  parts.push(
-    `<text x="${M - 62}" y="${H - 18}" font-size="12" fill="${INK}">${esc(title)}</text>`,
-    `<text x="${W - M + 62}" y="${H - 18}" text-anchor="end" font-size="9" fill="#a49b8a">koyu — generated from spaces (wall centrelines, mm)</text>`,
-  );
+  parts.push(`<text x="${M - 62}" y="${H - 18}" font-size="12" fill="${INK}">${esc(title)}</text>`);
 
   parts.push("</svg>");
   return parts.join("\n") + "\n";

@@ -182,7 +182,6 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   }
   out.push(
     `<text x="${M - 24}" y="${H - 12}" font-size="11" fill="${INK}">${esc(model.name ?? "Untitled")} — axonometric (from ${dir})</text>`,
-    `<text x="${W - M + 24}" y="${H - 12}" text-anchor="end" font-size="8.5" fill="#a49b8a">koyu — generated from spaces (floors, roofs, walls, columns, vertical circulation)</text>`,
     "</svg>",
   );
   return out.join("\n") + "\n";

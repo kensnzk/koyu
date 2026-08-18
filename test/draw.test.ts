@@ -27,8 +27,11 @@ import {
   thicken,
 } from "../src/core/derive.js";
 import { parse } from "../src/core/parse.js";
+import { sectionForm } from "../src/core/section.js";
 import { svgAxo } from "../src/draw/axo.js";
 import { svgPlan } from "../src/draw/plan.js";
+import { svgElevation, svgSection } from "../src/draw/section.js";
+import { parseFile } from "../src/parse-file.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const DRAW = join(root, "src/draw");
@@ -287,4 +290,75 @@ column 600 L1
   assert.ok(box, "the axonometric carries a viewBox");
   assert.ok(Number.isFinite(Number(box[1])) && Number(box[1]!) > 0);
   assert.ok(Number.isFinite(Number(box[2])) && Number(box[2]!) > 0);
+});
+
+// ---- The section and the elevation (ADR-0064) ----
+
+test("drawing: every black band of a section is a body the plane cut, and nothing else is one", () => {
+  // The counterpart of the plan's black-band test, and it holds the same law: the poché **is** the
+  // `cut` classification of the `Form`, not a shape the drawing worked out for itself. If the two
+  // ever disagree, a viewer written against `Form` draws a different building from `koyu section`.
+  const m = parseFile(join(root, "examples/house/main.muro"));
+  const section = sectionForm(derive(m), { axis: "X", at: 4540, atRef: "X2+900", look: "W" });
+  const svg = svgSection(m, { axis: "X", at: 4540, atRef: "X2+900" });
+
+  // The air of a room and the leaf of an opening are cut too, but they are not matter and are not
+  // painted as it. What is left is the poché.
+  const poche = section.entities.filter(
+    (e) => e.class === "cut" && e.of !== "space" && e.of !== "opening",
+  );
+  const black = [...svg.matchAll(/<path d="[^"]*" fill="#1f1f1f"\/>/g)];
+  assert.equal(
+    black.length,
+    poche.length,
+    `the sheet paints ${black.length} bodies solid and the plane cut ${poche.length}`,
+  );
+  assert.ok(poche.length > 0, "there is something to cut");
+});
+
+test("drawing: a section of a model with tens of thousands of bodies still draws (the extent is folded)", () => {
+  const N = 160;
+  const axis = (a: string) => `grid ${a} ` + Array.from({ length: N }, (_, i) => i * 1000).join(" ");
+  const m = parse(`muro 1.3
+${axis("X")}
+${axis("Y")}
+level L1 0 h:2700 slab:200
+space /L1/a room X1..X${N} Y1..Y${N}
+space /out outside:1
+boundary /L1/a /out
+column 600 L1
+`);
+  assert.ok(derive(m).columns.length > 25000, "the model is large enough to overflow a spread");
+  for (const svg of [
+    svgSection(m, { axis: "X", at: 80000 }),
+    svgElevation(m, { face: "S" }),
+  ]) {
+    assert.match(svg, /^<svg xmlns/);
+    assert.ok(svg.trimEnd().endsWith("</svg>"));
+    const box = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg);
+    assert.ok(box, "the drawing carries a viewBox");
+    assert.ok(Number.isFinite(Number(box[1])) && Number(box[1]!) > 0);
+    assert.ok(Number.isFinite(Number(box[2])) && Number(box[2]!) > 0);
+  }
+});
+
+test("drawing: a plane with the whole building behind the viewer is said so, not written out empty", () => {
+  // Looking west from a plane far to the west leaves the building behind you. Nothing is produced,
+  // and an empty sheet must not be written out and then announced as a drawing.
+  const m = parseFile(join(root, "examples/two-rooms.muro"));
+  assert.throws(() => svgSection(m, { axis: "X", at: -900000, look: "W" }), /There is nothing to draw/);
+  // The same plane looked at the other way is the whole building in elevation, and draws.
+  assert.match(svgSection(m, { axis: "X", at: -900000, look: "E" }), /^<svg xmlns/);
+});
+
+test("drawing: every drawing carries the mark", () => {
+  const m = parseFile(join(root, "examples/two-rooms.muro"));
+  for (const svg of [
+    svgPlan(m, { level: "L1" }),
+    svgAxo(m),
+    svgSection(m, { axis: "Y", at: 2250 }),
+    svgElevation(m, { face: "S" }),
+  ]) {
+    assert.match(svg, /<g transform="translate\([^)]*\) scale\([^)]*\)"><path d="M1027\.53 171\.361/);
+  }
 });

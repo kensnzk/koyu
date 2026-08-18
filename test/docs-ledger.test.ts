@@ -49,6 +49,8 @@ const CLI_SUBCOMMANDS = [
   "diff",
   "plan",
   "axo",
+  "section",
+  "elevation",
   "doors",
   "graph",
   "stats",
@@ -71,6 +73,8 @@ const MCP_TOOLS = [
   "validate",
   "site",
   "plan_svg",
+  "section_svg",
+  "elevation_svg",
   "canonical_json",
 ];
 

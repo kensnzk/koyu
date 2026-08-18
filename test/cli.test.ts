@@ -126,6 +126,28 @@ const USAGE: Array<[string, string[], RegExp]> = [
   ["axo with a scale that is not a number", ["axo", "examples/two-rooms.muro", "-s", "abc"], /^-s takes a positive number: abc$/],
   ["axo with a scale of zero", ["axo", "examples/two-rooms.muro", "-s", "0"], /^-s takes a positive number: 0$/],
   ["axo in a direction that does not exist", ["axo", "examples/two-rooms.muro", "-d", "XYZ"], /^-d is one of NE \/ NW \/ SE \/ SW: XYZ$/],
+  ["section with no cutting plane", ["section", "examples/two-rooms.muro"], /^Usage: koyu section /],
+  [
+    "section on a grid line that was never declared",
+    ["section", "examples/two-rooms.muro", "--at", "X9"],
+    /^Undefined grid reference: X9 \(declared: /,
+  ],
+  [
+    "section on something that is not a grid reference at all",
+    ["section", "examples/two-rooms.muro", "--at", "1800"],
+    /^Undefined grid reference: 1800 \(declared: /,
+  ],
+  [
+    "section looked at along the plane instead of across it",
+    ["section", "examples/two-rooms.muro", "--at", "X2", "--look", "N"],
+    /^--look N runs along X2 rather than across it/,
+  ],
+  [
+    "elevation given a cutting plane (the plane is derived, so naming one is a mistake)",
+    ["elevation", "examples/two-rooms.muro", "--at", "X2"],
+    /^elevation takes no --at/,
+  ],
+  ["elevation of a face that does not exist", ["elevation", "examples/two-rooms.muro", "--face", "SW"], /^-f is one of N \/ E \/ S \/ W: SW$/],
 ];
 
 for (const [name, args, shape] of USAGE) {
@@ -254,6 +276,10 @@ test("cli: every subcommand the usage line advertises actually runs", () => {
     doors: ["/L1/a", "/L1/b"],
     plan: ["-o", join(tmp, "advertised-plan.svg")],
     axo: ["-o", join(tmp, "advertised-axo.svg")],
+    // `grid Y 0 4500`, so Y1+2250 cuts mid-room through both rooms. `Y1` alone would run along the
+    // south exterior wall's centre line, which is a legal cut and a poor drawing.
+    section: ["--at", "Y1+2250", "-o", join(tmp, "advertised-section.svg")],
+    elevation: ["--face", "S", "-o", join(tmp, "advertised-elevation.svg")],
     validate: PROFILE_ARGS,
   };
   for (const sub of m[1]!.split("|")) {

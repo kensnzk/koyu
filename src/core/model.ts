@@ -241,6 +241,37 @@ export interface GridAxis {
   coords: number[];
 }
 
+/** A grid reference resolved: which axis names it, and where it sits in mm. */
+export interface GridPosition {
+  axis: "X" | "Y";
+  coord: number;
+}
+
+/**
+ * A grid reference — `X2`, `X2+600`, `Y3-150` — resolved to an axis and a coordinate in mm.
+ * `undefined` when the spelling is not a grid reference, or names no declared line.
+ *
+ * **This is the one place the spelling is read.** The notation writes no coordinate directly
+ * (docs/reference/muro/positions.md), so every position in a source is a reference in this form:
+ * an opening's `at:`, a `seg`'s, the endpoints of a drawn line. A caller outside the parser — the
+ * `--at` of a section, say — resolves through here rather than through a second copy of the
+ * pattern, because two copies is how `--at X3+450` and `at:X3+450` come to disagree.
+ *
+ * The names are machine-generated (`X1`, `Y2`, …), never written by the author, so the pattern is
+ * the whole grammar: an axis letter, a line number, and at most one signed whole-millimetre offset.
+ */
+export function gridRef(model: Model, token: string): GridPosition | undefined {
+  const m = /^([XY]\d+)([+-]\d+)?$/.exec(token);
+  if (!m) return undefined;
+  const offset = m[2] ? Number(m[2]) : 0;
+  for (const axis of ["X", "Y"] as const) {
+    const g = model.grid[axis];
+    const i = g.names.indexOf(m[1]!);
+    if (i >= 0) return { axis, coord: g.coords[i]! + offset };
+  }
+  return undefined;
+}
+
 /** mm矩形 (x1<x2, y1<y2) */
 export interface Rect {
   x1: number;
