@@ -1,6 +1,6 @@
 {
   "name": "@kensnzk/koyu",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "muro": {
     "reads": [
       "0.1",
@@ -16,7 +16,7 @@
     "newest": "1.3",
     "undeclared": "1.1"
   },
-  "description": "空間を一次要素とするテキストネイティブ建築記述の探求 — writing architecture, not buildings",
+  "description": "\u7a7a\u9593\u3092\u4e00\u6b21\u8981\u7d20\u3068\u3059\u308b\u30c6\u30ad\u30b9\u30c8\u30cd\u30a4\u30c6\u30a3\u30d6\u5efa\u7bc9\u8a18\u8ff0\u306e\u63a2\u6c42 \u2014 writing architecture, not buildings",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
