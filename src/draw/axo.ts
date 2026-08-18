@@ -15,6 +15,7 @@
 
 import { columnRect, derive, runPrism } from "../core/derive.js";
 import { type Model, type Pt } from "../core/model.js";
+import { esc, Extent, INK, openSheet, r2 } from "./sheet.js";
 
 export interface AxoOptions {
   /** 見る向き — 建物のどの隅から見下ろすか (既定 SE) */
@@ -39,8 +40,6 @@ interface Prism {
   depth: number;
 }
 
-const INK = "#1f1f1f";
-const PAPER = "#faf8f4";
 /** 地盤面を見せる版の下端・上端 mm — 導出値ではなく紙の側の約束 */
 const GROUND_Z0 = -400;
 const GROUND_Z1 = -100;
@@ -135,34 +134,23 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
 
   // ---- 投影して奥から描く (画家のアルゴリズム) ----
   prisms.sort((a, b) => a.depth - b.depth);
-  // **外接範囲は畳んで取る。**Math.min(...pts) は引数の数がスタックの限界に当たる —
-  // 開口で割られた壁は区間ごとに一片なので、大きな例では十万点を超える
-  let minX = Infinity;
-  let maxX = -Infinity;
-  let minY = Infinity;
-  let maxY = -Infinity;
-  const see = (p: [number, number]): void => {
-    if (p[0] < minX) minX = p[0];
-    if (p[0] > maxX) maxX = p[0];
-    if (p[1] < minY) minY = p[1];
-    if (p[1] > maxY) maxY = p[1];
-  };
+  // **外接範囲は畳んで取る** (Extent) — 引数を展開すると点の数がスタックの限界に当たる
+  const ext = new Extent();
   for (const pr of prisms) {
     for (let i = 0; i < pr.poly.length; i++) {
-      see(proj(pr.poly[i]!, pr.top[i]!));
-      see(proj(pr.poly[i]!, pr.bottom[i]!));
+      const t = proj(pr.poly[i]!, pr.top[i]!);
+      const b = proj(pr.poly[i]!, pr.bottom[i]!);
+      ext.see(t[0], t[1]);
+      ext.see(b[0], b[1]);
     }
   }
   const M = 40;
-  const W = (maxX - minX) * scale + M * 2;
-  const H = (maxY - minY) * scale + M * 2;
-  const sx = (v: number) => (v - minX) * scale + M;
-  const sy = (v: number) => (v - minY) * scale + M;
+  const W = (ext.max0 - ext.min0) * scale + M * 2;
+  const H = (ext.max1 - ext.min1) * scale + M * 2;
+  const sx = (v: number) => (v - ext.min0) * scale + M;
+  const sy = (v: number) => (v - ext.min1) * scale + M;
 
-  const out: string[] = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">`,
-    `<rect width="${W}" height="${H}" fill="${PAPER}"/>`,
-  ];
+  const out: string[] = openSheet(W, H);
   const face = (ring: Array<[number, number]>, fill: string, shade: number) => {
     const d = ring.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${r2(sx(x))} ${r2(sy(y))}`).join(" ");
     return `<path d="${d} Z" fill="${tint(fill, shade)}" stroke="${INK}" stroke-width="0.35" stroke-opacity="0.5"/>`;
@@ -216,6 +204,3 @@ function tint(hex: string, k: number): string {
   const ch = [n >> 16, (n >> 8) & 255, n & 255].map((v) => Math.round(Math.min(255, v * k)));
   return `#${ch.map((v) => v.toString(16).padStart(2, "0")).join("")}`;
 }
-
-const r2 = (v: number): number => Math.round(v * 100) / 100;
-const esc = (s: string): string => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
