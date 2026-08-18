@@ -15,7 +15,7 @@ The present state is **koyu 0.23.0 / muro 1.3**.
 
 | Line | Now | What it means |
 |---|---|---|
-| Language (muro) | **1.3** | The grammar and semantics of the source. Written `muro 1.2` — `koyu 1.1` and earlier keep the old word, and keep reading. This is settled |
+| Language (muro) | **1.3** | The grammar and semantics of the source. Written `muro 1.3` — `koyu 1.1` and earlier keep the old word, and keep reading. This is settled |
 | Implementation (the npm package) | **0.23.0** | The library, the CLI and the MCP server. While it is 0.x, **nothing that changes is a breaking change** |
 
 They were separated so that the implementation can keep moving after the language has settled. A file that says `muro 1.3` reads the same whether the implementation is 0.23, 1.0 or 2.0.

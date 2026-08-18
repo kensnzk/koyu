@@ -267,8 +267,14 @@ function entitiesOf(bodies: Body[], spec: SectionSpec): SectionEntity[] {
       if (f < lo) lo = f;
       if (f > hi) hi = f;
     }
-    if (hi > EPS && lo < -EPS) {
-      // The plane crossed it.
+    // **The body is asked which side it is wholly on, not how far it reaches past the plane.**
+    // Asking the second question needs the body to extend more than the tolerance on both sides,
+    // which a body no wider than the tolerance itself can never do — a `t:1` wall standing on the
+    // plane reaches −0.5 and +0.5, and would be reported as standing behind a plane that goes
+    // straight through it.
+    const wholly = { behind: lo >= -EPS && hi > EPS, front: hi <= EPS && lo < -EPS };
+    if (!wholly.behind && !wholly.front) {
+      // It reaches both sides: the plane crossed it.
       const polygon = cutOf(body, spec.axis, spec.at, u);
       if (polygon) {
         out.push({ class: "cut", of: body.of, ref: body.ref, ...(body.kind ? { kind: body.kind } : {}), polygon, depth: 0 });
@@ -276,7 +282,7 @@ function entitiesOf(bodies: Body[], spec: SectionSpec): SectionEntity[] {
       continue;
     }
     // Wholly at or behind the plane. A space is a void — from outside there is nothing to see.
-    if (lo >= -EPS && body.of !== "space") {
+    if (wholly.behind && body.of !== "space") {
       const polygon = shadowOf(body, u);
       if (polygon) {
         out.push({
@@ -285,7 +291,9 @@ function entitiesOf(bodies: Body[], spec: SectionSpec): SectionEntity[] {
           ref: body.ref,
           ...(body.kind ? { kind: body.kind } : {}),
           polygon,
-          depth: lo,
+          // A face within the tolerance of the plane counts as on it, so the nearest point can
+          // measure a hair negative. `depth` is a distance behind the plane and never less than 0.
+          depth: Math.max(0, lo),
         });
       }
     }

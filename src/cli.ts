@@ -3,7 +3,7 @@
 //   npm run koyu -- check  examples/office.muro   # --json で構造化診断、--strict で警告も終了コード1
 //   npm run koyu -- diff   before.muro after.muro # 構成の言葉の差分 (--json で ModelDiff)
 //   npm run koyu -- plan   examples/office.muro -l L2 -o out/office-L2.svg
-//   npm run koyu -- section examples/office.muro --at X2+900   # 通り芯で切る (座標は書かせない)
+//   npm run koyu -- section examples/office.muro --at X2+900   # the cut is named by a grid line
 //   npm run koyu -- elevation examples/office.muro --face S
 //   npm run koyu -- doors  examples/office.muro /L2/office /out
 //   npm run koyu -- graph  examples/office.muro
@@ -602,8 +602,8 @@ function main(argv: string[]): number {
       return 0;
     }
     case "section": {
-      // 断面 — 切る位置は**通り芯で名指す**。記法は座標を書かせない
-      // (docs/reference/muro/positions.md) ので、切断面もその言葉で言う
+      // The section. **The cut is named by a grid line**, because the notation writes no
+      // coordinate directly (docs/reference/muro/positions.md) and a plane is a position too
       const at = opt(rest, "--at");
       if (!at) {
         console.log(
@@ -638,7 +638,8 @@ function main(argv: string[]): number {
       return 0;
     }
     case "elevation": {
-      // 立面 — 建物の外に置いた断面である。切る位置は導出されるので --at は取らない
+      // The elevation — a section whose plane stands outside the mass. Where that plane goes is
+      // derived, so naming one is a calling mistake rather than something to ignore
       if (rest.includes("--at")) {
         die("elevation takes no --at (the plane is placed outside the mass; koyu section takes a cut)");
       }

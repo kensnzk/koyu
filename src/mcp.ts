@@ -194,6 +194,22 @@ const str = (v: unknown, name: string): string => {
   return v;
 };
 
+/**
+ * A compass word, checked rather than trusted.
+ *
+ * **A schema is what the tool advertises, not what the server enforces.** A raw `tools/call` can
+ * carry anything, and a word that is not one of the four falls through the direction tests to a
+ * default — so an unsupported `look` would come back as a plausible drawing of a plane nobody
+ * asked for, which is worse than an error.
+ */
+const edge = (v: unknown, name: string): Edge => {
+  const s = str(v, name);
+  if (s !== "N" && s !== "E" && s !== "S" && s !== "W") {
+    throw new Error(`${name} is one of N / E / S / W: ${s}`);
+  }
+  return s;
+};
+
 /** An optional array of attribute keys. Absent is not the same as empty, but both group nothing. */
 const keys = (v: unknown, name: string): string[] => {
   if (v === undefined) return [];
@@ -458,7 +474,7 @@ const TOOLS: Record<string, Tool> = {
           `Undefined grid reference: ${at} (declared: ${model.grid.X.names.join(" ")} ${model.grid.Y.names.join(" ")})`,
         );
       }
-      const look = a.look === undefined ? undefined : (str(a.look, "look") as Edge);
+      const look = a.look === undefined ? undefined : edge(a.look, "look");
       if (look && axisOf(look) !== g.axis) {
         throw new Error(
           `look ${look} runs along ${at} rather than across it (an X reference is looked at from E or W, a Y reference from N or S)`,
@@ -482,7 +498,7 @@ const TOOLS: Record<string, Tool> = {
       },
       required: ["file", "face"],
     },
-    run: (a) => svgElevation(load(str(a.file, "file")), { face: str(a.face, "face") as Edge }),
+    run: (a) => svgElevation(load(str(a.file, "file")), { face: edge(a.face, "face") }),
   },
   canonical_json: {
     description: "The canonical JSON (machine format — one composed model, byte-stable). The ground for diffing and for external connections",

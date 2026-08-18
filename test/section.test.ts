@@ -313,3 +313,48 @@ test("section: every entity names its subject and says how far behind the plane 
     }
   }
 });
+
+// ---- What the review found ----
+
+test("section: a body no wider than the tolerance is still cut by a plane through it", () => {
+  // The classification asks which side a body is **wholly** on. Asking instead how far it reaches
+  // past the plane needs more than the tolerance on both sides, which a body no wider than the
+  // tolerance can never give — and `t:1` is a model `check` passes without a word.
+  const m = parse(`muro 1.3
+grid X 0 3600 7200
+grid Y 0 4500
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
+boundary /L1/a /L1/b t:1
+boundary /L1/a /out
+boundary /L1/b /out
+`);
+  const f = derive(m);
+  const thin = f.boundaries.find((b) => b.a === "/L1/a" && b.b === "/L1/b")!;
+  assert.equal(thin.material?.t, 1);
+  const s = sectionForm(f, { axis: "X", at: 3600, look: "W" });
+  const mine = s.entities.filter((e) => e.ref === thin.ref);
+  assert.deepEqual(
+    mine.map((e) => e.class),
+    ["cut"],
+    "the plane goes straight through it, so it is cut and not something standing behind",
+  );
+});
+
+test("section: what stands behind the plane is never a negative distance from it", () => {
+  // A face within the tolerance of the plane counts as on it, so the nearest point of a body can
+  // measure a hair negative. `depth` is documented as a distance behind the plane.
+  for (const entry of ENTRIES) {
+    const f = form(entry);
+    for (const spec of [
+      { axis: "X", at: 0, look: "E" } as const,
+      { axis: "Y", at: 0, look: "N" } as const,
+    ]) {
+      for (const e of sectionForm(f, spec).entities) {
+        assert.ok(e.depth >= 0, `${entry}: ${e.ref} reports depth ${e.depth}`);
+      }
+    }
+  }
+});
