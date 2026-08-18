@@ -7,7 +7,9 @@ import {
   area,
   areaOf,
   clipHalf,
+  crossing,
   cutsInWindow,
+  hull,
   lineWindow,
   overlaps,
   rectToPoly,
@@ -86,4 +88,89 @@ test("overlap: the test between convex pieces works on diagonals too", () => {
   const tri = clipHalf(R(0, 0, 100, 100), { x: 0, y: 100 }, { x: 100, y: 0 }, true);
   assert.equal(overlaps([tri], [R(90, 90, 100, 100)]), true);
   assert.equal(overlaps([tri], [R(0, 0, 10, 10)]), false);
+});
+
+// ---- Crossing a piece with an axis-parallel line (ADR-0064) ----
+//
+// A vertical plane cuts a building by meeting each body's footprint in one interval. What the
+// caller needs back is not only where that interval is, but **which edge each end sits on and how
+// far along it** — the body carries a height per vertex, and a ramp's height has to be read at the
+// crossing rather than guessed from the ends of the whole piece.
+
+test("crossing: a line through a rect returns the interval along it, and where on the ring each end sits", () => {
+  const met = crossing(R(0, 0, 100, 50), "X", 50);
+  assert.ok(met);
+  assert.deepEqual(
+    met.map((c) => c.at),
+    [0, 50],
+  );
+  // Halfway along the two edges the line actually meets — that is what makes a height readable.
+  assert.deepEqual(
+    met.map((c) => c.t),
+    [0.5, 0.5],
+  );
+});
+
+test("crossing: the interval is measured along the line, so the axis decides which coordinate it is", () => {
+  assert.deepEqual(crossing(R(0, 0, 100, 50), "Y", 25)?.map((c) => c.at), [0, 100]);
+});
+
+test("crossing: an edge lying on the line is returned as itself", () => {
+  // A wall standing exactly on a grid line is cut along its whole length. That is a correct
+  // drawing of a poor cut, and it must not come back empty.
+  assert.deepEqual(crossing(R(0, 0, 100, 50), "X", 100)?.map((c) => c.at), [0, 50]);
+});
+
+test("crossing: touching one corner is not being crossed, and missing is not either", () => {
+  const tri = [
+    { x: 0, y: 0 },
+    { x: 100, y: 0 },
+    { x: 0, y: 100 },
+  ];
+  assert.equal(crossing(tri, "X", 100), undefined);
+  assert.equal(crossing(R(0, 0, 100, 50), "X", 150), undefined);
+});
+
+test("crossing: an oblique piece is met at the interpolated point", () => {
+  // The half of a square cut corner to corner: the line x = 50 meets it from y 0 to y 50.
+  const tri = [
+    { x: 0, y: 0 },
+    { x: 100, y: 0 },
+    { x: 0, y: 100 },
+  ];
+  assert.deepEqual(crossing(tri, "X", 50)?.map((c) => c.at), [0, 50]);
+});
+
+// ---- The hull (ADR-0064) ----
+//
+// A body of a `Form` is a prism over a convex ring whose top and bottom vary linearly, so it is a
+// convex solid, and **the projection of a convex solid is the hull of its projected vertices.**
+// That is what makes an elevation exact rather than an outline fitted to one.
+
+test("hull: the corners survive, a point inside does not, and the ring is counter-clockwise", () => {
+  const h = hull([
+    { x: 0, y: 0 },
+    { x: 100, y: 0 },
+    { x: 100, y: 50 },
+    { x: 0, y: 50 },
+    { x: 50, y: 25 },
+  ]);
+  assert.equal(h.length, 4);
+  assert.ok(signedArea(h) > 0);
+  assert.equal(area(h), 5000);
+});
+
+test("hull: a point on an edge is not a corner", () => {
+  assert.equal(hull([...R(0, 0, 100, 50), { x: 50, y: 0 }]).length, 4);
+});
+
+test("hull: a dent is filled in — the answer is the convex one", () => {
+  const h = hull([
+    { x: 0, y: 0 },
+    { x: 100, y: 0 },
+    { x: 100, y: 100 },
+    { x: 50, y: 50 },
+    { x: 0, y: 100 },
+  ]);
+  assert.equal(area(h), 10000);
 });

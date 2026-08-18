@@ -57,7 +57,7 @@ An older declared version is **accepted only where the meaning is preserved**. C
 | **[The machine format](json/index.md)** | **it announces its format version.** The same input gives the same bytes — collation and normalisation are fixed. It holds the result of composition and holds no shape |
 | **[The derivation rules](form/index.md)** | written out, with a reference implementation offered as API |
 | **Structural diagnostics** | codes and severities. The meaning of green matches [the definition of scope](scope.md) |
-| **The public API and the CLI** | parse, compose, canonicalise, question, derive. Commands (14 of them), arguments, exit codes |
+| **The public API and the CLI** | parse, compose, canonicalise, question, derive. [The commands](cli/index.md), their arguments, their exit codes |
 
 One point about diagnostics deserves emphasis. **Severity is an immutable property of a code.** The same code is never an error in one case and a warning in another. To change the weight, a new code is cut and the old spelling is retired.
 
@@ -65,9 +65,9 @@ One point about diagnostics deserves emphasis. **Severity is an immutable proper
 
 **These may exist; it is explicit that they are outside the freeze.**
 
-- **Shape generation and drawing** — `svgPlan`, `svgAxo`, the CLI `plan` and `axo`, the MCP `plan_svg`. The CLI **surface** (subcommand names, arguments, exit codes) freezes; **the contents of the SVG do not**
+- **Shape generation and drawing** — `svgPlan`, `svgAxo`, `svgSection`, `svgElevation`, the CLI `plan` / `axo` / `section` / `elevation`, the MCP `plan_svg` / `section_svg` / `elevation_svg`. The CLI **surface** (subcommand names, arguments, exit codes) freezes; **the contents of the SVG do not**
 - **[Architectural judgement](validate/index.md)** — the sixteen rules and the output of `koyu validate`. This face grows
-- **The MCP toolset** (12 tools) — treated as a face that grows by addition
+- **[The MCP toolset](mcp/index.md)** — treated as a face that grows by addition
 - **Round-tripping with and importing external formats**
 - **Surfaces for people** — editor support, authoring
 - **The meaning of carried-tier attributes**

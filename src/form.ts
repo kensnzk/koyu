@@ -36,6 +36,24 @@ export {
   type PlanSubject,
 } from "./core/derive.js";
 
+// The section and the elevation. **They read a `Form` and assemble no matter** — the classifying
+// of what a vertical plane cut and what stands behind it is derivation's, for the same reason the
+// horizontal one is (docs/why/plan-is-not-a-section.md).
+export {
+  axisOf,
+  defaultLook,
+  elevationForm,
+  sectionArea,
+  sectionForm,
+  type FormSection,
+  type SectionAxis,
+  type SectionClass,
+  type SectionEntity,
+  type SectionPt,
+  type SectionSpec,
+  type SectionSubject,
+} from "./core/section.js";
+
 export { TOLERANCES } from "./core/tolerance.js";
 
 export type { Slab, SlabKind } from "./core/fabric.js";

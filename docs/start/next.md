@@ -59,7 +59,7 @@ Twenty lines from parse through diagnostics to canonical JSON. The published sur
 
 → **[koyu-mcp](../reference/mcp/index.md)**
 
-A zero-dependency stdio MCP server whose 12 tools expose the same derivations. Registration is one line; no auth, no environment variables. The agent reads with `layers`, writes with `write_layer`, and `check` is the gate — errors come back with layer and line provenance.
+A zero-dependency stdio MCP server whose 14 tools expose the same derivations. Registration is one line; no auth, no environment variables. The agent reads with `layers`, writes with `write_layer`, and `check` is the gate — errors come back with layer and line provenance.
 
 **Commit before you let it write.** `write_layer` writes by full replacement and has no undo.
 

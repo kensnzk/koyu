@@ -165,6 +165,82 @@ export function unionArea(pieces: Pt[][]): number {
   return total;
 }
 
+/** Where an axis-parallel line meets the boundary of a piece. */
+export interface Crossing {
+  /** the coordinate along the line — y for a line `x = at`, x for a line `y = at` */
+  at: number;
+  /** the edge it sits on: `poly[edge]` → `poly[(edge + 1) % n]` */
+  edge: number;
+  /** how far along that edge, 0..1 */
+  t: number;
+}
+
+/**
+ * Where the axis-parallel line at `at` crosses a ring — the two extreme crossings, ascending.
+ *
+ * `axis:"X"` means the line `x = at`. **A convex ring meets a line in exactly one interval**, which
+ * is what makes two crossings a whole answer rather than a first one, and every ring in a `Form` is
+ * convex (ADR-0022). Handed a ring that is not, it returns the outermost pair, which spans the true
+ * answer and is never less than it.
+ *
+ * **The edge and the parameter come back with the coordinate** because the caller usually holds a
+ * value per vertex — the top and bottom z of a prism — and has to read it at the crossing. Handing
+ * back the coordinate alone would leave that caller re-deriving where on the ring it was.
+ *
+ * A vertex on the line counts, so an edge lying along the line is returned as itself. Touching a
+ * single corner is not being crossed, and comes back `undefined`.
+ */
+export function crossing(poly: Pt[], axis: "X" | "Y", at: number): [Crossing, Crossing] | undefined {
+  /** across the line */
+  const c = (p: Pt): number => (axis === "X" ? p.x : p.y);
+  /** along the line */
+  const o = (p: Pt): number => (axis === "X" ? p.y : p.x);
+  const found: Crossing[] = [];
+  for (let i = 0; i < poly.length; i++) {
+    const p = poly[i]!;
+    const q = poly[(i + 1) % poly.length]!;
+    const dp = c(p) - at;
+    const dq = c(q) - at;
+    if (Math.abs(dp) <= EPS) found.push({ at: o(p), edge: i, t: 0 });
+    if ((dp > EPS && dq < -EPS) || (dp < -EPS && dq > EPS)) {
+      const t = dp / (dp - dq);
+      found.push({ at: o(p) + t * (o(q) - o(p)), edge: i, t });
+    }
+  }
+  if (found.length < 2) return undefined;
+  found.sort((a, b) => a.at - b.at);
+  const lo = found[0]!;
+  const hi = found[found.length - 1]!;
+  return hi.at - lo.at > EPS ? [lo, hi] : undefined;
+}
+
+/**
+ * The convex hull of a set of points, counter-clockwise (Andrew's monotone chain).
+ *
+ * **The projection of a convex solid is the hull of its projected vertices**, which is why this is
+ * here: a body in a `Form` is a prism over a convex ring whose top and bottom vary linearly, so it
+ * is convex, and its silhouette is exact rather than approximate.
+ *
+ * Collinear points are dropped, so the result carries no vertex that is not a corner.
+ */
+export function hull(points: Pt[]): Pt[] {
+  if (points.length < 3) return [...points];
+  const pts = [...points].sort((a, b) => a.x - b.x || a.y - b.y);
+  const cross = (o: Pt, a: Pt, b: Pt): number =>
+    (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  const half = (src: Pt[]): Pt[] => {
+    const out: Pt[] = [];
+    for (const p of src) {
+      while (out.length >= 2 && cross(out[out.length - 2]!, out[out.length - 1]!, p) <= 0) out.pop();
+      out.push(p);
+    }
+    out.pop();
+    return out;
+  };
+  const ring = [...half(pts), ...half([...pts].reverse())];
+  return ring.length >= 3 ? ring : [];
+}
+
 // ---- 窓 (どの範囲で測り、どの範囲を切るか) ----
 
 /**

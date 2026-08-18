@@ -43,7 +43,7 @@ claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp
 claude mcp add koyu -- node /path/to/koyu/dist/mcp.js   # development build
 ```
 
-`claude mcp list` lists the registered servers with their connection status. During a session, `/mcp` shows all 12 tools.
+`claude mcp list` lists the registered servers with their connection status. During a session, `/mcp` shows all 14 tools.
 
 ## Sharing it through the repository (project scope)
 
@@ -114,11 +114,11 @@ printf '%s\n' \
 
 To check an installed package instead, swap the last line for `npx -p @kensnzk/koyu koyu-mcp` and make the file path absolute.
 
-Send `{"jsonrpc":"2.0","id":3,"method":"tools/list"}` the same way and all 12 tools come back with `name`, `description` and `inputSchema`.
+Send `{"jsonrpc":"2.0","id":3,"method":"tools/list"}` the same way and all 14 tools come back with `name`, `description` and `inputSchema`.
 
 ## See also
 
-- [koyu-mcp](index.md) — statelessness, the standard loop, the 12 tools
+- [koyu-mcp](index.md) — statelessness, the standard loop, the 14 tools
 - [The protocol](protocol.md) — what `initialize` announces, how errors come back
 - [Writing — write_layer / new_uids](tools-write.md) — the blast radius of a write
 - [The koyu command](../cli/index.md) — the same derivations by hand

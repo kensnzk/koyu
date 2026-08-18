@@ -11,17 +11,20 @@ import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { daylightInputs } from "./core/light.js";
 import {
   DEFAULT_LANGUAGE_VERSION,
+  type Edge,
+  gridRef,
   KOYU_VERSION,
   NEWEST_LANGUAGE_VERSION,
   polygonAreaM2,
   SUPPORTED_LANGUAGE_VERSIONS,
 } from "./core/model.js";
+import { axisOf } from "./core/section.js";
 import { check } from "./core/diagnose.js";
 import { siteReport } from "./core/site.js";
 import { assess } from "./validate/assessment.js";
 import { createSchematicRegistry, SCHEMATIC_PROFILE_ID } from "./validate/builtin/index.js";
 import { checkDiagnostics } from "./diagnostics.js";
-import { svgPlan } from "./draw/index.js";
+import { svgElevation, svgPlan, svgSection } from "./draw/index.js";
 import { doorsBetween } from "./graph.js";
 import {
   areaM2,
@@ -189,6 +192,22 @@ const FILE_PROP = {
 const str = (v: unknown, name: string): string => {
   if (typeof v !== "string" || !v) throw new Error(`${name} (a string) is required`);
   return v;
+};
+
+/**
+ * A compass word, checked rather than trusted.
+ *
+ * **A schema is what the tool advertises, not what the server enforces.** A raw `tools/call` can
+ * carry anything, and a word that is not one of the four falls through the direction tests to a
+ * default — so an unsupported `look` would come back as a plausible drawing of a plane nobody
+ * asked for, which is worse than an error.
+ */
+const edge = (v: unknown, name: string): Edge => {
+  const s = str(v, name);
+  if (s !== "N" && s !== "E" && s !== "S" && s !== "W") {
+    throw new Error(`${name} is one of N / E / S / W: ${s}`);
+  }
+  return s;
 };
 
 /** An optional array of attribute keys. Absent is not the same as empty, but both group nothing. */
@@ -427,6 +446,60 @@ const TOOLS: Record<string, Tool> = {
     },
     run: (a) => svgPlan(load(str(a.file, "file")), { level: str(a.level, "level") }),
   },
+  section_svg: {
+    description:
+      "Generates and returns the section SVG cut at a grid reference (form is generated, not written). The reference names the plane: X3 cuts across the X axis, Y2-600 across the Y axis",
+    schema: {
+      type: "object",
+      properties: {
+        ...FILE_PROP,
+        at: {
+          type: "string",
+          description: "Grid reference for the cut — X3, X3+450, Y2-600. A plane on a grid line usually runs along a wall; offset it to cut through the rooms",
+        },
+        look: {
+          type: "string",
+          enum: ["N", "E", "S", "W"],
+          description: "Direction of view. Must cross the plane: E or W for an X reference, N or S for a Y reference. Defaults to W and N",
+        },
+      },
+      required: ["file", "at"],
+    },
+    run: (a) => {
+      const model = load(str(a.file, "file"));
+      const at = str(a.at, "at");
+      const g = gridRef(model, at);
+      if (!g) {
+        throw new Error(
+          `Undefined grid reference: ${at} (declared: ${model.grid.X.names.join(" ")} ${model.grid.Y.names.join(" ")})`,
+        );
+      }
+      const look = a.look === undefined ? undefined : edge(a.look, "look");
+      if (look && axisOf(look) !== g.axis) {
+        throw new Error(
+          `look ${look} runs along ${at} rather than across it (an X reference is looked at from E or W, a Y reference from N or S)`,
+        );
+      }
+      return svgSection(model, { axis: g.axis, at: g.coord, atRef: at, ...(look ? { look } : {}) });
+    },
+  },
+  elevation_svg: {
+    description:
+      "Generates and returns the elevation SVG of one face (form is generated, not written). An elevation is a section whose plane stands outside the mass, so it cuts nothing",
+    schema: {
+      type: "object",
+      properties: {
+        ...FILE_PROP,
+        face: {
+          type: "string",
+          enum: ["N", "E", "S", "W"],
+          description: "The side the viewer stands on. S is the south elevation, seen from the south",
+        },
+      },
+      required: ["file", "face"],
+    },
+    run: (a) => svgElevation(load(str(a.file, "file")), { face: edge(a.face, "face") }),
+  },
   canonical_json: {
     description: "The canonical JSON (machine format — one composed model, byte-stable). The ground for diffing and for external connections",
     schema: { type: "object", properties: FILE_PROP, required: ["file"] },
@@ -476,7 +549,7 @@ function handle(msg: Json): void {
           },
         },
         instructions:
-          "Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (plan_svg) is generated, never written.",
+          "Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (the drawings — plan_svg, section_svg, elevation_svg) is generated, never written.",
       });
       return;
     }

@@ -3,6 +3,8 @@
 //   npm run koyu -- check  examples/office.muro   # --json で構造化診断、--strict で警告も終了コード1
 //   npm run koyu -- diff   before.muro after.muro # 構成の言葉の差分 (--json で ModelDiff)
 //   npm run koyu -- plan   examples/office.muro -l L2 -o out/office-L2.svg
+//   npm run koyu -- section examples/office.muro --at X2+900   # the cut is named by a grid line
+//   npm run koyu -- elevation examples/office.muro --face S
 //   npm run koyu -- doors  examples/office.muro /L2/office /out
 //   npm run koyu -- graph  examples/office.muro
 //   npm run koyu -- stats  examples/office.muro
@@ -26,6 +28,7 @@ import {
   areaM2,
   displayName,
   effectiveAttr,
+  gridRef,
   heff,
   isSemiOutdoor,
   levelsSorted,
@@ -41,6 +44,8 @@ import {
 import { parseFile } from "./parse-file.js";
 import { svgPlan } from "./draw/plan.js";
 import { svgAxo } from "./draw/axo.js";
+import { svgElevation, svgSection } from "./draw/section.js";
+import { axisOf } from "./core/section.js";
 import { slopeText, verticalRuns } from "./core/vertical.js";
 
 function load(file: string): Model {
@@ -223,7 +228,7 @@ function main(argv: string[]): number {
   }
   if (!cmd || !file) {
     console.log(
-      "Usage: koyu <check|validate|layers|diff|plan|axo|doors|graph|stats|levels|runs|light|site|json> <file.muro> [args...]\n" +
+      "Usage: koyu <check|validate|layers|diff|plan|axo|section|elevation|doors|graph|stats|levels|runs|light|site|json> <file.muro> [args...]\n" +
         "  check:    --json (emit Diagnostic[] as JSON) / --strict (exit 1 if there are warnings) — structural consistency only\n" +
         "  validate: --profile <id> --as-of <YYYY-MM-DD> [--json] — architectural judgement (not what check guarantees)\n" +
         "  layers:   the layers that took part in composition, weakest first. --attrs for the provenance of each attribute\n" +
@@ -594,6 +599,57 @@ function main(argv: string[]): number {
       mkdirSync(dirname(outPath), { recursive: true });
       writeFileSync(outPath, svg);
       console.log(`Generated the axonometric: ${outPath}`);
+      return 0;
+    }
+    case "section": {
+      // The section. **The cut is named by a grid line**, because the notation writes no
+      // coordinate directly (docs/reference/muro/positions.md) and a plane is a position too
+      const at = opt(rest, "--at");
+      if (!at) {
+        console.log(
+          "Usage: koyu section <file.muro> --at <X3|X3+450|Y2-600> [--look N|E|S|W] [-s <scale>] [-o <out.svg>]",
+        );
+        return 2;
+      }
+      const g = gridRef(model, at);
+      if (!g) {
+        die(
+          `Undefined grid reference: ${at} (declared: ${model.grid.X.names.join(" ")} ${model.grid.Y.names.join(" ")})`,
+        );
+      }
+      const chosen = enumOpt(rest, ["N", "E", "S", "W"] as const, "--look");
+      if (chosen && axisOf(chosen) !== g.axis) {
+        die(
+          `--look ${chosen} runs along ${at} rather than across it (an X reference is looked at from E or W, a Y reference from N or S)`,
+        );
+      }
+      const sc = numOpt(rest, "-s", "--scale");
+      const outPath = opt(rest, "-o", "--out") ?? `out/section-${at}.svg`;
+      const svg = svgSection(model, {
+        axis: g.axis,
+        at: g.coord,
+        atRef: at,
+        ...(chosen ? { look: chosen } : {}),
+        ...(sc !== undefined ? { scale: sc } : {}),
+      });
+      mkdirSync(dirname(outPath), { recursive: true });
+      writeFileSync(outPath, svg);
+      console.log(`Generated the section: ${outPath}`);
+      return 0;
+    }
+    case "elevation": {
+      // The elevation — a section whose plane stands outside the mass. Where that plane goes is
+      // derived, so naming one is a calling mistake rather than something to ignore
+      if (rest.includes("--at")) {
+        die("elevation takes no --at (the plane is placed outside the mass; koyu section takes a cut)");
+      }
+      const face = enumOpt(rest, ["N", "E", "S", "W"] as const, "-f", "--face") ?? "S";
+      const sc = numOpt(rest, "-s", "--scale");
+      const outPath = opt(rest, "-o", "--out") ?? `out/elevation-${face}.svg`;
+      const svg = svgElevation(model, { face, ...(sc !== undefined ? { scale: sc } : {}) });
+      mkdirSync(dirname(outPath), { recursive: true });
+      writeFileSync(outPath, svg);
+      console.log(`Generated the elevation: ${outPath}`);
       return 0;
     }
 

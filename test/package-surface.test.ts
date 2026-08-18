@@ -96,12 +96,12 @@ test("root: carries no domain name", async () => {
   const DOMAIN_NAMES = [
     "areaM2", "levelsSorted", "zoneAreaM2", "newUids", // model queries
     "doorsBetween", "neighbors", "passable", "segmentsFor", // graph
-    "derive", "slabs", "verticalRuns", // form
+    "derive", "slabs", "verticalRuns", "sectionForm", "elevationForm", // form
     "runAnalysis", // analysis
     "semanticDiff", "renderDiff", // diff
     "ATTR_LEDGER", "attrSpec", // vocabulary
     "assess", "createAssessmentRegistry", "createSchematicRegistry", // validation
-    "svgPlan", "svgAxo", // drawing
+    "svgPlan", "svgAxo", "svgSection", "svgElevation", // drawing
     "parseFile", "parseFileWith", // node
     "daylightInputs", "siteReport", // domain questions
   ];

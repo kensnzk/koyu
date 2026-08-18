@@ -9,3 +9,4 @@
 
 export { svgPlan, type PlanOptions } from "./plan.js";
 export { svgAxo, type AxoOptions } from "./axo.js";
+export { svgSection, svgElevation, type SectionOptions, type ElevationOptions } from "./section.js";

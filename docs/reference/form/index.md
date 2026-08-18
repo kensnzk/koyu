@@ -130,7 +130,7 @@ Every element of `Form` carries its subject's identity. Boundaries, openings, `s
 | `columnRect(c)` | the section of a column |
 | `runPrism(s)` | a vertical-circulation solid as a prism (base outline plus per-vertex top/bottom z) |
 
-**All five are exported from `@kensnzk/koyu/form`**, alongside `derive` and the `Form` types. That is the whole point of them: a consumer that cannot import a constructor has to write it again, and then the rule of assembly is no longer shared even though the parts are.
+**All five are exported from `@kensnzk/koyu/form`**, alongside `derive` and the `Form` types. So are `sectionForm` and `elevationForm`, which [cut a vertical plane through what `derive` returned](section.md) — they read a `Form`, call these same constructors, and assemble no matter of their own, so the one entry point to shape stays one. That is the whole point of them: a consumer that cannot import a constructor has to write it again, and then the rule of assembly is no longer shared even though the parts are.
 
 **The vertices of the quadrilateral run start+n → end+n → end−n → start−n**, so joining the midpoints of the two opposing sides gives the centre line back.
 
@@ -144,5 +144,6 @@ The body of a wall is not one of these constructors' results, because [a junctio
 - [Vertical runs](vertical-runs.md) — the arithmetic of step division and slope
 - [Constants and tolerances](constants.md) — eighteen and seven
 - [The plan](plan.md) — a classified set of 2D entities
+- [The section](section.md) — the same, for a vertical plane
 - [Scope](../scope.md) — what a green `check` means
 - [Stability](../stability.md) — `Form` freezes; the SVG does not

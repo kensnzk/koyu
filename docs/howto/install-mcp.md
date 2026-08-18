@@ -107,4 +107,4 @@ If the summary comes back with the layer composition, levels, areas and the `che
 - [The standard loop for letting an agent write](agent-loop.md) — the order of work once you are connected
 - [Drive the MCP server by hand over stdio](debug-mcp.md) — take the client out and find the fault
 - [Register with a client](../reference/mcp/install.md) — config file shapes and locations
-- [koyu-mcp](../reference/mcp/index.md) — statelessness and the twelve tools
+- [koyu-mcp](../reference/mcp/index.md) — statelessness and the fourteen tools

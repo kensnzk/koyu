@@ -49,6 +49,8 @@ const CLI_SUBCOMMANDS = [
   "diff",
   "plan",
   "axo",
+  "section",
+  "elevation",
   "doors",
   "graph",
   "stats",
@@ -71,6 +73,8 @@ const MCP_TOOLS = [
   "validate",
   "site",
   "plan_svg",
+  "section_svg",
+  "elevation_svg",
   "canonical_json",
 ];
 
@@ -105,18 +109,21 @@ test("判定規則は16件すべてが見出しを持つ", { skip: !canonical },
   assert.deepEqual(missing, [], `見出しの無い判定規則: ${missing.join(", ")}`);
 });
 
-test("CLI は14サブコマンドすべてがページを持つ", { skip: !canonical }, () => {
+// **The count is not written into the name.** A test called "all 14 subcommands" goes on saying
+// fourteen after the fifteenth is added, and a name that states a false total is worse than one
+// that states none — the ledger above is the only place the number lives.
+test("every CLI subcommand has a page", { skip: !canonical }, () => {
   const dir = join(DOCS, "reference", "cli");
   const missing = CLI_SUBCOMMANDS.filter((cmd) => !existsSync(join(dir, `${cmd}.md`)));
-  assert.deepEqual(missing, [], `ページの無いサブコマンド: ${missing.join(", ")}`);
+  assert.deepEqual(missing, [], `subcommands with no page: ${missing.join(", ")}`);
 });
 
-test("MCP は12ツールすべてが見出しを持つ", { skip: !canonical }, () => {
+test("every MCP tool has a heading", { skip: !canonical }, () => {
   const text = corpus("reference", "mcp");
   const missing = MCP_TOOLS.filter(
     (tool) => !new RegExp(`^#{2,4}\\s.*\\b${tool}\\b`, "m").test(text),
   );
-  assert.deepEqual(missing, [], `見出しの無いMCPツール: ${missing.join(", ")}`);
+  assert.deepEqual(missing, [], `MCP tools with no heading: ${missing.join(", ")}`);
 });
 
 test("公開APIの全エクスポートがどこかに書かれている", { skip: !canonical }, () => {

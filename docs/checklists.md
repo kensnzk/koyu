@@ -112,11 +112,15 @@ change by; anything else means something was changed that was not meant to be.
 
 ### Not held
 
-- **`docs/img/`.** The plans are generated output kept as files, and nothing regenerates them or
+- **`docs/img/`.** The drawings are generated output kept as files, and nothing regenerates them or
   compares them with what the processor now produces. Regenerate every one the rule reaches
   (`npx tsx src/cli.ts plan <entry> -l <level> -o docs/img/<name>.svg`, default scale and cut) —
-  four of them are not plain examples: `start-05-L2-sealed` is `examples/steps/05` with the
+  three of them are not plain examples: `start-05-L2-sealed` is `examples/steps/05` with the
   upstairs door taken out, and the two `start-index-*` are the snippets written on `docs/index.md`.
+  **Check the mapping rather than assuming it**: regenerate beside the committed file and diff, so
+  a name whose source you guessed wrong shows up as a whole-file difference instead of landing
+  silently. `house-section-X2+900` and `house-elevation-S` come from `koyu section` and
+  `koyu elevation` on `examples/house/main.muro`.
 - **The IFC export.** It builds a wall from the segment on its own toolchain, so a rule that
   changes bodies does not reach it and its agreement test keeps passing either way.
 - **Downstream viewers.** They derive their own shape from the same rules and this repository

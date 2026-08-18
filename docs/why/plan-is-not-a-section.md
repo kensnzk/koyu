@@ -71,6 +71,16 @@ A wall appears as **the run of intervals into which openings divide it**. Openin
 
 And that the black bands really are the `Form`'s cut intervals is checked: the similarity transform from world to page is solved from the bounding box, and the two are matched as sets of quadrilaterals.
 
+## And a section is not a slice
+
+Turn the plane on its side and the same argument runs again, with a shorter list — which is itself worth saying, because it shows the list was never arbitrary.
+
+Slice the solids at one x and you get flat pieces and an empty background. **A section drawing is mostly what stands behind the plane**: the far wall with its windows, the stair beyond the cut. And nothing in a slice decides that the near half should be thrown away — that is a choice of viewpoint, and a viewpoint has to be an input.
+
+So a vertical plane returns [a classified set](../reference/form/section.md) too, with **two classes where a plan has five**. A plan is looked at from above, so both sides of the cut are in view and it carries what is below, what is above, and the symbols of movement. A section is looked at from the side, and what stands in front of the plane is not hidden by convention — **it is behind the viewer**. Not producing it is the rule, and stating the rule in derivation is what stops each consumer inventing its own.
+
+One thing that does *not* need saying twice is the opening. A wall was already the run of intervals its openings split it into, so the moment a wall is seen face-on the holes are in it — no operation cuts them, exactly as none paints them over in plan. The trick that was refused once did not have to be refused again.
+
 ## Do not confuse what cannot be drawn with what cannot be written
 
 The drawing surface does not freeze. **Dimension lines, grid bubbles, door and window conventions, scale, pitched roofs — the precision can be raised a bit at a time.**
@@ -82,6 +92,7 @@ Because of that condition, a poor plan is never a reason to change the notation.
 ## Next
 
 - [Plan form](../reference/form/plan.md) — the classes and the entities
+- [The section](../reference/form/section.md) — the same for a vertical plane
 - [Form — what derivation returns](../reference/form/index.md)
 - [Determinism of derivation](form-must-be-unique.md)
 - [koyu plan](../reference/cli/plan.md)

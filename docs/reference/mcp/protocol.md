@@ -61,7 +61,7 @@ An empty object.
 {"jsonrpc":"2.0","id":2,"method":"tools/list"}
 ```
 
-All 12 come back as `name` / `description` / `inputSchema`. There is no paging and no `nextCursor`. The order is the implementation's declaration order: `model_summary`, `check`, `layers`, `write_layer`, `new_uids`, `doors`, `spaces`, `light`, `validate`, `site`, `plan_svg`, `canonical_json`.
+All 14 come back as `name` / `description` / `inputSchema`. There is no paging and no `nextCursor`. The order is the implementation's declaration order: `model_summary`, `check`, `layers`, `write_layer`, `new_uids`, `doors`, `spaces`, `light`, `validate`, `site`, `plan_svg`, `section_svg`, `elevation_svg`, `canonical_json`.
 
 Each `inputSchema` is plain JSON Schema carrying only `type: "object"`, `properties` and `required`. `file` is always `{"type":"string"}`.
 
@@ -194,7 +194,7 @@ Everything else (`resources/read`, `prompts/get`, `completion/complete`, `loggin
 
 ## See also
 
-- [koyu-mcp](index.md) — statelessness, the standard loop, the 12 tools
+- [koyu-mcp](index.md) — statelessness, the standard loop, the 14 tools
 - [Registering it with a client](install.md) — checking it by pushing JSON-RPC in by hand
 - [Reading](tools-read.md) / [Writing](tools-write.md) / [Verifying](tools-verify.md) / [Asking](tools-ask.md) — each tool's arguments and result
 - [koyu check](../cli/check.md) — how the CLI's `--json` treats a syntax error

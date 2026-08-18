@@ -142,4 +142,4 @@ try {
 - To go down to centrelines, thicknesses, columns and the solids of vertical runs, see [Form — derive(model)](../reference/form/index.md).
 - To look a diagnostic code up, see [The diagnostic code index](../reference/diagnostics/index.md).
 - The shape of the canonical JSON is in [Canonical JSON](../reference/json/index.md).
-- To let an LLM agent read and write buildings, [koyu-mcp](../reference/mcp/index.md) exposes the same derivations as 12 tools.
+- To let an LLM agent read and write buildings, [koyu-mcp](../reference/mcp/index.md) exposes the same derivations as 14 tools.

@@ -12,6 +12,7 @@
 import { band, derive, type PlanEntity } from "../core/derive.js";
 import { canonicalBoundaryOrder, displayName, polyBounds, type Model, type Pt } from "../core/model.js";
 import { slopeText } from "../core/vertical.js";
+import { esc, Extent, FAINT, GRID, INK, openSheet, PAPER, ROOM } from "./sheet.js";
 
 export interface PlanOptions {
   level?: string;
@@ -20,12 +21,6 @@ export interface PlanOptions {
   /** 切断面の高さ mm (FLから) — **形を決める引数**なので Form の入力へ渡る */
   cut?: number;
 }
-
-const INK = "#1f1f1f";
-const PAPER = "#faf8f4";
-const ROOM = "#f1ebdd";
-const GRID = "#b5aa94";
-const FAINT = "#b3ab9c";
 
 export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   const level = opts.level ?? Object.keys(model.levels)[0];
@@ -47,10 +42,17 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   const modelRooms = [...model.spaces.values()].filter((s) => s.rects.length > 0 && s.level === level);
   const allRects = modelRooms.flatMap((s) => s.rects);
   const polyPts = [...sitePolys.flatMap((p) => p.points), ...rooms.flatMap((s) => s.outline.flat())];
-  const minX = Math.min(...allRects.map((r) => r.x1), ...polyPts.map((p) => p.x));
-  const maxX = Math.max(...allRects.map((r) => r.x2), ...polyPts.map((p) => p.x));
-  const minY = Math.min(...allRects.map((r) => r.y1), ...polyPts.map((p) => p.y));
-  const maxY = Math.max(...allRects.map((r) => r.y2), ...polyPts.map((p) => p.y));
+  // **畳んで取る** (Extent) — 引数を展開すると、大きな階では点の数がスタックの限界に当たる
+  const ext = new Extent();
+  for (const r of allRects) {
+    ext.see(r.x1, r.y1);
+    ext.see(r.x2, r.y2);
+  }
+  for (const p of polyPts) ext.see(p.x, p.y);
+  const minX = ext.min0;
+  const maxX = ext.max0;
+  const minY = ext.min1;
+  const maxY = ext.max1;
 
   const M = 84; // 余白 px (通り芯記号ぶん)
   const W = (maxX - minX) * scale + M * 2;
@@ -63,11 +65,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     `<line x1="${sx(g.x1)}" y1="${sy(g.y1)}" x2="${sx(g.x2)}" y2="${sy(g.y2)}" stroke="${stroke}" stroke-width="${w}"${dash ? ` stroke-dasharray="${dash}"` : ""}/>`;
   const fill = (poly: Pt[], c: string) => `<path d="${path2d(poly)}" fill="${c}"/>`;
 
-  const parts: string[] = [];
-  parts.push(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">`,
-  );
-  parts.push(`<rect width="${W}" height="${H}" fill="${PAPER}"/>`);
+  const parts: string[] = openSheet(W, H);
 
   // 敷地境界線 (一点二点鎖線 — 作図慣習)。所与の形をそのまま引く
   for (const poly of sitePolys) {
@@ -299,10 +297,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
 
   // 表題
   const title = `${model.name ?? "Untitled"} — ${level} plan`;
-  parts.push(
-    `<text x="${M - 62}" y="${H - 18}" font-size="12" fill="${INK}">${esc(title)}</text>`,
-    `<text x="${W - M + 62}" y="${H - 18}" text-anchor="end" font-size="9" fill="#a49b8a">koyu — generated from spaces (wall centrelines, mm)</text>`,
-  );
+  parts.push(`<text x="${M - 62}" y="${H - 18}" font-size="12" fill="${INK}">${esc(title)}</text>`);
 
   parts.push("</svg>");
   return parts.join("\n") + "\n";
@@ -370,6 +365,3 @@ function polyArea(poly: Pt[]): number {
   return Math.abs(s / 2);
 }
 
-function esc(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}

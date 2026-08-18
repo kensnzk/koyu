@@ -174,3 +174,34 @@ test("mcp: spaces says outside and void, now that the type no longer can", async
     c.kill();
   }
 });
+
+// A schema is what a tool **advertises**, not what the server enforces. A raw `tools/call` carries
+// whatever it likes, and a compass word that is not one of the four used to fall through the
+// direction tests to a default — so an unsupported `look` came back as a plausible drawing of a
+// plane nobody asked for. A wrong drawing that looks right is worse than an error.
+test("mcp: a direction outside the four is refused, not drawn as something near it", async () => {
+  const c = new McpClient();
+  try {
+    await c.request("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "test", version: "0" } });
+
+    const badLook = await c.call("section_svg", { file: "examples/two-rooms.muro", at: "Y1+2250", look: "SW" });
+    assert.equal(badLook.isError, true, "SW is not a direction of view");
+    assert.match(badLook.text, /look is one of N \/ E \/ S \/ W: SW/);
+
+    const badFace = await c.call("elevation_svg", { file: "examples/two-rooms.muro", face: "SW" });
+    assert.equal(badFace.isError, true, "and it is not a face either");
+    assert.match(badFace.text, /face is one of N \/ E \/ S \/ W: SW/);
+
+    // The four that are directions still draw.
+    const good = await c.call("elevation_svg", { file: "examples/two-rooms.muro", face: "S" });
+    assert.equal(good.isError, undefined);
+    assert.match(good.text, /^<svg xmlns/);
+
+    // And a reference that names no grid line is refused rather than answered.
+    const badAt = await c.call("section_svg", { file: "examples/two-rooms.muro", at: "X9" });
+    assert.equal(badAt.isError, true);
+    assert.match(badAt.text, /^Undefined grid reference: X9 \(declared: /);
+  } finally {
+    c.kill();
+  }
+});

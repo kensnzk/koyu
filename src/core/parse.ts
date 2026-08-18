@@ -11,6 +11,8 @@ import {
   type Boundary,
   DEFAULT_LANGUAGE_VERSION,
   type Edge,
+  gridRef,
+  type GridPosition,
   isNewerVersion,
   KOYU_VERSION,
   LAST_KOYU_SPELLED_VERSION,
@@ -1202,18 +1204,17 @@ function expandSpan(model: Model, paths: string[], ln: number): string[][] {
   );
 }
 
-/** 通り参照 (X2, X2+600, Y3-150 など) を軸と座標mmに解決する */
-function resolveRef(model: Model, token: string, ln: number): { axis: "X" | "Y"; coord: number } {
-  const m = /^([XY]\d+)([+-]\d+)?$/.exec(token);
-  if (!m) throw new SourceError(ln, `Undefined grid line name: ${token}`);
-  const name = m[1]!;
-  const offset = m[2] ? Number(m[2]) : 0;
-  for (const axis of ["X", "Y"] as const) {
-    const g = model.grid[axis];
-    const i = g.names.indexOf(name);
-    if (i >= 0) return { axis, coord: g.coords[i]! + offset };
-  }
-  throw new SourceError(ln, `Undefined grid line name: ${token}`);
+/**
+ * 通り参照 (X2, X2+600, Y3-150 など) を軸と座標mmに解決する。
+ *
+ * The grammar itself is `gridRef` in model.ts — **one copy**, so that a position named from
+ * outside the source (a section's `--at`) cannot resolve differently from one written in it.
+ * What this adds is the source's own failure: the line it was written on.
+ */
+function resolveRef(model: Model, token: string, ln: number): GridPosition {
+  const r = gridRef(model, token);
+  if (!r) throw new SourceError(ln, `Undefined grid line name: ${token}`);
+  return r;
 }
 
 function parseBoundary(rest: string[], ln: number): Boundary {
