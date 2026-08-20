@@ -66,27 +66,13 @@ const FACING: Record<Edge, Edge> = { N: "S", S: "N", E: "W", W: "E" };
 /** 凸片の外周のうち、他の空間の凸片と向かい合っていない区間 (= 外部に面する壁) */
 function pieceOutline(pieces: Pt[][], others: Pt[][]): Segment[] {
   const otherEdges = others.flatMap(polyEdges);
-  // **Grouped by which way they face, and hoisted out of the edge loop.** Only an edge facing
-  // the opposite way can subtract anything, so three quarters of the scan below rejected on its
-  // first line — and the concatenation that fed it was rebuilt for every edge of every piece.
-  // The grouping keeps the order within each face, so the intervals come out exactly as before.
-  const byFace = (edges: ReturnType<typeof polyEdges>): Map<Edge, ReturnType<typeof polyEdges>> => {
-    const out = new Map<Edge, ReturnType<typeof polyEdges>>();
-    for (const e of edges) {
-      const row = out.get(e.edge) ?? [];
-      row.push(e);
-      out.set(e.edge, row);
-    }
-    return out;
-  };
-  const otherByFace = byFace(otherEdges);
   const segs: Segment[] = [];
   for (let i = 0; i < pieces.length; i++) {
-    const siblingByFace = byFace(pieces.filter((_, k) => k !== i).flatMap(polyEdges));
+    const siblings = pieces.filter((_, k) => k !== i).flatMap(polyEdges);
     for (const e of polyEdges(pieces[i]!)) {
       let intervals: Array<[number, number]> = [[e.lo, e.hi]];
-      const facing = FACING[e.edge];
-      for (const o of [...(otherByFace.get(facing) ?? []), ...(siblingByFace.get(facing) ?? [])]) {
+      for (const o of [...otherEdges, ...siblings]) {
+        if (o.edge !== FACING[e.edge]) continue;
         if (Math.abs(o.fixed - e.fixed) > EPS) continue;
         intervals = intervals.flatMap(([s, t]) => {
           const cs = Math.max(s, o.lo);
