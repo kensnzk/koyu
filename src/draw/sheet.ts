@@ -21,6 +21,21 @@ export const INK = "#1f1f1f";
 export const PAPER = "#faf8f4";
 /** The air of a room, cut open. */
 export const ROOM = "#f1ebdd";
+/**
+ * A space that is roofed but not enclosed — a balcony, a piloti, an external walkway.
+ *
+ * **Warm is inside and cool is outside**, and this is the step between them: paler than a room,
+ * because there is less of a room here, and already tinted away from the warm of one.
+ */
+export const SEMI_OUTDOOR = "#eef1e9";
+/**
+ * A space declared `outside:1` that has a region — a courtyard, a plaza, the paving of a site.
+ *
+ * It used to be painted as a room, which said the opposite of what it is: on a large plan the
+ * forecourt and the entrance hall were one continuous field of the same cream. Cool and a shade
+ * deeper reads as ground rather than floor without naming a material.
+ */
+export const OUTDOOR = "#dfe6da";
 /** Given lines — the grid, and the level datums that are the grid of a section. */
 export const GRID = "#b5aa94";
 /** A line that is present but not the subject. */

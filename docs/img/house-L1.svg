@@ -4,10 +4,10 @@
 <path d="M 341 316 L 523 316 L 523 134 L 341 134 Z" fill="#f1ebdd"/>
 <path d="M 159 498 L 341 498 L 341 134 L 159 134 Z" fill="#f1ebdd"/>
 <path d="M 341 498 L 523 498 L 523 316 L 341 316 Z" fill="#f1ebdd"/>
-<path d="M 523 498 L 598 498 L 598 84 L 523 84 Z" fill="#f8f5ec"/>
-<path d="M 84 698 L 598 698 L 598 498 L 84 498 Z" fill="#f8f5ec"/>
-<path d="M 159 134 L 523 134 L 523 84 L 159 84 Z" fill="#f8f5ec"/>
-<path d="M 84 498 L 159 498 L 159 84 L 84 84 Z" fill="#f8f5ec"/>
+<path d="M 523 498 L 598 498 L 598 84 L 523 84 Z" fill="#eef1e9"/>
+<path d="M 84 698 L 598 698 L 598 498 L 84 498 Z" fill="#eef1e9"/>
+<path d="M 159 134 L 523 134 L 523 84 L 159 84 Z" fill="#eef1e9"/>
+<path d="M 84 498 L 159 498 L 159 84 L 84 84 Z" fill="#eef1e9"/>
 <line x1="159" y1="58" x2="159" y2="724" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="159" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="159" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X1</text>

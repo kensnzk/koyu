@@ -16,11 +16,11 @@
 <path d="M 1174 1364 L 1494 1364 L 1494 854 L 1174 854 Z" fill="#f1ebdd"/>
 <path d="M 1654 754 L 1814 754 L 1814 474 L 1654 474 Z" fill="#f1ebdd"/>
 <path d="M 214 754 L 374 754 L 374 474 L 214 474 Z" fill="#f1ebdd"/>
-<path d="M 1814 854 L 2114 854 L 2114 354 L 1814 354 Z" fill="#f8f5ec"/>
-<path d="M 214 474 L 1814 474 L 1814 354 L 214 354 Z" fill="#f8f5ec"/>
-<path d="M 1814 1364 L 2114 1364 L 2114 854 L 1814 854 Z" fill="#f8f5ec"/>
-<path d="M 84 1484 L 2114 1484 L 2114 1364 L 84 1364 Z" fill="#f8f5ec"/>
-<path d="M 144 1364 L 214 1364 L 214 474 L 144 474 Z" fill="#f8f5ec"/>
+<path d="M 1814 854 L 2114 854 L 2114 354 L 1814 354 Z" fill="#eef1e9"/>
+<path d="M 214 474 L 1814 474 L 1814 354 L 214 354 Z" fill="#eef1e9"/>
+<path d="M 1814 1364 L 2114 1364 L 2114 854 L 1814 854 Z" fill="#eef1e9"/>
+<path d="M 84 1484 L 2114 1484 L 2114 1364 L 84 1364 Z" fill="#eef1e9"/>
+<path d="M 144 1364 L 214 1364 L 214 474 L 144 474 Z" fill="#eef1e9"/>
 <rect x="214" y="1264" width="320" height="100" fill="#e7dfcc" fill-opacity="0.55" stroke="#b3ab9c" stroke-width="0.8" stroke-dasharray="4 3"/>
 <text x="220" y="1276" font-size="8.5" fill="#8a8171">土間 · タイル</text>
 <line x1="214" y1="58" x2="214" y2="1510" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>

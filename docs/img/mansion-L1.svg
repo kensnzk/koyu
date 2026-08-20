@@ -8,7 +8,7 @@
 <path d="M 214 384 L 504 384 L 504 84 L 214 84 Z" fill="#f1ebdd"/>
 <path d="M 214 774 L 504 774 L 504 384 L 214 384 Z" fill="#f1ebdd"/>
 <path d="M 504 774 L 794 774 L 794 474 L 504 474 Z" fill="#f1ebdd"/>
-<path d="M 84 504 L 214 504 L 214 384 L 84 384 Z" fill="#f8f5ec"/>
+<path d="M 84 504 L 214 504 L 214 384 L 84 384 Z" fill="#eef1e9"/>
 <path d="M 504 254 L 634 254 L 634 84 L 504 84 Z" fill="#f1ebdd"/>
 <line x1="214" y1="58" x2="214" y2="800" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="214" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>

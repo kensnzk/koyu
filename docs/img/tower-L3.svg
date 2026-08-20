@@ -18,9 +18,9 @@
 <path d="M 1044 204 L 1204 204 L 1204 84 L 1044 84 Z" fill="#f1ebdd"/>
 <path d="M 1524 364 L 1684 364 L 1684 84 L 1524 84 Z" fill="#f1ebdd"/>
 <path d="M 84 364 L 244 364 L 244 84 L 84 84 Z" fill="#f1ebdd"/>
-<path d="M 84 974 L 724 974 L 724 744 L 84 744 Z" fill="#f8f5ec"/>
-<path d="M 724 974 L 1204 974 L 1204 744 L 724 744 Z" fill="#f8f5ec"/>
-<path d="M 1204 974 L 1684 974 L 1684 744 L 1204 744 Z" fill="#f8f5ec"/>
+<path d="M 84 974 L 724 974 L 724 744 L 84 744 Z" fill="#eef1e9"/>
+<path d="M 724 974 L 1204 974 L 1204 744 L 724 744 Z" fill="#eef1e9"/>
+<path d="M 1204 974 L 1684 974 L 1684 744 L 1204 744 Z" fill="#eef1e9"/>
 <line x1="84" y1="58" x2="84" y2="1000" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
 <circle cx="84" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
 <text x="84" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X1</text>

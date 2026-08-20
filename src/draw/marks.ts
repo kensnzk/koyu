@@ -29,8 +29,10 @@ import type { RunDevice, Seg2 } from "../core/vertical.js";
 export type MarkRole =
   /** a space's face, cut by the plane */
   | "space"
-  /** the same, where the space is declared semi-outdoor */
+  /** the same, where the space is semi-outdoor — roofed, not enclosed */
   | "space-semi-outdoor"
+  /** the same, where the space is declared `outside:1` — ground, not floor */
+  | "space-outdoor"
   /** a void's face — no floor, so no room */
   | "space-void"
   /** the void's two bounding-box diagonals (a drafting convention, not a shape of the building) */
@@ -182,7 +184,10 @@ export function planMarks(form: Form, level: string, opts?: MarkOptions): Mark[]
       continue;
     }
     marks.push({
-      role: s?.semiOutdoor ? "space-semi-outdoor" : "space",
+      // **Outside is asked first.** A space declared `outside:1` that also carries an `open` or
+      // `air:1` boundary to another outside space derives as semi-outdoor too, and of the two
+      // facts the declared one is the one that decides what the space is
+      role: s?.outside ? "space-outdoor" : s?.semiOutdoor ? "space-semi-outdoor" : "space",
       of: "space",
       ref: e.ref,
       class: "cut",
