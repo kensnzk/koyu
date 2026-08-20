@@ -1,0 +1,8 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/bnd.md#bnd08",
+  "docs/reference/muro/defaults.md",
+  "docs/reference/form/boundaries.md"
+ ],
+ "why": "BND08 — 屋外に面していながら、どの外部に面しているかが書かれていない外周。1.4 からその面は壁であり (既定の外壁が導かれる)、言われているのは穴ではなく名指しの不在である。抑制が区間で効くことも同時に縛る: /L1/a は南面だけを /road へ宣言しており、残る北・西にはなお既定の壁が立つので BND08 は /L1/a にも出る。母集団は空間の宣言、並びは宣言順"
+}

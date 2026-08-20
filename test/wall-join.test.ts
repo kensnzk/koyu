@@ -287,7 +287,7 @@ test("wall join: an opening keeps its place and its width — the join moves end
 
 // ---- A cut reaches only as high as the wall that made it -----------------
 
-const RAIL_AND_WALL = `muro 1.3
+const RAIL_AND_WALL = `muro 1.4
 grid X 0 4000 8000
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -310,11 +310,19 @@ test("wall join: a rail that wins a junction takes no slice out of a wall above 
   assert.ok(rail.material!.t > wall.material!.t, "the rail is the thicker of the two, so it wins the election");
   assert.ok(rail.material!.z1 < wall.material!.z1, "and it stops far below the top of the wall");
 
-  // Cutting the wall back at both ends would leave a 40mm notch running from the top of the rail
-  // to the top of the wall, because there is no rail up there to fill it
+  // Three walls end at each node: the 50mm partition, the deck's 80mm rail, and the room's own
+  // 100mm exterior wall (ADR-0065 derives that one). The thickest wins, so the exterior wall
+  // does — and it is full height, so the cut it makes is legitimate.
+  //
+  // **The number is the whole assertion.** 50 is half of the exterior wall; 40 would be half of
+  // the rail. Seeing 50 is what says the rail did not cut a wall that rises far above it.
   for (const p of wall.material!.panels) {
     const ys = p.footprint.map((q) => q.y);
-    assert.deepEqual([Math.min(...ys), Math.max(...ys)], [0, 4000], "the wall keeps its whole body");
+    assert.deepEqual(
+      [Math.min(...ys), Math.max(...ys)],
+      [50, 3950],
+      "the wall is cut back by the full-height exterior wall, not by the rail",
+    );
   }
   assertClosed(form, "a rail meeting a thinner wall");
 });

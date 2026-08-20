@@ -25,6 +25,9 @@ level L1 0 h:2400 slab:150
 zone /L1/A name:Aタイプ lease.category:exclusive
 space /L1/A/ldk ldk X1..X2 Y1..Y2
 space /L1/A/room room X2..X3 Y1..Y2 lease.category:common
+space /out outside:1
+boundary /L1/A/ldk /out
+boundary /L1/A/room /out
 ```
 
 ```text
@@ -55,6 +58,9 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/A unit X1..X3 Y1..Y2
 space /L1/A/ldk ldk X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/A /out
+boundary /L1/A/ldk /out
 ```
 
 ```text
@@ -86,7 +92,7 @@ The keys writable on a zone are the ones listed here, plus any namespaced key co
 The zone carrying `site:1` is the site. Site area, road frontage, building coverage and floor area ratio are all derived starting from it.
 
 ```muro
-muro 1.3
+muro 1.4
 grid X 0 12000
 grid Y 0 10000
 level L1 0 h:3000 slab:200

@@ -22,11 +22,11 @@ const CONTEXT: ContextSnapshot = {
 };
 
 /**
- * The legacy ledger order, with the one documented change: `run.slope` splits in place into
- * the ramp rule and then the escalator rule (ADR-0055 §4).
+ * The legacy ledger order, with two documented changes: `run.slope` splits in place into the ramp
+ * rule and then the escalator rule (ADR-0055 §4), and `envelope.gap` is gone — muro 1.4 cannot
+ * reach the state it reported, because an unfaced perimeter is now a wall (ADR-0065).
  */
 const EXPECTED_RULE_ORDER = [
-  "koyu.schematic.envelope.gap",
   "koyu.schematic.daylight.ratio",
   "koyu.schematic.daylight.unknown",
   "koyu.schematic.stair.proportion",
@@ -63,7 +63,6 @@ const BUNDLED_EXAMPLES = [
 ];
 
 const EXPECTED_ANALYSIS_ORDER = [
-  "koyu.analysis.envelope",
   "koyu.analysis.daylight",
   "koyu.analysis.vertical-runs",
   "koyu.analysis.access",
@@ -73,7 +72,6 @@ const EXPECTED_ANALYSIS_ORDER = [
 
 /** Which new rule identities carry each legacy rule. `run.slope` is the only one-to-many entry. */
 const LEGACY_TO_NEW: Record<string, string[]> = {
-  "envelope.gap": ["koyu.schematic.envelope.gap"],
   "daylight.ratio": ["koyu.schematic.daylight.ratio"],
   "daylight.unknown": ["koyu.schematic.daylight.unknown"],
   "stair.proportion": ["koyu.schematic.stair.proportion"],
@@ -90,15 +88,15 @@ const LEGACY_TO_NEW: Record<string, string[]> = {
   "site.frontage": ["koyu.schematic.site.frontage"],
 };
 
-test("the built-in rule set holds sixteen rules in the legacy ledger order", () => {
-  assert.equal(SCHEMATIC_RULES.length, 16);
+test("the built-in rule set holds fifteen rules in the legacy ledger order", () => {
+  assert.equal(SCHEMATIC_RULES.length, 15);
   assert.deepEqual(SCHEMATIC_RULES.map((rule) => rule.id), EXPECTED_RULE_ORDER);
   assert.deepEqual(SCHEMATIC_RULE_SET.rules.map((rule) => rule.id), EXPECTED_RULE_ORDER);
   for (const rule of SCHEMATIC_RULES) assert.equal(rule.revision, "1");
 });
 
-test("the built-in catalog holds the six analyses in the declared order", () => {
-  assert.equal(SCHEMATIC_ANALYSES.length, 6);
+test("the built-in catalog holds the five analyses in the declared order", () => {
+  assert.equal(SCHEMATIC_ANALYSES.length, 5);
   assert.deepEqual(SCHEMATIC_ANALYSES.map((analysis) => analysis.id), EXPECTED_ANALYSIS_ORDER);
   assert.deepEqual(SCHEMATIC_ANALYSIS_IDS.map((ref) => ref.id), EXPECTED_ANALYSIS_ORDER);
   for (const analysis of SCHEMATIC_ANALYSES) {
@@ -108,12 +106,13 @@ test("the built-in catalog holds the six analyses in the declared order", () => 
   }
 });
 
-test("the fifteen rules that existed before the cutover are all carried, and only run.slope split", () => {
+test("the rules that existed before the cutover are all carried but the envelope gap, and only run.slope split", () => {
   // The old ledger is deleted, so this is the migration record rather than a live comparison:
-  // fifteen old ids, sixteen new ones, and exactly one of them one-to-many.
-  assert.equal(Object.keys(LEGACY_TO_NEW).length, 15);
+  // fourteen old ids still carried, fifteen new ones, and exactly one of them one-to-many.
+  // `envelope.gap` is not among them — it was retired rather than carried (ADR-0065).
+  assert.equal(Object.keys(LEGACY_TO_NEW).length, 14);
   const carried = Object.values(LEGACY_TO_NEW).flat();
-  assert.equal(carried.length, 16);
+  assert.equal(carried.length, 15);
   assert.deepEqual(carried.slice().sort(), EXPECTED_RULE_ORDER.slice().sort());
 
   const oneToMany = Object.entries(LEGACY_TO_NEW).filter(([, ids]) => ids.length > 1);
@@ -142,7 +141,7 @@ test("the pack is design lint, and claims neither jurisdiction nor authority", (
 
 test("the profile reaches every analysis its rules require", () => {
   const reachable = new Set(SCHEMATIC_PROFILE.analyses.map((ref) => `${ref.id}@${ref.revision}`));
-  assert.equal(reachable.size, 6);
+  assert.equal(reachable.size, 5);
   for (const rule of SCHEMATIC_RULES) {
     for (const requirement of rule.analyses) {
       const key = `${requirement.analysis.id}@${requirement.analysis.revision}`;
@@ -182,7 +181,7 @@ test("two registries built from the catalog are independent values, not a shared
   assert.notEqual(first, second);
   assert.equal(first.ruleSets.length, 1);
   assert.equal(second.profiles.length, 1);
-  assert.equal(first.analyses.length, 6);
+  assert.equal(first.analyses.length, 5);
 });
 
 test("the whole pack runs against a bundled example and reports every rule", () => {

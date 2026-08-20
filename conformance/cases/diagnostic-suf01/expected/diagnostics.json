@@ -1,5 +1,14 @@
 [
  {
+  "code": "BND08",
+  "severity": "warning",
+  "line": 4,
+  "file": "main.muro",
+  "path": [
+   "/L1/a"
+  ]
+ },
+ {
   "code": "SUF01",
   "severity": "error",
   "line": 4,

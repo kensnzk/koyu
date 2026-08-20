@@ -27,12 +27,12 @@ before the opening that references it. Boundaries may name spaces declared later
 ## The version line
 
 ```muro
-muro 1.3
+muro 1.4
 ```
 
 Optional. If you write it, it goes in the ENTRY layer only, exactly once — never
-in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3.
-Write `muro 1.3`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
+in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3 1.4.
+Write `muro 1.4`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
 and earlier. A file with no version line is read as 1.1 and stays there.
 
 ## grid — the reference lines
@@ -119,6 +119,8 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 Add one more space and a wall appears between them. You did not draw it.
@@ -218,7 +220,7 @@ zone above it supplies the value.
 
 ```muro-part
 # main.muro — the entry
-muro 1.3
+muro 1.4
 name Corner building
 unit mm
 grid X 0 6400 12800

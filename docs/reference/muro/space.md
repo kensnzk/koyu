@@ -182,7 +182,7 @@ Three worth naming.
 ## daylight — the scope is declared
 
 ```muro
-muro 1.3
+muro 1.4
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150
@@ -190,6 +190,9 @@ space /L1/living living X1..X2 Y1..Y2 daylight:1 name:居間
 space /out name:外部 outside:1
 boundary /L1/living /out edge:S t:120
   window w:2400 h:1800
+boundary /L1/living /out edge:E
+boundary /L1/living /out edge:N
+boundary /L1/living /out edge:W
 ```
 
 ```text
@@ -214,6 +217,9 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2 ceiling:0
+space /out outside:1
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 The surfaces this model generates are these; `/L1/b` has no ceiling.
@@ -286,6 +292,9 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/A unit X1..X3 Y1..Y2
 space /L1/A/ldk ldk X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/A /out
+boundary /L1/A/ldk /out
 ```
 
 ```text

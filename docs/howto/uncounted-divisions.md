@@ -34,7 +34,7 @@ If either is yes, it is a **counted division** — write two spaces. If both are
 Write the threshold as an extent inside the office. While we are here, write the fact that only part of the exterior wall is a curtain wall, with a `seg`.
 
 ```muro
-muro 1.3
+muro 1.4
 name 数えない分節
 unit mm
 
@@ -50,6 +50,9 @@ space /out name:外部 outside:1
 boundary /L1/office /out t:180 spec:RC edge:S
   seg w:3000 at:X1+4000 spec:カーテンウォール
   door w:900 h:2100 at:X1+1000 name:D1
+boundary /L1/office /out edge:E
+boundary /L1/office /out edge:N
+boundary /L1/office /out edge:W
 ```
 
 ```text
@@ -82,7 +85,7 @@ The threshold is absent from the graph too. The office is one node, with one doo
 The same building, with the threshold and the working floor as separate spaces. **The parent is a `zone`, not a `space`** — a space with a region under another space with a region always overlaps.
 
 ```muro
-muro 1.3
+muro 1.4
 name 数える分節
 unit mm
 
@@ -101,6 +104,10 @@ boundary /L1/office/doma /L1/office/floor type:open
 boundary /L1/office/doma /out t:180 spec:RC edge:S
   door w:900 h:2100 name:D1
 boundary /L1/office/floor /out t:180 spec:RC edge:S
+boundary /L1/office/doma /out edge:N
+boundary /L1/office/doma /out edge:W
+boundary /L1/office/floor /out edge:E
+boundary /L1/office/floor /out edge:N
 ```
 
 ```text

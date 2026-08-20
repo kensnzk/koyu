@@ -36,7 +36,7 @@ The endpoint of each stage is kept under `examples/steps/`, from `01-one-room.mu
 
 Create `out/house.muro` and write these four lines.
 
-```muro
+```muro-warn
 grid X 0 3600 5400
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -61,9 +61,12 @@ npx tsx src/cli.ts check out/house.muro
 ```
 
 ```text
-✔ Consistent — 1 space / 0 boundaries
+⚠ out/house.muro:line 4: A default wall was derived where /L1/ldk faces the outside: S 3600mm / E 4000mm / N 3600mm / W 4000mm (15200mm over 4 runs) — write a boundary to say which outside it faces
+✔ Consistent — 1 space / 1 boundary (1 warning)
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
+
+**One boundary, and nobody wrote one.** Every side of a space is a wall unless something says otherwise, so the room came with four. The warning is not about the walls; it is about the one thing silence could not supply — *which* outside they face. Stage 4 answers it.
 
 Produce the plan.
 
@@ -77,9 +80,9 @@ Generated the plan: out/house-L1.svg
 
 Open `out/house-L1.svg` in a browser.
 
-![Plan of a single room: grid lines X1 X2 Y1 Y2 and one pale rectangle. Not one wall is drawn](../img/start-01-one-room.svg)
+![Plan of a single room: grid lines X1 X2 Y1 Y2, and the room closed by four walls](../img/start-01-one-room.svg)
 
-**Not one wall is drawn.** There is a space, but not one boundary. A wall is not a possession that hangs off a space.
+**Four walls, and not one of them written.** A wall is not a possession that hangs off a space — it is the relation between two of them, and it is derived from where the spaces are. Here the other side is the outdoors, which is always there whether or not you have named it.
 
 What `check` looks at is only whether what is written is consistent. An empty file passes too, with `✔ Consistent — 0 spaces / 0 boundaries`. Green does not mean "a correct building" — stage 5 takes that head-on.
 
@@ -89,7 +92,7 @@ To look things up: [grid](../reference/muro/grid.md), [level](../reference/muro/
 
 Add one `space` line. Change nothing else.
 
-```muro
+```muro-warn
 grid X 0 3600 5400
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -104,11 +107,13 @@ npx tsx src/cli.ts check out/house.muro
 ```
 
 ```text
-✔ Consistent — 2 spaces / 1 boundary
+⚠ out/house.muro:line 4: A default wall was derived where /L1/ldk faces the outside: S 3600mm / N 3600mm / W 4000mm (11200mm over 3 runs) — write a boundary to say which outside it faces
+⚠ out/house.muro:line 5: A default wall was derived where /L1/hall faces the outside: S 1800mm / E 4000mm / N 1800mm (7600mm over 3 runs) — write a boundary to say which outside it faces
+✔ Consistent — 2 spaces / 3 boundaries (2 warnings)
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-**Boundaries went from 0 to 1.** You wrote no boundary line at all.
+**Boundaries went from 1 to 3.** You wrote no boundary line at all. The new one is the wall between the two rooms; the other two are their outsides, which each shrank by the side they now share.
 
 Produce the plan again and open it.
 
@@ -124,7 +129,7 @@ One line has appeared inside the SVG.
 <path d="M 261.5 284 L 261.5 84 L 266.5 84 L 266.5 284 Z" fill="#1f1f1f"/>
 ```
 
-That is the wall. The previous stage's drawing had zero black bands; this one has one — and the only line you added was one `space`.
+That is the new wall — the one between the rooms. The only line you added was one `space`.
 
 Stop here for a moment. **There is no operation in this notation that draws a wall.** A wall is the boundary between two spaces, derived from how the spaces are laid out. Where a pair of touching spaces carries no boundary declaration at all, that means "wall" rather than "undefined". Vertically the rule is its mirror image: you do not write floors, and the default is floor.
 
@@ -134,7 +139,7 @@ What the defaults are is in [Default boundaries](../reference/muro/defaults.md);
 
 The derived wall stands there as a thing, so without a door there is no way through. To cut a hole, you must **declare** that boundary. Add two lines, `boundary` and `door`, at the end (blank lines added for legibility).
 
-```muro
+```muro-warn
 grid X 0 3600 5400
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -158,12 +163,14 @@ npx tsx src/cli.ts plan out/house.muro
 ```
 
 ```text
-✔ Consistent — 2 spaces / 1 boundary
+⚠ out/house.muro:line 5: A default wall was derived where /L1/ldk faces the outside: S 3600mm / N 3600mm / W 4000mm (11200mm over 3 runs) — write a boundary to say which outside it faces
+⚠ out/house.muro:line 6: A default wall was derived where /L1/hall faces the outside: S 1800mm / E 4000mm / N 1800mm (7600mm over 3 runs) — write a boundary to say which outside it faces
+✔ Consistent — 2 spaces / 3 boundaries (2 warnings)
   Structural consistency only — architectural validity is what koyu validate says, separately
 Generated the plan: out/house-L1.svg
 ```
 
-The boundary count is still 1. The wall that was derived has simply been replaced by a wall that is declared.
+The boundary count is still 3. The wall that was derived between the rooms has simply been replaced by a wall that is declared — and the two warnings are still waiting for stage 4.
 
 ![Plan of two rooms; an opening in the middle of the wall, with a swing door drawn as a quarter-circle arc](../img/start-03-door.svg)
 
@@ -183,9 +190,9 @@ To look things up: [boundary](../reference/muro/boundary.md), [door](../referenc
 
 ## Stage 4 — the outside
 
-The outside is a space. Declare it with `space /out outside:1` and write the envelope boundaries yourself.
+The walls facing the weather have been standing since stage 1. What has been missing is their other side: **which** outside they look at. That is what `check` has been asking for, and it is not something any default can decide — a street, a neighbour's plot and a garden all want different things from the same wall.
 
-A space of type `exterior` need not carry a region. Add the following.
+The outside is a space. Declare it with `space /out outside:1` and it needs no region. Then write the boundaries that name it — and, now that you have a face to hang things on, the window and the front door.
 
 ```muro-bad
 grid X 0 3600 5400
@@ -264,7 +271,7 @@ Generated the plan: out/house-L1.svg
 
 ![Plan with an envelope: the whole perimeter is enclosed by black bands, and the south face carries a window centreline and a swinging front door](../img/start-04-exterior.svg)
 
-The black bands went from one to ten: the internal wall split in two by its door, plus the six perimeter edges with two of the southern ones each split in two by the window and the front door. **Internal walls are automatic; external walls are declared.** A boundary with the outside does not exist unless you write it, and `check` stays green whether you write it or not. Remember the envelope as the ground you have to hold with your own eyes.
+The black bands went from one to ten: the internal wall split in two by its door, plus the six perimeter edges with two of the southern ones each split in two by the window and the front door. **The walls did not arrive with the declaration** — they have been there since stage 1. What arrived is the window, the front door, the 150mm thickness, and the name `/out`, and the two warnings are gone because every run of the perimeter now has a boundary saying what it faces.
 
 Now that there is a window, you can ask about daylight. **koyu does not guess which rooms should be judged** — spelling a type `ldk` or `bedroom` is no grounds for judging anything. You write `daylight:1` on the rooms you want judged, which is what went onto line 5.
 
@@ -433,7 +440,7 @@ To look things up: [Vertical circulation](../reference/muro/vertical-circulation
 Finally, add what has been left out so far.
 
 ```muro
-muro 1.3
+muro 1.4
 name 小さな家
 
 grid X 0 3600 5400

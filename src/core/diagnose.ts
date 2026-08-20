@@ -9,9 +9,11 @@
 // severity はコードの不変属性 — 重さを変えたくなったら新コードを切る。
 
 import {
+  envelopeGaps,
   placeBand,
   placeOpening,
   planOverlap,
+  segmentLength,
   segmentsFor,
   spacesOverlap,
 } from "./graph.js";
@@ -25,7 +27,8 @@ import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type At
   srcRef,
   polygonSelfIntersection,
   isOutside,
-  isVoid
+  isVoid,
+  EXTERIOR
 } from "./model.js";
 import { ASSET_ELEM, attrSpec, isNamespaced } from "./vocabulary.js";
 import { runDecls, runIssues } from "./vertical.js";
@@ -67,6 +70,7 @@ export const DIAGNOSTIC_CODES = {
   BND04: "error", // 接していない空間の境界
   BND05: "warning", // 同一空間対でedge限定の有無が混在
   BND06: "warning", // 境界線分がゼロ
+  BND08: "warning", // 屋外に面する外周に境界が書かれていない — 既定の外壁を導いた (ADR-0065)
   LVL01: "error", // レベルzの重複
   GEO01: "error", // 自らの領域 (合併の矩形) 同士の重なり
   GEO02: "error", // 同一レベルの空間同士の重なり
@@ -312,6 +316,7 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   checkLanguageVersion(ctx);
   checkUids(ctx);
   checkBoundaryValidity(ctx);
+  checkEnvelope(ctx);
   checkAreas(ctx);
   checkZones(ctx);
   checkHeights(ctx);
@@ -337,11 +342,44 @@ function voidCoverage(s: Space, partners: Space[]): number {
   return area > 0 ? inter / area : 0;
 }
 
+/**
+ * 屋外に面していながら境界が書かれていない外周 — BND08 (ADR-0065)。
+ *
+ * **これは穴の報告ではない。**1.4 からその面は壁であり、`deriveExteriorBoundaries` が既に
+ * 一枚導いている。言っているのは「どの外部に面しているかを書いていない」ことのほうで、
+ * 道路側か隣地側か庭かは書かれなければ誰にも分からない情報だからである (ADR-0014 決定2b が
+ * 守ろうとし、ADR-0025 が失われる様を数えたもの)。
+ *
+ * **母集団は空間の宣言であり、順は宣言順である。**一つの空間につき一件で、区間ごとには言わない —
+ * 直すのは一本の `boundary` 行であって、面の数だけ行を書くわけではない。
+ */
+function checkEnvelope(ctx: Ctx): void {
+  const { model, emit } = ctx;
+  for (const b of model.boundaries) {
+    if (!b.derived || b.b !== EXTERIOR) continue;
+    const s = model.spaces.get(b.a);
+    if (!s) continue;
+    const runs = envelopeGaps(model, s);
+    if (runs.length === 0) continue;
+    const total = runs.reduce((sum, r) => sum + segmentLength(r), 0);
+    const faces = runs
+      .map((r) => `${r.edgeOfA ?? (r.horizontal ? "N/S" : "E/W")} ${Math.round(segmentLength(r))}mm`)
+      .join(" / ");
+    emit(
+      "BND08",
+      `A default wall was derived where ${s.path} faces the outside: ${faces} (${Math.round(total)}mm over ${runs.length} run${runs.length === 1 ? "" : "s"}) — write a boundary to say which outside it faces`,
+      { line: s.line, file: s.file, path: [s.path] },
+    );
+  }
+}
+
 /** 境界の参照先 — REF01 / BND01 */
 function checkBoundaryRefs(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
-  // 境界の参照先
+  // 境界の参照先。**母集団は書かれた宣言である** — 導出された境界は誰も書いていないので
+  // 参照の誤りを問えない。外部との既定境界 (ADR-0065) の相手は空間ですらない
   for (const b of model.boundaries) {
+    if (b.derived) continue;
     for (const p of [b.a, b.b]) {
       if (!model.spaces.has(p)) {
         emit("REF01", `References an undefined space: ${p}`, { line: b.line, file: b.file, path: [b.a, b.b] });
@@ -610,7 +648,9 @@ function checkLanguageVersion(ctx: Ctx): void {
   // 既定境界 (ADR-0014) が導出されるファイルは、0.1の意味 (境界なし+警告) と食い違う — エラーで二択を示す
   if (model.version === "0.1") {
     for (const b of model.boundaries) {
-      if (b.derived) {
+      // 外部との既定境界は 1.4 の話であり、0.1 → 0.2 の二択ではない (ADR-0065)。
+      // 版に関わらず導出され、書き忘れは BND08 が言う
+      if (b.derived && b.b !== EXTERIOR) {
         emit(
           "VER01",
           `A koyu 0.1 file has a touching pair with no declared boundary: ${b.a} | ${b.b} — in 0.2 a default wall is derived and the meaning changes. Declare the boundary, or raise the version to koyu 0.2`,

@@ -19,7 +19,7 @@ This page draws that line with a worked example. The exact list of promises is i
 These eleven lines are green.
 
 ```muro
-muro 1.3
+muro 1.4
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:300
@@ -100,7 +100,7 @@ The full list, mapped to diagnostic codes, is in [Scope](../reference/scope.md).
 | A unique form can be made from this file | **yes** |
 | This file's canonical JSON is stable | **yes** |
 | You can get out of the building | no → `doors` / `validate` |
-| The envelope is closed | no → `validate`'s `koyu.schematic.envelope.gap` |
+| The envelope is closed | **yes** — a face onto the outside is a wall, written or not |
 | There is enough daylight | no → `light` / `validate` |
 | The stair is climbable | no → `runs` / `validate` |
 | It works as a building | **no** |

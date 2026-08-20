@@ -38,7 +38,9 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out outside:1
-boundary /L1/a /out type:stair
+space /basement outside:1
+boundary /L1/a /out
+boundary /L1/a /basement type:stair
 ```
 
 `A stair boundary is written between spaces that have both a region and a level`
@@ -61,7 +63,10 @@ level L2 3000 h:2400 slab:200
 level L3 6000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L3/a room X1..X2 Y1..Y2
+space /out outside:1
 boundary /L1/a /L3/a type:stair
+boundary /L1/a /out
+boundary /L3/a /out
 ```
 
 `A stair boundary is written between adjacent levels: /L1/a | /L3/a`
@@ -79,7 +84,11 @@ level L3 6000 h:2400 slab:200
 space /L1/ev shaft X1..X2 Y1..Y2
 space /L2/ev shaft X1..X2 Y1..Y2
 space /L3/ev shaft X1..X2 Y1..Y2
+space /out outside:1
 stack ev L1..L3 type:shaft
+boundary /L1/ev /out
+boundary /L2/ev /out
+boundary /L3/ev /out
 ```
 
 `stack` expands into one vertical boundary per step, so the line stays a single line however many storeys there are.
@@ -95,7 +104,10 @@ level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L2/b type:stair
+boundary /L1/a /out
+boundary /L2/b /out
 ```
 
 `The spaces of a stair boundary do not overlap in plan: /L1/a | /L2/b`
@@ -115,7 +127,10 @@ level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
+space /out outside:1
 boundary /L1/a /L2/a type:void
+boundary /L1/a /out
+boundary /L2/a /out
 ```
 
 `The space above a void boundary is expected to be type:void: /L2/a`
@@ -143,8 +158,11 @@ level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
+space /out outside:1
 boundary /L1/a /L2/a type:stair
   door w:800
+boundary /L1/a /out
+boundary /L2/a /out
 ```
 
 `A door on a vertical boundary is not interpreted`
@@ -166,8 +184,11 @@ level L1 0 h:2400 slab:200
 level L2 3000 h:2400 slab:200
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
+space /out outside:1
 boundary /L1/a /L2/a type:stair
   seg w:800 spec:X
+boundary /L1/a /out
+boundary /L2/a /out
 ```
 
 `A seg on a vertical boundary is not interpreted`

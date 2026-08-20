@@ -8,5 +8,23 @@
    "/L1/a",
    "/L1/b"
   ]
+ },
+ {
+  "code": "BND08",
+  "severity": "warning",
+  "line": 4,
+  "file": "main.muro",
+  "path": [
+   "/L1/a"
+  ]
+ },
+ {
+  "code": "BND08",
+  "severity": "warning",
+  "line": 5,
+  "file": "main.muro",
+  "path": [
+   "/L1/b"
+  ]
  }
 ]

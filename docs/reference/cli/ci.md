@@ -20,7 +20,7 @@ koyu check building/main.muro
 The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no doors at all comes out green.
 
 ```muro
-muro 1.3
+muro 1.4
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -29,6 +29,8 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
 space /L1/b room X2..X3 Y1..Y2 name:居室B
 space /out name:外部 outside:1
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ```sh
@@ -101,7 +103,7 @@ Three traps.
 
 **`light` returns 0 with nothing in scope.** Put `light` in CI for a model that writes no `daylight:1` and green comes back having looked at nothing. To protect daylight, `validate` is safer — `koyu.schematic.daylight.ratio` is a violation and exits 1.
 
-**`validate` does not fail on cautions.** `koyu.schematic.envelope.gap`, `koyu.schematic.stair.proportion` and `koyu.schematic.site.area` are all cautions, so the exit code stays 0. To fail on cautions too, read `--json` and count them yourself.
+**`validate` does not fail on cautions.** `koyu.schematic.stair.proportion` and `koyu.schematic.site.area` are cautions, so the exit code stays 0. To fail on cautions too, read `--json` and count them yourself.
 
 ```sh
 koyu validate building/main.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03 --json | node -e '

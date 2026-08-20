@@ -17,7 +17,10 @@ grid Y 0 4000 8000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y2..Y3
+space /out outside:1
 boundary /L1/a /L1/b t:120
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 The human output looks like this.
@@ -70,7 +73,7 @@ interface Diagnostic {
 
 | Field | Always present | Contents |
 |---|---|---|
-| `code` | yes | One of the ledger's 69 codes: three letters for the area plus a two-digit serial |
+| `code` | yes | One of the ledger's 70 codes: three letters for the area plus a two-digit serial |
 | `severity` | yes | `"error"` or `"warning"`. **An invariant property of the code**, never varying with the case |
 | `message` | yes | **The body only.** It does not include the position prefix (`file:line N: `) |
 | `line` | when the diagnostic has a position | The 1-based line of its provenance. Diagnostics with no written line — a derived default boundary, say — omit it |

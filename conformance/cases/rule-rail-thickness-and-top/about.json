@@ -1,4 +1,7 @@
 {
-  "pins": ["docs/reference/form/constants.md", "docs/reference/muro/boundary.md"],
-  "why": "遮蔽しない境界 (air:1 — 手すり・柵) は壁とは別の既定を持つ。厚みの既定は 60mm で、t: に何を書いても 80mm で頭打ちになる (500 と書いても 80)。天端は床から 1100mm で、壁のように階高まで立ち上がらない"
+ "pins": [
+  "docs/reference/form/constants.md",
+  "docs/reference/muro/boundary.md"
+ ],
+ "why": "手すり (air:1) の既定の厚さは60mm、書かれた値は80mmで頭打ち、上端の既定は1100mm。**添字は Form の正準境界順の位置である** — 0 は /L1/a|/L1/b の手すり、4 は /L1/b|/L1/c の手すりで、間の 1..3 は /L1/a の外周に導かれた既定の外壁 (ADR-0065) である。外部を名指していない面には壁が立つので、最小の入力でも境界はこの数になる"
 }

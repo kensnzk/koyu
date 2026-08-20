@@ -174,7 +174,7 @@ Take these two files.
 
 ```muro-part
 # main.muro — entry
-muro 1.3
+muro 1.4
 name 二層
 unit mm
 
@@ -201,7 +201,7 @@ Calling it with `main.muro` as the entry gives this.
 [
  {
   "file": "<abs>/tiny/main.muro",
-  "source": "# main.muro — entry\nmuro 1.3\nname 二層\nunit mm\n\ngrid X 0 3600 7200\ngrid Y 0 4500\nlevel L1 0 h:2400 slab:150\n\nimport ./L1.muro\n"
+  "source": "# main.muro — entry\nmuro 1.4\nname 二層\nunit mm\n\ngrid X 0 3600 7200\ngrid Y 0 4500\nlevel L1 0 h:2400 slab:150\n\nimport ./L1.muro\n"
  },
  {
   "file": "<abs>/tiny/L1.muro",

@@ -26,6 +26,8 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 `koyu plan` produces the floor plan. Not one wall is drawn — there is a space, but not one boundary.
@@ -40,6 +42,9 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ![Plan of two rooms, with a wall standing between them](docs/img/start-02-two-rooms.svg)

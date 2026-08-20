@@ -75,7 +75,7 @@ boundary /L2/bed /L2/hall t:120
 All of the above in one file:
 
 ```muro
-muro 1.3
+muro 1.4
 name Two storeys
 unit mm
 
@@ -102,6 +102,11 @@ boundary /L2/bed /L2/hall t:120
 
 boundary /L1/hall /L2/hall type:stair
 boundary /L1/ldk /L2/void type:void
+boundary /L1/ldk /out
+boundary /L1/hall /out edge:N
+boundary /L2/bed /out
+boundary /L2/hall /out
+boundary /L2/void /out
 ```
 
 ```sh
@@ -167,7 +172,7 @@ Lower the ceiling, raise `level L2`'s `z` to buy storey height, or thin the slab
 Forget `slab:` on the upper level and not one floor is generated on that storey; drop `h:` as well and the ceiling height is undetermined. **No default is invented where a value is missing** — the sufficiency checks say so out loud rather than letting a thin model ship silently.
 
 ```muro-bad
-muro 1.3
+muro 1.4
 name Missing pieces
 unit mm
 
@@ -181,6 +186,10 @@ space /L2/b room X1..X2 Y1..Y2 name:Upstairs
 space /out name:Outside outside:1
 boundary /L1/a /out edge:S t:150
   door w:900
+boundary /L1/a /out edge:E
+boundary /L1/a /out edge:N
+boundary /L1/a /out edge:W
+boundary /L2/b /out
 ```
 
 ```text

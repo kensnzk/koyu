@@ -24,7 +24,7 @@ main.muro       ← the entry: grid, levels, and the order the layers stack in
 **The order of the `import` lines is the declaration of strength.** A later layer is stronger. The entry is the weakest layer (index 0).
 
 ```muro-part
-muro 1.3
+muro 1.4
 name 実測を重ねた事務所
 unit mm
 
@@ -160,7 +160,7 @@ The provenance key is `<kind>:<target>:<attribute>`. Only the three values the m
 Make a second entry that composes the plan alone, and the two models can be compared directly.
 
 ```muro-part
-muro 1.3
+muro 1.4
 name 実測を重ねた事務所
 unit mm
 

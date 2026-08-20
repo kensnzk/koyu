@@ -32,7 +32,7 @@ That last clause is the rule that **a floor holding up nothing but sky gets no c
 Whether a space is semi-outdoor is derived, not declared (a space with a region meeting the outside across an `open` or `air:1` boundary). Whether it is covered from above is derived too (does any space on any level above overlap it in plan).
 
 ```muro
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 6000 12000
 grid Y 0 6000
@@ -47,6 +47,8 @@ space /out name:外部 outside:1
 boundary /L1/terrace /out type:open
 
 column 800 L1
+boundary /L1/room /out
+boundary /L2/room /out
 ```
 
 The terrace meets the outside across an `open` boundary, so it is semi-outdoor, and no L2 space overlaps it. So no column stands on grid line X3.

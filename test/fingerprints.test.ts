@@ -61,6 +61,24 @@
 // the rules of derivation are a surface of their own (docs/reference/stability.md). The one
 // example that held is the measurement of that claim rather than the assertion of it: an example
 // with no wall in it cannot have a wall junction, and it did not move.
+//
+// **The sixth re-baselining is muro 1.4 inverting the exterior default (ADR-0065)**, and it moves
+// both columns for different reasons — the first that does. Up to 1.3 a face onto the outside got
+// no wall unless a `boundary` to a region-less space was written; from 1.4 it is a wall, and what
+// a declaration adds is the name of what it faces. It reads:
+//
+//   canonical moved  10 of 15   — exactly the ten entries carrying a version line, `muro 1.3` → `1.4`
+//   canonical held    5 of 15   — steps/01 to steps/05, which write none
+//   Form moved        3 of 15   — steps/01 to steps/03, and nothing else
+//   Form held        12 of 15   — every finished building among them
+//
+// **The Form column is the whole measurement.** A rule of derivation changed, and the shape of
+// nine complete buildings — some 2,500 spaces between them, up to 141,449 m2 — did not move by a
+// byte. It could not: every one of them had already written a boundary to the exterior for every
+// run of every perimeter, so there was nothing left for the new default to do. The three that
+// moved are the three that had not — the first stages of the tutorial, where the outside has not
+// been reached yet. That split is the claim of this change measured rather than asserted: **it
+// fills holes and touches nothing else.**
 
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -76,40 +94,40 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 /** entry → [canonical SHA-256, Form SHA-256]. Both columns were first measured at v0.17.0 */
 const BASELINE: Readonly<Record<string, readonly [string, string]>> = {
   "examples/basement/main.muro": [
-    "2ce1f5afc315503647a60500adaf153b51b4c68378632f612579e248e062a56e",
+    "0234e29885cfea20ba2b17efd21c5075898ea703db1459ccdf8079d32641697f",
     "1fa571a563ca4bcb66fe8b718f17ba81898230bc6357ac85bbc4630e420a406c",
   ],
   "examples/complex/main.muro": [
-    "d7cadb3af7574a8b61335e22ef636c4b3c2ed694be26156f3568a8f88bec1a2f",
+    "8a418bfd6bba9ea4919f247bb34c705d78a6663c033b5a24c5cdc2069b7a6703",
     "d1d2cb12161f84b55663a046dd60b717605962ccbb3ff235fe208ea091df8166",
   ],
   "examples/house.muro": [
-    "e698001d4e0a71817b9ccdd632b2be6f27075e5170702b0a78bf2abc8ca2c9b8",
+    "a72e8ae0996ebf1b8a5aba6878723d8ad391984d56a7a7083bb813a0fad11e91",
     "4c0bc4acf1c2b62889de980c60b80222d5debdc24f1f5613a81016307516ebd4",
   ],
   "examples/house/main.muro": [
-    "ee9709b23d22aa86d28bdd28af41af7acbdd985c1e210d7ef86d46577f9f100a",
+    "659ad06e924bfcb912f25502d9adc67a152dbf33b97f440cace41b01acfb1c17",
     "9622d2a0f166f76dadb809df0769101c33a5a05e699aa1c47c8c84c377d17393",
   ],
   "examples/mansion.muro": [
-    "d1703cd5d47f3cf2e0bffd84a3597ad597150b3c125be34a327242404cc791f9",
+    "0c9e7a8f6a07c51d0158f3c40bb7a4fbdceebd160d327f821286533762d029f8",
     "c5afa884e909bce64ab64277e00af6af617de420be5c6a71917b1dcd227dcb43",
   ],
   "examples/office.muro": [
-    "850d5351073d5c0d41bf54bbfbc516a410f92e9a94f940b29873d31d8e46b9be",
+    "aa171cd950684c11b21dc70dd803e2dde89ee748852a75cf223277c8fdd3e9b0",
     "7cf1f4c1fe0aa53033118cac9f596a2913cf37e006f403259563f5e5d244e697",
   ],
   "examples/steps/01-one-room.muro": [
     "4c23e5f10c4b43bb8dacd5220d6e3c7035bd79bb2f8a205f07bcb23f54e85b8d",
-    "9fb0d7fb5374ca8e1b98d38761f34df3d44e812ba8420a38286b6951c5f8f39f",
+    "f01644d2096c620c63dc5fd3c30199bce6640ffc3a5bfbb141ed0695528547fd",
   ],
   "examples/steps/02-two-rooms.muro": [
     "6a192e4647735d60491423954f17a1703718e974815529e7543abbf1001606fc",
-    "5029df9c9fc19b19edb6ca37e2c3ce0ac9edf8a67bc3810f66f68b942c72b4ef",
+    "0eba0fb048f90f098fa5875fe2c8127df8d68e01c74e9ecb3745771dcbe4e31a",
   ],
   "examples/steps/03-door.muro": [
     "5a167a7ea8a494f15a624e19adeb8a26f52b6cdbb78a03b9f124e219f431ece7",
-    "b9c48cc0a8644a10c79631ff423121787003a979d69eb4da531d28b44110b869",
+    "19381f8a3bcb2e5c86cac2431cc81ebeac190dc87794ffe63712b2f8193d326d",
   ],
   "examples/steps/04-exterior.muro": [
     "d8ad1921e9c9b9f68ff723f3be532a24ec0b23439c9e436de17b2d5cb9827045",
@@ -120,19 +138,19 @@ const BASELINE: Readonly<Record<string, readonly [string, string]>> = {
     "d4c0a82880f05d127f92948247121b3df1a1a599527690240f7b0ca24c91aace",
   ],
   "examples/steps/06-finished.muro": [
-    "69f901ffda67c04f9c64c4b9388df4335cb0642ddf98cd1add124db6100e2c7f",
+    "d5aaea1fd77643a7d6410ce8beac0d8291f250a74c48de0e2f837c5ec57f5d31",
     "433b74d5b0ccffb19bce6cc415375236f8e33ecfa9b4139d328a64138e41adc6",
   ],
   "examples/tower/main.muro": [
-    "b07966388d7dddbd7e9c72d8ae62b2af785b5f6e177452eec6fd56156eabeb2d",
+    "9615600eefefc2ac7722941c69e260b5fa22ff229b66c9895c7be1bb5c69f44d",
     "0c035e5be800bec70b3530223381fa4291fbb5f33677cee8fbb96129944bc461",
   ],
   "examples/twin/main.muro": [
-    "19e658be12f04238657569879bf182220c8ba82821f7cc42b2b68d99c411888b",
+    "d437985fe73296b45e23816eb71626dd7a67f92d73b67a7aee448ee303599dc9",
     "b9cb0b650bccb6d849a21997d8a30d76868729d82d2fc33d31f6d60704798316",
   ],
   "examples/two-rooms.muro": [
-    "6e429209adaeea792c151678fae21eeac0f596e8d0ab356e7ad2bd04d7a3a89a",
+    "2916dda7caf07e08efe6dae4611577ae26609e7cc103ef5737d861ce149b0ffa",
     "642a6ecea5c4b05f14b14c9a38a6dc44a2b2e808a468b6867eb57471566aa08a",
   ],
 };

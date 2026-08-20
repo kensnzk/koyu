@@ -25,7 +25,7 @@ A floor is laid over every space on that level satisfying all of the following.
 The floor's z range runs **from FL − slab to FL**. Its outline is the derived convex piece, so a floor cut by a [drawn line](line.md) comes out cut.
 
 ```muro
-muro 1.3
+muro 1.4
 name 床組みの例
 unit mm
 grid X 0 6000
@@ -36,6 +36,9 @@ level R 6400 slab:250
 
 space /L1/a room X1..X2 Y1..Y2 name:1階
 space /L2/a room X1..X2 Y1..Y2 name:2階
+space /out outside:1
+boundary /L1/a /out
+boundary /L2/a /out
 ```
 
 Those two rooms generate these surfaces.
@@ -55,7 +58,7 @@ Those two rooms generate these surfaces.
 **No default is fabricated.** Where a needed value is not written, the element is not built rather than given an invented default. So a level with no `slab:` generates no floors at all, and that gets said.
 
 ```muro-warn
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 6000
 grid Y 0 4000
@@ -64,6 +67,9 @@ level L2 3200 h:2700
 level R 6400 slab:250
 space /L1/a room X1..X2 Y1..Y2 name:1階
 space /L2/a room X1..X2 Y1..Y2 name:2階
+space /out outside:1
+boundary /L1/a /out
+boundary /L2/a /out
 ```
 
 ```text
@@ -77,7 +83,7 @@ The form is still determinate, so this is a warning (SUF03). All that disappears
 For each space, **ceiling height + the slab of the level above ≤ storey height** is checked, where storey height is the difference to the next level's z. Exceed it and the space collides into the floor above — an error.
 
 ```muro-bad
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 6000
 grid Y 0 4000
@@ -86,6 +92,9 @@ level L2 3200 h:2700 slab:250
 level R 6400 slab:250
 space /L1/a room X1..X2 Y1..Y2 name:1階
 space /L2/a room X1..X2 Y1..Y2 name:2階
+space /out outside:1
+boundary /L1/a /out
+boundary /L2/a /out
 ```
 
 ```text

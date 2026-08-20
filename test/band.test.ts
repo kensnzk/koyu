@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { check } from "../src/core/diagnose.js";
 import { semanticDiff } from "../src/core/diff.js";
-import { toCanonical } from "../src/core/model.js";
+import { toCanonical, EXTERIOR } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
 
 const HEAD = "koyu 0.4\nunit mm\ngrid X 0 6400 12800\ngrid Y 0 5600\nlevel L1 0 h:2400\n";
@@ -129,9 +129,11 @@ test("band: adjacent members derive a default wall (ADR-0014)", () => {
   const m = parse(
     `${HEAD}band X X1..X2 Y1..Y2\n  space /L1/a room w:1600\n  space /L1/b room w:rest\n`,
   );
-  const derived = m.boundaries.filter((b) => b.derived);
-  assert.equal(derived.length, 1);
-  assert.equal(derived[0]!.kind, "wall");
+  const between = m.boundaries.filter((b) => b.derived && b.b !== EXTERIOR);
+  assert.equal(between.length, 1);
+  assert.equal(between[0]!.kind, "wall");
+  // and the perimeter of each member is a wall too, against the outside (ADR-0065)
+  assert.equal(m.boundaries.filter((b) => b.derived && b.b === EXTERIOR).length, 2);
 });
 
 // ---- B. 保証: 帯で書いた版 == 位置で書いた版 ----

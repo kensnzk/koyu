@@ -26,7 +26,18 @@ const BASE = [
 ].join("\n");
 
 const build = (body: string) => parse(`${BASE}\n${body}`);
-const codes = (src: string) => checkDiagnostics(parse(`${BASE}\n${src}`)).map((d) => d.code);
+/**
+ * The codes a fixture produces, **less BND08**.
+ *
+ * BND08 fires on the *absence* of a declaration — a perimeter run nobody named an outside for —
+ * so every minimal fixture in this file draws one, and none of them is about the envelope.
+ * Filtering it here keeps the identity assertions readable; nothing is hidden, because no test
+ * in this file asserts BND08. `test/defaults.test.ts` is where that code is pinned.
+ */
+const codes = (src: string) =>
+  checkDiagnostics(parse(`${BASE}\n${src}`))
+    .map((d) => d.code)
+    .filter((c) => c !== "BND08");
 
 const TWO_ROOMS = [
   "space /L1/a room X1..X2 Y1..Y2",
@@ -80,7 +91,10 @@ test("identity: a uid written on a level is refused by the parser (level carries
 
 test("identity: a namespaced uid is carried, but it is not an identity (core never reads it)", () => {
   const m = build(`space /L1/a room X1..X2 Y1..Y2 acme.uid:sp-a\nspace /L1/b room X2..X3 Y1..Y2 acme.uid:sp-a`);
-  assert.deepEqual(checkDiagnostics(m).map((d) => d.code), []); // 重複しても UID03 は出ない
+  assert.deepEqual(
+    checkDiagnostics(m).map((d) => d.code).filter((c) => c !== "BND08"),
+    [],
+  ); // 重複しても UID03 は出ない
   const renamed = build(`space /L1/x room X1..X2 Y1..Y2 acme.uid:sp-a\nspace /L1/b room X2..X3 Y1..Y2 acme.uid:sp-a`);
   assert.deepEqual(semanticDiff(m, renamed).spaces.renamed, [], "a carried key must not drive rename detection");
 });

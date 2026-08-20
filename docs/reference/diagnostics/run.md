@@ -44,6 +44,9 @@ level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /L1/s stair X1..X2 Y1..Y2 stair:N ramp:N
 space /L2/s stair X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/s /out
+boundary /L2/s /out
 ```
 
 ```text
@@ -65,6 +68,9 @@ level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /L1/s stair X1..X2 Y1..Y2 stair:up
 space /L2/s stair X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/s /out
+boundary /L2/s /out
 ```
 
 ```text
@@ -92,6 +98,9 @@ level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /L1/s stair X1..X2 Y1..Y2 + X2..X3 Y1..Y2 stair:N
 space /L2/s stair X1..X3 Y1..Y2
+space /out outside:1
+boundary /L1/s /out
+boundary /L2/s /out
 ```
 
 ```text
@@ -127,6 +136,9 @@ level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /L1/s stair X1..X2 Y1..Y2 stair:N form:spiral
 space /L2/s stair X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/s /out
+boundary /L2/s /out
 ```
 
 ```text
@@ -162,6 +174,9 @@ level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /L1/r ramp X1..X2 Y1..Y2 ramp:N slope:12
 space /L2/r ramp X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/r /out
+boundary /L2/r /out
 ```
 
 ```sh

@@ -160,6 +160,8 @@ grid Y 0 8000
 level L1 0 h:3600 slab:600
 level R 3800 slab:500
 space /L1/hall hall X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/hall /out
 ```
 
 ```text
@@ -201,6 +203,10 @@ level B1 -3000 h:2400 slab:150
 level L1 0 h:2400 slab:150
 level M2 3000 h:2400 slab:150
 space /B1..M2/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /B1/a /out
+boundary /L1/a /out
+boundary /M2/a /out
 ```
 
 ```text

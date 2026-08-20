@@ -27,7 +27,7 @@ import {
   SCHEMATIC_PROFILE,
   SCHEMATIC_PROFILE_ID,
   SCHEMATIC_RULE_SET,
-  ENVELOPE_GAP_RULE,
+  DAYLIGHT_RATIO_RULE,
   SITE_ANALYSIS_ID,
   type SiteAnalysisValue,
 } from "../src/validate/builtin/index.js";
@@ -342,12 +342,12 @@ test("an external analysis runs on its own through the analysis entry point", ()
 });
 
 test("the built-in rules are ordinary values on the same SPI", () => {
-  // Nothing about ENVELOPE_GAP_RULE differs in kind from STOREY_LIMIT_RULE: same interface,
+  // Nothing about DAYLIGHT_RATIO_RULE differs in kind from STOREY_LIMIT_RULE: same interface,
   // same fields, and the built-in is the one with *fewer* privileges (it cites no authority).
   for (const key of ["id", "revision", "title", "level", "model", "analyses", "context", "authority", "evaluate"]) {
-    assert.ok(key in ENVELOPE_GAP_RULE, `built-in rule lacks ${key}`);
+    assert.ok(key in DAYLIGHT_RATIO_RULE, `built-in rule lacks ${key}`);
     assert.ok(key in STOREY_LIMIT_RULE, `external rule lacks ${key}`);
   }
-  assert.deepEqual(ENVELOPE_GAP_RULE.authority, []);
+  assert.deepEqual(DAYLIGHT_RATIO_RULE.authority, []);
   assert.equal(STOREY_LIMIT_RULE.authority.length, 1);
 });

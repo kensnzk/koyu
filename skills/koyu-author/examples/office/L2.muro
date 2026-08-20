@@ -13,3 +13,7 @@ boundary /L2/meeting /L2/corr t:120
 boundary /L2/corr /L2/core t:150
   door w:900
 boundary /L1/core /L2/core type:stair
+boundary /L2/meeting /out t:200 spec:RC
+boundary /L2/office /out t:200 spec:RC
+boundary /L2/corr /out t:200 spec:RC
+boundary /L2/core /out t:200 spec:RC

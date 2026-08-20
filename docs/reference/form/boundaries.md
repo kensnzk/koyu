@@ -39,7 +39,7 @@ Segments are decided in this order. **The first branch that applies settles it.*
 2. If `type` is `stair` / `shaft` / `void`, there is no segment (**a vertical boundary has no wall**)
 3. **If there is a drawn line, that line is the realisation of the boundary.** Neither collinear merging nor `edge:` filtering applies
 4. If both sides have regions, take the **shared edges**. Different levels means no segment (no wall stands between levels)
-5. If only one side has a region, take the **outline**. The counterpart is "every space on the same level other than these two"
+5. If only one side has a region, take the **outline**. The counterpart is "every space on the same level other than these two". **If the other side is the outside** (a derived exterior wall), take instead what no declared boundary already covers
 6. If neither side has a region, there is no segment
 
 Results from 4 and 5 go through collinear merging, and finally `edge:` narrows them by "the face as seen from a".
@@ -88,11 +88,19 @@ Whether a segment exists and whether a person can pass are different questions.
 
 `passable(boundary)` returns this. It says nothing about pass or fail — "can you get out" is answered separately by the [judgement face](../validate/access.md).
 
-## Holes in the envelope
+## The rest of the perimeter
 
-Parts of a space's outline face **neither another space nor a declared exterior boundary**. Those are holes in the envelope, and `envelopeGaps(model, space)` returns them as segments.
+Parts of a space's outline face **neither another space nor a declared boundary**. `envelopeGaps(model, space)` returns them as segments, and **that is where the default exterior wall stands.**
 
-Touching spaces default to a wall, but **no default is derived against a space with no region** (the exterior) — naming the counterpart is itself information, so it is declared. A forgotten `boundary` to the outside therefore becomes a silent absence of wall. `check` does not say so. The [judgement face](../validate/envelope.md) does, as `koyu.schematic.envelope.gap`.
+The counterpart of such a wall is the outside, and it is not a space. It carries the reserved spelling `outside`, which no space can collide with because every space path begins with `/`. Declaring `space /out outside:1` does not replace it — it **names** a part of the outside, and a boundary written to that name wins over the default wherever it reaches.
+
+**Suppression is by run, not by pair.** Between two spaces one declaration suppresses the whole pair ([defaults](../muro/defaults.md)). The outside is not a pair — it is whatever the rest of the perimeter faces — so there is nothing to suppress as a unit. Each declared boundary takes the runs it reaches and the default takes what is left, which is why writing `edge:S` alone still leaves a wall standing on N, E and W.
+
+**Which spaces are in the population.** Every space that has a region and a level, except three: a space declared `outside:1` (it is the outside), a [semi-outdoor](regions.md) space (its openness was declared, with `open` or `air:1`), and a space under a `site:1` zone (paving is not a room). **A void is not excluded** — where one reaches the edge of the building the outer wall passes it exactly as it passes a room.
+
+That population cannot chase its own tail: a semi-outdoor space is one with an `open` or `air:1` boundary to the outside, and every wall derived here is a plain `wall`, so running the derivation can never change who is in it.
+
+**A run left unnamed is reported.** The wall is there, so nothing is missing from the shape; what is missing is which outside it looks at, and that is [BND08](../diagnostics/bnd.md#bnd08), a warning.
 
 ## Neighbouring pages
 
@@ -101,4 +109,4 @@ Touching spaces default to a wall, but **no default is derived against a space w
 - [boundary](../muro/boundary.md) — how to write one
 - [orientation](../muro/orientation.md) — the N/E/S/W convention
 - [BND diagnostics](../diagnostics/bnd.md) — when no segment can be derived
-- [envelope judgement](../validate/envelope.md) — holes in the envelope
+- [BND08](../diagnostics/bnd.md#bnd08) — a face onto the outside that nobody named

@@ -38,6 +38,7 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out outside:1
   area X1..X2 Y1..Y2 floor:タイル
+boundary /L1/a /out
 ```
 
 `An area cannot be written on /out, which has no region`
@@ -56,6 +57,8 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
   area X1..X3 Y1..Y2 floor:タイル
+space /out outside:1
+boundary /L1/a /out
 ```
 
 `The area spills outside the region of /L1/a`
@@ -78,8 +81,11 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b type:open
   seg w:800 spec:X
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `A seg on an open boundary (there is no wall) is not interpreted`
@@ -100,8 +106,11 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   seg w:800 edge:N spec:X
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `No boundary segment can hold the seg (/L1/a | /L1/b)`
@@ -142,8 +151,11 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   seg w:5000 spec:X
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `The seg width 5000 exceeds the boundary segment length 4000`
@@ -162,8 +174,11 @@ grid Y 0 4000 8000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X1..X2 Y2..Y3
+space /out outside:1
 boundary /L1/a /L1/b t:120
   seg w:800 at:Y1+2000 spec:X
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `The seg position Y1+2000 is on the wrong axis: a horizontal segment takes an X grid line`
@@ -184,8 +199,11 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   seg w:900 at:Y1+200 spec:X
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `At Y1+200 the seg (width 900) runs off the boundary segment (segment 0-4000mm, center allowed 450-3550mm)`

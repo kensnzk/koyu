@@ -59,7 +59,7 @@ The cut merges the allocations inside the window and then redivides them across 
 **Which side to keep is not written.** Every convex piece touching the window is measured whole, and the side with the greater area is kept. For an envelope cut, the bias of the side that has a region is the side kept. For two spaces, both biases are taken, and if exactly one of them is zero, the opposite of the other is used.
 
 ```muro
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -70,6 +70,7 @@ space /out name:外部 outside:1
 
 boundary /L1/a /out t:150 spec:RC
   line X1,Y2-3000 X1+3000,Y2
+boundary /L1/a /out
 ```
 
 The north-west triangle (3000 × 3000 ÷ 2 = 4.5 m2) falls off the 6000 × 6000 allocation.
@@ -97,7 +98,7 @@ It is not recomputed later because by then the form has **already been cut**, an
 A line tracing the default adjacency line cuts nothing.
 
 ```muro-warn
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -106,6 +107,7 @@ space /L1/a room X1..X2 Y1..Y2 name:室
 space /out name:外部 outside:1
 boundary /L1/a /out t:150
   line X1,Y1 X2,Y1
+boundary /L1/a /out
 ```
 
 ```text
@@ -115,7 +117,7 @@ boundary /L1/a /out t:150
 A line across the diagonal of a square leaves equal areas either side, so no side can be chosen.
 
 ```muro-bad
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -124,6 +126,7 @@ space /L1/a room X1..X2 Y1..Y2 name:室
 space /out name:外部 outside:1
 boundary /L1/a /out t:150
   line X1,Y1 X2,Y2
+boundary /L1/a /out
 ```
 
 ```text

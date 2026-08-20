@@ -80,7 +80,7 @@ Keep the polygon in a layer of its own. That keeps given geometry from mixing wi
 ## Check it
 
 ```muro
-muro 1.3
+muro 1.4
 name A house with its site
 unit mm
 

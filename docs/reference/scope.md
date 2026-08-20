@@ -76,7 +76,7 @@ The output says so itself.
 
 Green does not mean the building is usable.
 
-**Touching spaces default to a wall, so a two-storey building that declares not one door stays green and is completely sealed.** The envelope does not grow by itself either — no default is derived against a space with no region (the exterior), so a forgotten `boundary` to the outside becomes a silent absence of wall.
+**Touching spaces default to a wall, and so does a face onto the outside, so a two-storey building that declares not one door stays green and is completely sealed.** What a forgotten `boundary` to the outside costs is not the wall but the name of what it faces, and `check` says so as [BND08](diagnostics/bnd.md#bnd08).
 
 Circulation is answered by [`koyu doors`](cli/doors.md); judgement by `koyu validate`.
 
@@ -89,7 +89,7 @@ Core holds the questions of quantity and graph. **It just never says pass or fai
 | Daylight | floor area and effective window area | whether it meets 1/7 (`koyu.schematic.daylight.ratio`) |
 | Site | site area, frontage length, building area, total floor area and their ratios | 2m of frontage (`koyu.schematic.site.frontage`), escape beyond the line (`koyu.schematic.site.escape`) |
 | Vertical runs | riser count, riser, going, slope | whether it is cramped (`koyu.schematic.stair.proportion`), whether the slope is acceptable (`koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope`) |
-| Envelope | outline segments facing nothing | whether that is a hole (`koyu.schematic.envelope.gap`) |
+| Envelope | outline runs no declared boundary reaches, and the default wall on them | whether the building should be open there instead |
 | Circulation | the minimum-door route and passability | whether you can reach the outside (`access.*`) |
 | Columns and openings | columns standing on grid intersections, openings on a segment | whether they collide (`koyu.schematic.column.blocksdoor`) |
 

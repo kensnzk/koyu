@@ -22,8 +22,12 @@ level R 9000 slab:300
 space /L1/a room X1..X3 Y1..Y2
 space /L2/a room X1..X3 Y1..Y2
 space /L3/a room X1..X3 Y1..Y2
+space /out outside:1
 column 800 L1..L2 d:600 name:C1
 column 600 L3 x:X1,X2 name:C2
+boundary /L1/a /out
+boundary /L2/a /out
+boundary /L3/a /out
 ```
 
 The form is `column <side, mm> <level name or L?..L?> [x:grid,…] [y:grid,…]`. `d:` gives the depth (square if omitted); `name:` and `spec:` may be written too. Leave out `x:` / `y:` and every grid line on that axis is in play.
@@ -52,7 +56,9 @@ grid Y 0 6000
 level L1 0 h:2700 slab:300
 level L2 3000 slab:300
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
 column 600 L2
+boundary /L1/a /out
 ```
 
 ```text
@@ -90,8 +96,10 @@ grid X 0 3000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
 column 600 L1
 column 800 L1
+boundary /L1/a /out
 ```
 
 ```text
@@ -111,8 +119,10 @@ grid X 0 3000 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
 space /L1/a room X1..X3 Y1..Y2
+space /out outside:1
 column 600 L1 x:X1
 column 800 L1 x:X2,X3
+boundary /L1/a /out
 ```
 
 ## When nothing stands and COL says nothing

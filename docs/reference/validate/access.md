@@ -36,7 +36,7 @@ Every rule here stands on one definition.
 A space with a region cannot reach an `outside:1` space along passable boundaries.
 
 ```muro-fail
-muro 1.3
+muro 1.4
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -60,7 +60,7 @@ It is a violation because there is no reading of architecture in which a room yo
 **Fix** — write a `door` somewhere along the route out. A boundary to the outside has several segments, so pick one with `edge:N/E/S/W`.
 
 ```muro
-muro 1.3
+muro 1.4
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -79,13 +79,16 @@ To find where the chain breaks, [`koyu doors`](../cli/doors.md) answers with the
 The space has passable boundaries, and every one of them leads to a space declaring `void:1`.
 
 ```muro-fail
-muro 1.3
+muro 1.4
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
 space /L1/v X1..X2 Y1..Y2 void:1
 space /L1/a room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/v type:open
+boundary /L1/v /out
+boundary /L1/a /out
 ```
 
 ```text
@@ -101,13 +104,16 @@ This rule does not care whether an exterior exists. It also does not fire on a s
 **Fix** — write a door to a neighbour that has a floor (a corridor, a stair). If the edge onto the void really is open, it is a place to **look down from**, not to walk through: make it an `air:1` wall (a railing) rather than `type:open`.
 
 ```muro
-muro 1.3
+muro 1.4
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
 space /L1/v X1..X2 Y1..Y2 void:1
 space /L1/a room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/v air:1 h:1100
+boundary /L1/v /out
+boundary /L1/a /out
 ```
 
 ## `koyu.schematic.access.throughtenant` — the escape runs through a tenancy {#access-throughtenant}
@@ -117,7 +123,7 @@ boundary /L1/a /L1/v air:1 h:1100
 Every route out of a space whose type is `stair` passes through a `lease.category:rentable` space.
 
 ```muro-caution
-muro 1.3
+muro 1.4
 grid X 0 3000 9000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -152,7 +158,7 @@ A space typed `parking` or `ramp` cannot reach the outside along car-passable bo
 **The population is the type position, not a key.** Where cars belong is the room's purpose, and that is what the type says; a key would be a second place to write the same fact.
 
 ```muro-fail
-muro 1.3
+muro 1.4
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -173,7 +179,7 @@ Validation — 1 violation / 0 cautions
 **Fix** — make the vehicle opening `door w:2400` or wider, or make the boundary `type:open`. For parking above or below grade, write `ramp:` on the ramp space and join the levels with `stack` — that vertical link is the only way a car changes level.
 
 ```muro
-muro 1.3
+muro 1.4
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -190,7 +196,7 @@ boundary /L1/p /out
 A `lease.category:common` space declaring a vertical run (`stair:` / `escalator:`) cannot be reached from a common corridor without crossing a space whose type is `backyard`.
 
 ```muro-caution
-muro 1.3
+muro 1.4
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
@@ -199,11 +205,16 @@ space /L1/c corridor X1..X2 Y1..Y2 lease.category:common
 space /L1/b backyard X2..X3 Y1..Y2
 space /L1/e room X3..X4 Y1..Y2 lease.category:common escalator:N
 space /L2/e room X3..X4 Y1..Y2 lease.category:common
+space /out outside:1
 stack e L1..L2 type:stair
 boundary /L1/c /L1/b
   door w:900
 boundary /L1/b /L1/e
   door w:900
+boundary /L1/c /out
+boundary /L1/b /out
+boundary /L1/e /out
+boundary /L2/e /out
 ```
 
 ```text
@@ -223,7 +234,7 @@ A common vertical run belongs to the customer's route. If reaching its foot mean
 **Fix** — move it where the common corridor reaches it directly, or write a door between it and the corridor. If it really is for staff, drop `lease.category:common`.
 
 ```muro
-muro 1.3
+muro 1.4
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
@@ -232,16 +243,20 @@ space /L1/b backyard X1..X2 Y1..Y2
 space /L1/c corridor X2..X3 Y1..Y2 lease.category:common
 space /L1/e room X3..X4 Y1..Y2 lease.category:common escalator:N
 space /L2/e room X3..X4 Y1..Y2 lease.category:common
+space /out outside:1
 stack e L1..L2 type:stair
 boundary /L1/b /L1/c
   door w:900
 boundary /L1/c /L1/e
   door w:900
+boundary /L1/b /out
+boundary /L1/c /out
+boundary /L1/e /out
+boundary /L2/e /out
 ```
 
 ## See also
 
 - [`koyu doors`](../cli/doors.md) — the route between two spaces that passes fewest doors
 - [Columns](column.md) — the other reason a door does not work: something stands in it
-- [The envelope](envelope.md) — a hole in the outline means the relation to the outside was never written
 - [The validation ledger](index.md) — every rule, and why a judgement is not a diagnostic

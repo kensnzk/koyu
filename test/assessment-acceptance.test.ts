@@ -719,6 +719,10 @@ boundary /L1/b /out type:open
     ["OPN03", 25],
     ["OPN05", 25],
     ["SEG03", 26],
+    // then the envelope clause, once per space in declaration order (ADR-0065)
+    ["BND08", 6],
+    ["BND08", 8],
+    ["BND08", 9],
   ]);
 });
 

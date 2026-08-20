@@ -206,7 +206,10 @@ test("frame: neither can be overridden nor removed", () => {
 // ---- 7. SIT06 — 位置だけでは配置できない ----
 
 test("SIT06: origin without azimuth warns, and the reverse does not", () => {
-  const half = checkDiagnostics(parse(src(ORIGIN)));
+  // BND08 is scenery here: the fixture names no outside, so it draws one (ADR-0065)
+  const frameCodes = (source: string) =>
+    checkDiagnostics(parse(source)).filter((d) => d.code !== "BND08");
+  const half = frameCodes(src(ORIGIN));
   assert.deepEqual(
     half.map((d) => [d.code, d.severity]),
     [["SIT06", "warning"]],
@@ -214,6 +217,6 @@ test("SIT06: origin without azimuth warns, and the reverse does not", () => {
   assert.ok(half[0]!.line !== undefined, "the warning points at the line that wrote the origin");
 
   // 向きだけを知っているのは完結した言明である
-  assert.deepEqual(checkDiagnostics(parse(src("azimuth Y 347.5"))), []);
-  assert.deepEqual(checkDiagnostics(parse(src(ORIGIN, "azimuth Y 347.5"))), []);
+  assert.deepEqual(frameCodes(src("azimuth Y 347.5")), []);
+  assert.deepEqual(frameCodes(src(ORIGIN, "azimuth Y 347.5")), []);
 });

@@ -47,6 +47,10 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
   // space, so tenancy, fire compartment and department all competed for it. VER07 stops it here;
   // the ledger row stays so that every version up to 1.2 goes on reading it (ADR-0061).
   { muro: "1.3", since: "0.21.0", until: null },
+  // 1.4 inverts the exterior default. Up to 1.3 a face looking at nothing got no wall unless a
+  // boundary to a region-less space was written, so a forgotten line was a silent hole; from 1.4
+  // that face is a wall, and what is declared is which outside it looks at (ADR-0065).
+  { muro: "1.4", since: "0.26.0", until: null },
 ];
 
 /** The word a version line is written with from 1.2 on. */
@@ -73,7 +77,7 @@ export const LAST_KOYU_SPELLED_VERSION = "1.1";
  * `since` column is written in this vocabulary, and every surface that answers "which muro
  * does this build speak" needs both halves at once.
  */
-export const KOYU_VERSION = "0.25.0";
+export const KOYU_VERSION = "0.26.0";
 
 /**
  * Whether `a` names a later language version than `b`.
@@ -790,6 +794,22 @@ export function columnsFor(model: Model, level: string): Column[] {
   }
   return out;
 }
+
+/**
+ * The counterpart of a derived exterior wall — the outside a face looks at when nothing was
+ * written about it.
+ *
+ * **It is deliberately not a member of `model.spaces`.** Every space path begins with `/`
+ * (`parseSpace` refuses one that does not), so this spelling can never collide with a space
+ * anyone wrote; and a materialised exterior would leak into the canonical form, the area
+ * tallies, the drawings and every listing that walks `model.spaces`, each of which would then
+ * need an exclusion nobody can be trusted to remember.
+ *
+ * An `outside:1` space is not replaced by it. Declaring one **names** a part of the outside —
+ * the road, the neighbour, the garden — and a boundary to it wins over the default wherever it
+ * reaches. This constant is what stands where no name was given.
+ */
+export const EXTERIOR = "outside";
 
 /**
  * 建物の外部か。**空間の型ではなく `outside:1` の宣言で決まる。**

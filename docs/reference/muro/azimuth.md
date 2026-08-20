@@ -75,7 +75,7 @@ It is neither overridable nor removable, and the tension there is real: which wa
 ## In full
 
 ```muro
-muro 1.3
+muro 1.4
 name 方位の最小例
 unit mm
 grid X 0 3600 7200
@@ -89,6 +89,9 @@ boundary /L1/a /L1/b
   door w:800
 boundary /L1/a /out edge:S
   window w:1600 h:1200
+boundary /L1/a /out edge:N
+boundary /L1/a /out edge:W
+boundary /L1/b /out
 ```
 
 `/L1/a`'s window is on the `S` face — the −Y side — so at a bearing of 347.5° it looks out along 167.5°, a little east of due south.

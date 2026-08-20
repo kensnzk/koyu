@@ -41,8 +41,11 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:800 hinge:E
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `hinge:E: a vertical segment takes N/S`
@@ -61,9 +64,12 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:2000 at:0.4
   door w:2000 at:0.6
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `Openings overlap (door and door — center to center 800mm < the required 2000mm)`
@@ -84,8 +90,11 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b type:open
   door w:800
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `A door on an open boundary has no effect on passage (it is always passable)`
@@ -106,8 +115,11 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:800 edge:N
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `No boundary segment can hold the door (/L1/a | /L1/b)`
@@ -150,8 +162,11 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:5000
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `The door width 5000 exceeds the boundary segment length 4000`
@@ -170,8 +185,11 @@ grid Y 0 4000 8000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X1..X2 Y2..Y3
+space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:800 at:Y1+2000
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `The door position Y1+2000 is on the wrong axis: a horizontal segment takes an X grid line`
@@ -194,8 +212,11 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:900 at:Y1+200
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `At Y1+200 the door (width 900) runs off the boundary segment (segment 0-4000mm, center allowed 450-3550mm)`

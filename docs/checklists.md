@@ -53,6 +53,10 @@ as the two agree, and blocks the bump on the day they stop.
   `"1.0"`, `"0.5"` — three of them, each deciding what an older file loses. A new version does not
   move them by itself. Decide per guard whether the new version joins the branch, and expect a new
   `VER` code with its page and its worked example if the new version retires or introduces a word.
+  **A cut can also decide not to gate at all** — the exterior wall of `1.4` is read at every
+  version — but that is a decision to write down on `docs/reference/muro/version.md` and in
+  `stability.md`, not a step to skip. `VER01` shows the shape of the other choice: it names the
+  derived boundaries that would change meaning, and it had to learn to ignore the exterior ones.
 - **Prose that says which version a word arrived in.** Nothing machine-readable maps a word to the
   version that introduced it, so `version.md` claimed the composition words arrived in `1.1` when
   `VER04` is about `1.0` words — with its own pasted output saying so four lines below. Read the
@@ -117,6 +121,9 @@ change by; anything else means something was changed that was not meant to be.
   (`npx tsx src/cli.ts plan <entry> -l <level> -o docs/img/<name>.svg`, default scale and cut) —
   three of them are not plain examples: `start-05-L2-sealed` is `examples/steps/05` with the
   upstairs door taken out, and the two `start-index-*` are the snippets written on `docs/index.md`.
+  Regenerating **all** of them and diffing is also the cheapest measurement of a change's reach: on
+  the `1.4` exterior cut only five of twenty-nine moved, which said more than any assertion that it
+  was contained.
   **Check the mapping rather than assuming it**: regenerate beside the committed file and diff, so
   a name whose source you guessed wrong shows up as a whole-file difference instead of landing
   silently. `house-section-X2+900` and `house-elevation-S` come from `koyu section` and

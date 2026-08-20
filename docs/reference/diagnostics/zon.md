@@ -25,7 +25,9 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
 zone /wing name:西棟
+boundary /L1/a /out
 ```
 
 ```text
@@ -43,7 +45,9 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/wing/a room X1..X2 Y1..Y2
+space /out outside:1
 zone /L1/wing name:西棟
+boundary /L1/wing/a /out
 ```
 
 If you simply have not written the spaces yet, writing them clears it. **Putting an empty zone down first and filling it in later is a legitimate way to work** — which is why this stops at a warning. It only gets in the way while you are running `--strict`.
@@ -60,7 +64,10 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/a/x room X2..X3 Y1..Y2
+space /out outside:1
 zone /L1/a name:重なった名
+boundary /L1/a /out
+boundary /L1/a/x /out
 ```
 
 ```text
@@ -82,6 +89,9 @@ level L1 0 h:2400 slab:150
 zone /L1/a name:住戸A
 space /L1/a/ldk ldk X1..X2 Y1..Y2
 space /L1/a/bed bedroom X2..X3 Y1..Y2
+space /out outside:1
+boundary /L1/a/ldk /out
+boundary /L1/a/bed /out
 ```
 
 The parent's region goes away. The area gathers on the zone as the sum of its children, and the word "dwelling" is preserved. Leave the parent's region in place while writing children and the regions overlap on one level, which [GEO02](./geo.md) stops with an error.
@@ -93,6 +103,8 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:住戸A
+space /out outside:1
+boundary /L1/a /out
 ```
 
 ## What a zone may carry

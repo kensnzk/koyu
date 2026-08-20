@@ -19,7 +19,7 @@ They are not a compass needle. If the building is not oriented to true north, th
 **Which way the model actually faces is one line of its own.** [`azimuth`](azimuth.md) gives the true bearing of the +Y axis, and it is the only place in koyu that holds a compass direction. It changes nothing on this page — `edge:N` picks the +Y face at any bearing. Given `azimuth Y a`, the true bearings of the four faces are *a*, *a*+90, *a*+180 and *a*+270 for `N`, `E`, `S` and `W`.
 
 ```muro
-muro 1.3
+muro 1.4
 name 方位の例
 unit mm
 

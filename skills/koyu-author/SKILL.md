@@ -36,7 +36,7 @@ Two facts about the notation decide whether what you write means what you meant:
 ## A whole small building
 
 ```muro
-muro 1.3
+muro 1.4
 name Flat on a tight site
 unit mm
 
@@ -72,6 +72,9 @@ boundary /L1/ldk /out t:120
   window w:2400 edge:N sill:400 h:2000
 boundary /L1/bed /out t:120
   window w:1600 edge:N sill:800 h:1400
+boundary /L1/wc /out
+boundary /L1/wash /out
+boundary /L1/bath /out
 ```
 
 A room marked `daylight:1` is a habitable room, so `validate` will ask it for a

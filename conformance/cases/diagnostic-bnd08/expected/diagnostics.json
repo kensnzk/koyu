@@ -1,0 +1,20 @@
+[
+ {
+  "code": "BND08",
+  "severity": "warning",
+  "line": 6,
+  "file": "main.muro",
+  "path": [
+   "/L1/a"
+  ]
+ },
+ {
+  "code": "BND08",
+  "severity": "warning",
+  "line": 7,
+  "file": "main.muro",
+  "path": [
+   "/L1/b"
+  ]
+ }
+]

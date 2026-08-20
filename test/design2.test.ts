@@ -170,19 +170,22 @@ test("diagnostic: DAY01 — the value of daylight is only 0 or 1 (a misspelling 
 test("version: 0.3 and earlier are accepted only where the meaning is preserved — a type that used to be inferred needs daylight (VER02)", () => {
   const src = (v: string, dl: string) =>
     `koyu ${v}\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0 h:2400 slab:150\nspace /L1/a room X1..X2 Y1..Y2${dl}`;
+  // BND08 is scenery: the fixture names no outside, so it draws one at every version (ADR-0065)
+  const codes = (source: string) =>
+    checkDiagnostics(parse(source)).filter((x) => x.code !== "BND08");
   for (const v of ["0.1", "0.2", "0.3"]) {
-    const d = checkDiagnostics(parse(src(v, "")));
+    const d = codes(src(v, ""));
     assert.deepEqual(d.map((x) => x.code), ["VER02"], v);
     assert.match(d[0]!.message, /raise the version to koyu 0\.4/);
     // daylight が明示されていれば新旧で意味が同じなので、旧版のまま受理される
-    assert.deepEqual(checkDiagnostics(parse(src(v, " daylight:1"))), [], `${v} daylight:1`);
-    assert.deepEqual(checkDiagnostics(parse(src(v, " daylight:0"))), [], `${v} daylight:0`);
+    assert.deepEqual(codes(src(v, " daylight:1")), [], `${v} daylight:1`);
+    assert.deepEqual(codes(src(v, " daylight:0")), [], `${v} daylight:0`);
   }
   // 0.4 と、版宣言を省いたファイル (=最新版で読む) には出ない
-  assert.deepEqual(checkDiagnostics(parse(src("0.4", ""))), []);
+  assert.deepEqual(codes(src("0.4", "")), []);
   // 推定対象でなかった型は旧版でも意味が変わらない
   assert.deepEqual(
-    checkDiagnostics(parse("koyu 0.3\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0 h:2400 slab:150\nspace /L1/a hall X1..X2 Y1..Y2")),
+    codes("koyu 0.3\ngrid X 0 3600\ngrid Y 0 4500\nlevel L1 0 h:2400 slab:150\nspace /L1/a hall X1..X2 Y1..Y2"),
     [],
   );
 });

@@ -7,5 +7,14 @@
   "path": [
    "/site"
   ]
+ },
+ {
+  "code": "BND08",
+  "severity": "warning",
+  "line": 6,
+  "file": "main.muro",
+  "path": [
+   "/site/a"
+  ]
  }
 ]

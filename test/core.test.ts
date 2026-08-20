@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { check } from "../src/core/diagnose.js";
 import { doorsBetween, neighbors, placeOpening } from "../src/core/graph.js";
-import { areaM2, SourceError, toCanonical } from "../src/core/model.js";
+import { areaM2, EXTERIOR, SourceError, toCanonical } from "../src/core/model.js";
 import { parse, tokenize } from "../src/core/parse.js";
 import { svgPlan } from "../src/draw/plan.js";
 
@@ -99,8 +99,9 @@ space /L1/b room X2..X3 Y1..Y2
 `);
   const r = check(m);
   assert.deepEqual(r.errors, []);
-  assert.deepEqual(r.warnings, []);
-  const derived = m.boundaries.filter((b) => b.derived);
+  // both rooms name no outside, so each draws BND08 — the wall between them is not what it is about
+  assert.equal(r.warnings.length, 2);
+  const derived = m.boundaries.filter((b) => b.derived && b.b !== EXTERIOR);
   assert.equal(derived.length, 1);
   assert.equal(derived[0]!.kind, "wall");
   // 既定の壁は扉が無いので通れない — 既定は「繋がっていない」ではなく「壁がある」
@@ -164,7 +165,7 @@ test("canonical JSON is stable", () => {
   const j2 = toCanonical(parse(exampleSrc));
   assert.equal(j1, j2);
   assert.ok(j1.includes('"between"'));
-  assert.ok(j1.includes('"muro": "1.3"'), "the version key names the language, whatever word the source used");
+  assert.ok(j1.includes('"muro": "1.4"'), "the version key names the language, whatever word the source used");
 });
 
 test("a plan SVG is generated", () => {

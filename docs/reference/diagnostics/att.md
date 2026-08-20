@@ -50,6 +50,9 @@ level L1 0 h:2400 slab:300
 level L2 3000 h:2400 slab:300
 space /L1/a room X1..X2 Y1..Y2 h:35OO
 space /L2/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
+boundary /L2/a /out
 ```
 
 ```text
@@ -79,6 +82,8 @@ level L1 0 h:2400 slab:150
 zone /site name:敷地 site:yes
 polygon /site 0,0 5000,0 5000,5000 0,5000
 space /site/a room X1..X2 Y1..Y2 level:L1
+space /out outside:1
+boundary /site/a /out
 ```
 
 ```text
@@ -109,6 +114,8 @@ grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 heigh:2200
+space /out outside:1
+boundary /L1/a /out
 ```
 
 ```text
@@ -126,6 +133,8 @@ grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 h:2200 acme.sensor:23 bems.temp:22.5
+space /out outside:1
+boundary /L1/a /out
 ```
 
 koyu gives a namespaced attribute no meaning at all: it checks no value domain and uses it in neither derivation nor validation. **It can be carried but is not judged**, said plainly on the page — which is the whole point of the tier.

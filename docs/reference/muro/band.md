@@ -12,6 +12,9 @@ level L1 0 h:2400 slab:150
 band X X1..X3 Y1..Y2
   space /L1/ldk ldk w:3600 name:LDK
   space /L1/hall hall w:1800 name:玄関
+space /out outside:1
+boundary /L1/ldk /out
+boundary /L1/hall /out
 ```
 
 `band <axis> <X?..X?> <Y?..Y?>`, with indented `space` lines beneath it. **A band writes dimension and order rather than position.** The position is derived from them.
@@ -178,6 +181,9 @@ level L1 0 h:2400 slab:150
 band X X1..X3 Y1..Y2
   space /L1/a room w:8000
   space /L1/b room w:rest
+space /out outside:1
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 The cut at 8000 is spelled `X2+1600`.

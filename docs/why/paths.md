@@ -46,6 +46,10 @@ level L1 0 h:2400 slab:150
 space /L1/home unit X1..X3 Y1..Y2
 space /L1/home/a room X1..X2 Y1..Y2
 space /L1/home/b room X2..X3 Y1..Y2
+space /out outside:1
+boundary /L1/home /out
+boundary /L1/home/a /out
+boundary /L1/home/b /out
 ```
 
 ```text
@@ -62,6 +66,9 @@ level L1 0 h:2400 slab:150
 zone /L1/home name:住戸
 space /L1/home/a room X1..X2 Y1..Y2
 space /L1/home/b room X2..X3 Y1..Y2
+space /out outside:1
+boundary /L1/home/a /out
+boundary /L1/home/b /out
 ```
 
 ```text

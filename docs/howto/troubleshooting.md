@@ -57,7 +57,10 @@ grid Y 0 4000 8000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y2..Y3
+space /out outside:1
 boundary /L1/a /L1/b t:120
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ```text
@@ -139,6 +142,9 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/home unit X1..X3 Y1..Y2 name:住戸
 space /L1/home/ldk ldk X1..X2 Y1..Y2 name:LDK
+space /out outside:1
+boundary /L1/home /out
+boundary /L1/home/ldk /out
 ```
 
 ```text
@@ -154,6 +160,9 @@ level L1 0 h:2400 slab:150
 zone /L1/home name:住戸
 space /L1/home/ldk ldk X1..X2 Y1..Y2 name:LDK
 space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
+space /out outside:1
+boundary /L1/home/ldk /out
+boundary /L1/home/bed /out
 ```
 
 ```text
@@ -170,7 +179,10 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/bath t:120
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ```text
@@ -239,7 +251,7 @@ The exit code is 2 and the declared level names are printed alongside. `koyu lev
 Between touching spaces, a **wall with no door** is derived when nothing is declared. **Doors are never added automatically.** A two-storey house with only the envelope and the stair declared seals every room while `check` stays green.
 
 ```muro
-muro 1.3
+muro 1.4
 name 密封された二室
 unit mm
 grid X 0 3600 7200
@@ -250,6 +262,10 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
 space /out name:外部 outside:1
 boundary /L1/a /out t:150 spec:EW edge:W
 boundary /L1/b /out t:150 spec:EW edge:E
+boundary /L1/a /out edge:S
+boundary /L1/a /out edge:N
+boundary /L1/b /out edge:S
+boundary /L1/b /out edge:N
 ```
 
 ```text
@@ -285,11 +301,12 @@ boundary /L1/a /L1/b t:120 spec:LGS
 
 "Cannot reach" **comes back with identical wording when the start or end path does not exist.** Check the spelling with `graph` first.
 
-## 10. Green, and no envelope
+## 10. The exterior wall is there, but nobody named it
 
-Default walls are derived only for pairs where **both spaces have regions.** Nothing is derived against a space with no region, such as `/out` — which exterior a room faces is information that has to be named.
+**Every side of a space is a wall unless something says otherwise, the outside included.** What silence cannot supply is *which* outside — street, neighbour, garden — and that decides frontage, daylight and specification. So the wall is derived and [BND08](../reference/diagnostics/bnd.md#bnd08) asks for the name.
 
-```muro
+```muro-warn
+muro 1.4
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -298,16 +315,12 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
 ```
 
 ```text
-✔ Consistent — 2 spaces / 1 boundary
+⚠ …/rooms.muro:line 5: A default wall was derived where /L1/a faces the outside: S 3600mm / N 3600mm / W 4000mm (11200mm over 3 runs) — write a boundary to say which outside it faces
+⚠ …/rooms.muro:line 6: A default wall was derived where /L1/b faces the outside: S 3600mm / E 4000mm / N 3600mm (11200mm over 3 runs) — write a boundary to say which outside it faces
+✔ Consistent — 2 spaces / 3 boundaries (2 warnings)
 ```
 
-That one boundary is the default wall between the rooms; the perimeter has none at all. It is still green.
-
-`validate` does look at this. Against the example in trap 9 it returns:
-
-```text
-⚠ [koyu.schematic.envelope.gap] sealed.muro:line 7: Perimeter not faced by any envelope: /L1/a — N 3600mm / S 3600mm (7200mm over 2 run(s)). Write a boundary to the exterior
-```
+Three boundaries: the wall between the rooms, and one around the outside of each. The shape is complete — it is the name that is missing.
 
 **The fix.** Declare an exterior space and write one boundary from each perimeter room. Splitting the exterior by direction or character makes `edge:` easier to write and opens up the site questions.
 
@@ -317,7 +330,7 @@ boundary /L1/a /out t:150 spec:EW
 boundary /L1/b /out t:150 spec:EW
 ```
 
-**Interior walls automatic, exterior walls by hand.** The asymmetry is deliberate.
+**Half a declaration does not silence it.** Write `boundary /L1/a /out edge:S` and the south run is yours; north and west still take the default, and BND08 still names them. The outside is not a pair to be suppressed as a unit — it is whatever the rest of the perimeter faces.
 
 ## 11. An attribute has no effect
 

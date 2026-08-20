@@ -27,6 +27,9 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
+space /out outside:1
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ```text
@@ -48,15 +51,37 @@ boundary /L1/hall /L2/bed type:stair    # exception — a stair, not a floor
 
 There used to be a warning for "these touch but no boundary is declared". Once the default became a wall it had no work left to do, and it was retired. **Where silence carries positive meaning, it is not an omission.**
 
-## Only the third is different
+## The outside is not an exception
 
-**Internal walls are automatic; external walls are manual.** This asymmetry does not show up in a table of default values. Miss it and the drawing breaks.
+**Every side of a space is a wall unless something says otherwise** — the side facing another room, and the side facing the weather alike. Nothing about a boundary changes when the thing on the far side is the outdoors.
 
-The file above passes `check`, and yet **it has no external walls at all**. The only thing drawn in black is the one line in the middle — the derived default wall. The perimeter has nothing.
+It was not always so. Until muro 1.4 the exterior was carved out of the default: a boundary between touching spaces was derived, but a boundary to a space with no region was not. The reason was real — *which* exterior a face looks at (street, neighbouring plot, garden, common corridor) is information no default can derive, and road frontage is measured against exterior spaces declared as roads, so how you split them changes the numbers.
 
-An envelope appears only once an exterior space and boundaries to it are written.
+**The reason was real and the rule still did not pay.** Naming was not something the old rule obtained; it was something the old rule *demanded*, and what you got for forgetting was not a name but a hole — no wall in the plan, a gap in the solids, and `check` green over the top of it. On a 425-space building that came to 34 missing stretches of wall, of which a person reading the model found two.
+
+So the default moved and the naming stayed:
+
+```muro-warn
+muro 1.4
+grid X 0 3600 7200
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2 name:居室A
+space /L1/b room X2..X3 Y1..Y2 name:居室B
+```
+
+Six lines, and both rooms are enclosed — one wall between them and a wall around the outside of each. What is missing is not substance but a name, and `check` says exactly that:
+
+```text
+⚠ …/rooms.muro:line 5: A default wall was derived where /L1/a faces the outside: S 3600mm / N 3600mm / W 4000mm (11200mm over 3 runs) — write a boundary to say which outside it faces
+⚠ …/rooms.muro:line 6: A default wall was derived where /L1/b faces the outside: S 3600mm / E 4000mm / N 3600mm (11200mm over 3 runs) — write a boundary to say which outside it faces
+✔ Consistent — 2 spaces / 3 boundaries (2 warnings)
+```
+
+Write the name and the warning goes; the walls were never in question.
 
 ```muro
+muro 1.4
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -67,27 +92,9 @@ boundary /L1/a /out t:150 spec:EW
 boundary /L1/b /out t:150 spec:EW
 ```
 
-**There is a reason.** *Which* exterior — street, neighbouring plot, garden, common corridor — is itself information, and no default can derive it. Whether the exterior is one monolithic `/out` or is split by orientation is a design decision. Road frontage is measured against exterior spaces declared as roads, so how you split it changes the numbers.
+**This is the shape the whole page argues for.** Silence gives you the ordinary thing; a declaration departs from it, or gives the defaulted substance a value. The exterior used to be the one place where silence gave you nothing instead, and being the exception is what made it the thing everybody forgot.
 
-**The dividing line is not "is it `exterior`" but "does it have a region".** An exterior space that does have a region and a level — `space /out/garden exterior X2..X3 Y1..Y2 level:L1` — gets a derived default wall against the rooms it touches.
-
-## A missing envelope is not caught by green — it is caught by judgement
-
-`check` does not look at envelope gaps, because a gap is not a contradiction in the composition.
-
-Judgement does.
-
-```sh
-npx tsx src/cli.ts validate gap.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
-```
-
-```text
-⚠ [koyu.schematic.envelope.gap] gap.muro:line 6: Perimeter not faced by any envelope: /L1/b — E 4000mm / N 3600mm / S 3600mm (11200mm over 3 run(s)). Write a boundary to the exterior
-Validation — 0 violations / 1 caution
-  koyu.profile.schematic-screen@1 — 4 evaluated / 12 not applicable / 0 indeterminate / 0 error
-```
-
-The rule is deliberately coarse — it looks only at **levels where at least one boundary to the exterior has been written**. It will not call a storey whose envelope has not been modelled yet "full of holes". It demands "if you started, finish"; it does not demand completeness. Coarseness is allowed because judgement lives in a domain that does not freeze ([check and validate](two-kinds-of-green.md)). The rule is [envelope.gap](../reference/validate/envelope.md).
+**Suppression works by run, not by pair.** Between two spaces, one declaration covers the pair. The outside is not a pair — it is whatever the rest of the perimeter faces — so a boundary written `edge:S` takes the south run and the default keeps the other three. You cannot half-declare your way back into a hole.
 
 ## Silence generates derivation — semi-outdoor
 
@@ -103,6 +110,7 @@ space /out outside:1
 boundary /L1/room /L1/balcony t:150
   window w:1600 h:2000
 boundary /L1/balcony /out type:open
+boundary /L1/room /out
 ```
 
 The last line is what makes the balcony semi-outdoor. Writing `type:terrace`, or `type:balcony`, does not — **it is the boundary that makes it so.**

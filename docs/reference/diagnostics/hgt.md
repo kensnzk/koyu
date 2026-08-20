@@ -64,6 +64,9 @@ level L1 0 h:2800 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
+boundary /L2/a /out
 ```
 
 ```text
@@ -87,6 +90,9 @@ level L1 0 h:2800 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X2 Y1..Y2 h:2400
 space /L2/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
+boundary /L2/a /out
 ```
 
 If you meant to pierce the storey, that is a void — see HGT02 below.
@@ -103,7 +109,11 @@ level L2 3000 h:2400 slab:400
 space /L1/a room X1..X3 Y1..Y2
 space /L2/v X1..X2 Y1..Y2 void:1
 space /L2/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L2/v type:void
+boundary /L1/a /out
+boundary /L2/v /out
+boundary /L2/b /out
 ```
 
 ```text
@@ -124,7 +134,11 @@ level L2 3000 h:2400 slab:400
 space /L1/a room X1..X3 Y1..Y2
 space /L2/v X1..X2 Y1..Y2 void:1
 space /L2/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L2/v type:void
+boundary /L1/a /out
+boundary /L2/v /out
+boundary /L2/b /out
 ```
 
 **The height of the void part is never declared.** It is derived from the `void` relation. The lower storey's ceiling height is the ceiling height where there *is* a floor above, not the height of the void.
@@ -138,7 +152,10 @@ level L1 0 h:5400 slab:400
 level L2 3000 h:2400 slab:400
 space /L1/a room X1..X2 Y1..Y2
 space /L2/v X1..X2 Y1..Y2 void:1
+space /out outside:1
 boundary /L1/a /L2/v type:void
+boundary /L1/a /out
+boundary /L2/v /out
 ```
 
 ## What HGT does not say

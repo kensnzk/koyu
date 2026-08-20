@@ -25,6 +25,8 @@ grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X3 Y1..Y2 + X2..X3 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 `Regions within /L1/a overlap: X1..X3 Y1..Y2 and X2..X3 Y1..Y2`
@@ -45,6 +47,9 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X3 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 `Space regions overlap: /L1/a and /L1/b`
@@ -62,6 +67,9 @@ level L1 0 h:2400 slab:150
 zone /L1/home name:住戸
 space /L1/home/ldk ldk X1..X2 Y1..Y2 name:LDK
 space /L1/home/bed bedroom X2..X3 Y1..Y2 name:寝室
+space /out outside:1
+boundary /L1/home/ldk /out
+boundary /L1/home/bed /out
 ```
 
 Writing the dwelling itself as a `space` and nesting further `space`s inside it does not stand up. **Spaces do not overlap** is the rule of the plan, and hierarchy is carried by the path, not by geometry. Zone diagnostics are on [ZON](zon.md).

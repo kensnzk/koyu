@@ -196,7 +196,7 @@ The value comes from the **deepest zone** whose path is a prefix of the space's 
 **Which key travels is chosen by whatever asks for it.** Core hands nothing down of its own accord; the resolution runs when something names a key — [`koyu stats --by`](../cli/stats.md), the MCP `model_summary`, a validation rule reading the key it cares about. A space is therefore grouped along as many divisions at once as it carries.
 
 ```muro
-muro 1.3
+muro 1.4
 name 継承の例
 grid X 0 4000 8000
 grid Y 0 4000
@@ -204,6 +204,9 @@ level L1 0 h:2400 slab:150
 zone /L1/A name:Aタイプ lease.category:exclusive fire.compartment:c3
 space /L1/A/ldk  ldk  X1..X2 Y1..Y2 name:LDK
 space /L1/A/hall hall X2..X3 Y1..Y2 name:玄関 lease.category:common
+space /out outside:1
+boundary /L1/A/ldk /out
+boundary /L1/A/hall /out
 ```
 
 Ask for both groupings — `koyu stats --by lease.category --by fire.compartment` — and the last two lines of the totals are these.

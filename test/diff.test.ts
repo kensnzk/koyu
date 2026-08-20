@@ -11,7 +11,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { renderDiff, semanticDiff, type ModelDiff } from "../src/core/diff.js";
-import { toCanonical } from "../src/core/model.js";
+import { EXTERIOR, toCanonical } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
 import { parseFile } from "../src/parse-file.js";
 
@@ -281,11 +281,16 @@ test("diff: spaces added and removed (with type and area). The default boundary 
   const b = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /L1/study room X2..X3 Y1..Y2`);
   const d = semanticDiff(a, b);
   assert.deepEqual(d.spaces.added, [{ path: "/L1/study", type: "room", areaM2: 16.2 }]);
-  assert.deepEqual(d.boundaries.added, [{ between: ["/L1/a", "/L1/study"], kind: "wall" }]);
+  // Two walls arrive with the room: the one it shares with /L1/a, and the one round the rest of
+  // its perimeter, whose counterpart is the outside itself (ADR-0065)
+  assert.deepEqual(d.boundaries.added, [
+    { between: ["/L1/a", "/L1/study"], kind: "wall" },
+    { between: ["/L1/study", EXTERIOR], kind: "wall" },
+  ]);
   assert.ok(renderDiff(d).includes("+ space /L1/study (room 16.20 m2)"));
   const r = semanticDiff(b, a);
   assert.equal(r.spaces.removed[0]!.path, "/L1/study");
-  assert.equal(r.boundaries.removed.length, 1);
+  assert.equal(r.boundaries.removed.length, 2);
 });
 
 // ---- CLI: 終了コード 0/1/2 ----

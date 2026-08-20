@@ -24,7 +24,7 @@ Every output below was actually run. Absolute paths are abbreviated to `<dir>/`.
 A single-storey pair of rooms. There is one entrance door, and nothing at all between the two rooms.
 
 ```muro-part
-muro 1.3
+muro 1.4
 name 平屋
 unit mm
 
@@ -194,60 +194,28 @@ After one door, the same question answers:
 }
 ```
 
-And `validate` keeps returning architectural findings while `check` stays green. It takes `profile` and `asOf` as well as `file`, and infers neither. Here is the `findings` part of its report, with the evidence elided as `…`.
+And `check` keeps saying what silence decided. The building above is enclosed — every side of both rooms is a wall — but only one of those walls was written, so the rest carry no name.
 
 ```text
- "findings": [
-  {
-   "level": "caution",
-   "outcome": {
-    "evidence": [ … ],
-    "id": "/L1/a",
-    "message": "Perimeter not faced by any envelope: /L1/a — N 3600mm / S 3600mm / W 4500mm (11700mm over 3 run(s)). Write a boundary to the exterior",
-    "status": "fail",
-    "subjects": [
-     {
-      "kind": "space",
-      "ref": "/L1/a"
-     }
-    ]
-   },
-   "rule": {
-    "id": "koyu.schematic.envelope.gap",
-    "revision": "1"
-   },
-   "ruleSet": {
-    "id": "koyu.ruleset.schematic-screen",
-    "revision": "1"
-   }
-  },
-  {
-   "level": "caution",
-   "outcome": {
-    "evidence": [ … ],
-    "id": "/L1/b",
-    "message": "Perimeter not faced by any envelope: /L1/b — E 4500mm / N 3600mm (8100mm over 2 run(s)). Write a boundary to the exterior",
-    "status": "fail",
-    "subjects": [
-     {
-      "kind": "space",
-      "ref": "/L1/b"
-     }
-    ]
-   },
-   "rule": {
-    "id": "koyu.schematic.envelope.gap",
-    "revision": "1"
-   },
-   "ruleSet": {
-    "id": "koyu.ruleset.schematic-screen",
-    "revision": "1"
-   }
-  }
- ],
+{
+ "code": "BND08",
+ "severity": "warning",
+ "message": "A default wall was derived where /L1/a faces the outside: S 3600mm / N 3600mm / W 4500mm (11700mm over 3 runs) — write a boundary to say which outside it faces",
+ "line": 5,
+ "path": [ "/L1/a" ]
+}
+{
+ "code": "BND08",
+ "severity": "warning",
+ "message": "A default wall was derived where /L1/b faces the outside: E 4500mm / N 3600mm (8100mm over 2 runs) — write a boundary to say which outside it faces",
+ "line": 6,
+ "path": [ "/L1/b" ]
+}
 ```
 
-Not one exterior wall has been written. `check` never mentioned it — boundaries against a space with no region are not derived.
+**This is the one warning an agent should not skip.** The shape is complete either way; what the message asks for is the decision silence could not make — whether that face looks at a road, a neighbour or a garden. Frontage, daylight and specification all read it. `boundary /L1/a /out` answers it in one line.
+
+`validate` answers a different set of questions and takes `profile` and `asOf` as well as `file`, inferring neither. Against this building it returns no findings at all: both rooms reach the outside through the front door.
 
 **Which question to ask is decided by what was edited.**
 
