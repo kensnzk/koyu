@@ -56,6 +56,26 @@ export interface SectionSpec {
   look: Edge;
 }
 
+/** A directed cutting line in plan. `u` starts at `(x1,y1)` and increases toward `(x2,y2)`. */
+export interface SectionLine {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+/**
+ * A vertical plane named by a directed line rather than a grid-parallel coordinate.
+ *
+ * The viewer looks toward the line's left side, so the line direction is left-to-right on the
+ * sheet. The two endpoints name the frame; the cutting plane itself is infinite.
+ */
+export interface LineSectionSpec {
+  cut: SectionLine;
+  /** a caller-owned name for the cut, when there is one */
+  atRef?: string;
+}
+
 export interface SectionEntity {
   class: SectionClass;
   of: SectionSubject;
@@ -78,6 +98,13 @@ export interface FormSection {
   at: number;
   atRef?: string;
   look: Edge;
+  entities: SectionEntity[];
+}
+
+/** A section made by a directed line. Its entities have the same meaning as an axis section. */
+export interface LineFormSection {
+  cut: SectionLine;
+  atRef?: string;
   entities: SectionEntity[];
 }
 
@@ -160,6 +187,36 @@ function cutOf(body: FormBody, axis: SectionAxis, at: number, u: (p: Pt) => numb
   ];
 }
 
+/** The polygon a body leaves on a directed line, in that line's `(u,z)` frame. */
+function lineCutOf(
+  body: FormBody,
+  u: (p: Pt) => number,
+  behind: (p: Pt) => number,
+): SectionPt[] | undefined {
+  // `crossing` already owns the tolerance and the rules for a convex ring grazing a plane. Put
+  // the body into the line's orthonormal frame and ask the same axis question there, so an
+  // oblique cut cannot acquire a second intersection rule.
+  const local = body.poly.map((p) => ({ x: behind(p), y: u(p) }));
+  const met = crossing(local, "X", 0);
+  if (!met) return undefined;
+  const n = body.poly.length;
+  const at01 = (v: number[], c: { edge: number; t: number }): number =>
+    v[c.edge]! + c.t * (v[(c.edge + 1) % n]! - v[c.edge]!);
+  const ends = met.map((c) => ({
+    u: local[c.edge]!.y + c.t * (local[(c.edge + 1) % n]!.y - local[c.edge]!.y),
+    z0: at01(body.bottom, c),
+    z1: at01(body.top, c),
+  }));
+  const [a, b] = ends[0]!.u <= ends[1]!.u ? [ends[0]!, ends[1]!] : [ends[1]!, ends[0]!];
+  if (b.u - a.u <= EPS) return undefined;
+  return [
+    { u: a.u, z: a.z0 },
+    { u: b.u, z: b.z0 },
+    { u: b.u, z: b.z1 },
+    { u: a.u, z: a.z1 },
+  ];
+}
+
 /**
  * The shape a body throws onto the plane, seen head-on.
  *
@@ -202,12 +259,44 @@ function shadowOf(body: FormBody, u: (p: Pt) => number): SectionPt[] | undefined
   return ring.length >= 3 ? ring.map((p) => ({ u: p.x, z: p.y })) : undefined;
 }
 
-function entitiesOf(bodies: FormBody[], spec: SectionSpec): SectionEntity[] {
+interface SectionFrame {
+  u: (p: Pt) => number;
+  /** How far behind the plane a point stands. Positive is away from the viewer. */
+  behind: (p: Pt) => number;
+  cut: (body: FormBody) => SectionPt[] | undefined;
+}
+
+function axisFrame(spec: SectionSpec): SectionFrame {
   const d = look(spec.look);
   const r = rightOf(d);
   const u = (p: Pt): number => p.x * r.x + p.y * r.y;
-  /** How far behind the plane a point stands. Positive is away from the viewer. */
   const behind = (p: Pt): number => (spec.axis === "X" ? (p.x - spec.at) * d.x : (p.y - spec.at) * d.y);
+  return { u, behind, cut: (body) => cutOf(body, spec.axis, spec.at, u) };
+}
+
+function lineFrame(spec: LineSectionSpec): SectionFrame {
+  const { x1, y1, x2, y2 } = spec.cut;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const length = Math.hypot(dx, dy);
+  if (length <= EPS) throw new Error("A section line needs two distinct points");
+  // q is right on the sheet. d points away from the viewer, toward the line's left side.
+  const q = { x: dx / length, y: dy / length };
+  const d = { x: -q.y, y: q.x };
+  const relative = (p: Pt): Pt => ({ x: p.x - x1, y: p.y - y1 });
+  const u = (p: Pt): number => {
+    const v = relative(p);
+    return v.x * q.x + v.y * q.y;
+  };
+  const behind = (p: Pt): number => {
+    const v = relative(p);
+    return v.x * d.x + v.y * d.y;
+  };
+  return { u, behind, cut: (body) => lineCutOf(body, u, behind) };
+}
+
+function entitiesOf(bodies: FormBody[], frame: SectionFrame): SectionEntity[] {
+  const { u, behind } = frame;
 
   const out: SectionEntity[] = [];
   for (const body of bodies) {
@@ -226,7 +315,7 @@ function entitiesOf(bodies: FormBody[], spec: SectionSpec): SectionEntity[] {
     const wholly = { behind: lo >= -EPS && hi > EPS, front: hi <= EPS && lo < -EPS };
     if (!wholly.behind && !wholly.front) {
       // It reaches both sides: the plane crossed it.
-      const polygon = cutOf(body, spec.axis, spec.at, u);
+      const polygon = frame.cut(body);
       if (polygon) {
         out.push({ class: "cut", of: body.of, ref: body.ref, ...(body.kind ? { kind: body.kind } : {}), polygon, depth: 0 });
       }
@@ -256,10 +345,20 @@ function entitiesOf(bodies: FormBody[], spec: SectionSpec): SectionEntity[] {
 /**
  * The section a vertical plane makes of a `Form`.
  *
- * The plane is named by an axis and a coordinate; `look` says which way it is faced, and must
- * cross the plane rather than run along it.
+ * An axis spec names a coordinate and a facing. A line spec names the same frame by two directed
+ * plan points, with positive `u` running from the first to the second.
  */
-export function sectionForm(form: Form, spec: SectionSpec): FormSection {
+export function sectionForm(form: Form, spec: SectionSpec): FormSection;
+export function sectionForm(form: Form, spec: LineSectionSpec): LineFormSection;
+export function sectionForm(form: Form, spec: SectionSpec | LineSectionSpec): FormSection | LineFormSection {
+  if ("cut" in spec) {
+    const frame = lineFrame(spec);
+    return {
+      cut: spec.cut,
+      ...(spec.atRef !== undefined ? { atRef: spec.atRef } : {}),
+      entities: entitiesOf(cuttableBodies(form), frame),
+    };
+  }
   if (axisOf(spec.look) !== spec.axis) {
     throw new Error(
       `Looking ${spec.look} runs along the ${spec.axis} plane rather than across it (an X plane is looked at from E or W, a Y plane from N or S)`,
@@ -270,7 +369,7 @@ export function sectionForm(form: Form, spec: SectionSpec): FormSection {
     at: spec.at,
     ...(spec.atRef !== undefined ? { atRef: spec.atRef } : {}),
     look: spec.look,
-    entities: entitiesOf(cuttableBodies(form), spec),
+    entities: entitiesOf(cuttableBodies(form), axisFrame(spec)),
   };
 }
 
@@ -302,7 +401,7 @@ export function elevationForm(form: Form, face: Edge): FormSection {
     }
   }
   const spec: SectionSpec = { axis, at, look: from };
-  return { axis, at, look: from, entities: entitiesOf(bodies, spec) };
+  return { axis, at, look: from, entities: entitiesOf(bodies, axisFrame(spec)) };
 }
 
 /** The area of a section polygon, mm². Used by the tests that hold the cut against the Form. */

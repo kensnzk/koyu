@@ -225,7 +225,7 @@ This file is written in muro 9.9, and this build of koyu (0.22.0) reads up to 1.
 **The fix** — install a newer koyu. `koyu --version` says what this build reads:
 
 ```text
-koyu 0.26.0 — reads muro 0.1–1.4 (newest 1.4; a file with no version line is read as 1.1)
+koyu 0.27.0 — reads muro 0.1–1.4 (newest 1.4; a file with no version line is read as 1.1)
 ```
 
 **Why it is a separate code from an unreadable version.** A version that never existed is a different situation with the opposite advice, and it keeps the `SYN01` it always had:

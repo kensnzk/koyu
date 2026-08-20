@@ -18,6 +18,8 @@ import {
   elevationForm,
   sectionForm,
   type FormSection,
+  type LineFormSection,
+  type SectionLine,
   type SectionAxis,
   type SectionEntity,
   type SectionPt,
@@ -35,6 +37,26 @@ export interface SectionOptions {
   look?: Edge;
   /** px per mm (default 0.05, the same as a plan, so the two can be laid side by side) */
   scale?: number;
+  /** caller-supplied reference geometry in the section's `(u,z)` frame */
+  guides?: SectionGuide[];
+}
+
+/** A section whose plane follows a directed line in plan. */
+export interface LineSectionOptions {
+  cut: SectionLine;
+  /** a caller-owned name for the cut */
+  atRef?: string;
+  /** px per mm */
+  scale?: number;
+  /** caller-supplied reference geometry in the section's `(u,z)` frame */
+  guides?: SectionGuide[];
+}
+
+/** A reference polyline drawn over a section without becoming part of the building Form. */
+export interface SectionGuide {
+  points: SectionPt[];
+  label?: string;
+  showVertices?: boolean;
 }
 
 export interface ElevationOptions {
@@ -51,9 +73,17 @@ const GLASS = "#b9c3c0";
 /** Annotation. */
 const LABEL = "#8a8171";
 
-export function svgSection(model: Model, opts: SectionOptions): string {
-  const look = opts.look ?? defaultLook(opts.axis);
+export function svgSection(model: Model, opts: SectionOptions | LineSectionOptions): string {
   const form = derive(model);
+  if ("cut" in opts) {
+    const section = sectionForm(form, {
+      cut: opts.cut,
+      ...(opts.atRef !== undefined ? { atRef: opts.atRef } : {}),
+    });
+    const where = opts.atRef ?? `(${opts.cut.x1}, ${opts.cut.y1})–(${opts.cut.x2}, ${opts.cut.y2})`;
+    return sheet(model, form, section, opts.scale, `${model.name ?? "Untitled"} — section along ${where}`, opts.guides);
+  }
+  const look = opts.look ?? defaultLook(opts.axis);
   const section = sectionForm(form, {
     axis: opts.axis,
     at: opts.at,
@@ -61,7 +91,14 @@ export function svgSection(model: Model, opts: SectionOptions): string {
     look,
   });
   const where = opts.atRef ?? `${opts.axis} ${opts.at}`;
-  return sheet(model, form, section, opts.scale, `${model.name ?? "Untitled"} — section at ${where} looking ${look}`);
+  return sheet(
+    model,
+    form,
+    section,
+    opts.scale,
+    `${model.name ?? "Untitled"} — section at ${where} looking ${look}`,
+    opts.guides,
+  );
 }
 
 export function svgElevation(model: Model, opts: ElevationOptions): string {
@@ -82,9 +119,10 @@ export function svgElevation(model: Model, opts: ElevationOptions): string {
 function sheet(
   model: Model,
   form: Form,
-  section: FormSection,
+  section: FormSection | LineFormSection,
   scale: number | undefined,
   heading: string,
+  guides: SectionGuide[] = [],
 ): string {
   const s = scale ?? 0.05;
 
@@ -92,6 +130,9 @@ function sheet(
   // limit on how many arguments a call may take.
   const ext = new Extent();
   for (const e of section.entities) for (const p of e.polygon) ext.see(p.u, p.z);
+  for (const guide of guides) {
+    for (const p of guide.points) if (Number.isFinite(p.u) && Number.isFinite(p.z)) ext.see(p.u, p.z);
+  }
   if (ext.empty) throw new Error("There is nothing to draw");
   const minU = ext.min0;
   const maxU = ext.max0;
@@ -165,16 +206,18 @@ function sheet(
   // ---- the grid, along the sheet ----
   // The axis the plane is named on gets no bubbles — every one of its lines would land on the same
   // point. The other axis is what runs across the sheet, so that is the one that marks it.
-  const across = section.axis === "X" ? model.grid.Y : model.grid.X;
-  const sign = section.look === "W" || section.look === "N" ? 1 : -1;
-  for (const [i, c] of across.coords.entries()) {
-    const u = c * sign;
-    if (u < minU - 1 || u > maxU + 1) continue;
-    parts.push(
-      `<line x1="${sx(u)}" y1="${MT - 26}" x2="${sx(u)}" y2="${H - MB + 26}" stroke="${GRID}" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>`,
-      `<circle cx="${sx(u)}" cy="${MT - 40}" r="11" fill="none" stroke="${GRID}" stroke-width="1"/>`,
-      `<text x="${sx(u)}" y="${MT - 36}" text-anchor="middle" font-size="10" fill="${GRID}">${across.names[i]!}</text>`,
-    );
+  if ("axis" in section) {
+    const across = section.axis === "X" ? model.grid.Y : model.grid.X;
+    const sign = section.look === "W" || section.look === "N" ? 1 : -1;
+    for (const [i, c] of across.coords.entries()) {
+      const u = c * sign;
+      if (u < minU - 1 || u > maxU + 1) continue;
+      parts.push(
+        `<line x1="${sx(u)}" y1="${MT - 26}" x2="${sx(u)}" y2="${H - MB + 26}" stroke="${GRID}" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>`,
+        `<circle cx="${sx(u)}" cy="${MT - 40}" r="11" fill="none" stroke="${GRID}" stroke-width="1"/>`,
+        `<text x="${sx(u)}" y="${MT - 36}" text-anchor="middle" font-size="10" fill="${GRID}">${across.names[i]!}</text>`,
+      );
+    }
   }
 
   // ---- what the plane cut ----
@@ -191,6 +234,27 @@ function sheet(
     parts.push(
       `<path d="${path2d(e.polygon)}" fill="${e.kind === "window" ? GLASS : ROOM}" stroke="${INK}" stroke-width="1"/>`,
     );
+  }
+
+  // ---- caller-supplied reference geometry ----
+  // These lines explain the section but are not part of the building. Their coordinates use the
+  // section's own frame, so a caller never has to reproduce the world-to-sheet mapping.
+  for (const guide of guides) {
+    const points = guide.points.filter((p) => Number.isFinite(p.u) && Number.isFinite(p.z));
+    if (points.length >= 2) {
+      parts.push(
+        `<polyline points="${points.map((p) => `${sx(p.u)},${sy(p.z)}`).join(" ")}" fill="none" stroke="#A84940" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`,
+      );
+    }
+    if (guide.showVertices) {
+      for (const p of points) {
+        parts.push(`<circle cx="${sx(p.u)}" cy="${sy(p.z)}" r="2.8" fill="#A84940"/>`);
+      }
+    }
+    const last = points[points.length - 1];
+    if (last && guide.label) {
+      parts.push(`<text x="${sx(last.u) + 7}" y="${sy(last.z) - 7}" font-size="10" fill="#A84940">${esc(guide.label)}</text>`);
+    }
   }
 
   // ---- the rooms, named ----

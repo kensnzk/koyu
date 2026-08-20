@@ -77,7 +77,7 @@ export const LAST_KOYU_SPELLED_VERSION = "1.1";
  * `since` column is written in this vocabulary, and every surface that answers "which muro
  * does this build speak" needs both halves at once.
  */
-export const KOYU_VERSION = "0.26.0";
+export const KOYU_VERSION = "0.27.0";
 
 /**
  * Whether `a` names a later language version than `b`.

@@ -29,7 +29,7 @@ The server never initiates a request. It writes no logs and no progress to stdou
 ```
 
 ```text
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.26.0","muro":{"reads":["0.1","0.2","0.3","0.4","0.5","1.0","1.1","1.2","1.3","1.4"],"newest":"1.4","undeclared":"1.1"}},"instructions":"Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (the drawings — plan_svg, section_svg, elevation_svg) is generated, never written."}}
+{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.27.0","muro":{"reads":["0.1","0.2","0.3","0.4","0.5","1.0","1.1","1.2","1.3","1.4"],"newest":"1.4","undeclared":"1.1"}},"instructions":"Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (the drawings — plan_svg, section_svg, elevation_svg) is generated, never written."}}
 ```
 
 | Field | Contents |

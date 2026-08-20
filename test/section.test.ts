@@ -49,7 +49,7 @@ const span = (e: SectionEntity, k: "u" | "z"): [number, number] => {
   return [Math.min(...v), Math.max(...v)];
 };
 
-const pick = (s: FormSection, cls: string, of: string): SectionEntity[] =>
+const pick = (s: Pick<FormSection, "entities">, cls: string, of: string): SectionEntity[] =>
   s.entities.filter((e) => e.class === cls && e.of === of);
 
 // ---- What the plane cut ----
@@ -160,6 +160,36 @@ test("section: looking along the plane instead of across it is refused, not answ
   assert.throws(
     () => sectionForm(form("examples/two-rooms.muro"), { axis: "X", at: 3600, look: "N" }),
     /runs along the X plane rather than across it/,
+  );
+});
+
+test("section: an axis-parallel directed line gives the same classified entities as the axis form", () => {
+  const f = form("examples/two-rooms.muro");
+  const axis = sectionForm(f, { axis: "Y", at: 2250, look: "N" });
+  const line = sectionForm(f, { cut: { x1: 0, y1: 2250, x2: 7200, y2: 2250 } });
+  assert.deepEqual(line.entities, axis.entities);
+});
+
+test("section: a directed oblique line cuts in its own metric frame", () => {
+  const f = form("examples/two-rooms.muro");
+  const cut = { x1: 0, y1: 1000, x2: 7200, y2: 3500 };
+  const s = sectionForm(f, { cut });
+  const room = pick(s, "cut", "space");
+  assert.ok(room.length >= 2, "the oblique line crosses both rooms");
+  assert.deepEqual(span(room[0]!, "z"), [0, 2400]);
+  const allU = room.flatMap((e) => e.polygon.map((p) => p.u));
+  assert.ok(Math.abs(Math.min(...allU)) < 1e-9, "u starts at the first point of the directed line");
+  assert.ok(
+    Math.abs(Math.max(...allU) - Math.hypot(cut.x2 - cut.x1, cut.y2 - cut.y1)) < 1e-9,
+    "u is distance along the directed line",
+  );
+});
+
+test("section: a directed line with no direction is refused", () => {
+  const f = form("examples/two-rooms.muro");
+  assert.throws(
+    () => sectionForm(f, { cut: { x1: 100, y1: 200, x2: 100, y2: 200 } }),
+    /needs two distinct points/,
   );
 });
 

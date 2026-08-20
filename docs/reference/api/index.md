@@ -33,13 +33,13 @@ import { svgPlan } from "@kensnzk/koyu/draw";
 | `@kensnzk/koyu/model` | `Model` and the questions the model answers on its own | not pulled |
 | `@kensnzk/koyu/diagnostics` | structural-consistency diagnostics and the code ledger | not pulled |
 | `@kensnzk/koyu/graph` | adjacency, passability, routes, boundary segments | not pulled |
-| `@kensnzk/koyu/form` | `derive`, the `Form` types, the [constructors of matter](../form/index.md), and [`sectionForm` / `elevationForm`](../form/section.md) — the one derivation of shape | not pulled |
+| `@kensnzk/koyu/form` | `derive`, the `Form` types, the [constructors of matter](../form/index.md), and [`sectionForm` / `elevationForm`](../form/section.md) — including axis and directed-line vertical sections | not pulled |
 | `@kensnzk/koyu/analysis` | the analysis protocol: run one analysis under an explicit context and profile | not pulled |
 | `@kensnzk/koyu/diff` | the semantic difference between two models | not pulled |
 | `@kensnzk/koyu/vocabulary` | the attribute ledger | not pulled |
 | `@kensnzk/koyu/validate` | the rule SPI, the runner, `AssessmentReport` | not pulled |
 | `@kensnzk/koyu/validate/builtin` | the rules, the rule set and the profile koyu ships | not pulled |
-| `@kensnzk/koyu/draw` | `svgPlan`, `svgAxo`, `svgSection`, `svgElevation` and their option types; and the base every drawing is made from — [`planMarks`](../form/marks.md) for a plan, [`sceneOf`](../form/scene.md) for a 3D scene | not pulled |
+| `@kensnzk/koyu/draw` | `svgPlan`, `svgAxo`, `svgSection`, `svgElevation` and their option types; `svgSection` draws axis or directed-line cuts and caller reference guides; and the base every drawing is made from — [`planMarks`](../form/marks.md) for a plan, [`sceneOf`](../form/scene.md) for a 3D scene | not pulled |
 | `@kensnzk/koyu/node` | `parseFile` and `parseFileWith`, nothing else | pulled |
 | `@kensnzk/koyu/examples/*` | the source of a bundled building, for tests and evaluation | — |
 | `@kensnzk/koyu/syntax` | the editor grammar (TextMate grammar as JSON), shared by VS Code and Shiki | — |

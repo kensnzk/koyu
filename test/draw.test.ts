@@ -318,6 +318,27 @@ test("drawing: every black band of a section is a body the plane cut, and nothin
   assert.ok(poche.length > 0, "there is something to cut");
 });
 
+test("drawing: a directed-line section carries caller reference geometry in the same frame", () => {
+  const m = parseFile(join(root, "examples/two-rooms.muro"));
+  const svg = svgSection(m, {
+    cut: { x1: 0, y1: 1000, x2: 7200, y2: 3500 },
+    atRef: "legal cut",
+    guides: [
+      {
+        points: [
+          { u: 0, z: 20_000 },
+          { u: 8_000, z: 30_000 },
+        ],
+        label: "limit",
+        showVertices: true,
+      },
+    ],
+  });
+  assert.match(svg, /section along legal cut/);
+  assert.match(svg, /<polyline [^>]*stroke="#A84940"/);
+  assert.match(svg, />limit<\/text>/);
+});
+
 test("drawing: a section of a model with tens of thousands of bodies still draws (the extent is folded)", () => {
   const N = 160;
   const axis = (a: string) => `grid ${a} ` + Array.from({ length: N }, (_, i) => i * 1000).join(" ");
