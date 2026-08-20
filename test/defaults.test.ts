@@ -4,8 +4,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { check } from "../src/core/diagnose.js";
-import { deriveDefaultBoundaries, doorsBetween, neighbors } from "../src/core/graph.js";
-import { SourceError, toCanonical } from "../src/core/model.js";
+import { deriveDefaultBoundaries, doorsBetween, neighbors, segmentsFor } from "../src/core/graph.js";
+import { EXTERIOR, SourceError, toCanonical } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
 import { svgPlan } from "../src/draw/plan.js";
 
@@ -34,7 +34,21 @@ test("default boundary: an explicit bare wall declaration and its omission mean 
 
 test("default boundary: nothing is derived for a pair that carries a declaration (an edge-restricted one suppresses it too)", () => {
   const m = parse(`${BASE}\n${ROOMS}\nboundary /L1/a /L1/b edge:E t:200`);
-  assert.equal(m.boundaries.filter((b) => b.derived).length, 0);
+  assert.equal(m.boundaries.filter((b) => b.derived && b.b !== EXTERIOR).length, 0);
+});
+
+test("default boundary: against the outside, suppression is by run and not by pair — the sides left unwritten still get a wall", () => {
+  // The outside is not a pair. It is whatever the rest of the perimeter faces, so there is
+  // nothing to suppress as a unit: a declaration takes the runs it reaches and the default
+  // takes the rest (ADR-0065). Writing edge:S is what proves it — three sides remain.
+  const m = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /out outside:1\nboundary /L1/a /out edge:S`);
+  const derived = m.boundaries.filter((b) => b.derived);
+  assert.equal(derived.length, 1);
+  assert.equal(derived[0]!.b, EXTERIOR);
+  assert.deepEqual(
+    segmentsFor(m, derived[0]!).map((seg) => seg.edgeOfA).sort(),
+    ["E", "N", "W"],
+  );
 });
 
 test("default boundary: derivation is idempotent", () => {
@@ -49,9 +63,40 @@ test("default boundary: it works between spaces with no level determined too (th
   assert.equal(m.boundaries.filter((b) => b.derived).length, 1);
 });
 
-test("default boundary: no boundary is derived against a space with no region (exterior) — it stays declaration-only", () => {
+test("default boundary: a face onto the outside is a wall, and its counterpart is the outside itself (ADR-0065)", () => {
+  // Up to muro 1.3 this derived nothing, and a forgotten `boundary` to the outside was a
+  // silent absence of wall. From 1.4 the perimeter is a wall; what a declaration adds is the
+  // name of what it faces, and BND08 says when that name is missing.
   const m = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /out outside:1`);
-  assert.equal(m.boundaries.length, 0);
+  assert.equal(m.boundaries.length, 1);
+  const [b] = m.boundaries;
+  assert.equal(b!.derived, true);
+  assert.equal(b!.a, "/L1/a");
+  assert.equal(b!.b, EXTERIOR);
+  assert.equal(b!.kind, "wall");
+  // it runs right round the room, and it is not a space anybody wrote
+  assert.equal(segmentsFor(m, b!).length, 4);
+  assert.equal(m.spaces.has(EXTERIOR), false);
+  // the canonical form holds only what was written, so it says nothing about this
+  assert.doesNotMatch(toCanonical(m), /"between"/);
+});
+
+test("default boundary: a declared exterior boundary leaves nothing for the default to do", () => {
+  const m = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /out outside:1\nboundary /L1/a /out`);
+  assert.equal(m.boundaries.filter((b) => b.derived).length, 0);
+});
+
+test("default boundary: the outside is not walled in, and neither is a space under a site zone", () => {
+  // Being open is what these are. Putting a wall round them would invent a building.
+  const m = parse([
+    BASE,
+    "zone /site site:1",
+    "space /L1/a room X1..X2 Y1..Y2",
+    "space /out outside:1 X2..X3 Y1..Y2 level:L1",
+    "space /site/paving room X1..X2 Y2..Y3 level:L1",
+  ].join("\n"));
+  const walled = m.boundaries.filter((b) => b.derived && b.b === EXTERIOR).map((b) => b.a);
+  assert.deepEqual(walled, ["/L1/a"]);
 });
 
 // ---- 言語版 (ADR-0017) ----
@@ -73,7 +118,9 @@ test("version: a 0.1 file in which no derivation happens is accepted as it stand
 test("version: omitting the declaration means the latest semantics (a default boundary is derived and it is not an error)", () => {
   const m = parse(`unit mm\ngrid X 0 4000 8000\ngrid Y 0 4000\nlevel L1 0 h:2400 slab:150\n${ROOMS}`);
   assert.equal(m.version, "1.1");
-  assert.equal(m.boundaries.filter((b) => b.derived).length, 1);
+  // one wall between the rooms, and one round the outside of each (ADR-0065)
+  assert.equal(m.boundaries.filter((b) => b.derived && b.b !== EXTERIOR).length, 1);
+  assert.equal(m.boundaries.filter((b) => b.derived && b.b === EXTERIOR).length, 2);
   assert.deepEqual(check(m).errors, []);
 });
 

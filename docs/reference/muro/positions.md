@@ -10,7 +10,7 @@ mode: reference
 This page covers grid references, offsets, ranges, regions and points. Compass words (`N` `E` `S` `W`) are in [orientation and the a side](orientation.md); how a line is tokenised is in [how a line is read](lines.md).
 
 ```muro
-muro 1.3
+muro 1.4
 name 位置の例
 unit mm
 
@@ -23,6 +23,9 @@ space /L1/ldk  ldk  X1..X2 Y1..Y2 + X2..X3 Y1..Y1+2800 name:LDK
 space /L1/hall hall X2..X3 Y1+2800..Y2 name:廊下
 space /L1/room room X1..X3 Y2..Y3 name:寝室
 space /out     name:外部 outside:1
+boundary /L1/ldk /out
+boundary /L1/hall /out
+boundary /L1/room /out
 ```
 
 ## Grid lines
@@ -118,13 +121,16 @@ Two constructs give dimensions and let the position follow.
 **`band` supplies the extent, and its members carry only a width `w:`.** The cut positions are derived by addition, and the widths must sum to the extent of the band or the file stops.
 
 ```muro
-muro 1.3
+muro 1.4
 grid X 0 3600 5400
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 band X X1..X3 Y1..Y2
   space /L1/a room w:2000
   space /L1/b room w:rest
+space /out outside:1
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 A derived cut is spelled as **an offset from the largest grid line at or below that coordinate** (the floor rule). The cut at 2000 above becomes `X1+2000`, never `X3-3400`. The two ends of the band, and both ends across it, keep the spelling that was written.

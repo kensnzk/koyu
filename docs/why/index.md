@@ -27,6 +27,9 @@ grid Y 0 4500
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
+space /out outside:1
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 Not one wall is written in those five lines. `koyu check` nonetheless counts one boundary.
@@ -104,7 +107,7 @@ Frontage, footprint and gross floor area are written nowhere. They are derived f
 **5. Find out what "green" means.** The following eleven lines pass `check` — and you cannot get out of the building.
 
 ```muro
-muro 1.3
+muro 1.4
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:300

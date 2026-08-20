@@ -83,7 +83,10 @@ test("harness: the frozen tower-uid fixture keeps its own invariants, distinct f
   });
   assert.deepEqual(
     count(uid),
-    { spaces: 178, zones: 9, boundaries: 542, openings: 286 },
+    // 543, not 542: the fixture's L2 corridor has 2000mm of east face that no declaration
+    // reaches, and from muro 1.4 that is a wall (ADR-0065). The fixture is frozen, so the hole
+    // stays written the way it was and the derivation closes it.
+    { spaces: 178, zones: 9, boundaries: 543, openings: 286 },
     "the frozen fixture drifted — T05's oracles assert these exact numbers",
   );
   assert.notDeepEqual(

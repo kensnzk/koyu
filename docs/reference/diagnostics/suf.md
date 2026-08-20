@@ -27,6 +27,8 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 slab:150
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 ```text
@@ -57,6 +59,8 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 Write `h:` on the space for rooms that differ (`space /L1/a room X1..X2 Y1..Y2 h:2700`). A space's `h` beats its level's.
@@ -94,6 +98,8 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /house/a room X1..X2 Y1..Y2 level:L1
+space /out outside:1
+boundary /house/a /out
 ```
 
 Use this when you want the path cut by an aggregation hierarchy (bundling by dwelling, wing or use). If you want the head of the path to state the level, add a `level L1 0 h:2400 slab:150` line to the base layer and write `space /L1/a …`.
@@ -107,6 +113,8 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 ```text
@@ -126,6 +134,8 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 **Sometimes it does not fire.** If a level carries no space that could have a floor (a space with a region that is neither `void` nor `exterior`), SUF03 stays quiet. A roof level that exists only to give the top storey its upper bound (`level R 5800 slab:500`) is exactly that case — there is no floor that failed to be generated, so there is nothing to say.
@@ -141,6 +151,9 @@ level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y2
 space /L2/s stair X1..X2 Y1..Y2 stair:N
+space /out outside:1
+boundary /L1/a /out
+boundary /L2/s /out
 ```
 
 ```text
@@ -161,6 +174,9 @@ level L2 3000 h:2700 slab:300
 level R 6000 slab:300
 space /L1/a room X1..X2 Y1..Y2
 space /L2/s stair X1..X2 Y1..Y2 stair:N
+space /out outside:1
+boundary /L1/a /out
+boundary /L2/s /out
 ```
 
 If it does not go out to the roof, drop the declaration on that storey.

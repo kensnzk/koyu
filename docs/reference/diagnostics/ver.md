@@ -24,13 +24,13 @@ All VER codes are errors.
 ## Declaring the version
 
 ```muro-part
-muro 1.3
+muro 1.4
 ```
 
-These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1 / 1.2 / 1.3**. Anything else stops at the parser, before any semantic check runs.
+These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1 / 1.2 / 1.3 / 1.4**. Anything else stops at the parser, before any semantic check runs.
 
 ```text
-Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3)
+Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4)
 ```
 
 The declaration is written **once**, in the base layer (the entry). By convention it goes on the first line. Writing it in an imported layer is an error — silent overwriting by composition order is forbidden.
@@ -57,6 +57,9 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a hall X1..X2 Y1..Y2
 space /L1/b hall X2..X3 Y1..Y2
+space /out hall
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ```text
@@ -82,6 +85,8 @@ grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
+space /out yard
+boundary /L1/a /out
 ```
 
 ```text
@@ -110,7 +115,10 @@ level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
+space /out yard
 stack s L1..L2 type:stair
+boundary /L1/s /out
+boundary /L2/s /out
 ```
 
 ```text
@@ -178,8 +186,8 @@ grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out exterior name:外部
-boundary /L1/a /out edge:S t:120
-  door w:900
+boundary /L1/a /out t:120
+  door w:900 edge:S
 ```
 
 ```text
@@ -217,13 +225,13 @@ This file is written in muro 9.9, and this build of koyu (0.22.0) reads up to 1.
 **The fix** — install a newer koyu. `koyu --version` says what this build reads:
 
 ```text
-koyu 0.22.0 — reads muro 0.1–1.3 (newest 1.3; a file with no version line is read as 1.1)
+koyu 0.26.0 — reads muro 0.1–1.4 (newest 1.4; a file with no version line is read as 1.1)
 ```
 
 **Why it is a separate code from an unreadable version.** A version that never existed is a different situation with the opposite advice, and it keeps the `SYN01` it always had:
 
 ```text
-Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3)
+Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4)
 ```
 
 Both used to print that second sentence, so nothing downstream could tell a stale build from a corrupt file without reading English prose. The split is *later than anything I know* against *not a version I have*, which is answerable; *real* against *fake* is not, and `9.9` is treated as the future because that is the more useful of the two readings.
@@ -235,16 +243,18 @@ Both used to print that second sentence, so nothing downstream could tell a stal
 `error`
 
 ```muro-bad
-muro 1.3
+muro 1.4
 grid X 0 4000 8000
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 zone /L1/A name:Aタイプ use:exclusive
 space /L1/A/ldk ldk X1..X2 Y1..Y2 name:LDK
+space /out outside:1
+boundary /L1/A/ldk /out
 ```
 
 ```text
-✖ ver07.muro:line 5: A muro 1.3 file carries use: on zone /L1/A — use is retired after muro 1.2. Write a namespaced key of your own (lease.category:, fire.compartment:, dept.name:) instead, or keep the file at muro 1.2
+✖ ver07.muro:line 5: A muro 1.4 file carries use: on zone /L1/A — use is retired after muro 1.2. Write a namespaced key of your own (lease.category:, fire.compartment:, dept.name:) instead, or keep the file at muro 1.2
 ```
 
 **Cause** — `use` is retired after muro 1.2. It was never an architectural use: it held one grouping per space, so a tenancy, a fire compartment and a department all competed for the same key, and whichever you wrote shut the others out. A room's purpose is the [type position](../muro/space.md); every other division of the building is a namespaced key, and a space may carry as many of those as it likes.
@@ -252,12 +262,14 @@ space /L1/A/ldk ldk X1..X2 Y1..Y2 name:LDK
 **The fix — write a namespaced key of your own.** The name is yours; core reads none of them.
 
 ```muro
-muro 1.3
+muro 1.4
 grid X 0 4000 8000
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 zone /L1/A name:Aタイプ lease.category:exclusive fire.compartment:c3
 space /L1/A/ldk ldk X1..X2 Y1..Y2 name:LDK
+space /out outside:1
+boundary /L1/A/ldk /out
 ```
 
 [`koyu stats --by <key>`](../cli/stats.md) totals floor area by any key you name, so the figures `By use:` used to give come back the moment you ask for them — and so do the ones it could never give.

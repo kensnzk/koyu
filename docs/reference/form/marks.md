@@ -32,11 +32,11 @@ Rounding is part of the wording. A ramp at `slope = 1/12.5` is "1/13" to one con
 
 ## The roles
 
-Twenty, and closed. A consumer that spells `Record<MarkRole, …>` stops compiling when koyu adds one — which is the intent, because the alternative is a mark that silently never appears.
+Twenty-one, and closed. A consumer that spells `Record<MarkRole, …>` stops compiling when koyu adds one — which is the intent, because the alternative is a mark that silently never appears.
 
 | role | what it is |
 |---|---|
-| `space` / `space-semi-outdoor` / `space-void` | a space's face, cut by the plane |
+| `space` / `space-semi-outdoor` / `space-outdoor` / `space-void` | a space's face, cut by the plane |
 | `void-hatch` | the void's two bounding-box diagonals (a drafting convention, not a shape of the building) |
 | `wall` | the body of a wall interval the plane cut |
 | `rail` | the centreline of something that does not enclose (`air:1`) |
@@ -48,6 +48,10 @@ Twenty, and closed. A consumer that spells `Record<MarkRole, …>` stops compili
 | `void-above` | the projection of an upper void onto the plan below |
 
 **`space-semi-outdoor` is a role, not a flag.** A `faint` boolean would be a stroke instruction, and the two viewers that had one already disagreed about what it meant — one paints a fill, the other lowers an opacity.
+
+**The three space roles are three different things, and a drawing has to be able to say which.** `space` is floor; `space-semi-outdoor` is roofed and not enclosed; `space-outdoor` is a space declared `outside:1` that carries a region — a courtyard, a plaza, the paving of a site. It is ground and not floor, and drawn as a room it reads as one: on a large plan the forecourt and the entrance hall become a single continuous field. The role carries the distinction; what each is painted is the viewer's to choose, and koyu's own plan chooses warm for inside and cool for outside.
+
+**Being declared `outside:1` is asked before being semi-outdoor.** A space can be both — an outdoor terrace that also carries an `air:1` boundary to another outside space derives as semi-outdoor too — and of the two facts the declared one is what the space is.
 
 **`class` is carried, not collapsed.** A mark keeps the [`PlanClass`](plan.md) `Form` assigned it, so a clerestory above the cut arrives as a `window` with `class: "above"` rather than as a window indistinguishable from a cut one.
 

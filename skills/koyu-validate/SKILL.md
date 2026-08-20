@@ -56,7 +56,6 @@ never has to be cleared.
 | `koyu.schematic.access.backofhouse` | caution | a common stair or escalator is reachable from the common corridor only by passing through back-of-house, so visitors cannot use it | open a route from the corridor that avoids the back-of-house space |
 | `koyu.schematic.daylight.ratio` | violation | effective window area is under a seventh of the floor, on a space you marked `daylight:1` | add a `window` on a boundary to `/out`, or drop `daylight:1` if the room is not habitable |
 | `koyu.schematic.daylight.unknown` | caution | `daylight:1` on a space whose openings cannot be evaluated | give the boundary a real opening, or say the room is out of scope |
-| `koyu.schematic.envelope.gap` | caution | part of the outline faces nothing — a silently missing exterior wall | write `boundary /L1/room /out edge:N t:120` for the named side |
 | `koyu.schematic.stair.proportion` | caution | riser and tread fall outside workable proportions | change the storey height, the run length, or the number of flights |
 | `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` | caution | a ramp is too steep | lengthen the run or reduce the rise |
 | `koyu.schematic.run.disconnected` | caution | a stair or ramp does not land in a space at one end | check the `type:stair` boundary joins the right two spaces, overlapping in plan |
@@ -128,18 +127,20 @@ Two things bite while writing the repair itself: an opening on a boundary to
 and a `name:` value containing a space must be quoted (`name:"West window"`) or
 the parser reads the second word as a broken attribute.
 
-## What a caution reports
+## The envelope is not a verdict — it is a check warning
 
-`koyu.schematic.envelope.gap` is the one to understand before acting on it. A wall between two
-touching spaces is derived whether or not you write it — but **a boundary to the
-outside is never derived**, because naming what is on the other side is itself
-information. So a forgotten exterior boundary is a wall that silently does not
-exist. The finding names the sides (`S 4000mm / N 4000mm`), which is what tells
-you which edge to write.
+There used to be a rule here for perimeter that faced nothing. It is gone, because that
+state cannot arise: **every side of a space is a wall unless something says otherwise, the
+outside included.** A forgotten exterior boundary is no longer a missing wall.
 
-Read the set of them as an inventory of faces nobody has declared yet. Whether
-each one should be declared is a decision about the building, which no rule
-settles — report them rather than adding walls to make them stop.
+What is left belongs to `check`, as `BND08` (a warning): the wall is there, but nobody said
+*which* outside it faces — road, neighbour, garden. That decides frontage, daylight and
+specification, so it is worth reporting. The message names the sides
+(`S 4000mm / N 4000mm`), which tells you which `edge:` to write.
+
+Read the set of them as an inventory of faces nobody has named yet. **Naming is a decision
+about the building**, which no rule settles — report them rather than writing boundaries
+just to make them stop.
 
 ## The loop
 

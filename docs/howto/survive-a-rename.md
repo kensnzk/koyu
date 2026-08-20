@@ -19,7 +19,7 @@ File paths in the output below are absolute when you actually run these commands
 `uid:` may be written on **`space` and `zone`, and nothing else**. That list is closed.
 
 ```muro
-muro 1.3
+muro 1.4
 name Office
 unit mm
 
@@ -38,6 +38,10 @@ boundary /L1/office /out edge:W t:200 spec:RC
   window w:2400 h:1800 name:W1
 boundary /L1/meeting /out edge:E t:200 spec:RC
   door w:1800 h:2100 name:Front-entrance
+boundary /L1/office /out edge:S
+boundary /L1/office /out edge:N
+boundary /L1/meeting /out edge:S
+boundary /L1/meeting /out edge:N
 ```
 
 Write `uid:` on a boundary, an opening, a `seg`, an `area`, a column or an asset and it errors. **It is never silently ignored.**

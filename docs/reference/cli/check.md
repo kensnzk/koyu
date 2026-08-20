@@ -150,7 +150,7 @@ What `check` guarantees stops at "what is written holds together as data". **It 
 The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no doors at all comes out green while perfectly sealed. The same goes for windows: none at all is still green.
 
 ```muro
-muro 1.3
+muro 1.4
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -159,6 +159,8 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A daylight:1
 space /L1/b room X2..X3 Y1..Y2 name:居室B
 space /out name:外部 outside:1
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ```sh

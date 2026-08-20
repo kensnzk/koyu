@@ -119,7 +119,7 @@ That is [SIT06](../diagnostics/sit.md#sit06). The reverse is not warned about �
 ## In full
 
 ```muro
-muro 1.3
+muro 1.4
 name 測地の最小例
 unit mm
 grid X 0 8000

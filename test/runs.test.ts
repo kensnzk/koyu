@@ -13,6 +13,16 @@ import { svgAxo } from "../src/draw/axo.js";
 import { parse } from "../src/core/parse.js";
 import { runDrawsForLevel, runSolids, verticalRuns } from "../src/core/vertical.js";
 
+/**
+ * The warnings, less the derived-envelope one.
+ *
+ * These fixtures are a stair or a ramp and nothing else — they name no outside, so each space
+ * draws BND08 (ADR-0065). It says nothing about vertical circulation, which is what this file
+ * pins; `test/defaults.test.ts` is where that code is held.
+ */
+const withoutEnvelope = (ws: string[]): string[] =>
+  ws.filter((w) => !w.includes("faces the outside"));
+
 const BASE = `koyu 0.5
 grid X 0 3000 6000 9000
 grid Y 0 8000
@@ -40,7 +50,7 @@ stack s L1..L2 type:stair
   // core の check には現れない (spec/scope.md §3)
   const r = check(m);
   assert.deepEqual(r.errors, []);
-  assert.deepEqual(r.warnings, []);
+  assert.deepEqual(withoutEnvelope(r.warnings), []);
 });
 
 test("the same stairwell splits into different steps once the storey height changes (nowhere is it written twice)", () => {
@@ -196,7 +206,7 @@ stack r L1..L2 type:stair
   const run = verticalRuns(m).find((r) => r.level === "L1")!;
   assert.ok(run.slope > 1 / 12);
   // 勾配は建築の側の判断 — core は黙り、検証の面が言う
-  assert.deepEqual(check(m).warnings, []);
+  assert.deepEqual(withoutEnvelope(check(m).warnings), []);
   assert.ok(caught(m).some((f) => f.rule === RAMP_DECLARED_SLOPE_RULE_ID.id && f.message.includes("slope")));
 });
 

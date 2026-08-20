@@ -23,8 +23,11 @@ grid Y 0 6000
 level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   line X2+900,Y1 X2-900,Y2
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ## How a diagnostic quotes a line
@@ -39,8 +42,11 @@ grid Y 0 6000
 level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   line X1+300,Y2 X1+300,Y1
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ```text
@@ -61,8 +67,11 @@ grid Y 0 6000
 level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   line X1,Y1 X1,Y2
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ```text
@@ -100,8 +109,11 @@ level L1 0 h:2700 slab:300
 level L2 3000 slab:300
 space /L1/a room X1..X2 Y1..Y2
 space /L2/a X1..X2 Y1..Y2 void:1
+space /out outside:1
 boundary /L1/a /L2/a type:void
   line X1,Y1 X2,Y2
+boundary /L1/a /out
+boundary /L2/a /out
 ```
 
 ```text
@@ -122,8 +134,11 @@ grid Y 0 6000
 level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/b t:120
   line X2,Y1 X2,Y2
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ```text

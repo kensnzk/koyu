@@ -15,3 +15,6 @@ boundary /L1/office /L1/corr t:120
   door w:900
 boundary /L1/corr /L1/core t:150
   door w:900
+boundary /L1/office /out t:200 spec:RC
+boundary /L1/corr /out t:200 spec:RC
+boundary /L1/core /out t:200 spec:RC

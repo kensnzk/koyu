@@ -4,5 +4,14 @@
   "severity": "warning",
   "line": 6,
   "file": "main.muro"
+ },
+ {
+  "code": "BND08",
+  "severity": "warning",
+  "line": 5,
+  "file": "main.muro",
+  "path": [
+   "/L1/a"
+  ]
  }
 ]

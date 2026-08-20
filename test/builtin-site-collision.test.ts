@@ -96,6 +96,22 @@ function onlyOutcome(report: AssessmentReport, id: string) {
   return run.evaluation.outcomes[0]!;
 }
 
+/**
+ * The one **failing** outcome of a rule.
+ *
+ * A rule scans a population — the column rule takes one outcome per opening — and a documented
+ * fixture that is a closed building has more openings than the one it is showing off. What such
+ * a fixture promises is that exactly one of them fails, not that it has only one.
+ */
+function failingOutcome(report: AssessmentReport, id: string) {
+  const run = ruleRun(report, id);
+  assert.equal(run.state, "evaluated", `${id} must be evaluated`);
+  if (run.state !== "evaluated") throw new Error(`${id} did not evaluate`);
+  const failing = run.evaluation.outcomes.filter((o) => o.status === "fail");
+  assert.equal(failing.length, 1, `${id} must have exactly one failing subject`);
+  return failing[0]!;
+}
+
 function siteValue(source: string): SiteAnalysisValue {
   const report = runAnalysis(parse(source), SITE_ANALYSIS_ID, {
     registry: REGISTRY,
@@ -130,7 +146,7 @@ for (const fixture of [
 ] as const) {
   test(`builtin migration reuses the documented ${fixture.anchor} failure`, () => {
     const report = assessSource(documentedFixture(fixture.page, fixture.anchor));
-    const outcome = onlyOutcome(report, fixture.rule);
+    const outcome = failingOutcome(report, fixture.rule);
     assert.equal(outcome.status, "fail");
     const findings = report.findings.filter((finding) => finding.rule.id === fixture.rule);
     assert.equal(findings.length, 1);

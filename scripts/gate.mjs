@@ -79,6 +79,12 @@ function entries() {
   return out.sort();
 }
 
+/** 外部が一つでも名指されているか — 「もう建物として書き始めている」の印 */
+function exteriorDeclared(model) {
+  for (const s of model.spaces.values()) if (s.attrs["outside"] === 1) return true;
+  return false;
+}
+
 /** 件数つきの問題文。長い列挙は先頭4件で切る */
 function listUp(paths) {
   return `${paths.slice(0, 4).join(" ")}${paths.length > 4 ? " …" : ""}`;
@@ -100,7 +106,17 @@ for (const file of entries()) {
   // 問1 — core の保証。ここだけは判定ではないので診断を直に読む
   const diags = checkDiagnostics(model);
   const errs = diags.filter((d) => d.severity === "error");
-  const warns = diags.filter((d) => d.severity === "warning");
+  // **examples/steps/ は建物ではなく、一つのファイルが書かれていく途中の段だけを持つ** —
+  // 入口 (main.muro) を持たない集まりであることが、そのまま印になっている。
+  // 段の01〜03には外部がまだ一行も無く、BND08 は「どの外部に面しているか書いていない」と言う。
+  // それは書き忘れではなく**まだそこまで進んでいない**状態で、段4がまさにそれを書く。
+  // 門番は既に同じ線引きをしている: access.unreachable の母集団は outside:1 の空間が
+  // 一つも無いファイルでは空になり、段は建築的な問いを一つも受けない。
+  // BND08 だけがその慣習の外に出るので、同じ条件でここに戻す。
+  const isStage = !exteriorDeclared(model);
+  const warns = diags.filter(
+    (d) => d.severity === "warning" && !(isStage && d.code === "BND08"),
+  );
   if (errs.length) problems.push(`check エラー ${errs.length}件 — ${errs[0].code} ${errs[0].message}`);
   if (warns.length) problems.push(`check 警告 ${warns.length}件 — ${warns[0].code} ${warns[0].message}`);
 

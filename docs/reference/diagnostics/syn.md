@@ -105,7 +105,7 @@ Openings, `seg` and `line` are written **indented** under a boundary; `area` and
 
 | Body | Cause | Fix |
 |---|---|---|
-| `Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3)` | A version that does not exist | Use one the parser accepts |
+| `Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4)` | A version that does not exist | Use one the parser accepts |
 | `The koyu version is declared only in the base layer (the entry)` | A version in an imported layer | Move it to the base layer |
 | `The koyu version is declared once (already 1.0)` | The version written twice | Delete one |
 | `Cannot read file: ./assets.muro` | The `import`'s relative path is wrong | A path is resolved **relative to the file it is written in** |
@@ -121,6 +121,8 @@ grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a bedrom X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 That file is green. A type is used for little more than an aggregation axis and the paleness of a drawing, and **core never reads that position at all**, so there is nothing to close.

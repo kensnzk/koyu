@@ -88,8 +88,9 @@ level L2 3000 h:2400 slab:300
 space /L1/a room X1..X2 Y1..Y2 h:3500
 space /L2/a room X1..X2 Y1..Y2`);
   const h = checkDiagnostics(ok);
-  assert.deepEqual(h.map((x) => x.code), ["HGT01"]);
-  assert.equal(h[0]!.line, 6, "HGT01 carries a source too");
+  // the two rooms name no outside, so each draws BND08 first — the order is the order of the scan
+  assert.deepEqual(h.map((x) => x.code), ["BND08", "BND08", "HGT01"]);
+  assert.equal(h[2]!.line, 6, "HGT01 carries a source too");
 
   // 語彙の側 — ceiling は 0/1、turn は R/L
   const enums = parse(`${BASE}
@@ -188,8 +189,12 @@ test("population: one place answers \"total floor area\" — stats, site and MCP
 test("sufficiency: SUF is emitted when a value needed to build the shape is missing — a completeness check, not a validity one (ADR-0034)", () => {
   // **かつては全部が緑だった。**examples/two-rooms.muro は診断0件のまま床を一枚も持たず、
   // guide の muro ブロック250件のうち134件が天井高を、210件が slab を持たなかった
+  // BND08 is dropped: it is about naming the outside, which no SUF code is (ADR-0065), and
+  // every fixture here is minimal enough to draw one
   const suf = (src: string) =>
-    checkDiagnostics(parse(src)).map((d) => [d.code, d.severity, d.line] as const);
+    checkDiagnostics(parse(src))
+      .filter((d) => d.code !== "BND08")
+      .map((d) => [d.code, d.severity, d.line] as const);
 
   // SUF01 — 天井高が決まらない (空間の h も レベルの h も無い)
   assert.deepEqual(
@@ -228,13 +233,17 @@ space /L1/bal balcony X2..X3 Y1..Y2
 space /L2/v X1..X2 Y1..Y2 void:1
 space /out outside:1
 boundary /L1/bal /out type:open`);
-  // h を持たないのは balcony (半屋外) と void と exterior だけ — SUF01 は一件も出ない
-  assert.deepEqual(checkDiagnostics(m).map((d) => d.code), []);
+  // h を持たないのは balcony (半屋外) と void と exterior だけ — SUF01 は一件も出ない。
+  // BND08 は外部の名指しの話なので母集団が別である (ADR-0065)
+  assert.deepEqual(
+    checkDiagnostics(m).map((d) => d.code).filter((c) => c.startsWith("SUF")),
+    [],
+  );
   // レベルに床を持ちうる空間が載っていなければ SUF03 も出ない (屋上レベルの類)
   assert.deepEqual(
     checkDiagnostics(
       parse(`grid X 0 3600\ngrid Y 0 4000\nlevel L1 0 h:2400 slab:150\nlevel R 3000\nspace /L1/a room X1..X2 Y1..Y2`),
-    ).map((d) => d.code),
+    ).map((d) => d.code).filter((c) => c.startsWith("SUF")),
     [],
   );
 });
@@ -294,6 +303,11 @@ boundary /L1/b /out type:open
       ["OPN03", 25],
       ["OPN05", 25],
       ["SEG03", 26],
+      // then the envelope clause, once per space in declaration order (ADR-0065). /L1/b named
+      // its outside with a type:open boundary, so only the other three are left unnamed
+      ["BND08", 6],
+      ["BND08", 8],
+      ["BND08", 9],
     ],
   );
 });
@@ -360,7 +374,9 @@ test("diagnostic: VER01, default boundary derivation under 0.1 — derived, so i
   const diags = checkDiagnostics(
     parse(`koyu 0.1\nunit mm\ngrid X 0 3640 7280\ngrid Y 0 3640\nlevel L1 0 h:2400 slab:150\nspace /L1/a hall X1..X2 Y1..Y2\nspace /L1/b hall X2..X3 Y1..Y2`),
   );
-  assert.equal(diags.length, 1);
+  // the two rooms also draw BND08 apiece; VER01 is about the wall *between* them, which is
+  // what changed at 0.2. The exterior default is version-blind (ADR-0065)
+  assert.deepEqual(diags.map((x) => x.code), ["VER01", "BND08", "BND08"]);
   const d = diags[0]!;
   assert.equal(d.code, "VER01");
   assert.equal(d.severity, "error");
@@ -425,12 +441,15 @@ test("compatibility: a diagnostic on a composed model carries file, and the comp
     },
     "main.muro",
   );
+  // the two rooms name no outside, so BND08 follows — provenance is what this test is about,
+  // and it carries the layer for the derived-envelope warning just as it does for OPN08
   const diags = checkDiagnostics(m);
-  assert.equal(diags.length, 1);
-  assert.equal(diags[0]!.code, "OPN08");
+  assert.deepEqual(diags.map((d) => d.code), ["OPN08", "BND08", "BND08"]);
   assert.equal(diags[0]!.file, "L1.muro");
   assert.equal(diags[0]!.line, 4);
   assert.equal(check(m).errors[0], `L1.muro:line 4: ${diags[0]!.message}`);
+  assert.equal(diags[1]!.file, "L1.muro");
+  assert.equal(diags[1]!.line, 1);
 });
 
 // ---- (c) 台帳とspec表の一致 ----

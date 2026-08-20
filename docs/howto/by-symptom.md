@@ -88,7 +88,7 @@ The exit code stays 0 unless you pass `--strict`. **Some of these mean nothing g
 | Symptom | Cause | Tool to confirm with |
 |---|---|---|
 | A room cannot reach the outside | The default between touching spaces is **a wall with no door**. Doors are never added automatically | `koyu doors` / `koyu graph` → [Common traps](troubleshooting.md#9-green-and-no-way-out) |
-| No envelope at all | Nothing is derived against a space with no region (`/out`) | `koyu.schematic.envelope.gap` from `koyu validate` → [Common traps](troubleshooting.md#10-green-and-no-envelope) |
+| The exterior wall is there but nobody named what it faces | A perimeter run reached by no declared `boundary` gets the default wall | [BND08](../reference/diagnostics/bnd.md#bnd08) — write the boundary to name the outside |
 | An empty file is green | A composition with nothing written in it stands | Look inside with `koyu stats` / `koyu graph` |
 | A room you want in the area schedule is missing | `area` is an uncounted division. It appears in neither area nor room count | [Counted and uncounted divisions](uncounted-divisions.md) |
 | The boundary count from `check` and `boundaries` in the canonical JSON disagree | `check` counts the composed model; canonical JSON carries **only what was written** | Not a contradiction → [Common traps](troubleshooting.md#13-two-places-give-different-boundary-counts) |
@@ -101,7 +101,7 @@ Architectural judgement comes back separately from `koyu validate`. **It carries
 
 | Symptom | Rule |
 |---|---|
-| Part of the perimeter faces nothing | [`koyu.schematic.envelope.gap`](../reference/validate/envelope.md) |
+| Part of the perimeter has no boundary written to the outside | [BND08](../reference/diagnostics/bnd.md#bnd08) — a default wall stands there; say which outside it faces |
 | Window area falls short of 1/7 of the floor | [`koyu.schematic.daylight.ratio`](../reference/validate/daylight.md) |
 | A window has no `h:`, so the window area is incomplete | [`koyu.schematic.daylight.unknown`](../reference/validate/daylight.md) |
 | Stair treads are cramped, or riser and tread fall outside the usual band | [`koyu.schematic.stair.proportion`](../reference/validate/runs.md) |

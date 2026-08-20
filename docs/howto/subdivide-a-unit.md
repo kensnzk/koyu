@@ -19,7 +19,7 @@ File paths in the output below are absolute when you actually run these commands
 Keep the dwelling's `space` line and add child spaces, and parent and children overlap.
 
 ```muro-bad
-muro 1.3
+muro 1.4
 name Subdividing a dwelling
 unit mm
 
@@ -32,6 +32,10 @@ space /L3/A unit X1..X2 Y1..Y2 + X2..X3 Y1..Y1+2400 name:Type-A lease.category:e
 
 space /L3/A/ldk  ldk     X1+3200..X2 Y1..Y1+4000 + X2..X3 Y1..Y1+2400 name:LDK
 space /L3/A/bed1 bedroom X1..X1+3200 Y1+2400..Y2 name:Bedroom-1
+space /out outside:1
+boundary /L3/A /out
+boundary /L3/A/ldk /out
+boundary /L3/A/bed1 /out
 ```
 
 ```text
@@ -96,7 +100,7 @@ boundary /L3/A/hall /L3/corridor t:180 spec:RC
 ## Check it
 
 ```muro
-muro 1.3
+muro 1.4
 name Subdividing a dwelling
 unit mm
 
@@ -113,6 +117,7 @@ space /L3/A/bed2 bedroom X1..X1+3200 Y1..Y1+2400 name:Bedroom-2
 space /L3/A/wet  wet     X1+3200..X1+8000 Y1+4000..Y2 name:Bathroom-block
 space /L3/A/hall hall    X1+8000..X2 Y1+4000..Y2 name:Entry
 space /L3/corridor corridor X1..X3 Y2..Y3 name:Internal-corridor lease.category:common
+space /out outside:1
 
 boundary /L3/A/ldk /L3/A/bed1 t:120 spec:LGS
   door w:800
@@ -124,6 +129,11 @@ boundary /L3/A/hall /L3/A/wet t:120 spec:LGS
   door w:700
 boundary /L3/A/hall /L3/corridor t:180 spec:RC
   door w:900 name:A-front-door
+boundary /L3/A/ldk /out
+boundary /L3/A/bed1 /out
+boundary /L3/A/bed2 /out
+boundary /L3/A/hall /out
+boundary /L3/corridor /out
 ```
 
 ```text

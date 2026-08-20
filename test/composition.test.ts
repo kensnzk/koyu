@@ -13,7 +13,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { checkDiagnostics } from "../src/core/diagnose.js";
-import { SourceError } from "../src/core/model.js";
+import { EXTERIOR, SourceError } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
 import { toCanonical } from "../src/core/model.js";
 
@@ -125,8 +125,9 @@ test("rule 3: drop removes only what was written, and dropping a space drops its
     false,
     "a relation exists only between spaces, so it goes when an end goes",
   );
-  // 残った関係は無傷である
-  assert.equal(m.boundaries.length, 1);
+  // 残った関係は無傷である — 宣言された一本と、残った空間の外周に導かれた既定の外壁
+  assert.equal(m.boundaries.filter((b) => !b.derived).length, 1);
+  assert.deepEqual(m.boundaries.filter((b) => b.derived && b.b === EXTERIOR).map((b) => b.a), ["/L1/a"]);
 });
 
 test("rule 3: a drop with no target is an error (it does not silently do nothing)", () => {
@@ -244,7 +245,8 @@ ${edit}
 
 test("version: over / drop / a set edit are 1.0 words, so a 0.5-or-earlier file that writes one is stopped (VER04)", () => {
   for (const edit of ["over /L1/a h:2500", "drop /L1/b", "over /L1/a /L1/b\n  - door D1"]) {
-    const d = checkDiagnostics(parse(olderWith(edit)));
+    // BND08 is scenery here: the fixture names no outside, so every space draws one (ADR-0065)
+    const d = checkDiagnostics(parse(olderWith(edit))).filter((x) => x.code !== "BND08");
     assert.deepEqual(new Set(d.map((x) => x.code)), new Set(["VER04"]), edit);
     for (const x of d) {
       assert.equal(x.severity, "error");
@@ -255,5 +257,8 @@ test("version: over / drop / a set edit are 1.0 words, so a 0.5-or-earlier file 
     }
   }
   // 最新版で書けば出ない。版宣言を省いたファイルも最新版で読まれるので出ない
-  assert.deepEqual(checkDiagnostics(parse(olderWith("over /L1/a h:2500", "1.0"))), []);
+  assert.deepEqual(
+    checkDiagnostics(parse(olderWith("over /L1/a h:2500", "1.0"))).filter((x) => x.code !== "BND08"),
+    [],
+  );
 });

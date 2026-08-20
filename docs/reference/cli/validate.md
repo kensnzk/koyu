@@ -73,21 +73,21 @@ Inside the square brackets is the rule name; what follows, `<resolved absolute p
  "rules": [ "…" ],
  "findings": [
   {
-   "rule": { "id": "koyu.schematic.envelope.gap", "revision": "1" },
+   "rule": { "id": "koyu.schematic.daylight.unknown", "revision": "1" },
    "ruleSet": { "id": "koyu.ruleset.schematic-screen", "revision": "1" },
    "level": "caution",
    "outcome": {
     "id": "/L1/a",
     "status": "fail",
     "subjects": [ { "kind": "space", "ref": "/L1/a" } ],
-    "message": "Perimeter not faced by any envelope: /L1/a — N 3600mm / S 3600mm / W 4500mm (11700mm over 3 run(s)). Write a boundary to the exterior",
+    "message": "Window area is not fully counted: /L1/a has a window without h: (write h: on it)",
     "evidence": [ "…" ]
    }
   }
  ],
  "summary": {
   "state": "complete",
-  "rules": { "evaluated": 4, "notApplicable": 12, "indeterminate": 0, "error": 0 },
+  "rules": { "evaluated": 5, "notApplicable": 10, "indeterminate": 0, "error": 0 },
   "outcomes": { "pass": 3, "fail": 1, "indeterminate": 0 }
  }
 }
@@ -101,7 +101,6 @@ Every outcome carries the evidence it rests on, and that evidence names the anal
 
 | Rule | Level | What it says |
 |---|---|---|
-| `koyu.schematic.envelope.gap` | caution | A hole in the envelope — perimeter that faces nothing |
 | `koyu.schematic.daylight.ratio` | violation | Effective window area is below one seventh of the floor |
 | `koyu.schematic.daylight.unknown` | caution | A window has no `h`, so the window area was not fully counted |
 | `koyu.schematic.stair.proportion` | caution | The derived steps are cramped (tread under 240mm, or 2R+T outside 550–700) |
@@ -146,14 +145,27 @@ A file that could not be read exits 1, with a single `✖` on stderr. `--json` d
 
 Here is the cautions-only exit code for real.
 
+```muro-caution
+muro 1.4
+grid X 0 4500
+grid Y 0 3600
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2 daylight:1
+space /out outside:1
+boundary /L1/a /out t:120
+  door w:900 edge:S
+  window w:2400 h:1500 edge:N
+  window w:1200 edge:E
+```
+
 ```sh
 npx tsx src/cli.ts validate caution.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
 ```
 
 ```text
-⚠ [koyu.schematic.envelope.gap] <absolute path>/caution.muro:line 6: Perimeter not faced by any envelope: /L1/a — N 3600mm / S 3600mm / W 4500mm (11700mm over 3 run(s)). Write a boundary to the exterior
+⚠ [koyu.schematic.daylight.unknown] <absolute path>/caution.muro:line 5: Window area is not fully counted: /L1/a has a window without h: (write h: on it)
 Validation — 0 violations / 1 caution
-  koyu.profile.schematic-screen@1 — 4 evaluated / 12 not applicable / 0 indeterminate / 0 error
+  koyu.profile.schematic-screen@1 — 5 evaluated / 10 not applicable / 0 indeterminate / 0 error
 ```
 
 The exit code is 0. **To fail CI on cautions too, read `--json` and count them yourself.** There is no `validate` equivalent of `check --strict`.
@@ -163,9 +175,9 @@ The exit code is 0. **To fail CI on cautions too, read `--json` and count them y
 | | `koyu check` | `koyu validate` |
 |---|---|---|
 | Returned type | `Diagnostic` | `AssessmentReport` |
-| Name | `code` (`BND04` — three letters and two digits) | `rule` (`koyu.schematic.envelope.gap` — a namespaced id) |
+| Name | `code` (`BND04` — three letters and two digits) | `rule` (`koyu.schematic.access.unreachable` — a namespaced id) |
 | Weight | `severity`: `error` / `warning` | `level`: `violation` / `caution` |
-| Count | 69 codes | 16 rules |
+| Count | 70 codes | 15 rules |
 | Grounds | none needed | a profile and a date, always explicit |
 | What it guarantees | That what is written holds together as data | **Nothing — it is a judgement** |
 | Nature of the surface | Frozen. Adding or removing moves the language version | Not frozen. May grow, may be discarded |

@@ -20,7 +20,7 @@ Between two spaces that touch, and about which nothing has been declared, a **wa
 `validate` lists **every** room that cannot reach the exterior. You do not have to nominate a starting point.
 
 ```muro
-muro 1.3
+muro 1.4
 name A sealed house
 unit mm
 
@@ -44,28 +44,32 @@ boundary /L2/bed /out edge:W t:150 spec:EW
 boundary /L2/hall /out edge:E t:150 spec:EW
 
 boundary /L1/hall /L2/hall type:stair
+boundary /L1/ldk /out edge:S
+boundary /L1/ldk /out edge:N
+boundary /L1/hall /out edge:S
+boundary /L1/hall /out edge:N
+boundary /L2/bed /out edge:S
+boundary /L2/bed /out edge:N
+boundary /L2/hall /out edge:S
+boundary /L2/hall /out edge:N
 ```
 
 ```text
 $ npx tsx src/cli.ts check house.muro
-✔ Consistent — 5 spaces / 7 boundaries
+✔ Consistent — 5 spaces / 15 boundaries
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-Five boundaries written, seven reported: the other two are default walls between rooms that touch. `check` is green.
+Eleven boundaries written, fifteen reported: the rest are default walls — between rooms that touch, and around the perimeter runs no declaration reached. **The house is fully enclosed, which is exactly the trap.** `check` is green.
 
 ```text
 $ npx tsx src/cli.ts validate house.muro
-⚠ [koyu.schematic.envelope.gap] house.muro:line 13: Perimeter not faced by any envelope: /L1/ldk — N 3600mm / S 3600mm (7200mm over 2 run(s)). Write a boundary to the exterior
-⚠ [koyu.schematic.envelope.gap] house.muro:line 14: Perimeter not faced by any envelope: /L1/hall — N 1800mm / S 1800mm (3600mm over 2 run(s)). Write a boundary to the exterior
-⚠ [koyu.schematic.envelope.gap] house.muro:line 15: Perimeter not faced by any envelope: /L2/bed — N 3600mm / S 3600mm (7200mm over 2 run(s)). Write a boundary to the exterior
-⚠ [koyu.schematic.envelope.gap] house.muro:line 16: Perimeter not faced by any envelope: /L2/hall — N 1800mm / S 1800mm (3600mm over 2 run(s)). Write a boundary to the exterior
 ✖ [koyu.schematic.access.unreachable] house.muro:line 13: Cannot reach the exterior: /L1/ldk (no passable boundary leads out — write a door)
 ✖ [koyu.schematic.access.unreachable] house.muro:line 15: Cannot reach the exterior: /L2/bed (no passable boundary leads out — write a door)
-Validation — 2 violations / 4 cautions
+Validation — 2 violations / 0 cautions
 ```
 
-`koyu.schematic.access.unreachable` is the violation, and it is the trap. **`validate` exits 1 only when there are violations** — that single command is enough to defend escape routes in CI. As a bonus, `koyu.schematic.envelope.gap` reports perimeter that faces nothing at all. The full list of rules is the [validation reference](../reference/validate/index.md).
+`koyu.schematic.access.unreachable` is the violation, and it is the trap. **`validate` exits 1 only when there are violations** — that single command is enough to defend escape routes in CI. The full list of rules is the [validation reference](../reference/validate/index.md).
 
 ## 2. Count one route — doors
 

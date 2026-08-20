@@ -10,5 +10,14 @@
     "file": "main.muro"
    }
   ]
+ },
+ {
+  "code": "BND08",
+  "severity": "warning",
+  "line": 4,
+  "file": "main.muro",
+  "path": [
+   "/L1/a"
+  ]
  }
 ]

@@ -18,6 +18,8 @@ grid X 0 2000
 grid Y 0 2000
 level L1 0 h:2400 slab:150
 space /L1/a wumbo X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 ```text
@@ -65,6 +67,8 @@ grid X 0 2000
 grid Y 0 2000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居間 acme.sensor:23 bems.temp:22.5
+space /out outside:1
+boundary /L1/a /out
 ```
 
 ```text
@@ -81,6 +85,8 @@ grid X 0 2000
 grid Y 0 2000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 nmae:居間
+space /out outside:1
+boundary /L1/a /out
 ```
 
 ```text
@@ -104,6 +110,8 @@ grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:200
 space /L1/a office X1..X2 Y1..Y2 name:執務室 lease.category:rentable fire.compartment:C1 dept.name:営業
+space /out outside:1
+boundary /L1/a /out
 ```
 
 ```text
@@ -111,7 +119,7 @@ space /L1/a office X1..X2 Y1..Y2 name:執務室 lease.category:rentable fire.com
   Structural consistency only — architectural validity is what koyu validate says, separately
 ```
 
-Totalling by one of them is [`koyu stats --by lease.category`](../reference/cli/stats.md). **The caller names the key and there is no default**, because a default would be the one privileged grouping again. `use` is retired from muro 1.3 ([VER07](../reference/diagnostics/ver.md#ver07)); a file declaring 1.2 or earlier goes on writing it and goes on meaning by it what it always meant.
+Totalling by one of them is [`koyu stats --by lease.category`](../reference/cli/stats.md). **The caller names the key and there is no default**, because a default would be the one privileged grouping again. `use` is retired from muro 1.4 ([VER07](../reference/diagnostics/ver.md#ver07)); a file declaring 1.2 or earlier goes on writing it and goes on meaning by it what it always meant.
 
 **IFC divides it the same way.** `IfcSpace` has no "use" attribute — a room's purpose is a classification reference (OmniClass table 13, Uniclass SL). Grouping is `IfcZone`, and one space may be a member of several at once. The building's own occupancy is somewhere else again: `Pset_BuildingCommon.OccupancyType`, on `IfcBuilding` rather than on any room.
 
@@ -128,6 +136,9 @@ level L1 0 h:2400 slab:150
 space /L1/bath wet X1..X2 Y1..Y2 name:浴室 daylight:1
 space /out outside:1
 boundary /L1/bath /out edge:S t:150
+boundary /L1/bath /out edge:E
+boundary /L1/bath /out edge:N
+boundary /L1/bath /out edge:W
 ```
 
 ```text

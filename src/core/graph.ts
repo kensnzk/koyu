@@ -8,6 +8,8 @@ import {
   canonicalBoundaryOrder,
   canonicalizeDrawn,
   compareCanonical,
+  EXTERIOR,
+  isOutside,
   rectToPoly,
   srcRef,
 } from "./model.js";
@@ -191,6 +193,76 @@ export function deriveDefaultBoundaries(model: Model): void {
       declared.add(key);
     }
   }
+  deriveExteriorBoundaries(model);
+}
+
+/**
+ * The spaces whose free perimeter becomes a wall.
+ *
+ * **Not every space is enclosed, and the excluded ones are excluded because being open is what
+ * they are** — an `outside:1` space is the outside, a semi-outdoor space (ADR-0007) is one whose
+ * openness was declared with `open` or `air:1`, and the tiles under a `site:1` zone are paving.
+ * Putting a wall around any of those would be inventing a building nobody wrote.
+ *
+ * A void is *not* excluded. A void has a region and sits on a level, and where one reaches the
+ * edge of the building the outer wall passes it exactly as it passes a room.
+ *
+ * **`isSemiOutdoor` cannot see a derived wall, so this cannot chase its own tail.** It reads
+ * only `open` and `air:1` boundaries, and every boundary derived here is a plain `wall` — so
+ * running the derivation can never change which spaces are in this population, which is what
+ * makes `deriveDefaultBoundaries` idempotent.
+ */
+function facesTheOutside(s: Space, siteZones: readonly string[], index: GapIndex): boolean {
+  if (s.rects.length === 0 || s.level === undefined) return false;
+  if (isOutside(s) || index.semiOutdoor.has(s.path)) return false;
+  return !siteZones.some((prefix) => s.path.startsWith(prefix));
+}
+
+/**
+ * 外部との既定境界の導出 (ADR-0065) — 「屋外に面していれば、宣言しない限り壁」。
+ *
+ * ADR-0014 は接する空間の組に既定の壁を導いたが、領域を持たない相手 (外部) との組は除いた。
+ * 名指し (道路側か隣地側か庭か) が情報だからである。代償は ADR-0025 が数えた通りで、
+ * **外部への境界の書き忘れは黙って壁の不在になる** — 416空間の建物で34箇所、目で見つけたのは2箇所。
+ *
+ * 名指しは旧規則で得られていたわけではない。要求されていただけで、忘れたときに手に入るのは
+ * 名前ではなく穴だった。**既定を壁にしても名指しは失われない** — 宣言はそのまま勝つ。
+ * 失われるのは穴のほうである。書き忘れは BND08 が言葉にする。
+ *
+ * 抑制は**組ではなく区間で効く。**外部は組ではない — 「他の何にも面していない残り」だからで、
+ * 抑制すべき相手が居ない。`envelopeGaps` が宣言された境界の実現する区間を引いた残りが、
+ * そのまま導出される壁になる。だから `boundary /L1/a /road edge:S` と書いた空間の
+ * 北・東・西にも壁が立つ (1.3 までは何も立たなかった)。
+ */
+function deriveExteriorBoundaries(model: Model): void {
+  const siteZones = [...model.zones.values()]
+    .filter((z) => z.attrs["site"] === 1)
+    .map((z) => `${z.path}/`);
+  // 冪等 — 二度目の呼び出しで同じ壁を重ねない。`envelopeGaps` は導出された境界を数えないので、
+  // これが無いと一度導いた壁の区間がまた「面していない残り」として返ってくる
+  const already = new Set(
+    model.boundaries.filter((b) => b.b === EXTERIOR).map((b) => b.a),
+  );
+  const index = indexFor(model);
+  // **宣言順で走る。**導出された境界は正準JSONに出ないので書かれた向きを持たず、
+  // 並べ直しは `canonicalBoundaryOrder` が受け持つ (ADR-0041)
+  for (const s of model.spaces.values()) {
+    if (already.has(s.path)) continue;
+    if (!facesTheOutside(s, siteZones, index)) continue;
+    if (gapsOf(model, s, index).length === 0) continue;
+    model.boundaries.push({
+      // a は領域を持つ側である。`edgeOfA` は室から見た面になり、`edge:` を書いた宣言と
+      // 同じ向きで読める
+      a: s.path,
+      b: EXTERIOR,
+      kind: "wall",
+      derived: true,
+      attrs: {},
+      openings: [],
+      segs: [],
+      line: 0,
+    });
+  }
 }
 
 /**
@@ -305,6 +377,10 @@ export function drawnCut(
 /** 境界の壁芯線分を導く。壁の位置は空間の割付から生成される — 壁を置く操作は存在しない */
 export function segmentsFor(model: Model, b: Boundary): Segment[] {
   const sa = model.spaces.get(b.a);
+  // 外部との既定境界 (ADR-0065)。相手は空間ではないので `model.spaces` を引いても居ない。
+  // **実現するのは「他の何にも面していない残り」そのもの** — 宣言された境界が覆う区間は
+  // その宣言のものであり、ここには残らない。だから抑制は組ではなく区間で効く
+  if (b.b === EXTERIOR) return sa ? envelopeGaps(model, sa) : [];
   const sb = model.spaces.get(b.b);
   if (!sa || !sb) return [];
 
@@ -351,17 +427,68 @@ export function segmentsFor(model: Model, b: Boundary): Segment[] {
  * 外部への境界の書き忘れは黙って壁の不在になる。これを言葉にするための導出。
  */
 export function envelopeGaps(model: Model, s: Space): Segment[] {
+  return gapsOf(model, s, indexFor(model));
+}
+
+/**
+ * The lookups `gapsOf` and the exterior derivation would otherwise rebuild per space.
+ *
+ * **Asking about one space is cheap; asking about all of them was not.** Both a walk of
+ * `model.spaces` and a walk of `model.boundaries` sat inside a loop over every space, and on a
+ * 1,808-space building that took composition from 165ms to 745ms — nearly all of it spent
+ * establishing that there was nothing to derive.
+ */
+interface GapIndex {
+  /** the pieces of every space of a level, by level */
+  readonly byLevel: Map<string, Array<{ space: Space; pieces: Pt[][] }>>;
+  /** the written, horizontal boundaries that name a space, by path */
+  readonly byPath: Map<string, Boundary[]>;
+  /** the paths derived as semi-outdoor (ADR-0007) — an `open` or `air:1` boundary to the outside */
+  readonly semiOutdoor: ReadonlySet<string>;
+}
+
+function indexFor(model: Model): GapIndex {
+  const byLevel = new Map<string, Array<{ space: Space; pieces: Pt[][] }>>();
+  for (const o of model.spaces.values()) {
+    if (o.level === undefined) continue;
+    const row = byLevel.get(o.level) ?? [];
+    row.push({ space: o, pieces: piecesOf(o) });
+    byLevel.set(o.level, row);
+  }
+  const byPath = new Map<string, Boundary[]>();
+  const semiOutdoor = new Set<string>();
+  for (const b of model.boundaries) {
+    if (!b.derived && b.kind !== "stair" && b.kind !== "shaft" && b.kind !== "void") {
+      for (const path of b.a === b.b ? [b.a] : [b.a, b.b]) {
+        const row = byPath.get(path) ?? [];
+        row.push(b);
+        byPath.set(path, row);
+      }
+    }
+    // the same predicate as `isSemiOutdoor`, read once over the boundaries instead of once
+    // over the boundaries per space
+    if (b.kind !== "open" && !b.air) continue;
+    for (const [self, other] of [[b.a, b.b], [b.b, b.a]] as const) {
+      const mine = model.spaces.get(self);
+      const theirs = model.spaces.get(other);
+      if (mine && mine.rects.length > 0 && theirs && isOutside(theirs)) semiOutdoor.add(self);
+    }
+  }
+  return { byLevel, byPath, semiOutdoor };
+}
+
+function gapsOf(model: Model, s: Space, index: GapIndex): Segment[] {
   if (s.rects.length === 0 || !s.level) return [];
   const others: Pt[][] = [];
-  for (const o of model.spaces.values()) {
-    if (o === s || o.level !== s.level) continue;
-    others.push(...piecesOf(o));
+  for (const o of index.byLevel.get(s.level) ?? []) {
+    if (o.space === s) continue;
+    others.push(...o.pieces);
   }
   let gaps = pieceOutline(piecesOf(s), others);
-  // 宣言された境界 (外部・斜めを含む) が覆う区間を引く
-  for (const b of model.boundaries) {
-    if (b.a !== s.path && b.b !== s.path) continue;
-    if (b.kind === "stair" || b.kind === "shaft" || b.kind === "void") continue;
+  // 宣言された境界 (外部・斜めを含む) が覆う区間を引く。
+  // **導出された境界は引かない。**外部との既定境界はこの関数の答えそのものなので、数えれば
+  // 自分を呼び戻す。接する空間同士の既定壁は共有辺であり、上の `others` が既に引いている
+  for (const b of index.byPath.get(s.path) ?? []) {
     for (const seg of segmentsFor(model, b)) {
       gaps = gaps.flatMap((g) => subtractOverlap(g, seg));
     }
@@ -673,7 +800,13 @@ export function doorsBetween(model: Model, from: string, to: string): Route | un
 }
 
 export interface NeighborInfo {
-  space: Space;
+  /** 相手の綴り。空間ならその path、外部との既定境界なら [[EXTERIOR]] */
+  path: string;
+  /**
+   * 相手の空間。**外部との既定境界 (ADR-0065) では無い** — 外部は空間ではないからである。
+   * `path` は必ずあり、`space` は名指された相手が居るときだけある
+   */
+  space?: Space;
   boundary: Boundary;
   passable: boolean;
   doors: number;
@@ -683,11 +816,14 @@ export function neighbors(model: Model, path: string): NeighborInfo[] {
   const out: NeighborInfo[] = [];
   for (const b of model.boundaries) {
     const other = b.a === path ? b.b : b.b === path ? b.a : undefined;
-    if (!other) continue;
+    if (other === undefined) continue;
     const s = model.spaces.get(other);
-    if (!s) continue;
+    // 外部との既定境界は関係として本物である — 隠すと、壁のある面を「何とも接していない」と
+    // 答えることになる。相手が空間として居ないだけで、辺は在る
+    if (!s && other !== EXTERIOR) continue;
     out.push({
-      space: s,
+      path: other,
+      ...(s ? { space: s } : {}),
       boundary: b,
       passable: passable(b),
       doors: b.openings.filter((o) => o.kind === "door").length,

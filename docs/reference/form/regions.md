@@ -91,7 +91,7 @@ It is not recomputed later, because by then the counterpart is **the already-cut
 ## Write one
 
 ```muro
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -102,6 +102,7 @@ space /out name:外部 outside:1
 
 boundary /L1/a /out t:150 spec:RC
   line X1,Y2-3000 X1+3000,Y2
+boundary /L1/a /out
 ```
 
 The north-west triangle (3000 × 3000 ÷ 2 = 4.5 m²) falls off a 6000 × 6000 allocation.

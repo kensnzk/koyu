@@ -6,13 +6,13 @@ mode: reference
 # muro — the version line
 
 ```muro-part
-muro 1.3
+muro 1.4
 ```
 
 **One line declaring which version of the semantics this file is read under.** These are the accepted versions, and the order is the order of old to new.
 
 ```text
-0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3
+0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3   1.4
 ```
 
 **Omitted, the file is read as `1.1` — and always will be.** The reading of an undeclared file is frozen; it does not follow the newest version.
@@ -22,6 +22,14 @@ That is a promise about the future, so it is worth saying plainly: **a file with
 It used to follow the newest, which meant an undeclared file was re-read under new semantics every time the tool moved, silently — nothing reports the absence of a declaration. The 1.0 → 1.1 move stopped reading `exterior` out of the type position, and undeclared files written in the old dialect lost their outside spaces without a word. Freezing removes that rather than warning about it.
 
 The cost is the same statement from the other side: **an undeclared file never gets new notation.** Write the line to move forward.
+
+### One rule does not follow the version line
+
+**The rule that makes a face onto the outside a wall reaches every accepted version.** A run of perimeter that no declared boundary covers carries a wall in a file declaring `0.1`, in a file declaring nothing, and in every version between — not only in the one that introduced it.
+
+This is the one place muro sets aside "a file written this way keeps meaning this", and it is set aside deliberately rather than overlooked. Up to 1.3 that face got no wall at all, so an older file read this way gains walls it did not have. The reason for reading it that way anyway is that the alternative — refusing every file that has not closed its envelope — would refuse most files ever written, including every one with no version line; and the state being refused is one nobody chose, since nothing reported it. [BND08](../diagnostics/bnd.md#bnd08) fires on exactly the files this affects, so no file changes meaning without saying so.
+
+Everything else on this page holds. A word retired at a version stays readable at the versions that had it, notation added at a version stays unavailable before it, and [VER01–VER07](../diagnostics/ver.md) stop the combinations where the same text would otherwise mean a different building.
 
 ## The word is `muro` from 1.2, and `koyu` before it
 
@@ -62,7 +70,7 @@ Exactly two tokens: the word and the version.
 | `muro 1.2` | accepted |
 | `muro` | `muro takes a version: muro 1.2` |
 | `muro 1.2 latest` | `Extra tokens on the muro version declaration: latest` |
-| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3)` |
+| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4)` |
 
 **It is declared in the base layer only, and only once.**
 

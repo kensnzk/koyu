@@ -138,7 +138,7 @@ requireMuro("1.1"); // the version this application reads and writes
 If the installed build does not read it, the message names the fix rather than the symptom:
 
 ```text
-This build of koyu (0.20.0) does not read muro 1.3. It is newer than anything this
+This build of koyu (0.20.0) does not read muro 1.4. It is newer than anything this
 build knows (it reads up to 1.2) — upgrade koyu.
 ```
 
@@ -147,6 +147,22 @@ build knows (it reads up to 1.2) — upgrade koyu.
 `requireMuro` is on the root because asserting is the one thing a consumer *does* about versions. The ledger it reads is on `@kensnzk/koyu/model` with the rest of the model surface: `speaksMuro` is the same question without the throw, `koyuSince` answers the other direction — which release first read a version, and so what package range a language requirement implies — and `MURO_SUPPORT` is the ledger itself. `versionLine` is the sentence `koyu --version` prints.
 
 **The same pair is on `package.json` as the `muro` field**, so a build script can check it without importing anything.
+
+## Reading a boundary that has no second space
+
+A derived exterior wall names the outside rather than a space ([boundary segments](../form/boundaries.md)). Its counterpart is the reserved spelling `EXTERIOR`, exported from `@kensnzk/koyu/model`, and it is **not** a key of `model.spaces` — a consumer that looks one up will not find it, and should not invent one.
+
+```ts
+import { EXTERIOR } from "@kensnzk/koyu/model";
+import { neighbors } from "@kensnzk/koyu/graph";
+
+for (const n of neighbors(model, "/L1/a")) {
+  if (n.path === EXTERIOR) continue;   // the outside, which nobody named
+  use(n.space!);                       // `space` is present for every other neighbour
+}
+```
+
+Compare the spelling rather than testing for a missing space: a boundary to an `outside:1` space that *was* written has a `space` too, and the two are different facts.
 
 ## Where to read a signature
 

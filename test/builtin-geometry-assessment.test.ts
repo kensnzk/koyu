@@ -13,12 +13,6 @@ import { toCanonical } from "../src/core/model.js";
 import { documentedCases } from "./helpers/docs.js";
 import { assess, createAssessmentRegistry, runAnalysis } from "../src/validate/assessment.js";
 import {
-  ENVELOPE_ANALYSIS,
-  ENVELOPE_ANALYSIS_ID,
-  ENVELOPE_GAP_RULE,
-  ENVELOPE_GAP_RULE_ID,
-} from "../src/validate/builtin/envelope.js";
-import {
   ESCALATOR_SLOPE_BAND,
   ESCALATOR_USUAL_SLOPE_RULE,
   ESCALATOR_USUAL_SLOPE_RULE_ID,
@@ -51,7 +45,6 @@ const CONTEXT: ContextSnapshot = {
 };
 
 const RULES: readonly Rule[] = [
-  ENVELOPE_GAP_RULE,
   STAIR_PROPORTION_RULE,
   RAMP_DECLARED_SLOPE_RULE,
   ESCALATOR_USUAL_SLOPE_RULE,
@@ -70,14 +63,14 @@ const PROFILE: Profile = {
   id: "test.profile.geometry",
   revision: "1",
   title: "Built-in geometry profile",
-  analyses: [ENVELOPE_ANALYSIS_ID, VERTICAL_RUNS_ANALYSIS_ID],
+  analyses: [VERTICAL_RUNS_ANALYSIS_ID],
   ruleSets: [{ id: RULE_SET.id, revision: RULE_SET.revision }],
 };
 
 const PROFILE_REF = { id: PROFILE.id, revision: PROFILE.revision } as const;
 
 const REGISTRY = createAssessmentRegistry({
-  analyses: [ENVELOPE_ANALYSIS, VERTICAL_RUNS_ANALYSIS],
+  analyses: [VERTICAL_RUNS_ANALYSIS],
   ruleSets: [RULE_SET],
   profiles: [PROFILE],
 });
@@ -91,10 +84,7 @@ space /L1/s stair X1..X2 Y1..Y2 stair:N
 space /L2/s stair X1..X2 Y1..Y2
 stack s L1..L2 type:stair`;
 
-test("the existing envelope and vertical-run reference fixtures map to the new schematic rule identities", () => {
-  const envelope = assessSource(referenceExamples("envelope.md")[0]!);
-  assertSingleFailure(envelope, ENVELOPE_GAP_RULE_ID.id, "caution", "/L1/a");
-
+test("the vertical-run reference fixtures map to the schematic rule identities", () => {
   const runs = referenceExamples("runs.md");
   assertSingleFailure(assessSource(runs[0]!), STAIR_PROPORTION_RULE_ID.id, "caution", "/L1/s");
   assertSingleFailure(assessSource(runs[1]!), RAMP_DECLARED_SLOPE_RULE_ID.id, "caution", "/L1/r");
@@ -103,8 +93,8 @@ test("the existing envelope and vertical-run reference fixtures map to the new s
 });
 
 test("each geometry rule says exactly what its documented example says it says", () => {
-  const cases = documentedCases("envelope.md").concat(documentedCases("runs.md"));
-  assert.equal(cases.length, 5);
+  const cases = documentedCases("runs.md");
+  assert.equal(cases.length, 4);
 
   for (const expected of cases) {
     // the section heading and the verdict line must name the same rule
@@ -131,23 +121,6 @@ test("each geometry rule says exactly what its documented example says it says",
 });
 
 test("built-in geometry rules distinguish explicit passes from empty populations", () => {
-  const closed = assessSource(`koyu 1.1
-grid X 0 4000 8000
-grid Y 0 5000
-level L1 0 h:2700 slab:150
-space /out outside:1
-space /L1/a room X1..X2 Y1..Y2
-space /L1/b room X2..X3 Y1..Y2
-boundary /L1/a /out edge:W t:200
-boundary /L1/a /out edge:N t:200
-boundary /L1/a /out edge:S t:200
-boundary /L1/b /out t:150`);
-  const envelope = evaluatedOutcomes(closed, ENVELOPE_GAP_RULE_ID.id);
-  assert.deepEqual(envelope.map(({ id, status }) => ({ id, status })), [
-    { id: "/L1/a", status: "pass" },
-    { id: "/L1/b", status: "pass" },
-  ]);
-
   const stair = assessSource(RUN_REFERENCE);
   assert.equal(outcome(stair, STAIR_PROPORTION_RULE_ID.id, "/L1/s").status, "pass");
   assert.equal(outcome(stair, RUN_DISCONNECTED_RULE_ID.id, "/L1/s").status, "pass");
@@ -162,19 +135,14 @@ space /L1/a room X1..X2 Y1..Y2`);
   for (const rule of RULES) assert.equal(ruleRun(empty, rule.id).state, "not-applicable", rule.id);
 });
 
-test("envelope and vertical-run artifacts contain observations without verdict vocabulary or old rule identities", () => {
-  const envelope = runAnalysis(parse(referenceExamples("envelope.md")[0]!), ENVELOPE_ANALYSIS_ID, {
-    registry: REGISTRY,
-    profile: PROFILE_REF,
-    context: CONTEXT,
-  }).result.artifact;
+test("vertical-run artifacts contain observations without verdict vocabulary or old rule identities", () => {
   const runs = runAnalysis(parse(RUN_REFERENCE), VERTICAL_RUNS_ANALYSIS_ID, {
     registry: REGISTRY,
     profile: PROFILE_REF,
     context: CONTEXT,
   }).result.artifact;
 
-  for (const artifact of [envelope, runs]) {
+  for (const artifact of [runs]) {
     const json = JSON.stringify(artifact);
     assert.doesNotMatch(json, /"(?:status|outcomes|findings|ok|pass|fail|level|violation|caution|compliant|noncompliant|compliance|summary)"/i);
     assert.equal(json.includes("koyu.schematic."), false);
@@ -188,18 +156,6 @@ test("stair thresholds use rounded dimensions and include both pace-band endpoin
   assert.equal(verticalStatus(STAIR_PROPORTION_RULE, stairFact(239.5, 155)), "pass");
   assert.equal(verticalStatus(STAIR_PROPORTION_RULE, stairFact(241, 154)), "fail");
   assert.equal(verticalStatus(STAIR_PROPORTION_RULE, stairFact(241, 230)), "fail");
-});
-
-test("envelope gap scanning drops exactly 1 mm and retains a run just above it", () => {
-  const endpoint = assessSource(envelopeToleranceSource(3999));
-  assert.equal(outcome(endpoint, ENVELOPE_GAP_RULE_ID.id, "/L1/a").status, "pass");
-
-  const above = assessSource(envelopeToleranceSource(3998.999));
-  const failed = outcome(above, ENVELOPE_GAP_RULE_ID.id, "/L1/a");
-  assert.equal(failed.status, "fail");
-  const fact = failed.evidence.find((item) => item.kind === "fact" && item.name === "uncoveredEnvelopeRuns");
-  assert.ok(fact && fact.kind === "fact");
-  assert.equal((fact.value as { length: { value: number } }).length.value > 1, true);
 });
 
 test("ramp and escalator slope boundaries preserve the existing inclusive comparisons", () => {
@@ -261,11 +217,10 @@ test("vertical connection is observed independently from the derived run shape",
 });
 
 test("the geometry providers leave canonical model bytes unchanged", () => {
-  for (const source of [referenceExamples("envelope.md")[0]!, RUN_REFERENCE]) {
+  for (const source of [RUN_REFERENCE]) {
     const model = parse(source);
     const before = toCanonical(model);
-    const analysis = source === RUN_REFERENCE ? VERTICAL_RUNS_ANALYSIS_ID : ENVELOPE_ANALYSIS_ID;
-    runAnalysis<JsonValue>(model, analysis as AnalysisRef<JsonValue>, {
+    runAnalysis<JsonValue>(model, VERTICAL_RUNS_ANALYSIS_ID as AnalysisRef<JsonValue>, {
       registry: REGISTRY,
       profile: PROFILE_REF,
       context: CONTEXT,
@@ -276,9 +231,6 @@ test("the geometry providers leave canonical model bytes unchanged", () => {
 
 test("captured built-in identities, thresholds, providers, and rules are deeply immutable", () => {
   for (const value of [
-    ENVELOPE_ANALYSIS_ID,
-    ENVELOPE_ANALYSIS,
-    ENVELOPE_GAP_RULE,
     VERTICAL_RUNS_ANALYSIS_ID,
     VERTICAL_RUNS_ANALYSIS,
     STAIR_PROPORTION_RULE,
@@ -315,7 +267,7 @@ function assertSingleFailure(
   const findings = report.findings.filter((finding) => finding.rule.id === ruleId);
   assert.equal(findings.length, 1, ruleId);
   assert.equal(findings[0]!.level, level);
-  assert.deepEqual(findings[0]!.outcome.subjects, [{ kind: ruleId.includes("envelope") ? "space" : "run", ref }]);
+  assert.deepEqual(findings[0]!.outcome.subjects, [{ kind: "run", ref }]);
   assert.ok(findings[0]!.outcome.evidence.length > 0);
 }
 
@@ -359,19 +311,6 @@ function runFact(overrides: Partial<VerticalRunFact> = {}): VerticalRunFact {
     verticalBoundaryLinked: true,
     ...overrides,
   };
-}
-
-function envelopeToleranceSource(neighbourTopMm: number): string {
-  return `koyu 1.1
-grid X 0 4000 8000
-grid Y 0 ${neighbourTopMm} 4000
-level L1 0 h:2700 slab:150
-space /out outside:1
-space /L1/a room X1..X2 Y1..Y3
-space /L1/b room X2..X3 Y1..Y2
-boundary /L1/a /out edge:N
-boundary /L1/a /out edge:W
-boundary /L1/a /out edge:S`;
 }
 
 function completeRuns(runs: readonly VerticalRunFact[]): AnalysisArtifact<VerticalRunsAnalysisValue> {

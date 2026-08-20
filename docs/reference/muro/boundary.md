@@ -48,7 +48,7 @@ Writing a `wall` boundary to a space on a different level is an error (BND03). R
 Floors are not written. Spaces on consecutive levels are vertically adjacent wherever they overlap in plan, and the default reading of that adjacency is "there is a floor". Only the exceptions are declared, with `stair` / `shaft` / `void`.
 
 ```muro
-muro 1.3
+muro 1.4
 name 五つの kind
 unit mm
 
@@ -77,6 +77,13 @@ boundary /L2/void /L2/office t:150 spec:手すり air:1 h:1100
 boundary /L1/hall /L2/void type:void
 boundary /L1/st /L2/st type:stair
 boundary /L1/ev /L2/ev type:shaft
+boundary /L1/lounge /out
+boundary /L1/st /out
+boundary /L1/ev /out
+boundary /L2/void /out
+boundary /L2/office /out
+boundary /L2/st /out
+boundary /L2/ev /out
 ```
 
 `koyu graph` reads the web of relations back to you.
@@ -99,13 +106,16 @@ boundary /L1/ev /L2/ev type:shaft
 You need not write a boundary at all. **Wherever two spaces with regions touch in plan on the same level and no boundary has been declared for that pair, a `wall` boundary is derived.** This is the horizontal counterpart of the vertical "default is a floor".
 
 ```muro
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2700 slab:200
 space /L1/a room X1..X2 Y1..Y2 name:A
 space /L1/b room X2..X3 Y1..Y2 name:B
+space /out outside:1
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ```text
@@ -150,7 +160,7 @@ A key that is not in the ledger cannot be written — writing it is ATT03 (error
 `boundary /L1/a /out` and `boundary /out /L1/a` are two spellings of the same relation. **Area, shape and the position of the segments do not depend on the order.**
 
 ```muro
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -161,6 +171,7 @@ space /out name:外部 outside:1
 
 boundary /out /L1/a t:150 spec:RC
   line X1,Y2-3000 X1+3000,Y2
+boundary /L1/a /out
 ```
 
 Rewrite this boundary as `boundary /L1/a /out` and the area stays at 31.50 m2. The only thing that changes in the canonical JSON is the value of `a`.
@@ -173,14 +184,17 @@ Exactly **two** things read the order.
 Get `edge` the wrong way round and the tool says so on the spot.
 
 ```muro-bad
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 6000
 grid Y 0 4000 8000
 level L1 0 h:2700 slab:200
 space /L1/a room X1..X2 Y1..Y2 name:南の室
 space /L1/b room X1..X2 Y2..Y3 name:北の室
+space /out outside:1
 boundary /L1/b /L1/a t:120 edge:N
+boundary /L1/a /out
+boundary /L1/b /out
 ```
 
 ```text

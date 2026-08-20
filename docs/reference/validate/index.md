@@ -5,7 +5,7 @@ mode: reference
 
 # koyu validate — architectural judgement
 
-[`koyu check`](../cli/check.md) says only that what is written is not self-contradictory as data. Whether the daylight is sufficient, whether the envelope closes, whether the stair can be climbed, whether a car can leave the garage, whether the building fits on its site — none of that is in there. **`koyu validate` says it, and this volume documents it.**
+[`koyu check`](../cli/check.md) says only that what is written is not self-contradictory as data. Whether the daylight is sufficient, whether the stair can be climbed, whether a car can leave the garage, whether the building fits on its site — none of that is in there. **`koyu validate` says it, and this volume documents it.**
 
 ```sh
 koyu validate examples/tower/main.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03
@@ -58,7 +58,7 @@ So that a judgement is never read as a guarantee about the composition, **the tw
 | spelling | three capitals plus two digits | a dotted, namespaced identifier |
 | version | frozen | **not frozen** — rules are added, sharpened, dropped |
 
-The field names differ, so the two arrays cannot be confused; concatenate them and the type collapses. Nobody mistakes `ENV01` for `koyu.schematic.envelope.gap` — that is exactly why the spellings were split.
+The field names differ, so the two arrays cannot be confused; concatenate them and the type collapses. Nobody mistakes `SIT03` for `koyu.schematic.site.escape` — that is exactly why the spellings were split.
 
 **`level` is an invariant property of the rule.** The same rule is never a `violation` in one model and a `caution` in another. Changing the weight means minting a new rule identity.
 
@@ -90,13 +90,12 @@ A bare list of failures cannot tell you whether a rule passed, never applied, or
 
 This is **a different axis** from `check`'s `error` / `warning`. Validation can be green while the composition is broken, and the other way round.
 
-## The ledger — sixteen rules
+## The ledger — fifteen rules
 
 The rows follow the order the rule set declares them in. **That is not the order of the output within a chapter** — outcomes come out one scan unit at a time.
 
 | rule | level | what it says |
 |---|---|---|
-| [`koyu.schematic.envelope.gap`](envelope.md#envelope-gap) | caution | part of the outline faces nothing — a hole in the envelope |
 | [`koyu.schematic.daylight.ratio`](daylight.md#daylight-ratio) | violation | effective window area is below one seventh of the floor area |
 | [`koyu.schematic.daylight.unknown`](daylight.md#daylight-unknown) | caution | a window without `h:` means the window area is not fully counted |
 | [`koyu.schematic.stair.proportion`](runs.md#stair-proportion) | caution | the derived step is cramped (going under 240mm, or 2×riser+going outside 550–700mm) |
@@ -113,17 +112,16 @@ The rows follow the order the rule set declares them in. **That is not the order
 | [`koyu.schematic.site.area`](site.md#site-area) | caution | the declared and derived site areas disagree |
 | [`koyu.schematic.site.frontage`](site.md#site-frontage) | violation | the road frontage is under 2 m |
 
-The chapters (`envelope`, `daylight`, `stair`, `ramp`, `escalator`, `run`, `access`, `column`, `site`) name **subjects, not jurisdictions**.
+The chapters (`daylight`, `stair`, `ramp`, `escalator`, `run`, `access`, `column`, `site`) name **subjects, not jurisdictions**.
 
 **A ramp and an escalator are two rules, not one.** They both leave a slope band, but one band is the limit the designer wrote in the file and the other is a custom this pack carries. Different grounds, so either can be revised without touching the other.
 
-## The six analyses
+## The five analyses
 
 A rule never reads the model. It reads an **analysis** — a versioned computation that returns facts and no verdict at all.
 
 | analysis | what it observes |
 |---|---|
-| `koyu.analysis.envelope@1` | perimeter runs facing nothing |
 | `koyu.analysis.daylight@1` | floor area, effective window area, windows with no `h:` |
 | `koyu.analysis.vertical-runs@1` | derived rise, run, tread, riser, slope, and whether a vertical boundary links the levels |
 | `koyu.analysis.access@1` | which spaces reach the exterior, and by what route |
@@ -195,7 +193,6 @@ Some codes that `check` once emitted were architectural judgements, and moved to
 
 | old code | rule today |
 |---|---|
-| `ENV01` | [`koyu.schematic.envelope.gap`](envelope.md#envelope-gap) |
 | `RUN06` | [`koyu.schematic.stair.proportion`](runs.md#stair-proportion) |
 | `RUN07` | [`koyu.schematic.ramp.declared-slope`](runs.md#ramp-declared-slope) / [`koyu.schematic.escalator.usual-slope`](runs.md#escalator-usual-slope) |
 | `RUN08` | [`koyu.schematic.run.disconnected`](runs.md#run-disconnected) |

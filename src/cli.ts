@@ -423,7 +423,7 @@ function main(argv: string[]): number {
           const attrs = Object.entries(n.boundary.attrs)
             .map(([k, v]) => `${k}:${v}`)
             .join(" ");
-          console.log(`  ${mark} → ${n.space.path}${attrs ? `  (${attrs})` : ""}`);
+          console.log(`  ${mark} → ${n.path}${attrs ? `  (${attrs})` : ""}`);
         }
       }
       return 0;

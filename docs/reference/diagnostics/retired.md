@@ -27,7 +27,7 @@ They were retired for three different reasons.
 | Retired | Severity then | What it said then | What says it now |
 |---|---|---|---|
 | BND07 | warning | These touch, but no boundary is declared | Nothing — an undeclared contact is a wall by default |
-| ENV01 | warning | A hole in the envelope — a stretch of perimeter facing nothing | `koyu.schematic.envelope.gap` (caution) |
+| ENV01 | warning | A hole in the envelope — a stretch of perimeter facing nothing | Nothing — a face onto the outside is a wall by default, so the hole cannot arise. That nobody named the outside is [BND08](bnd.md#bnd08) (warning) |
 | HGT03 | warning | The storey above has no `slab`, so the height check cannot run | [SUF03](suf.md) (warning) |
 | HGT04 | warning | The ceiling height is unknown, so the height check cannot run | [SUF01](suf.md) (error) |
 | HGT05 | warning | A space with a region whose level cannot be determined | [SUF02](suf.md) (error) |
@@ -38,11 +38,11 @@ They were retired for three different reasons.
 | SIT03 | error | The building escapes the site outline | `koyu.schematic.site.escape` (violation) |
 | SIT05 | warning | The declared site area and the derived one disagree | `koyu.schematic.site.area` (caution) |
 
-Everything from `koyu.schematic.envelope.gap` down in the right-hand column is not a `koyu check` diagnostic but a **`koyu validate` rule**. They are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns `Finding { rule, level }`. `level` is `violation` (not met) or `caution` (suspect), an axis of its own — it measures architectural weight, where `severity` measures how the composition is broken.
+Every `koyu.schematic.*` name in the right-hand column is not a `koyu check` diagnostic but a **`koyu validate` rule**. They are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns `Finding { rule, level }`. `level` is `violation` (not met) or `caution` (suspect), an axis of its own — it measures architectural weight, where `severity` measures how the composition is broken.
 
 ## Why the judgements left the core
 
-`check` used to say two kinds of thing at once. "References an undefined space" (REF01) and "there is a hole in the envelope" (ENV01) sat in one array with the same `severity`. The first is a failure of reading — **the composition is broken**. The second is a judgement — **this is architecturally suspect**.
+`check` used to say two kinds of thing at once. "References an undefined space" (REF01) and "the stair is cramped" (RUN06) sat in one array with the same `severity`. The first is a failure of reading — **the composition is broken**. The second is a judgement — **this is architecturally suspect**.
 
 Two problems forced the split.
 

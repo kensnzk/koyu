@@ -24,7 +24,7 @@ Two things differ. **A window is not passable**, so it adds no edge to the graph
 Without `w`, parse stops. Without `h`, `check` still comes back green — but the window **drops out of the daylight count entirely**, because window area is the sum of `w × h` over the windows that have an `h`.
 
 ```muro
-muro 1.3
+muro 1.4
 name 窓の書き方
 unit mm
 

@@ -19,21 +19,41 @@ This page is the one table of defaults. How values are written is in [the three 
 
 ## The smallest file
 
-```muro
-muro 1.3
+```muro-warn
+muro 1.4
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 ```
 
-**Five lines on which `check` is green and a plan is drawn.** Everything else is a default — no name, no exterior, not one boundary declared.
+**Five lines, and the room already has four walls.**
+
+```text
+⚠ …/smallest.muro:line 5: A default wall was derived where /L1/a faces the outside: S 3600mm / E 4000mm / N 3600mm / W 4000mm (15200mm over 4 runs) — write a boundary to say which outside it faces
+✔ Consistent — 1 space / 1 boundary (1 warning)
+  Structural consistency only — architectural validity is what koyu validate says, separately
+```
+
+Nothing was written about the perimeter, so the perimeter is a wall — the plan draws it and the solids build it. **The one boundary counted here is that wall**, and it appears in no machine format because nobody wrote it.
+
+The warning is not about the shape, which is complete. It is about the one thing silence could not supply: **which** outside those four faces look at. Say it and the warning goes.
+
+```muro
+muro 1.4
+grid X 0 3600
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
+```
 
 ## Foundation declarations
 
 | Written nothing | What happens |
 |---|---|
-| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.3` to opt into current semantics → [the version line](version.md) |
+| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.4` to opt into current semantics → [the version line](version.md) |
 | `unit mm` | mm. v0 has no other unit |
 | `name` | the building has no name |
 | `grid X` / `grid Y` | **no grid reference can be written at all.** Any line with a region stops with `Undefined grid line name` |
@@ -66,7 +86,7 @@ space /L1/a room X1..X2 Y1..Y2
 |---|---|
 | a `boundary` for a touching pair on one level | **a `wall` boundary is derived.** It carries no door, so it cannot be passed. It does not appear in the machine format |
 | a vertical boundary between stacked spaces | **it is a floor.** It cannot be passed. `stair` / `shaft` / `void` are the exceptions, and they are declared |
-| a `boundary` with a space that has no region (an exterior) | **nothing is derived.** There is no wall there, and the envelope has a hole — on a level where you have started writing them, `koyu validate` reports the faces left over as `koyu.schematic.envelope.gap`; on a level with none at all it says nothing |
+| a `boundary` to the outside | **a `wall` boundary is derived** on every run of the perimeter that no declared boundary reaches. Its counterpart is the outside itself, spelled `outside`, and it does not appear in the machine format. That a run was left unnamed is [BND08](../diagnostics/bnd.md#bnd08), a warning |
 | `type:` | `wall` |
 | `t:` | 100 mm for drawing and for solids. An `air:1` boundary defaults to 60 mm, capped at 80 mm |
 | `air:` | treated as a thing that blocks |
@@ -74,7 +94,9 @@ space /L1/a room X1..X2 Y1..Y2
 | `h:` (on `air:1`) | a top at 1100 mm |
 | `spec:` `fire:` `sound:` | there is simply no value to carry |
 
-**One declaration on the pair suppresses the derived wall.** That holds even if the declaration named a single face with `edge:` — the remaining faces get no derived wall either.
+**Between two spaces, one declaration on the pair suppresses the derived wall.** That holds even if the declaration named a single face with `edge:` — the remaining faces get no derived wall either.
+
+**Against the outside it works by run instead.** The outside is not a pair — it is whatever the rest of the perimeter faces — so there is no pair to suppress. Each declared boundary takes the runs it reaches, and the default takes what is left. Write `edge:S` alone and walls still stand on N, E and W.
 
 ## door / window
 
@@ -155,7 +177,7 @@ Riser count, tread and slope are never written. **What is written is the region 
 **Because the default between touching spaces is a wall, a two-storey building with no door declared anywhere is completely sealed — and green.**
 
 ```muro
-muro 1.3
+muro 1.4
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150

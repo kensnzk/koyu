@@ -22,7 +22,9 @@ grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
 boundary /L1/a /L1/zzz
+boundary /L1/a /out
 ```
 
 `References an undefined space: /L1/zzz`

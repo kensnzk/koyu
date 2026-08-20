@@ -37,7 +37,7 @@ Site /site (敷地)
   Total floor area: 4785.92 m2 → floor area ratio 436%
 ```
 
-Areas, totals by any key the spaces carry, the ratio of net to common, frontage and coverage and floor area ratios, daylight inputs, circulation measured in doors, riser counts and treads and slopes, where columns stand, holes in the envelope. **Nearly everything decided at scheme design can be answered at this resolution.**
+Areas, totals by any key the spaces carry, the ratio of net to common, frontage and coverage and floor area ratios, daylight inputs, circulation measured in doors, riser counts and treads and slopes, where columns stand, which faces of the envelope nobody has named. **Nearly everything decided at scheme design can be answered at this resolution.**
 
 ```text
 $ npx tsx src/cli.ts stats examples/tower/main.muro --by lease.category

@@ -5,9 +5,9 @@ mode: reference
 
 # The diagnostic code index
 
-Every message `koyu check` returns, catalogued. There are **69** codes in **19** families: 52 errors and 17 warnings. This page shows which family a code belongs to and how heavy it is. The cause, a minimal reproduction, and the fix live on the family pages.
+Every message `koyu check` returns, catalogued. There are **70** codes in **19** families: 52 errors and 18 warnings. This page shows which family a code belongs to and how heavy it is. The cause, a minimal reproduction, and the fix live on the family pages.
 
-What `check` tells you stops at **whether what is written is self-consistent as data**. It says nothing about whether the building is usable — that is what `koyu validate` says, separately, with its 16 rules. The two are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns an `AssessmentReport` whose findings carry `{ rule, level }`. Even the spellings differ on sight — a code is three letters plus two digits, a rule is a namespaced id (`koyu.schematic.site.escape`).
+What `check` tells you stops at **whether what is written is self-consistent as data**. It says nothing about whether the building is usable — that is what `koyu validate` says, separately, with its 15 rules. The two are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns an `AssessmentReport` whose findings carry `{ rule, level }`. Even the spellings differ on sight — a code is three letters plus two digits, a rule is a namespaced id (`koyu.schematic.site.escape`).
 
 **The human-facing `check` does not display codes.** Get the code with `--json` before looking anything up here; the procedure is on [Reading a diagnostic](reading.md).
 
@@ -39,7 +39,7 @@ Severity is an invariant property of a code. **The same code is never an error i
 | You wrote an attribute and it had no effect | [ATT01](att.md) [ATT02](att.md) [ATT03](att.md) |
 | The site's figures do not agree | `check` does not say — `koyu validate`'s `koyu.schematic.site.escape` / `koyu.schematic.site.area` do |
 | The stair's going or slope is cramped | `check` does not say — `koyu validate`'s `koyu.schematic.stair.proportion` / `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` do |
-| There is a hole in the envelope | `check` does not say — `koyu validate`'s `koyu.schematic.envelope.gap` does |
+| Nobody said which outside a face looks at | [BND08](bnd.md#bnd08) — the wall is derived either way, and the warning asks for the name |
 | The file dies without a single line being read | [SYN01](syn.md) |
 
 ## Every code
@@ -52,7 +52,7 @@ The order is the ledger's.
 |---|---|---|
 | [REF01](ref.md#ref01) | error | References an undefined space |
 
-### BND — boundaries (6)
+### BND — boundaries (7)
 
 | Code | severity | One line |
 |---|---|---|
@@ -62,6 +62,7 @@ The order is the ledger's.
 | [BND04](bnd.md#bnd04) | error | The spaces do not touch, so no boundary can be derived |
 | [BND05](bnd.md#bnd05) | warning | Edge-restricted and unrestricted boundaries coexist on one pair |
 | [BND06](bnd.md#bnd06) | warning | No edge remains on the perimeter, so the segment is of zero length |
+| [BND08](bnd.md#bnd08) | warning | A face onto the outside got a default wall, because no boundary says what it looks at |
 
 ### LVL — levels (1)
 

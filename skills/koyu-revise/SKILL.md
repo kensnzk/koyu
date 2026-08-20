@@ -65,7 +65,7 @@ changes the file**: a key the newer version retired becomes a `VER07` error the
 moment the line moves, and nothing migrates on its own.
 
 ```text
-A muro 1.3 file carries use: on /L1/a — use is retired after muro 1.2. Write a namespaced
+A muro 1.4 file carries use: on /L1/a — use is retired after muro 1.2. Write a namespaced
 key of your own (lease.category:, fire.compartment:, dept.name:) instead, or keep the file
 at muro 1.2
 ```

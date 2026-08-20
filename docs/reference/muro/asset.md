@@ -30,7 +30,7 @@ boundary /home/ldk /home/hall1 t:120 spec:LGS
 The asset's attributes become the defaults, and **the instance's attributes override them**.
 
 ```muro
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 3600 7200
 grid Y 0 4500
@@ -98,7 +98,7 @@ A key outside the ledger needs a namespace containing a dot.
 The `name` in `asset W1 window … name:掃き出し窓` is **the name of a type of leaf**, not of an individual. So hanging the same asset twice on one wall does not collide.
 
 ```muro
-muro 1.3
+muro 1.4
 unit mm
 grid X 0 7200
 grid Y 0 4500
@@ -109,6 +109,9 @@ space /out name:外部 outside:1
 boundary /L1/a /out t:150 edge:S
   door D1 at:0.25
   door D1 at:0.75
+boundary /L1/a /out edge:E
+boundary /L1/a /out edge:N
+boundary /L1/a /out edge:W
 ```
 
 `check` comes back green. An opening's identity comes from a `name` unique inside its boundary, but **only a name written on the opening's own line counts as a claim** — the same value inherited from a referenced asset is not one. Write `name:D9` on both and it collides then, and only then.

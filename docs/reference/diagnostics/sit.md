@@ -104,6 +104,8 @@ grid Y 0 10000
 level L1 0 h:2400 slab:150
 polygon /site 0,0 10000,0 10000,10000 0,10000
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 ```text
@@ -135,6 +137,8 @@ grid Y 0 10000
 level L1 0 h:2400 slab:150
 origin epsg:6677 easting:-8000.123 northing:-34000.456
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 ```text
@@ -154,6 +158,8 @@ level L1 0 h:2400 slab:150
 origin epsg:6677 easting:-8000.123 northing:-34000.456
 azimuth Y 347.5
 space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 **If the bearing is genuinely unknown, take `origin` out rather than writing `azimuth Y 0`.** A zero is the claim that +Y is true north, and it is indistinguishable afterwards from a placeholder nobody went back to. The warning is the cheaper thing to carry.
@@ -179,6 +185,8 @@ zone /site name:敷地 site:1 area:120
 polygon /site 0,0 10000,0 10000,10000 0,10000
 space /site/yard yard X1..X2 Y1..Y2 level:L1
 space /L1/a room X2..X3 Y1..Y2
+space /out outside:1
+boundary /L1/a /out
 ```
 
 ```sh

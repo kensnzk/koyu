@@ -13,7 +13,7 @@ import { derive } from "../core/derive.js";
 import { displayName, polyBounds, type Model, type Pt } from "../core/model.js";
 import { slopeText } from "../core/vertical.js";
 import { planMarks, type Mark } from "./marks.js";
-import { esc, Extent, FAINT, GRID, INK, openSheet, PAPER, ROOM } from "./sheet.js";
+import { esc, Extent, FAINT, GRID, INK, openSheet, OUTDOOR, PAPER, ROOM, SEMI_OUTDOOR } from "./sheet.js";
 import { writtenOf } from "./written.js";
 
 export interface PlanOptions {
@@ -77,11 +77,12 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   }
 
   // 空間の面 — 切断面が気積を切った姿。同色・輪郭なしなのでL字も切られた形も一体に見える。
-  // 半屋外は淡く塗り分け、屋外であることが図から読めるように
+  // **暖色が屋内、寒色が屋外**である。宣言された屋外 (outside:1)・半屋外・屋内の三段で、
+  // 前庭と玄関ホールが同じ一枚のクリームに見えていた状態を分ける
   for (const s of rooms) {
     const isVoid = s.void;
     for (const poly of s.outline) {
-      parts.push(fill(poly, isVoid ? PAPER : s.semiOutdoor ? "#f8f5ec" : ROOM));
+      parts.push(fill(poly, isVoid ? PAPER : s.outside ? OUTDOOR : s.semiOutdoor ? SEMI_OUTDOOR : ROOM));
       if (isVoid) {
         // 吹抜け: 破線の対角線 (作図慣習)
         const r = polyBounds(poly);
@@ -140,6 +141,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
       // 分節には Form しか持たない座と向きが要るため。上部吹抜けは空間ラベルより後ろに置く
       case "space":
       case "space-semi-outdoor":
+      case "space-outdoor":
       case "space-void":
       case "void-hatch":
       case "void-above":

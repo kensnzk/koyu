@@ -1,5 +1,32 @@
 [
  {
+  "code": "BND08",
+  "severity": "warning",
+  "line": 5,
+  "file": "main.muro",
+  "path": [
+   "/L1/a"
+  ]
+ },
+ {
+  "code": "BND08",
+  "severity": "warning",
+  "line": 6,
+  "file": "main.muro",
+  "path": [
+   "/L2/v"
+  ]
+ },
+ {
+  "code": "BND08",
+  "severity": "warning",
+  "line": 7,
+  "file": "main.muro",
+  "path": [
+   "/L2/b"
+  ]
+ },
+ {
   "code": "HGT02",
   "severity": "error",
   "line": 5,

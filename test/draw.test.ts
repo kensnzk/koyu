@@ -29,8 +29,10 @@ import {
 import { parse } from "../src/core/parse.js";
 import { sectionForm } from "../src/core/section.js";
 import { svgAxo } from "../src/draw/axo.js";
+import { planMarks } from "../src/draw/marks.js";
 import { svgPlan } from "../src/draw/plan.js";
 import { svgElevation, svgSection } from "../src/draw/section.js";
+import { OUTDOOR, ROOM, SEMI_OUTDOOR } from "../src/draw/sheet.js";
 import { parseFile } from "../src/parse-file.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -361,4 +363,71 @@ test("drawing: every drawing carries the mark", () => {
   ]) {
     assert.match(svg, /<g transform="translate\([^)]*\) scale\([^)]*\)"><path d="M1027\.53 171\.361/);
   }
+});
+
+test("drawing: indoors, semi-outdoors and outdoors are three different fills on the plan", () => {
+  // **What is pinned is the distinction, not the colour.** `src/draw` does not freeze, so any of
+  // these three may be re-chosen; what may not happen is two of them collapsing into one, which is
+  // the state the plan was in before — a forecourt and an entrance hall drawn as one field of the
+  // same cream, on a sheet whose whole job is to say which is which.
+  const svg = svgPlan(
+    parse(`muro 1.4
+grid X 0 3600 7200 10800
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/room room X1..X2 Y1..Y2
+space /L1/deck terrace X2..X3 Y1..Y2
+space /L1/yard X3..X4 Y1..Y2 outside:1 name:Forecourt
+space /out outside:1
+boundary /L1/deck /out air:1
+boundary /L1/room /out
+boundary /L1/yard /out`),
+    { level: "L1" },
+  );
+  const form = derive(parse(`muro 1.4
+grid X 0 3600 7200 10800
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/room room X1..X2 Y1..Y2
+space /L1/deck terrace X2..X3 Y1..Y2
+space /L1/yard X3..X4 Y1..Y2 outside:1 name:Forecourt
+space /out outside:1
+boundary /L1/deck /out air:1
+boundary /L1/room /out
+boundary /L1/yard /out`));
+  const of = (path: string) => form.spaces.find((x) => x.path === path)!;
+  assert.equal(of("/L1/room").outside, false, "the fixture must actually hold the three kinds");
+  assert.equal(of("/L1/room").semiOutdoor, false);
+  assert.equal(of("/L1/deck").semiOutdoor, true);
+  assert.equal(of("/L1/yard").outside, true);
+
+  const fills = new Set([ROOM, SEMI_OUTDOOR, OUTDOOR]);
+  assert.equal(fills.size, 3, "the three are three colours, not two spelled twice");
+  for (const c of fills) {
+    assert.ok(svg.includes(`fill="${c}"`), `the plan draws nothing in ${c}`);
+  }
+});
+
+test("drawing: a mark says which of the three a space's face is, so another viewer can disagree about the colour only", () => {
+  // The roles are a closed union on purpose (`MarkRole`): a consumer spelling them exhaustively
+  // stops compiling when one arrives, rather than silently never drawing it.
+  const model = parse(`muro 1.4
+grid X 0 3600 7200 10800
+grid Y 0 4000
+level L1 0 h:2400 slab:150
+space /L1/room room X1..X2 Y1..Y2
+space /L1/deck terrace X2..X3 Y1..Y2
+space /L1/yard X3..X4 Y1..Y2 outside:1
+space /out outside:1
+boundary /L1/deck /out air:1
+boundary /L1/room /out
+boundary /L1/yard /out`);
+  const roles = new Map(
+    planMarks(derive(model), "L1")
+      .filter((k) => k.of === "space" && k.class === "cut")
+      .map((k) => [k.ref, k.role]),
+  );
+  assert.equal(roles.get("/L1/room"), "space");
+  assert.equal(roles.get("/L1/deck"), "space-semi-outdoor");
+  assert.equal(roles.get("/L1/yard"), "space-outdoor");
 });
