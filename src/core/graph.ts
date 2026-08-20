@@ -10,7 +10,6 @@ import {
   compareCanonical,
   EXTERIOR,
   isOutside,
-  isSemiOutdoor,
   rectToPoly,
   srcRef,
 } from "./model.js";
@@ -67,13 +66,27 @@ const FACING: Record<Edge, Edge> = { N: "S", S: "N", E: "W", W: "E" };
 /** 凸片の外周のうち、他の空間の凸片と向かい合っていない区間 (= 外部に面する壁) */
 function pieceOutline(pieces: Pt[][], others: Pt[][]): Segment[] {
   const otherEdges = others.flatMap(polyEdges);
+  // **Grouped by which way they face, and hoisted out of the edge loop.** Only an edge facing
+  // the opposite way can subtract anything, so three quarters of the scan below rejected on its
+  // first line — and the concatenation that fed it was rebuilt for every edge of every piece.
+  // The grouping keeps the order within each face, so the intervals come out exactly as before.
+  const byFace = (edges: ReturnType<typeof polyEdges>): Map<Edge, ReturnType<typeof polyEdges>> => {
+    const out = new Map<Edge, ReturnType<typeof polyEdges>>();
+    for (const e of edges) {
+      const row = out.get(e.edge) ?? [];
+      row.push(e);
+      out.set(e.edge, row);
+    }
+    return out;
+  };
+  const otherByFace = byFace(otherEdges);
   const segs: Segment[] = [];
   for (let i = 0; i < pieces.length; i++) {
-    const siblings = pieces.filter((_, k) => k !== i).flatMap(polyEdges);
+    const siblingByFace = byFace(pieces.filter((_, k) => k !== i).flatMap(polyEdges));
     for (const e of polyEdges(pieces[i]!)) {
       let intervals: Array<[number, number]> = [[e.lo, e.hi]];
-      for (const o of [...otherEdges, ...siblings]) {
-        if (o.edge !== FACING[e.edge]) continue;
+      const facing = FACING[e.edge];
+      for (const o of [...(otherByFace.get(facing) ?? []), ...(siblingByFace.get(facing) ?? [])]) {
         if (Math.abs(o.fixed - e.fixed) > EPS) continue;
         intervals = intervals.flatMap(([s, t]) => {
           const cs = Math.max(s, o.lo);
@@ -213,9 +226,9 @@ export function deriveDefaultBoundaries(model: Model): void {
  * running the derivation can never change which spaces are in this population, which is what
  * makes `deriveDefaultBoundaries` idempotent.
  */
-function facesTheOutside(model: Model, s: Space, siteZones: readonly string[]): boolean {
+function facesTheOutside(s: Space, siteZones: readonly string[], index: GapIndex): boolean {
   if (s.rects.length === 0 || s.level === undefined) return false;
-  if (isOutside(s) || isSemiOutdoor(model, s)) return false;
+  if (isOutside(s) || index.semiOutdoor.has(s.path)) return false;
   return !siteZones.some((prefix) => s.path.startsWith(prefix));
 }
 
@@ -244,12 +257,13 @@ function deriveExteriorBoundaries(model: Model): void {
   const already = new Set(
     model.boundaries.filter((b) => b.b === EXTERIOR).map((b) => b.a),
   );
+  const index = indexFor(model);
   // **宣言順で走る。**導出された境界は正準JSONに出ないので書かれた向きを持たず、
   // 並べ直しは `canonicalBoundaryOrder` が受け持つ (ADR-0041)
   for (const s of model.spaces.values()) {
     if (already.has(s.path)) continue;
-    if (!facesTheOutside(model, s, siteZones)) continue;
-    if (envelopeGaps(model, s).length === 0) continue;
+    if (!facesTheOutside(s, siteZones, index)) continue;
+    if (gapsOf(model, s, index).length === 0) continue;
     model.boundaries.push({
       // a は領域を持つ側である。`edgeOfA` は室から見た面になり、`edge:` を書いた宣言と
       // 同じ向きで読める
@@ -427,20 +441,68 @@ export function segmentsFor(model: Model, b: Boundary): Segment[] {
  * 外部への境界の書き忘れは黙って壁の不在になる。これを言葉にするための導出。
  */
 export function envelopeGaps(model: Model, s: Space): Segment[] {
+  return gapsOf(model, s, indexFor(model));
+}
+
+/**
+ * The lookups `gapsOf` and the exterior derivation would otherwise rebuild per space.
+ *
+ * **Asking about one space is cheap; asking about all of them was not.** Both a walk of
+ * `model.spaces` and a walk of `model.boundaries` sat inside a loop over every space, and on a
+ * 1,808-space building that took composition from 165ms to 745ms — nearly all of it spent
+ * establishing that there was nothing to derive.
+ */
+interface GapIndex {
+  /** the pieces of every space of a level, by level */
+  readonly byLevel: Map<string, Array<{ space: Space; pieces: Pt[][] }>>;
+  /** the written, horizontal boundaries that name a space, by path */
+  readonly byPath: Map<string, Boundary[]>;
+  /** the paths derived as semi-outdoor (ADR-0007) — an `open` or `air:1` boundary to the outside */
+  readonly semiOutdoor: ReadonlySet<string>;
+}
+
+function indexFor(model: Model): GapIndex {
+  const byLevel = new Map<string, Array<{ space: Space; pieces: Pt[][] }>>();
+  for (const o of model.spaces.values()) {
+    if (o.level === undefined) continue;
+    const row = byLevel.get(o.level) ?? [];
+    row.push({ space: o, pieces: piecesOf(o) });
+    byLevel.set(o.level, row);
+  }
+  const byPath = new Map<string, Boundary[]>();
+  const semiOutdoor = new Set<string>();
+  for (const b of model.boundaries) {
+    if (!b.derived && b.kind !== "stair" && b.kind !== "shaft" && b.kind !== "void") {
+      for (const path of b.a === b.b ? [b.a] : [b.a, b.b]) {
+        const row = byPath.get(path) ?? [];
+        row.push(b);
+        byPath.set(path, row);
+      }
+    }
+    // the same predicate as `isSemiOutdoor`, read once over the boundaries instead of once
+    // over the boundaries per space
+    if (b.kind !== "open" && !b.air) continue;
+    for (const [self, other] of [[b.a, b.b], [b.b, b.a]] as const) {
+      const mine = model.spaces.get(self);
+      const theirs = model.spaces.get(other);
+      if (mine && mine.rects.length > 0 && theirs && isOutside(theirs)) semiOutdoor.add(self);
+    }
+  }
+  return { byLevel, byPath, semiOutdoor };
+}
+
+function gapsOf(model: Model, s: Space, index: GapIndex): Segment[] {
   if (s.rects.length === 0 || !s.level) return [];
   const others: Pt[][] = [];
-  for (const o of model.spaces.values()) {
-    if (o === s || o.level !== s.level) continue;
-    others.push(...piecesOf(o));
+  for (const o of index.byLevel.get(s.level) ?? []) {
+    if (o.space === s) continue;
+    others.push(...o.pieces);
   }
   let gaps = pieceOutline(piecesOf(s), others);
   // 宣言された境界 (外部・斜めを含む) が覆う区間を引く。
   // **導出された境界は引かない。**外部との既定境界はこの関数の答えそのものなので、数えれば
   // 自分を呼び戻す。接する空間同士の既定壁は共有辺であり、上の `others` が既に引いている
-  for (const b of model.boundaries) {
-    if (b.derived) continue;
-    if (b.a !== s.path && b.b !== s.path) continue;
-    if (b.kind === "stair" || b.kind === "shaft" || b.kind === "void") continue;
+  for (const b of index.byPath.get(s.path) ?? []) {
     for (const seg of segmentsFor(model, b)) {
       gaps = gaps.flatMap((g) => subtractOverlap(g, seg));
     }

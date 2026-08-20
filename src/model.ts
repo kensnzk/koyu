@@ -31,6 +31,7 @@ export {
   DEFAULT_LANGUAGE_VERSION,
   displayName,
   effectiveAttr,
+  EXTERIOR,
   heff,
   isCoveredAbove,
   isIndoor,

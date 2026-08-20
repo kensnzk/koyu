@@ -148,6 +148,22 @@ build knows (it reads up to 1.2) — upgrade koyu.
 
 **The same pair is on `package.json` as the `muro` field**, so a build script can check it without importing anything.
 
+## Reading a boundary that has no second space
+
+A derived exterior wall names the outside rather than a space ([boundary segments](../form/boundaries.md)). Its counterpart is the reserved spelling `EXTERIOR`, exported from `@kensnzk/koyu/model`, and it is **not** a key of `model.spaces` — a consumer that looks one up will not find it, and should not invent one.
+
+```ts
+import { EXTERIOR } from "@kensnzk/koyu/model";
+import { neighbors } from "@kensnzk/koyu/graph";
+
+for (const n of neighbors(model, "/L1/a")) {
+  if (n.path === EXTERIOR) continue;   // the outside, which nobody named
+  use(n.space!);                       // `space` is present for every other neighbour
+}
+```
+
+Compare the spelling rather than testing for a missing space: a boundary to an `outside:1` space that *was* written has a `space` too, and the two are different facts.
+
 ## Where to read a signature
 
 **The package ships its own source.** `files` in `package.json` carries `src/` alongside `dist/`,
