@@ -14,7 +14,7 @@ Each is counted independently. Mixing them makes it impossible to say which prom
 | Version | What it attaches to | Currently |
 |---|---|---|
 | **The muro version** | **the language, its semantics and the rules of composition.** "A file written this way keeps meaning this" | **1.4** |
-| **The koyu version** | **the implementation.** "This implementation's surfaces will not break." It declares which muro it implements — `koyu --version`, `package.json`'s `muro` field, and the MCP `serverInfo` all say so, from one ledger | **0.26.0** |
+| **The koyu version** | **the implementation.** "This implementation's surfaces will not break." It declares which muro it implements — `koyu --version`, `package.json`'s `muro` field, and the MCP `serverInfo` all say so, from one ledger | **0.27.0** |
 | **The canonical JSON format version** | **the spelling.** The set of keys, their order, collation, normalisation, number notation | `koyu-canonical/2.0` |
 | **The assessment context version** | **the input `koyu validate` takes** — the effective date and the external values a judgement is made against | `koyu-context/1` |
 

@@ -7,6 +7,8 @@ mode: reference
 
 Writes the section cut at one grid reference as SVG. **The plane is named in the notation's own words** — [coordinates are never written directly](../muro/positions.md), so a cut is named the way an opening's position is.
 
+The command names axis-parallel cuts because its input is a muro grid reference. The [`sectionForm` and `svgSection` APIs](../form/section.md#the-plane-and-which-way-it-is-faced) also accept a directed plan line for an arbitrary vertical cut.
+
 ## Arguments
 
 ```text
