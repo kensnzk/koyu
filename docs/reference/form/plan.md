@@ -21,6 +21,11 @@ form.plans   // one per level
 // { level: "L1", cut: 1200, cutZ: 1200, entities: [ … ] }
 ```
 
+Area-hosted components sit beside that classified set in `form.components`. They have physical
+footprints but no vertical extent, so the model does not claim whether the cut plane cuts them.
+Their plan SVG remains presentation and is joined to the footprint only by the drawing layer. See
+[Area-hosted components](components.md).
+
 ## Entities
 
 ```ts
@@ -88,9 +93,13 @@ Nosings are laid out from the part's t0 at the going interval, and anything outs
 
 Arrows are drawn per unit for an escalator, and for a stair or ramp one per departing flight (on the ascending face) or arriving flight (on the descending face). **The direction is decided by the way people travel and nothing else.** An escalator points the same way on both faces; a stair or ramp reverses on the descending face — the machine's direction is fixed, a person's changes with the face. A visible interval that does not **exceed** `ARROW_SPAN_MIN` (900mm) gets no arrow — an interval of exactly 900mm gets none either ([derivation constants](constants.md)).
 
+That is the classified geometry, not the final stair symbol. [`planMarks`](marks.md) reverses the
+descending-face arrow of a stair so the paper arrow always points towards increasing elevation.
+The original direction-of-travel entity remains unchanged for consumers that need it.
+
 `anchor` returns only the seat for the annotation. The riser count and the slope live on the [vertical run](vertical-runs.md); turning them into words is the drawing side's job.
 
-**The break line** is a single segment crossing the full width of the run at the position where it spans the cut plane. The conventional pair of parallel slashes is appearance, and the drawing side adds it.
+**The break line** is a single segment crossing the full width of the run at the position where it spans the cut plane. Its appearance is a consumer decision; the SVG drawing scales the 10 by 40 break glyph to the run width and rotates it 30 degrees.
 
 ## The projection of an upper void
 
@@ -107,6 +116,7 @@ For the two spaces joined by a `void` boundary, **the derived shape of the upper
 - [Form](index.md) — what `Form` holds and does not hold
 - [The section](section.md) — the vertical plane, and why it needs two classes where this needs five
 - [Matter](bodies.md) — walls, openings, columns and slabs before the cut
+- [Area-hosted components](components.md) — placed footprints and the boundary of the plan-only contract
 - [The arithmetic of vertical runs](vertical-runs.md) — how a run is divided
 - [Constants and tolerances](constants.md) — `CUT_HEIGHT` and `STEP_MARK`
 - [koyu plan](../cli/plan.md) — turning this set into SVG

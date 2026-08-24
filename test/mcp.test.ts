@@ -149,6 +149,32 @@ test("MCP: initialize → tools/list → questions about tower → the write_lay
   }
 });
 
+test("MCP: component placements and their SVG artwork reach the plan surface", async () => {
+  const c = new McpClient();
+  try {
+    await c.request("initialize", {
+      protocolVersion: "2025-06-18",
+      capabilities: {},
+      clientInfo: { name: "test", version: "0" },
+    });
+    const file = join(root, "assets/plan/catalog.muro");
+    const summary = JSON.parse((await c.call("model_summary", { file })).text) as {
+      componentPlacements?: Array<{ asset: string; area: string; level: string }>;
+    };
+    assert.ok(summary.componentPlacements && summary.componentPlacements.length > 0);
+    assert.ok(summary.componentPlacements.some((component) => component.asset === "WC" && component.area === "wc"));
+    assert.ok(summary.componentPlacements.every((component) => component.level === "L1"));
+
+    const plan = await c.call("plan_svg", { file, level: "L1" });
+    assert.equal(plan.isError, undefined);
+    assert.match(plan.text, /class="component-asset"/);
+    assert.match(plan.text, /data-asset="WC"/);
+    assert.match(plan.text, /data:image\/svg\+xml/);
+  } finally {
+    c.kill();
+  }
+});
+
 // The structural fact used to ride on the type word, and the `spaces` tool projected the
 // type. With the type gone from an outside space, an agent enumerating spaces to total
 // floor area or find what the envelope faces had **no signal at all** that /out is outside

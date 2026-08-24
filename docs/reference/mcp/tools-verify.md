@@ -48,7 +48,7 @@ Every piece of output on this page was obtained by actually running it. Absolute
 ### When there are warnings
 
 ```muro-warn
-muro 1.4
+muro 1.5
 name 警告
 unit mm
 grid X 0 3600 7200
@@ -87,7 +87,7 @@ boundary /L1/b /out
 ### When there are errors
 
 ```muro-bad
-muro 1.4
+muro 1.5
 name 二重宣言
 unit mm
 grid X 0 3600 7200
@@ -139,7 +139,7 @@ boundary /L1/b /out
 
 | Field | When it appears | Contents |
 |---|---|---|
-| `code` | always | Three letters plus two digits. There are 65 of them |
+| `code` | always | Three letters plus two digits. Its value comes from the diagnostic ledger |
 | `severity` | always | `"error"` or `"warning"` |
 | `message` | always | The message alone. **No position prefix** |
 | `line` | when the provenance is known | 1-based line number |
@@ -168,7 +168,7 @@ boundary /L1/b /out
 The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no door written at all stays sealed and green.
 
 ```muro-fail
-muro 1.4
+muro 1.5
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -302,7 +302,7 @@ The whole reason the report is this shape is that a bare list of failures cannot
 Violations and cautions mix freely in one response.
 
 ```muro-caution
-muro 1.4
+muro 1.5
 name 窓の高さ
 unit mm
 grid X 0 3600 7200
@@ -353,26 +353,8 @@ The window has no `h:`, so the effective window area could not be fully counted 
 
 ### The rules that can come back
 
-There are 15. `level` is fixed per rule.
-
-| Rule | `level` | What it looks at |
-|---|---|---|
-| `koyu.schematic.daylight.ratio` | violation | Effective window area below one seventh of the floor |
-| `koyu.schematic.daylight.unknown` | caution | A window with no `h:`, so the window area is not fully counted |
-| `koyu.schematic.stair.proportion` | caution | The derived steps are cramped |
-| `koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope` | caution | The derived slope is too steep, or outside normal use |
-| `koyu.schematic.run.disconnected` | caution | A vertical run exists but no vertical boundary connects the storeys |
-| `koyu.schematic.access.unreachable` | violation | A room with a region cannot reach the exterior |
-| `koyu.schematic.access.voidonly` | violation | A door opens only onto a void |
-| `koyu.schematic.access.throughtenant` | caution | Escape from a stair core passes through a tenancy |
-| `koyu.schematic.access.parking` | violation | A car cannot get out of the parking |
-| `koyu.schematic.access.backofhouse` | caution | A vertical run cannot be reached from the common corridor without crossing back-of-house |
-| `koyu.schematic.column.blocksdoor` | violation | A derived column collides with a derived door |
-| `koyu.schematic.site.escape` | violation | The building escapes the site shape |
-| `koyu.schematic.site.area` | caution | The declared and derived site areas disagree |
-| `koyu.schematic.site.frontage` | violation | Road frontage under 2 m |
-
-Each one, read closely with its fix, is on [Judgement — koyu validate](../validate/index.md).
+`level` is fixed per rule. The current identities, levels, grounds and fixes live in the
+[validation rule ledger](../validate/index.md); this MCP page does not copy that changing list.
 
 ### This surface grows
 
@@ -385,6 +367,6 @@ So if you gate CI on a finding count, either **accept going red when a rule is a
 - [Writing — write_layer / new_uids](tools-write.md) — the `check` carried in a `write_layer` result
 - [Asking — doors / light / site / plan_svg](tools-ask.md) — the surface that returns numbers, not verdicts
 - [The protocol](protocol.md) — why a syntax error comes back as `isError`
-- [Diagnostic codes](../diagnostics/index.md) — 70 codes, their causes and their fixes
-- [Judgement — koyu validate](../validate/index.md) — the 15 rules read closely
+- [Diagnostic codes](../diagnostics/index.md) — their causes and their fixes
+- [Judgement — koyu validate](../validate/index.md) — the validation rule ledger
 - [koyu check](../cli/check.md) — the CLI's `--json` and `--strict`

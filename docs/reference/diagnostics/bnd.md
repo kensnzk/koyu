@@ -187,7 +187,7 @@ boundary /L1/b /out t:150
 `warning`
 
 ```muro-warn
-muro 1.4
+muro 1.5
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150

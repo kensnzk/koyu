@@ -17,13 +17,13 @@ mode: reference
 | Runtime dependencies | None |
 | Environment variables, authentication, network | None |
 | Requires | Node 22 or later |
-| Tools | 14 |
+| Tools | Listed below |
 
-`serverInfo` announces both, separately, because they are separate promises: `version` is the implementation's (`0.20.0`), and `muro` is the language it reads and writes. The two move independently, and until they were both stated an agent had no way to ask which language this build spoke.
+`serverInfo` announces both, separately, because they are separate promises: `version` is the package's implementation version, and `muro` is the language ledger it reads and writes. The two move independently, and until they were both stated an agent had no way to ask which language this build spoke.
 
 ## It is stateless
 
-**All 14 tools take a required `file` argument.** `file` is the path of the entry `.muro`; for a building split into layers with `import`, pass the base layer's file.
+**Every tool takes a required `file` argument.** `file` is the path of the entry `.muro`; for a building split into layers with `import`, pass the base layer's file.
 
 One call goes: resolve the path, read the entry, follow the `import`s, compose, answer the question, forget. **There is no session, no open document, no cache, no undo stack.** Call it twice with the same arguments and it composes twice.
 
@@ -57,7 +57,7 @@ model_summary  →  layers  →  write_layer  →  check ──errors──→ f
 4. **[`check`](tools-verify.md#check) is the gatekeeper.** If errors come back, fix them and write again.
 5. **Confirm the consequences with [`doors`](tools-ask.md#doors) / [`light`](tools-ask.md#light) / [`site`](tools-ask.md#site).** Move a partition and circulation and daylight change; change an area and coverage changes. `check` was not looking at any of that.
 
-## The 14 tools
+## Tools
 
 | Tool | Arguments | What comes back |
 |---|---|---|

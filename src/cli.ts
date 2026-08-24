@@ -41,7 +41,7 @@ import {
   isVoid,
   versionLine
 } from "./core/model.js";
-import { parseFile } from "./parse-file.js";
+import { componentSvgFiles, parseFile } from "./parse-file.js";
 import { svgPlan } from "./draw/plan.js";
 import { svgAxo } from "./draw/axo.js";
 import { svgElevation, svgSection } from "./draw/section.js";
@@ -381,7 +381,7 @@ function main(argv: string[]): number {
       const explicit = opt(rest, "-o");
       const outFile =
         explicit ?? `${file.replace(/\.muro$/, "")}-${level}.svg`;
-      const svg = svgPlan(model, { level });
+      const svg = svgPlan(model, { level, componentSvgs: componentSvgFiles(model, level) });
       mkdirSync(dirname(outFile), { recursive: true });
       writeFileSync(outFile, svg);
       console.log(`Generated the plan: ${outFile}`);

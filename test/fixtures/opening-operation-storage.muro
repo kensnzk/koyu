@@ -1,0 +1,21 @@
+muro 1.5
+name Opening operation storage
+grid X 0 4000 8000
+grid Y 0 4000 8000
+level L1 0 h:2700 slab:150
+
+asset SD1 door w:900 h:2100 style:sliding hinge:N name:single-slide
+asset AD1 door w:1200 h:2400 style:auto name:automatic
+asset RS1 door w:1800 h:2400 style:rolling-shutter name:rolling-shutter
+
+space /L1/a room X1..X2 Y1..Y2 level:L1 name:Target
+space /L1/b room X2..X3 Y1..Y2 level:L1 name:Other-side
+space /L1/c room X1..X2 Y2..Y3 level:L1 name:Adjacent
+space /L1/d room X2..X3 Y2..Y3 level:L1 name:Upper-other-side
+
+boundary /L1/a /L1/b
+  door SD1 at:Y1+1500 name:fits
+  door SD1 at:Y2-500 name:crosses
+boundary /L1/c /L1/d
+  door AD1 at:Y2+1000 name:auto
+  door RS1 at:Y3-1000 name:shutter

@@ -28,16 +28,12 @@ The server never initiates a request. It writes no logs and no progress to stdou
 {"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}
 ```
 
-```text
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.27.0","muro":{"reads":["0.1","0.2","0.3","0.4","0.5","1.0","1.1","1.2","1.3","1.4"],"newest":"1.4","undeclared":"1.1"}},"instructions":"Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (the drawings — plan_svg, section_svg, elevation_svg) is generated, never written."}}
-```
-
 | Field | Contents |
 |---|---|
 | `protocolVersion` | **Whatever the client sent, echoed back.** If `params.protocolVersion` is absent, the server announces `"2025-06-18"`. It neither negotiates nor rejects a version |
 | `capabilities` | `{"tools":{}}` — tools only. It does not declare `listChanged`, and the tool set never changes |
 | `serverInfo.name` | `"koyu"` |
-| `serverInfo.version` | `"0.20.0"` — **the implementation's version.** It moves independently of the language's |
+| `serverInfo.version` | **The package's implementation version.** It moves independently of the language's and is read from the version ledger |
 | `serverInfo.muro` | `{ reads, newest, undeclared }` — **the language versions this build speaks.** `reads` is every version it accepts; `newest` is the one to declare to get everything; `undeclared` is how a file with no version line is read, and is frozen rather than following `newest`. An agent choosing how to write a version line has nothing else to read it from |
 | `instructions` | One paragraph for the agent: the standard loop, and the difference between `check` and `validate` |
 
@@ -61,7 +57,7 @@ An empty object.
 {"jsonrpc":"2.0","id":2,"method":"tools/list"}
 ```
 
-All 14 come back as `name` / `description` / `inputSchema`. There is no paging and no `nextCursor`. The order is the implementation's declaration order: `model_summary`, `check`, `layers`, `write_layer`, `new_uids`, `doors`, `spaces`, `light`, `validate`, `site`, `plan_svg`, `section_svg`, `elevation_svg`, `canonical_json`.
+Every tool comes back as `name` / `description` / `inputSchema`. There is no paging and no `nextCursor`. The order is the implementation's declaration order: `model_summary`, `check`, `layers`, `write_layer`, `new_uids`, `doors`, `spaces`, `light`, `validate`, `site`, `plan_svg`, `section_svg`, `elevation_svg`, `canonical_json`.
 
 Each `inputSchema` is plain JSON Schema carrying only `type: "object"`, `properties` and `required`. `file` is always `{"type":"string"}`.
 
@@ -137,7 +133,7 @@ Omitting `params.arguments` makes it an empty object, so the call is one with it
 | Code | When | Message |
 |---|---|---|
 | `-32601` | A `method` not in the list below | `Unsupported method: <name>` |
-| `-32602` | A `tools/call` `name` that is none of the 12 | `Unknown tool: <name>` |
+| `-32602` | A `tools/call` `name` absent from `tools/list` | `Unknown tool: <name>` |
 
 No other JSON-RPC error code is ever returned. A malformed JSON line is not an error — it is dropped.
 
@@ -194,7 +190,7 @@ Everything else (`resources/read`, `prompts/get`, `completion/complete`, `loggin
 
 ## See also
 
-- [koyu-mcp](index.md) — statelessness, the standard loop, the 14 tools
+- [koyu-mcp](index.md) — statelessness, the standard loop and the tool ledger
 - [Registering it with a client](install.md) — checking it by pushing JSON-RPC in by hand
 - [Reading](tools-read.md) / [Writing](tools-write.md) / [Verifying](tools-verify.md) / [Asking](tools-ask.md) — each tool's arguments and result
 - [koyu check](../cli/check.md) — how the CLI's `--json` treats a syntax error

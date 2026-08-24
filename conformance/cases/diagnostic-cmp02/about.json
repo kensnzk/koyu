@@ -1,0 +1,8 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/cmp.md",
+  "docs/reference/muro/area.md",
+  "docs/reference/form/components.md"
+ ],
+ "why": "A component keeps its declared physical dimensions. CMP02 rejects a transformed footprint outside its named host instead of shrinking or moving the component automatically."
+}

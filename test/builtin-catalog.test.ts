@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import type { ContextSnapshot } from "../src/analysis/contracts.js";
@@ -39,34 +41,39 @@ const EXPECTED_RULE_ORDER = [
   "koyu.schematic.access.parking",
   "koyu.schematic.access.backofhouse",
   "koyu.schematic.column.blocksdoor",
+  "koyu.schematic.opening.storage-leaves-space",
+  "koyu.schematic.opening.storage-overlaps-opening",
   "koyu.schematic.site.escape",
   "koyu.schematic.site.area",
   "koyu.schematic.site.frontage",
 ];
 
-const BUNDLED_EXAMPLES = [
-  "basement/main.muro",
-  "complex/main.muro",
-  "house.muro",
-  "house/main.muro",
-  "mansion.muro",
-  "office.muro",
-  "steps/01-one-room.muro",
-  "steps/02-two-rooms.muro",
-  "steps/03-door.muro",
-  "steps/04-exterior.muro",
-  "steps/05-two-storeys.muro",
-  "steps/06-finished.muro",
-  "tower/main.muro",
-  "twin/main.muro",
-  "two-rooms.muro",
-];
+function bundledExamples(): string[] {
+  const root = fileURLToPath(new URL("../examples", import.meta.url));
+  const entries: string[] = [];
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.endsWith(".muro")) {
+      entries.push(entry.name);
+      continue;
+    }
+    if (!entry.isDirectory()) continue;
+    if (entry.name === "steps") {
+      for (const step of readdirSync(join(root, entry.name))) {
+        if (step.endsWith(".muro")) entries.push(`steps/${step}`);
+      }
+      continue;
+    }
+    if (existsSync(join(root, entry.name, "main.muro"))) entries.push(`${entry.name}/main.muro`);
+  }
+  return entries.sort();
+}
 
 const EXPECTED_ANALYSIS_ORDER = [
   "koyu.analysis.daylight",
   "koyu.analysis.vertical-runs",
   "koyu.analysis.access",
   "koyu.analysis.door-column-collisions",
+  "koyu.analysis.opening-operations",
   "koyu.analysis.site",
 ];
 
@@ -88,15 +95,13 @@ const LEGACY_TO_NEW: Record<string, string[]> = {
   "site.frontage": ["koyu.schematic.site.frontage"],
 };
 
-test("the built-in rule set holds fifteen rules in the legacy ledger order", () => {
-  assert.equal(SCHEMATIC_RULES.length, 15);
+test("the built-in rule set keeps the legacy order and adds the opening-operation rule beside collisions", () => {
   assert.deepEqual(SCHEMATIC_RULES.map((rule) => rule.id), EXPECTED_RULE_ORDER);
   assert.deepEqual(SCHEMATIC_RULE_SET.rules.map((rule) => rule.id), EXPECTED_RULE_ORDER);
   for (const rule of SCHEMATIC_RULES) assert.equal(rule.revision, "1");
 });
 
-test("the built-in catalog holds the five analyses in the declared order", () => {
-  assert.equal(SCHEMATIC_ANALYSES.length, 5);
+test("the built-in catalog holds its analyses in the declared order", () => {
   assert.deepEqual(SCHEMATIC_ANALYSES.map((analysis) => analysis.id), EXPECTED_ANALYSIS_ORDER);
   assert.deepEqual(SCHEMATIC_ANALYSIS_IDS.map((ref) => ref.id), EXPECTED_ANALYSIS_ORDER);
   for (const analysis of SCHEMATIC_ANALYSES) {
@@ -108,12 +113,13 @@ test("the built-in catalog holds the five analyses in the declared order", () =>
 
 test("the rules that existed before the cutover are all carried but the envelope gap, and only run.slope split", () => {
   // The old ledger is deleted, so this is the migration record rather than a live comparison:
-  // fourteen old ids still carried, fifteen new ones, and exactly one of them one-to-many.
-  // `envelope.gap` is not among them — it was retired rather than carried (ADR-0065).
-  assert.equal(Object.keys(LEGACY_TO_NEW).length, 14);
+  // every key below is carried, `run.slope` is the only one-to-many entry, and `envelope.gap`
+  // is absent because it was retired rather than carried (ADR-0065).
   const carried = Object.values(LEGACY_TO_NEW).flat();
-  assert.equal(carried.length, 15);
-  assert.deepEqual(carried.slice().sort(), EXPECTED_RULE_ORDER.slice().sort());
+  assert.deepEqual(
+    carried.slice().sort(),
+    EXPECTED_RULE_ORDER.filter((id) => !id.startsWith("koyu.schematic.opening.")).sort(),
+  );
 
   const oneToMany = Object.entries(LEGACY_TO_NEW).filter(([, ids]) => ids.length > 1);
   assert.deepEqual(oneToMany.map(([old]) => old), ["run.slope"]);
@@ -141,7 +147,7 @@ test("the pack is design lint, and claims neither jurisdiction nor authority", (
 
 test("the profile reaches every analysis its rules require", () => {
   const reachable = new Set(SCHEMATIC_PROFILE.analyses.map((ref) => `${ref.id}@${ref.revision}`));
-  assert.equal(reachable.size, 5);
+  assert.deepEqual(SCHEMATIC_PROFILE.analyses.map((ref) => ref.id), EXPECTED_ANALYSIS_ORDER);
   for (const rule of SCHEMATIC_RULES) {
     for (const requirement of rule.analyses) {
       const key = `${requirement.analysis.id}@${requirement.analysis.revision}`;
@@ -181,7 +187,7 @@ test("two registries built from the catalog are independent values, not a shared
   assert.notEqual(first, second);
   assert.equal(first.ruleSets.length, 1);
   assert.equal(second.profiles.length, 1);
-  assert.equal(first.analyses.length, 5);
+  assert.deepEqual(first.analyses.map((analysis) => analysis.id), EXPECTED_ANALYSIS_ORDER);
 });
 
 test("the whole pack runs against a bundled example and reports every rule", () => {
@@ -210,7 +216,7 @@ test("the whole pack runs against a bundled example and reports every rule", () 
 test("every bundled example runs the whole pack clean, with nothing left unjudged", () => {
   const registry = createSchematicRegistry();
 
-  for (const name of BUNDLED_EXAMPLES) {
+  for (const name of bundledExamples()) {
     const model = parseFile(fileURLToPath(new URL(`../examples/${name}`, import.meta.url)));
     const report = assess(model, {
       registry,

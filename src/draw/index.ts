@@ -10,7 +10,7 @@
 export { svgPlan, type PlanOptions } from "./plan.js";
 export {
   planMarks,
-  SLIDE_POCKET,
+  SLIDE_GAP,
   type Mark,
   type MarkArc,
   type MarkNote,

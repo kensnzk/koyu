@@ -1,0 +1,11 @@
+muro 1.5
+import ./base.muro
+import ./override.muro
+
+grid X 0 2000
+grid Y 0 2000
+level L1 0 h:2600 slab:150
+space /L1/room room X1..X2 Y1..Y2
+  area X1+500..X2-500 Y1+500..Y2-500 name:fixture asset:C
+space /out outside:1
+boundary /L1/room /out

@@ -15,7 +15,7 @@
 //
 // root is browser-safe: nothing reachable from here pulls a Node builtin.
 //
-// The twelve entry points:
+// The public entry points:
 //
 //   @kensnzk/koyu                   this file — compose, check, canonicalise
 //   @kensnzk/koyu/model             Model, and the questions the model answers alone

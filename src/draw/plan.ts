@@ -1,18 +1,20 @@
-// koyu — 平面図の生成
+// koyu — plan SVG generation
 //
-// **ここに形の規則は一つも無い。**壁の厚みも、開口の位置も、扉の吊元も、階段がどこで
-// 切れるかも、`derive(model)` が返す `Form` に既に入っている (ADR-0040)。この頁が持つのは
-// 色・線種・線幅・書体・記号・注記の言葉・縮尺・紙面の余白 — すべて**見た目**であり、
-// 消費者ごとに違ってよいものである (docs/reference/scope.md)。
+// **No rule of building shape lives here.** Wall thickness, opening position, door hinge and stair
+// cut are already in the `Form` returned by `derive(model)` (ADR-0040). This page owns colour,
+// line type, line weight, typography, symbols, annotation wording, scale and sheet margins — all
+// presentation, and all allowed to differ by consumer (docs/reference/scope.md).
 //
-// 形と見た目の線引きはこうである。境界線分の座標・壁の厚み・開口で割られた区間・
-// 扉の軌跡の中心と半径と掃き方向・切断面を跨ぐ位置は Form が持つ。1/4円を破線で描くか、
-// 切断線を平行な二本の斜線として引くか、矢印に "UP" と書くかは、ここが決める。
+// Form carries boundary coordinates, wall thickness, opening intervals, door-arc geometry and
+// the position where a cut crosses a run. The architectural convention and this renderer decide
+// whether a break becomes a diagonal zigzag and whether an arrowhead is open.
 
 import { derive } from "../core/derive.js";
 import { displayName, polyBounds, type Model, type Pt } from "../core/model.js";
 import { slopeText } from "../core/vertical.js";
 import { planMarks, type Mark } from "./marks.js";
+import { ARCHITECTURAL_PLAN_CONVENTION } from "./conventions/architectural.js";
+import { componentSvg } from "./component-svg.js";
 import { esc, Extent, FAINT, GRID, INK, openSheet, OUTDOOR, PAPER, ROOM, SEMI_OUTDOOR } from "./sheet.js";
 import { writtenOf } from "./written.js";
 
@@ -20,8 +22,10 @@ export interface PlanOptions {
   level?: string;
   /** px per mm */
   scale?: number;
-  /** 切断面の高さ mm (FLから) — **形を決める引数**なので Form の入力へ渡る */
+  /** Cut height above finished floor, mm. It changes the slice, so it is passed into Form. */
   cut?: number;
+  /** Plan SVG bytes keyed by component asset name, for models made with the pure `parse` entry. */
+  componentSvgs?: Readonly<Record<string, string>>;
 }
 
 export function svgPlan(model: Model, opts: PlanOptions = {}): string {
@@ -36,15 +40,15 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     throw new Error(`There is no space with a region on level ${level}`);
   }
 
-  // 敷地形状 (ADR-0011) は最下階の平面 (配置図兼用) に敷地境界線として描く — 紙面の構成の判断
+  // Site geometry (ADR-0011) appears on the lowest plan, which also serves as the site plan.
   const lowest = form.levels[0]?.name;
   const sitePolys = level === lowest ? form.site : [];
 
-  // 紙面の外接範囲。**書かれた割付も含める** — 切られた形より外へ割付がはみ出しても紙に載る
+  // Sheet extent includes written allocation, even where it reaches outside the cut shape.
   const modelRooms = [...model.spaces.values()].filter((s) => s.rects.length > 0 && s.level === level);
   const allRects = modelRooms.flatMap((s) => s.rects);
   const polyPts = [...sitePolys.flatMap((p) => p.points), ...rooms.flatMap((s) => s.outline.flat())];
-  // **畳んで取る** (Extent) — 引数を展開すると、大きな階では点の数がスタックの限界に当たる
+  // Fold through Extent: spreading every point can hit the call-stack limit on a large storey.
   const ext = new Extent();
   for (const r of allRects) {
     ext.see(r.x1, r.y1);
@@ -56,7 +60,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   const minY = ext.min1;
   const maxY = ext.max1;
 
-  const M = 84; // 余白 px (通り芯記号ぶん)
+  const M = 84; // sheet margin in px, including grid bubbles
   const W = (maxX - minX) * scale + M * 2;
   const H = (maxY - minY) * scale + M * 2;
   const sx = (x: number) => (x - minX) * scale + M;
@@ -69,22 +73,21 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
 
   const parts: string[] = openSheet(W, H);
 
-  // 敷地境界線 (一点二点鎖線 — 作図慣習)。所与の形をそのまま引く
+  // Site boundary: a drafting dash pattern applied to the supplied geometry.
   for (const poly of sitePolys) {
     parts.push(
       `<path d="${path2d(poly.points)}" fill="none" stroke="#8a8171" stroke-width="1.1" stroke-dasharray="14 3 2.5 3 2.5 3"/>`,
     );
   }
 
-  // 空間の面 — 切断面が気積を切った姿。同色・輪郭なしなのでL字も切られた形も一体に見える。
-  // **暖色が屋内、寒色が屋外**である。宣言された屋外 (outside:1)・半屋外・屋内の三段で、
-  // 前庭と玄関ホールが同じ一枚のクリームに見えていた状態を分ける
+  // Space faces are the cut through volume. A shared fill and no outline make split convex pieces
+  // read as one room. Warm denotes indoors; cooler tones separate outside and semi-outdoor space.
   for (const s of rooms) {
     const isVoid = s.void;
     for (const poly of s.outline) {
       parts.push(fill(poly, isVoid ? PAPER : s.outside ? OUTDOOR : s.semiOutdoor ? SEMI_OUTDOOR : ROOM));
       if (isVoid) {
-        // 吹抜け: 破線の対角線 (作図慣習)
+        // Void: dashed diagonals are a paper convention.
         const r = polyBounds(poly);
         parts.push(
           line({ x1: r.x1, y1: r.y1, x2: r.x2, y2: r.y2 }, FAINT, 0.8, "6 4"),
@@ -94,14 +97,18 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     }
   }
 
-  // 数えない分節 (area): 床材の切替など。書かれた与件をそのまま引く — 導出ではない
+  // Uncounted area subdivisions, such as a floor-finish change, reproduce the written input.
   for (const s of modelRooms) {
     for (const a of s.areas) {
       const r = a.rect;
-      parts.push(
-        `<rect x="${sx(r.x1)}" y="${sy(r.y2)}" width="${(r.x2 - r.x1) * scale}" height="${(r.y2 - r.y1) * scale}" fill="#e7dfcc" fill-opacity="0.55" stroke="${FAINT}" stroke-width="0.8" stroke-dasharray="4 3"/>`,
-      );
-      const label = [a.attrs["name"], a.attrs["floor"]]
+      const componentHost = a.attrs["asset"] !== undefined;
+      const visibleSubdivision = a.attrs["floor"] !== undefined || a.attrs["spec"] !== undefined;
+      if (!componentHost || visibleSubdivision) {
+        parts.push(
+          `<rect x="${sx(r.x1)}" y="${sy(r.y2)}" width="${(r.x2 - r.x1) * scale}" height="${(r.y2 - r.y1) * scale}" fill="#e7dfcc" fill-opacity="0.55" stroke="${FAINT}" stroke-width="0.8" stroke-dasharray="4 3"/>`,
+        );
+      }
+      const label = [componentHost ? undefined : a.attrs["name"], a.attrs["floor"]]
         .filter((v): v is string => typeof v === "string")
         .join(" · ");
       if (label) {
@@ -112,7 +119,29 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     }
   }
 
-  // 通り芯 (与件)
+  // Components are below cut matter and room labels. The source SVG remains isolated as an image,
+  // preserving its defs and IDs while the Form supplies all placement geometry.
+  for (const component of form.components ?? []) {
+    if (component.level !== level) continue;
+    const asset = model.assets.get(component.asset);
+    if (!asset || asset.kind !== "component") continue;
+    const source = opts.componentSvgs?.[asset.name];
+    if (!source) {
+      throw new Error(
+        `Component asset ${asset.name} has no plan SVG bytes; pass PlanOptions.componentSvgs`,
+      );
+    }
+    const artwork = componentSvg(asset, source);
+    const cx = sx(component.centre.x);
+    const cy = sy(component.centre.y);
+    const width = component.w * scale;
+    const height = component.d * scale;
+    parts.push(
+      `<image class="component-asset" data-asset="${esc(asset.name)}" x="${cx - width / 2}" y="${cy - height / 2}" width="${width}" height="${height}" preserveAspectRatio="none" href="${artwork.dataUri}" transform="rotate(${-component.rotation} ${cx} ${cy})"/>`,
+    );
+  }
+
+  // Written grid axes.
   for (const [i, x] of model.grid.X.coords.entries()) {
     if (x < minX - 1 || x > maxX + 1) continue;
     parts.push(
@@ -130,15 +159,34 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     );
   }
 
-  // 印 — 形の写しは `planMarks` にある。**この頁が足すのは色・線幅・線種・記号・注記の言葉だけ**
-  // である。ugatsu も architype も同じ印から別の見た目を引く。
+  // Marks copy Form geometry. This page adds only colour, weight, dash, glyph and wording; another
+  // consumer can render the same marks differently.
   const marks = planMarks(form, level);
   const written = writtenOf(model);
   const segByRef = new Map(form.segs.map((g) => [g.ref, g]));
+  // A generic room label over a stair repeats what the treads already say and obscures the arrow.
+  // Seed the set from actual stair runs, then follow only vertical boundaries connected to them so
+  // ramps, escalators and lift shafts keep their existing labels.
+  const stairSpaces = new Set(form.runs.filter((r) => r.device === "stair").map((r) => r.path));
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const b of model.boundaries) {
+      if (b.kind !== "stair" || (!stairSpaces.has(b.a) && !stairSpaces.has(b.b))) continue;
+      if (!stairSpaces.has(b.a)) {
+        stairSpaces.add(b.a);
+        grew = true;
+      }
+      if (!stairSpaces.has(b.b)) {
+        stairSpaces.add(b.b);
+        grew = true;
+      }
+    }
+  }
   for (const k of marks) {
     switch (k.role) {
-      // 空間の面と分節の帯は下 (`rooms` / `form.segs`) から引く — 切られた面ではなく外形を塗り、
-      // 分節には Form しか持たない座と向きが要るため。上部吹抜けは空間ラベルより後ろに置く
+      // Space faces and subdivision bands are rendered from their full outlines elsewhere. Upper
+      // void projections are deliberately placed behind space labels.
       case "space":
       case "space-semi-outdoor":
       case "space-outdoor":
@@ -146,10 +194,9 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
       case "void-hatch":
       case "void-above":
         break;
-      // 数えない分節 (seg): 壁材が途中から変わる区間 — 色調を変えて示す。
-      // ここから引くのは注記の言葉 (`spec`) だけで、それは形ではないので Form には載らない。
-      // **`written.boundary` は正準順の添字である** — 宣言順の配列を引くと、並べ替えただけで
-      // 注記が別の境界のものになる
+      // An uncounted segment can mark a wall specification change. Only the annotation wording is
+      // recovered from the source. `written.boundary` indexes canonical order, never declaration
+      // order, so a harmless source reorder cannot move the note to another boundary.
       case "seg": {
         parts.push(fill(k.polygon!, "#77716a"));
         const spec = written.segSpec(k.written!.boundary, k.written!.index!);
@@ -162,43 +209,135 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
         }
         break;
       }
-      // 物を持たない境界 (open): 構成の線として破線で示す (基本計画の抽象度)
+      // A boundary with no matter remains legible as a light dashed relation.
       case "open":
         for (const g of k.lines ?? []) parts.push(line(g, FAINT, 1, "6 4"));
         break;
-      // 遮蔽しない物 (手すり・柵): 細実線 — 「囲われていない」ことが図から読めるように。
-      // **芯線は Form が持つ** — 足あとの四辺形から復元しない
+      // A rail stays lighter than a wall, while the endpoint posts keep a short rail from reading
+      // as an accidental construction line. The axis itself comes from Form; the circles are a
+      // paper convention and add no building geometry.
       case "rail":
-        for (const g of k.lines ?? []) parts.push(line(g, INK, 1.4));
+        parts.push(`<g class="boundary-rail">`);
+        for (const g of k.lines ?? []) {
+          parts.push(line(g, INK, 1.1));
+          parts.push(
+            `<circle class="boundary-rail-post" cx="${sx(g.x1)}" cy="${sy(g.y1)}" r="1.45" fill="${INK}"/>`,
+            `<circle class="boundary-rail-post" cx="${sx(g.x2)}" cy="${sy(g.y2)}" r="1.45" fill="${INK}"/>`,
+          );
+        }
+        parts.push(`</g>`);
         break;
-      // 切断面が切った区間と柱を黒帯にする。腰壁は開口の下なので印にならない —
-      // **これが「欠き取り」の代わりである**。紙の色で塗り潰す操作はもう無い
+      // Only intervals and columns cut by the plane become black bodies. Sill walls lie below the
+      // cut; no paper-coloured mask is needed to erase openings.
       case "wall":
       case "column":
         parts.push(fill(k.polygon!, INK));
         break;
-      // 引戸・自動ドア: 開き軌跡ではなく吊元側の控え (戸袋側) にパネルを描く
+      // A sliding leaf has no swing trace. Its solid line closes the opening; the thin dashed
+      // continuation says which way it retracts without turning the opening into a box.
       case "slide-panel":
-        for (const g of k.lines ?? []) parts.push(line(g, INK, 2));
+        parts.push(`<g class="opening-slide-panel">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 1.2));
+        parts.push(`</g>`);
+        break;
+      case "slide-centre":
+        parts.push(`<g class="opening-slide-centre">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.7));
+        parts.push(`</g>`);
         break;
       case "slide-tail":
-        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.7));
+        parts.push(`<g class="opening-slide-guide">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.65, "5 3"));
+        parts.push(`</g>`);
+        break;
+      case "auto-direction":
+        parts.push(`<g class="opening-auto-direction">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.65));
+        parts.push(`</g>`);
+        break;
+      case "entrance":
+        parts.push(`<g class="opening-entrance">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.75));
+        parts.push(`</g>`);
+        break;
+      case "gate-post":
+        parts.push(`<g class="opening-gate-post">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 2));
+        parts.push(`</g>`);
+        break;
+      case "rolling-shutter":
+        parts.push(`<g class="opening-rolling-shutter">`);
+        for (const g of k.lines ?? []) {
+          parts.push(line(g, INK, 1));
+          parts.push(
+            `<rect x="${sx(g.x1) - 1.5}" y="${sy(g.y1) - 1.5}" width="3" height="3" fill="${INK}"/>`,
+            `<rect x="${sx(g.x2) - 1.5}" y="${sy(g.y2) - 1.5}" width="3" height="3" fill="${INK}"/>`,
+          );
+        }
+        parts.push(`</g>`);
+        break;
+      case "overhead-door":
+        parts.push(`<g class="opening-overhead-door">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 1.1, "2 1"));
+        parts.push(`</g>`);
         break;
       case "door-leaf":
-        for (const g of k.lines ?? []) parts.push(line(g, INK, 1.4));
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 1.1));
         break;
-      case "door-arc": {
+      case "window-leaf":
+        parts.push(`<g class="opening-window-leaf">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.8));
+        parts.push(`</g>`);
+        break;
+      case "door-arc":
+      case "window-arc": {
         const a = k.arc!;
         const r = a.r * scale;
-        // 掃引方向: 世界の反時計回りは、y を反転した紙の上では時計回りになる
+        // World counter-clockwise becomes clockwise after the SVG y-axis is inverted.
         const sweep = a.ccw ? 0 : 1;
+        const window = k.role === "window-arc";
         parts.push(
-          `<path d="M ${sx(a.from.x)} ${sy(a.from.y)} A ${r} ${r} 0 0 ${sweep} ${sx(a.to.x)} ${sy(a.to.y)}" fill="none" stroke="${INK}" stroke-width="0.7" stroke-dasharray="3 2.5"/>`,
+          `<path class="${window ? "opening-window-arc" : "opening-door-arc"}" d="M ${sx(a.from.x)} ${sy(a.from.y)} A ${r} ${r} 0 0 ${sweep} ${sx(a.to.x)} ${sy(a.to.y)}" fill="none" stroke="${INK}" stroke-width="${window ? 0.55 : 0.7}"/>`,
         );
         break;
       }
-      case "window":
-        for (const g of k.lines ?? []) parts.push(line(g, INK, 1));
+      case "window": {
+        const cut = k.class === "cut";
+        const stroke = cut ? INK : FAINT;
+        const dash = cut ? "" : "5 3";
+        parts.push(`<g class="opening-window">`);
+        if (k.polygon && k.polygon.length >= 4) {
+          const p = k.polygon;
+          // A window continues the two faces of the wall as unfilled lines. Closing this path
+          // would add jamb caps and turn the window back into a boxed door opening.
+          parts.push(
+            `<path d="M ${sx(p[0]!.x)} ${sy(p[0]!.y)} L ${sx(p[1]!.x)} ${sy(p[1]!.y)} M ${sx(p[3]!.x)} ${sy(p[3]!.y)} L ${sx(p[2]!.x)} ${sy(p[2]!.y)}" fill="none" stroke="${stroke}" stroke-width="0.8"${dash ? ` stroke-dasharray="${dash}"` : ""}/>`,
+          );
+        } else {
+          for (const g of k.lines ?? []) parts.push(line(g, stroke, 0.55, dash));
+        }
+        parts.push(`</g>`);
+        break;
+      }
+      case "window-sash":
+        parts.push(`<g class="opening-window-sash">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.7));
+        parts.push(`</g>`);
+        break;
+      case "window-fixed":
+        parts.push(`<g class="opening-window-fixed">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.65));
+        parts.push(`</g>`);
+        break;
+      case "curtain-wall-mullion":
+        parts.push(`<g class="opening-curtain-wall-mullion">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.55));
+        parts.push(`</g>`);
+        break;
+      case "window-sash-centre":
+        parts.push(`<g class="opening-window-sash-centre">`);
+        for (const g of k.lines ?? []) parts.push(line(g, INK, 0.55));
+        parts.push(`</g>`);
         break;
       case "run-outline":
         for (const g of k.lines ?? []) parts.push(line(g, INK, 1.1));
@@ -212,24 +351,22 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
       case "run-arrow":
         parts.push(...arrow(k, line, sx, sy));
         break;
-      // 注記の言葉と丸めはここで初めて生まれる — 印が運ぶのは丸めない事実だけである
+      // Wording and rounding begin here; the mark carries only unrounded facts.
       case "run-note": {
         const n = k.note;
-        if (!n || n.of === "direction") break; // 座の注記は向きではない
-        const text =
-          n.of === "stair"
-            ? `${n.risers}段 蹴上${Math.round(n.riser)}/踏面${Math.round(n.tread)}`
-            : `${n.lanes > 1 ? `${n.lanes}台 ` : ""}勾配 ${slopeText(n.slope)}`;
+        if (!n || n.of === "direction" || n.of === "stair") break;
+        const text = `${n.lanes > 1 ? `${n.lanes} units ` : ""}slope ${slopeText(n.slope)}`;
         parts.push(
-          `<text x="${sx(k.at!.x)}" y="${sy(k.at!.y) + 42}" text-anchor="middle" font-size="8" fill="#8a8171">${esc(text)}</text>`,
+          `<text class="run-note" x="${sx(k.at!.x)}" y="${sy(k.at!.y) + 42}" text-anchor="middle" font-size="8" fill="#8a8171" stroke="${PAPER}" stroke-width="3" paint-order="stroke">${esc(text)}</text>`,
         );
         break;
       }
     }
   }
 
-  // 空間ラベル (最大の凸片の中心に置く)
+  // Place a space label at the centre of its largest convex piece.
   for (const s of rooms) {
+    if (stairSpaces.has(s.path)) continue;
     const space = model.spaces.get(s.path)!;
     const poly = [...s.outline].sort((a, b) => polyArea(b) - polyArea(a))[0]!;
     const r = polyBounds(poly);
@@ -246,7 +383,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     );
   }
 
-  // 切断面より上のものの投影 (上部吹抜け — 作図慣習)。空間ラベルの後に置く
+  // Projection from above the cut, including an upper void, drawn after space labels.
   for (const k of marks) {
     if (k.role !== "void-above") continue;
     parts.push(
@@ -255,19 +392,19 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     );
   }
 
-  // 北矢印 (ADR-0057) — azimuth が書かれているときだけ描く。**表現であって形ではない**ので
-  // Form には無く、紙の座標に直接置く。これがある理由は装飾ではない — 方位の 180度違い・
-  // 余角違い・磁北の書き写しは、どれも範囲内の整った数として通る。**絵だけが捕まえる。**
+  // North arrow (ADR-0057): drawn only when azimuth is written. It is presentation rather than
+  // shape, so it is placed directly in sheet coordinates instead of entering Form. The picture
+  // exposes a reversed bearing, a complementary angle or copied magnetic north.
   //
-  // 画面上の北: モデルの +Y は上、+X は右。真方位角は +Y から時計回りなので、画面でも時計回り
+  // On screen model +Y is up and +X is right; true azimuth remains clockwise from +Y.
   if (model.azimuth) {
     const rad = (model.azimuth.deg * Math.PI) / 180;
     const nx = Math.sin(rad);
     const ny = -Math.cos(rad);
-    const cx = W - M / 2; // 右余白の中央 (通り芯記号と同じ帯に、離して置く)
+    const cx = W - M / 2; // centre of the right margin, separated from the grid bubbles
     const cy = M / 2;
     const R = 21;
-    const px = -ny; // 軸に直交する向き (矢羽根の底辺)
+    const px = -ny; // perpendicular direction for the arrowhead base
     const py = nx;
     const r2 = (n: number): string => String(Math.round(n * 100) / 100);
     const head = [
@@ -286,7 +423,7 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     );
   }
 
-  // 表題
+  // Sheet title.
   const title = `${model.name ?? "Untitled"} — ${level} plan`;
   parts.push(`<text x="${M - 62}" y="${H - 18}" font-size="12" fill="${INK}">${esc(title)}</text>`);
 
@@ -302,47 +439,76 @@ type Line = (
 ) => string;
 
 /**
- * 切断線 — 作図慣習の平行な二本の斜線。Form が持つのは「走りを横切る切断の位置」だけで、
- * 二本にすることも振り分けの寸法も、ここが決める見た目である
+ * Form supplies the segment crossing the flight. The renderer scales the supplied 10 by 40 break
+ * glyph to that width and rotates it 30 degrees as a paper convention.
  */
 function breakMark(g: { x1: number; y1: number; x2: number; y2: number }, line: Line): string[] {
+  const glyph = ARCHITECTURAL_PLAN_CONVENTION.stairs.breakGlyph;
   const dx = g.x2 - g.x1;
   const dy = g.y2 - g.y1;
   const width = Math.hypot(dx, dy) || 1;
-  // 走る向き (切断線に直交する単位ベクトル)
+  const ax = dx / width;
+  const ay = dy / width;
   const tx = dy / width;
   const ty = -dx / width;
-  const s = Math.min(300, width / 4);
-  const off = Math.min(220, s);
-  const at = (k: number, l: number) => ({
-    x1: g.x1 + tx * (k),
-    y1: g.y1 + ty * (k),
-    x2: g.x2 + tx * (l),
-    y2: g.y2 + ty * (l),
+  const cx = (g.x1 + g.x2) / 2;
+  const cy = (g.y1 + g.y2) / 2;
+  const angle = glyph.angleDegrees * Math.PI / 180;
+  const longX = ax * Math.cos(angle) + tx * Math.sin(angle);
+  const longY = ay * Math.cos(angle) + ty * Math.sin(angle);
+  const crossX = -ax * Math.sin(angle) + tx * Math.cos(angle);
+  const crossY = -ay * Math.sin(angle) + ty * Math.cos(angle);
+  const scale = width / (glyph.height * Math.cos(angle));
+  const point = (x: number, y: number) => ({
+    x: cx + (longX * y + crossX * x) * scale,
+    y: cy + (longY * y + crossY * x) * scale,
   });
-  return [line(at(-s - off, s - off), INK, 1.4), line(at(-s + off, s + off), INK, 1.4)];
+  const halfHeight = glyph.height / 2;
+  // Exact geometry of the convention's break glyph, centred and rotated on the flight.
+  const paths = [
+    [point(0, -halfHeight), point(0, -glyph.notch), point(-glyph.notch, -glyph.notch), point(0, 0)],
+    [point(0, 0), point(glyph.notch, glyph.notch), point(0, glyph.notch), point(0, halfHeight)],
+  ];
+  return [
+    `<g class="run-break-zigzag">`,
+    ...paths.flatMap((points) =>
+      points.slice(0, -1).map((p, i) =>
+        line({ x1: p.x, y1: p.y, x2: points[i + 1]!.x, y2: points[i + 1]!.y }, INK, 1.35),
+      ),
+    ),
+    `</g>`,
+  ];
 }
 
-/** 矢印 — 三角の頭と "UP"/"DN" の言葉は、どちらも見た目である */
+/** A light, open direction arrow. Its line already points where the presentation mark intends. */
 function arrow(
   k: Mark,
   line: Line,
   sx: (x: number) => number,
   sy: (y: number) => number,
 ): string[] {
-  const g = k.lines?.[0];
-  if (!g) return [];
-  const dx = g.x2 - g.x1;
-  const dy = g.y2 - g.y1;
-  const len = Math.hypot(dx, dy) || 1;
-  const hx = (dx / len) * 420;
-  const hy = (dy / len) * 420;
-  const px = (-dy / len) * 200;
-  const py = (dx / len) * 200;
+  const lines = k.lines ?? [];
+  const first = lines[0];
+  const g = lines[lines.length - 1];
+  if (!first || !g) return [];
+  // The head is paper-sized, not a dimension of the building. Keeping it in SVG coordinates
+  // makes the same stair legible on a compact house and a large floor plate.
+  const screenLen = Math.hypot(sx(g.x2) - sx(g.x1), sy(g.y2) - sy(g.y1)) || 1;
+  const vx = (sx(g.x2) - sx(g.x1)) / screenLen;
+  const vy = (sy(g.y2) - sy(g.y1)) / screenLen;
+  const px = -vy;
+  const py = vx;
+  const head = ARCHITECTURAL_PLAN_CONVENTION.stairs.arrowHead;
+  const tip = { x: sx(g.x2), y: sy(g.y2) };
+  const back = { x: tip.x - vx * head.length, y: tip.y - vy * head.length };
   return [
-    line(g, INK, 1),
-    `<path d="M ${sx(g.x2)} ${sy(g.y2)} L ${sx(g.x2 - hx + px)} ${sy(g.y2 - hy + py)} L ${sx(g.x2 - hx - px)} ${sy(g.y2 - hy - py)} Z" fill="${INK}"/>`,
-    `<text x="${sx(g.x1) + 4}" y="${sy(g.y1) + 4}" font-size="9" fill="${INK}">${k.note?.of === "direction" && k.note.up ? "UP" : "DN"}</text>`,
+    `<g class="run-direction-arrow">`,
+    ...lines.map((segment) => line(segment, INK, 0.8)),
+    ...(k.class === "below"
+      ? []
+      : [`<circle class="run-direction-arrow-start" cx="${sx(first.x1)}" cy="${sy(first.y1)}" r="${head.startRadius}" fill="${PAPER}" stroke="${INK}" stroke-width="0.8"/>`]),
+    `<path class="run-direction-arrow-head" d="M ${back.x + px * head.halfWidth} ${back.y + py * head.halfWidth} L ${tip.x} ${tip.y} L ${back.x - px * head.halfWidth} ${back.y - py * head.halfWidth}" fill="none" stroke="${INK}" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>`,
+    `</g>`,
   ];
 }
 
@@ -355,4 +521,3 @@ function polyArea(poly: Pt[]): number {
   }
   return Math.abs(s / 2);
 }
-

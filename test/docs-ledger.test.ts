@@ -1,15 +1,15 @@
-// 公開ドキュメントの台帳が実装と一致していることの門番。
+// The published documentation inventories must agree with the implementation.
 //
-// 公開ドキュメントは正典である。正典が実装と食い違えば、読み手には確かめる術が
-// 無い — 以前は「診断51件」「全49エクスポート」「ADR 19編」のように、書いた時点で
-// 正しかった数がそのまま古びて残っていた。
+// The published documentation is authoritative. If it disagrees with the implementation, readers
+// have no independent way to resolve the conflict. Counts that were correct when written used to
+// remain after their inventories changed.
 //
-// **数を手で書かない**という掟を、文ではなくテストで守る。台帳 (DIAGNOSTIC_CODES /
-// 内蔵 rule の台帳 / src/index.ts の書き下し / mcp.ts の TOOLS / cli.ts の使い方行) が
-// 唯一の出所であり、公開ページはその全件を漏れなく載せていなければならない。
+// Tests enforce the rule not to hand-write those counts. DIAGNOSTIC_CODES, the built-in rule
+// catalog, the exports in src/index.ts, TOOLS in mcp.ts and the CLI usage line are the sources.
+// Published pages must cover every member without copying the population size.
 //
-// 見出しの綴りが載っている場所がそのままアンカーになるので、この検査は
-// 「/reference/diagnostics/opn#opn05 が実在する」ことの検査でもある。
+// A heading's spelling also becomes its anchor, so this verifies that links such as
+// /reference/diagnostics/opn#opn05 have a target.
 
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -22,7 +22,7 @@ import { SCHEMATIC_RULES } from "../src/validate/builtin/index.js";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const DOCS = join(root, "docs");
 
-/** 正典の木がまだ無い間は、この門番は黙って通す (移行中の中間状態を落とさない)。 */
+/** Allow intermediate migration states before the authoritative tree exists. */
 const canonical = existsSync(join(DOCS, "reference"));
 
 function markdown(dir: string, out: string[] = []): string[] {
@@ -35,50 +35,24 @@ function markdown(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-/** 公開文書の一区画をひと続きのテキストとして読む。 */
+/** Read one section of the published tree as a single corpus. */
 function corpus(...segments: string[]): string {
   return markdown(join(DOCS, ...segments))
     .map((p) => readFileSync(p, "utf8"))
     .join("\n");
 }
 
-const CLI_SUBCOMMANDS = [
-  "check",
-  "validate",
-  "layers",
-  "diff",
-  "plan",
-  "axo",
-  "section",
-  "elevation",
-  "doors",
-  "graph",
-  "stats",
-  "levels",
-  "runs",
-  "light",
-  "site",
-  "json",
-];
+const cliSource = readFileSync(join(root, "src", "cli.ts"), "utf8");
+const cliUsage = /Usage: koyu <([^>]+)>/.exec(cliSource)?.[1];
+assert.ok(cliUsage, "src/cli.ts has no subcommand ledger in its usage line");
+const CLI_SUBCOMMANDS = cliUsage.split("|");
 
-const MCP_TOOLS = [
-  "model_summary",
-  "check",
-  "layers",
-  "write_layer",
-  "new_uids",
-  "doors",
-  "spaces",
-  "light",
-  "validate",
-  "site",
-  "plan_svg",
-  "section_svg",
-  "elevation_svg",
-  "canonical_json",
-];
+const mcpSource = readFileSync(join(root, "src", "mcp.ts"), "utf8");
+const mcpToolObject = /^const TOOLS: Record<string, Tool> = \{([\s\S]*?)^\};/m.exec(mcpSource)?.[1];
+assert.ok(mcpToolObject, "src/mcp.ts has no TOOLS ledger");
+const MCP_TOOLS = [...mcpToolObject.matchAll(/^  ([a-z][a-z0-9_]*): \{/gm)].map((match) => match[1]!);
 
-/** 欠番。生きた診断として説明してはならない。 */
+/** Retired codes must not be documented as live diagnostics. */
 const RETIRED = [
   "BND07",
   "HGT03",
@@ -93,23 +67,23 @@ const RETIRED = [
   "SIT05",
 ];
 
-test("診断コードはすべてが見出しを持つ", { skip: !canonical }, () => {
+test("every diagnostic code has a heading", { skip: !canonical }, () => {
   const text = corpus("reference", "diagnostics");
   const missing = Object.keys(DIAGNOSTIC_CODES).filter(
     (code) => !new RegExp(`^#{2,4}\\s.*\\b${code}\\b`, "m").test(text),
   );
-  assert.deepEqual(missing, [], `見出しの無い診断コード: ${missing.join(", ")}`);
+  assert.deepEqual(missing, [], `diagnostic codes with no heading: ${missing.join(", ")}`);
 });
 
-test("判定規則は16件すべてが見出しを持つ", { skip: !canonical }, () => {
+test("every validation rule has a heading", { skip: !canonical }, () => {
   const text = corpus("reference", "validate");
   const missing = SCHEMATIC_RULES.map((rule) => rule.id).filter(
     (rule) => !new RegExp(`^#{2,4}\\s.*${rule.replace(/\./g, "\\.")}`, "m").test(text),
   );
-  assert.deepEqual(missing, [], `見出しの無い判定規則: ${missing.join(", ")}`);
+  assert.deepEqual(missing, [], `validation rules with no heading: ${missing.join(", ")}`);
 });
 
-// **The count is not written into the name.** A test called "all 14 subcommands" goes on saying
+// **The count is not written into the name.** A test called "all N subcommands" goes on saying
 // fourteen after the fifteenth is added, and a name that states a false total is worse than one
 // that states none — the ledger above is the only place the number lives.
 test("every CLI subcommand has a page", { skip: !canonical }, () => {
@@ -126,7 +100,7 @@ test("every MCP tool has a heading", { skip: !canonical }, () => {
   assert.deepEqual(missing, [], `MCP tools with no heading: ${missing.join(", ")}`);
 });
 
-test("公開APIの全エクスポートがどこかに書かれている", { skip: !canonical }, () => {
+test("every public API export is documented", { skip: !canonical }, () => {
   const index = readFileSync(join(root, "src", "index.ts"), "utf8");
   const names = new Set<string>();
   for (const block of index.matchAll(/export\s+(type\s+)?\{([^}]*)\}/g)) {
@@ -137,12 +111,12 @@ test("公開APIの全エクスポートがどこかに書かれている", { ski
   }
   const text = corpus("reference", "api");
   const missing = [...names].filter((name) => !new RegExp(`\\b${name}\\b`).test(text));
-  assert.deepEqual(missing, [], `文書に現れない公開名: ${missing.join(", ")}`);
+  assert.deepEqual(missing, [], `public names absent from the documentation: ${missing.join(", ")}`);
 });
 
-test("欠番のコードを生きた診断として説明していない", { skip: !canonical }, () => {
-  // retired.md は欠番を述べることが仕事なので対象外。ほかの頁でコードが見出しに
-  // 立っていれば、それは生きた診断として扱われているということである。
+test("retired codes are not documented as live diagnostics", { skip: !canonical }, () => {
+  // retired.md exists to explain retired codes and is excluded. A heading elsewhere revives the
+  // code in the published diagnostic inventory.
   const text = markdown(join(DOCS, "reference", "diagnostics"))
     .filter((p) => !p.endsWith("retired.md"))
     .map((p) => readFileSync(p, "utf8"))
@@ -150,16 +124,12 @@ test("欠番のコードを生きた診断として説明していない", { ski
   const revived = RETIRED.filter((code) =>
     new RegExp(`^#{2,4}\\s+${code}\\b`, "m").test(text),
   );
-  assert.deepEqual(revived, [], `欠番なのに項目の見出しを持つ: ${revived.join(", ")}`);
+  assert.deepEqual(revived, [], `retired codes with a live heading: ${revived.join(", ")}`);
 });
 
-// 既定の言語版と受理版の照合は test/restatements.test.ts へ移した。ここに在った
-// 検査は既定を "1.0" と直に書いており、DEFAULT_LANGUAGE_VERSION が 1.1 へ動いた
-// 後もそのまま通っていた — 台帳を手で書かない掟 (AGENTS.md 3b) を守る門が、
-// 自分の中で同じ手写しをしていた。移した先は定数を読む。
+// The default and accepted-language-version checks moved to restatements.test.ts. The former
+// check copied a default version literal and stayed green after the source constant moved. Its
+// replacement reads the constant directly.
 
-// 公開されない場所の一覧はここに在った。定義されたまま一度も使われず、
-// 「website/scripts/prepare-content.mjs と同じ集合でなければならない」という
-// コメントだけが人手の同期を要求していた — 台帳の写しを門で守るのではなく、
-// 写しを消す。出所は prepare-content.mjs の INTERNAL / INTERNAL_FILES ただ一つ。
-
+// This file also used to copy the unpublished-path inventory without consuming it. The source is
+// now only INTERNAL / INTERNAL_FILES in prepare-content.mjs; no duplicate inventory remains here.

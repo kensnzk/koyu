@@ -30,7 +30,7 @@ No intersection carries two columns. When declarations overlap, **the earlier de
 `violation`
 
 ```muro-fail
-muro 1.4
+muro 1.5
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150
@@ -48,7 +48,6 @@ boundary /L1/b /out
 ```text
 ✖ [koyu.schematic.column.blocksdoor] main.muro:line 9: /L1/a|/L1/b@0/0 intersects the derived column at X2/Y2
 Validation — 1 violation / 0 cautions
-  koyu.profile.schematic-screen@1 — 3 evaluated / 12 not applicable / 0 indeterminate / 0 error
 ```
 
 The boundary between `/L1/a` and `/L1/b` runs along Y2. A 600mm column stands at the X2/Y2 intersection. The door was placed at `at:X2` — directly on the X2 line — so its centre and the column's centre are the same point. **A grid intersection also sits on the boundary segment.** Push a door towards a grid line and it always collides.
@@ -64,7 +63,7 @@ It is a violation because two physical things occupy one place. No reading permi
 **Shift the door off the line.** Add an offset in `at:`.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150
@@ -85,7 +84,7 @@ boundary /L1/b /out
 **Or keep columns off that line.** Name the grid lines in `x:` / `y:` and narrow the column declaration instead.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 4000 8000
 grid Y 0 5000 10000
 level L1 0 h:2700 slab:150

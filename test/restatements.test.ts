@@ -51,8 +51,8 @@ const GOVERNED = [
 
 /**
  * The pages at the root restate the same ledgers and were read by nothing.
- * AGENTS.md names the current language version, the subcommands and the twelve
- * MCP tools in its own prose; the READMEs open on a worked example.
+ * AGENTS.md names the current language version, the subcommands and the MCP
+ * tools in its own prose; the READMEs open on a worked example.
  */
 const GOVERNED_FILES = [
   join(root, "AGENTS.md"),
@@ -180,24 +180,9 @@ test("a list of accepted language versions equals SUPPORTED_LANGUAGE_VERSIONS", 
   );
 });
 
-const WORD_FOR_COUNT: Readonly<Record<string, number>> = {
-  one: 1,
-  two: 2,
-  three: 3,
-  four: 4,
-  five: 5,
-  six: 6,
-  seven: 7,
-  eight: 8,
-  nine: 9,
-  ten: 10,
-};
-
 /**
- * A count of the accepted versions written next to the list. Law 3b forbids
- * hand-counting a ledger that has a machine source, and a count is the part
- * that rots most quietly: the list beside it was one entry short for a whole
- * release while the prose still said "six".
+ * A count of accepted versions must not be written next to the list. Law 3b forbids
+ * hand-counting a ledger that has a machine source, even when the count is correct today.
  *
  * Deliberately narrow — it reads "N versions are accepted" and nothing else.
  * The docs count other things in the same words all over: "Two versions — of
@@ -207,19 +192,14 @@ const WORD_FOR_COUNT: Readonly<Record<string, number>> = {
  * off. Where a count is phrased some other way, the list on the same line is
  * what catches the drift.
  */
-test("a count of the accepted versions equals the length of the ledger", () => {
-  const expected = SUPPORTED_LANGUAGE_VERSIONS.length;
-  const wrong: string[] = [];
+test("governed prose does not count the accepted language versions", () => {
+  const found: string[] = [];
   for (const line of LINES) {
-    for (const [, word] of line.text.matchAll(
-      /\b(one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+versions?\s+(?:are|is)\s+accepted\b/gi,
-    )) {
-      if (word === undefined) continue;
-      const written = WORD_FOR_COUNT[word.toLowerCase()] ?? Number(word);
-      if (written !== expected) wrong.push(`${line.where}: ${word} (there are ${expected})`);
-    }
+    for (const [hit] of line.text.matchAll(
+      /\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s+versions?\s+(?:are|is)\s+accepted\b/gi,
+    )) found.push(`${line.where}: ${hit}`);
   }
-  assert.deepEqual(wrong, [], `a version count disagrees with the ledger:\n  ${wrong.join("\n  ")}`);
+  assert.deepEqual(found, [], `write the accepted-version ledger instead of its size:\n  ${found.join("\n  ")}`);
 });
 
 /**
@@ -249,7 +229,7 @@ test("a version named by its role in prose agrees with the ledger", () => {
       // on purpose: "not following the newest — ... the accepted versions are 0.1, ..." names
       // no version for the role, and a wide window would read the list as its claim.
       const after = line.text.slice(m.index);
-      const v = /\b(\d\.\d)\b/.exec(after.slice(0, 30));
+      const v = /\b(\d\.\d)\b/.exec(after.slice(0, 45));
       if (v && v[1] !== role.expected) {
         wrong.push(`${line.where}: ${v[1]} claimed as ${role.name} (it is ${role.expected})`);
       }
@@ -455,41 +435,23 @@ test("a version declaration in the documentation is spelled with the word its ve
   assert.deepEqual(wrong, [], `a version line uses the wrong word for its version:\n  ${wrong.join("\n  ")}`);
 });
 
-/**
- * A count written next to a ledger equals the ledger.
- *
- * Law 13 says not to write the count at all, and most of them came out. This holds the few
- * that stayed — the tables that exist to put the two magnitudes side by side — and stops the
- * rest from creeping back. Fifteen places said 65 against a ledger of 67 and nothing noticed,
- * because the existing checks hold the *names* in the ledger and not the arithmetic beside it.
- */
-test("a count written beside the diagnostics or the rules equals the ledger", () => {
-  const WORDS: Record<string, number> = {
-    ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16,
-    seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20,
-  };
-  const value = (t: string) => (/^\d+$/.test(t) ? Number(t) : WORDS[t.toLowerCase()]);
-  // Plural only. "UTF-16 code unit" is not a count of the ledger, and requiring the plural is
-  // cheaper than teaching the check what a code unit is.
-  const ledgers = [
-    { noun: /codes\b|diagnostics\b/, size: Object.keys(DIAGNOSTIC_CODES).length, name: "diagnostic codes" },
-    { noun: /rules\b/, size: SCHEMATIC_RULES.length, name: "validation rules" },
-  ];
-  const wrong: string[] = [];
+/** A changing ledger is named or linked, never hand-counted in present-tense prose. */
+test("governed prose does not restate changing ledger sizes", () => {
+  const number = "(?:[0-9]{1,3}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)";
+  const inventory = new RegExp(
+    `\\b${number}\\s+(?:[A-Z]{3}\\s+codes?|codes|diagnostics)\\b|\\b(?:[0-9]{1,3}|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\\s+(?:validation\\s+)?rules\\b|\\b${number}\\s+(?:MCP\\s+)?(?:tools|subcommands|public\\s+exports|exports|analyses)\\b|\\ball\\s+${number}\\s+(?:of\\s+them|come\\s+back)\\b|\\btools?\\b.*\\b${number}\\s+is\\s+the\\s+right\\s+number\\b|\\btools?[/\\w-]*\\b.*\\bnone\\s+of\\s+the\\s+${number}\\b`,
+    "gi",
+  );
+  const found: string[] = [];
   for (const line of LINES) {
-    // `the six rules of composition` and `the rules of composition` are a different subject.
     if (/rules of composition|composition rules/i.test(line.text)) continue;
-    // "the other 67 codes" is the ledger minus the one being discussed, and a quoted count is
-    // being reported rather than asserted — law 3b names two dead sentences on purpose.
-    const text = line.text.replace(/\bother\s+\d+/gi, "other").replace(/["'`][^"'`]*["'`]/g, "");
-    for (const ledger of ledgers) {
-      const re = new RegExp(`\\b([0-9]{1,3}|${Object.keys(WORDS).join("|")})\\s+(?:${ledger.noun.source})`, "gi");
-      for (const [, token] of text.matchAll(re)) {
-        const n = value(token!);
-        if (n === undefined || n < 5) continue; // a version number or a small tally, not a ledger size
-        if (n !== ledger.size) wrong.push(`${line.where}: ${token} ${ledger.name} (the ledger holds ${ledger.size})`);
-      }
+    const text = line.text.replace(/["'`][^"'`]*["'`]/g, "");
+    for (const hit of text.match(inventory) ?? []) {
+      // The six composition rules are the numbered clauses of a frozen language contract, not
+      // the current population of a growing ledger.
+      if (/^six rules$/i.test(hit)) continue;
+      found.push(`${line.where}: ${hit}`);
     }
   }
-  assert.deepEqual(wrong, [], `a count disagrees with the ledger it names:\n  ${wrong.join("\n  ")}`);
+  assert.deepEqual(found, [], `write the ledger link instead of its changing size:\n  ${found.join("\n  ")}`);
 });

@@ -20,6 +20,7 @@ export {
   type Form,
   type FormBoundary,
   type FormColumn,
+  type FormComponent,
   type FormInput,
   type FormLevel,
   type FormOpening,

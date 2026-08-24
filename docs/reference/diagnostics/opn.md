@@ -5,7 +5,7 @@ mode: reference
 
 # OPN — opening diagnostics
 
-An opening (`door`, `window` and the rest) rides **on a segment** of a boundary. The segment is derived from the layout of the spaces, so with no segment there is nowhere to put it, and with several segments there is no telling which. These eight catch the placement, and the consistency of what was placed.
+An opening (`door`, `window` and the rest) rides **on a segment** of a boundary. The segment is derived from the layout of the spaces, so with no segment there is nowhere to put it, and with several segments there is no telling which. These checks catch the placement and the consistency of what was placed.
 
 There are two idioms for position.
 
@@ -24,6 +24,8 @@ Omitted, it is `at:0.5` (the middle). `at` points at the opening's **center**.
 | [OPN06](#opn06) | error | The opening is wider than the boundary segment |
 | [OPN07](#opn07) | error | The wrong axis for an explicit opening position |
 | [OPN08](#opn08) | error | An explicit opening position runs off the segment |
+| [OPN09](#opn09) | error | The opening operation belongs to the other opening kind |
+| [OPN10](#opn10) | error | A curtain-wall panel count is incompatible or fractional |
 
 A `seg` follows the same placement rules, and [SEG04–SEG08](seg.md) correspond one to one with OPN04–OPN08. An opening on a vertical boundary (`stair`, `shaft`, `void`) is not interpreted, which [VRT05](vrt.md#vrt05) says. How to get a code is on [Reading a diagnostic](reading.md).
 
@@ -224,3 +226,60 @@ boundary /L1/b /out
 **Cause** — when `at` is a grid reference it is **not clamped**. A ratio (`at:0.5` and the like) is pushed back automatically to fit the segment, but a grid reference is an instruction to put it *there*, so if it does not fit it errors rather than moving silently. `at` points at the opening's **center**, so it must be at least `w/2` inside from the end.
 
 **Fix** — bring `at` within the "center allowed" range in the message. Here that is `at:Y1+450` or more. If you only want it flush to one end, write the ratio `at:0` and it is clamped hard against the end.
+
+## OPN09 — the opening operation belongs to the other opening kind {#opn09}
+
+`error`
+
+```muro-bad
+muro 1.5
+grid X 0 4000 8000
+grid Y 0 4000
+level L1 0 h:2600 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /L1/b room X2..X3 Y1..Y2
+space /out outside:1
+boundary /L1/a /L1/b
+  door w:900 style:fixed
+boundary /L1/a /out
+boundary /L1/b /out
+```
+
+`style:fixed is a window-only operation and cannot be used on a door`
+
+**Cause** — `fixed` is a recognized opening operation, but it describes a window rather than a
+door. The vocabulary is shared so common hinged and sliding operations keep one spelling; the
+opening kind still limits which operations apply. An unrecognized spelling produces ATT02 instead
+of OPN09.
+
+**Fix** — choose an operation from the [`door`](../muro/door.md#style--the-kind-of-leaf) or
+[`window`](../muro/window.md#style--the-window-plan-presentation) table that matches the declaration. If
+the value comes from an asset, correct the asset. An incompatible asset is reported at its own
+declaration and is not reported again on every instance that inherits it.
+
+## OPN10 — a curtain-wall panel count is incompatible or fractional {#opn10}
+
+`error`
+
+```muro-bad
+muro 1.5
+grid X 0 4000
+grid Y 0 4000
+level L1 0 h:2600 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out edge:N
+  window w:3200 h:2400 style:curtain-wall panels:2.5
+boundary /L1/a /out edge:S
+boundary /L1/a /out edge:E
+boundary /L1/a /out edge:W
+```
+
+`panels on a curtain wall is a positive whole number: panels:2.5`
+
+**Cause** — `panels:` is the number of equal facade panels. A count cannot be fractional, and the
+attribute has no meaning on a door or on a window without `style:curtain-wall`. The renderer does
+not round or infer a different layout.
+
+**Fix** — write a positive whole count on a curtain-wall window, or remove `panels:`. When the
+value comes from an asset, correct the asset; unchanged instances are not reported again.

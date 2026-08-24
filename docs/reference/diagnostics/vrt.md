@@ -171,7 +171,7 @@ boundary /L2/a /out
 
 **Fix** — delete the opening line. If there really is a door at the entrance to the stair, it is a door on the **horizontal** boundary between the stair space and the adjoining room.
 
-**Note — what is reproached is the opening's own line.** The diagnostic's `line` points at the `door` line, not at the `boundary` line, and three openings produce three diagnostics.
+**Note — what is reproached is the opening's own line.** The diagnostic's `line` points at the `door` line, not at the `boundary` line; each opening receives its own diagnostic.
 
 ## VRT06 — a seg on a vertical boundary is not interpreted {#vrt06}
 

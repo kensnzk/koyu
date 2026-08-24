@@ -440,7 +440,7 @@ To look things up: [Vertical circulation](../reference/muro/vertical-circulation
 Finally, add what has been left out so far.
 
 ```muro
-muro 1.4
+muro 1.5
 name 小さな家
 
 grid X 0 3600 5400

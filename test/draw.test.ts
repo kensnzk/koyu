@@ -242,6 +242,41 @@ test("drawing: a wall interval carries both its body and its centreline, because
   assert.ok(joined > 0, "the model has joined corners, where the body is not the centreline thickened");
 });
 
+test("drawing: a rail is a light axis with explicit endpoint posts", () => {
+  const model = parse(`muro 1.5
+grid X 0 4000
+grid Y 0 5000 9000
+level L1 0 h:2700 slab:300
+space /L1/a room X1..X2 Y1..Y2
+space /L1/v void X1..X2 Y2..Y3 void:1
+boundary /L1/a /L1/v air:1 h:1100
+`);
+  const svg = svgPlan(model, { level: "L1" });
+  assert.match(svg, /<g class="boundary-rail">/);
+  assert.equal([...svg.matchAll(/class="boundary-rail-post"/g)].length, 2);
+});
+
+test("drawing: stair direction uses light open arrowheads without UP or DN labels", () => {
+  const model = parseFile(join(root, "test/fixtures/stair-arrows.muro"));
+  const drawn = ["L1", "L2", "L3"].map((level) => {
+    const svg = svgPlan(model, { level });
+    assert.ok(!/>UP<|>DN</.test(svg), `${level}: the stair arrow needs no direction word`);
+    assert.ok(!/>Stair<\/text>/.test(svg), `${level}: a generic room label does not cover the stair symbol`);
+    assert.ok(!svg.includes('class="run-note"'), `${level}: stair proportion notes stay out of the plan`);
+    assert.ok(!/<path class="run-direction-arrow-head"[^>]*\bfill="(?!none)"/.test(svg));
+    const arrows = [...svg.matchAll(/class="run-direction-arrow-head"/g)].length;
+    const starts = [...svg.matchAll(/class="run-direction-arrow-start"/g)].length;
+    const breaks = [...svg.matchAll(/class="run-break-zigzag"/g)].length;
+    for (const group of svg.matchAll(/<g class="run-break-zigzag">([\s\S]*?)<\/g>/g)) {
+      assert.equal([...group[1]!.matchAll(/<line /g)].length, 6, `${level}: the supplied break shape has six segments`);
+    }
+    return { arrows, starts, breaks };
+  });
+  assert.deepEqual(drawn.map((d) => d.arrows), [1, 2, 1]);
+  assert.deepEqual(drawn.map((d) => d.starts), [1, 1, 0]);
+  assert.deepEqual(drawn.map((d) => d.breaks), [1, 1, 1]);
+});
+
 test("derive: the constructors agree — a band is its own centreline thickened, and a box prism is flat", () => {
   const seg = { x1: 0, y1: 0, x2: 3000, y2: 4000, horizontal: false, vertical: false, diagonal: true };
   const g = bandLine(seg, 1500, 2000, 1000);
@@ -451,4 +486,34 @@ boundary /L1/yard /out`);
   assert.equal(roles.get("/L1/room"), "space");
   assert.equal(roles.get("/L1/deck"), "space-semi-outdoor");
   assert.equal(roles.get("/L1/yard"), "space-outdoor");
+});
+
+test("drawing: doors, sliding leaves and windows have legible defaults without assets", () => {
+  const model = parseFile(join(root, "test/fixtures/opening-symbols.muro"));
+  assert.equal(model.assets.size, 0, "the fixture exercises the fallback rather than an asset library");
+  const svg = svgPlan(model, { level: "L1" });
+
+  const arcs = [...svg.matchAll(/<path class="opening-door-arc"[^>]*>/g)].map((m) => m[0]);
+  assert.equal(arcs.length, 4, "each hinged door has one swing arc");
+  assert.ok(arcs.every((a) => !a.includes("stroke-dasharray")), "a door swing is a thin solid line");
+
+  const groups = (name: string): string[] => [
+    ...svg.matchAll(new RegExp(`<g class="${name}">([\\s\\S]*?)</g>`, "g")),
+  ].map((m) => m[1]!);
+  const panels = groups("opening-slide-panel");
+  const centres = groups("opening-slide-centre");
+  const guides = groups("opening-slide-guide");
+  assert.equal(panels.length, 4, "each sliding door has one visible leaf");
+  assert.ok(panels.every((g) => (g.match(/<line /g) ?? []).length === 1));
+  assert.equal(centres.length, 4, "each sliding leaf has one perpendicular centre tick");
+  assert.ok(centres.every((g) => (g.match(/<line /g) ?? []).length === 1));
+  assert.equal(guides.length, 4, "each sliding door shows the direction in which it retracts");
+  assert.ok(guides.every((g) => (g.match(/<line /g) ?? []).length === 1 && g.includes("stroke-dasharray")));
+
+  const windows = groups("opening-window");
+  assert.equal(windows.length, 4, "each window has one framed symbol");
+  assert.ok(
+    windows.every((g) => /<path d="M [^"]+ M /.test(g) && !g.includes(" Z") && !g.includes("<line ")),
+    "a generic window continues both unfilled wall-face lines without closing them into a box",
+  );
 });

@@ -1,0 +1,52 @@
+muro 1.5
+name Window symbols
+unit mm
+
+grid X 0 3600 7200 10800 14400 18000
+grid Y 0 4800 6200 11000
+level L1 0 h:2800 slab:200
+
+space /L1/general room X1..X2 Y1..Y2 name:General
+space /L1/fixed room X2..X3 Y1..Y2 name:Fixed
+space /L1/single-slide room X3..X4 Y1..Y2 name:Single-slide
+space /L1/double-slide room X4..X5 Y1..Y2 name:Double-slide
+space /L1/bypass room X1..X2 Y3..Y4 name:Bypass
+space /L1/casement room X2..X3 Y3..Y4 name:Casement
+space /L1/double-casement room X3..X4 Y3..Y4 name:Double-casement
+space /L1/projecting room X4..X5 Y3..Y4 name:Projecting
+space /L1/curtain-wall room X5..X6 Y3..Y4 name:Curtain-wall
+space /outside exterior outside:1 name:Outside
+
+boundary /L1/general /outside t:200 edge:N
+  window w:1800 h:1200 at:0.5 name:general
+boundary /L1/fixed /outside t:200 edge:N
+  window w:1800 h:1200 at:0.5 style:fixed name:fixed
+boundary /L1/single-slide /outside t:200 edge:N
+  window w:1800 h:1200 at:0.5 hinge:W swing:a style:sliding name:single-slide
+boundary /L1/double-slide /outside t:200 edge:N
+  window w:1800 h:1200 at:0.5 hinge:W swing:a style:sliding-double name:double-slide
+boundary /L1/bypass /outside t:200 edge:N
+  window w:1800 h:1200 at:0.5 hinge:W swing:a style:sliding-bypass name:bypass
+boundary /L1/casement /outside t:200 edge:N
+  window w:1200 h:1200 at:0.5 hinge:W swing:a style:hinged name:casement
+boundary /L1/double-casement /outside t:200 edge:N
+  window w:1800 h:1200 at:0.5 hinge:W swing:a style:hinged-double name:double-casement
+boundary /L1/projecting /outside t:200 edge:N
+  window w:1800 h:1200 at:0.5 hinge:W swing:a style:projecting name:projecting
+boundary /L1/curtain-wall /outside t:200 edge:N
+  window w:3200 h:2600 at:0.5 style:curtain-wall panels:4 name:curtain-wall
+
+boundary /L1/general /outside edge:S
+boundary /L1/fixed /outside edge:S
+boundary /L1/single-slide /outside edge:S
+boundary /L1/double-slide /outside edge:S
+boundary /L1/bypass /outside edge:S
+boundary /L1/casement /outside edge:S
+boundary /L1/double-casement /outside edge:S
+boundary /L1/projecting /outside edge:S
+boundary /L1/curtain-wall /outside edge:S
+boundary /L1/general /outside edge:W
+boundary /L1/double-slide /outside edge:E
+boundary /L1/bypass /outside edge:W
+boundary /L1/projecting /outside edge:E
+boundary /L1/curtain-wall /outside edge:E

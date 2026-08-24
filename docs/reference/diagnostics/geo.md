@@ -5,7 +5,7 @@ mode: reference
 
 # GEO — overlapping-region diagnostics
 
-A space says which part of the plan it occupies as rectangles of grid references. When two rectangles occupy the same place, floor area is counted twice and the wall centerline segment is no longer determined. The two GEO codes catch overlap — inside one space, and between two spaces.
+A space says which part of the plan it occupies as rectangles of grid references. When two rectangles occupy the same place, floor area is counted twice and the wall centerline segment is no longer determined. The GEO entries catch overlap inside one space and between two spaces.
 
 | Code | severity | One line |
 |---|---|---|

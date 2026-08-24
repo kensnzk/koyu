@@ -61,14 +61,17 @@ Every outline `Form` returns is counter-clockwise (positive signed area), and re
 
 | What `Form` holds | What `Form` does not hold |
 |---|---|
-| **Coordinates** — pieces of a region, boundary segments, opening centres, column sections, tread rectangles | **Colour, typeface, text size, line weight, line style** |
+| **Coordinates** — pieces of a region, boundary segments, opening centres, component footprints, column sections, tread rectangles | **Colour, typeface, text size, line weight, line style** |
 | **Thickness** — walls, rails, slabs | **Words of annotation** — neither `UP` nor `12 risers @175 / 300 going` |
 | **z ranges** — walls, openings, columns, slabs, solids | **Drafting symbols** — the diagonal of a void, the two slashes of a break line, the circle of a grid bubble, the head of an arrow |
 | **Direction** — edge orientation, direction of rise, hinge and swing side, whether an arrow goes up | **Scale, page margin, viewBox** |
-| **Identity of the subject** — which space, which boundary, which opening this shape belongs to | **Draw order, stacking, shading** |
+| **Identity of the subject** — which space, area, asset, boundary or opening this shape belongs to | **SVG artwork, draw order, stacking, shading** |
 | **[Plan classification](plan.md)** — cut / below / above / swing / anchor | **The judgement of what to draw and what to leave out** |
 
-`svgPlan`, `svgAxo` and any outside viewer only draw this `Form`. **What may legitimately differ is the appearance, not the shape.** Two shapes out of one composition is a defect.
+`svgPlan`, `svgAxo` and outside viewers take every coordinate and physical dimension from this
+`Form`. A drawing may join presentation resources such as component SVG bytes, but those supply no
+shape. **What may legitimately differ is the appearance, not the shape.** Two shapes out of one
+composition is a defect.
 
 That `Form` carries no appearance is machine-enforced: the `Form` of every bundled example is serialised to JSON and checked to contain no colour spelling, no `UP`/`DN`, and no drafting word (`stroke`, `fill`, `font`, `text`, `label`, `dasharray`). **Words beyond ASCII pass only where they ride on identity written in the source** — `name`, paths, types, level names. A space named in Japanese appears in Japanese in the `Form`, because that is the identity of the subject and not its appearance. Non-ASCII on any other key fails the test.
 
@@ -88,7 +91,8 @@ interface Form {
   levels: FormLevel[];        // levels and storey pitch
   spaces: FormSpace[];        // derived pieces, area, volume, indoor / semi-outdoor / covered
   boundaries: FormBoundary[]; // centre segment, and if there is matter, its panels
-  openings: FormOpening[];    // centre, width, z range, leaf thickness, door swing
+  openings: FormOpening[];    // centre, width, z range, leaf thickness, operation and panel count
+  components?: FormComponent[]; // fixed footprints placed by named areas; absent when empty
   segs: FormSeg[];            // where the uncounted segments sit
   slabs: Slab[];              // floors, ceilings, roofs
   columns: FormColumn[];      // columns standing on grid intersections
@@ -130,7 +134,7 @@ Every element of `Form` carries its subject's identity. Boundaries, openings, `s
 | `columnRect(c)` | the section of a column |
 | `runPrism(s)` | a vertical-circulation solid as a prism (base outline plus per-vertex top/bottom z) |
 
-**All five are exported from `@kensnzk/koyu/form`**, alongside `derive` and the `Form` types. So are `sectionForm` and `elevationForm`, which [cut a vertical plane through what `derive` returned](section.md) — they read a `Form`, call these same constructors, and assemble no matter of their own, so the one entry point to shape stays one. That is the whole point of them: a consumer that cannot import a constructor has to write it again, and then the rule of assembly is no longer shared even though the parts are.
+**These constructors are exported from `@kensnzk/koyu/form`**, alongside `derive` and the `Form` types. So are `sectionForm` and `elevationForm`, which [cut a vertical plane through what `derive` returned](section.md) — they read a `Form`, call these same constructors, and assemble no matter of their own, so the one entry point to shape stays one. That is the whole point of them: a consumer that cannot import a constructor has to write it again, and then the rule of assembly is no longer shared even though the parts are.
 
 **The vertices of the quadrilateral run start+n → end+n → end−n → start−n**, so joining the midpoints of the two opposing sides gives the centre line back.
 
@@ -141,8 +145,9 @@ The body of a wall is not one of these constructors' results, because [a junctio
 - [Regions](regions.md) — from allocation to region, and re-cutting by a drawn line
 - [Boundary segments](boundaries.md) — where a wall stands
 - [Matter](bodies.md) — walls, openings, columns, floors, ceilings, roofs
+- [Area-hosted components](components.md) — physical footprints without SVG artwork
 - [Vertical runs](vertical-runs.md) — the arithmetic of step division and slope
-- [Constants and tolerances](constants.md) — eighteen and seven
+- [Constants and tolerances](constants.md) — the values used by Form derivation
 - [The plan](plan.md) — a classified set of 2D entities
 - [The section](section.md) — the same, for a vertical plane
 - [The marks of a plan](marks.md) — what a drawing is made of, once

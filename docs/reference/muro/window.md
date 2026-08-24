@@ -7,7 +7,7 @@ mode: reference
 
 ```text
 boundary /pathA /pathB …
-  window [AssetName] w:1650 h:1100 [at:…] [edge:…] [name:…] [sill:…]
+  window [AssetName] w:1650 h:1100 [at:…] [edge:…] [hinge:…] [swing:…] [style:…] [panels:…] [name:…] [sill:…]
 ```
 
 A `window` is written **one level of indentation** under a [boundary](boundary.md). How its position is written — the ratio and grid-reference forms of `at`, choosing a side with `edge` — follows exactly the same rules as a [door](door.md).
@@ -24,7 +24,7 @@ Two things differ. **A window is not passable**, so it adds no edge to the graph
 Without `w`, parse stops. Without `h`, `check` still comes back green — but the window **drops out of the daylight count entirely**, because window area is the sum of `w × h` over the windows that have an `h`.
 
 ```muro
-muro 1.4
+muro 1.5
 name 窓の書き方
 unit mm
 
@@ -76,6 +76,50 @@ The 900mm sill on the first line is written nowhere. **It is what 2000 − 1100 
 
 `sill:` is a **carried** attribute — it is in the ledger, but the core never reads it once. Write it and it travels into the canonical JSON for another tool to use. It moves no geometry. Change `sill:900` to `sill:400` in the example above and the window still runs 900 … 2000.
 
+## style — the window plan presentation
+
+Every window keeps the same base mark in plan: the wall's two face lines continue through the
+opening, unfilled. They are not joined at the jambs and there is no glazing centre line. The
+operation is added over that frame.
+
+| Written | What is added to the frame |
+|---|---|
+| no `style:` | nothing — a general window |
+| `fixed` | a short fixed-window centre mark |
+| `sliding` | one sliding sash and its storage guide |
+| `sliding-double` | two sashes meeting at the centre, with guides to both sides |
+| `sliding-bypass` | two overlapping sashes |
+| `hinged` | one leaf and its swing arc |
+| `hinged-double` | two equal leaves and their swing arcs |
+| `projecting` | the projecting sash and its two returns |
+| `curtain-wall` | thin divisions at the explicitly written equal panel boundaries |
+
+`hinge:` names the jamb or storage side and `swing:` names the side on which the operation is
+shown, by the same rules as a [door](door.md). No style is inferred from the window name, width or
+asset identifier.
+
+### Curtain walls keep schematic detail schematic
+
+```muro-part
+asset CW4 window w:6400 h:2600 style:curtain-wall panels:4 name:Curtain-wall-four-panel
+```
+
+A curtain wall keeps the same two unfilled face lines as every window and adds one thin transverse
+line at each interior panel boundary. The example has four equal panels and therefore three marks.
+The marks state facade division at general-plan scale; they do not reproduce a manufacturer's
+mullion profile.
+
+`panels:` is source data. No count or pitch is inferred from the width, name or asset identifier.
+Omitted, it is one, so no interior division is added. The value must be a positive whole number and
+may be written only on a window with `style:curtain-wall`; otherwise OPN10 is an error. An asset is
+the usual place to keep a repeated facade type's width, height, style and panel count together.
+
+![A four-panel curtain wall in a schematic plan](../../img/curtain-wall.svg)
+
+Automatic-door, entrance, gate, shutter, overhead and unequal hinged operations are door-only.
+Writing one on a window is OPN09 (error). A word outside the complete opening-presentation vocabulary
+is ATT02 instead.
+
 ## The daylight coefficient
 
 `light` looks only at **spaces with a region that carry `daylight:1`**. Nothing is inferred from the type — write `room` or write `bedroom`, and without the declaration the space is out of scope.
@@ -98,14 +142,16 @@ The judgement itself — effective window area ≥ floor area ÷ 7 — is passed
 | Attribute | Tier |
 |---|---|
 | `w` `h` `at` `edge` `hinge` `swing` | structure |
-| `style` `name` | interpreted |
+| `style` `panels` `name` | interpreted |
 | `sill` `spec` `fire` | carried |
 
-A window uses the same ledger as a door. `hinge`, `swing` and `style` may all be written, but as a window is not passable no arc is drawn. A key outside the ledger needs a namespace containing a dot (`acme.glazing:low-e`) or it is ATT03.
+A window uses the same ledger as a door. `hinge`, `swing` and `style` may all be written.
+Hinged window styles draw their arcs, but a window remains impassable regardless of what is drawn.
+A key outside the ledger needs a namespace containing a dot (`acme.glazing:low-e`) or it is ATT03.
 
 ## Diagnostics
 
-The diagnostics are shared with the door: OPN01 through OPN08, VRT05, UID04. OPN03 (an opening on an `open` boundary) says the same thing it says for a door — no effect on passage — which for a window was never in question.
+The diagnostics are shared with the door: OPN01 through OPN10, VRT05, UID04. OPN03 (an opening on an `open` boundary) says the same thing it says for a door — no effect on passage — which for a window was never in question.
 
 To look a code up by cause and cure, there is [the list of diagnostic codes](../diagnostics/index.md).
 

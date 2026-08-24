@@ -42,7 +42,7 @@ Being semi-outdoor is derived too: a space that meets an exterior across a `type
 The effective window area is below one seventh of the floor area.
 
 ```muro-fail
-muro 1.4
+muro 1.5
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150
@@ -56,7 +56,6 @@ boundary /L1/a /out t:150
 ```text
 ✖ [koyu.schematic.daylight.ratio] main.muro:line 6: Insufficient daylight: /L1/a — effective window 0.36 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
 Validation — 1 violation / 0 cautions
-  koyu.profile.schematic-screen@1 — 6 evaluated / 10 not applicable / 0 indeterminate / 0 error
 ```
 
 A 600×600 window is 0.36 m²; the floor is 3600×4500 = 16.20 m², so 2.31 m² is required. **It is short by an order of magnitude.**
@@ -70,7 +69,7 @@ A 600×600 window is 0.36 m²; the floor is 3600×4500 = 16.20 m², so 2.31 m² 
 The same window through a balcony with a floor above it is multiplied by 0.7.
 
 ```muro-fail
-muro 1.4
+muro 1.5
 grid X 0 3600 5400
 grid Y 0 4500
 level L1 0 h:2400 slab:150
@@ -91,7 +90,6 @@ boundary /L2/a /out t:150
 ```text
 ✖ [koyu.schematic.daylight.ratio] main.muro:line 7: Insufficient daylight: /L1/a — effective window 2.02 m2 < required 2.31 m2 (1/7 of the 16.20 m2 floor)
 Validation — 1 violation / 0 cautions
-  koyu.profile.schematic-screen@1 — 6 evaluated / 10 not applicable / 0 indeterminate / 0 error
 ```
 
 The window is 2400×1200 = 2.88 m², but `/L2/a` sits on top of the balcony, so 2.88 × 0.7 = 2.02 m², short of the 2.31 m² required. Remove `/L2/a` and the same window counts as 2.88 m² and the judgement passes — **what sits above the balcony decides the daylight of the room below it.**
@@ -103,7 +101,7 @@ The window is 2400×1200 = 2.88 m², but `/L2/a` sits on top of the balcony, so 
 A `window` without `h:` has dropped out of the sum.
 
 ```muro-caution
-muro 1.4
+muro 1.5
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150
@@ -118,7 +116,6 @@ boundary /L1/a /out t:150
 ```text
 ⚠ [koyu.schematic.daylight.unknown] main.muro:line 6: Window area is not fully counted: /L1/a has a window without h: (write h: on it)
 Validation — 0 violations / 1 caution
-  koyu.profile.schematic-screen@1 — 6 evaluated / 10 not applicable / 0 indeterminate / 0 error
 ```
 
 A window with no `h:` has no height, therefore no area, and it falls silently out of the sum. **Silence there makes "it is enough" indistinguishable from "it was not counted."** This caution exists solely to keep those two apart.

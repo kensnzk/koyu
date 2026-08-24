@@ -27,12 +27,12 @@ before the opening that references it. Boundaries may name spaces declared later
 ## The version line
 
 ```muro
-muro 1.4
+muro 1.5
 ```
 
 Optional. If you write it, it goes in the ENTRY layer only, exactly once — never
-in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3 1.4.
-Write `muro 1.4`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
+in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3 1.4 1.5.
+Write `muro 1.5`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
 and earlier. A file with no version line is read as 1.1 and stays there.
 
 ## grid — the reference lines
@@ -220,7 +220,7 @@ zone above it supplies the value.
 
 ```muro-part
 # main.muro — the entry
-muro 1.4
+muro 1.5
 name Corner building
 unit mm
 grid X 0 6400 12800
@@ -271,4 +271,3 @@ boundary /site/approach /out/road edge:S t:120 spec:Fence air:1 h:1200
 Only then does `koyu site` have coverage and floor-area ratio to report. If the
 brief does not turn on the site, leave all of this out — the building alone
 checks green.
-

@@ -24,7 +24,7 @@ Every output below was actually run. Absolute paths are abbreviated to `<dir>/`.
 A single-storey pair of rooms. There is one entrance door, and nothing at all between the two rooms.
 
 ```muro-part
-muro 1.4
+muro 1.5
 name 平屋
 unit mm
 
@@ -242,5 +242,5 @@ Put these in the instructions and the accidents mostly stop.
 - [Register the MCP server with a client](install-mcp.md) — getting connected
 - [Drive the MCP server by hand over stdio](debug-mcp.md) — take the agent out and inspect behaviour
 - [Lay measurements over the plan](write-as-built.md) — overriding without rewriting the original
-- [koyu-mcp](../reference/mcp/index.md) — statelessness and the fourteen tools
+- [koyu-mcp](../reference/mcp/index.md) — statelessness and the tool ledger
 - [The scope of the promise](../reference/scope.md) — what a green `check` means

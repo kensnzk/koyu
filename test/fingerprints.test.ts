@@ -19,42 +19,42 @@
 // every canonical hash stands still is the derivation being changed, and it has to be able to name
 // the rule.**
 //
-// The canonical column has been re-baselined three times. Twice under ADR-0057: once for every
+// Earlier canonical re-baselines include two under ADR-0057: once for every
 // example, when `koyu-canonical/1.1` became `1.2`; and once for `tower` alone, when it was given
-// an `origin` and an `azimuth`. The third was `1.2` becoming `2.0`, when the version key was
+// an `origin` and an `azimuth`. Another was `1.2` becoming `2.0`, when the version key was
 // renamed from `koyu` to `muro` — the key names the language, and the language is muro. **A
 // renamed key is a major**, which is the rule that decides the number and was the one thing the
 // change first got wrong.
 //
-// **The Form column was not touched by any of those** — not by either format bump, not by tower
+// **The Form column was not touched by any of those** — not by a format bump, not by tower
 // gaining a frame, and not by muro 1.3. That is the machine's proof that neither the frame nor the
-// spelling of a key reaches the meaning of a building. The third re-baselining was measured the
-// same way: all 15 canonical hashes moved and none of the 15 Form hashes did, which is the
+// spelling of a key reaches the meaning of a building. The format change was measured the
+// same way: every canonical hash moved and no Form hash did, which is the
 // signature of a format bump and of nothing else.
 //
-// The fourth re-baselining is muro 1.3 retiring `use` (ADR-0061), and it is the first where the
+// The muro 1.3 re-baseline retires `use` (ADR-0061), and it is the first where the
 // examples themselves were edited rather than re-spelled: the version line moved to `muro 1.3`
-// and 375 `use:` declarations became `lease.category:`, with the ten `use:parking` dropped
+// and `use:` declarations became `lease.category:`, with redundant `use:parking` values dropped
 // because the type position already said `parking` or `ramp`. It reads:
 //
-//   canonical moved  10 of 15   — exactly the ten entries that were edited
-//   canonical held    5 of 15   — steps/01 to steps/05, which write no version line and no `use:`
-//   Form moved        0 of 15
+//   canonical moved  — exactly the entries that were edited
+//   canonical held   — steps/01 to steps/05, which write no version line and no `use:`
+//   Form held        — every entry
 //
-// **Both halves are load-bearing.** The five that held are the promise of stability.md measured
+// **Both halves are load-bearing.** The tutorial stages that held are the promise of stability.md measured
 // rather than asserted: retiring a key changes nothing for a file that does not write it, down to
-// the byte. The zero says the other ten did not change either — 375 declarations rewritten across
-// 30 files, and not one building became a different building.
+// the byte. The Form column says the edited examples did not change either — declarations were
+// rewritten and no building became a different building.
 //
-// **The fifth re-baselining is the first that moves the Form column, and it is the derivation
+// **A later re-baseline is the first that moves the Form column, and it is the derivation
 // moving, not the language.** Walls were thickened about their centre lines and left there, so the
 // corner of every junction belonged to neither of the two walls that met at it — four holes in
-// `examples/two-rooms.muro`, 206 in `examples/complex`. The join is now derived, and the body of
+// `examples/two-rooms.muro` and many more in `examples/complex`. The join is now derived, and the body of
 // every wall that meets another moved with it. It reads:
 //
-//   canonical moved   0 of 15
-//   Form moved       14 of 15   — every example in which two walls meet
-//   Form held         1 of 15   — steps/01, one room with no boundary written, so no wall at all
+//   canonical held   — every entry
+//   Form moved       — every example in which two walls meet
+//   Form held        — steps/01, one room with no boundary written, so no wall at all
 //
 // **A canonical column that did not move by a byte is what says this was not the language.** No
 // source text is read differently; what changed is what koyu derives from the same reading, and
@@ -62,26 +62,41 @@
 // example that held is the measurement of that claim rather than the assertion of it: an example
 // with no wall in it cannot have a wall junction, and it did not move.
 //
-// **The sixth re-baselining is muro 1.4 inverting the exterior default (ADR-0065)**, and it moves
+// **The muro 1.4 re-baseline inverts the exterior default (ADR-0065)**, and it moves
 // both columns for different reasons — the first that does. Up to 1.3 a face onto the outside got
 // no wall unless a `boundary` to a region-less space was written; from 1.4 it is a wall, and what
 // a declaration adds is the name of what it faces. It reads:
 //
-//   canonical moved  10 of 15   — exactly the ten entries carrying a version line, `muro 1.3` → `1.4`
-//   canonical held    5 of 15   — steps/01 to steps/05, which write none
-//   Form moved        3 of 15   — steps/01 to steps/03, and nothing else
-//   Form held        12 of 15   — every finished building among them
+//   canonical moved  — the entries carrying a version line, `muro 1.3` → `1.4`
+//   canonical held   — steps/01 to steps/05, which write none
+//   Form moved       — steps/01 to steps/03, and nothing else
+//   Form held        — every finished building among them
 //
 // **The Form column is the whole measurement.** A rule of derivation changed, and the shape of
-// nine complete buildings — some 2,500 spaces between them, up to 141,449 m2 — did not move by a
+// the complete buildings — including the largest bundled examples — did not move by a
 // byte. It could not: every one of them had already written a boundary to the exterior for every
-// run of every perimeter, so there was nothing left for the new default to do. The three that
-// moved are the three that had not — the first stages of the tutorial, where the outside has not
+// run of every perimeter, so there was nothing left for the new default to do. The entries that
+// moved were the first stages of the tutorial, where the outside has not
 // been reached yet. That split is the claim of this change measured rather than asserted: **it
 // fills holes and touches nothing else.**
+//
+// **The muro 1.5 re-baseline adds explicit opening operations (ADR-0068).** Entry files that
+// declare the newest version move in the canonical column because that declaration is part of the
+// bytes. Early tutorial stages still omit it and hold. The only Form change is that
+// `examples/house/main.muro` changes its gate asset from the generic `hinged` operation to the
+// explicit `gate-hinged` operation, adding that source fact and no building geometry.
+//
+// **The following re-baseline completes those opening operations before muro 1.5 ships.** Existing
+// vehicle shutters become `rolling-shutter`; a full-height bypass sash becomes `sliding-bypass`;
+// and an automatic entrance is narrowed to fit its supporting boundary. The opening names touched
+// by that migration are brought into the repository's English authoring policy at the same time.
+// Their canonical bytes and derived opening classifications therefore move deliberately under
+// ADR-0070 and ADR-0071.
 
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -94,27 +109,27 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 /** entry → [canonical SHA-256, Form SHA-256]. Both columns were first measured at v0.17.0 */
 const BASELINE: Readonly<Record<string, readonly [string, string]>> = {
   "examples/basement/main.muro": [
-    "0234e29885cfea20ba2b17efd21c5075898ea703db1459ccdf8079d32641697f",
-    "1fa571a563ca4bcb66fe8b718f17ba81898230bc6357ac85bbc4630e420a406c",
+    "de503c349cda3dadb53daf6f090b7875910b68e3b44497b47fc4f24afe5febf9",
+    "ec6c647018cb1a14713d3a771b6dc0f32b6f2c3b782cf40fe78c9a8a150167ba",
   ],
   "examples/complex/main.muro": [
-    "8a418bfd6bba9ea4919f247bb34c705d78a6663c033b5a24c5cdc2069b7a6703",
-    "d1d2cb12161f84b55663a046dd60b717605962ccbb3ff235fe208ea091df8166",
+    "6d8636c92320b8e29b2ceb6080052f606106db4d6e9f2edbf22c0412f0aea788",
+    "946a452b02bf467081804f089eab4db72f3002ae5a8b13a955c5027ba7df17f0",
   ],
   "examples/house.muro": [
-    "a72e8ae0996ebf1b8a5aba6878723d8ad391984d56a7a7083bb813a0fad11e91",
-    "4c0bc4acf1c2b62889de980c60b80222d5debdc24f1f5613a81016307516ebd4",
+    "2cb24dac4057631da0f04a6bca80133d09025e7fec39d27c08d369dd60c7e785",
+    "26145386b412fe7a6cfa041493c3371c7190f7a0ea9c6616df95ae489a591ccb",
   ],
   "examples/house/main.muro": [
-    "659ad06e924bfcb912f25502d9adc67a152dbf33b97f440cace41b01acfb1c17",
-    "9622d2a0f166f76dadb809df0769101c33a5a05e699aa1c47c8c84c377d17393",
+    "c183b5311af03bbcab8897d0725d688031bc9a432630232629cd54284930a6b7",
+    "2eaf9e454f0b1d91bb481f75dbc56f17ce81f21fceecae1b1b623fb5dbbc8974",
   ],
   "examples/mansion.muro": [
-    "0c9e7a8f6a07c51d0158f3c40bb7a4fbdceebd160d327f821286533762d029f8",
+    "262cab7db9670a83f006e307904057b2bf46189947988c64a821a5c2b57318d7",
     "c5afa884e909bce64ab64277e00af6af617de420be5c6a71917b1dcd227dcb43",
   ],
   "examples/office.muro": [
-    "aa171cd950684c11b21dc70dd803e2dde89ee748852a75cf223277c8fdd3e9b0",
+    "2434e7f640357f33057b1b556cf4bc811305c84d7c75ff22cf153231b0e8d179",
     "7cf1f4c1fe0aa53033118cac9f596a2913cf37e006f403259563f5e5d244e697",
   ],
   "examples/steps/01-one-room.muro": [
@@ -138,19 +153,19 @@ const BASELINE: Readonly<Record<string, readonly [string, string]>> = {
     "d4c0a82880f05d127f92948247121b3df1a1a599527690240f7b0ca24c91aace",
   ],
   "examples/steps/06-finished.muro": [
-    "d5aaea1fd77643a7d6410ce8beac0d8291f250a74c48de0e2f837c5ec57f5d31",
+    "4f12540a116abb11af8f300f0e0f86119a9912afa2801e5ed8640bdbc9086817",
     "433b74d5b0ccffb19bce6cc415375236f8e33ecfa9b4139d328a64138e41adc6",
   ],
   "examples/tower/main.muro": [
-    "9615600eefefc2ac7722941c69e260b5fa22ff229b66c9895c7be1bb5c69f44d",
-    "0c035e5be800bec70b3530223381fa4291fbb5f33677cee8fbb96129944bc461",
+    "7fb7eb0f02ee5c8352fb70ff1030a68638acca727694360b687cbfe3c4b60800",
+    "f7e0e47145a555da4cb2ff38a888c473771d19059a637a257c2771ec38b04702",
   ],
   "examples/twin/main.muro": [
-    "d437985fe73296b45e23816eb71626dd7a67f92d73b67a7aee448ee303599dc9",
-    "b9cb0b650bccb6d849a21997d8a30d76868729d82d2fc33d31f6d60704798316",
+    "23f33d4af5dd629940f3c74e424550764142bc1727573903d41ae11694783448",
+    "bfbbfccdba79a58b72f73344de02ecce17fe12b06a136464baad7aed2c92a69e",
   ],
   "examples/two-rooms.muro": [
-    "2916dda7caf07e08efe6dae4611577ae26609e7cc103ef5737d861ce149b0ffa",
+    "f5a3ca851da8a50f55b770166fbb7f6d48fdad680573f2c5bb99a2c3f67a4876",
     "642a6ecea5c4b05f14b14c9a38a6dc44a2b2e808a468b6867eb57471566aa08a",
   ],
 };
@@ -175,6 +190,23 @@ test("meaning is preserved: every bundled example keeps its pinned canonical and
 });
 
 test("the fingerprint table covers every bundled entry", () => {
-  // A hash table that silently stops covering a file proves nothing about that file.
-  assert.equal(Object.keys(BASELINE).length, 15);
+  // Entry files are root examples, tutorial steps, and main.muro in a composed example directory.
+  // Derive that inventory from the filesystem: a hand-written total would drift with the examples.
+  const examples = join(root, "examples");
+  const entries: string[] = [];
+  for (const entry of readdirSync(examples, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.endsWith(".muro")) {
+      entries.push(`examples/${entry.name}`);
+      continue;
+    }
+    if (!entry.isDirectory()) continue;
+    if (entry.name === "steps") {
+      for (const step of readdirSync(join(examples, entry.name))) {
+        if (step.endsWith(".muro")) entries.push(`examples/steps/${step}`);
+      }
+      continue;
+    }
+    if (existsSync(join(examples, entry.name, "main.muro"))) entries.push(`examples/${entry.name}/main.muro`);
+  }
+  assert.deepEqual(Object.keys(BASELINE).sort(), entries.sort());
 });

@@ -1,4 +1,4 @@
-// The twelve entry points, held to their contract by machine.
+// The entry points, held to their contract by machine.
 //
 // The published surface is a set, and four things have to agree about it: `package.json#exports`,
 // the modules those entries actually resolve to, the API reference, and the dependency direction.
@@ -16,7 +16,7 @@ const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
   exports: Record<string, unknown>;
 };
 
-/** The twelve JavaScript entry points, and the source each one resolves to. */
+/** The JavaScript entry points, and the source each one resolves to. */
 const ENTRIES: ReadonlyArray<readonly [subpath: string, source: string]> = [
   [".", "src/index.ts"],
   ["./model", "src/model.ts"],
@@ -33,9 +33,9 @@ const ENTRIES: ReadonlyArray<readonly [subpath: string, source: string]> = [
 ];
 
 /** Data entries: not JavaScript, so they carry no module contract. */
-const DATA_ENTRIES = ["./examples/*", "./syntax", "./package.json"];
+const DATA_ENTRIES = ["./examples/*", "./assets/*", "./syntax", "./package.json"];
 
-test("package: exports declares exactly the twelve entry points plus the data entries", () => {
+test("package: exports declares exactly the module entry points plus the data entries", () => {
   assert.deepEqual(
     Object.keys(pkg.exports),
     [...ENTRIES.map(([subpath]) => subpath), ...DATA_ENTRIES],
@@ -102,14 +102,11 @@ test("root: carries no domain name", async () => {
     "ATTR_LEDGER", "attrSpec", // vocabulary
     "assess", "createAssessmentRegistry", "createSchematicRegistry", // validation
     "svgPlan", "svgAxo", "svgSection", "svgElevation", // drawing
-    "parseFile", "parseFileWith", // node
+    "componentSvgFiles", "parseFile", "parseFileWith", // node
     "daylightInputs", "siteReport", // domain questions
   ];
   const leaked = DOMAIN_NAMES.filter((n) => rootNames.has(n));
   assert.deepEqual(leaked, [], `root has become an aggregate: ${leaked.join(", ")}`);
-
-  // And it stays small. The exact set is pinned against the API reference elsewhere.
-  assert.ok(rootNames.size <= 12, `root exports ${rootNames.size} values — it is meant to be minimal`);
 });
 
 // ---- browser safety ----

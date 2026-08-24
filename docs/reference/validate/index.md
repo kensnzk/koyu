@@ -13,7 +13,6 @@ koyu validate examples/tower/main.muro --profile koyu.profile.schematic-screen -
 
 ```text
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
-  koyu.profile.schematic-screen@1 — 10 evaluated / 6 not applicable / 0 indeterminate / 0 error
 ```
 
 Every bundled building (`two-rooms`, `office`, `house`, `mansion`, `tower`, `basement`, `complex`, `twin`) currently comes back with nothing caught.
@@ -31,7 +30,7 @@ koyu validate main.muro --profile koyu.profile.schematic-screen  # exit 2 — no
 
 ## This pack is design lint, not code compliance
 
-koyu ships exactly one profile and one rule set.
+koyu ships the schematic-screen profile and its rule set.
 
 | | |
 |---|---|
@@ -90,7 +89,7 @@ A bare list of failures cannot tell you whether a rule passed, never applied, or
 
 This is **a different axis** from `check`'s `error` / `warning`. Validation can be green while the composition is broken, and the other way round.
 
-## The ledger — fifteen rules
+## The ledger
 
 The rows follow the order the rule set declares them in. **That is not the order of the output within a chapter** — outcomes come out one scan unit at a time.
 
@@ -108,15 +107,17 @@ The rows follow the order the rule set declares them in. **That is not the order
 | [`koyu.schematic.access.parking`](access.md#access-parking) | violation | a car cannot get out of the parking |
 | [`koyu.schematic.access.backofhouse`](access.md#access-backofhouse) | caution | a vertical run is not reachable from a common corridor without crossing back-of-house |
 | [`koyu.schematic.column.blocksdoor`](column.md#column-blocksdoor) | violation | a derived column overlaps a derived door |
+| [`koyu.schematic.opening.storage-leaves-space`](openings.md#opening-storage-leaves-space) | violation | a sliding leaf parks outside the space selected for its operation |
+| [`koyu.schematic.opening.storage-overlaps-opening`](openings.md#opening-storage-overlaps-opening) | violation | a parked sliding leaf covers another aperture on the same wall axis |
 | [`koyu.schematic.site.escape`](site.md#site-escape) | violation | the building escapes the site outline |
 | [`koyu.schematic.site.area`](site.md#site-area) | caution | the declared and derived site areas disagree |
 | [`koyu.schematic.site.frontage`](site.md#site-frontage) | violation | the road frontage is under 2 m |
 
-The chapters (`daylight`, `stair`, `ramp`, `escalator`, `run`, `access`, `column`, `site`) name **subjects, not jurisdictions**.
+The chapters name **subjects, not jurisdictions**.
 
 **A ramp and an escalator are two rules, not one.** They both leave a slope band, but one band is the limit the designer wrote in the file and the other is a custom this pack carries. Different grounds, so either can be revised without touching the other.
 
-## The five analyses
+## The analyses
 
 A rule never reads the model. It reads an **analysis** — a versioned computation that returns facts and no verdict at all.
 
@@ -126,6 +127,7 @@ A rule never reads the model. It reads an **analysis** — a versioned computati
 | `koyu.analysis.vertical-runs@1` | derived rise, run, tread, riser, slope, and whether a vertical boundary links the levels |
 | `koyu.analysis.access@1` | which spaces reach the exterior, and by what route |
 | `koyu.analysis.door-column-collisions@1` | derived door and column geometry, and where they intersect |
+| `koyu.analysis.opening-operations@1` | placed sliding-leaf storage, its intended space, crossed spaces and covered apertures |
 | `koyu.analysis.site@1` | site area, footprint, total floor, coverage, floor-area ratio, frontage, containment |
 
 An artifact carries measurements, evidence pointing back at the line that produced them, and whatever input was missing. It carries no `pass`, no `fail` and no level. That separation is what lets somebody else's rule pack reuse koyu's arithmetic and draw its own line.
@@ -147,7 +149,7 @@ The thresholds are **numbers on the architectural side**, not invariants the wri
 
 The 0.7 semi-outdoor daylight factor is not in this table. It is **a factor, not a threshold** — it belongs to the derivation of what a window faces. See [daylight](daylight.md).
 
-## Three entry points
+## Calling validation
 
 ```sh
 koyu validate <file.muro> --profile koyu.profile.schematic-screen --as-of 2026-08-03

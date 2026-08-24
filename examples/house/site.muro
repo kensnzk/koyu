@@ -19,9 +19,9 @@ boundary /site/garden /site/east type:open
 boundary /site/west /site/north type:open
 boundary /site/east /site/north type:open
 
-# ---- 敷地境界: 塀は境界のspec語彙 (外気は遮らない air:1)。門扉はアセット参照+明示位置 ----
+# ---- Site boundary: the gate uses an asset reference at an explicit position. ----
 boundary /site/garden /out/road edge:S t:120 spec:ブロック塀+フェンス air:1 h:1200
-  door GT1 at:X2 name:門扉   # 位置は通り芯基準の明示 — はみ出せばエラーになる
+  door GT1 at:X2 name:Gate   # The grid-based position is explicit; overshooting is an error.
 boundary /site/garden /out/w edge:W t:120 spec:ブロック塀 air:1 h:1200
 boundary /site/garden /out/e edge:E t:120 spec:ブロック塀 air:1 h:1200
 boundary /site/west /out/w edge:W t:120 spec:ブロック塀 air:1 h:1200

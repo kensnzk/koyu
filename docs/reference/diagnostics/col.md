@@ -5,7 +5,7 @@ mode: reference
 
 # COL — columns
 
-There are two COL codes, and both are warnings.
+The COL entries in the diagnostic ledger are warnings.
 
 | Code | Severity | What it says |
 |---|---|---|

@@ -22,7 +22,7 @@ The facts about the whole building — the version, `name`, `unit`, `grid`, `lev
 
 ```muro-part
 # main.muro
-muro 1.4
+muro 1.5
 name A small office
 unit mm
 
@@ -223,7 +223,7 @@ The bundled `examples/house/` splits into five files:
 | File | What it holds |
 |---|---|
 | `main.muro` | the base layer — version, name, unit, grid, levels, the `import`s, the relations that span storeys |
-| `assets.muro` | joinery assets — the door and window schedule as a layer |
+| `assets.muro` | reusable opening and component assets as a layer |
 | `site.muro` | the site and exterior spaces, the boundary walls and the gate |
 | `L1.muro` | the ground floor's spaces and boundaries |
 | `L2.muro` | the first floor's spaces and boundaries |

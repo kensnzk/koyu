@@ -6,6 +6,7 @@ import { readFileSync, realpathSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import type { Model } from "./core/model.js";
 import { parseWith } from "./core/parse.js";
+export { componentSvgFiles } from "./draw/component-files.js";
 
 /** ファイルから読む。import は書かれたファイルからの相対で解決される */
 export function parseFile(filePath: string): Model {

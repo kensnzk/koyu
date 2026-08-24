@@ -16,21 +16,28 @@ All VER codes are errors.
 | VER05 | error | a koyu 1.0-or-earlier file writes exterior / void in the type position |
 | VER06 | error | The file declares a version newer than this build reads |
 | VER07 | error | The file declares a version in which a key it writes is retired |
+| VER08 | error | A pre-1.5 file uses opening presentation introduced in muro 1.5 |
+| VER09 | error | A pre-1.5 file uses component assets or placement introduced in muro 1.5 |
 
-**VER06 is the one that points at the tool rather than the file.** Five of the others say the same kind of thing — this file is written in an old version, and reading it under a newer one would change what it means. VER06 says the opposite: the file is fine and the reader is behind.
+**VER06 is the one that points at the tool rather than the file.** The other guards say the declared
+version and the vocabulary do not agree. VER06 says the opposite: the file is fine and the reader
+is behind.
 
-**VER07 reads those five from the other end.** They fire when a file declares an old version and writes a word that version does not yet have; VER07 fires when a file declares a new version and writes a word that version no longer has. Both say the same thing: the declared version and the vocabulary have to agree.
+**VER07 reads the vocabulary boundary from the other end.** The introduction guards fire when a
+file uses a word its declared version does not yet have; VER07 fires when a file uses a word its
+declared version no longer has. Both say the same thing: the declared version and the vocabulary
+have to agree.
 
 ## Declaring the version
 
 ```muro-part
-muro 1.4
+muro 1.5
 ```
 
-These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1 / 1.2 / 1.3 / 1.4**. Anything else stops at the parser, before any semantic check runs.
+These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1 / 1.2 / 1.3 / 1.4 / 1.5**. Anything else stops at the parser, before any semantic check runs.
 
 ```text
-Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4)
+Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5)
 ```
 
 The declaration is written **once**, in the base layer (the entry). By convention it goes on the first line. Writing it in an imported layer is an error — silent overwriting by composition order is forbidden.
@@ -44,7 +51,8 @@ The declaration is written **once**, in the base layer (the entry). By conventio
 - Old and new mean the same thing — read it as written
 - The meaning changes — **never read it silently under the new meaning**. Raise an error and present the two choices
 
-The four VER codes stand at that second place. That is why every message takes the form "fix this, or raise the version".
+The VER guards stand at that second place. Their messages name the version or spelling that makes
+the file self-consistent.
 
 ## VER01 — a default boundary is derived under 0.1 {#ver01}
 
@@ -171,7 +179,7 @@ A koyu 0.5 file uses a 1.0 word: - door D1 (a set edit under over) — raise the
 
 The reasoning matches VER03, but the consequence is worse. An older implementation cannot read the line as a word at all: neither the override nor the removal happens, and **the file silently becomes a different building**.
 
-**One diagnostic per edit.** The example has three edit lines, so three diagnostics.
+**One diagnostic per edit.** Each edit line in the example receives its own diagnostic.
 
 **Fix** — make the first line `koyu 1.0`. If you are not using composition edits, 0.5 is fine as it is.
 
@@ -196,7 +204,7 @@ A koyu 1.0 file writes exterior in the type position: /out — 1.1 reads no mean
 
 **Cause** — up to 1.0, `exterior` and `void` written in the type position were read structurally. 1.1 **never reads the type position** ([space](../muro/space.md)). So the same bytes mean a different building: the exterior becomes indoor floor area, and a floor is generated in the void. Measured on the mixed-use example, the gross floor area went from 31,606.24 m2 to 33,004.00 m2.
 
-That happens silently, which is why it is **an error and not a warning** — the same reasoning as the four codes before it.
+That happens silently, which is why it is **an error and not a warning** — the same reasoning as the preceding version diagnostics.
 
 **The fix** — the message offers two.
 
@@ -222,16 +230,13 @@ This file is written in muro 9.9, and this build of koyu (0.22.0) reads up to 1.
 
 **Cause** — the declared version is later than every version this build accepts. That is not a mistake in the file. Someone wrote it with a newer koyu, and this one has not learnt that language yet.
 
-**The fix** — install a newer koyu. `koyu --version` says what this build reads:
-
-```text
-koyu 0.27.0 — reads muro 0.1–1.4 (newest 1.4; a file with no version line is read as 1.1)
-```
+**The fix** — install a newer koyu. `koyu --version` says what the installed build reads; the
+current values come from its version ledger rather than being copied onto this page.
 
 **Why it is a separate code from an unreadable version.** A version that never existed is a different situation with the opposite advice, and it keeps the `SYN01` it always had:
 
 ```text
-Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4)
+Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5)
 ```
 
 Both used to print that second sentence, so nothing downstream could tell a stale build from a corrupt file without reading English prose. The split is *later than anything I know* against *not a version I have*, which is answerable; *real* against *fake* is not, and `9.9` is treated as the future because that is the more useful of the two readings.
@@ -243,7 +248,7 @@ Both used to print that second sentence, so nothing downstream could tell a stal
 `error`
 
 ```muro-bad
-muro 1.4
+muro 1.5
 grid X 0 4000 8000
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -254,7 +259,7 @@ boundary /L1/A/ldk /out
 ```
 
 ```text
-✖ ver07.muro:line 5: A muro 1.4 file carries use: on zone /L1/A — use is retired after muro 1.2. Write a namespaced key of your own (lease.category:, fire.compartment:, dept.name:) instead, or keep the file at muro 1.2
+✖ ver07.muro:line 5: A muro 1.5 file carries use: on zone /L1/A — use is retired after muro 1.2. Write a namespaced key of your own (lease.category:, fire.compartment:, dept.name:) instead, or keep the file at muro 1.2
 ```
 
 **Cause** — `use` is retired after muro 1.2. It was never an architectural use: it held one grouping per space, so a tenancy, a fire compartment and a department all competed for the same key, and whichever you wrote shut the others out. A room's purpose is the [type position](../muro/space.md); every other division of the building is a namespaced key, and a space may carry as many of those as it likes.
@@ -262,7 +267,7 @@ boundary /L1/A/ldk /out
 **The fix — write a namespaced key of your own.** The name is yours; core reads none of them.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 4000 8000
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -278,9 +283,59 @@ boundary /L1/A/ldk /out
 
 **Why the key stays in the ledger.** Taking the row out of `ATTR_LEDGER` would make `use:` unknown at *every* version at once, because the ledger check does not read the version — so a muro 1.1 file would start failing with [ATT03](att.md#att03) for a word 1.1 legitimately has. The row is what keeps the old reading alive; VER07 is what stops the new one.
 
+## VER08 — a pre-1.5 file uses 1.5 opening presentation {#ver08}
+
+`error`
+
+```muro-bad
+muro 1.4
+grid X 0 4000
+grid Y 0 4000
+level L1 0 h:2600 slab:150
+space /L1/a room X1..X2 Y1..Y2
+space /out outside:1
+boundary /L1/a /out edge:N
+  door w:1600 hinge:W swing:a style:sliding-double
+boundary /L1/a /out edge:S
+boundary /L1/a /out edge:E
+boundary /L1/a /out edge:W
+```
+
+```text
+✖ ver08.muro:line 8: A muro 1.4 file uses a 1.5 opening style: sliding-double on door (/L1/a | /out) — raise the version to muro 1.5
+```
+
+**Cause** — leaf counts, sliding arrangements, automatic variants, entrances, gates, explicit
+window operations and curtain-wall panel division are new interpreted values in muro 1.5. A
+processor implementing 1.4 rejects them, so a file using a new style or `panels:` cannot declare
+itself as 1.4.
+
+**The fix** — raise the first line to `muro 1.5`. The original `hinged`, `sliding` and `auto`
+values remain valid under their earlier versions.
+
+## VER09 — a pre-1.5 file uses components {#ver09}
+
+`error`
+
+```muro-bad
+muro 1.4
+asset WC component w:700 d:1200 plan-svg:./wc.svg
+```
+
+```text
+A muro 1.4 file declares a 1.5 component asset: WC — raise the version to muro 1.5
+```
+
+**Cause** — component asset declarations and the area's `asset:`, alignment, offset and rotation
+attributes arrive in muro 1.5. A processor implementing 1.4 cannot read that placement contract.
+
+**The fix** — raise the first line to `muro 1.5`.
+
 ## Why declare a version at all
 
-With no declaration a file is read as 1.1 and stays there, so VER01–VER05 never fire. **You declare a version for one of two reasons: to pin a file's meaning to a point in the past, or to opt into semantics newer than 1.1.** Having pinned it, mixing in newer vocabulary gets stopped — which is what those five codes are for.
+With no declaration a file is read as 1.1 and stays there. **You declare a version for one of two
+reasons: to pin a file's meaning to a point in the past, or to opt into semantics newer than 1.1.**
+Using vocabulary introduced after 1.1 therefore requires a declaration naming a version that has it.
 
 Put the other way round: **when you want to use newer notation, raising the version is the correct fix.** Every message shows you that one line.
 

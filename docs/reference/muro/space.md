@@ -182,7 +182,7 @@ Three worth naming.
 ## daylight — the scope is declared
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150

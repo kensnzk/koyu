@@ -6,13 +6,13 @@ mode: reference
 # muro — the version line
 
 ```muro-part
-muro 1.4
+muro 1.5
 ```
 
 **One line declaring which version of the semantics this file is read under.** These are the accepted versions, and the order is the order of old to new.
 
 ```text
-0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3   1.4
+0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3   1.4   1.5
 ```
 
 **Omitted, the file is read as `1.1` — and always will be.** The reading of an undeclared file is frozen; it does not follow the newest version.
@@ -29,7 +29,7 @@ The cost is the same statement from the other side: **an undeclared file never g
 
 This is the one place muro sets aside "a file written this way keeps meaning this", and it is set aside deliberately rather than overlooked. Up to 1.3 that face got no wall at all, so an older file read this way gains walls it did not have. The reason for reading it that way anyway is that the alternative — refusing every file that has not closed its envelope — would refuse most files ever written, including every one with no version line; and the state being refused is one nobody chose, since nothing reported it. [BND08](../diagnostics/bnd.md#bnd08) fires on exactly the files this affects, so no file changes meaning without saying so.
 
-Everything else on this page holds. A word retired at a version stays readable at the versions that had it, notation added at a version stays unavailable before it, and [VER01–VER07](../diagnostics/ver.md) stop the combinations where the same text would otherwise mean a different building.
+Everything else on this page holds. A word retired at a version stays readable at the versions that had it, notation added at a version stays unavailable before it, and the [VER diagnostics](../diagnostics/ver.md) stop the combinations where the declared version and vocabulary disagree.
 
 ## The word is `muro` from 1.2, and `koyu` before it
 
@@ -70,7 +70,7 @@ Exactly two tokens: the word and the version.
 | `muro 1.2` | accepted |
 | `muro` | `muro takes a version: muro 1.2` |
 | `muro 1.2 latest` | `Extra tokens on the muro version declaration: latest` |
-| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4)` |
+| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5)` |
 
 **It is declared in the base layer only, and only once.**
 
@@ -82,7 +82,7 @@ Exactly two tokens: the word and the version.
 
 **A file that declares an older version passes only if it means the same building it meant to a processor of that version.** Where the same text would mean a different building, `check` stops and offers two ways out — write the meaning explicitly, or raise the version.
 
-Four diagnostics say this. All four are errors, and `check --json` carries the code.
+The diagnostics below say this. They are errors, and `check --json` carries the code.
 
 ### VER01 — a default boundary is derived under 0.1
 
@@ -142,6 +142,31 @@ version to koyu 1.0
 ```
 
 **The fix**: raise the version to `koyu 1.0`.
+
+### VER08 — 1.5 opening presentation in a file declaring 1.4 or older
+
+Muro 1.5 adds explicit values for multiple leaves, sliding arrangements, automatic doors,
+entrances, gates, vertically operated doors, window operations and explicit curtain-wall panel
+division. A processor implementing 1.4 rejects those styles and `panels:`, so a file using one
+cannot declare itself as 1.4.
+
+```text
+A muro 1.4 file uses a 1.5 opening style: sliding-double on door (/L1/a | /out) — raise the version to muro 1.5
+```
+
+**The fix**: raise the version to `muro 1.5`. The original `hinged`, `sliding` and `auto` values
+remain valid under their earlier versions.
+
+### VER09 — component assets and placement in a file declaring 1.4 or older
+
+Muro 1.5 adds `component` assets and the area's `asset:`, X/Y alignment, X/Y offset and rotation
+attributes. A processor implementing 1.4 cannot read that placement contract.
+
+```text
+A muro 1.4 file declares a 1.5 component asset: WC — raise the version to muro 1.5
+```
+
+**The fix**: raise the version to `muro 1.5`.
 
 ## What the version covers
 

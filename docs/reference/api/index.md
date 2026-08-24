@@ -13,11 +13,11 @@ npm install @kensnzk/koyu
 
 There are no runtime dependencies. The only modules the package pulls are Node built-ins, and those are confined to `@kensnzk/koyu/node`. It needs **Node 22 or later** (`engines.node` is `>=22`).
 
-## Twelve entrances
+## Entrances
 
 ```ts
 import { parse, checkDiagnostics, toCanonical } from "@kensnzk/koyu";
-import { parseFile } from "@kensnzk/koyu/node";
+import { componentSvgFiles, parseFile } from "@kensnzk/koyu/node";
 import { areaM2, levelsSorted } from "@kensnzk/koyu/model";
 import { derive } from "@kensnzk/koyu/form";
 import { assess } from "@kensnzk/koyu/validate";
@@ -40,13 +40,14 @@ import { svgPlan } from "@kensnzk/koyu/draw";
 | `@kensnzk/koyu/validate` | the rule SPI, the runner, `AssessmentReport` | not pulled |
 | `@kensnzk/koyu/validate/builtin` | the rules, the rule set and the profile koyu ships | not pulled |
 | `@kensnzk/koyu/draw` | `svgPlan`, `svgAxo`, `svgSection`, `svgElevation` and their option types; `svgSection` draws axis or directed-line cuts and caller reference guides; and the base every drawing is made from — [`planMarks`](../form/marks.md) for a plan, [`sceneOf`](../form/scene.md) for a 3D scene | not pulled |
-| `@kensnzk/koyu/node` | `parseFile` and `parseFileWith`, nothing else | pulled |
+| `@kensnzk/koyu/node` | `parseFile`, `parseFileWith` and `componentSvgFiles` | pulled |
 | `@kensnzk/koyu/examples/*` | the source of a bundled building, for tests and evaluation | — |
+| `@kensnzk/koyu/assets/*` | the standard component asset declarations and plan SVG files | — |
 | `@kensnzk/koyu/syntax` | the editor grammar (TextMate grammar as JSON), shared by VS Code and Shiki | — |
 
-The first twelve are JavaScript module entrances: you `import` names from them. The last two are data, so the `node:fs` column does not apply. **This table is every subpath the package publishes.** A test binds each declared subpath to an appearance on this page.
+The module entrances are imported as JavaScript. The asset, example and syntax entries are data, so the `node:fs` column does not apply. **This table is every subpath the package publishes.** A test binds each declared subpath to an appearance on this page.
 
-**root is not a shorthand for the other eleven.** It re-exports no domain name at all — a caller who wants `areaM2` imports `/model`, and a caller who wants `derive` imports `/form`. A name absent from the table below is outside the promise of the root, however visible it is in the source.
+**root is not a shorthand for the other modules.** It re-exports no domain name at all — a caller who wants `areaM2` imports `/model`, and a caller who wants `derive` imports `/form`. A name absent from the table below is outside the promise of the root, however visible it is in the source.
 
 **The root pulls neither `node:fs` nor `node:path`.** It runs unchanged in a browser, a web worker, or an edge runtime. Only the entrance that touches the filesystem lives under `/node`. The split exists to keep the parser itself pure: composition (resolving `import`) takes a "how do I read a layer" function from outside, and the filesystem is only one implementation of it. A browser passes a virtual file set (`parseFiles`) or its own loader (`parseWith`).
 
@@ -170,7 +171,7 @@ Compare the spelling rather than testing for a missing space: a boundary to an `
 so `node_modules/@kensnzk/koyu/src/` holds every declaration with the comment that explains why it
 is shaped the way it is — and `dist/*.d.ts` holds the types your editor already reads.
 
-That is the place to look up a signature. This page used to be followed by fourteen more that
+That is the place to look up a signature. This page used to be followed by separate pages that
 restated those declarations in prose, and they were a hand transcription of a machine source: the
 moment `Space.type` became optional, `model.md` went on publishing `type: string` and `derive.md`
 went on publishing a `FormSpace` without `outside` or `void`. Nothing caught it, because nothing

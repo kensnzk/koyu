@@ -77,11 +77,11 @@ Only the coordinate arrays. Grid names are implicitly `X1`, `X2`, … from the f
 
 ```json-part
 "assets": {
-  "AD1": { "kind": "door", "attrs": { "h": 2400, "name": "自動ドア", "style": "auto", "w": 1800 } }
+  "WM": { "kind": "component", "attrs": { "category": "appliance", "d": 600, "plan-svg": "./wm.svg", "w": 600 } }
 }
 ```
 
-A type of joinery. `kind` is `door` or `window`. Openings reach it through `ref`.
+`kind` is `door`, `window`, or `component`. Openings reach door and window assets through `ref`. A named area reaches a component through its `asset` attribute. `plan-svg` remains a relative path in canonical JSON; the SVG bytes are drawing input and never enter this format.
 
 ## polygons
 
@@ -143,6 +143,8 @@ A zone carries attributes only. No region, no type.
 | `areas` | if `area` was written | an array of `{ at, attrs? }` in canonical content order |
 
 The quadruple is `[X start, Y start, X end, Y end]`. A reversed notation (`X2..X1`) is normalised to ascending coordinates.
+
+A component placement is represented entirely by ordinary area attributes: `name`, `asset`, `align-x`, `align-y`, `offset-x`, `offset-y`, and `rotate`. Canonical JSON records those written constraints, not the derived centre, rotated footprint, or loaded SVG artwork.
 
 ## boundaries
 

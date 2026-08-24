@@ -64,9 +64,9 @@ boundary /B2..B1/ramp /out edge:E t:500 spec:RC土圧壁
 The vehicle shutter is a `door`, exactly like a door for people. Only the dimensions and the asset name differ.
 
 ```muro-part
-asset VG1 door w:6000 h:3000 style:sliding name:車路シャッター
+asset VG1 door w:6000 h:3000 style:rolling-shutter name:Vehicle-shutter
 boundary /L1/ramp /road edge:E t:200 spec:RC
-  door VG1 name:車路出入口
+  door VG1 name:Vehicle-entrance
 ```
 
 ## Questions worth putting to it

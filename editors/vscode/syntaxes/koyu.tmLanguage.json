@@ -79,8 +79,8 @@
       }
     },
     "line-asset": {
-      "comment": "asset <名> door|window ...",
-      "match": "^(asset)[ \\t]+(?![^\\s#\"]*:)([^\\s#]+)[ \\t]+(door|window)\\b",
+      "comment": "asset <name> door|window|component ...",
+      "match": "^(asset)[ \\t]+(?![^\\s#\"]*:)([^\\s#]+)[ \\t]+(door|window|component)\\b",
       "captures": {
         "1": { "name": "keyword.control.directive.muro" },
         "2": { "name": "entity.name.function.asset.muro" },
@@ -178,7 +178,7 @@
     },
     "attr-ledger": {
       "comment": "The ledger keys that are not carrier-tier — the attributes the tools act on. ATTR_LEDGER in src/core/vocabulary.ts is the contract; free k:v gets a different colour",
-      "match": "\\b(underground|escalator|elevation|daylight|northing|vertical|ceiling|landing|outside|easting|hinge|level|riser|slope|stair|style|swing|tread|pitch|entry|lane|lift|form|road|slab|site|area|turn|type|edge|name|ramp|void|epsg|uid|air|use|at|h|w|t|d|x|y)(:)",
+      "match": "\\b(underground|escalator|elevation|daylight|northing|vertical|ceiling|landing|outside|offset-x|offset-y|align-x|align-y|plan-svg|easting|panels|asset|rotate|hinge|level|riser|slope|stair|style|swing|tread|pitch|entry|lane|lift|form|road|slab|site|area|turn|type|edge|name|ramp|void|epsg|uid|air|use|at|h|w|t|d|x|y)(:)",
       "captures": {
         "1": { "name": "entity.other.attribute-name.muro" },
         "2": { "name": "punctuation.separator.key-value.muro" }

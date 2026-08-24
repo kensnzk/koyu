@@ -73,26 +73,30 @@
 <line x1="84" y1="384" x2="214" y2="384" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>
 <line x1="84" y1="504" x2="84" y2="384" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>
 <path d="M 508.5 79 L 637 79 L 637 89 L 508.5 89 Z" fill="#1f1f1f"/>
-<line x1="894" y1="474" x2="894" y2="564" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 894 564 A 90 90 0 0 0 984 474" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="894" y1="774" x2="894" y2="684" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 894 684 A 90 90 0 0 1 984 774" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="836.5" y1="384" x2="836.5" y2="429" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 836.5 429 A 45 45 0 0 0 881.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="634" y1="191.5" x2="589" y2="191.5" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 589 191.5 A 45 45 0 0 1 634 146.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="794" y1="84" x2="924" y2="84" stroke="#1f1f1f" stroke-width="1"/>
-<line x1="546.5" y1="384" x2="546.5" y2="429" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 546.5 429 A 45 45 0 0 0 591.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="626.5" y1="474" x2="626.5" y2="519" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 626.5 519 A 45 45 0 0 0 671.5 474" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="214" y1="264" x2="274" y2="264" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 274 264 A 60 60 0 0 0 214 204" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="214" y1="466.5" x2="259" y2="466.5" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 259 466.5 A 45 45 0 0 0 214 421.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="314" y1="774" x2="314" y2="684" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 314 684 A 90 90 0 0 1 404 774" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="214" y1="699" x2="214" y2="579" stroke="#1f1f1f" stroke-width="1"/>
+<line x1="894" y1="474" x2="894" y2="564" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 894 564 A 90 90 0 0 0 984 474" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="894" y1="774" x2="894" y2="684" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 894 684 A 90 90 0 0 1 984 774" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="836.5" y1="384" x2="836.5" y2="429" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 836.5 429 A 45 45 0 0 0 881.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="634" y1="191.5" x2="589" y2="191.5" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 589 191.5 A 45 45 0 0 1 634 146.5" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<g class="opening-window">
+<path d="M 794 79 L 924 79 M 794 89 L 924 89" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
+<line x1="546.5" y1="384" x2="546.5" y2="429" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 546.5 429 A 45 45 0 0 0 591.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="626.5" y1="474" x2="626.5" y2="519" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 626.5 519 A 45 45 0 0 0 671.5 474" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="214" y1="264" x2="274" y2="264" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 274 264 A 60 60 0 0 0 214 204" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="214" y1="466.5" x2="259" y2="466.5" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 259 466.5 A 45 45 0 0 0 214 421.5" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="314" y1="774" x2="314" y2="684" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 314 684 A 90 90 0 0 1 404 774" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<g class="opening-window">
+<path d="M 209 699 L 209 579 M 219 699 L 219 579" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
 <text x="939" y="620" text-anchor="middle" font-size="14" fill="#1f1f1f">駐輪場</text>
 <text x="939" y="637" text-anchor="middle" font-size="10" fill="#8a8171">bicycle · 34.8 m2</text>
 <text x="939" y="651" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/bike</text>

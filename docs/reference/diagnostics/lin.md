@@ -5,7 +5,7 @@ mode: reference
 
 # LIN — drawn lines
 
-There are three LIN codes.
+The LIN entries are listed below.
 
 | Code | Severity | What it says |
 |---|---|---|

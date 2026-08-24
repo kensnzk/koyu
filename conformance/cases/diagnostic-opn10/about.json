@@ -1,0 +1,7 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/opn.md",
+  "docs/reference/muro/window.md"
+ ],
+ "why": "A curtain-wall panel count is explicit source data. OPN10 rejects a fractional count instead of rounding it into a different facade layout."
+}

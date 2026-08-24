@@ -1,0 +1,8 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/opn.md",
+  "docs/reference/muro/door.md",
+  "docs/reference/muro/window.md"
+ ],
+ "why": "A known opening operation still has to apply to the declared opening kind. OPN09 rejects a window-only fixed operation on a door instead of letting a renderer silently approximate it."
+}

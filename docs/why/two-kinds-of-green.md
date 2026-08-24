@@ -13,7 +13,7 @@ koyu splits "correct" in two.
 | Return type | `Diagnostic { code, severity }` | `Finding { rule, level }` |
 | Identifier | `BND04`, `SUF01` — three letters plus two digits | `koyu.schematic.site.escape`, `koyu.schematic.access.unreachable` — chapter.rule |
 | Weight | `error` / `warning` | `violation` / `caution` |
-| Count | **70 codes** | **15 rules** |
+| Population | The diagnostic ledger | The validation rule ledger |
 | Version | **freezes** | does not freeze; grows |
 | What it says | what is written does not contradict itself as data | this is (probably) architecturally sound |
 
@@ -132,6 +132,6 @@ The rule set is not finished. Fire compartmentation, shadow studies, setback env
 ## Next
 
 - [Separating language, checks and drawing](three-domains.md) — the whole picture of this split
-- [Diagnostics — koyu check](../reference/diagnostics/index.md) — 70 codes
-- [Judgement — koyu validate](../reference/validate/index.md) — 15 rules
+- [Diagnostics — koyu check](../reference/diagnostics/index.md) — the diagnostic ledger
+- [Judgement — koyu validate](../reference/validate/index.md) — the validation rule ledger
 - [Scope](../reference/scope.md)

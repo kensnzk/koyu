@@ -1,0 +1,25 @@
+muro 1.4
+name Sliding leaf offsets
+unit mm
+
+grid X 0 2600 5200 7800 10400
+grid Y 0 6000
+level L1 0 h:2600 slab:150
+
+space /L1/a room X1..X2 Y1..Y2 name:t120
+space /L1/b room X2..X3 Y1..Y2 name:t150
+space /L1/c room X3..X4 Y1..Y2 name:t300
+space /L1/d room X4..X5 Y1..Y2 name:end
+space /out outside:1 name:outside
+
+boundary /L1/a /L1/b t:120
+  door w:1200 at:0.5 hinge:S swing:a style:sliding name:slide-120
+boundary /L1/b /L1/c t:150
+  door w:1200 at:0.5 hinge:S swing:a style:sliding name:slide-150
+boundary /L1/c /L1/d t:300
+  door w:1200 at:0.5 hinge:S swing:a style:sliding name:slide-300
+
+boundary /L1/a /out
+boundary /L1/b /out
+boundary /L1/c /out
+boundary /L1/d /out

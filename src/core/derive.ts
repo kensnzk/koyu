@@ -44,10 +44,12 @@ import {
   canonicalSegOrder,
   canonicalSpaceOrder,
   isOutside,
-  isVoid
+  isVoid,
+  isNewerVersion,
 } from "./model.js";
 import { clipHalf } from "./poly.js";
 import { EPS, PARALLEL_EPS, POINT_EPS, SPAN_EPS } from "./tolerance.js";
+import { placedComponents, type PlacedComponent } from "./components.js";
 import {
   CUT_HEIGHT,
   ARROW_SPAN_MIN,
@@ -229,11 +231,37 @@ export interface FormOpening {
   /** 建具の見付け厚 = 壁厚 */
   t: number;
   style?: string;
+  /** Explicit equal panel count for a curtain wall. One when omitted. */
+  panels?: number;
   /** 扉が開く先 (引戸・自動扉なら軌跡ではなく引き込みの向き) */
   swing?: FormSwing;
-  /** 引き戸か (style:sliding / style:auto) */
+  /** whether the opening has no swing arc because its operation is sliding or non-swinging */
   sliding: boolean;
 }
+
+const NON_SWING_OPENING_STYLES = new Set([
+  "sliding",
+  "sliding-double",
+  "sliding-bypass",
+  "auto",
+  "auto-single",
+  "auto-double",
+  "entrance",
+  "gate-sliding",
+  "rolling-shutter",
+  "overhead",
+  "projecting",
+  "curtain-wall",
+]);
+
+const WINDOW_SWING_STYLES = new Set([
+  "hinged",
+  "hinged-double",
+  "sliding",
+  "sliding-double",
+  "sliding-bypass",
+  "projecting",
+]);
 
 export interface FormSeg {
   /** 分節の同一性 — 境界と、その中の並びの位置 */
@@ -264,6 +292,9 @@ export interface FormSite {
   points: Pt[];
   areaM2: number;
 }
+
+/** A component footprint placed by a named uncounted area. Artwork remains a draw concern. */
+export interface FormComponent extends PlacedComponent {}
 
 /** 2Dエンティティの分類 — 平面が純粋な断面でないことを、この五つが言う */
 export type PlanClass =
@@ -315,6 +346,8 @@ export interface Form {
   spaces: FormSpace[];
   boundaries: FormBoundary[];
   openings: FormOpening[];
+  /** Present only when the source places a component, preserving older Form bytes otherwise. */
+  components?: FormComponent[];
   /** 数えない分節 (ADR-0003) — 面積にもグラフにも現れないが、位置は導出される */
   segs: FormSeg[];
   slabs: Slab[];
@@ -916,7 +949,8 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
               : z0 + OPENING_HEAD;
         holes.push({ lo: d - p.o.w / 2, hi: d + p.o.w / 2, z0: oz0, z1: oz1 });
         const style = p.o.attrs["style"];
-        const sliding = style === "sliding" || style === "auto";
+        const panels = p.o.attrs["panels"];
+        const sliding = typeof style === "string" && NON_SWING_OPENING_STYLES.has(style);
         const name = p.o.attrs["name"];
         openings.push({
           ref: `${ref}/${p.index}`,
@@ -935,7 +969,12 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
           z1: oz1,
           t,
           ...(typeof style === "string" ? { style } : {}),
-          ...(p.o.kind === "door"
+          ...(typeof panels === "number" ? { panels } : {}),
+          ...(p.o.kind === "door" || (
+            !isNewerVersion("1.5", model.version)
+            && typeof style === "string"
+            && WINDOW_SWING_STYLES.has(style)
+          )
             ? (() => {
                 const sw = swingOf(model, b, p.o, seg, p.cx, p.cy);
                 return sw ? { swing: sw } : {};
@@ -1000,6 +1039,9 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
     areaM2: polygonAreaM2(p.points),
   }));
 
+  // ---- Area-hosted components ----
+  const components = placedComponents(model).components;
+
   // ---- 平面 ----
   const plans = levels.map((l) =>
     planOf(model, l.name, l.z + cut, cut, { spaces, boundaries, openings, columns }),
@@ -1011,6 +1053,7 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
     spaces,
     boundaries,
     openings,
+    ...(components.length > 0 ? { components } : {}),
     segs,
     slabs: slabs(model),
     columns,

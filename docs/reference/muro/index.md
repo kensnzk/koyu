@@ -27,7 +27,7 @@ A line that starts flush is a declaration in its own right.
 | [`boundary /L5/A/hall /L5/corridor`](boundary.md) | **a boundary** — the relation joining two spaces. A wall is a relation, not a thing |
 | [`stack ev L1..L11 type:shaft`](stack.md) | a vertical stack, declared at once. Puts a vertical boundary on each consecutive pair of levels |
 | [`zone /L3..L10/A lease.category:exclusive`](zone.md) | a counted aggregation. No geometry; gathers the spaces under a path prefix |
-| [`asset SD1 door w:800 h:2000`](asset.md) | a door asset — the bundle of defaults an opening refers to |
+| [`asset SD1 door w:800 h:2000`](asset.md) | a reusable opening definition, or a component footprint and plan SVG reference |
 | [`polygon /site -2600,-7000 …`](polygon.md) | the site shape. **The only line that writes a shape from free vertices off the grid** |
 | [`origin epsg:6677 easting:… northing:…`](origin.md) | where the model's `(0,0,0)` sits in a coordinate reference system. **In metres.** Once |
 | [`azimuth Y 347.5`](azimuth.md) | the true bearing of the +Y axis, clockwise from true north. Once |
@@ -46,7 +46,7 @@ A line beginning with whitespace is subordinate to the non-indented line above i
 | [`window w:1800 h:1200 edge:S`](window.md) | `boundary` / `stack` | an opening that admits light. Not passed through |
 | [`seg w:1800 at:X5 spec:ガラス`](seg.md) | `boundary` / `stack` | an uncounted segmentation of a boundary |
 | [`line X3,Y1 X3+600,Y2-900`](line.md) | `boundary` | a drawn line — the boundary realised as an act of design. One per boundary |
-| [`area X1..X2 Y1..Y2 floor:タイル`](area.md) | `space` | an uncounted segmentation inside a room. Affects no area, no room count, no graph |
+| [`area X1..X2 Y1..Y2 floor:タイル`](area.md) | `space` | an uncounted segmentation or component host inside a room. Affects no counted area, room count or graph |
 | [`space /L1/wet wet w:4800`](band.md) | `band` | a band member. Carries a width `w:` instead of a region |
 | [`+ window w:600 name:W1`](over-drop.md) | `over` | adds to a set. `name:` is required |
 | [`- door D2`](over-drop.md) | `over` | removes from a set, by name |
@@ -75,7 +75,7 @@ Six rules apply to every line alike.
 | `level` (when a path or a span names it) | the level is undetermined — `SUF02`; for a span, `The range includes an undeclared level` |
 | `asset` (when an opening refers to it) | `Undefined opening asset: SD1` |
 
-By contrast, **a boundary may refer to its spaces before they are written.** `boundary /L1/a /L1/b` above the space declarations passes — whether the referents exist is settled after composition, by `REF01`.
+By contrast, **a boundary may refer to its spaces before they are written.** `boundary /L1/a /L1/b` above the space declarations passes — whether the referents exist is settled after composition, by `REF01`. An area's `asset:` reference to a component is also settled after composition and may point forward; an opening asset is still needed when its opening line is read.
 
 `over` and `drop` are the exception: **the target must already exist when the line is reached.** An override is not a definition, so an opinion cannot be added to something that is not there.
 

@@ -75,7 +75,7 @@ It is neither overridable nor removable, and the tension there is real: which wa
 ## In full
 
 ```muro
-muro 1.4
+muro 1.5
 name 方位の最小例
 unit mm
 grid X 0 3600 7200

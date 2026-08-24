@@ -1,0 +1,87 @@
+muro 1.5
+import ./library.muro
+
+name Component asset catalog
+grid X 0 4000 8000 12000 16000 20000 24000 28000 32000 36000
+grid Y 0 8000 16000 24000
+level L1 0 h:2700 slab:150
+
+space /L1/catalog/chair room X1..X2 Y1..Y2 level:L1 name:Chair
+  area X1+500..X2-500 Y1+200..Y1+3200 name:chair asset:CHAIR
+space /L1/catalog/office-chair room X2..X3 Y1..Y2 level:L1 name:"Office chair"
+  area X2+500..X3-500 Y1+200..Y1+3200 name:office-chair asset:OFFICE-CHAIR
+space /L1/catalog/desk room X3..X4 Y1..Y2 level:L1 name:Desk
+  area X3+500..X4-500 Y1+200..Y1+3200 name:desk asset:DESK
+space /L1/catalog/table-rect room X4..X5 Y1..Y2 level:L1 name:"Rectangular table"
+  area X4+500..X5-500 Y1+200..Y1+3200 name:table-rect asset:TABLE-RECT
+space /L1/catalog/table-round room X5..X6 Y1..Y2 level:L1 name:"Round table"
+  area X5+500..X6-500 Y1+200..Y1+3200 name:table-round asset:TABLE-ROUND
+space /L1/catalog/sofa-2 room X6..X7 Y1..Y2 level:L1 name:"Two-seat sofa"
+  area X6+500..X7-500 Y1+200..Y1+3200 name:sofa-2 asset:SOFA-2
+space /L1/catalog/sofa-3 room X7..X8 Y1..Y2 level:L1 name:"Three-seat sofa"
+  area X7+500..X8-500 Y1+200..Y1+3200 name:sofa-3 asset:SOFA-3
+space /L1/catalog/bed-single room X8..X9 Y1..Y2 level:L1 name:"Single bed"
+  area X8+500..X9-500 Y1+200..Y1+3200 name:bed-single asset:BED-SINGLE
+space /L1/catalog/bed-double room X9..X10 Y1..Y2 level:L1 name:"Double bed"
+  area X9+500..X10-500 Y1+200..Y1+3200 name:bed-double asset:BED-DOUBLE
+
+space /L1/catalog/cabinet room X1..X2 Y2..Y3 level:L1 name:Cabinet
+  area X1+500..X2-500 Y2+200..Y2+3200 name:cabinet asset:CABINET
+space /L1/catalog/locker room X2..X3 Y2..Y3 level:L1 name:Locker
+  area X2+500..X3-500 Y2+200..Y2+3200 name:locker asset:LOCKER
+space /L1/catalog/shelf room X3..X4 Y2..Y3 level:L1 name:Shelf
+  area X3+500..X4-500 Y2+200..Y2+3200 name:shelf asset:SHELF
+space /L1/catalog/potted-plant room X4..X5 Y2..Y3 level:L1 name:"Potted plant"
+  area X4+500..X5-500 Y2+200..Y2+3200 name:potted-plant asset:POTTED-PLANT
+space /L1/catalog/tree-3m room X5..X6 Y2..Y3 level:L1 name:"Tree — 3 m canopy"
+  area X5+500..X6-500 Y2+200..Y2+3200 name:tree-3m asset:TREE-3M
+space /L1/catalog/shrub-1m room X6..X7 Y2..Y3 level:L1 name:"Shrub — 1 m canopy"
+  area X6+500..X7-500 Y2+200..Y2+3200 name:shrub-1m asset:SHRUB-1M
+space /L1/catalog/hedge-2m room X7..X8 Y2..Y3 level:L1 name:"Hedge — 2 m length"
+  area X7+500..X8-500 Y2+200..Y2+3200 name:hedge-2m asset:HEDGE-2M
+space /L1/catalog/wc room X8..X9 Y2..Y3 level:L1 name:"WC — standard"
+  area X8+500..X9-500 Y2+200..Y2+3200 name:wc asset:WC
+space /L1/catalog/wc-cabinet room X9..X10 Y2..Y3 level:L1 name:"WC — cabinet"
+  area X9+500..X10-500 Y2+200..Y2+3200 name:wc-cabinet asset:WC-CABINET
+
+space /L1/catalog/urinal room X1..X2 Y3..Y4 level:L1 name:Urinal
+  area X1+500..X2-500 Y3+200..Y3+3200 name:urinal asset:URINAL
+space /L1/catalog/washstand-500 room X2..X3 Y3..Y4 level:L1 name:"Washstand — 500"
+  area X2+500..X3-500 Y3+200..Y3+3200 name:washstand-500 asset:WASHSTAND-500
+space /L1/catalog/washstand-750 room X3..X4 Y3..Y4 level:L1 name:"Washstand — 750"
+  area X3+500..X4-500 Y3+200..Y3+3200 name:washstand-750 asset:WASHSTAND-750
+space /L1/catalog/bathtub room X4..X5 Y3..Y4 level:L1 name:Bathtub
+  area X4+500..X5-500 Y3+200..Y3+3200 name:bathtub asset:BATHTUB
+space /L1/catalog/washing-machine-pan room X5..X6 Y3..Y4 level:L1 name:"Washing machine pan"
+  area X5+500..X6-500 Y3+200..Y3+3200 name:washing-machine-pan asset:WASHING-MACHINE-PAN
+space /L1/catalog/kitchen-sink room X6..X7 Y3..Y4 level:L1 name:"Kitchen sink"
+  area X6+500..X7-500 Y3+200..Y3+3200 name:kitchen-sink asset:KITCHEN-SINK
+space /L1/catalog/washing-machine room X7..X8 Y3..Y4 level:L1 name:"Washing machine"
+  area X7+500..X8-500 Y3+200..Y3+3200 name:washing-machine asset:WASHING-MACHINE
+space /L1/catalog/refrigerator room X8..X10 Y3..Y4 level:L1 name:Refrigerator
+  area X8+2500..X10-2500 Y3+200..Y3+3200 name:refrigerator asset:REFRIGERATOR
+
+space /outside outside:1
+boundary /L1/catalog/chair /outside edge:S
+boundary /L1/catalog/office-chair /outside edge:S
+boundary /L1/catalog/desk /outside edge:S
+boundary /L1/catalog/table-rect /outside edge:S
+boundary /L1/catalog/table-round /outside edge:S
+boundary /L1/catalog/sofa-2 /outside edge:S
+boundary /L1/catalog/sofa-3 /outside edge:S
+boundary /L1/catalog/bed-single /outside edge:S
+boundary /L1/catalog/bed-double /outside edge:S
+boundary /L1/catalog/urinal /outside edge:N
+boundary /L1/catalog/washstand-500 /outside edge:N
+boundary /L1/catalog/washstand-750 /outside edge:N
+boundary /L1/catalog/bathtub /outside edge:N
+boundary /L1/catalog/washing-machine-pan /outside edge:N
+boundary /L1/catalog/kitchen-sink /outside edge:N
+boundary /L1/catalog/washing-machine /outside edge:N
+boundary /L1/catalog/refrigerator /outside edge:N
+boundary /L1/catalog/chair /outside edge:W
+boundary /L1/catalog/cabinet /outside edge:W
+boundary /L1/catalog/urinal /outside edge:W
+boundary /L1/catalog/bed-double /outside edge:E
+boundary /L1/catalog/wc-cabinet /outside edge:E
+boundary /L1/catalog/refrigerator /outside edge:E

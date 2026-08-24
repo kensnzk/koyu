@@ -5,7 +5,7 @@ mode: reference
 
 # LVL — levels
 
-There is only one LVL code.
+The LVL entries in the diagnostic ledger are listed below.
 
 | Code | Severity | What it says |
 |---|---|---|
@@ -36,7 +36,7 @@ Without an order in `z`, none of the following is settled.
 - **What is above what.** A `type:stair` / `shaft` / `void` boundary may only be written between **adjacent** levels ([VRT02](./vrt.md)), and adjacent means adjacent in `z` order.
 - **How far walls and columns rise.** That is the storey height itself.
 
-**Where the diagnostic points** — the message names the two neighbours in `z` order, and the line points at the **later** one; `related` carries the line of the earlier one. Three levels at the same `z` produce two diagnostics, one per adjacent pair.
+**Where the diagnostic points** — the message names the two neighbours in `z` order, and the line points at the **later** one; `related` carries the line of the earlier one. A group of levels at the same `z` produces one diagnostic per adjacent pair.
 
 **Fix** — correct the `z`.
 

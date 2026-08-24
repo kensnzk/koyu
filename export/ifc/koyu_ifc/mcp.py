@@ -1,6 +1,6 @@
 """A stdio MCP server that writes IFC.
 
-**This is the export's server, not koyu's.** koyu's own twelve tools stay where they are and stay
+**This is the export's server, not koyu's.** koyu's own tools stay where they are and stay
 free of runtime dependencies; asking `koyu-mcp` to shell out to Python would make Python a
 requirement of koyu in everything but the manifest. An agent that needs both connects both, which
 is the ordinary shape of this: one server per thing that can answer, composed by the caller.

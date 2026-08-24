@@ -51,6 +51,11 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
   // boundary to a region-less space was written, so a forgotten line was a silent hole; from 1.4
   // that face is a wall, and what is declared is which outside it looks at (ADR-0065).
   { muro: "1.4", since: "0.26.0", until: null },
+  // 1.5 gives opening operation styles explicit values and adds area-hosted component assets.
+  // A plan can distinguish opening operations without guessing from names or widths, and can
+  // place fixed furniture or equipment footprints while keeping SVG artwork out of Form
+  // (ADR-0068, ADR-0075).
+  { muro: "1.5", since: "0.28.0", until: null },
 ];
 
 /** The word a version line is written with from 1.2 on. */
@@ -77,7 +82,7 @@ export const LAST_KOYU_SPELLED_VERSION = "1.1";
  * `since` column is written in this vocabulary, and every surface that answers "which muro
  * does this build speak" needs both halves at once.
  */
-export const KOYU_VERSION = "0.27.0";
+export const KOYU_VERSION = "0.28.0";
 
 /**
  * Whether `a` names a later language version than `b`.
@@ -346,13 +351,13 @@ export interface Zone {
 }
 
 /**
- * 建具アセット — RevitのFamily、USDのReferenceにあたる型の宣言 (ADR-0010)。
- * `asset SD1 door w:800 style:sliding` と宣言し、開口が `door SD1 ...` で参照する。
- * インスタンス側の属性が上書きする。別ファイル (アセット集) に置いて import できる
+ * A reusable asset definition. Door/window assets provide opening defaults; component assets
+ * provide a fixed footprint and a plan artwork reference to a named area. Definitions may live
+ * in an imported library layer.
  */
 export interface Asset {
   name: string;
-  kind: "door" | "window";
+  kind: "door" | "window" | "component";
   attrs: Attrs;
   line: number;
   file?: string;

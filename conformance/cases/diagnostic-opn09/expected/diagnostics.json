@@ -1,0 +1,12 @@
+[
+ {
+  "code": "OPN09",
+  "severity": "error",
+  "line": 9,
+  "file": "main.muro",
+  "path": [
+   "/L1/a",
+   "/L1/b"
+  ]
+ }
+]
