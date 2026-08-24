@@ -5,7 +5,7 @@ mode: reference
 
 # HGT — the height invariant
 
-There are two HGT codes. Both say that **written values contradict each other**.
+The HGT entries say that **written values contradict each other**.
 
 | Code | Severity | What it says |
 |---|---|---|

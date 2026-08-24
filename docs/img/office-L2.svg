@@ -43,7 +43,11 @@
 <path d="M 401 301.5 L 401 288.5 L 407 288.5 L 407 301.5 Z" fill="#1f1f1f"/>
 <path d="M 88.5 279.5 L 141.5 279.5 L 141.5 288.5 L 88.5 288.5 Z" fill="#1f1f1f"/>
 <path d="M 186.5 279.5 L 248.5 279.5 L 248.5 288.5 L 186.5 288.5 Z" fill="#1f1f1f"/>
-<line x1="84" y1="364" x2="404" y2="364" stroke="#1f1f1f" stroke-width="1.4"/>
+<g class="boundary-rail">
+<line x1="84" y1="364" x2="404" y2="364" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="84" cy="364" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="404" cy="364" r="1.45" fill="#1f1f1f"/>
+</g>
 <path d="M 79.5 362 L 79.5 279.5 L 88.5 279.5 L 88.5 362 Z" fill="#1f1f1f"/>
 <path d="M 239.5 279.5 L 239.5 88.5 L 248.5 88.5 L 248.5 279.5 Z" fill="#1f1f1f"/>
 <path d="M 399.5 279.5 L 399.5 88.5 L 408.5 88.5 L 408.5 279.5 Z" fill="#1f1f1f"/>
@@ -71,22 +75,30 @@
 <path d="M 552 281 L 552 88.5 L 556 88.5 L 556 281 Z" fill="#1f1f1f"/>
 <path d="M 408.5 79.5 L 556 79.5 L 556 88.5 L 408.5 88.5 Z" fill="#1f1f1f"/>
 <path d="M 556 79.5 L 727 79.5 L 727 88.5 L 556 88.5 Z" fill="#1f1f1f"/>
-<line x1="301.5" y1="284" x2="301.5" y2="329" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 301.5 329 A 45 45 0 0 0 346.5 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="404" y1="346.5" x2="449" y2="346.5" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 449 346.5 A 45 45 0 0 0 404 301.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="141.5" y1="284" x2="141.5" y2="329" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 141.5 329 A 45 45 0 0 0 186.5 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="864" y1="284" x2="864" y2="324" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 864 324 A 40 40 0 0 0 904 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="459" y1="284" x2="459" y2="324" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 459 324 A 40 40 0 0 0 499 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="619" y1="284" x2="619" y2="324" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 619 324 A 40 40 0 0 0 659 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="506" y1="684" x2="686" y2="684" stroke="#1f1f1f" stroke-width="1"/>
-<line x1="794" y1="684" x2="974" y2="684" stroke="#1f1f1f" stroke-width="1"/>
-<line x1="1044" y1="544" x2="1044" y2="424" stroke="#1f1f1f" stroke-width="1"/>
-<line x1="154" y1="684" x2="334" y2="684" stroke="#1f1f1f" stroke-width="1"/>
+<line x1="301.5" y1="284" x2="301.5" y2="329" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 301.5 329 A 45 45 0 0 0 346.5 284" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="404" y1="346.5" x2="449" y2="346.5" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 449 346.5 A 45 45 0 0 0 404 301.5" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="141.5" y1="284" x2="141.5" y2="329" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 141.5 329 A 45 45 0 0 0 186.5 284" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="864" y1="284" x2="864" y2="324" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 864 324 A 40 40 0 0 0 904 284" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="459" y1="284" x2="459" y2="324" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 459 324 A 40 40 0 0 0 499 284" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="619" y1="284" x2="619" y2="324" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 619 324 A 40 40 0 0 0 659 284" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<g class="opening-window">
+<path d="M 506 679.5 L 686 679.5 M 506 688.5 L 686 688.5" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
+<g class="opening-window">
+<path d="M 794 679.5 L 974 679.5 M 794 688.5 L 974 688.5" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
+<g class="opening-window">
+<path d="M 1039.5 544 L 1039.5 424 M 1048.5 544 L 1048.5 424" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
+<g class="opening-window">
+<path d="M 154 679.5 L 334 679.5 M 154 688.5 L 334 688.5" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
 <text x="244" y="320" text-anchor="middle" font-size="14" fill="#1f1f1f">廊下</text>
 <text x="244" y="337" text-anchor="middle" font-size="10" fill="#8a8171">corridor · 10.24 m2</text>
 <text x="244" y="351" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L2/corridor</text>

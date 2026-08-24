@@ -71,6 +71,92 @@ const retired = (after: string, instead: string, base: AttrSpec = free()): AttrS
  */
 export const CARRY_NAMESPACE = /^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)+$/;
 
+/** Opening operations introduced after the original hinged / sliding / auto set. */
+export const MURO_1_5_OPENING_STYLES = [
+  "hinged-double",
+  "hinged-unequal",
+  "sliding-double",
+  "sliding-bypass",
+  "auto-single",
+  "auto-double",
+  "entrance",
+  "gate-hinged",
+  "gate-hinged-double",
+  "gate-sliding",
+  "rolling-shutter",
+  "overhead",
+  "fixed",
+  "projecting",
+  "curtain-wall",
+] as const;
+
+/** Every interpreted value accepted by an opening's `style:` attribute. */
+export const OPENING_STYLE_VALUES = [
+  "hinged",
+  "sliding",
+  "auto",
+  ...MURO_1_5_OPENING_STYLES,
+] as const;
+
+/** Opening presentation attributes introduced in muro 1.5. */
+export const MURO_1_5_OPENING_ATTRS = ["panels"] as const;
+
+/** Area attributes introduced with component placement in muro 1.5. */
+export const MURO_1_5_COMPONENT_AREA_ATTRS = [
+  "asset",
+  "align-x",
+  "align-y",
+  "offset-x",
+  "offset-y",
+  "rotate",
+] as const;
+
+const DOOR_OPENING_STYLES = new Set<string>([
+  "hinged",
+  "hinged-double",
+  "hinged-unequal",
+  "sliding",
+  "sliding-double",
+  "sliding-bypass",
+  "auto",
+  "auto-single",
+  "auto-double",
+  "entrance",
+  "gate-hinged",
+  "gate-hinged-double",
+  "gate-sliding",
+  "rolling-shutter",
+  "overhead",
+]);
+
+const WINDOW_OPENING_STYLES = new Set<string>([
+  "hinged",
+  "hinged-double",
+  "sliding",
+  "sliding-double",
+  "sliding-bypass",
+  "fixed",
+  "projecting",
+  "curtain-wall",
+]);
+
+/**
+ * Whether a known opening operation applies to the declared opening kind.
+ *
+ * Unknown values return true because ATT02 owns that contradiction. This check only partitions
+ * the closed vocabulary and therefore never emits a second diagnostic for one misspelling.
+ */
+export function openingStyleAppliesTo(kind: "door" | "window", style: string): boolean {
+  if (!(OPENING_STYLE_VALUES as readonly string[]).includes(style)) return true;
+  return (kind === "door" ? DOOR_OPENING_STYLES : WINDOW_OPENING_STYLES).has(style);
+}
+
+/** The other opening kind for a known operation that does not apply to `kind`. */
+export function openingStyleOwner(kind: "door" | "window", style: string): "door" | "window" | undefined {
+  if (openingStyleAppliesTo(kind, style)) return undefined;
+  return kind === "door" ? "window" : "door";
+}
+
 /** そのキーが名前空間つきの運搬層かどうか */
 export function isNamespaced(key: string): boolean {
   return CARRY_NAMESPACE.test(key);
@@ -174,12 +260,13 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
     hinge: structure(),
     swing: structure(),
 
-    // 解釈
-    style: one("hinged", "sliding", "auto"), // 平面の建具表現が変わる
-    name: free(), // **境界の中で一意な名** — 開口の同一性の鍵 (docs/reference/scope.md)
+    // Interpreted.
+    style: one(...OPENING_STYLE_VALUES), // selects the plan opening symbol
+    panels: num(), // explicit equal panel count for a curtain wall
+    name: free(), // unique within the boundary: the opening's identity key
 
-    // 運搬
-    sill: carry(), // 窓台高
+    // Carried.
+    sill: carry(), // window sill height
     spec: carry(),
     fire: carry(),
   },
@@ -187,6 +274,23 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
   area: {
     floor: carry(),
     name: free(),
+    spec: carry(),
+    // A named uncounted area is the sole placement frame for a component asset. Position remains
+    // relative to the written extent, so changing the extent moves the component with it.
+    asset: free(),
+    "align-x": one("min", "center", "max"),
+    "align-y": one("min", "center", "max"),
+    "offset-x": free(),
+    "offset-y": free(),
+    rotate: free(),
+  },
+
+  component: {
+    w: num(),
+    d: num(),
+    "plan-svg": free(),
+    name: free(),
+    category: carry(),
     spec: carry(),
   },
 
@@ -243,8 +347,10 @@ export function attrSpec(elem: string, key: string): AttrSpec | undefined {
   return ATTR_LEDGER[elem]?.[key];
 }
 
-/**
- * asset は開口の既定値の束なので、開口と同じ台帳で読む (ADR-0010)。
- * 「アセットに書けて開口に書けない属性」を作らないための同一視である。
- */
+/** Door and window assets use the opening ledger unchanged. */
 export const ASSET_ELEM = "opening";
+
+/** Door/window assets share the opening ledger; placed component assets have their own ledger. */
+export function assetElem(kind: "door" | "window" | "component"): "opening" | "component" {
+  return kind === "component" ? "component" : ASSET_ELEM;
+}

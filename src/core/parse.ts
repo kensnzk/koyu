@@ -382,14 +382,15 @@ function ingest(
         break;
       }
       case "asset": {
-        // 建具アセット (RevitのFamily / USDのReference — ADR-0010)
+        // Referenced type. Door/window assets attach to boundaries; component assets attach to
+        // named uncounted areas and may carry external plan artwork.
         const aname = rest[0];
         const akind = rest[1];
         if (!aname || aname.includes(":") || aname.startsWith("/")) {
-          throw new SourceError(ln, "asset takes the form asset <name> door|window [attributes...]");
+          throw new SourceError(ln, "asset takes the form asset <name> door|window|component [attributes...]");
         }
-        if (akind !== "door" && akind !== "window") {
-          throw new SourceError(ln, `An asset kind is door / window: ${akind}`);
+        if (akind !== "door" && akind !== "window" && akind !== "component") {
+          throw new SourceError(ln, `An asset kind is door / window / component: ${akind}`);
         }
         const prevA = model.assets.get(aname);
         if (prevA) {

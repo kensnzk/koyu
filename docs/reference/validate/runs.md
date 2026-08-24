@@ -33,7 +33,7 @@ A `lift` has neither steps nor a pitch, so none of the rules in this chapter app
 The derived going is under 240mm, or `2×riser + going` falls outside 550–700mm. The second is the pace rule.
 
 ```muro-caution
-muro 1.4
+muro 1.5
 grid X 0 3000
 grid Y 0 4600
 level L1 0 h:2700 slab:300
@@ -49,7 +49,6 @@ boundary /L2/s /out
 ```text
 ⚠ [koyu.schematic.stair.proportion] main.muro:line 6: Cramped step: /L1/s — derived tread 150mm, 2×riser+tread 502mm (wants tread ≥ 240mm and pace 550–700mm; deepen the shaft along travel, fold it with form:return, or raise riser:)
 Validation — 0 violations / 1 caution
-  koyu.profile.schematic-screen@1 — 3 evaluated / 13 not applicable / 0 indeterminate / 0 error
 ```
 
 The arithmetic runs like this. The rise is 3000mm and the riser ceiling defaults to 180mm, so there are 17 risers of 3000/17 = 176mm. The 4600mm depth along travel loses the boarding floor at each end (1100mm by default), leaving 2400mm of run, divided by 16 goings = 150mm. **The stair shaft is too shallow.**
@@ -61,7 +60,7 @@ In a return stair (`form:return`) each flight has its own going. The check reads
 **There are three fixes**, and each of them changes an input to the derivation.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 3000
 grid Y 0 7000
 level L1 0 h:2700 slab:300
@@ -83,7 +82,7 @@ Deepened along travel, 4600 → 7000mm. The run is 4800mm over 16 goings = 300mm
 Left shallow, folding it with `form:return` doubles the run and reaches the same 300mm.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 3000
 grid Y 0 4600
 level L1 0 h:2700 slab:300
@@ -111,7 +110,7 @@ A ramp and an escalator both leave a slope band, but they leave a **different** 
 `slope:` is **not the slope. It is the limit you will accept**, and it exists only so this check can be made. `slope:12` means "no steeper than 1/12". A ramp with no `slope:` is not checked, and if no ramp declares one the rule is `not-applicable` rather than passing.
 
 ```muro-caution
-muro 1.4
+muro 1.5
 grid X 0 3000
 grid Y 0 6000
 level L1 0 h:2700 slab:300
@@ -127,7 +126,6 @@ boundary /L2/r /out
 ```text
 ⚠ [koyu.schematic.ramp.declared-slope] main.muro:line 6: Derived slope 1/1.3 is steeper than the declared 1/12: /L1/r (lengthen the run or lower the storey height)
 Validation — 0 violations / 1 caution
-  koyu.profile.schematic-screen@1 — 3 evaluated / 13 not applicable / 0 indeterminate / 0 error
 ```
 
 Against a 3000mm rise there is only 3800mm of run (6000mm less the 1100mm boarding floor at each end), giving 1/1.3 — an order of magnitude off the 1/12 asked for. **koyu does not invent a limit for a ramp that declared none.**
@@ -141,7 +139,7 @@ Against a 3000mm rise there is only 3800mm of run (6000mm less the 1100mm boardi
 An escalator needs no `slope:`. If the derived pitch falls outside 1/2.3 – 1/1.4 — a band around the usual 1/1.7, i.e. 30° — this rule fires. The band is **a custom this pack carries, not a limit anyone wrote in the file**, which is exactly why it is a separate rule from the ramp's.
 
 ```muro-caution
-muro 1.4
+muro 1.5
 grid X 0 1200
 grid Y 0 12000
 level L1 0 h:2700 slab:300
@@ -157,7 +155,6 @@ boundary /L2/e /out
 ```text
 ⚠ [koyu.schematic.escalator.usual-slope] main.muro:line 6: Derived slope 1/3.3 is outside the usual escalator range 1/2.3–1/1.4 (about 1/1.7 = 30 degrees): /L1/e
 Validation — 0 violations / 1 caution
-  koyu.profile.schematic-screen@1 — 3 evaluated / 13 not applicable / 0 indeterminate / 0 error
 ```
 
 This is the **too shallow** side. The region is so long that the derivation produced a reclining escalator nobody builds. Shorten the same region to 7200mm and the run is 5000mm, the pitch 1/1.7, and the judgement passes.
@@ -169,7 +166,7 @@ This is the **too shallow** side. The region is so long that the derivation prod
 **Shape and topology are written separately.** `stair:N` builds treads; it does not claim that the two levels are connected. What connects them is a `stack`, or a `boundary type:stair`.
 
 ```muro-caution
-muro 1.4
+muro 1.5
 grid X 0 3000
 grid Y 0 7000
 level L1 0 h:2700 slab:300
@@ -184,7 +181,6 @@ boundary /L2/s /out
 ```text
 ⚠ [koyu.schematic.run.disconnected] main.muro:line 6: /L1/s has a vertical-circulation form but no vertical boundary connecting the levels (write stack or boundary type:stair — the form exists, but the graph cannot pass)
 Validation — 0 violations / 1 caution
-  koyu.profile.schematic-screen@1 — 2 evaluated / 14 not applicable / 0 indeterminate / 0 error
 ```
 
 Without a vertical boundary, [`koyu doors`](../cli/doors.md) will not find a route upstairs. **A stair that is drawn but not walkable** is the hardest mismatch to notice, which is why it warns.

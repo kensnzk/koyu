@@ -43,6 +43,12 @@ import {
   DOOR_COLUMN_COLLISIONS_ANALYSIS_ID,
 } from "./door-column-collisions.js";
 import {
+  OPENING_OPERATIONS_ANALYSIS,
+  OPENING_OPERATIONS_ANALYSIS_ID,
+  SLIDING_STORAGE_LEAVES_SPACE_RULE,
+  SLIDING_STORAGE_OVERLAPS_OPENING_RULE,
+} from "./opening-operations.js";
+import {
   SITE_ANALYSIS,
   SITE_ANALYSIS_ID,
   SITE_AREA_RULE,
@@ -61,6 +67,7 @@ import {
 export * from "./access.js";
 export * from "./daylight.js";
 export * from "./door-column-collisions.js";
+export * from "./opening-operations.js";
 export * from "./site.js";
 export * from "./vertical-runs.js";
 
@@ -75,7 +82,7 @@ export const SCHEMATIC_PROFILE_ID: ProfileRef = freezeBuiltin({
 });
 
 /**
- * The five analyses, in the order they are declared in the catalog.
+ * The analyses, in the order they are declared in the catalog.
  *
  * Each computes facts once and says nothing about pass or fail — no rule identity, no level,
  * no compliance summary. CLI, MCP and eval read these rather than recomputing a ratio,
@@ -86,6 +93,7 @@ export const SCHEMATIC_ANALYSES: readonly AnalysisDefinition<JsonValue>[] = free
   VERTICAL_RUNS_ANALYSIS,
   ACCESS_ANALYSIS,
   DOOR_COLUMN_COLLISIONS_ANALYSIS,
+  OPENING_OPERATIONS_ANALYSIS,
   SITE_ANALYSIS,
 ] as unknown as AnalysisDefinition<JsonValue>[]);
 
@@ -94,11 +102,13 @@ export const SCHEMATIC_ANALYSIS_IDS: readonly AnalysisRef[] = freezeBuiltin([
   VERTICAL_RUNS_ANALYSIS_ID,
   ACCESS_ANALYSIS_ID,
   DOOR_COLUMN_COLLISIONS_ANALYSIS_ID,
+  OPENING_OPERATIONS_ANALYSIS_ID,
   SITE_ANALYSIS_ID,
 ] as unknown as AnalysisRef[]);
 
 /**
- * The fifteen rules, in the order of the legacy ledger.
+ * The legacy rules in their original order, followed by opening-operation checks introduced by
+ * the current pack, then the remaining legacy site rules.
  *
  * The one place the order is not a copy is the old `run.slope`, which splits in place into the
  * ramp rule and then the escalator rule: a declared limit and a customary band have different
@@ -123,6 +133,8 @@ export const SCHEMATIC_RULES: readonly Rule[] = freezeBuiltin([
   ACCESS_PARKING_RULE,
   ACCESS_BACKOFHOUSE_RULE,
   COLUMN_BLOCKS_DOOR_RULE,
+  SLIDING_STORAGE_LEAVES_SPACE_RULE,
+  SLIDING_STORAGE_OVERLAPS_OPENING_RULE,
   SITE_ESCAPE_RULE,
   SITE_AREA_RULE,
   SITE_FRONTAGE_RULE,

@@ -1,0 +1,9 @@
+muro 1.5
+grid X 0 3000
+grid Y 0 3000
+level L1 0 h:2600 slab:150
+asset WC component w:700 d:1200 plan-svg:wc.svg
+space /L1/wc wc X1..X2 Y1..Y2
+  area X1+300..X2-300 Y1+300..Y2-300 name:fixture asset:WC
+space /out outside:1
+boundary /L1/wc /out

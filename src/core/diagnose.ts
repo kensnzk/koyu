@@ -30,8 +30,17 @@ import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type At
   isVoid,
   EXTERIOR
 } from "./model.js";
-import { ASSET_ELEM, attrSpec, isNamespaced } from "./vocabulary.js";
+import {
+  MURO_1_5_OPENING_ATTRS,
+  MURO_1_5_OPENING_STYLES,
+  MURO_1_5_COMPONENT_AREA_ATTRS,
+  attrSpec,
+  assetElem,
+  isNamespaced,
+  openingStyleOwner,
+} from "./vocabulary.js";
 import { runDecls, runIssues } from "./vertical.js";
+import { placedComponents } from "./components.js";
 
 export interface CheckResult {
   errors: string[];
@@ -88,6 +97,10 @@ export const DIAGNOSTIC_CODES = {
   OPN06: "error", // 開口の幅が線分長を超える
   OPN07: "error", // 開口の明示位置の軸違い
   OPN08: "error", // 開口の明示位置のはみ出し
+  OPN09: "error", // opening kind and operation disagree
+  OPN10: "error", // curtain-wall panel layout is not applicable or not a whole count
+  CMP01: "error", // component asset declaration or area reference cannot be resolved
+  CMP02: "error", // transformed component footprint extends outside its host area
   SEG01: "error", // 領域を持たない空間へのarea
   SEG02: "warning", // areaのはみ出し
   SEG03: "warning", // open境界のseg (解釈されない)
@@ -132,6 +145,8 @@ export const DIAGNOSTIC_CODES = {
   VER05: "error", // koyu 1.0以前のファイルの型の位置に exterior / void (ADR-0051)
   VER06: "error", // the file declares a language version newer than this build reads
   VER07: "error", // the file declares a version in which a key it writes is retired (ADR-0061)
+  VER08: "error", // the file uses opening presentation introduced in muro 1.5 (ADR-0068/0074)
+  VER09: "error", // the file uses component assets or area placement introduced in muro 1.5
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
 } as const satisfies Record<string, "error" | "warning">;
 
@@ -211,7 +226,7 @@ function attrSubjects(
     }
   }
   for (const a of model.assets.values()) {
-    out.push([`asset ${a.name}`, { elem: ASSET_ELEM, of: a.attrs }, { line: a.line, file: a.file }]);
+    out.push([`asset ${a.name}`, { elem: assetElem(a.kind), of: a.attrs }, { line: a.line, file: a.file }]);
   }
   for (const c of model.columns) {
     out.push([`column ${c.size}mm`, { elem: "column", of: c.attrs }, { line: c.line, file: c.file }]);
@@ -310,6 +325,8 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   checkSpaceOverlap(ctx);
   checkDaylightScope(ctx);
   checkAttrValues(ctx);
+  checkAssetOpenings(ctx);
+  checkComponents(ctx);
   checkRuns(ctx);
   checkDrawnLines(ctx);
   checkColumns(ctx);
@@ -324,6 +341,73 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   checkLevelSufficiency(ctx);
   checkSite(ctx);
   return diags;
+}
+
+function curtainWallPanelIssue(kind: "door" | "window", attrs: Attrs): string | undefined {
+  const panels = attrs["panels"];
+  if (panels === undefined) return undefined;
+  if (kind !== "window" || attrs["style"] !== "curtain-wall") {
+    return "panels: may only be written on a window with style:curtain-wall";
+  }
+  // ATT01 owns non-numeric and non-positive values. This check adds the curtain-wall-specific
+  // fact that a count cannot be fractional, without emitting two errors for the same spelling.
+  if (typeof panels === "number" && panels > 0 && !Number.isInteger(panels)) {
+    return `panels on a curtain wall is a positive whole number: panels:${panels}`;
+  }
+  return undefined;
+}
+
+/** Asset declarations are useful without an instance, so their own opening facts must be valid. */
+function checkAssetOpenings(ctx: Ctx): void {
+  const { model, emit } = ctx;
+  if (olderThan(model.version, "1.5")) return;
+  for (const asset of model.assets.values()) {
+    if (asset.kind === "component") continue;
+    const style = asset.attrs["style"];
+    if (typeof style === "string") {
+      const owner = openingStyleOwner(asset.kind, style);
+      if (owner) {
+        emit(
+          "OPN09",
+          `style:${style} is a ${owner}-only operation and cannot be used on ${asset.kind} asset ${asset.name}`,
+          { line: asset.line, file: asset.file },
+        );
+      }
+    }
+    const issue = curtainWallPanelIssue(asset.kind, asset.attrs);
+    if (issue) emit("OPN10", `${issue} on asset ${asset.name}`, { line: asset.line, file: asset.file });
+  }
+}
+
+/** Component declarations and their area-hosted instances are checked in source order. */
+function checkComponents(ctx: Ctx): void {
+  const { model, emit } = ctx;
+  for (const asset of model.assets.values()) {
+    if (asset.kind !== "component") continue;
+    const missing = ["w", "d", "plan-svg"].filter((key) => asset.attrs[key] === undefined);
+    if (missing.length > 0) {
+      emit(
+        "CMP01",
+        `Component asset ${asset.name} requires ${missing.map((key) => `${key}:`).join(" / ")}`,
+        { line: asset.line, file: asset.file },
+      );
+    }
+    const ref = asset.attrs["plan-svg"];
+    if (ref !== undefined && (typeof ref !== "string" || (!ref.startsWith("./") && !ref.startsWith("../")))) {
+      emit(
+        "CMP01",
+        `Component asset ${asset.name} plan-svg takes a relative path: ${String(ref)}`,
+        { line: asset.line, file: asset.file },
+      );
+    }
+  }
+  for (const issue of placedComponents(model).issues) {
+    emit(issue.code, issue.message, {
+      line: issue.line,
+      ...(issue.file ? { file: issue.file } : {}),
+      path: issue.path,
+    });
+  }
 }
 
 
@@ -641,10 +725,10 @@ function checkColumns(ctx: Ctx): void {
   }
 }
 
-/** 言語版の受理条件 — VER01〜VER05 と VER07 (VER06 は parse が投げる) */
+/** Language-version acceptance: VER01–VER05 and VER07–VER08. Parsing raises VER06. */
 function checkLanguageVersion(ctx: Ctx): void {
   const { model, emit, loc, withRect, levels, levelIndex } = ctx;
-  // 言語版の受理条件 (ADR-0017): 旧版は意味保存の場合のみ受理する。
+  // Language-version acceptance (ADR-0017): an older file is accepted only where meaning holds.
   // 既定境界 (ADR-0014) が導出されるファイルは、0.1の意味 (境界なし+警告) と食い違う — エラーで二択を示す
   if (model.version === "0.1") {
     for (const b of model.boundaries) {
@@ -761,6 +845,75 @@ function checkLanguageVersion(ctx: Ctx): void {
         file: e.file,
         ...(paths.length > 0 ? { path: paths } : {}),
       });
+    }
+  }
+
+  // The expanded opening operation vocabulary arrives in muro 1.5. An older processor rejects
+  // these values, so an older declaration may not use them even though this build can interpret
+  // them. Scan written assets and opening declarations; do not report an instance a second time
+  // when its value is inherited unchanged from an asset that is already reported.
+  if (olderThan(model.version, "1.5")) {
+    const introduced = new Set<string>(MURO_1_5_OPENING_STYLES);
+    const introducedAttrs = new Set<string>(MURO_1_5_OPENING_ATTRS);
+    for (const a of model.assets.values()) {
+      const style = a.attrs["style"];
+      const attr = Object.keys(a.attrs).find((key) => introducedAttrs.has(key));
+      if (typeof style === "string" && introduced.has(style)) {
+        emit(
+          "VER08",
+          `A muro ${model.version} file uses a 1.5 opening style: ${style} on asset ${a.name} — raise the version to muro 1.5`,
+          { line: a.line, file: a.file },
+        );
+      } else if (attr) {
+        emit(
+          "VER08",
+          `A muro ${model.version} file uses a 1.5 opening attribute: ${attr} on asset ${a.name} — raise the version to muro 1.5`,
+          { line: a.line, file: a.file },
+        );
+      }
+    }
+    for (const b of model.boundaries) {
+      for (const o of b.openings) {
+        const style = o.attrs["style"];
+        const inherited = o.ref === undefined ? undefined : model.assets.get(o.ref)?.attrs["style"];
+        const assetAttrs = o.ref === undefined ? undefined : model.assets.get(o.ref)?.attrs;
+        const attr = Object.keys(o.attrs).find(
+          (key) => introducedAttrs.has(key) && assetAttrs?.[key] !== o.attrs[key],
+        );
+        if (typeof style === "string" && introduced.has(style) && inherited !== style) {
+          emit(
+            "VER08",
+            `A muro ${model.version} file uses a 1.5 opening style: ${style} on ${o.kind} (${b.a} | ${b.b}) — raise the version to muro 1.5`,
+            { line: o.line, file: b.file, path: [b.a, b.b] },
+          );
+        } else if (attr) {
+          emit(
+            "VER08",
+            `A muro ${model.version} file uses a 1.5 opening attribute: ${attr} on ${o.kind} (${b.a} | ${b.b}) — raise the version to muro 1.5`,
+            { line: o.line, file: b.file, path: [b.a, b.b] },
+          );
+        }
+      }
+    }
+    const componentAreaAttrs = new Set<string>(MURO_1_5_COMPONENT_AREA_ATTRS);
+    for (const asset of model.assets.values()) {
+      if (asset.kind !== "component") continue;
+      emit(
+        "VER09",
+        `A muro ${model.version} file declares a 1.5 component asset: ${asset.name} — raise the version to muro 1.5`,
+        { line: asset.line, file: asset.file },
+      );
+    }
+    for (const space of model.spaces.values()) {
+      for (const area of space.areas) {
+        const attr = Object.keys(area.attrs).find((key) => componentAreaAttrs.has(key));
+        if (!attr) continue;
+        emit(
+          "VER09",
+          `A muro ${model.version} file uses a 1.5 component placement attribute: ${attr} on area (${space.path}) — raise the version to muro 1.5`,
+          { line: area.line, file: space.file, path: [space.path] },
+        );
+      }
     }
   }
 
@@ -987,6 +1140,31 @@ function checkOpenings(ctx: Ctx, b: Boundary): void {
   }
   const placedOnSeg: Array<{ o: (typeof b.openings)[number]; key: string; c: number }> = [];
   for (const o of b.openings) {
+    if (!olderThan(model.version, "1.5")) {
+      const style = o.attrs["style"];
+      if (typeof style === "string") {
+        const owner = openingStyleOwner(o.kind, style);
+        const inherited = o.ref === undefined ? undefined : model.assets.get(o.ref)?.attrs["style"];
+        if (owner && inherited !== style) {
+          emit(
+            "OPN09",
+            `style:${style} is a ${owner}-only operation and cannot be used on a ${o.kind}`,
+            { line: o.line, file: b.file, path: [b.a, b.b] },
+          );
+        }
+      }
+      const panelIssue = curtainWallPanelIssue(o.kind, o.attrs);
+      if (panelIssue) {
+        const asset = o.ref === undefined ? undefined : model.assets.get(o.ref);
+        const inheritedIssue = asset && asset.kind !== "component"
+          ? curtainWallPanelIssue(asset.kind, asset.attrs)
+          : undefined;
+        const unchanged = asset?.attrs["style"] === o.attrs["style"] && asset?.attrs["panels"] === o.attrs["panels"];
+        if (!(inheritedIssue === panelIssue && unchanged)) {
+          emit("OPN10", panelIssue, { line: o.line, file: b.file, path: [b.a, b.b] });
+        }
+      }
+    }
     const placed = placeOpening(model, b, o);
     if ("error" in placed && placed.error) {
       emit(placed.code, placed.message, { line: placed.line, file: placed.file, path: [b.a, b.b] });

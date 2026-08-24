@@ -1,0 +1,8 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/cmp.md",
+  "docs/reference/muro/asset.md",
+  "docs/reference/muro/area.md"
+ ],
+ "why": "A component drawing reference is resolved from its source layer. CMP01 rejects a non-relative plan-svg reference so moving or composing the model cannot silently change what file it names."
+}

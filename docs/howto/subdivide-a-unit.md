@@ -19,7 +19,7 @@ File paths in the output below are absolute when you actually run these commands
 Keep the dwelling's `space` line and add child spaces, and parent and children overlap.
 
 ```muro-bad
-muro 1.4
+muro 1.5
 name Subdividing a dwelling
 unit mm
 
@@ -100,7 +100,7 @@ boundary /L3/A/hall /L3/corridor t:180 spec:RC
 ## Check it
 
 ```muro
-muro 1.4
+muro 1.5
 name Subdividing a dwelling
 unit mm
 

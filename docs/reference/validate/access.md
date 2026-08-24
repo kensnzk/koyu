@@ -36,7 +36,7 @@ Every rule here stands on one definition.
 A space with a region cannot reach an `outside:1` space along passable boundaries.
 
 ```muro-fail
-muro 1.4
+muro 1.5
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -48,7 +48,6 @@ boundary /L1/a /out t:150
 ```text
 ✖ [koyu.schematic.access.unreachable] main.muro:line 6: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
 Validation — 1 violation / 0 cautions
-  koyu.profile.schematic-screen@1 — 2 evaluated / 14 not applicable / 0 indeterminate / 0 error
 ```
 
 The wall to the outside was written. There is no opening in it. **What is asked is reachability, not the presence of a door** — a door into a dead end still leads nowhere.
@@ -60,7 +59,7 @@ It is a violation because there is no reading of architecture in which a room yo
 **Fix** — write a `door` somewhere along the route out. A boundary to the outside has several segments, so pick one with `edge:N/E/S/W`.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -79,7 +78,7 @@ To find where the chain breaks, [`koyu doors`](../cli/doors.md) answers with the
 The space has passable boundaries, and every one of them leads to a space declaring `void:1`.
 
 ```muro-fail
-muro 1.4
+muro 1.5
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -94,7 +93,6 @@ boundary /L1/a /out
 ```text
 ✖ [koyu.schematic.access.voidonly] main.muro:line 6: Doors open only onto a void: /L1/a (they open where there is no floor, so nobody can pass)
 Validation — 1 violation / 0 cautions
-  koyu.profile.schematic-screen@1 — 1 evaluated / 15 not applicable / 0 indeterminate / 0 error
 ```
 
 A void is continuous as space but **has no floor**. The door opens onto a hole: you go through it and arrive nowhere. It happens when units are lined up facing an atrium and the boundary to the corridor is forgotten. The flagship example carried twenty of them while green.
@@ -104,7 +102,7 @@ This rule does not care whether an exterior exists. It also does not fire on a s
 **Fix** — write a door to a neighbour that has a floor (a corridor, a stair). If the edge onto the void really is open, it is a place to **look down from**, not to walk through: make it an `air:1` wall (a railing) rather than `type:open`.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 4000 8000
 grid Y 0 5000
 level L1 0 h:2700 slab:150
@@ -123,7 +121,7 @@ boundary /L1/a /out
 Every route out of a space whose type is `stair` passes through a `lease.category:rentable` space.
 
 ```muro-caution
-muro 1.4
+muro 1.5
 grid X 0 3000 9000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -140,7 +138,6 @@ boundary /L1/s /out t:150
 ```text
 ⚠ [koyu.schematic.access.throughtenant] main.muro:line 6: Escape from /L1/s passes through rentable space (if the tenant locks up, there is no way out)
 Validation — 0 violations / 1 caution
-  koyu.profile.schematic-screen@1 — 5 evaluated / 11 not applicable / 0 indeterminate / 0 error
 ```
 
 **The moment the tenant locks up, that stair stops being an escape.** `lease.category:` resolves through the zones above a space, so the judgement applies even when the individual units do not carry it, as long as a parent zone says `lease.category:rentable`.
@@ -158,7 +155,7 @@ A space typed `parking` or `ramp` cannot reach the outside along car-passable bo
 **The population is the type position, not a key.** Where cars belong is the room's purpose, and that is what the type says; a key would be a second place to write the same fact.
 
 ```muro-fail
-muro 1.4
+muro 1.5
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -171,7 +168,6 @@ boundary /L1/p /out
 ```text
 ✖ [koyu.schematic.access.parking] main.muro:line 6: No vehicle route to the exterior: /L1/p (needs an opening at least 2400mm wide, a type:open boundary, or a ramp)
 Validation — 1 violation / 0 cautions
-  koyu.profile.schematic-screen@1 — 5 evaluated / 11 not applicable / 0 indeterminate / 0 error
 ```
 
 **People get out through a 900mm door and a stair, so [`koyu.schematic.access.unreachable`](#access-unreachable) never sees this.** That is why parking is asked with a different traveller.
@@ -179,7 +175,7 @@ Validation — 1 violation / 0 cautions
 **Fix** — make the vehicle opening `door w:2400` or wider, or make the boundary `type:open`. For parking above or below grade, write `ramp:` on the ramp space and join the levels with `stack` — that vertical link is the only way a car changes level.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:150
@@ -196,7 +192,7 @@ boundary /L1/p /out
 A `lease.category:common` space declaring a vertical run (`stair:` / `escalator:`) cannot be reached from a common corridor without crossing a space whose type is `backyard`.
 
 ```muro-caution
-muro 1.4
+muro 1.5
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
@@ -220,7 +216,6 @@ boundary /L2/e /out
 ```text
 ⚠ [koyu.schematic.access.backofhouse] main.muro:line 8: /L1/e cannot be reached from a common corridor without passing through back-of-house (visitors cannot use this vertical circulation)
 Validation — 0 violations / 1 caution
-  koyu.profile.schematic-screen@1 — 5 evaluated / 11 not applicable / 0 indeterminate / 0 error
 ```
 
 A common vertical run belongs to the customer's route. If reaching its foot means crossing the back of house, no customer rides it.
@@ -234,7 +229,7 @@ A common vertical run belongs to the customer's route. If reaching its foot mean
 **Fix** — move it where the common corridor reaches it directly, or write a door between it and the corridor. If it really is for staff, drop `lease.category:common`.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 3000 6000 9000
 grid Y 0 8000
 level L1 0 h:2700 slab:300

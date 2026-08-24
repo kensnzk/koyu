@@ -38,27 +38,78 @@
 <path d="M 162.75 130.25 L 344 130.25 L 344 137.75 L 162.75 137.75 Z" fill="#1f1f1f"/>
 <path d="M 155.25 501.75 L 155.25 357.25 L 162.75 357.25 L 162.75 501.75 Z" fill="#1f1f1f"/>
 <path d="M 155.25 274.75 L 155.25 130.25 L 162.75 130.25 L 162.75 274.75 Z" fill="#1f1f1f"/>
-<line x1="598" y1="498" x2="598" y2="84" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="598" y1="698" x2="598" y2="498" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="523" y1="84" x2="598" y2="84" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="159" y1="84" x2="523" y2="84" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="84" y1="84" x2="159" y2="84" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="84" y1="698" x2="318.5" y2="698" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="363.49999999999994" y1="698" x2="598" y2="698" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="84" y1="698" x2="84" y2="498" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="84" y1="498" x2="84" y2="84" stroke="#1f1f1f" stroke-width="1.4"/>
+<g class="boundary-rail">
+<line x1="598" y1="498" x2="598" y2="84" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="598" cy="498" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="598" cy="84" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="598" y1="698" x2="598" y2="498" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="598" cy="698" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="598" cy="498" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="523" y1="84" x2="598" y2="84" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="523" cy="84" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="598" cy="84" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="159" y1="84" x2="523" y2="84" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="159" cy="84" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="523" cy="84" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="84" y1="84" x2="159" y2="84" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="84" cy="84" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="159" cy="84" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="84" y1="698" x2="318.5" y2="698" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="84" cy="698" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="318.5" cy="698" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="363.49999999999994" y1="698" x2="598" y2="698" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="363.49999999999994" cy="698" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="598" cy="698" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="84" y1="698" x2="84" y2="498" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="84" cy="698" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="84" cy="498" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="84" y1="498" x2="84" y2="84" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="84" cy="498" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="84" cy="84" r="1.45" fill="#1f1f1f"/>
+</g>
 <line x1="523" y1="498" x2="598" y2="498" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>
 <line x1="523" y1="134" x2="523" y2="84" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>
 <line x1="84" y1="498" x2="159" y2="498" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>
 <line x1="159" y1="134" x2="159" y2="84" stroke="#b3ab9c" stroke-width="1" stroke-dasharray="6 4"/>
-<line x1="346.5" y1="285" x2="346.5" y2="245" stroke="#1f1f1f" stroke-width="2"/>
-<line x1="346.5" y1="245" x2="341" y2="245" stroke="#1f1f1f" stroke-width="0.7"/>
-<line x1="523" y1="247.5" x2="478" y2="247.5" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 478 247.5 A 45 45 0 0 1 523 202.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="276" y1="498" x2="406" y2="498" stroke="#1f1f1f" stroke-width="1"/>
-<line x1="159" y1="357.25" x2="159" y2="274.75" stroke="#1f1f1f" stroke-width="1"/>
-<line x1="318.5" y1="698" x2="318.5" y2="653" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 318.5 653 A 45 45 0 0 1 363.5 698" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<g class="opening-slide-panel">
+<line x1="347" y1="245" x2="347" y2="205" stroke="#1f1f1f" stroke-width="1.2"/>
+</g>
+<g class="opening-slide-centre">
+<line x1="344" y1="225" x2="350" y2="225" stroke="#1f1f1f" stroke-width="0.7"/>
+</g>
+<g class="opening-slide-guide">
+<line x1="347" y1="285" x2="347" y2="245" stroke="#1f1f1f" stroke-width="0.65" stroke-dasharray="5 3"/>
+</g>
+<line x1="523" y1="247.5" x2="478" y2="247.5" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 478 247.5 A 45 45 0 0 1 523 202.5" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<g class="opening-window">
+<path d="M 276 494.25 L 406 494.25 M 276 501.75 L 406 501.75" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
+<g class="opening-window">
+<path d="M 155.25 357.25 L 155.25 274.75 M 162.75 357.25 L 162.75 274.75" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
+<g class="opening-gate-post">
+<line x1="318.5" y1="703" x2="318.5" y2="693" stroke="#1f1f1f" stroke-width="2"/>
+<line x1="363.5" y1="703" x2="363.5" y2="693" stroke="#1f1f1f" stroke-width="2"/>
+</g>
+<line x1="318.5" y1="698" x2="318.5" y2="653" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 318.5 653 A 45 45 0 0 1 363.5 698" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
 <text x="432" y="221" text-anchor="middle" font-size="14" fill="#1f1f1f">玄関・階段</text>
 <text x="432" y="238" text-anchor="middle" font-size="10" fill="#8a8171">hall · 13.25 m2</text>
 <text x="432" y="252" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/home/hall1</text>

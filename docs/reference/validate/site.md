@@ -24,7 +24,7 @@ Coverage and floor-area ratios are numbers, so [`koyu site`](../cli/site.md) ret
 A space with a region lies outside the site polygon.
 
 ```muro-fail
-muro 1.4
+muro 1.5
 grid X 0 10000 14000
 grid Y 0 10000
 level L1 0 h:2400 slab:150
@@ -39,7 +39,6 @@ boundary /L1/a /out
 ```text
 ✖ [koyu.schematic.site.escape] main.muro:line 8: /L1/a escapes the site shape (near 14000,0)
 Validation — 1 violation / 0 cautions
-  koyu.profile.schematic-screen@1 — 1 evaluated / 15 not applicable / 0 indeterminate / 0 error
 ```
 
 The polygon stops at X = 10000, while `/L1/a` occupies X2..X3 = 10000..14000.
@@ -61,7 +60,7 @@ The message prints the coordinates of the first escaping point found. One space 
 The zone's `area:` (a transcription of the survey) and the area computed from the `polygon` differ by **0.05 m² or more**.
 
 ```muro-caution
-muro 1.4
+muro 1.5
 grid X 0 10000
 grid Y 0 10000
 level L1 0 h:2400 slab:150
@@ -73,7 +72,6 @@ space /site/yard yard X1..X2 Y1..Y2 level:L1
 ```text
 ⚠ [koyu.schematic.site.area] main.muro:line 5: Declared and derived site areas disagree: declared 120 m2 / derived 100.00 m2 (/site)
 Validation — 0 violations / 1 caution
-  koyu.profile.schematic-screen@1 — 1 evaluated / 15 not applicable / 0 indeterminate / 0 error
 ```
 
 A 10 m square polygon is 100 m², but `area:` says 120.00. **One fact is written in two places, and the two disagree.** Either a mistyped vertex, a transcription error in `area:`, or a survey update that reached only one of them.
@@ -101,7 +99,7 @@ Site /site (敷地)
 The boundary segments between an exterior space carrying `road:` (its width in mm) and the spaces under the site zone total less than **2000mm**.
 
 ```muro-fail
-muro 1.4
+muro 1.5
 grid X 0 1500 10000
 grid Y 0 10000 11000
 level L1 0 h:2700 slab:150
@@ -115,7 +113,6 @@ boundary /site/yard /out/road-n type:open
 ```text
 ✖ [koyu.schematic.site.frontage] main.muro:line 8: Road frontage is 1500mm, under the 2000mm this pack screens for: /out/road-n (widen the frontage onto the road)
 Validation — 1 violation / 0 cautions
-  koyu.profile.schematic-screen@1 — 3 evaluated / 13 not applicable / 0 indeterminate / 0 error
 ```
 
 The road meets the site over X1..X2 = 0..1500 only. What is measured is the length of the boundary segments, not the road's own width (`road:4000`).
@@ -129,7 +126,7 @@ The 2 m floor is a rule on the architectural side. The frontage length itself is
 **Fix** — write the boundary that faces the road. In the example, correct the width over which the site meets the road (X1..X2) to the real one.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 4000 10000
 grid Y 0 10000 11000
 level L1 0 h:2700 slab:150

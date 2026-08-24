@@ -140,7 +140,7 @@ stack e L1..L2 type:stair
   assert.ok(dn.y2 < dn.y1, "DN points against the ascending slope");
   const up = d!.arrows.find((a) => a.up)!;
   assert.ok(up.y2 > up.y1);
-  // 切断線は跨いだ台ごとに一本 (作図慣習の二本の斜線は描画側が引く — ADR-0040)
+  // Form carries one crossing per unit; the drawing side turns each into its zigzag convention.
   assert.equal(d!.breaks.length, 2, "one crossing per unit");
   // 切断線は台の幅の中に収まる (一台の位置を全台へ配っていない)
   for (const b of d!.breaks) assert.ok(Math.abs(b.x2 - b.x1) <= 1200 + 1);

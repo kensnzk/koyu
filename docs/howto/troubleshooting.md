@@ -5,7 +5,7 @@ mode: howto
 
 # Common traps
 
-**There are thirteen.** These are what people hit when they start writing, worked through from cause to fix.
+These are what people hit when they start writing, worked through from cause to fix.
 
 If all you want is to look up a message, [Look up a diagnostic by symptom](by-symptom.md) is the index. This page is where it sends you.
 
@@ -251,7 +251,7 @@ The exit code is 2 and the declared level names are printed alongside. `koyu lev
 Between touching spaces, a **wall with no door** is derived when nothing is declared. **Doors are never added automatically.** A two-storey house with only the envelope and the stair declared seals every room while `check` stays green.
 
 ```muro
-muro 1.4
+muro 1.5
 name 密封された二室
 unit mm
 grid X 0 3600 7200
@@ -306,7 +306,7 @@ boundary /L1/a /L1/b t:120 spec:LGS
 **Every side of a space is a wall unless something says otherwise, the outside included.** What silence cannot supply is *which* outside — street, neighbour, garden — and that decides frontage, daylight and specification. So the wall is derived and [BND08](../reference/diagnostics/bnd.md#bnd08) asks for the name.
 
 ```muro-warn
-muro 1.4
+muro 1.5
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150

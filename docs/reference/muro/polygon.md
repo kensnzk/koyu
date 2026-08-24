@@ -30,7 +30,7 @@ The first positional argument is the path of a [zone](zone.md). Where that zone 
 ```
 
 ```muro
-muro 1.4
+muro 1.5
 name 敷地の最小例
 unit mm
 grid X 0 8000
@@ -84,7 +84,7 @@ The `site` question still answers without a `polygon` — the site area is then 
 ✖ The site shape is self-intersecting (near 5000,3500)
 ```
 
-**Judgements about the building's relation to the site** live on the other side, as two rules of `koyu validate`.
+**Judgements about the building's relation to the site** live on the other side, as rules of `koyu validate`.
 
 | Rule | Level | What it says |
 |---|---|---|

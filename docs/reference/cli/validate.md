@@ -35,7 +35,6 @@ npx tsx src/cli.ts validate examples/house/main.muro --profile koyu.profile.sche
 
 ```text
 ✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)
-  koyu.profile.schematic-screen@1 — 7 evaluated / 9 not applicable / 0 indeterminate / 0 error
 ```
 
 The second line is the accounting. **A rule that never applied and a rule that could not run are not passes**, so they are counted separately rather than folded into the silence.
@@ -51,7 +50,6 @@ npx tsx src/cli.ts validate sealed.muro --profile koyu.profile.schematic-screen 
 ✖ [koyu.schematic.access.unreachable] <absolute path>/sealed.muro:line 6: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
 ✖ [koyu.schematic.access.unreachable] <absolute path>/sealed.muro:line 7: Cannot reach the exterior: /L1/b (no passable boundary leads out — write a door)
 Validation — 3 violations / 0 cautions
-  koyu.profile.schematic-screen@1 — 4 evaluated / 12 not applicable / 0 indeterminate / 0 error
 ```
 
 That `sealed.muro` is a file [`koyu check`](check.md) returns green for. The two commands look at different things.
@@ -146,7 +144,7 @@ A file that could not be read exits 1, with a single `✖` on stderr. `--json` d
 Here is the cautions-only exit code for real.
 
 ```muro-caution
-muro 1.4
+muro 1.5
 grid X 0 4500
 grid Y 0 3600
 level L1 0 h:2400 slab:150
@@ -165,7 +163,6 @@ npx tsx src/cli.ts validate caution.muro --profile koyu.profile.schematic-screen
 ```text
 ⚠ [koyu.schematic.daylight.unknown] <absolute path>/caution.muro:line 5: Window area is not fully counted: /L1/a has a window without h: (write h: on it)
 Validation — 0 violations / 1 caution
-  koyu.profile.schematic-screen@1 — 5 evaluated / 10 not applicable / 0 indeterminate / 0 error
 ```
 
 The exit code is 0. **To fail CI on cautions too, read `--json` and count them yourself.** There is no `validate` equivalent of `check --strict`.
@@ -177,7 +174,7 @@ The exit code is 0. **To fail CI on cautions too, read `--json` and count them y
 | Returned type | `Diagnostic` | `AssessmentReport` |
 | Name | `code` (`BND04` — three letters and two digits) | `rule` (`koyu.schematic.access.unreachable` — a namespaced id) |
 | Weight | `severity`: `error` / `warning` | `level`: `violation` / `caution` |
-| Count | 70 codes | 15 rules |
+| Population | The diagnostic ledger | The validation rule ledger |
 | Grounds | none needed | a profile and a date, always explicit |
 | What it guarantees | That what is written holds together as data | **Nothing — it is a judgement** |
 | Nature of the surface | Frozen. Adding or removing moves the language version | Not frozen. May grow, may be discarded |
@@ -189,7 +186,7 @@ Adding a judgement does not move the language version. The `validate` surface is
 ## See also
 
 - [koyu check](check.md) — the structural-consistency gate
-- [Validation rules](../validate/index.md) — thresholds and fixes for all 16
+- [Validation rules](../validate/index.md) — thresholds and fixes
 - [koyu light](light.md) — the daylight inputs as numbers (the 1/7 test lives here, not there)
 - [koyu doors](doors.md) — checking reachability as a route
 - [Gating CI](ci.md) — what a check-only CI stops looking at

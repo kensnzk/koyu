@@ -142,7 +142,12 @@ The trace is a quarter circle centred on the hinge with **radius equal to the op
 swing: { into: "/L1/b", hinge: {...}, leaf: {...}, jamb: {...}, ccw: false }
 ```
 
-An opening with `style:sliding` or `style:auto` has **no trace** — it retracts towards the hinge side. `FormOpening.sliding` is set.
+An opening with a sliding, automatic, entrance, sliding-gate, projecting or curtain-wall style has **no swing
+trace**. `FormOpening.sliding` is set to tell plan consumers not to read the directional fact as a
+quarter-circle arc. Hinged door and window styles carry the trace.
+
+`FormOpening.panels` carries the equal panel count written for a curtain wall. It is absent when
+`panels:` is omitted; plan marks read the absence as one panel and invent no interior division.
 
 ## Columns
 

@@ -20,7 +20,7 @@ This page is the one table of defaults. How values are written is in [the three 
 ## The smallest file
 
 ```muro-warn
-muro 1.4
+muro 1.5
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -40,7 +40,7 @@ Nothing was written about the perimeter, so the perimeter is a wall — the plan
 The warning is not about the shape, which is complete. It is about the one thing silence could not supply: **which** outside those four faces look at. Say it and the warning goes.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -53,7 +53,7 @@ boundary /L1/a /out
 
 | Written nothing | What happens |
 |---|---|
-| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.4` to opt into current semantics → [the version line](version.md) |
+| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.5` to opt into current semantics → [the version line](version.md) |
 | `unit mm` | mm. v0 has no other unit |
 | `name` | the building has no name |
 | `grid X` / `grid Y` | **no grid reference can be written at all.** Any line with a region stops with `Undefined grid line name` |
@@ -106,7 +106,8 @@ boundary /L1/a /out
 | `at:` | the ratio `0.5` — the middle of the segment. Clamped to fit |
 | `hinge:` | the start end of the segment (west on a horizontal one, south on a vertical one). Pinned to the start on a diagonal |
 | `swing:` | opens toward `a` if a has a region, otherwise toward `b` |
-| `style:` | `hinged` |
+| `style:` on a door | `hinged` |
+| `style:` on a window | no operation mark — the two unfilled wall-face lines remain a general window |
 | `h:` on a door | it rises from the floor to a head height of 2000 mm |
 | `h:` on anything else | 1200 mm tall, with its head at 2000 mm |
 | `name:` | it has no name. **Composition can no longer point at it** — there is nothing for `= window W1` to find |
@@ -177,7 +178,7 @@ Riser count, tread and slope are never written. **What is written is the region 
 **Because the default between touching spaces is a wall, a two-storey building with no door declared anywhere is completely sealed — and green.**
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -200,7 +201,6 @@ Saying that it has no door is a different face (the location prefix is the resol
 ✖ [koyu.schematic.access.unreachable] …/sealed.muro:line 6: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
 ✖ [koyu.schematic.access.unreachable] …/sealed.muro:line 7: Cannot reach the exterior: /L2/a (no passable boundary leads out — write a door)
 Validation — 2 violations / 0 cautions
-  koyu.profile.schematic-screen@1 — 2 evaluated / 14 not applicable / 0 indeterminate / 0 error
 ```
 
 What `check` says goes exactly as far as "what was written does not contradict itself as data". **Never claim it works on the strength of green.**

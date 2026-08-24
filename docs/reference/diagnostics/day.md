@@ -5,7 +5,7 @@ mode: reference
 
 # DAY — the daylight scope
 
-There is only one DAY code.
+The DAY entries in the diagnostic ledger are listed below.
 
 | Code | Severity | What it says |
 |---|---|---|

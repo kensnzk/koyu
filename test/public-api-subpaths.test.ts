@@ -141,6 +141,7 @@ const cases: SurfaceCase[] = [
       "SectionSubject",
       "FormBoundary",
       "FormColumn",
+      "FormComponent",
       "FormInput",
       "FormLevel",
       "FormOpening",

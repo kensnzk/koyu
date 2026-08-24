@@ -1,6 +1,6 @@
 // An outside rule pack, written against nothing but the published entry points.
 //
-// The claim ADR-0053 makes is that koyu's own sixteen rules get no privileged path: somebody
+// The claim ADR-0053 makes is that koyu's built-in rules get no privileged path: somebody
 // else's pack uses the same SPI, reuses koyu's analyses, and composes alongside the built-ins
 // without either one contaminating the other. This file is that claim, executed.
 //

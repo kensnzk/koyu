@@ -5,7 +5,7 @@ mode: reference
 
 # Reading — model_summary / layers / spaces / canonical_json
 
-Four tools that only read. **None of them writes anything.** Each takes `file`, the path of the entry `.muro`, and composes from scratch on every call.
+These tools only read. **None of them writes anything.** Each takes `file`, the path of the entry `.muro`, and composes from scratch on every call.
 
 Every piece of output on this page was obtained by actually running it. Absolute paths are shortened to `<abs>`.
 
@@ -22,7 +22,7 @@ Every piece of output on this page was obtained by actually running it. Absolute
 
 ## model_summary
 
-> Summary of the building: name, levels, layer composition, zones, door/window assets, areas, and check counts. Call this first. Pass by:["lease.category"] to also get floor area grouped by those attribute keys
+> Summary of the building: name, levels, layer composition, zones, reusable assets, placed components, areas, and check counts. Call this first. Pass by:["lease.category"] to also get floor area grouped by those attribute keys
 
 ```json
 {"name": "model_summary", "arguments": {"file": "<abs>/examples/two-rooms.muro"}}
@@ -91,7 +91,8 @@ Pass `by` and one `byM2` entry appears per key.
 | `spaces` | How many spaces (including region-less spaces, `exterior` and `void`) |
 | `boundaries` | How many boundaries **after derivation** |
 | `zones` | `path`, `name` (only when written), `site: true` (only for the site zone), `areaM2` |
-| `assets` | Each door/window asset's `name`, `kind` (`door` or `window`) and all its `attrs` |
+| `assets` | Each reusable asset's `name`, `kind` (`door`, `window` or `component`) and all its `attrs` |
+| `componentPlacements` | Each placed component's host `space`, host `area`, `asset`, `level`, resolved `centre` and `rotation`. **Absent when none are placed** |
 | `totalFloorM2` | Indoor floor area |
 | `semiOutdoorM2` | Semi-outdoor area. **Not part of the floor area** |
 | `floorsM2` | `{rooms, subtotalM2}` per level |
@@ -174,7 +175,7 @@ Take these two files.
 
 ```muro-part
 # main.muro — entry
-muro 1.4
+muro 1.5
 name 二層
 unit mm
 

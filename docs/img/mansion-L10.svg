@@ -66,29 +66,61 @@
 <path d="M 499 389 L 499 249 L 509 249 L 509 389 Z" fill="#1f1f1f"/>
 <path d="M 499.5 249 L 499.5 79.5 L 508.5 79.5 L 508.5 249 Z" fill="#1f1f1f"/>
 <path d="M 508.5 79.5 L 637 79.5 L 637 88.5 L 508.5 88.5 Z" fill="#1f1f1f"/>
-<line x1="84" y1="504" x2="214" y2="504" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="84" y1="384" x2="214" y2="384" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="84" y1="504" x2="84" y2="384" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="214" y1="84" x2="504" y2="84" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="214" y1="384" x2="214" y2="84" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="481.5" y1="474" x2="481.5" y2="519" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 481.5 519 A 45 45 0 0 0 526.5 474" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="294" y1="774" x2="424" y2="774" stroke="#1f1f1f" stroke-width="1"/>
-<line x1="584" y1="774" x2="714" y2="774" stroke="#1f1f1f" stroke-width="1"/>
-<line x1="916.5" y1="474" x2="916.5" y2="519" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 916.5 519 A 45 45 0 0 0 961.5 474" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="874" y1="774" x2="1004" y2="774" stroke="#1f1f1f" stroke-width="1"/>
-<line x1="836.5" y1="384" x2="836.5" y2="339" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 836.5 339 A 45 45 0 0 1 881.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="1084" y1="275.25" x2="1084" y2="192.75" stroke="#1f1f1f" stroke-width="1"/>
-<line x1="794" y1="84" x2="924" y2="84" stroke="#1f1f1f" stroke-width="1"/>
-<line x1="546.5" y1="384" x2="546.5" y2="429" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 546.5 429 A 45 45 0 0 0 591.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="214" y1="451.5" x2="259" y2="451.5" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 259 451.5 A 45 45 0 0 0 214 406.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="336.5" y1="384" x2="336.5" y2="429" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 336.5 429 A 45 45 0 0 0 381.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="1084" y1="459" x2="1084" y2="399" stroke="#1f1f1f" stroke-width="1"/>
+<g class="boundary-rail">
+<line x1="84" y1="504" x2="214" y2="504" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="84" cy="504" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="214" cy="504" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="84" y1="384" x2="214" y2="384" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="84" cy="384" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="214" cy="384" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="84" y1="504" x2="84" y2="384" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="84" cy="504" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="84" cy="384" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="214" y1="84" x2="504" y2="84" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="214" cy="84" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="504" cy="84" r="1.45" fill="#1f1f1f"/>
+</g>
+<g class="boundary-rail">
+<line x1="214" y1="384" x2="214" y2="84" stroke="#1f1f1f" stroke-width="1.1"/>
+<circle class="boundary-rail-post" cx="214" cy="384" r="1.45" fill="#1f1f1f"/>
+<circle class="boundary-rail-post" cx="214" cy="84" r="1.45" fill="#1f1f1f"/>
+</g>
+<line x1="481.5" y1="474" x2="481.5" y2="519" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 481.5 519 A 45 45 0 0 0 526.5 474" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<g class="opening-window">
+<path d="M 294 769.5 L 424 769.5 M 294 778.5 L 424 778.5" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
+<g class="opening-window">
+<path d="M 584 769.5 L 714 769.5 M 584 778.5 L 714 778.5" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
+<line x1="916.5" y1="474" x2="916.5" y2="519" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 916.5 519 A 45 45 0 0 0 961.5 474" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<g class="opening-window">
+<path d="M 874 769.5 L 1004 769.5 M 874 778.5 L 1004 778.5" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
+<line x1="836.5" y1="384" x2="836.5" y2="339" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 836.5 339 A 45 45 0 0 1 881.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<g class="opening-window">
+<path d="M 1079.5 275.25 L 1079.5 192.75 M 1088.5 275.25 L 1088.5 192.75" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
+<g class="opening-window">
+<path d="M 794 79.5 L 924 79.5 M 794 88.5 L 924 88.5" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
+<line x1="546.5" y1="384" x2="546.5" y2="429" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 546.5 429 A 45 45 0 0 0 591.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="214" y1="451.5" x2="259" y2="451.5" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 259 451.5 A 45 45 0 0 0 214 406.5" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="336.5" y1="384" x2="336.5" y2="429" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 336.5 429 A 45 45 0 0 0 381.5 384" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<g class="opening-window">
+<path d="M 1079.5 459 L 1079.5 399 M 1088.5 459 L 1088.5 399" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
 <text x="504" y="620" text-anchor="middle" font-size="14" fill="#1f1f1f">PH-A</text>
 <text x="504" y="637" text-anchor="middle" font-size="10" fill="#8a8171">unit · 69.6 m2</text>
 <text x="504" y="651" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L10/1001</text>

@@ -5,7 +5,7 @@ mode: reference
 
 # The koyu command
 
-`koyu` takes one `.muro` file, composes it, and answers a question about it. All 16 subcommands share the same derivations; the CLI, the MCP server, and the public API are different entrances to the same answers.
+`koyu` takes one `.muro` file, composes it, and answers a question about it. Every subcommand shares the same derivations; the CLI, the MCP server, and the public API are different entrances to the same answers.
 
 ## Running it
 
@@ -72,10 +72,6 @@ Never letting a calling mistake pass with exit 0 is deliberate. Handing in an un
 npx tsx src/cli.ts --version
 ```
 
-```text
-koyu 0.27.0 — reads muro 0.1–1.4 (newest 1.4; a file with no version line is read as 1.1)
-```
-
 The exit code is `0` — it is an answer, not a calling mistake.
 
 **Read it as three facts, and note that the last two are separate.** The first number is this implementation. `reads` is every language version it accepts, so a file declaring one of those opens here. `newest` is the version to declare to get everything the language has.
@@ -102,7 +98,7 @@ Usage: koyu <check|validate|layers|diff|plan|axo|section|elevation|doors|graph|s
   diff:  koyu diff <a.muro> <b.muro> [--json] — the difference in the language of composition (0=no difference / 1=differences / 2=the input is broken)
 ```
 
-**That usage text is not exhaustive.** It mentions four subcommands only. [`plan`](plan.md)'s `-l` / `-o`, [`axo`](axo.md)'s six flags, and [`doors`](doors.md)'s two path arguments are all absent from it. Each command's page below writes out every flag it has.
+**That usage text is not exhaustive.** [`plan`](plan.md)'s `-l` / `-o`, [`axo`](axo.md)'s flags, and [`doors`](doors.md)'s path arguments are absent from it. Each command's page below writes out every flag it has.
 
 An unknown subcommand is also exit 2.
 
@@ -114,7 +110,7 @@ npx tsx src/cli.ts frobnicate examples/two-rooms.muro
 Unknown command: frobnicate
 ```
 
-## The 16 subcommands
+## Subcommands
 
 | Command | What it answers | Flags | Exit codes |
 |---|---|---|---|

@@ -5,7 +5,7 @@ mode: reference
 
 # SYN — syntax and composition
 
-There is only one SYN code.
+The SYN entries in the diagnostic ledger are listed below.
 
 | Code | Severity | What it says |
 |---|---|---|
@@ -105,7 +105,7 @@ Openings, `seg` and `line` are written **indented** under a boundary; `area` and
 
 | Body | Cause | Fix |
 |---|---|---|
-| `Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4)` | A version that does not exist | Use one the parser accepts |
+| `Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5)` | A version that does not exist | Use one the parser accepts |
 | `The koyu version is declared only in the base layer (the entry)` | A version in an imported layer | Move it to the base layer |
 | `The koyu version is declared once (already 1.0)` | The version written twice | Delete one |
 | `Cannot read file: ./assets.muro` | The `import`'s relative path is wrong | A path is resolved **relative to the file it is written in** |
@@ -133,7 +133,7 @@ The [validation](../validate/index.md) face does read a few type words when it j
 
 ## The real work starts once syntax passes
 
-SYN01 disappearing means only that the file became a model. From there the semantic checks — the other 67 codes — run.
+SYN01 disappearing means only that the file became a model. From there the remaining semantic checks run.
 
 ```sh
 koyu check house.muro --strict

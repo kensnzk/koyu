@@ -50,10 +50,10 @@
 <path d="M 890.25 527.75 L 1020.25 527.75 L 1020.25 540.25 L 890.25 540.25 Z" fill="#1f1f1f"/>
 <path d="M 1771.5 871.5 L 1771.5 527.75 L 1796.5 527.75 L 1796.5 871.5 Z" fill="#1f1f1f"/>
 <path d="M 884 871.5 L 1796.5 871.5 L 1796.5 896.5 L 884 896.5 Z" fill="#1f1f1f"/>
-<line x1="884" y1="204" x2="824" y2="204" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 824 204 A 60 60 0 0 1 884 144" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="884" y1="421.5" x2="839" y2="421.5" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 839 421.5 A 45 45 0 0 1 884 376.5" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="884" y1="204" x2="824" y2="204" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 824 204 A 60 60 0 0 1 884 144" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="884" y1="421.5" x2="839" y2="421.5" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 839 421.5 A 45 45 0 0 1 884 376.5" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
 <path d="M 64 904 L 104 904 L 104 864 L 64 864 Z" fill="#1f1f1f"/>
 <path d="M 64 554 L 104 554 L 104 514 L 64 514 Z" fill="#1f1f1f"/>
 <path d="M 64 104 L 104 104 L 104 64 L 64 64 Z" fill="#1f1f1f"/>
@@ -77,12 +77,20 @@
 <line x1="1131.5" y1="521.5" x2="1026.5" y2="276.5" stroke="#1f1f1f" stroke-width="0.7"/>
 <line x1="939" y1="534" x2="1373.5945945945948" y2="534" stroke="#1f1f1f" stroke-width="1.1"/>
 <line x1="939" y1="709" x2="1373.5945945945948" y2="709" stroke="#1f1f1f" stroke-width="1.1"/>
-<line x1="1399.5945945945948" y1="534" x2="1369.5945945945948" y2="709" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="1377.5945945945948" y1="534" x2="1347.5945945945948" y2="709" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="946.5" y1="621.5" x2="1366.0945945945948" y2="621.5" stroke="#1f1f1f" stroke-width="1"/>
-<path d="M 1366.0945945945948 621.5 L 1345.0945945945948 611.5 L 1345.0945945945948 631.5 Z" fill="#1f1f1f"/>
-<text x="950.5" y="625.5" font-size="9" fill="#1f1f1f">UP</text>
-<text x="1334" y="751" text-anchor="middle" font-size="8" fill="#8a8171">勾配 1/7.2</text>
+<g class="run-break-zigzag">
+<line x1="1424.112743148687" y1="534" x2="1382.4352705915608" y2="606.1875" stroke="#1f1f1f" stroke-width="1.35"/>
+<line x1="1382.4352705915608" y1="606.1875" x2="1397.7477705915608" y2="615.0281759969661" stroke="#1f1f1f" stroke-width="1.35"/>
+<line x1="1397.7477705915608" y1="615.0281759969661" x2="1373.5945945945948" y2="621.5" stroke="#1f1f1f" stroke-width="1.35"/>
+<line x1="1373.5945945945948" y1="621.5" x2="1349.4414185976286" y2="627.9718240030339" stroke="#1f1f1f" stroke-width="1.35"/>
+<line x1="1349.4414185976286" y1="627.9718240030339" x2="1364.7539185976286" y2="636.8125" stroke="#1f1f1f" stroke-width="1.35"/>
+<line x1="1364.7539185976286" y1="636.8125" x2="1323.0764460405026" y2="709" stroke="#1f1f1f" stroke-width="1.35"/>
+</g>
+<g class="run-direction-arrow">
+<line x1="946.5" y1="621.5" x2="1366.0945945945948" y2="621.5" stroke="#1f1f1f" stroke-width="0.8"/>
+<circle class="run-direction-arrow-start" cx="946.5" cy="621.5" r="2.8" fill="#faf8f4" stroke="#1f1f1f" stroke-width="0.8"/>
+<path class="run-direction-arrow-head" d="M 1358.0945945945948 625 L 1366.0945945945948 621.5 L 1358.0945945945948 618" fill="none" stroke="#1f1f1f" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<text class="run-note" x="1334" y="751" text-anchor="middle" font-size="8" fill="#8a8171" stroke="#faf8f4" stroke-width="3" paint-order="stroke">slope 1/7.2</text>
 <line x1="884" y1="479" x2="884" y2="386.1253071253072" stroke="#1f1f1f" stroke-width="1.1"/>
 <line x1="949" y1="479" x2="949" y2="386.1253071253072" stroke="#1f1f1f" stroke-width="1.1"/>
 <line x1="884" y1="464" x2="949" y2="464" stroke="#1f1f1f" stroke-width="0.7"/>
@@ -91,21 +99,30 @@
 <line x1="884" y1="419" x2="949" y2="419" stroke="#1f1f1f" stroke-width="0.7"/>
 <line x1="884" y1="404" x2="949" y2="404" stroke="#1f1f1f" stroke-width="0.7"/>
 <line x1="884" y1="389" x2="949" y2="389" stroke="#1f1f1f" stroke-width="0.7"/>
-<line x1="884" y1="360.1253071253072" x2="949" y2="390.1253071253072" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="884" y1="382.1253071253072" x2="949" y2="412.1253071253072" stroke="#1f1f1f" stroke-width="1.4"/>
-<line x1="916.5" y1="471.5" x2="916.5" y2="393.6253071253072" stroke="#1f1f1f" stroke-width="1"/>
-<path d="M 916.5 393.6253071253072 L 906.5 414.6253071253072 L 926.5 414.6253071253072 Z" fill="#1f1f1f"/>
-<text x="920.5" y="475.5" font-size="9" fill="#1f1f1f">UP</text>
-<text x="949" y="441" text-anchor="middle" font-size="8" fill="#8a8171">21段 蹴上176/踏面300</text>
+<g class="run-break-zigzag">
+<line x1="884" y1="367.3614233766443" x2="910.8125" y2="382.84162746929115" stroke="#1f1f1f" stroke-width="1.35"/>
+<line x1="910.8125" y1="382.84162746929115" x2="914.0961796560159" y2="377.15412746929115" stroke="#1f1f1f" stroke-width="1.35"/>
+<line x1="914.0961796560159" y1="377.15412746929115" x2="916.5" y2="386.1253071253072" stroke="#1f1f1f" stroke-width="1.35"/>
+<line x1="916.5" y1="386.1253071253072" x2="918.9038203439841" y2="395.09648678132316" stroke="#1f1f1f" stroke-width="1.35"/>
+<line x1="918.9038203439841" y1="395.09648678132316" x2="922.1875" y2="389.40898678132316" stroke="#1f1f1f" stroke-width="1.35"/>
+<line x1="922.1875" y1="389.40898678132316" x2="949" y2="404.88919087397" stroke="#1f1f1f" stroke-width="1.35"/>
+</g>
+<line x1="884" y1="479" x2="949" y2="479" stroke="#1f1f1f" stroke-width="0.7"/>
+<g class="run-direction-arrow">
+<line x1="916.5" y1="479" x2="916.5" y2="386.1253071253072" stroke="#1f1f1f" stroke-width="0.8"/>
+<circle class="run-direction-arrow-start" cx="916.5" cy="479" r="2.8" fill="#faf8f4" stroke="#1f1f1f" stroke-width="0.8"/>
+<path class="run-direction-arrow-head" d="M 920 394.1253071253072 L 916.5 386.1253071253072 L 913 394.1253071253072" fill="none" stroke="#1f1f1f" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
 <line x1="1373.5945945945948" y1="534" x2="1609" y2="534" stroke="#1f1f1f" stroke-width="1.1"/>
 <line x1="1373.5945945945948" y1="709" x2="1609" y2="709" stroke="#1f1f1f" stroke-width="1.1"/>
 <line x1="1609" y1="534" x2="1784" y2="534" stroke="#1f1f1f" stroke-width="1.1"/>
 <line x1="1609" y1="884" x2="1784" y2="884" stroke="#1f1f1f" stroke-width="1.1"/>
 <line x1="939" y1="709" x2="1609" y2="709" stroke="#1f1f1f" stroke-width="1.1"/>
 <line x1="939" y1="884" x2="1609" y2="884" stroke="#1f1f1f" stroke-width="1.1"/>
-<line x1="946.5" y1="796.5" x2="1601.5" y2="796.5" stroke="#1f1f1f" stroke-width="1"/>
-<path d="M 1601.5 796.5 L 1580.5 786.5 L 1580.5 806.5 Z" fill="#1f1f1f"/>
-<text x="950.5" y="800.5" font-size="9" fill="#1f1f1f">DN</text>
+<g class="run-direction-arrow">
+<line x1="946.5" y1="796.5" x2="1601.5" y2="796.5" stroke="#1f1f1f" stroke-width="0.8"/>
+<path class="run-direction-arrow-head" d="M 1593.5 800 L 1601.5 796.5 L 1593.5 793" fill="none" stroke="#1f1f1f" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
 <line x1="884" y1="386.1253071253072" x2="884" y2="329" stroke="#1f1f1f" stroke-width="1.1"/>
 <line x1="949" y1="386.1253071253072" x2="949" y2="329" stroke="#1f1f1f" stroke-width="1.1"/>
 <line x1="884" y1="329" x2="884" y2="264" stroke="#1f1f1f" stroke-width="1.1"/>
@@ -123,9 +140,17 @@
 <line x1="949" y1="379" x2="1014" y2="379" stroke="#1f1f1f" stroke-width="0.7"/>
 <line x1="949" y1="362.3333333333333" x2="1014" y2="362.3333333333333" stroke="#1f1f1f" stroke-width="0.7"/>
 <line x1="949" y1="345.66666666666663" x2="1014" y2="345.66666666666663" stroke="#1f1f1f" stroke-width="0.7"/>
-<line x1="981.5" y1="471.5" x2="981.5" y2="336.5" stroke="#1f1f1f" stroke-width="1"/>
-<path d="M 981.5 336.5 L 971.5 357.5 L 991.5 357.5 Z" fill="#1f1f1f"/>
-<text x="985.5" y="475.5" font-size="9" fill="#1f1f1f">DN</text>
+<line x1="884" y1="329" x2="949" y2="329" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="949" y1="479" x2="1014" y2="479" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="949" y1="329" x2="1014" y2="329" stroke="#1f1f1f" stroke-width="0.7"/>
+<g class="run-direction-arrow">
+<line x1="916.5" y1="386.1253071253072" x2="916.5" y2="329" stroke="#1f1f1f" stroke-width="0.8"/>
+<line x1="916.5" y1="329" x2="916.5" y2="296.5" stroke="#1f1f1f" stroke-width="0.8"/>
+<line x1="916.5" y1="296.5" x2="981.5" y2="296.5" stroke="#1f1f1f" stroke-width="0.8"/>
+<line x1="981.5" y1="296.5" x2="981.5" y2="329" stroke="#1f1f1f" stroke-width="0.8"/>
+<line x1="981.5" y1="329" x2="981.5" y2="479" stroke="#1f1f1f" stroke-width="0.8"/>
+<path class="run-direction-arrow-head" d="M 978 471 L 981.5 479 L 985 471" fill="none" stroke="#1f1f1f" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
 <text x="1079" y="395" text-anchor="middle" font-size="14" fill="#1f1f1f">EV</text>
 <text x="1079" y="412" text-anchor="middle" font-size="10" fill="#8a8171">shaft · 14.04 m2</text>
 <text x="1079" y="426" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/B1/ev</text>
@@ -138,8 +163,5 @@
 <text x="1334" y="705" text-anchor="middle" font-size="14" fill="#1f1f1f">車路</text>
 <text x="1334" y="722" text-anchor="middle" font-size="10" fill="#8a8171">ramp · 126 m2</text>
 <text x="1334" y="736" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/B1/ramp</text>
-<text x="949" y="395" text-anchor="middle" font-size="14" fill="#1f1f1f">避難階段</text>
-<text x="949" y="412" text-anchor="middle" font-size="10" fill="#8a8171">stair · 14.04 m2</text>
-<text x="949" y="426" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/B1/st</text>
 <text x="22" y="950" font-size="12" fill="#1f1f1f">地下駐車場 — 縦動線の最小例 — B1 plan</text>
 </svg>

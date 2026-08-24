@@ -56,12 +56,15 @@ Message bodies can be searched for verbatim. Below are fragments of them.
 | `A wall boundary cannot be written to a space on a different level` | A relation across storeys written as a wall | Use `type:stair` / `type:shaft` / `type:void` | [BND03](../reference/diagnostics/bnd.md#bnd03) |
 | `Openings overlap` | A door and a window sit too close on the same boundary segment | Move one with `at:` | [OPN02](../reference/diagnostics/opn.md#opn02) |
 | `The door width … exceeds the boundary segment length` | The opening is longer than the wall | Narrow it, or lengthen the wall | [OPN06](../reference/diagnostics/opn.md#opn06) |
+| `is a window-only operation and cannot be used on a door` | A door carries a window operation, or a window carries a door operation | Choose a style from the table for that opening kind | [OPN09](../reference/diagnostics/opn.md#opn09) |
+| `panels on a curtain wall is a positive whole number` | A curtain-wall panel count is fractional | Write a positive whole count | [OPN10](../reference/diagnostics/opn.md#opn10) |
 | `is written as a positive number:` | An interpreted attribute's value does not read as a number (`h:24OO` has letters in it) | Fix the spelling | [ATT01](../reference/diagnostics/att.md) |
 | `A boundary type is wall / open / stair / shaft / void:` | A value outside the ledger on an attribute with a fixed vocabulary | Use a word from the ledger | [ATT02](../reference/diagnostics/att.md) |
 | `which is not in the ledger (check the spelling, or add a namespace…)` | **An attribute key not in the ledger, with no namespace.** `nmae:` does not pass silently | Fix the spelling, or add a namespace such as `acme.note:` if the value is only carried | [ATT03](../reference/diagnostics/att.md) |
 | `daylight is either 1 … or 0` | Something other than 0 or 1 on `daylight:` | Write `daylight:1` or `daylight:0` | [DAY01](../reference/diagnostics/day.md) |
 | `Duplicate uid:` | The same `uid` on two targets | Replace one with a fresh value from `new_uids` → [Identity](../reference/identity.md) | [UID03](../reference/diagnostics/uid.md) |
 | `A koyu 0.5 file uses a 1.0 word:` | A newer word (`over`, `drop`, set editing) in a file declaring an older version | Raise it to `koyu 1.0` | [VER04](../reference/diagnostics/ver.md) |
+| `uses a 1.5 opening style:` / `uses a 1.5 opening attribute:` | Opening presentation introduced in 1.5 appears in a file declaring 1.4 or earlier | Raise it to `muro 1.5` | [VER08](../reference/diagnostics/ver.md#ver08) |
 | `One layer holds two opinions about …` | One layer holds two opinions about one attribute | Override from another layer → [Lay measurements over the plan](write-as-built.md) | composition error |
 | `No such target for over:` | The target of `over` was never composed | Fix the spelling, or place it after the layer that defines it | composition error |
 | `Duplicate space path:` | Two layers define the same path | Turn one into an `over`, or split the paths | composition error |

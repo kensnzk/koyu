@@ -62,7 +62,7 @@ It was not always so. Until muro 1.4 the exterior was carved out of the default:
 So the default moved and the naming stayed:
 
 ```muro-warn
-muro 1.4
+muro 1.5
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -81,7 +81,7 @@ Six lines, and both rooms are enclosed — one wall between them and a wall arou
 Write the name and the warning goes; the walls were never in question.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150

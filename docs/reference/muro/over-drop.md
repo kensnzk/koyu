@@ -18,7 +18,7 @@ Neither `over` nor `drop` has a word that says "this is a space". **The shape of
 | `over /path …` | A space. If no space has that path, a **zone** |
 | `over /pathA /pathB …` | A boundary (the relation joining two space paths) |
 | `over level <name> …` | A level |
-| `over asset <name> …` | A door or window asset |
+| `over asset <name> …` | A door, window or component asset |
 | `drop /path` | A space; a zone if no space has that path |
 | `drop /pathA /pathB` | A boundary |
 | `drop column <name>` | A column declaration |

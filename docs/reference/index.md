@@ -21,8 +21,8 @@ One page per declaration: `space`, `zone`, `boundary`, `door`, `window`, `column
 
 | Volume | What it answers |
 |---|---|
-| [Diagnostic code index](diagnostics/index.md) | What does this `koyu check` code mean, and what do I change? (70 codes) |
-| [koyu validate](validate/index.md) | Architectural judgement under a named profile. **Not what `check` guarantees.** (15 rules) |
+| [Diagnostic code index](diagnostics/index.md) | What does this `koyu check` code mean, and what do I change? |
+| [koyu validate](validate/index.md) | Architectural judgement under a named profile. **Not what `check` guarantees.** |
 
 They are two different surfaces. [check and validate](../why/two-kinds-of-green.md) explains why.
 
@@ -30,8 +30,8 @@ They are two different surfaces. [check and validate](../why/two-kinds-of-green.
 
 | Volume | What it answers |
 |---|---|
-| [The koyu command](cli/index.md) | Arguments, flags, output and exit codes for all 14 subcommands |
-| [koyu-mcp](mcp/index.md) | The surface an agent touches: 14 tools and the JSON-RPC contract |
+| [The koyu command](cli/index.md) | Arguments, flags, output and exit codes for every subcommand |
+| [koyu-mcp](mcp/index.md) | The tool surface an agent touches and the JSON-RPC contract |
 | [TypeScript API](api/index.md) | The public names of `@kensnzk/koyu` and the entry points |
 
 ## What comes out

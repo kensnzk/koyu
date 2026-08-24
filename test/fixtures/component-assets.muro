@@ -1,0 +1,15 @@
+muro 1.5
+import ../../assets/plan/library.muro
+
+name Component asset placement preview
+grid X 0 2400 4800 7200
+grid Y 0 2400 4800
+level L1 0 h:2700 slab:150
+
+space /L1/catalog room X1..X4 Y1..Y3 level:L1 name:"Component placement"
+  area X1+700..X1+1500 Y1+700..Y1+1500 name:washer-centre asset:WASHING-MACHINE
+  area X2+500..X2+1500 Y1+500..Y1+2000 name:wc-centre asset:WC
+  area X3+300..X4-300 Y1+700..Y1+1700 name:wc-rotated asset:WC rotate:90
+
+space /outside outside:1
+boundary /L1/catalog /outside

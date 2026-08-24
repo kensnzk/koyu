@@ -26,8 +26,8 @@
 <path d="M 86.5 281.5 L 261 281.5 L 261 286.5 L 86.5 286.5 Z" fill="#1f1f1f"/>
 <path d="M 86.5 81.5 L 261 81.5 L 261 86.5 L 86.5 86.5 Z" fill="#1f1f1f"/>
 <path d="M 81.5 286.5 L 81.5 81.5 L 86.5 81.5 L 86.5 286.5 Z" fill="#1f1f1f"/>
-<line x1="264" y1="204" x2="224" y2="204" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 224 204 A 40 40 0 0 1 264 164" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
+<line x1="264" y1="204" x2="224" y2="204" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 224 204 A 40 40 0 0 1 264 164" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
 <text x="309" y="180" text-anchor="middle" font-size="14" fill="#1f1f1f">hall</text>
 <text x="309" y="197" text-anchor="middle" font-size="10" fill="#8a8171">hall · 7.2 m2</text>
 <text x="309" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/hall</text>

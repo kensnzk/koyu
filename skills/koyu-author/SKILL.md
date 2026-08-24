@@ -36,7 +36,7 @@ Two facts about the notation decide whether what you write means what you meant:
 ## A whole small building
 
 ```muro
-muro 1.4
+muro 1.5
 name Flat on a tight site
 unit mm
 

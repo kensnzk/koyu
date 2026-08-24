@@ -11,7 +11,7 @@ Having worked through [the tutorial](index.md), you have a two-storey house, its
 
 → **[Every construct in .muro](../reference/muro/index.md)**
 
-The 16 words that can begin a line and the 9 kinds of indented line, laid out on one page. The ones the tutorial did not use — `zone` (the unit of aggregation), `asset` (door and window types), `import` (layering files), `stack` and `band` (vertical stacking and strip layouts), `polygon` (the shape of a site), `column` (columns whose position is never written), `over` and `drop` (override and delete) — are the words for when the scale grows.
+Every word that can begin a line and every kind of indented line, laid out on one page. The ones the tutorial did not use — `zone` (the unit of aggregation), `asset` (opening and plan-component types), `import` (layering files), `stack` and `band` (vertical stacking and strip layouts), `polygon` (the shape of a site), `column` (columns whose position is never written), `over` and `drop` (override and delete) — are the words for when the scale grows.
 
 This is the page to keep beside you while writing.
 
@@ -33,7 +33,7 @@ If you only want the trap from stage 5 looked at straight on, **[What check guar
 
 → **[The diagnostic code index](../reference/diagnostics/index.md)**
 
-Add `--json` to `koyu check` and you get diagnostic codes. All 65 of them have what they are saying, how you got there, and how to fix it.
+Add `--json` to `koyu check` and you get diagnostic codes. The index explains what each code says, how it arises and how to fix it.
 
 If you want "why is this way of writing rejected at all?" before the codes, start at **[How to read a diagnostic](../reference/diagnostics/reading.md)**.
 
@@ -47,7 +47,7 @@ What `check` says stops at "what is written does not contradict itself as data".
 
 → **[The koyu command](../reference/cli/index.md)**
 
-All 14 subcommands, with real output. The ones the tutorial did not use are here: `graph` (space adjacency), `stats` (areas and efficiency), `site` (site area, coverage, FAR), `runs` (vertical circulation), `layers` (which layers took part in composition, and where each attribute came from), `diff` (differences in the language of composition), `axo` (axonometrics).
+Every subcommand, with real output. The ones the tutorial did not use are here: `graph` (space adjacency), `stats` (areas and efficiency), `site` (site area, coverage, FAR), `runs` (vertical circulation), `layers` (which layers took part in composition, and where each attribute came from), `diff` (differences in the language of composition), `axo` (axonometrics).
 
 ## I want to drive it from a program
 
@@ -59,7 +59,7 @@ Twenty lines from parse through diagnostics to canonical JSON. The published sur
 
 → **[koyu-mcp](../reference/mcp/index.md)**
 
-A zero-dependency stdio MCP server whose 14 tools expose the same derivations. Registration is one line; no auth, no environment variables. The agent reads with `layers`, writes with `write_layer`, and `check` is the gate — errors come back with layer and line provenance.
+A zero-dependency stdio MCP server whose tools expose the same derivations. Registration is one line; no auth, no environment variables. The agent reads with `layers`, writes with `write_layer`, and `check` is the gate — errors come back with layer and line provenance.
 
 **Commit before you let it write.** `write_layer` writes by full replacement and has no undo.
 

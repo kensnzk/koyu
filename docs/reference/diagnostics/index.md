@@ -5,9 +5,9 @@ mode: reference
 
 # The diagnostic code index
 
-Every message `koyu check` returns, catalogued. There are **70** codes in **19** families: 52 errors and 18 warnings. This page shows which family a code belongs to and how heavy it is. The cause, a minimal reproduction, and the fix live on the family pages.
+Every message `koyu check` returns, catalogued. This page shows which family a code belongs to and how heavy it is. The cause, a minimal reproduction, and the fix live on the family pages.
 
-What `check` tells you stops at **whether what is written is self-consistent as data**. It says nothing about whether the building is usable — that is what `koyu validate` says, separately, with its 15 rules. The two are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns an `AssessmentReport` whose findings carry `{ rule, level }`. Even the spellings differ on sight — a code is three letters plus two digits, a rule is a namespaced id (`koyu.schematic.site.escape`).
+What `check` tells you stops at **whether what is written is self-consistent as data**. It says nothing about whether the building is usable — that is what `koyu validate` says, separately, under its named rule set. The two are different types: `check` returns `Diagnostic { code, severity }` and `validate` returns an `AssessmentReport` whose findings carry `{ rule, level }`. Even the spellings differ on sight — a code is three letters plus two digits, a rule is a namespaced id (`koyu.schematic.site.escape`).
 
 **The human-facing `check` does not display codes.** Get the code with `--json` before looking anything up here; the procedure is on [Reading a diagnostic](reading.md).
 
@@ -46,13 +46,13 @@ Severity is an invariant property of a code. **The same code is never an error i
 
 The order is the ledger's.
 
-### REF — references (1)
+### REF — references
 
 | Code | severity | One line |
 |---|---|---|
 | [REF01](ref.md#ref01) | error | References an undefined space |
 
-### BND — boundaries (7)
+### BND — boundaries
 
 | Code | severity | One line |
 |---|---|---|
@@ -64,20 +64,20 @@ The order is the ledger's.
 | [BND06](bnd.md#bnd06) | warning | No edge remains on the perimeter, so the segment is of zero length |
 | [BND08](bnd.md#bnd08) | warning | A face onto the outside got a default wall, because no boundary says what it looks at |
 
-### LVL — levels (1)
+### LVL — levels
 
 | Code | severity | One line |
 |---|---|---|
 | [LVL01](lvl.md) | error | Two levels have the same z |
 
-### GEO — overlapping regions (2)
+### GEO — overlapping regions
 
 | Code | severity | One line |
 |---|---|---|
 | [GEO01](geo.md#geo01) | error | The regions of one space overlap each other |
 | [GEO02](geo.md#geo02) | error | The regions of two spaces overlap |
 
-### VRT — vertical boundaries (6)
+### VRT — vertical boundaries
 
 | Code | severity | One line |
 |---|---|---|
@@ -88,7 +88,7 @@ The order is the ledger's.
 | [VRT05](vrt.md#vrt05) | warning | An opening on a vertical boundary is not interpreted |
 | [VRT06](vrt.md#vrt06) | warning | A `seg` on a vertical boundary is not interpreted |
 
-### OPN — openings (8)
+### OPN — openings
 
 | Code | severity | One line |
 |---|---|---|
@@ -100,8 +100,17 @@ The order is the ledger's.
 | [OPN06](opn.md#opn06) | error | The opening is wider than the boundary segment |
 | [OPN07](opn.md#opn07) | error | The wrong axis for an explicit opening position |
 | [OPN08](opn.md#opn08) | error | An explicit opening position runs off the segment |
+| [OPN09](opn.md#opn09) | error | The opening operation belongs to the other opening kind |
+| [OPN10](opn.md#opn10) | error | A curtain-wall panel count is incompatible or fractional |
 
-### SEG — uncounted subdivisions (8)
+### CMP — area-hosted components
+
+| Code | severity | One line |
+|---|---|---|
+| [CMP01](cmp.md#cmp01) | error | A component definition or placement cannot be resolved |
+| [CMP02](cmp.md#cmp02) | error | The transformed physical footprint leaves its host area |
+
+### SEG — uncounted subdivisions
 
 `area` (inside a room) is SEG01–SEG02; `seg` (along a boundary) is SEG03–SEG08.
 
@@ -116,21 +125,21 @@ The order is the ledger's.
 | [SEG07](seg.md#seg07) | error | The wrong axis for an explicit `seg` position |
 | [SEG08](seg.md#seg08) | error | An explicit `seg` position runs off the segment |
 
-### ZON — zones (2)
+### ZON — zones
 
 | Code | severity | One line |
 |---|---|---|
 | [ZON01](zon.md) | warning | There are no spaces beneath the zone |
 | [ZON02](zon.md) | warning | A space shares its path with a zone |
 
-### HGT — the height invariant (2)
+### HGT — the height invariant
 
 | Code | severity | One line |
 |---|---|---|
 | [HGT01](hgt.md) | error | It collides into the floor above |
 | [HGT02](hgt.md) | error | Insufficient coverage for a partial void |
 
-### SUF — sufficiency (4)
+### SUF — sufficiency
 
 | Code | severity | One line |
 |---|---|---|
@@ -139,7 +148,7 @@ The order is the ledger's.
 | [SUF03](suf.md) | warning | The level has no `slab`, so not one floor is generated |
 | [SUF04](suf.md) | warning | A vertical-circulation declaration produces no shape at all |
 
-### SIT — site outline (3)
+### SIT — site outline
 
 | Code | severity | One line |
 |---|---|---|
@@ -150,7 +159,7 @@ The order is the ledger's.
 
 SIT03 and SIT05 are [retired numbers](retired.md).
 
-### UID — identity (4)
+### UID — identity
 
 | Code | severity | One line |
 |---|---|---|
@@ -159,7 +168,7 @@ SIT03 and SIT05 are [retired numbers](retired.md).
 | [UID03](uid.md) | error | A duplicate `uid` |
 | [UID04](uid.md) | error | A duplicate `name` within one container |
 
-### ATT — attributes (3)
+### ATT — attributes
 
 | Code | severity | One line |
 |---|---|---|
@@ -167,13 +176,13 @@ SIT03 and SIT05 are [retired numbers](retired.md).
 | [ATT02](att.md) | error | The value is not in the ledger's vocabulary |
 | [ATT03](att.md) | error | The key is not in the ledger and carries no namespace |
 
-### DAY — daylight scope (1)
+### DAY — daylight scope
 
 | Code | severity | One line |
 |---|---|---|
 | [DAY01](day.md) | error | `daylight` is either 1 (in scope) or 0 (out of scope) |
 
-### RUN — vertical circulation (4)
+### RUN — vertical circulation
 
 | Code | severity | One line |
 |---|---|---|
@@ -184,7 +193,7 @@ SIT03 and SIT05 are [retired numbers](retired.md).
 
 RUN04, RUN06, RUN07 and RUN08 are [retired numbers](retired.md).
 
-### LIN — drawn lines (3)
+### LIN — drawn lines
 
 | Code | severity | One line |
 |---|---|---|
@@ -192,14 +201,14 @@ RUN04, RUN06, RUN07 and RUN08 are [retired numbers](retired.md).
 | [LIN02](lin.md) | error | A vertical boundary cannot carry a line |
 | [LIN03](lin.md) | warning | The line cuts nothing |
 
-### COL — columns (2)
+### COL — columns
 
 | Code | severity | One line |
 |---|---|---|
 | [COL01](col.md) | warning | Not one column stands for this declaration |
 | [COL02](col.md) | warning | An earlier declaration already took the same intersections |
 
-### VER — language-version acceptance (7)
+### VER — language-version acceptance
 
 | Code | severity | One line |
 |---|---|---|
@@ -210,8 +219,10 @@ RUN04, RUN06, RUN07 and RUN08 are [retired numbers](retired.md).
 | [VER05](ver.md) | error | A koyu 1.0-or-earlier file writes exterior / void in the type position |
 | [VER06](ver.md) | error | The file declares a language version newer than this build reads |
 | [VER07](ver.md) | error | The file declares a version in which a key it writes is retired |
+| [VER08](ver.md) | error | A pre-1.5 file uses opening presentation introduced in muro 1.5 |
+| [VER09](ver.md#ver09) | error | A pre-1.5 file uses component assets or placement introduced in muro 1.5 |
 
-### SYN — syntax and composition (1)
+### SYN — syntax and composition
 
 | Code | severity | One line |
 |---|---|---|
@@ -221,7 +232,7 @@ SYN01 is not a check of its own but the exception thrown while reading, copied i
 
 ## Retired numbers
 
-**Numbers are never reused.** Reusing one would make past output unreadable. Eleven are retired: six moved to `koyu validate` rules and four folded into the SUF family. What replaced what is on [Retired diagnostic codes](retired.md).
+**Numbers are never reused.** Reusing one would make past output unreadable. What replaced the retired codes is on [Retired diagnostic codes](retired.md).
 
 `BND07` `HGT03` `HGT04` `HGT05` `RUN04` `ENV01` `RUN06` `RUN07` `RUN08` `SIT03` `SIT05`
 

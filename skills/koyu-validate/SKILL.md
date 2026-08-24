@@ -156,4 +156,4 @@ just to make them stop.
 The reference for every rule, with a failing example each, is
 [docs/reference/validate](../../docs/reference/validate/index.md) in this
 repository. Read the page for a rule when the table is not enough — `access.md`
-in particular, which explains why these five rules exist.
+in particular, which explains why its access rules exist.

@@ -5,7 +5,7 @@ mode: reference
 
 # SIT — the site shape
 
-Four SIT codes are live. SIT03 and SIT05 are **retired numbers**.
+The live SIT entries are listed below. SIT03 and SIT05 are **retired numbers**.
 
 | Code | Severity | What it says |
 |---|---|---|

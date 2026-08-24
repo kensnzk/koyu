@@ -12,7 +12,7 @@ Wrote out/tower.ifc
 ```
 
 There is an MCP server too — `koyu-ifc-mcp`, one tool, `export_ifc`. **It is this package's
-server, not koyu's.** koyu's own twelve tools stay free of runtime dependencies; asking `koyu-mcp`
+server, not koyu's.** koyu's own tools stay free of runtime dependencies; asking `koyu-mcp`
 to shell out to Python would make Python a requirement of koyu in everything but the manifest. An
 agent that needs both connects both.
 

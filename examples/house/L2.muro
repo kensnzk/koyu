@@ -10,10 +10,10 @@ boundary /home/bed1 /out/w edge:W t:150 spec:EW
 boundary /home/bed1 /out/n edge:N t:150 spec:EW
 boundary /home/bed1 /home/void t:120 spec:LGS
 boundary /home/bed1 /home/hall2 t:120 spec:LGS
-  door SD1 name:寝室引き戸
+  door SD1 name:Bedroom-sliding-door
 boundary /home/void /home/hall2 t:120 spec:手すり air:1 h:1100
 boundary /home/void /out/road edge:S t:150 spec:EW
-  window W3 name:吹抜けの高窓
+  window W3 name:Void-clerestory
 boundary /home/void /out/e edge:E t:150 spec:EW
 boundary /home/hall2 /out/e edge:E t:150 spec:EW
 boundary /home/hall2 /out/n edge:N t:150 spec:EW

@@ -71,7 +71,7 @@ A few keys are guarded by their own diagnostics — `daylight` by `DAY01`, the d
 ```text
 daylight is either 1 (in scope for the daylight check) or 0 (out of scope): /L1/b carries daylight:yes
 site on zone /L1 is one of 0 / 1: site:yes
-style on door (/L1/a | /L1/b) is one of hinged / sliding / auto: style:swing
+style on door (/L1/a | /L1/b) is one of hinged / sliding / auto / hinged-double / hinged-unequal / sliding-double / sliding-bypass / auto-single / auto-double / entrance / gate-hinged / gate-hinged-double / gate-sliding / rolling-shutter / overhead / fixed / projecting / curtain-wall: style:swing
 turn on /L1/b is one of R / L: turn:X
 ```
 
@@ -131,7 +131,7 @@ turn on /L1/b is one of R / L: turn:X
 | `fire` | carried | free | fire rating |
 | `sound` | carried | free | acoustic rating |
 
-### door / window / asset
+### door / window / opening asset
 
 **A door asset is read against the opening ledger.** That is deliberate: there must be no attribute that an asset can carry and an opening cannot.
 
@@ -143,16 +143,32 @@ turn on /L1/b is one of R / L: turn:X
 | `edge` | structure | `N` / `E` / `S` / `W` | picks a face when there are several segments |
 | `hinge` | structure | `N` / `E` / `S` / `W` | the jamb the hinge sits on |
 | `swing` | structure | `a` / `b` | which side it opens toward |
-| `style` | interpreted | `hinged` / `sliding` / `auto` | the kind of leaf |
+| `style` | interpreted | `hinged` / `sliding` / `auto` / `hinged-double` / `hinged-unequal` / `sliding-double` / `sliding-bypass` / `auto-single` / `auto-double` / `entrance` / `gate-hinged` / `gate-hinged-double` / `gate-sliding` / `rolling-shutter` / `overhead` / `fixed` / `projecting` / `curtain-wall` | the opening presentation shown in plan |
+| `panels` | interpreted | positive number | equal curtain-wall panel count; OPN10 requires a whole number and `style:curtain-wall` on a window |
 | `name` | interpreted | free | **unique within the boundary** — the key to an opening's identity |
 | `sill` | carried | free | sill height |
 | `spec` `fire` | carried | free | |
+
+The `style` row is the vocabulary shared by doors, windows and their assets. The door and window
+tables state which known operations apply to each kind; a known operation on the wrong kind is
+OPN09, while a word outside this row is ATT02.
+
+### component asset
+
+| Key | Tier | Value | Meaning |
+|---|---|---|---|
+| `w` | interpreted | positive number, mm | physical extent along the unrotated model X axis |
+| `d` | interpreted | positive number, mm | physical extent along the unrotated model Y axis |
+| `plan-svg` | interpreted | relative path | plan artwork, resolved from the layer that supplied the value |
+| `name` | interpreted | free | display name of the component type |
+| `category` | carried | free | classification only; never selects drawing or behaviour |
+| `spec` | carried | free | specification carried without interpretation |
 
 ### area / seg / column
 
 | Element | Structure | Interpreted | Carried |
 |---|---|---|---|
-| `area` | (the region is positional) | `name` | `floor` `spec` |
+| `area` | (the region is positional) | `name` `asset` `align-x` `align-y` `offset-x` `offset-y` `rotate` | `floor` `spec` |
 | `seg` | `w` `at` `edge` | `name` | `spec` `fire` `sound` |
 | `column` | `d` `x` `y` | `name` | `spec` |
 
@@ -196,7 +212,7 @@ The value comes from the **deepest zone** whose path is a prefix of the space's 
 **Which key travels is chosen by whatever asks for it.** Core hands nothing down of its own accord; the resolution runs when something names a key — [`koyu stats --by`](../cli/stats.md), the MCP `model_summary`, a validation rule reading the key it cares about. A space is therefore grouped along as many divisions at once as it carries.
 
 ```muro
-muro 1.4
+muro 1.5
 name 継承の例
 grid X 0 4000 8000
 grid Y 0 4000

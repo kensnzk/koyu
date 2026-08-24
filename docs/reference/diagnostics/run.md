@@ -5,7 +5,7 @@ mode: reference
 
 # RUN — vertical circulation
 
-Four RUN codes are live. RUN04, RUN06, RUN07 and RUN08 are **retired numbers**.
+The live RUN entries are listed below. RUN04, RUN06, RUN07 and RUN08 are **retired numbers**.
 
 | Code | Severity | What it says |
 |---|---|---|

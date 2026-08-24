@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 656 704">
+  <defs>
+    <mask id="base-outside-chair">
+      <rect width="656" height="704" fill="white"/>
+      <path d="M142 35 Q328 18 514 35 L592 112 L574 174 Q328 92 82 174 L64 112 Z" fill="black"/>
+      <path d="M96 176 Q328 112 560 176 L574 254 V512 L510 622 H146 L82 512 V254 Z" fill="black"/>
+    </mask>
+  </defs>
+  <g fill="none" stroke="#282622" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <g mask="url(#base-outside-chair)" stroke-width="9">
+      <path d="M328 362 L74 84 M328 362 L582 84 M328 362 L44 448 M328 362 L612 448 M328 362 L328 675"/>
+      <g transform="translate(74 84) rotate(-42)"><rect x="-26" y="-12" width="52" height="24" rx="8"/><line x1="0" y1="-12" x2="0" y2="12"/></g>
+      <g transform="translate(582 84) rotate(42)"><rect x="-26" y="-12" width="52" height="24" rx="8"/><line x1="0" y1="-12" x2="0" y2="12"/></g>
+      <g transform="translate(44 448) rotate(-72)"><rect x="-26" y="-12" width="52" height="24" rx="8"/><line x1="0" y1="-12" x2="0" y2="12"/></g>
+      <g transform="translate(612 448) rotate(72)"><rect x="-26" y="-12" width="52" height="24" rx="8"/><line x1="0" y1="-12" x2="0" y2="12"/></g>
+      <g transform="translate(328 675) rotate(90)"><rect x="-26" y="-12" width="52" height="24" rx="8"/><line x1="0" y1="-12" x2="0" y2="12"/></g>
+      <circle cx="328" cy="362" r="30"/>
+    </g>
+    <path d="M142 35 Q328 18 514 35 L592 112 L574 174 Q328 92 82 174 L64 112 Z"/>
+    <path d="M96 176 Q328 112 560 176 L574 254 V512 L510 622 H146 L82 512 V254 Z"/>
+    <path d="M126 224 Q328 160 530 224 L522 466 Q328 540 134 466 Z" stroke-width="8"/>
+    <path d="M82 256 L30 278 V398 L82 414 M574 256 L626 278 V398 L574 414"/>
+    <path d="M110 172 Q328 112 546 172" stroke-width="8"/>
+  </g>
+</svg>

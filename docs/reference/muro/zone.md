@@ -92,7 +92,7 @@ The keys writable on a zone are the ones listed here, plus any namespaced key co
 The zone carrying `site:1` is the site. Site area, road frontage, building coverage and floor area ratio are all derived starting from it.
 
 ```muro
-muro 1.4
+muro 1.5
 grid X 0 12000
 grid Y 0 10000
 level L1 0 h:3000 slab:200

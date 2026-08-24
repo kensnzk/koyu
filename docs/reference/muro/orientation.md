@@ -19,7 +19,7 @@ They are not a compass needle. If the building is not oriented to true north, th
 **Which way the model actually faces is one line of its own.** [`azimuth`](azimuth.md) gives the true bearing of the +Y axis, and it is the only place in koyu that holds a compass direction. It changes nothing on this page — `edge:N` picks the +Y face at any bearing. Given `azimuth Y a`, the true bearings of the four faces are *a*, *a*+90, *a*+180 and *a*+270 for `N`, `E`, `S` and `W`.
 
 ```muro
-muro 1.4
+muro 1.5
 name 方位の例
 unit mm
 
@@ -100,7 +100,9 @@ Getting the axis wrong is `OPN01` — `hinge:N` cannot go on a horizontal segmen
 
 **`swing` is which side the leaf opens toward — `a` or `b`.** It is not a compass word. Omitted, the door opens toward `a` if a has a region, otherwise toward `b`. The actual sense of rotation is taken from the component pointing at the centre of the nearest part of the shape on the side it opens toward.
 
-Openings with `style:sliding` or `style:auto` have no arc — they slide toward the hinge side.
+Sliding, automatic, entrance and sliding-gate styles have no swing arc. They use the hinge side as
+their retraction or orientation side. Hinged door and window styles use the same `hinge:` and
+`swing:` pair for their arcs.
 
 ## The axis of `at:` follows the face
 

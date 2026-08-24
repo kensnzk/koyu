@@ -39,8 +39,8 @@ const NO_SOURCE = new Set(["UID03", "VER01"]);
 
 test("source: a diagnostic against a written declaration always carries line/file (the only exceptions are the two in the ledger)", () => {
   // Runs every failing example in the diagnostics reference and sweeps for a diagnostic with no
-  // provenance. Eight codes, five of them errors, once carried no position, and the prefix vanished
-  // from the human-facing output. The corpus is the **published documentation**, family page by
+  // provenance. Several codes once carried no position, and the prefix vanished from the
+  // human-facing output. The corpus is the **published documentation**, family page by
   // family page — the single guide page it used to read has been withdrawn (ADR-0046)
   const dir = join(root, "docs/reference/diagnostics");
   const md = readdirSync(dir)

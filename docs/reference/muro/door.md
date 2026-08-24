@@ -101,35 +101,55 @@ The **direction** it swings is not written. It follows from the component pointi
 | Value | How the plan reads it |
 |---|---|
 | `hinged` | a swing door (default) — hinge plus a quarter-circle arc |
-| `sliding` | a sliding door — no arc; it slides back toward the hinge side |
-| `auto` | an automatic door — likewise no arc |
+| `hinged-double` | two equal swing leaves |
+| `hinged-unequal` | two swing leaves meeting at two-thirds of the width |
+| `sliding` | one sliding leaf — no arc; it retracts toward the hinge side |
+| `sliding-double` | two leaves meeting at the centre and retracting to opposite sides |
+| `sliding-bypass` | two overlapping leaves inside the opening |
+| `auto` / `auto-double` | an automatic double-sliding door; moving leaves park behind fixed sidelights inside the opening |
+| `auto-single` | an automatic single-sliding door; its moving leaf parks behind a fixed sidelight inside the opening |
+| `entrance` | a general entrance threshold with no claimed leaf operation |
+| `gate-hinged` | one hinged gate leaf, with its posts |
+| `gate-hinged-double` | two hinged gate leaves, with their posts |
+| `gate-sliding` | one sliding gate leaf, with its posts |
+| `rolling-shutter` | a shutter that coils above the opening; its plan has no horizontal storage tail |
+| `overhead` | a sectional door that rises above the opening; its plan has no swing arc or horizontal storage tail |
 
-Anything outside those three words is ATT02 (error).
+![Rolling shutter and overhead door plan symbols](../../img/vertical-door-types.svg)
+
+`fixed`, `projecting` and `curtain-wall` are window-only presentations. Writing one on a door is
+OPN09 (error). `panels:` is limited to a curtain-wall window and is OPN10 on a door.
+Anything outside the complete style vocabulary is ATT02 (error).
+
+The operation is never inferred from `name:`, width, position or an asset name. An asset may
+supply `style:`, but it supplies the same explicit fact as an opening that writes it directly.
+The values after the original `hinged`, `sliding` and `auto` set require muro 1.5; writing
+one under an older version declaration is VER08.
 
 ## Written out
 
 ```muro
-muro 1.4
-name 扉の書き方
+muro 1.5
+name Door operations
 unit mm
 
 grid X 0 3600 7200
 grid Y 0 4500
 level L1 0 h:2400 slab:150
 
-asset SD1 door w:800 h:2000 style:sliding name:片引き戸
+asset SD1 door w:800 h:2000 style:sliding name:Single-sliding-door
 
-space /L1/a room X1..X2 Y1..Y2 name:居室A
-space /L1/b room X2..X3 Y1..Y2 name:居室B
-space /out name:外部 outside:1
+space /L1/a room X1..X2 Y1..Y2 name:Room-A
+space /L1/b room X2..X3 Y1..Y2 name:Room-B
+space /out name:Outside outside:1
 
 boundary /L1/a /L1/b t:120 spec:LGS
   door SD1 hinge:N swing:b
 
 boundary /L1/a /out t:150 spec:EW
-  door w:900 h:2100 edge:S at:X1+1200 name:勝手口 hinge:W
+  door w:900 h:2100 edge:S at:X1+1200 name:Service-door hinge:W
 boundary /L1/b /out t:150 spec:EW
-  door w:1200 h:2100 edge:S at:0.4 style:auto name:玄関
+  door w:1200 h:2100 edge:S at:0.4 style:auto name:Main-entrance
 ```
 
 The three doors are derived at centres (3600, 2250), (1200, 0) and (5040, 0) in that order. The second sits exactly where its grid reference says; the third sits 0.4 along a 3600-long segment that starts at x=3600.
@@ -139,7 +159,7 @@ The three doors are derived at centres (3600, 2250), (1200, 0) and (5040, 0) in 
 | Attribute | Tier |
 |---|---|
 | `w` `h` `at` `edge` `hinge` `swing` | structure — parse lifts these into typed fields |
-| `style` `name` | interpreted — the values are checked |
+| `style` `panels` `name` | interpreted — the values are checked |
 | `sill` `spec` `fire` | carried — carried and nothing more |
 
 A key outside the ledger cannot be written unless it carries a namespace containing a dot (`acme.hardware:lever`), or it is ATT03.

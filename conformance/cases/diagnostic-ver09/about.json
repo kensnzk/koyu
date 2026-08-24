@@ -1,0 +1,8 @@
+{
+ "pins": [
+  "docs/reference/diagnostics/ver.md",
+  "docs/reference/muro/asset.md",
+  "docs/reference/muro/version.md"
+ ],
+ "why": "Component assets arrive in muro 1.5. VER09 stops a file declaring 1.4 from using a component declaration that an implementation of that version cannot read."
+}

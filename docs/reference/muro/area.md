@@ -1,9 +1,9 @@
 ---
-title: area — an uncounted subdivision inside a space
+title: area — an uncounted subdivision and component host
 mode: reference
 ---
 
-# area — an uncounted subdivision inside a space
+# area — an uncounted subdivision and component host
 
 ```muro-part
 space /L1/hall hall X1..X2 Y1..Y2 name:エントランスホール floor:オーク
@@ -12,7 +12,7 @@ space /L1/hall hall X1..X2 Y1..Y2 name:エントランスホール floor:オー�
 
 `area <region> [attributes...]` is written indented directly under a [space](space.md) and is an **uncounted subdivision**. A change of floor finish inside a room, the extent of an entrance slab, a fixed furniture zone — anything that holds an extent without dividing the room — belongs here.
 
-## The isolation rule — it affects nothing
+## The isolation rule
 
 An `area` is not a room. **It appears in no area total, no room count and no graph.**
 
@@ -20,7 +20,10 @@ An `area` is not a room. **It appears in no area total, no room count and no gra
 - Adjacency and passage belong to the parent space. An `area` cannot carry a [boundary](boundary.md), and no door or window can be placed on one.
 - It appears in neither the zone totals nor any [`stats --by`](../cli/stats.md) grouping.
 
-A region and overriding attributes are all it can hold, and that is the whole of it. The moment you want to count what you are dividing, the answer is not an `area` but two `space` lines — make the parent a [zone](zone.md) and put spaces with regions beneath it.
+An area may also host one component asset. That adds a placed footprint to `Form`; it still adds
+no room, boundary, passage or counted area. The moment you want to count what you are dividing,
+the answer is not an `area` but two `space` lines — make the parent a [zone](zone.md) and put
+spaces with regions beneath it.
 
 ## Region
 
@@ -53,13 +56,20 @@ $ npx tsx src/cli.ts check a2.muro --json
 
 ## Attributes
 
-Three keys may be written on an `area`, plus any namespaced key containing a dot. A key in neither category is the error [ATT03](../diagnostics/att.md).
+The following keys may be written on an `area`, plus any namespaced key containing a dot. A key
+in neither category is the error [ATT03](../diagnostics/att.md).
 
 | Key | Tier | Meaning |
 |---|---|---|
 | `name:` | interpreted | The subdivision's name. **It must be unique within its space** |
 | `floor:` | carry | Floor finish, overriding the parent space's `floor:` over this extent |
 | `spec:` | carry | The name of the thing. Carried, never interpreted |
+| `asset:` | interpreted | The name of a `component` asset placed by this area |
+| `align-x:` | interpreted | `min` / `center` / `max`; default `center` |
+| `align-y:` | interpreted | `min` / `center` / `max`; default `center` |
+| `offset-x:` | interpreted | Millimetres added along model +X; default `0` |
+| `offset-y:` | interpreted | Millimetres added along model +Y; default `0` |
+| `rotate:` | interpreted | Degrees counter-clockwise from model +X, in `0 <= rotate < 360`; default `0` |
 | `<namespace>.<key>:` | carry | Anyone may write a dotted key, and core gives its content no meaning at all |
 
 Neither `h:` nor `daylight:` can be written. An `area` is not a room, so it does not carry a room's attributes.
@@ -77,6 +87,34 @@ When an `area` carries a name, that name becomes **the only way to point at that
 ```
 
 An `area` with no name claims no identity and is not in the population of that check.
+
+## Component placement
+
+```muro-part
+asset WASHING-MACHINE component w:640 d:640 plan-svg:./svg/washing-machine.svg
+
+space /L1/laundry utility X1..X2 Y1..Y2
+  area X1+200..X1+1100 Y1+200..Y1+1100 name:washing-machine-pan asset:WASHING-MACHINE
+```
+
+The named area is the sole placement frame. There is no second absolute-position declaration.
+Changing the area moves its component with it, and the pair `(parent space path, area name)` is
+the instance identity.
+
+Alignment uses stable model X/Y, not screen direction or compass direction. `min`, `center` and
+`max` refer to the bounds of the area on each axis. Offsets are applied after alignment. A
+positive `offset-x` moves along +X and a positive `offset-y` along +Y. Positive rotation is
+counter-clockwise from +X.
+
+The rotated component footprint must remain inside the host rectangle and the derived region of
+its parent space. It is [CMP02](../diagnostics/cmp.md#cmp02) when either containment fails. koyu
+does not resize the asset, choose another alignment or rotate it automatically. A missing name,
+an undefined or wrong-kind asset, or an invalid placement value is
+[CMP01](../diagnostics/cmp.md#cmp01).
+
+An area used only as a component host is not printed as a dashed subdivision in `koyu plan`.
+Writing `floor:` or `spec:` keeps the subdivision visible because it also describes a finish or
+another written extent.
 
 ## The indentation rules
 

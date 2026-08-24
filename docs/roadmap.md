@@ -7,7 +7,7 @@ mode: explanation
 
 **1.0.0 is not the completion of features. It is the settling of the surfaces we promise not to break.** So this road is cut by "what can be frozen", not by "what will be built".
 
-The present state is **koyu 0.25.0 / muro 1.4**.
+The present state is named by the package version and the newest row in the language ledger.
 
 ## There are two version lines
 
@@ -15,12 +15,15 @@ The present state is **koyu 0.25.0 / muro 1.4**.
 
 | Line | Now | What it means |
 |---|---|---|
-| Language (muro) | **1.3** | The grammar and semantics of the source. Written `muro 1.4` — `koyu 1.1` and earlier keep the old word, and keep reading. This is settled |
-| Implementation (the npm package) | **0.25.0** | The library, the CLI and the MCP server. While it is 0.x, **nothing that changes is a breaking change** |
+| Language (muro) | The newest row in the language ledger | The grammar and semantics of the source; older files keep their declared reading |
+| Implementation (the npm package) | The package version | The library, the CLI and the MCP server. While it is 0.x, its public surfaces have not frozen |
 
-They were separated so that the implementation can keep moving after the language has settled. A file that says `muro 1.4` reads the same whether the implementation is 0.23, 1.0 or 2.0.
+They are separated so the implementation can move without silently reinterpreting a source file.
+A file that declares a muro version keeps the meaning defined for that language version.
 
-**Omitting the version in the source reads the file as the latest.** The accepted language versions are `0.1`, `0.2`, `0.3`, `0.4`, `0.5`, `1.0`, `1.1`, `1.2` and `1.3`, and a file written in an older version is checked under the acceptance conditions of that version.
+**Omitting the version reads the file as 1.1, permanently.** The accepted language versions are
+listed on [the version page](reference/muro/version.md), and a file written in an older version is
+checked under the acceptance conditions of that version.
 
 ## The eight surfaces to be frozen
 
@@ -28,27 +31,27 @@ These are the eight things 1.0.0 promises not to break. **All eight now stand in
 
 | Surface | What is promised | State |
 |---|---|---|
-| The grammar and semantics of muro 1.0 | That the reading of the source does not change | ✅ Language version `1.0` was cut. Attribute namespaces and the composition rules were the last breaking changes |
+| The grammar and semantics of muro | That the reading of the source does not change | ✅ Every semantic change cuts a language version and older readings remain guarded |
 | The composition rules | How layers stack — strength, collision, idempotence, and the resolution of `over` / `drop` | ✅ All six implemented |
 | Identity | `uid` closed to spaces and zones, generated at random. Openings and contained items are identified by "what contains them plus a unique name", and duplicates are stopped by a diagnostic | ✅ |
 | The three attribute tiers and namespaces | The distinction between structural, interpreted and carry tiers, and the rule that a key containing a dot lands in the carry tier | ✅ The ledger is the single source for the implementation |
 | The machine format | The spelling of the canonical JSON — format version, key collation (ascending code point), NFC normalisation | ✅ |
 | The derivation rules | The definition of what is uniquely determined by the authored composition (wall segments, areas, adjacency, passability) | ✅ A reference implementation stands, and uniqueness became a predicate a machine can hold |
-| Structural-consistency diagnostics | 70 codes, with severity as an invariant property of the code | ✅ Verdicts were moved to a separate domain, and the meaning of green now matches the definition |
+| Structural-consistency diagnostics | Codes with severity as an invariant property of each code | ✅ Verdicts were moved to a separate domain, and the meaning of green now matches the definition |
 | The public API and CLI | The TypeScript names and the contract of the CLI subcommands | ✅ The surface was written down, and tests hold it in set-equality with the implementation |
 
 ## What is left — looking at it end to end
 
 **A surface standing and a surface being looked at are different things.** That the tests are green says something only about what the tests hold. 1.0.0 cannot be walked back, so **a person looks end to end at what the tests do not hold**. The 0.1x line is where that looking happens.
 
-There are four.
+The review covers these surfaces.
 
 | Surface | What to look at | Why tests do not suffice |
 |---|---|---|
-| **MCP** | Drive all 14 tools over stdio for real; watch the inputs, the outputs and the failure behaviour | It is a surface exposed outward, and there is no record of it having been driven end to end |
+| **MCP** | Drive every tool over stdio for real; watch the inputs, the outputs and the failure behaviour | It is a surface exposed outward, and there is no record of it having been driven end to end |
 | **Documentation** | Whether this body of writing describes **the present**, and whether the pasted output is real | The truth of a sentence is not machine-readable |
 | **Drawing** | What is actually drawn in a browser — plans, axonometrics, themes, editing | The agreement of form can be held; **appearance** is not (that is by design) |
-| **The public surface** | What goes into `npm pack`, and whether all 16 subcommands really run | The contents of a package and its execution live outside the tests |
+| **The public surface** | What goes into `npm pack`, and whether every subcommand really runs | The contents of a package and its execution live outside the tests |
 
 **What gets found and fixed ships as 0.16.x, and when it comes through clean, 1.0.0 is cut.**
 

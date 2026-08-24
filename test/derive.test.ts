@@ -1,13 +1,12 @@
-// 形の参照実装 (ADR-0040 / spec/derivation.md)。
+// Reference implementation of Form derivation (ADR-0040).
 //
-// **`derive(model)` が形の唯一の入口である。**ここが縛るのは四つ。
-//   1. 同梱例の `Form` のゴールデン — 返るものが変われば落ちる
-//   2. `Form` が**見た目を持たない**こと (色・注記の言葉・作図の記号が一つも無い)
-//   3. spec/derivation.md の定数・許容値の表と、実装の台帳が一致すること (日英とも)
-//   4. 形の不変量 — 壁の区間が線分を覆い尽くす・切断高さが Form の入力である
+// `derive(model)` is the only entry to Form. This file holds four things:
+//   1. Form fingerprints for bundled examples
+//   2. the absence of appearance, wording and drawing symbols from Form
+//   3. agreement between the documented constants and the implementation tables
+//   4. shape invariants such as complete wall coverage and cut height as an input
 //
-// ゴールデンが落ちたときに直す先は二つしかない。形を変えたなら spec とゴールデンを
-// 同じ変更で直す。変えたつもりが無いなら、その差は事故である。
+// When a fingerprint moves, either document and pin the intentional shape change or fix the bug.
 
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -36,19 +35,19 @@ const EXAMPLES = [
 const digest = (file: string): string =>
   createHash("sha256").update(JSON.stringify(derive(parseFile(join(root, file))))).digest("hex").slice(0, 16);
 
-// ---- 1. ゴールデン ----
+// ---- 1. Golden fingerprints ----
 
 /**
- * 同梱例の `Form` の指紋。**形が変われば落ちる。**
- * 座標・厚み・z 範囲・分類・並び — Form に載るものはすべてここに効く。
+ * Form fingerprints for bundled examples. Coordinates, thicknesses, z ranges, classifications
+ * and ordering all affect these values.
  */
 const GOLDEN: Record<string, string> = {
   "examples/two-rooms.muro": "642a6ecea5c4b05f",
   "examples/office.muro": "7cf1f4c1fe0aa530",
-  "examples/house/main.muro": "9622d2a0f166f76d",
-  "examples/basement/main.muro": "1fa571a563ca4bcb",
-  "examples/tower/main.muro": "0c035e5be800bec7",
-  "examples/complex/main.muro": "d1d2cb12161f84b5",
+  "examples/house/main.muro": "2eaf9e454f0b1d91",
+  "examples/basement/main.muro": "ec6c647018cb1a14",
+  "examples/tower/main.muro": "f7e0e47145a555da",
+  "examples/complex/main.muro": "946a452b02bf4670",
 };
 
 test("derive: the Form of every bundled example matches its golden", () => {
@@ -65,9 +64,9 @@ test("derive: the Form is stable (deriving twice from the same source gives the 
   for (const f of EXAMPLES) assert.equal(digest(f), digest(f), f);
 });
 
-// ---- 2. 見た目を持たない ----
+// ---- 2. No appearance ----
 
-/** 同一性を運ぶキー — 原本に書かれた語 (パス・型・名) がここにだけ乗る */
+/** Keys allowed to carry identity written in source, such as paths, types and names. */
 const IDENTITY_KEYS = new Set([
   "a", "b", "grid", "into", "level", "name", "path", "ref", "space", "type", "upper", "device", "form", "up", "turn",
 ]);
@@ -104,9 +103,9 @@ test("derive: the only words the Form carries beyond ASCII are the identity writ
   assert.deepEqual(bad, [], `a word that is not identity rode into the Form:\n  ${bad.join("\n  ")}`);
 });
 
-// ---- 3. spec の表と実装の台帳 ----
+// ---- 3. Documentation tables and implementation ledgers ----
 
-/** マーカー直後の表から `| \`NAME\` | value |` を読む */
+/** Read `| NAME | value |` rows from the table after a marker. */
 function tableAfter(page: string, marker: string): Record<string, number> {
   const md = read(page);
   const at = md.indexOf(marker);
@@ -140,7 +139,7 @@ for (const page of ["docs/reference/form/constants.md"]) {
   });
 }
 
-// ---- 4. 形の不変量 ----
+// ---- 4. Shape invariants ----
 
 const SRC = `koyu 1.1
 grid X 0 4000 8000
@@ -162,7 +161,7 @@ test("derive: the panels of a wall cover the whole segment, with exactly the ope
     if (!b.material) continue;
     const len = segmentLength(b.segment);
     const holes = form.openings.filter((o) => o.boundary === b.boundary && o.segment === b.segment);
-    // 全高の区間 + 開口の腰壁・垂れ壁 の面積の合計が、線分の立面から開口を抜いた面積に等しい
+    // Full-height panels, sills and lintels equal the segment elevation minus its openings.
     const panelArea = b.material.panels.reduce(
       (a, p) => a + Math.hypot(p.x2 - p.x1, p.y2 - p.y1) * (p.z1 - p.z0),
       0,
@@ -186,20 +185,20 @@ test("derive: the cut height is an input to the Form, and it moves what the plan
     derive(m, { cut })
       .plans.find((p) => p.level === "L1")!
       .entities.filter((e) => e.of === "opening" && e.class === "cut").length;
-  // 切断面 400mm は窓 (窓台 900mm) より下 — 窓は切られず、下の見えがかりになる
+  // A 400mm cut lies below the 900mm sill, so the window moves out of the cut class.
   assert.ok(at(1200) > at(400), "moving the cut plane must move what is cut");
 });
 
 test("derive: the storey height rises to the apex of the roof where no level sits above", () => {
   const m = parse(SRC);
-  assert.equal(levelPitch(m, "L1"), 3000); // 上のレベルがある — その差
-  assert.equal(levelPitch(m, "L2"), 2700 + 200); // 上が無い — 天井高 + 屋根版の厚さ
+  assert.equal(levelPitch(m, "L1"), 3000); // Difference to the level above.
+  assert.equal(levelPitch(m, "L2"), 2700 + 200); // Ceiling height plus roof slab at the top.
   const top = derive(m).levels.find((l) => l.name === "L2")!;
   assert.equal(top.pitch, 2900);
 });
 
 test("derive: a level whose ceiling height is undetermined raises no wall and no column", () => {
-  // 既定値を捏造しない (spec/derivation.md §0-2) — SUF01 が「作れない」ことを言葉にする
+  // Do not invent a default; SUF01 reports that the vertical extent cannot be derived.
   const m = parse(`koyu 1.1
 grid X 0 4000
 grid Y 0 5000
@@ -217,7 +216,7 @@ boundary /L1/a /out
 test("derive: the head of an opening aligns to the lintel, and the sill falls out of it", () => {
   const form = derive(parse(SRC));
   const win = form.openings.find((o) => o.kind === "window")!;
-  assert.deepEqual([win.z0, win.z1], [2000 - 1100, 2000]); // h:1100 と書かれた窓
+  assert.deepEqual([win.z0, win.z1], [2000 - 1100, 2000]); // A window written with h:1100.
   const door = form.openings.find((o) => o.kind === "door")!;
-  assert.deepEqual([door.z0, door.z1], [0, 2000]); // 扉は床から立ち、まぐさ高に達する
+  assert.deepEqual([door.z0, door.z1], [0, 2000]); // A door rises from the floor to the lintel.
 });

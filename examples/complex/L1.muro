@@ -124,7 +124,7 @@ boundary /L1/s05 /site/east edge:E t:300 spec:カーテンウォール
   door AD1 name:東側入口
 boundary /L1/n05 /site/east edge:E t:300 spec:カーテンウォール
 boundary /L1/mall /site/east edge:E t:300 spec:カーテンウォール
-  door AD1 name:東側モール入口
+  door AD1 w:1800 name:East-mall-entrance
 boundary /L1/bohE /site/east edge:E t:300 spec:RC
   door GD1 name:荷捌き入口
 boundary /L1/bohW /out edge:N t:300 spec:RC

@@ -20,7 +20,7 @@ koyu check building/main.muro
 The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no doors at all comes out green.
 
 ```muro
-muro 1.4
+muro 1.5
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -53,7 +53,6 @@ npx tsx src/cli.ts validate sealed.muro --profile koyu.profile.schematic-screen 
 ✖ [koyu.schematic.access.unreachable] <absolute path>/sealed.muro:line 6: Cannot reach the exterior: /L1/a (no passable boundary leads out — write a door)
 ✖ [koyu.schematic.access.unreachable] <absolute path>/sealed.muro:line 7: Cannot reach the exterior: /L1/b (no passable boundary leads out — write a door)
 Validation — 3 violations / 0 cautions
-  koyu.profile.schematic-screen@1 — 4 evaluated / 12 not applicable / 0 indeterminate / 0 error
 ```
 
 Exit 1. **Put only `check` in CI and those three findings are never seen by anyone.**

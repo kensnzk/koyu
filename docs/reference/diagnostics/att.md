@@ -5,7 +5,7 @@ mode: reference
 
 # ATT — attributes
 
-There are three ATT codes. All are errors.
+The ATT entries in the diagnostic ledger are errors.
 
 | Code | Severity | What it says |
 |---|---|---|
@@ -97,7 +97,9 @@ site on zone /site is one of 0 / 1: site:yes
 | `zone` | `site` | `0` / `1` |
 | `space` | `ceiling` | `0` / `1` (0 = no ceiling is built) |
 | `space` | `turn` | `R` / `L` |
-| Opening, `asset` | `style` | `hinged` / `sliding` / `auto` |
+| Opening, door/window `asset` | `style` | the opening-operation vocabulary on [door](../muro/door.md) and [window](../muro/window.md) |
+| Component `asset` | `w` `d` | positive physical plan dimensions |
+| `area` component host | `align-x` `align-y` | `min` / `center` / `max` |
 
 **Case matters.** `turn:l` is not `turn:L`.
 

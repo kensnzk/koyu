@@ -43,7 +43,7 @@ claude mcp add koyu -- npx -p @kensnzk/koyu koyu-mcp
 claude mcp add koyu -- node /path/to/koyu/dist/mcp.js   # development build
 ```
 
-`claude mcp list` lists the registered servers with their connection status. During a session, `/mcp` shows all 14 tools.
+`claude mcp list` lists the registered servers with their connection status. During a session, `/mcp` shows the complete tool ledger.
 
 ## Sharing it through the repository (project scope)
 
@@ -107,18 +107,20 @@ printf '%s\n' \
   | npx tsx src/mcp.ts
 ```
 
+The first response is the live `initialize` result described by [the protocol](protocol.md). Its
+implementation and language versions come from the server's ledgers. The second response is:
+
 ```text
-{"jsonrpc":"2.0","id":1,"result":{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"koyu","version":"0.27.0","muro":{"reads":["0.1","0.2","0.3","0.4","0.5","1.0","1.1","1.2","1.3","1.4"],"newest":"1.4","undeclared":"1.1"}},"instructions":"Server for koyu, a space-first architectural description. Grasp the building with model_summary, read the original layers with layers, and edit with write_layer. check is the gatekeeper of the build and returns errors tagged layer:line — it guarantees structural consistency only. validate delivers the architectural verdicts, which are a separate and unfrozen surface. doors/light/site/spaces are different questions put to the same description. Form (the drawings — plan_svg, section_svg, elevation_svg) is generated, never written."}}
 {"jsonrpc":"2.0","id":2,"result":{"content":[{"type":"text","text":"{\n \"doors\": 2,\n \"path\": [\n  \"/L1/a\",\n  \"/L1/b\",\n  \"/out\"\n ]\n}"}]}}
 ```
 
 To check an installed package instead, swap the last line for `npx -p @kensnzk/koyu koyu-mcp` and make the file path absolute.
 
-Send `{"jsonrpc":"2.0","id":3,"method":"tools/list"}` the same way and all 14 tools come back with `name`, `description` and `inputSchema`.
+Send `{"jsonrpc":"2.0","id":3,"method":"tools/list"}` the same way and every tool comes back with `name`, `description` and `inputSchema`.
 
 ## See also
 
-- [koyu-mcp](index.md) — statelessness, the standard loop, the 14 tools
+- [koyu-mcp](index.md) — statelessness, the standard loop and the tool ledger
 - [The protocol](protocol.md) — what `initialize` announces, how errors come back
 - [Writing — write_layer / new_uids](tools-write.md) — the blast radius of a write
 - [The koyu command](../cli/index.md) — the same derivations by hand

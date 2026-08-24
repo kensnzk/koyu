@@ -5,7 +5,7 @@ mode: reference
 
 # UID — identity
 
-There are four UID codes. All are errors.
+The UID entries in the diagnostic ledger are errors.
 
 | Code | Severity | What it says |
 |---|---|---|
@@ -14,7 +14,7 @@ There are four UID codes. All are errors.
 | UID03 | error | The `uid` is duplicated |
 | UID04 | error | A `name` is duplicated within one container |
 
-**There are two kinds of identity here**, and once you see that, the four codes split into two.
+**There are two kinds of identity here**, and the UID entries split along that distinction.
 
 - **`uid`** — an **opaque token** written on a `space` or a `zone`. It is unique across the whole model and exists so you can say "this is the same thing" after changing a path. `koyu diff`'s rename detection reads it. UID01–UID03 guard it.
 - **`name`** — the identity of an opening, a `seg`, an `area` or a column. None of these has a path of its own, so their identity is **the container plus a name unique inside it**. UID04 guards that.

@@ -5,7 +5,7 @@ mode: reference
 
 # ZON — zones
 
-There are two ZON codes, and both are warnings.
+The ZON entries in the diagnostic ledger are warnings.
 
 | Code | Severity | What it says |
 |---|---|---|

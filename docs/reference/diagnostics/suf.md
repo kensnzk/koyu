@@ -5,7 +5,7 @@ mode: reference
 
 # SUF — sufficiency
 
-There are four SUF codes. None of them asks whether a value is *right*; each asks **whether the value needed to make a shape is written at all**.
+The SUF entries do not ask whether a value is *right*; each asks **whether the value needed to make a shape is written at all**.
 
 | Code | Severity | What it says |
 |---|---|---|
@@ -184,5 +184,5 @@ If it does not go out to the roof, drop the declaration on that storey.
 ## Related
 
 - [HGT — the height invariant](./hgt.md) — for when values **are** written and contradict each other
-- [RUN — vertical circulation](./run.md) — the four codes for a declaration that cannot be read
+- [RUN — vertical circulation](./run.md) — diagnostics for a declaration that cannot be read
 - [koyu check](../cli/check.md)

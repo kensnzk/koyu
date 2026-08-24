@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 import { derive } from "../src/core/derive.js";
 import { canonicalBoundaryOrder } from "../src/core/model.js";
 import { parse } from "../src/core/parse.js";
-import { planMarks, SLIDE_POCKET, type Mark } from "../src/draw/marks.js";
+import { planMarks, SLIDE_GAP, type Mark } from "../src/draw/marks.js";
 import { parseFile } from "../src/parse-file.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -105,6 +105,86 @@ boundary /L1/a /L1/b air:1 h:1100
     "a rail stands 1100 high and the plane cuts at 1200 — asking the class first drops every one",
   );
   for (const r of rails) assert.ok((r.lines?.length ?? 0) >= 1, "a rail is drawn as its axis");
+});
+
+test("marks: every stair arrow points towards increasing elevation on a general floor", () => {
+  const form = derive(
+    parse(`muro 1.5
+grid X 0 3000
+grid Y 0 8000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+level L3 6000 h:2700 slab:300
+space /L1/s stair X1..X2 Y1..Y2 stair:N
+space /L2/s stair X1..X2 Y1..Y2 stair:N
+space /L3/s stair X1..X2 Y1..Y2
+stack s L1..L3 type:stair
+`),
+  );
+  const raw = form.plans.find((p) => p.level === "L2")!.entities.filter(
+    (e) => e.of === "run" && e.role === "arrow",
+  );
+  const arrows = planMarks(form, "L2").filter((m) => m.role === "run-arrow");
+  assert.equal(arrows.length, 2, "a general floor shows the departing and arriving stair flights");
+  assert.ok(
+    arrows.every((m) => m.note?.of === "direction" && m.note.up),
+    "both presentation arrows mean increasing elevation",
+  );
+
+  const rawArriving = raw.find((e) => e.class === "below")!.lines![0]!;
+  const arriving = arrows.find((m) => m.class === "below")!.lines![0]!;
+  const dot =
+    (arriving.x2 - arriving.x1) * (rawArriving.x2 - rawArriving.x1) +
+    (arriving.y2 - arriving.y1) * (rawArriving.y2 - rawArriving.y1);
+  assert.ok(dot < 0, "the flight from below points opposite to its raw descending travel arrow");
+  assert.ok(arriving.y2 > rawArriving.y1, "its head reaches the current landing instead of stopping short");
+});
+
+test("marks: a return stair arrow continues across its landing", () => {
+  const form = derive(parseFile(join(root, "test/fixtures/stair-arrows.muro")));
+  const marksByLevel = ["L1", "L2", "L3"].map((level) => planMarks(form, level));
+  const perLevel = marksByLevel.map((marks) => marks.filter((m) => m.role === "run-arrow"));
+  assert.deepEqual(perLevel.map((a) => a.length), [1, 2, 1]);
+  for (let i = 0; i < perLevel.length; i++) {
+    const arrows = perLevel[i]!;
+    const marks = marksByLevel[i]!;
+    for (const arrow of arrows) {
+      assert.deepEqual(arrow.at, { x: arrow.lines![0]!.x1, y: arrow.lines![0]!.y1 });
+    }
+  }
+  for (let i = 0; i < 2; i++) {
+    const departing = perLevel[i]!.find((m) => m.class === "cut")!;
+    const risers = marksByLevel[i]!
+      .filter((m) => m.role === "run-tread" && m.ref === departing.ref)
+      .flatMap((m) => m.lines ?? []);
+    assert.ok(
+      risers.some((g) =>
+        Math.hypot((g.x1 + g.x2) / 2 - departing.at!.x, (g.y1 + g.y2) / 2 - departing.at!.y) < 1e-6,
+      ),
+      "a departing arrow's circle sits on the first riser line",
+    );
+  }
+  const top = perLevel[2]![0]!.lines!;
+  assert.equal(top.length, 5, "the arrow enters the landing, crosses it, and returns to the upper flight");
+  for (let i = 0; i < top.length - 1; i++) {
+    assert.deepEqual(top[i]!.x2, top[i + 1]!.x1);
+    assert.deepEqual(top[i]!.y2, top[i + 1]!.y1);
+  }
+  assert.deepEqual({ x: top[1]!.x2, y: top[1]!.y2 }, { x: 750, y: 4250 });
+  assert.deepEqual({ x: top[2]!.x2, y: top[2]!.y2 }, { x: 2250, y: 4250 });
+  assert.deepEqual({ x: top[4]!.x2, y: top[4]!.y2 }, { x: 2250, y: 1100 });
+
+  const topTreads = marksByLevel[2]!
+    .filter((m) => m.role === "run-tread" && m.ref === "/L2/st")
+    .flatMap((m) => m.lines ?? []);
+  assert.ok(
+    topTreads
+      .filter((g) => (g.x1 + g.x2) / 2 < 1500)
+      .every((g) => (g.y1 + g.y2) / 2 >= 2913),
+    "the top floor omits every tread below the preceding floor's cut",
+  );
+  assert.ok(topTreads.some((g) => g.x1 === 1500 && g.x2 === 3000 && g.y1 === 1100 && g.y2 === 1100));
+  assert.equal(marksByLevel[2]!.filter((m) => m.role === "run-break").length, 1);
 });
 
 // ---- 3. 物を持たない関係は線として出る ----
@@ -206,7 +286,7 @@ test("marks: written points back at the declaration", () => {
 
 // ---- 7. 数はひとつだけで、それは差し替えられる ----
 
-test("marks: SLIDE_POCKET is the only number, and it is overridable", () => {
+test("marks: the sliding leaf clears the wall face by SLIDE_GAP, and the gap is overridable", () => {
   const form = derive(
     parse(`koyu 1.1
 grid X 0 4000
@@ -220,10 +300,37 @@ boundary /L1/a /L1/b
   );
   const panel = (ms: Mark[]) => ms.find((m) => m.role === "slide-panel")!.lines![0]!;
   const a = panel(planMarks(form, "L1"));
-  const b = panel(planMarks(form, "L1", { slidePocket: 0 }));
+  const movedMarks = planMarks(form, "L1", { slideGap: 0 });
+  const b = panel(movedMarks);
   const moved = Math.hypot(a.x1 - b.x1, a.y1 - b.y1);
   assert.ok(
-    Math.abs(moved - SLIDE_POCKET) < 1e-9,
-    `the pocket setback is the whole of the difference (${moved})`,
+    Math.abs(moved - SLIDE_GAP) < 1e-9,
+    `the clear gap is the whole of the difference (${moved})`,
+  );
+  const wallCentre = form.openings[0]!.swing!.hinge;
+  const offset = Math.hypot(b.x1 - wallCentre.x, b.y1 - wallCentre.y);
+  assert.ok(
+    Math.abs(offset - form.openings[0]!.t / 2) < 1e-9,
+    "with no clear gap, the leaf sits on the wall face",
+  );
+  const guide = movedMarks.find((m) => m.role === "slide-tail")!.lines!;
+  assert.equal(guide.length, 1, "one dashed guide shows the direction of travel");
+  assert.deepEqual(
+    [guide[0]!.x2, guide[0]!.y2],
+    [b.x1, b.y1],
+    "the travel guide joins the leaf at its pocket-side end",
+  );
+  assert.ok(
+    Math.abs(Math.hypot(guide[0]!.x2 - guide[0]!.x1, guide[0]!.y2 - guide[0]!.y1) - 900) < 1e-9,
+    "the travel guide is one leaf width long",
+  );
+  const centre = movedMarks.find((m) => m.role === "slide-centre")!.lines![0]!;
+  const centreLength = Math.hypot(centre.x2 - centre.x1, centre.y2 - centre.y1);
+  assert.ok(Math.abs(centreLength - form.openings[0]!.t) < 1e-9, "the centre tick is one wall thickness long");
+  const panelVector = { x: b.x2 - b.x1, y: b.y2 - b.y1 };
+  const centreVector = { x: centre.x2 - centre.x1, y: centre.y2 - centre.y1 };
+  assert.ok(
+    Math.abs(panelVector.x * centreVector.x + panelVector.y * centreVector.y) < 1e-9,
+    "the centre tick is perpendicular to the leaf",
   );
 });

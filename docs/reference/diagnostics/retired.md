@@ -50,7 +50,7 @@ Two problems forced the split.
 
 **Second, every new judgement stretched the frozen surface.** Every time compartmentation, escape distance, smoke extraction or an area ratio by occupancy wanted adding, the ledger of diagnostic codes grew — and all of it looked like surface that had been promised not to break. Judgements now live on their own surface, where adding or dropping one moves no language version.
 
-**Nothing was thrown away; it was moved.** Run `koyu validate` and those six rules still say the same things.
+**Nothing was thrown away; it was moved.** Run `koyu validate` and the corresponding rules still say the same things.
 
 ```sh
 koyu validate examples/tower/main.muro --profile koyu.profile.schematic-screen --as-of 2026-08-03

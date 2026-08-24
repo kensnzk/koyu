@@ -19,6 +19,7 @@ import {
   SUPPORTED_LANGUAGE_VERSIONS,
 } from "./core/model.js";
 import { axisOf } from "./core/section.js";
+import { placedComponents } from "./core/components.js";
 import { check } from "./core/diagnose.js";
 import { siteReport } from "./core/site.js";
 import { assess } from "./validate/assessment.js";
@@ -41,7 +42,7 @@ import {
   type Model,
   type Space,
 } from "./model.js";
-import { parseFile, parseFileWith } from "./parse-file.js";
+import { componentSvgFiles, parseFile, parseFileWith } from "./parse-file.js";
 
 // ---- モデルの読み込みと要約 ----
 
@@ -109,6 +110,7 @@ function summarize(model: Model, file: string, by: readonly string[] = []): unkn
     byM2[key] = bucket;
   }
   const r = check(model);
+  const components = placedComponents(model).components;
   return {
     name: model.name,
     unit: model.unit,
@@ -134,6 +136,18 @@ function summarize(model: Model, file: string, by: readonly string[] = []): unkn
       };
     }),
     assets: [...model.assets.values()].map((a) => ({ name: a.name, kind: a.kind, attrs: a.attrs })),
+    ...(components.length > 0
+      ? {
+          componentPlacements: components.map((component) => ({
+            space: component.space,
+            area: component.area,
+            asset: component.asset,
+            level: component.level,
+            centre: component.centre,
+            rotation: component.rotation,
+          })),
+        }
+      : {}),
     ...(model.polygons.size
       ? { sitePolygons: [...model.polygons.keys()] }
       : {}),
@@ -222,7 +236,7 @@ const keys = (v: unknown, name: string): string[] => {
 const TOOLS: Record<string, Tool> = {
   model_summary: {
     description:
-      "Summary of the building: name, levels, layer composition, zones, door/window assets, areas, and check counts. Call this first. Pass by:[\"lease.category\"] to also get floor area grouped by those attribute keys",
+      "Summary of the building: name, levels, layer composition, zones, reusable assets, placed components, areas, and check counts. Call this first. Pass by:[\"lease.category\"] to also get floor area grouped by those attribute keys",
     schema: {
       type: "object",
       properties: {
@@ -444,7 +458,11 @@ const TOOLS: Record<string, Tool> = {
       properties: { ...FILE_PROP, level: { type: "string", description: "Level name (e.g. L5)" } },
       required: ["file", "level"],
     },
-    run: (a) => svgPlan(load(str(a.file, "file")), { level: str(a.level, "level") }),
+    run: (a) => {
+      const model = load(str(a.file, "file"));
+      const level = str(a.level, "level");
+      return svgPlan(model, { level, componentSvgs: componentSvgFiles(model, level) });
+    },
   },
   section_svg: {
     description:

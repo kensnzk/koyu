@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="688" height="468" viewBox="0 0 688 468" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="688" height="468" fill="#faf8f4"/>
+<g transform="translate(9.11 9.27) scale(0.02179)"><path d="M1027.53 171.361L224.461 171.363L224.392 1043.39L361.454 1043.42L361.567 308.689L889.587 308.679L889.581 904.864L566.4 904.876L566.387 524.585L419.01 452.015L419.047 1043.39L1027.51 1043.43L1027.53 171.361Z" fill="#171A18"/><path d="M707 445.022L811.864 445L811.858 613.697C811.831 648.974 812.209 684.759 811.831 720L707.005 719.933L707 445.022Z" fill="#A84940"/></g>
+<path d="M 84 384 L 214 384 L 214 84 L 84 84 Z" fill="#f1ebdd"/>
+<path d="M 214 384 L 344 384 L 344 84 L 214 84 Z" fill="#f1ebdd"/>
+<path d="M 344 384 L 474 384 L 474 84 L 344 84 Z" fill="#f1ebdd"/>
+<path d="M 474 384 L 604 384 L 604 84 L 474 84 Z" fill="#f1ebdd"/>
+<line x1="84" y1="58" x2="84" y2="410" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="84" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="84" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X1</text>
+<line x1="214" y1="58" x2="214" y2="410" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="214" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="214" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X2</text>
+<line x1="344" y1="58" x2="344" y2="410" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="344" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="344" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X3</text>
+<line x1="474" y1="58" x2="474" y2="410" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="474" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="474" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X4</text>
+<line x1="604" y1="58" x2="604" y2="410" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="604" cy="44" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="604" y="48" text-anchor="middle" font-size="10" fill="#b5aa94">X5</text>
+<line x1="58" y1="384" x2="630" y2="384" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="44" cy="384" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="44" y="387.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y1</text>
+<line x1="58" y1="84" x2="630" y2="84" stroke="#b5aa94" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>
+<circle cx="44" cy="84" r="11" fill="none" stroke="#b5aa94" stroke-width="1"/>
+<text x="44" y="87.5" text-anchor="middle" font-size="10" fill="#b5aa94">Y2</text>
+<path d="M 211 386.5 L 211 264 L 217 264 L 217 386.5 Z" fill="#1f1f1f"/>
+<path d="M 211 204 L 211 81.5 L 217 81.5 L 217 204 Z" fill="#1f1f1f"/>
+<path d="M 86.5 381.5 L 211 381.5 L 211 386.5 L 86.5 386.5 Z" fill="#1f1f1f"/>
+<path d="M 86.5 81.5 L 211 81.5 L 211 86.5 L 86.5 86.5 Z" fill="#1f1f1f"/>
+<path d="M 81.5 386.5 L 81.5 81.5 L 86.5 81.5 L 86.5 386.5 Z" fill="#1f1f1f"/>
+<path d="M 340.25 386.5 L 340.25 264 L 347.75 264 L 347.75 386.5 Z" fill="#1f1f1f"/>
+<path d="M 340.25 204 L 340.25 81.5 L 347.75 81.5 L 347.75 204 Z" fill="#1f1f1f"/>
+<path d="M 217 381.5 L 340.25 381.5 L 340.25 386.5 L 217 386.5 Z" fill="#1f1f1f"/>
+<path d="M 217 81.5 L 340.25 81.5 L 340.25 86.5 L 217 86.5 Z" fill="#1f1f1f"/>
+<path d="M 466.5 386.5 L 466.5 264 L 481.5 264 L 481.5 386.5 Z" fill="#1f1f1f"/>
+<path d="M 466.5 204 L 466.5 81.5 L 481.5 81.5 L 481.5 204 Z" fill="#1f1f1f"/>
+<path d="M 347.75 381.5 L 466.5 381.5 L 466.5 386.5 L 347.75 386.5 Z" fill="#1f1f1f"/>
+<path d="M 347.75 81.5 L 466.5 81.5 L 466.5 86.5 L 347.75 86.5 Z" fill="#1f1f1f"/>
+<path d="M 481.5 381.5 L 606.5 381.5 L 606.5 386.5 L 481.5 386.5 Z" fill="#1f1f1f"/>
+<path d="M 601.5 381.5 L 601.5 86.5 L 606.5 86.5 L 606.5 381.5 Z" fill="#1f1f1f"/>
+<path d="M 481.5 81.5 L 606.5 81.5 L 606.5 86.5 L 481.5 86.5 Z" fill="#1f1f1f"/>
+<g class="opening-slide-panel">
+<line x1="208" y1="264" x2="208" y2="204" stroke="#1f1f1f" stroke-width="1.2"/>
+</g>
+<g class="opening-slide-centre">
+<line x1="211" y1="234" x2="205" y2="234" stroke="#1f1f1f" stroke-width="0.7"/>
+</g>
+<g class="opening-slide-guide">
+<line x1="208" y1="324" x2="208" y2="264" stroke="#1f1f1f" stroke-width="0.65" stroke-dasharray="5 3"/>
+</g>
+<g class="opening-slide-panel">
+<line x1="337.25" y1="264" x2="337.25" y2="204" stroke="#1f1f1f" stroke-width="1.2"/>
+</g>
+<g class="opening-slide-centre">
+<line x1="341" y1="234" x2="333.5" y2="234" stroke="#1f1f1f" stroke-width="0.7"/>
+</g>
+<g class="opening-slide-guide">
+<line x1="337.25" y1="324" x2="337.25" y2="264" stroke="#1f1f1f" stroke-width="0.65" stroke-dasharray="5 3"/>
+</g>
+<g class="opening-slide-panel">
+<line x1="463.5" y1="264" x2="463.5" y2="204" stroke="#1f1f1f" stroke-width="1.2"/>
+</g>
+<g class="opening-slide-centre">
+<line x1="471" y1="234" x2="456" y2="234" stroke="#1f1f1f" stroke-width="0.7"/>
+</g>
+<g class="opening-slide-guide">
+<line x1="463.5" y1="324" x2="463.5" y2="264" stroke="#1f1f1f" stroke-width="0.65" stroke-dasharray="5 3"/>
+</g>
+<text x="149" y="230" text-anchor="middle" font-size="14" fill="#1f1f1f">t120</text>
+<text x="149" y="247" text-anchor="middle" font-size="10" fill="#8a8171">room · 15.6 m2</text>
+<text x="149" y="261" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/a</text>
+<text x="279" y="230" text-anchor="middle" font-size="14" fill="#1f1f1f">t150</text>
+<text x="279" y="247" text-anchor="middle" font-size="10" fill="#8a8171">room · 15.6 m2</text>
+<text x="279" y="261" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/b</text>
+<text x="409" y="230" text-anchor="middle" font-size="14" fill="#1f1f1f">t300</text>
+<text x="409" y="247" text-anchor="middle" font-size="10" fill="#8a8171">room · 15.6 m2</text>
+<text x="409" y="261" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/c</text>
+<text x="539" y="230" text-anchor="middle" font-size="14" fill="#1f1f1f">end</text>
+<text x="539" y="247" text-anchor="middle" font-size="10" fill="#8a8171">room · 15.6 m2</text>
+<text x="539" y="261" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/d</text>
+<text x="22" y="450" font-size="12" fill="#1f1f1f">Sliding leaf offsets — L1 plan</text>
+</svg>

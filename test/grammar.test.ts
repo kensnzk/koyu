@@ -32,11 +32,11 @@ const grammar = JSON.parse(
   read("editors/vscode/syntaxes/koyu.tmLanguage.json"),
 ) as Grammar;
 
-/** 文法の match から、英字だけの選択肢 `(a|b|c)` を採る */
+/** Read a word-or-hyphen alternative list such as `(a|b|plan-svg)` from one grammar match. */
 function alternatives(key: string): string[] {
   const match = grammar.repository[key]?.match;
   assert.ok(match, `the grammar has no ${key}`);
-  const m = /\(([A-Za-z][A-Za-z0-9|]*)\)/.exec(match);
+  const m = /\(([A-Za-z][A-Za-z0-9|-]*)\)/.exec(match);
   assert.ok(m, `${key} carries no word alternatives: ${match}`);
   return m[1]!.split("|");
 }

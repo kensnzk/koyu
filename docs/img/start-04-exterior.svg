@@ -28,11 +28,13 @@
 <path d="M 234 280.25 L 267 280.25 L 267 287.75 L 234 287.75 Z" fill="#1f1f1f"/>
 <path d="M 87.75 80.25 L 267 80.25 L 267 87.75 L 87.75 87.75 Z" fill="#1f1f1f"/>
 <path d="M 80.25 287.75 L 80.25 80.25 L 87.75 80.25 L 87.75 287.75 Z" fill="#1f1f1f"/>
-<line x1="264" y1="204" x2="224" y2="204" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 224 204 A 40 40 0 0 1 264 164" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="286.5" y1="284" x2="286.5" y2="239" stroke="#1f1f1f" stroke-width="1.4"/>
-<path d="M 286.5 239 A 45 45 0 0 1 331.5 284" fill="none" stroke="#1f1f1f" stroke-width="0.7" stroke-dasharray="3 2.5"/>
-<line x1="114" y1="284" x2="234" y2="284" stroke="#1f1f1f" stroke-width="1"/>
+<line x1="264" y1="204" x2="224" y2="204" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 224 204 A 40 40 0 0 1 264 164" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<line x1="286.5" y1="284" x2="286.5" y2="239" stroke="#1f1f1f" stroke-width="1.1"/>
+<path class="opening-door-arc" d="M 286.5 239 A 45 45 0 0 1 331.5 284" fill="none" stroke="#1f1f1f" stroke-width="0.7"/>
+<g class="opening-window">
+<path d="M 114 280.25 L 234 280.25 M 114 287.75 L 234 287.75" fill="none" stroke="#1f1f1f" stroke-width="0.8"/>
+</g>
 <text x="309" y="180" text-anchor="middle" font-size="14" fill="#1f1f1f">hall</text>
 <text x="309" y="197" text-anchor="middle" font-size="10" fill="#8a8171">hall · 7.2 m2</text>
 <text x="309" y="211" text-anchor="middle" font-size="8.5" fill="#b3ab9c">/L1/hall</text>

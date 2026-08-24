@@ -53,7 +53,7 @@ claude mcp list
 
 Do not move on until `✓ Connected` appears. A server that came from `.mcp.json` needs approval on first use, and sits pending until you give it.
 
-Inside a session, `/mcp` lists the tools. **Twelve is the right number.** A different count means you are talking to an older build.
+Inside a session, `/mcp` lists the tools. Confirm that the names match [`tools/list`](../reference/mcp/protocol.md#toolslist); a missing name means you may be talking to an older build.
 
 ## 4. Confirm the server works on its own
 
@@ -107,4 +107,4 @@ If the summary comes back with the layer composition, levels, areas and the `che
 - [The standard loop for letting an agent write](agent-loop.md) — the order of work once you are connected
 - [Drive the MCP server by hand over stdio](debug-mcp.md) — take the client out and find the fault
 - [Register with a client](../reference/mcp/install.md) — config file shapes and locations
-- [koyu-mcp](../reference/mcp/index.md) — statelessness and the fourteen tools
+- [koyu-mcp](../reference/mcp/index.md) — statelessness and the tool ledger
