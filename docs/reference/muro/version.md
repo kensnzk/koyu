@@ -6,7 +6,7 @@ mode: reference
 # muro — the version line
 
 ```muro-part
-muro 1.6
+muro 1.5
 ```
 
 **One line declaring which version of the semantics this file is read under.** These are the accepted versions, and the order is the order of old to new.
@@ -151,10 +151,10 @@ division. A processor implementing 1.4 rejects those styles and `panels:`, so a 
 cannot declare itself as 1.4.
 
 ```text
-A muro 1.4 file uses a 1.5 opening style: sliding-double on door (/L1/a | /out) — raise the version to muro 1.6
+A muro 1.4 file uses a 1.5 opening style: sliding-double on door (/L1/a | /out) — raise the version to muro 1.5
 ```
 
-**The fix**: raise the version to `muro 1.6`. The original `hinged`, `sliding` and `auto` values
+**The fix**: raise the version to `muro 1.5`. The original `hinged`, `sliding` and `auto` values
 remain valid under their earlier versions.
 
 ### VER09 — component assets and placement in a file declaring 1.4 or older
@@ -163,10 +163,10 @@ Muro 1.5 adds `component` assets and the area's `asset:`, X/Y alignment, X/Y off
 attributes. A processor implementing 1.4 cannot read that placement contract.
 
 ```text
-A muro 1.4 file declares a 1.5 component asset: WC — raise the version to muro 1.6
+A muro 1.4 file declares a 1.5 component asset: WC — raise the version to muro 1.5
 ```
 
-**The fix**: raise the version to `muro 1.6`.
+**The fix**: raise the version to `muro 1.5`.
 
 ## What the version covers
 

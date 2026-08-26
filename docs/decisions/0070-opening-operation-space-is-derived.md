@@ -35,7 +35,7 @@ must not be treated as a horizontal sliding leaf.
 4. A single sliding leaf stores one opening width at the hinge jamb. A double sliding opening
    stores half an opening width at each jamb. `sliding-bypass`, `auto`, `auto-single` and
    `auto-double` need no horizontal storage beyond the aperture.
-5. `rolling-shutter` and `overhead` are explicit muro 1.6 door styles. The first coils above the
+5. `rolling-shutter` and `overhead` are explicit muro 1.5 door styles. The first coils above the
    opening; the second is a sectional door that rises above it. Their plan marks claim no
    horizontal storage. Their vertical operation geometry belongs in a later section view.
 6. An Asset and the same attributes written on an opening produce identical observations. No

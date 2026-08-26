@@ -16,8 +16,8 @@ All VER codes are errors.
 | VER05 | error | a koyu 1.0-or-earlier file writes exterior / void in the type position |
 | VER06 | error | The file declares a version newer than this build reads |
 | VER07 | error | The file declares a version in which a key it writes is retired |
-| VER08 | error | A pre-1.5 file uses opening presentation introduced in muro 1.6 |
-| VER09 | error | A pre-1.5 file uses component assets or placement introduced in muro 1.6 |
+| VER08 | error | A pre-1.5 file uses opening presentation introduced in muro 1.5 |
+| VER09 | error | A pre-1.5 file uses component assets or placement introduced in muro 1.5 |
 
 **VER06 is the one that points at the tool rather than the file.** The other guards say the declared
 version and the vocabulary do not agree. VER06 says the opposite: the file is fine and the reader
@@ -31,7 +31,7 @@ have to agree.
 ## Declaring the version
 
 ```muro-part
-muro 1.6
+muro 1.5
 ```
 
 These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1 / 1.2 / 1.3 / 1.4 / 1.5 / 1.6**. Anything else stops at the parser, before any semantic check runs.
@@ -121,7 +121,7 @@ grid X 0 3000
 grid Y 0 8000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
-space /L1/s stair X1..X2 Y1..Y1+7000 stair:y+
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
 space /L2/s stair X1..X2 Y1..Y1+7000
 space /out yard
 stack s L1..L2 type:stair
@@ -157,7 +157,7 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out yard
 boundary /L1/a /out t:150
-  door w:800 edge:y- name:D1
+  door w:800 edge:S name:D1
 drop /L1/b
 over /L1/a /out
   - door D1
@@ -195,7 +195,7 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out exterior name:外部
 boundary /L1/a /out t:120
-  door w:900 edge:y-
+  door w:900 edge:S
 ```
 
 ```text
@@ -248,7 +248,7 @@ Both used to print that second sentence, so nothing downstream could tell a stal
 `error`
 
 ```muro-bad
-muro 1.6
+muro 1.5
 grid X 0 4000 8000
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -259,7 +259,7 @@ boundary /L1/A/ldk /out
 ```
 
 ```text
-✖ ver07.muro:line 5: A muro 1.6 file carries use: on zone /L1/A — use is retired after muro 1.2. Write a namespaced key of your own (lease.category:, fire.compartment:, dept.name:) instead, or keep the file at muro 1.2
+✖ ver07.muro:line 5: A muro 1.5 file carries use: on zone /L1/A — use is retired after muro 1.2. Write a namespaced key of your own (lease.category:, fire.compartment:, dept.name:) instead, or keep the file at muro 1.2
 ```
 
 **Cause** — `use` is retired after muro 1.2. It was never an architectural use: it held one grouping per space, so a tenancy, a fire compartment and a department all competed for the same key, and whichever you wrote shut the others out. A room's purpose is the [type position](../muro/space.md); every other division of the building is a namespaced key, and a space may carry as many of those as it likes.
@@ -267,7 +267,7 @@ boundary /L1/A/ldk /out
 **The fix — write a namespaced key of your own.** The name is yours; core reads none of them.
 
 ```muro
-muro 1.6
+muro 1.5
 grid X 0 4000 8000
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -294,23 +294,23 @@ grid Y 0 4000
 level L1 0 h:2600 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out outside:1
-boundary /L1/a /out edge:y+
-  door w:1600 hinge:x- swing:a style:sliding-double
-boundary /L1/a /out edge:y-
-boundary /L1/a /out edge:x+
-boundary /L1/a /out edge:x-
+boundary /L1/a /out edge:N
+  door w:1600 hinge:W swing:a style:sliding-double
+boundary /L1/a /out edge:S
+boundary /L1/a /out edge:E
+boundary /L1/a /out edge:W
 ```
 
 ```text
-✖ ver08.muro:line 8: A muro 1.4 file uses a 1.5 opening style: sliding-double on door (/L1/a | /out) — raise the version to muro 1.6
+✖ ver08.muro:line 8: A muro 1.4 file uses a 1.5 opening style: sliding-double on door (/L1/a | /out) — raise the version to muro 1.5
 ```
 
 **Cause** — leaf counts, sliding arrangements, automatic variants, entrances, gates, explicit
-window operations and curtain-wall panel division are new interpreted values in muro 1.6. A
+window operations and curtain-wall panel division are new interpreted values in muro 1.5. A
 processor implementing 1.4 rejects them, so a file using a new style or `panels:` cannot declare
 itself as 1.4.
 
-**The fix** — raise the first line to `muro 1.6`. The original `hinged`, `sliding` and `auto`
+**The fix** — raise the first line to `muro 1.5`. The original `hinged`, `sliding` and `auto`
 values remain valid under their earlier versions.
 
 ## VER09 — a pre-1.5 file uses components {#ver09}
@@ -323,13 +323,13 @@ asset WC component w:700 d:1200 plan-svg:./wc.svg
 ```
 
 ```text
-A muro 1.4 file declares a 1.5 component asset: WC — raise the version to muro 1.6
+A muro 1.4 file declares a 1.5 component asset: WC — raise the version to muro 1.5
 ```
 
 **Cause** — component asset declarations and the area's `asset:`, alignment, offset and rotation
-attributes arrive in muro 1.6. A processor implementing 1.4 cannot read that placement contract.
+attributes arrive in muro 1.5. A processor implementing 1.4 cannot read that placement contract.
 
-**The fix** — raise the first line to `muro 1.6`.
+**The fix** — raise the first line to `muro 1.5`.
 
 ## Why declare a version at all
 

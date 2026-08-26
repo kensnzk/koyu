@@ -1,6 +1,6 @@
 # ADR-0068: Opening operation styles are explicit
 
-Date: 2026-08-24 / Status: adopted (muro 1.6, koyu 0.29.0) / Origin: the standard plan needed to distinguish sliding arrangements, leaf counts, automatic entrances, gates and window operations without an asset library
+Date: 2026-08-24 / Status: adopted (muro 1.5, koyu 0.28.0) / Origin: the standard plan needed to distinguish sliding arrangements, leaf counts, automatic entrances, gates and window operations without an asset library
 
 ## Context
 
@@ -63,7 +63,7 @@ openings in the model; only their interpreted operation differs.
 
 ## Consequences
 
-The language version moves to muro 1.6 and the implementation to koyu 0.29.0. Canonical JSON may
+The language version moves to muro 1.5 and the implementation to koyu 0.28.0. Canonical JSON may
 carry the new `style:` values. Existing files using `hinged`, `sliding`, `auto` or no style retain
 their meaning.
 

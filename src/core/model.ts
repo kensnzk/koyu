@@ -226,10 +226,27 @@ export const DEFAULT_LANGUAGE_VERSION = "1.1";
  * found no language version in it, which is the silent misread the format version exists to
  * prevent.
  */
-export const CANONICAL_FORMAT = "koyu-canonical/2.0";
+// 3.0: muro 1.6 renamed the four faces to axis words, and canonical emits the normalized
+// spelling whatever the source wrote — so both the values and the sort order of edge-bearing
+// entries changed. An existing reader of 2.0 would misread them; the major says so.
+export const CANONICAL_FORMAT = "koyu-canonical/3.0";
 
-/** 軸の向き。edge指定は「最初に書いた空間」の矩形から見た辺。方位ではない (azimuth が唯一の方位) */
+/** The axis a face looks along. `edge:` reads it from the rectangle of the space written
+ * first. Not a bearing — `azimuth` is the only place koyu holds one. */
 export type Edge = "y+" | "x+" | "y-" | "x-";
+
+/** The spelling as written: the axis words, or the compass letters a file up to muro 1.5 may
+ * still use. Which spelling a declared version accepts is VER10's question; geometry always
+ * works on the normalized `Edge`. */
+export type WrittenEdge = Edge | "N" | "E" | "S" | "W";
+
+const COMPASS_TO_AXIS: Record<string, Edge> = { N: "y+", E: "x+", S: "y-", W: "x-" };
+
+/** Normalize a written spelling to the axis word. The identity on axis words. */
+export const asAxis = (e: WrittenEdge): Edge => COMPASS_TO_AXIS[e] ?? (e as Edge);
+
+/** Is this written spelling one of the compass letters read up to muro 1.5? */
+export const isCompassEdge = (e: string): boolean => e in COMPASS_TO_AXIS;
 
 export interface Level {
   name: string;
@@ -398,9 +415,9 @@ export interface Opening {
   /** 明示位置の軸 (水平線分はX系、垂直線分はY系でなければならない) */
   atAxis?: "X" | "Y";
   /** 区間が複数あるとき (外部境界など) の辺の指定 */
-  edge?: Edge;
+  edge?: WrittenEdge;
   /** 開き勝手: 吊元の側 (水平線分なら x+/x-、垂直線分なら y+/y-)。既定は始端側 */
-  hinge?: Edge;
+  hinge?: WrittenEdge;
   /** 開き勝手: 開く側 (境界のa側/b側)。既定はa側 (領域を持つ方) */
   swing?: "a" | "b";
   attrs: Attrs;
@@ -420,7 +437,7 @@ export interface Seg {
   atRef?: string;
   atAbs?: number;
   atAxis?: "X" | "Y";
-  edge?: Edge;
+  edge?: WrittenEdge;
   attrs: Attrs;
   line: number;
 }
@@ -465,7 +482,7 @@ export interface Boundary {
    *  外部に対して open または air:1 の境界を持つ空間が半屋外と導出される */
   air?: boolean;
   /** 境界をaの矩形から見た特定の辺に限定する */
-  edge?: Edge;
+  edge?: WrittenEdge;
   attrs: Attrs;
   openings: Opening[];
   /** 数えない分節 (字下げのseg行) */
@@ -1069,8 +1086,8 @@ export function canonicalOpeningEntry(o: Opening): Record<string, unknown> {
     w: o.w,
     ...(o.h !== undefined ? { h: o.h } : {}),
     at: o.atRef ?? o.at,
-    ...(o.edge ? { edge: o.edge } : {}),
-    ...(o.hinge ? { hinge: o.hinge } : {}),
+    ...(o.edge ? { edge: asAxis(o.edge) } : {}),
+    ...(o.hinge ? { hinge: asAxis(o.hinge) } : {}),
     ...(o.swing ? { swing: o.swing } : {}),
     ...(Object.keys(o.attrs).length ? { attrs: sortObj(o.attrs) } : {}),
   };
@@ -1081,7 +1098,7 @@ export function canonicalSegEntry(g: Seg): Record<string, unknown> {
   return {
     w: g.w,
     at: g.atRef ?? g.at,
-    ...(g.edge ? { edge: g.edge } : {}),
+    ...(g.edge ? { edge: asAxis(g.edge) } : {}),
     ...(Object.keys(g.attrs).length ? { attrs: sortObj(g.attrs) } : {}),
   };
 }
@@ -1094,7 +1111,7 @@ export function canonicalBoundaryEntry(b: Boundary): Record<string, unknown> {
     kind: b.kind,
     ...(b.t !== undefined ? { t: b.t } : {}),
     ...(b.air ? { air: true } : {}),
-    ...(b.edge ? { edge: b.edge } : {}),
+    ...(b.edge ? { edge: asAxis(b.edge) } : {}),
     // 描かれた線は書かれた綴りのまま残す — 頂点座標はビルドの産物であって構成ではない
     // 端点の書き順は図形を変えない (線分は向きを持たない — 導出される凸片は同一) ので、
     // 解決座標の昇順に正準化する。**綴りは保つ** (通り参照のまま — 規則3)

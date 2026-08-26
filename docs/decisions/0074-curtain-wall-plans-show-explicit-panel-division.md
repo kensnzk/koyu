@@ -25,7 +25,7 @@ An asset may carry both facts so every instance of a facade type shares one layo
 
 `panels:` is valid only on a window with `style:curtain-wall` and must be a positive whole number.
 OPN10 reports a mismatch or fractional count. Both the style and attribute are version-gated to
-muro 1.6 by VER08.
+muro 1.5 by VER08.
 
 ## Consequences
 

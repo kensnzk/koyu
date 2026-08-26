@@ -10,7 +10,7 @@ mode: reference
 This page covers grid references, offsets, ranges, regions and points. Axis words (`x+` `x-` `y+` `y-`) are in [orientation and the a side](orientation.md); how a line is tokenised is in [how a line is read](lines.md).
 
 ```muro
-muro 1.6
+muro 1.5
 name 位置の例
 unit mm
 
@@ -121,7 +121,7 @@ Two constructs give dimensions and let the position follow.
 **`band` supplies the extent, and its members carry only a width `w:`.** The cut positions are derived by addition, and the widths must sum to the extent of the band or the file stops.
 
 ```muro
-muro 1.6
+muro 1.5
 grid X 0 3600 5400
 grid Y 0 4000
 level L1 0 h:2400 slab:150

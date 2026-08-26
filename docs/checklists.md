@@ -126,7 +126,7 @@ change by; anything else means something was changed that was not meant to be.
   was contained.
   **Check the mapping rather than assuming it**: regenerate beside the committed file and diff, so
   a name whose source you guessed wrong shows up as a whole-file difference instead of landing
-  silently. `house-section-X2+900` and `house-elevation-y-` come from `koyu section` and
+  silently. `house-section-X2+900` and `house-elevation-S` come from `koyu section` and
   `koyu elevation` on `examples/house/main.muro`.
 - **The IFC export.** It builds a wall from the segment on its own toolchain, so a rule that
   changes bodies does not reach it and its agreement test keeps passing either way.

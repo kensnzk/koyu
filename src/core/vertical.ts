@@ -132,7 +132,7 @@ export function runDecls(s: Space): RunDecl[] {
   return out;
 }
 
-const EDGES = new Set<string>(["y+", "x+", "y-", "x-"]);
+const EDGES = new Set<string>(["y+", "x+", "y-", "x-", "N", "E", "S", "W"]);
 const OPPOSITE: Record<Edge, Edge> = { "y+": "y-", "y-": "y+", "x+": "x-", "x-": "x+" };
 
 // ---- 局所座標 (t = 進む向き / s = 進行方向の左からの距離) ----
