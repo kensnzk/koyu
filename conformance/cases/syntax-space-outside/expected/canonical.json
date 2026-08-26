@@ -61,7 +61,7 @@
       "a": "/L1/a",
       "kind": "wall",
       "t": 120,
-      "edge": "S",
+      "edge": "y-",
       "openings": [
         {
           "kind": "door",

@@ -23,7 +23,7 @@ A `.muro` file declares only [the language version](muro/version.md). It announc
 **A version is carried where something checks it, and nowhere else.** `koyu-context/1` is on this list because `validate` reads the string on arrival and refuses an input that does not match it. The shapes `validate` *returns* — `koyu-assessment`, `koyu-analysis` — carry no version at all: nothing reads them back, and judgement is [the face that does not freeze](../why/three-domains.md), so a version on it would announce a stability nobody intends to keep.
 
 ```muro-part
-muro 1.5
+muro 1.6
 ```
 
 **A separate format version is needed because the same semantics can be respelled with different keys.** Adding the `a` key, which preserves the written direction of a boundary, changed the spelling without changing one word of the language. The converse also happens: a language version can rise without the spelling moving.
@@ -52,7 +52,7 @@ An older declared version is **accepted only where the meaning is preserved**. C
 
 | Surface | What is promised |
 |---|---|
-| **The grammar and semantics of muro 1.5** | what could be read at this version stays readable with the same meaning |
+| **The grammar and semantics of muro 1.6** | what could be read at this version stays readable with the same meaning |
 | **The rules of composition** | layer strength order, resolution of single values, editing of sets, provenance. The same input always gives the same result |
 | **[Identity](identity.md)** | same uid, same thing. The rules for paths and names |
 | **[The three attribute tiers and namespaces](scope.md)** | including the promise that the carried tier is not read |

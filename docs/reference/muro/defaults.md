@@ -15,12 +15,12 @@ mode: reference
 
 **No default is ever invented in order to press on.** That is why the same description always yields the same shape — and why **a shape that came out thin is always reported.**
 
-This page is the one table of defaults. How values are written is in [the three tiers of attribute](attributes.md), how positions are spelled in [positions and regions](positions.md), and the compass defaults in [orientation and the a side](orientation.md).
+This page is the one table of defaults. How values are written is in [the three tiers of attribute](attributes.md), how positions are spelled in [positions and regions](positions.md), and the face defaults in [orientation and the a side](orientation.md).
 
 ## The smallest file
 
 ```muro-warn
-muro 1.5
+muro 1.6
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -40,7 +40,7 @@ Nothing was written about the perimeter, so the perimeter is a wall — the plan
 The warning is not about the shape, which is complete. It is about the one thing silence could not supply: **which** outside those four faces look at. Say it and the warning goes.
 
 ```muro
-muro 1.5
+muro 1.6
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -53,7 +53,7 @@ boundary /L1/a /out
 
 | Written nothing | What happens |
 |---|---|
-| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.5` to opt into current semantics → [the version line](version.md) |
+| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.6` to opt into current semantics → [the version line](version.md) |
 | `unit mm` | mm. v0 has no other unit |
 | `name` | the building has no name |
 | `grid X` / `grid Y` | **no grid reference can be written at all.** Any line with a region stops with `Undefined grid line name` |
@@ -96,7 +96,7 @@ boundary /L1/a /out
 
 **Between two spaces, one declaration on the pair suppresses the derived wall.** That holds even if the declaration named a single face with `edge:` — the remaining faces get no derived wall either.
 
-**Against the outside it works by run instead.** The outside is not a pair — it is whatever the rest of the perimeter faces — so there is no pair to suppress. Each declared boundary takes the runs it reaches, and the default takes what is left. Write `edge:S` alone and walls still stand on N, E and W.
+**Against the outside it works by run instead.** The outside is not a pair — it is whatever the rest of the perimeter faces — so there is no pair to suppress. Each declared boundary takes the runs it reaches, and the default takes what is left. Write `edge:y-` alone and walls still stand on N, E and W.
 
 ## door / window
 
@@ -178,7 +178,7 @@ Riser count, tread and slope are never written. **What is written is the region 
 **Because the default between touching spaces is a wall, a two-storey building with no door declared anywhere is completely sealed — and green.**
 
 ```muro
-muro 1.5
+muro 1.6
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150

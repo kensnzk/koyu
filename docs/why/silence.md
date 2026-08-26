@@ -62,7 +62,7 @@ It was not always so. Until muro 1.4 the exterior was carved out of the default:
 So the default moved and the naming stayed:
 
 ```muro-warn
-muro 1.5
+muro 1.6
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -81,7 +81,7 @@ Six lines, and both rooms are enclosed — one wall between them and a wall arou
 Write the name and the warning goes; the walls were never in question.
 
 ```muro
-muro 1.5
+muro 1.6
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -94,7 +94,7 @@ boundary /L1/b /out t:150 spec:EW
 
 **This is the shape the whole page argues for.** Silence gives you the ordinary thing; a declaration departs from it, or gives the defaulted substance a value. The exterior used to be the one place where silence gave you nothing instead, and being the exception is what made it the thing everybody forgot.
 
-**Suppression works by run, not by pair.** Between two spaces, one declaration covers the pair. The outside is not a pair — it is whatever the rest of the perimeter faces — so a boundary written `edge:S` takes the south run and the default keeps the other three. You cannot half-declare your way back into a hole.
+**Suppression works by run, not by pair.** Between two spaces, one declaration covers the pair. The outside is not a pair — it is whatever the rest of the perimeter faces — so a boundary written `edge:y-` takes the south run and the default keeps the other three. You cannot half-declare your way back into a hole.
 
 ## Silence generates derivation — semi-outdoor
 

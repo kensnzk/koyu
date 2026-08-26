@@ -135,10 +135,10 @@ grid Y 0 2000
 level L1 0 h:2400 slab:150
 space /L1/bath wet X1..X2 Y1..Y2 name:浴室 daylight:1
 space /out outside:1
-boundary /L1/bath /out edge:S t:150
-boundary /L1/bath /out edge:E
-boundary /L1/bath /out edge:N
-boundary /L1/bath /out edge:W
+boundary /L1/bath /out edge:y- t:150
+boundary /L1/bath /out edge:x+
+boundary /L1/bath /out edge:y+
+boundary /L1/bath /out edge:x-
 ```
 
 ```text

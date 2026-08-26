@@ -11,8 +11,8 @@ asset CW4 window w:6400 h:2600 style:curtain-wall panels:4 name:Curtain-wall-fou
 space /L1/office office X1..X2 Y1..Y2 name:Office
 space /outside exterior outside:1 name:Outside
 
-boundary /L1/office /outside t:200 edge:N
+boundary /L1/office /outside t:200 edge:y+
   window CW4 at:0.5 name:curtain-wall
-boundary /L1/office /outside t:200 edge:S
-boundary /L1/office /outside t:200 edge:E
-boundary /L1/office /outside t:200 edge:W
+boundary /L1/office /outside t:200 edge:y-
+boundary /L1/office /outside t:200 edge:x+
+boundary /L1/office /outside t:200 edge:x-

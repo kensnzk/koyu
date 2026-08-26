@@ -126,7 +126,7 @@
     "x2": 3600,
     "y2": 4000,
     "horizontal": false,
-    "edgeOfA": "E"
+    "edgeOfA": "x+"
    },
    "material": {
     "t": 100,
@@ -177,7 +177,7 @@
     "x2": 3600,
     "y2": 0,
     "horizontal": true,
-    "edgeOfA": "S"
+    "edgeOfA": "y-"
    },
    "material": {
     "t": 100,
@@ -228,7 +228,7 @@
     "x2": 3600,
     "y2": 4000,
     "horizontal": true,
-    "edgeOfA": "N"
+    "edgeOfA": "y+"
    },
    "material": {
     "t": 100,
@@ -279,7 +279,7 @@
     "x2": 0,
     "y2": 4000,
     "horizontal": false,
-    "edgeOfA": "W"
+    "edgeOfA": "x-"
    },
    "material": {
     "t": 100,
@@ -330,7 +330,7 @@
     "x2": 7200,
     "y2": 4000,
     "horizontal": false,
-    "edgeOfA": "E"
+    "edgeOfA": "x+"
    },
    "material": {
     "t": 100,
@@ -381,7 +381,7 @@
     "x2": 7200,
     "y2": 0,
     "horizontal": true,
-    "edgeOfA": "S"
+    "edgeOfA": "y-"
    },
    "material": {
     "t": 100,
@@ -432,7 +432,7 @@
     "x2": 7200,
     "y2": 4000,
     "horizontal": true,
-    "edgeOfA": "N"
+    "edgeOfA": "y+"
    },
    "material": {
     "t": 100,

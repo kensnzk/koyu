@@ -170,10 +170,10 @@ console.log(DEFAULT_LANGUAGE_VERSION, SUPPORTED_LANGUAGE_VERSIONS.join(" "));
 ```
 
 ```text
-1.1 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3 1.4 1.5
+1.1 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3 1.4 1.5 1.6
 ```
 
-**The two numbers on that line are different facts.** `DEFAULT_LANGUAGE_VERSION` is how a file with **no** version line is read, and it is frozen at `1.1`; the newest accepted version is `1.5`. Reach for `NEWEST_LANGUAGE_VERSION` when you mean the latter.
+**The two numbers on that line are different facts.** `DEFAULT_LANGUAGE_VERSION` is how a file with **no** version line is read, and it is frozen at `1.1`; the newest accepted version is `1.6`. Reach for `NEWEST_LANGUAGE_VERSION` when you mean the latter.
 
 **The language version and the implementation version move separately.** The version in `package.json` is the implementation's; what a `.muro` file declares is the language's. What is promised not to break is on [The frozen surfaces](../reference/stability.md).
 

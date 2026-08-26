@@ -7,10 +7,10 @@ mode: reference
 
 **Coordinates are never written directly.** A position is always spelled in the language of grid lines — `X2`, `X2+600`, `Y3-150`. The only place raw millimetres are allowed is the site shape (`polygon`), because a site outline is survey data, not a design product.
 
-This page covers grid references, offsets, ranges, regions and points. Compass words (`N` `E` `S` `W`) are in [orientation and the a side](orientation.md); how a line is tokenised is in [how a line is read](lines.md).
+This page covers grid references, offsets, ranges, regions and points. Axis words (`x+` `x-` `y+` `y-`) are in [orientation and the a side](orientation.md); how a line is tokenised is in [how a line is read](lines.md).
 
 ```muro
-muro 1.5
+muro 1.6
 name 位置の例
 unit mm
 
@@ -121,7 +121,7 @@ Two constructs give dimensions and let the position follow.
 **`band` supplies the extent, and its members carry only a width `w:`.** The cut positions are derived by addition, and the widths must sum to the extent of the band or the file stops.
 
 ```muro
-muro 1.5
+muro 1.6
 grid X 0 3600 5400
 grid Y 0 4000
 level L1 0 h:2400 slab:150

@@ -34,7 +34,7 @@ The positional `Y` names what is being given a bearing, in the notation's own vo
 
 ## `N` `E` `S` `W` do not change
 
-They are still words about axes, exactly as [orientation](orientation.md) describes. `edge:N` selects the +Y face whether or not an `azimuth` is written, and it goes on doing so at any bearing.
+They are still words about axes, exactly as [orientation](orientation.md) describes. `edge:y+` selects the +Y face whether or not an `azimuth` is written, and it goes on doing so at any bearing.
 
 **There is one place in koyu that holds a compass direction, and this is it.** The table above is arithmetic for whoever needs it, not a second meaning grafted onto the four letters.
 
@@ -75,7 +75,7 @@ It is neither overridable nor removable, and the tension there is real: which wa
 ## In full
 
 ```muro
-muro 1.5
+muro 1.6
 name 方位の最小例
 unit mm
 grid X 0 3600 7200
@@ -87,10 +87,10 @@ space /L1/b room X2..X3 Y1..Y2 daylight:1
 space /out name:外部 outside:1
 boundary /L1/a /L1/b
   door w:800
-boundary /L1/a /out edge:S
+boundary /L1/a /out edge:y-
   window w:1600 h:1200
-boundary /L1/a /out edge:N
-boundary /L1/a /out edge:W
+boundary /L1/a /out edge:y+
+boundary /L1/a /out edge:x-
 boundary /L1/b /out
 ```
 

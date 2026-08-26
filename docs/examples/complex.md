@@ -24,7 +24,7 @@ The composition:
 
 - **[Lines](../reference/muro/line.md) — writing a diagonal.** The corner cuts of the podium are written `line X1,Y5+2000 X2,Y6`. There are no vertex coordinates anywhere — a line is drawn in the language of grid references, and the boundary is cut along it.
 - **[Columns](../reference/muro/column.md) — an element with no written position.** `column 900 B2..L6` says only a size and a range of levels. Columns stand at grid intersections that have a floor on that level. **It is the same rule that makes walls emerge from boundaries, applied to a point element.**
-- **Escalators** — a space with `escalator:N`, plus `stack es L1..L5 type:stair`.
+- **Escalators** — a space with `escalator:y+`, plus `stack es L1..L5 type:stair`.
 - **An atrium** — `stack atrium L1..L5 type:void` raises a five-storey void in two lines.
 - **That the daylight population is declared, not typed** — the hotel rooms carry `daylight:0`, the offices are out of scope too, and only residential uses are in.
 - **That a core across ten-odd storeys folds** into level spans.
@@ -35,13 +35,13 @@ The core layer. **Twenty-one levels of core in nine lines.**
 
 ```muro-part
 space /B2..L19/ps shaft X4..X4+1400 Y4..Y5 name:PS・EPS lease.category:common
-space /B2..L19/st1 stair X4+1400..X4+4100 Y4..Y5 name:階段1 lease.category:common stair:N form:return
+space /B2..L19/st1 stair X4+1400..X4+4100 Y4..Y5 name:階段1 lease.category:common stair:y+ form:return
 space /B2..L19/ev1 shaft X4+4100..X4+8900 Y4..Y5 name:EVバンク1 lease.category:common lift:1
 space /B2..L19/ev2 shaft X4+8900..X4+13700 Y4..Y5 name:EVバンク2 lease.category:common lift:1
 space /B2..L19/wcm service X4+13700..X4+16900 Y4..Y5 name:男子便所 lease.category:common
 space /B2..L19/wcw service X4+16900..X4+19900 Y4..Y5 name:女子便所 lease.category:common
 space /B2..L19/tea service X4+19900..X4+21300 Y4..Y5 name:給湯室 lease.category:common
-space /B2..L19/st2 stair X4+21300..X7 Y4..Y5 name:階段2 lease.category:common stair:N form:return
+space /B2..L19/st2 stair X4+21300..X7 Y4..Y5 name:階段2 lease.category:common stair:y+ form:return
 space /B2..L19/hall corridor X4..X7 Y4-3200..Y4 name:EVホール lease.category:common
 ```
 

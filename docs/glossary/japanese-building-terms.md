@@ -69,8 +69,8 @@ The output of koyu and the bundled examples use **terms from Japanese architectu
 | 踊り場 landing | The flat part along a stair | Never written. It appears on the form side as the remainder of the step division |
 | 折返し階段 return stair | A stair that turns through 180° | `form:return` on the space |
 | 直進階段 straight stair | A stair rising in one direction | Write no `form:` (the default) |
-| 斜路 ramp | A sloped route, such as for vehicles | `ramp:E form:return slope:6` on the space. `slope:` **declares a limit**; the actual slope comes from the level difference over the derived going |
-| エスカレーター escalator | A moving stair | `escalator:N` on the space. The connecting boundary is `type:stair` (passable) |
+| 斜路 ramp | A sloped route, such as for vehicles | `ramp:x+ form:return slope:6` on the space. `slope:` **declares a limit**; the actual slope comes from the level difference over the derived going |
+| エスカレーター escalator | A moving stair | `escalator:y+` on the space. The connecting boundary is `type:stair` (passable) |
 | 昇降機 lift | An elevator | `lift:1` on the space. The connecting boundary is `type:shaft` (not passable) — nobody walks a shaft, so as circulation it is a different question |
 | コア core | The zone gathering stairs, lifts, lavatories and risers | A run of spaces. Begin the path `/B2..L19/` and every storey of it is written once |
 | PS / EPS pipe and electrical risers | Vertical service shafts | `shaft`-typed spaces |

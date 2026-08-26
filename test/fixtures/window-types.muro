@@ -17,36 +17,36 @@ space /L1/projecting room X4..X5 Y3..Y4 name:Projecting
 space /L1/curtain-wall room X5..X6 Y3..Y4 name:Curtain-wall
 space /outside exterior outside:1 name:Outside
 
-boundary /L1/general /outside t:200 edge:N
+boundary /L1/general /outside t:200 edge:y+
   window w:1800 h:1200 at:0.5 name:general
-boundary /L1/fixed /outside t:200 edge:N
+boundary /L1/fixed /outside t:200 edge:y+
   window w:1800 h:1200 at:0.5 style:fixed name:fixed
-boundary /L1/single-slide /outside t:200 edge:N
-  window w:1800 h:1200 at:0.5 hinge:W swing:a style:sliding name:single-slide
-boundary /L1/double-slide /outside t:200 edge:N
-  window w:1800 h:1200 at:0.5 hinge:W swing:a style:sliding-double name:double-slide
-boundary /L1/bypass /outside t:200 edge:N
-  window w:1800 h:1200 at:0.5 hinge:W swing:a style:sliding-bypass name:bypass
-boundary /L1/casement /outside t:200 edge:N
-  window w:1200 h:1200 at:0.5 hinge:W swing:a style:hinged name:casement
-boundary /L1/double-casement /outside t:200 edge:N
-  window w:1800 h:1200 at:0.5 hinge:W swing:a style:hinged-double name:double-casement
-boundary /L1/projecting /outside t:200 edge:N
-  window w:1800 h:1200 at:0.5 hinge:W swing:a style:projecting name:projecting
-boundary /L1/curtain-wall /outside t:200 edge:N
+boundary /L1/single-slide /outside t:200 edge:y+
+  window w:1800 h:1200 at:0.5 hinge:x- swing:a style:sliding name:single-slide
+boundary /L1/double-slide /outside t:200 edge:y+
+  window w:1800 h:1200 at:0.5 hinge:x- swing:a style:sliding-double name:double-slide
+boundary /L1/bypass /outside t:200 edge:y+
+  window w:1800 h:1200 at:0.5 hinge:x- swing:a style:sliding-bypass name:bypass
+boundary /L1/casement /outside t:200 edge:y+
+  window w:1200 h:1200 at:0.5 hinge:x- swing:a style:hinged name:casement
+boundary /L1/double-casement /outside t:200 edge:y+
+  window w:1800 h:1200 at:0.5 hinge:x- swing:a style:hinged-double name:double-casement
+boundary /L1/projecting /outside t:200 edge:y+
+  window w:1800 h:1200 at:0.5 hinge:x- swing:a style:projecting name:projecting
+boundary /L1/curtain-wall /outside t:200 edge:y+
   window w:3200 h:2600 at:0.5 style:curtain-wall panels:4 name:curtain-wall
 
-boundary /L1/general /outside edge:S
-boundary /L1/fixed /outside edge:S
-boundary /L1/single-slide /outside edge:S
-boundary /L1/double-slide /outside edge:S
-boundary /L1/bypass /outside edge:S
-boundary /L1/casement /outside edge:S
-boundary /L1/double-casement /outside edge:S
-boundary /L1/projecting /outside edge:S
-boundary /L1/curtain-wall /outside edge:S
-boundary /L1/general /outside edge:W
-boundary /L1/double-slide /outside edge:E
-boundary /L1/bypass /outside edge:W
-boundary /L1/projecting /outside edge:E
-boundary /L1/curtain-wall /outside edge:E
+boundary /L1/general /outside edge:y-
+boundary /L1/fixed /outside edge:y-
+boundary /L1/single-slide /outside edge:y-
+boundary /L1/double-slide /outside edge:y-
+boundary /L1/bypass /outside edge:y-
+boundary /L1/casement /outside edge:y-
+boundary /L1/double-casement /outside edge:y-
+boundary /L1/projecting /outside edge:y-
+boundary /L1/curtain-wall /outside edge:y-
+boundary /L1/general /outside edge:x-
+boundary /L1/double-slide /outside edge:x+
+boundary /L1/bypass /outside edge:x-
+boundary /L1/projecting /outside edge:x+
+boundary /L1/curtain-wall /outside edge:x+

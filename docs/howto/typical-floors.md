@@ -45,7 +45,7 @@ A path on a space, a zone or a boundary whose first segment reads `L2..L6` expan
 
 ```muro-part
 space /L2..L6/office room  X1..X2 Y1..Y2 name:Tenancy lease.category:exclusive daylight:1
-space /L2..L6/core   stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:N form:return
+space /L2..L6/core   stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:y+ form:return
 
 boundary /L2..L6/office /L2..L6/core t:200 spec:RC
   door w:900 name:Stair-door
@@ -79,7 +79,7 @@ over level L6 h:3200 slab:1000
 
 ```muro-part
 # main.muro
-muro 1.5
+muro 1.6
 name Office with a typical floor
 unit mm
 
@@ -100,17 +100,17 @@ stack core L1..L6 type:stair
 ```muro-part
 # typical.muro — twelve lines that describe five storeys
 space /L2..L6/office room  X1..X2 Y1..Y2 name:Tenancy lease.category:exclusive daylight:1
-space /L2..L6/core   stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:N form:return
+space /L2..L6/core   stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:y+ form:return
 
 boundary /L2..L6/office /L2..L6/core t:200 spec:RC
   door w:900 name:Stair-door
-boundary /L2..L6/office /out edge:S t:200 spec:CW
+boundary /L2..L6/office /out edge:y- t:200 spec:CW
   window w:8000 h:2600 name:CW
-boundary /L2..L6/office /out edge:W t:200 spec:CW
-boundary /L2..L6/office /out edge:N t:200 spec:CW
-boundary /L2..L6/core /out edge:E t:200 spec:RC
-boundary /L2..L6/core /out edge:N t:200 spec:RC
-boundary /L2..L6/core /out edge:S t:200 spec:RC
+boundary /L2..L6/office /out edge:x- t:200 spec:CW
+boundary /L2..L6/office /out edge:y+ t:200 spec:CW
+boundary /L2..L6/core /out edge:x+ t:200 spec:RC
+boundary /L2..L6/core /out edge:y+ t:200 spec:RC
+boundary /L2..L6/core /out edge:y- t:200 spec:RC
 ```
 
 ```text

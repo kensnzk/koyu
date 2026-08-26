@@ -513,10 +513,10 @@ function stairArrowPath(run: FormRun, plan: FormPlan, entity: PlanEntity): Seg2[
 
 function runLocal(run: FormRun, point: Pt): { t: number; s: number } {
   switch (run.up) {
-    case "N": return { t: point.y - run.rect.y1, s: point.x - run.rect.x1 };
-    case "S": return { t: run.rect.y2 - point.y, s: run.rect.x2 - point.x };
-    case "E": return { t: point.x - run.rect.x1, s: run.rect.y2 - point.y };
-    case "W": return { t: run.rect.x2 - point.x, s: point.y - run.rect.y1 };
+    case "y+": return { t: point.y - run.rect.y1, s: point.x - run.rect.x1 };
+    case "y-": return { t: run.rect.y2 - point.y, s: run.rect.x2 - point.x };
+    case "x+": return { t: point.x - run.rect.x1, s: run.rect.y2 - point.y };
+    case "x-": return { t: run.rect.x2 - point.x, s: point.y - run.rect.y1 };
   }
 }
 

@@ -36,7 +36,7 @@ Two facts about the notation decide whether what you write means what you meant:
 ## A whole small building
 
 ```muro
-muro 1.5
+muro 1.6
 name Flat on a tight site
 unit mm
 
@@ -58,7 +58,7 @@ band X X1..X2 Y2..Y3
 space /out name:Outside outside:1
 
 boundary /L1/entry /out t:120
-  door w:900 edge:S name:Front
+  door w:900 edge:y- name:Front
 boundary /L1/entry /L1/ldk type:open
 boundary /L1/ldk /L1/wc t:100
   door w:700
@@ -69,9 +69,9 @@ boundary /L1/wash /L1/bath t:100
 boundary /L1/ldk /L1/bed t:100
   door w:900
 boundary /L1/ldk /out t:120
-  window w:2400 edge:N sill:400 h:2000
+  window w:2400 edge:y+ sill:400 h:2000
 boundary /L1/bed /out t:120
-  window w:1600 edge:N sill:800 h:1400
+  window w:1600 edge:y+ sill:800 h:1400
 boundary /L1/wc /out
 boundary /L1/wash /out
 boundary /L1/bath /out
@@ -103,7 +103,7 @@ window — which is why the bedroom has one. Everything else above generalises:
   when the brief turns on that division. `koyu stats --by lease.category` totals
   the areas by it.
 - Openings sit indented under a boundary and need `w:`. Against `/out` the
-  boundary always has several segments, so give `edge:N|E|S|W`. Two openings on
+  boundary always has several segments, so give `edge:y+|E|S|W`. Two openings on
   one boundary both default to the centre — separate them with `at:0.3` (a
   ratio) or `at:X2+450` (a grid reference).
 - Quote names containing spaces: `name:"Waiting room"`.
@@ -166,7 +166,7 @@ actually about areas, daylight, circulation or the site.
 | What it prints | What happened | Fix |
 |---|---|---|
 | `BND04 … do not touch` | a boundary between spaces with no shared edge — usually a band member reaching past its neighbour | check the widths sum to the strip; only one member may carry `w:rest` |
-| `OPN05 … edge` | the boundary has several segments, so the opening has nowhere definite to go | add `edge:N\|E\|S\|W`, seen from the first path |
+| `OPN05 … edge` | the boundary has several segments, so the opening has nowhere definite to go | add `edge:y+\|E\|S\|W`, seen from the first path |
 | `OPN04 … no boundary segment` | two openings landed on the same default centre | position them with `at:0.3` or `at:X2+450` |
 | `GEO02` | two spaces overlap on one level | bands do not overlap by construction; a hand-written region does |
 | `SUF01` / `SUF02` | no ceiling height or level for a space that has a region | give the level an `h:`, or the space one |

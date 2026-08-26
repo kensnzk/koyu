@@ -4,7 +4,7 @@
 # 外部に対し open または air:1 (手すり等、遮蔽しない物) の境界を持つ空間として導出される)。
 # 基準階は一度だけ書く — /L2..L9/ のスパンが8フロアに展開される。
 
-muro 1.5
+muro 1.6
 name 内廊下型集合住宅
 unit mm
 
@@ -52,17 +52,17 @@ boundary /L1/trunk /L1/common t:120 spec:LGS
   door w:900 name:トランクルーム扉
 
 boundary /L1/hall /out t:200 spec:EW fire:60
-  door w:1800 edge:S name:エントランス
-  window w:2400 edge:W sill:500
+  door w:1800 edge:y- name:エントランス
+  window w:2400 edge:x- sill:500
 boundary /L1/machine /out t:200 spec:EW
 boundary /L1/bike /out t:200 spec:EW
-  door w:1800 edge:S name:駐輪場外部口
+  door w:1800 edge:y- name:駐輪場外部口
 boundary /L1/corridor /out t:200 spec:EW
 boundary /L1/garbage /out t:200 spec:EW
-  door w:1200 edge:W name:ごみ搬出口
+  door w:1200 edge:x- name:ごみ搬出口
 boundary /L1/trunk /out t:200 spec:EW
 boundary /L1/common /out t:200 spec:EW fire:60
-  window w:2600 edge:N sill:800
+  window w:2600 edge:y+ sill:800
 boundary /L1/stair /out type:open      # 地上階の屋外階段は外部へ直接開放
 
 # ============ 基準階 (2〜9F) — 一度だけ書く ============
@@ -85,7 +85,7 @@ space /L2..L9/stair stair X1-2600..X1 Y2-600..Y3 name:屋外階段 lease.categor
 
 # --- Aタイプの間取り ---
 boundary /L2..L9/A/ldk /L2..L9/A/bedroom t:100 spec:LGS
-  door w:800 edge:W
+  door w:800 edge:x-
 boundary /L2..L9/A/ldk /L2..L9/A/hall t:100 spec:LGS
   door w:800
 boundary /L2..L9/A/ldk /L2..L9/A/wet t:100 spec:LGS
@@ -93,7 +93,7 @@ boundary /L2..L9/A/bedroom /L2..L9/A/wet t:100 spec:LGS
 boundary /L2..L9/A/hall /L2..L9/A/wet t:100 spec:LGS
   door w:750
 boundary /L2..L9/A/hall /L2..L9/corridor t:180 spec:RC fire:60
-  door w:900 name:玄関 hinge:E   # 開き勝手: 吊元は東、開く側は既定 (a=住戸側)
+  door w:900 name:玄関 hinge:x+   # 開き勝手: 吊元は東、開く側は既定 (a=住戸側)
 boundary /L2..L9/A/wet /L2..L9/corridor t:180 spec:RC fire:60
 boundary /L2..L9/A/ldk /L2..L9/B t:180 spec:RC fire:60 sound:D-50   # 界壁
 boundary /L2..L9/A/hall /L2..L9/B t:180 spec:RC fire:60 sound:D-50
@@ -127,19 +127,19 @@ boundary /L2..L9/A/ldk /L2..L9/A/balcony t:180 spec:EW fire:60
 boundary /L2..L9/A/balcony /out t:120 spec:手すり air:1 h:1100
 boundary /L2..L9/A/ldk /out t:180 spec:EW fire:60
 boundary /L2..L9/A/bedroom /out t:180 spec:EW fire:60
-  window w:1650 h:1100 edge:W sill:900
+  window w:1650 h:1100 edge:x- sill:900
 boundary /L2..L9/A/wet /out t:180 spec:EW
 boundary /L2..L9/B /out t:180 spec:EW fire:60
-  window w:2600 h:2200 edge:S sill:0
+  window w:2600 h:2200 edge:y- sill:0
 boundary /L2..L9/C /out t:180 spec:EW fire:60
-  window w:2600 h:2200 edge:S sill:0
+  window w:2600 h:2200 edge:y- sill:0
 boundary /L2..L9/D /out t:180 spec:EW fire:60
-  window w:2600 h:2200 edge:N sill:0
+  window w:2600 h:2200 edge:y+ sill:0
 boundary /L2..L9/E /out t:180 spec:EW fire:60
-  window w:2600 h:2200 edge:N sill:0
-  window w:1650 h:2200 edge:E sill:0    # 54㎡は1面の窓では1/7に足りない — lightの指摘
+  window w:2600 h:2200 edge:y+ sill:0
+  window w:1650 h:2200 edge:x+ sill:0    # 54㎡は1面の窓では1/7に足りない — lightの指摘
 boundary /L2..L9/corridor /out t:180 spec:EW
-  window w:1200 edge:E sill:800 name:突き当り窓
+  window w:1200 edge:x+ sill:800 name:突き当り窓
 boundary /L2..L9/ps /out t:180 spec:EW
 boundary /L2..L9/stair /out t:120 spec:手すり air:1 h:1100   # 物はあるが遮蔽しない → 半屋外
 
@@ -174,16 +174,16 @@ boundary /L10/1003 /L10/ps t:120 spec:LGS
 boundary /L10/ev /L10/ps t:200 spec:RC
 
 boundary /L10/1001 /out t:180 spec:EW fire:60
-  window w:2600 h:2200 edge:S sill:0 at:0.25
-  window w:2600 h:2200 edge:S sill:0 at:0.75   # 69.6㎡には2枚要る
+  window w:2600 h:2200 edge:y- sill:0 at:0.25
+  window w:2600 h:2200 edge:y- sill:0 at:0.75   # 69.6㎡には2枚要る
 boundary /L10/1002 /out t:180 spec:EW fire:60
-  window w:2600 h:2200 edge:S sill:0
+  window w:2600 h:2200 edge:y- sill:0
 boundary /L10/1003 /out t:180 spec:EW fire:60
-  window w:2600 h:2200 edge:N sill:0
-  window w:1650 h:2200 edge:E sill:0
+  window w:2600 h:2200 edge:y+ sill:0
+  window w:1650 h:2200 edge:x+ sill:0
 boundary /L10/terrace /out t:120 spec:手すり air:1 h:1100
 boundary /L10/corridor /out t:180 spec:EW
-  window w:1200 edge:E sill:800
+  window w:1200 edge:x+ sill:800
 boundary /L10/ps /out t:180 spec:EW
 boundary /L10/stair /out t:120 spec:手すり air:1 h:1100
 

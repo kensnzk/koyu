@@ -1,6 +1,6 @@
 # ADR-0067: Default opening symbols need no library
 
-Date: 2026-08-24 / Status: adopted (koyu 0.28.0) / Origin: the repository owner — "First make the standard appearance of hinged doors, sliding doors and windows beautiful without assets."
+Date: 2026-08-24 / Status: adopted (koyu 0.29.0) / Origin: the repository owner — "First make the standard appearance of hinged doors, sliding doors and windows beautiful without assets."
 
 ## Context
 

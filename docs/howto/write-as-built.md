@@ -24,7 +24,7 @@ main.muro       ← the entry: grid, levels, and the order the layers stack in
 **The order of the `import` lines is the declaration of strength.** A later layer is stronger. The entry is the weakest layer (index 0).
 
 ```muro-part
-muro 1.5
+muro 1.6
 name 実測を重ねた事務所
 unit mm
 
@@ -48,7 +48,7 @@ space /out       name:外部 outside:1
 boundary /L1/office /L1/hall t:120 spec:LGS
   door w:800 h:2000 name:D1
 
-boundary /L1/hall /out t:150 spec:EW edge:S
+boundary /L1/hall /out t:150 spec:EW edge:y-
   door w:900 h:2100 name:D2
 ```
 
@@ -160,7 +160,7 @@ The provenance key is `<kind>:<target>:<attribute>`. Only the three values the m
 Make a second entry that composes the plan alone, and the two models can be compared directly.
 
 ```muro-part
-muro 1.5
+muro 1.6
 name 実測を重ねた事務所
 unit mm
 
@@ -181,7 +181,7 @@ koyu diff plan-only.muro main.muro
 − space /L1/store (store 8.10 m2)
 − boundary /L1/hall | /L1/store
 ± boundary /L1/hall | /L1/office: t 120 → 150 / spec LGS → LGS150-実測
-± boundary /L1/hall | /out edge:S: door D2 w 900 → 850 / + window W1 w:1200 h:900 name:W1
+± boundary /L1/hall | /out edge:y-: door D2 w 900 → 850 / + window W1 w:1200 h:900 name:W1
 ```
 
 **That is the completion report, written out.** The exit code is 1 when there are differences and 0 when there are none, so CI can gate on "the as-built layer is still empty".

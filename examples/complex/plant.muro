@@ -17,18 +17,18 @@ boundary /L6/elec /L6/hall t:250 spec:RC
 boundary /L6/ahu /L6/ps t:250 spec:RC
 boundary /L6/tank /L6/st2 t:250 spec:RC
 
-boundary /L6/ahu /out edge:W t:250 spec:PC板
-boundary /L6/ahu /out edge:S t:250 spec:PC板ガラリ
-boundary /L6/ahu /out edge:N t:250 spec:PC板ガラリ
-boundary /L6/elec /out edge:S t:250 spec:PC板
-boundary /L6/tank /out edge:E t:250 spec:PC板
-boundary /L6/tank /out edge:S t:250 spec:PC板ガラリ
-boundary /L6/tank /out edge:N t:250 spec:PC板ガラリ
-boundary /L6/ps /out edge:N t:250 spec:PC板
-boundary /L6/tea /out edge:N t:250 spec:PC板
-boundary /L6/st1 /out edge:N t:250 spec:PC板
-boundary /L6/ev1 /out edge:N t:250 spec:PC板
-boundary /L6/ev2 /out edge:N t:250 spec:PC板
-boundary /L6/wcm /out edge:N t:250 spec:PC板
-boundary /L6/wcw /out edge:N t:250 spec:PC板
-boundary /L6/st2 /out edge:N t:250 spec:PC板
+boundary /L6/ahu /out edge:x- t:250 spec:PC板
+boundary /L6/ahu /out edge:y- t:250 spec:PC板ガラリ
+boundary /L6/ahu /out edge:y+ t:250 spec:PC板ガラリ
+boundary /L6/elec /out edge:y- t:250 spec:PC板
+boundary /L6/tank /out edge:x+ t:250 spec:PC板
+boundary /L6/tank /out edge:y- t:250 spec:PC板ガラリ
+boundary /L6/tank /out edge:y+ t:250 spec:PC板ガラリ
+boundary /L6/ps /out edge:y+ t:250 spec:PC板
+boundary /L6/tea /out edge:y+ t:250 spec:PC板
+boundary /L6/st1 /out edge:y+ t:250 spec:PC板
+boundary /L6/ev1 /out edge:y+ t:250 spec:PC板
+boundary /L6/ev2 /out edge:y+ t:250 spec:PC板
+boundary /L6/wcm /out edge:y+ t:250 spec:PC板
+boundary /L6/wcw /out edge:y+ t:250 spec:PC板
+boundary /L6/st2 /out edge:y+ t:250 spec:PC板

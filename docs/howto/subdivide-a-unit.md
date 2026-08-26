@@ -19,7 +19,7 @@ File paths in the output below are absolute when you actually run these commands
 Keep the dwelling's `space` line and add child spaces, and parent and children overlap.
 
 ```muro-bad
-muro 1.5
+muro 1.6
 name Subdividing a dwelling
 unit mm
 
@@ -86,7 +86,7 @@ boundary /L3/A/hall /L3/A/wet t:120 spec:LGS
   door w:700
 ```
 
-Where the same two rooms meet along two edges of an L, pick the edge with `edge:N/E/S/W`.
+Where the same two rooms meet along two edges of an L, pick the edge with `edge:y+/E/S/W`.
 
 ## 4. Reconnect to the outside through the entry
 
@@ -100,7 +100,7 @@ boundary /L3/A/hall /L3/corridor t:180 spec:RC
 ## Check it
 
 ```muro
-muro 1.5
+muro 1.6
 name Subdividing a dwelling
 unit mm
 

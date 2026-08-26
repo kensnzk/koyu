@@ -123,7 +123,7 @@ read when a finding looks wrong: it shows whether the window is small or simply
 facing the wrong thing.
 
 Two things bite while writing the repair itself: an opening on a boundary to
-`/out` needs `edge:N|E|S|W`, because that boundary always has several segments;
+`/out` needs `edge:y+|E|S|W`, because that boundary always has several segments;
 and a `name:` value containing a space must be quoted (`name:"West window"`) or
 the parser reads the second word as a broken attribute.
 

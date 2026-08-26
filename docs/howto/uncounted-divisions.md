@@ -34,7 +34,7 @@ If either is yes, it is a **counted division** — write two spaces. If both are
 Write the threshold as an extent inside the office. While we are here, write the fact that only part of the exterior wall is a curtain wall, with a `seg`.
 
 ```muro
-muro 1.5
+muro 1.6
 name 数えない分節
 unit mm
 
@@ -47,12 +47,12 @@ space /L1/office office X1..X2 Y1..Y2 name:事務室 floor:タイルカーペッ
   area X1..X1+2000 Y1..Y2 name:土間 floor:モルタル
 space /out name:外部 outside:1
 
-boundary /L1/office /out t:180 spec:RC edge:S
+boundary /L1/office /out t:180 spec:RC edge:y-
   seg w:3000 at:X1+4000 spec:カーテンウォール
   door w:900 h:2100 at:X1+1000 name:D1
-boundary /L1/office /out edge:E
-boundary /L1/office /out edge:N
-boundary /L1/office /out edge:W
+boundary /L1/office /out edge:x+
+boundary /L1/office /out edge:y+
+boundary /L1/office /out edge:x-
 ```
 
 ```text
@@ -85,7 +85,7 @@ The threshold is absent from the graph too. The office is one node, with one doo
 The same building, with the threshold and the working floor as separate spaces. **The parent is a `zone`, not a `space`** — a space with a region under another space with a region always overlaps.
 
 ```muro
-muro 1.5
+muro 1.6
 name 数える分節
 unit mm
 
@@ -101,13 +101,13 @@ space /out name:外部 outside:1
 
 boundary /L1/office/doma /L1/office/floor type:open
 
-boundary /L1/office/doma /out t:180 spec:RC edge:S
+boundary /L1/office/doma /out t:180 spec:RC edge:y-
   door w:900 h:2100 name:D1
-boundary /L1/office/floor /out t:180 spec:RC edge:S
-boundary /L1/office/doma /out edge:N
-boundary /L1/office/doma /out edge:W
-boundary /L1/office/floor /out edge:E
-boundary /L1/office/floor /out edge:N
+boundary /L1/office/floor /out t:180 spec:RC edge:y-
+boundary /L1/office/doma /out edge:y+
+boundary /L1/office/doma /out edge:x-
+boundary /L1/office/floor /out edge:x+
+boundary /L1/office/floor /out edge:y+
 ```
 
 ```text
@@ -169,7 +169,7 @@ Three more limits.
 One line separates `seg` from an opening. **An opening breaks the wall; a `seg` does not.**
 
 ```muro-part
-boundary /L1/office /out t:180 spec:RC edge:S
+boundary /L1/office /out t:180 spec:RC edge:y-
   seg w:3000 at:X1+4000 spec:カーテンウォール
   door w:900 h:2100 at:X1+1000 name:D1
 ```

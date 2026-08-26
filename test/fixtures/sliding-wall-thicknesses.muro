@@ -13,11 +13,11 @@ space /L1/d room X4..X5 Y1..Y2 name:end
 space /out outside:1 name:outside
 
 boundary /L1/a /L1/b t:120
-  door w:1200 at:0.5 hinge:S swing:a style:sliding name:slide-120
+  door w:1200 at:0.5 hinge:y- swing:a style:sliding name:slide-120
 boundary /L1/b /L1/c t:150
-  door w:1200 at:0.5 hinge:S swing:a style:sliding name:slide-150
+  door w:1200 at:0.5 hinge:y- swing:a style:sliding name:slide-150
 boundary /L1/c /L1/d t:300
-  door w:1200 at:0.5 hinge:S swing:a style:sliding name:slide-300
+  door w:1200 at:0.5 hinge:y- swing:a style:sliding name:slide-300
 
 boundary /L1/a /out
 boundary /L1/b /out

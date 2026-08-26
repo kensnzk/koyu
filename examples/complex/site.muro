@@ -14,5 +14,5 @@ space /site/plaza X1-4000..X1 Y1..Y6 level:L1 name:西側広場 outside:1
 space /site/east X8..X8+6000 Y1..Y6 level:L1 name:東側歩道状空地 outside:1
 
 # 接道は「敷地と道路が接する長さ」— 建物の外壁が道路に面していても接道ではない
-boundary /site/walk /road-s edge:S type:open
-boundary /site/east /road-e edge:E type:open
+boundary /site/walk /road-s edge:y- type:open
+boundary /site/east /road-e edge:x+ type:open

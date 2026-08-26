@@ -55,7 +55,7 @@ The exception is the [derivation constants](constants.md). Wall thickness 100mm,
 
 ### 4. Pieces run counter-clockwise
 
-Every outline `Form` returns is counter-clockwise (positive signed area), and reading the [edge orientations](boundaries.md) N/E/S/W assumes it.
+Every outline `Form` returns is counter-clockwise (positive signed area), and reading the [edge orientations](boundaries.md) x+/x-/y+/y- assumes it.
 
 ## Form carries no appearance
 

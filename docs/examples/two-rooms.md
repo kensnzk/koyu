@@ -15,13 +15,13 @@ mode: explanation
 - **[`boundary`](../reference/muro/boundary.md)** — that a wall is not a thing but a **relation between two spaces**. The wall centerline segment is written nowhere; it is derived from the two rectangles.
 - **Indented [`door`](../reference/muro/door.md) / [`window`](../reference/muro/window.md)** — an opening belongs to a wall (a boundary), never to a space.
 - **`/out`** — the outside is a space too. It carries no region, so the envelope boundaries have to be **written explicitly**.
-- **`edge:S`** — an opening onto the outside has to pick a side. The perimeter of `/L1/b` splits into three of them. The four words are about axes: N=+Y, S=-Y, E=+X, W=-X.
+- **`edge:y-`** — an opening onto the outside has to pick a side. The perimeter of `/L1/b` splits into three of them. The four words name axes: `y+`=+Y, `y-`=−Y, `x+`=+X, `x-`=−X.
 - **`daylight:1`** — whether the daylight check applies is never inferred from the type. Only the spaces that say so join the population `light` examines.
 
 ## The whole file
 
 ```muro
-muro 1.5
+muro 1.6
 name 二室
 unit mm
 
@@ -37,10 +37,10 @@ boundary /L1/a /L1/b t:120 spec:PW1
   door w:780 h:2000
 
 boundary /L1/a /out t:150 spec:EW1 fire:60
-  window w:2600 h:1100 edge:S name:腰窓
+  window w:2600 h:1100 edge:y- name:腰窓
 boundary /L1/b /out t:150 spec:EW1 fire:60
-  door w:900 h:2100 edge:S name:玄関
-  window w:2600 h:1100 edge:E name:腰窓
+  door w:900 h:2100 edge:y- name:玄関
+  window w:2600 h:1100 edge:x+ name:腰窓
 ```
 
 **The wall between the rooms looks written, but what is actually written is only the relation.** `boundary /L1/a /L1/b` says no more than "A and B meet at a wall". The start and end of the segment fall out of the fact that the two rectangles overlap along X2 over the interval Y1..Y2. The thickness 120 is split 60 to either side of the centerline, and both rooms measure 3600 × 4500 = 16.20 m² at the centerline.

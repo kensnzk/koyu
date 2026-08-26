@@ -90,7 +90,7 @@ level L1 0 h:2700 slab:150
 space /out outside:1
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /out
-  door w:900 edge:S`);
+  door w:900 edge:y-`);
   assert.equal(outcome(direct, ACCESS_UNREACHABLE_RULE_ID.id, "/L1/a").status, "pass");
   assert.equal(outcome(direct, ACCESS_VOIDONLY_RULE_ID.id, "/L1/a").status, "pass");
 
@@ -101,7 +101,7 @@ level L1 0 h:2700 slab:150
 space /out outside:1
 space /L1/s stair X1..X2 Y1..Y2
 boundary /L1/s /out
-  door w:900 edge:S`);
+  door w:900 edge:y-`);
   assert.equal(outcome(stair, ACCESS_THROUGHTENANT_RULE_ID.id, "/L1/s").status, "pass");
 
   const parking = assessSource(parkingDoorSource(2400));
@@ -160,11 +160,11 @@ space /L1/c corridor X1..X2 Y1+6000..Y1+12000 lease.category:common
 boundary /L1/s /L1/t
   door w:900
 boundary /L1/t /out
-  door w:900 edge:S
+  door w:900 edge:y-
 boundary /L1/s /L1/c
   door w:900
 boundary /L1/c /out
-  door w:900 edge:W`;
+  door w:900 edge:x-`;
   const report = assessSource(alternate);
   assert.equal(outcome(report, ACCESS_THROUGHTENANT_RULE_ID.id, "/L1/s").status, "pass");
   const artifact = accessArtifact(parse(alternate));
@@ -355,7 +355,7 @@ level L1 0 h:2700 slab:150
 space /out outside:1
 space /L1/p parking X1..X2 Y1..Y2
 boundary /L1/p /out
-  door w:${widthMm} edge:S`;
+  door w:${widthMm} edge:y-`;
 }
 
 function verticalParkingSource(declaredRamp: boolean): string {
@@ -366,11 +366,11 @@ level B1 -3000 h:2700 slab:300 underground:1
 level L1 0 h:2700 slab:300
 space /out outside:1
 space /B1/p parking X1..X2 Y1..Y2
-space /B1/r ramp X2..X3 Y1..Y2 ${declaredRamp ? " ramp:E" : ""}
+space /B1/r ramp X2..X3 Y1..Y2 ${declaredRamp ? " ramp:x+" : ""}
 space /L1/r parking X2..X3 Y1..Y2
 boundary /B1/p /B1/r type:open
 boundary /L1/r /out
-  door w:2400 edge:E
+  door w:2400 edge:x+
 stack r B1..L1 type:stair`;
 }
 
@@ -382,7 +382,7 @@ grid Y 0 8000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /${corridorLevel}/c corridor X1..X2 Y1..Y2 lease.category:common
-space /L1/e room X2..X3 Y1..Y2 lease.category:common escalator:N
+space /L1/e room X2..X3 Y1..Y2 lease.category:common escalator:y+
 space /L2/e room X2..X3 Y1..Y2 lease.category:common
 stack e L1..L2 type:stair
 boundary /${corridorLevel}/c /${corridorLevel}/e

@@ -25,7 +25,7 @@ How the segments are found depends on whether each side has a region.
 | Neither side has a region | no segment |
 | A vertical kind (`stair` / `shaft` / `void`) | no segment — vertical boundaries carry no wall |
 
-Collinear segments are merged into one, but only when direction, fixed coordinate and the compass point as seen from the a side all agree. That is why an opening can sit on a single segment even where the wall spans several rectangles.
+Collinear segments are merged into one, but only when direction, fixed coordinate and the face as seen from the a side all agree. That is why an opening can sit on a single segment even where the wall spans several rectangles.
 
 **One relation can split into several segments.** A boundary with a space that has no region — the outside, typically — usually splits across all four sides of the room, so placing an opening means picking a side with `edge:`.
 
@@ -48,7 +48,7 @@ Writing a `wall` boundary to a space on a different level is an error (BND03). R
 Floors are not written. Spaces on consecutive levels are vertically adjacent wherever they overlap in plan, and the default reading of that adjacency is "there is a floor". Only the exceptions are declared, with `stair` / `shaft` / `void`.
 
 ```muro
-muro 1.5
+muro 1.6
 name 五つの kind
 unit mm
 
@@ -59,7 +59,7 @@ level L2 3000 h:2700 slab:250
 
 space /L1/hall   hall   X1..X2 Y1..Y2 name:ホール
 space /L1/lounge lounge X2..X3 Y1..Y2 name:ラウンジ
-space /L1/st     stair  X3..X4 Y1..Y2 name:階段室 stair:E
+space /L1/st     stair  X3..X4 Y1..Y2 name:階段室 stair:x+
 space /L1/ev     shaft  X4..X5 Y1..Y2 name:EV1F lift:1
 space /L2/void          X1..X2 Y1..Y2 name:吹抜け void:1
 space /L2/office office X2..X3 Y1..Y2 name:事務室
@@ -71,7 +71,7 @@ boundary /L1/hall /L1/lounge type:open
 boundary /L1/lounge /L1/st t:150 spec:RC
   door w:900 h:2000 name:階段扉
 boundary /L1/hall /out t:180 spec:EW
-  door w:1200 h:2100 edge:S name:玄関
+  door w:1200 h:2100 edge:y- name:玄関
 boundary /L2/void /L2/office t:150 spec:手すり air:1 h:1100
 
 boundary /L1/hall /L2/void type:void
@@ -106,7 +106,7 @@ boundary /L2/ev /out
 You need not write a boundary at all. **Wherever two spaces with regions touch in plan on the same level and no boundary has been declared for that pair, a `wall` boundary is derived.** This is the horizontal counterpart of the vertical "default is a floor".
 
 ```muro
-muro 1.5
+muro 1.6
 unit mm
 grid X 0 3600 7200
 grid Y 0 4000
@@ -138,7 +138,7 @@ Declarations exist for the exceptions: to make it `open`, to make it `air:1`, to
 | `type` | structure | one of the five words above. Default `wall` |
 | `t` | structure | wall thickness in mm, split evenly either side of the centerline. Left out, drawing uses 100mm — or 60mm on an `air:1` boundary |
 | `air` | structure | `1` = there is something there, but it blocks neither air nor light (a railing, a fence). **Not a statement about passage** — a parapet wall is still not passable. The thickness is capped at 80mm |
-| `edge` | structure | restrict the segments to one compass side N/E/S/W as seen from the a side |
+| `edge` | structure | restrict the segments to one face — `x+` `x-` `y+` `y-` — as seen from the a side |
 | `h` | interpreted | top height in mm of an `air:1` boundary. Default 1100. Anything other than a positive number is ATT01 |
 | `name` | interpreted | display name |
 | `spec` `fire` `sound` | carried | carried and nothing more. `spec` is the name of the thing, and no tool interprets it |
@@ -160,7 +160,7 @@ A key that is not in the ledger cannot be written — writing it is ATT03 (error
 `boundary /L1/a /out` and `boundary /out /L1/a` are two spellings of the same relation. **Area, shape and the position of the segments do not depend on the order.**
 
 ```muro
-muro 1.5
+muro 1.6
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -178,13 +178,13 @@ Rewrite this boundary as `boundary /L1/a /out` and the area stays at 31.50 m2. T
 
 Exactly **two** things read the order.
 
-- **`edge`** — it means "the side as seen from the form of a", so swapping a and b flips the compass point
+- **`edge`** — it means "the side as seen from the form of a", so swapping a and b flips the face
 - **[which way a door opens](door.md#swing--which-side-it-opens-into)** — without `swing:`, a door opens into "a if a has a region, otherwise b"
 
 Get `edge` the wrong way round and the tool says so on the spot.
 
 ```muro-bad
-muro 1.5
+muro 1.6
 unit mm
 grid X 0 6000
 grid Y 0 4000 8000
@@ -192,16 +192,16 @@ level L1 0 h:2700 slab:200
 space /L1/a room X1..X2 Y1..Y2 name:南の室
 space /L1/b room X1..X2 Y2..Y3 name:北の室
 space /out outside:1
-boundary /L1/b /L1/a t:120 edge:N
+boundary /L1/b /L1/a t:120 edge:y+
 boundary /L1/a /out
 boundary /L1/b /out
 ```
 
 ```text
-✖ No shared edge on edge:N: /L1/b | /L1/a (they actually touch on S)
+✖ No shared edge on edge:y+: /L1/b | /L1/a (they actually touch on S)
 ```
 
-Write `/L1/a` first and `edge:N` is right; write `/L1/b` first and it is `edge:S`. The compass is N=+Y, S=−Y, E=+X, W=−X.
+Write `/L1/a` first and `edge:y+` is right; write `/L1/b` first and it is `edge:y-`. The four faces are `x+` `x-` `y+` `y-`, named by the axis they look along.
 
 To throw a vertical boundary from storey to storey in one breath, rather than a line at a time, there is [stack](stack.md).
 

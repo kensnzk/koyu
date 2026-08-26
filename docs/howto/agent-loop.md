@@ -24,7 +24,7 @@ Every output below was actually run. Absolute paths are abbreviated to `<dir>/`.
 A single-storey pair of rooms. There is one entrance door, and nothing at all between the two rooms.
 
 ```muro-part
-muro 1.5
+muro 1.6
 name 平屋
 unit mm
 
@@ -41,7 +41,7 @@ space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
 space /out  name:外部 outside:1
 
-boundary /L1/b /out t:150 spec:EW edge:S
+boundary /L1/b /out t:150 spec:EW edge:y-
   door w:900 h:2100 name:玄関
 ```
 
@@ -118,7 +118,7 @@ space /out  name:外部 outside:1
 boundary /L1/a /L1/b t:120 spec:PW
   door w:800 h:2000 name:D-中扉
 
-boundary /L1/b /out t:150 spec:EW edge:S
+boundary /L1/b /out t:150 spec:EW edge:y-
   door w:900 h:2100 name:玄関
 ```
 

@@ -10,10 +10,10 @@ space /L1/office office X1..X2 Y1..Y2 name:事務室
   area X1..X1+2000 Y1..Y2 name:土間 floor:モルタル
 space /out name:外部 outside:1
 
-boundary /L1/office /out t:180 spec:RC edge:S
+boundary /L1/office /out t:180 spec:RC edge:y-
   seg w:3000 at:X1+4000 spec:カーテンウォール fire:60
   window w:2400 h:2000 at:X1+4000 name:嵌め殺し
-boundary /L1/office /out t:180 spec:RC edge:N
-boundary /L1/office /out t:180 spec:RC edge:E
-boundary /L1/office /out t:180 spec:RC edge:W
+boundary /L1/office /out t:180 spec:RC edge:y+
+boundary /L1/office /out t:180 spec:RC edge:x+
+boundary /L1/office /out t:180 spec:RC edge:x-
   door w:900 h:2100 name:出入口

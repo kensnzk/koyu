@@ -22,26 +22,26 @@ boundary /L11/PB /L11/bPB t:100 spec:サッシ
   window W1 at:X4
   window W1 at:X5
   window W2 at:X5+4800
-boundary /L11/PA /out/w edge:W t:200 spec:RC
+boundary /L11/PA /out/w edge:x- t:200 spec:RC
   window W2
-boundary /L11/PB /out/road-e edge:E t:200 spec:RC
+boundary /L11/PB /out/road-e edge:x+ t:200 spec:RC
   window W2
 
 # ---- バルコニー ----
 boundary /L11/bPA /L11/bPB t:60 spec:隔て板 air:1
-boundary /L11/bPA /out/road-s edge:S t:120 spec:手すり air:1 h:1200
-boundary /L11/bPB /out/road-s edge:S t:120 spec:手すり air:1 h:1200
-boundary /L11/bPA /out/w edge:W t:120 spec:手すり air:1 h:1200
-boundary /L11/bPB /out/road-e edge:E t:120 spec:手すり air:1 h:1200
+boundary /L11/bPA /out/road-s edge:y- t:120 spec:手すり air:1 h:1200
+boundary /L11/bPB /out/road-s edge:y- t:120 spec:手すり air:1 h:1200
+boundary /L11/bPA /out/w edge:x- t:120 spec:手すり air:1 h:1200
+boundary /L11/bPB /out/road-e edge:x+ t:120 spec:手すり air:1 h:1200
 
 # ---- ルーフテラスとトランクルーム ----
 boundary /L11/roof /L11/corridor t:120 spec:サッシ
-  door w:900 edge:S name:テラス出入口
+  door w:900 edge:y- name:テラス出入口
 boundary /L11/roof /L11/st2 t:180 spec:RC
 boundary /L11/roof /L11/ev t:180 spec:RC
-boundary /L11/roof /out/n edge:N t:120 spec:手すり air:1 h:1200
+boundary /L11/roof /out/n edge:y+ t:120 spec:手すり air:1 h:1200
 boundary /L11/store /L11/corridor t:150 spec:LGS
-  door w:800 edge:S
+  door w:800 edge:y-
 boundary /L11/store /L11/ev t:180 spec:RC
 boundary /L11/store /L11/st1 t:180 spec:RC
-boundary /L11/store /out/n edge:N t:200 spec:RC
+boundary /L11/store /out/n edge:y+ t:200 spec:RC

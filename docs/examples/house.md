@@ -33,9 +33,9 @@ What the composed version adds:
 A wall is a value in the `spec` vocabulary of a boundary, and the gate is a door on that boundary. **The turn is here: the thing (a wall, a fence) becomes an attribute of a relation rather than an element.**
 
 ```muro-part
-boundary /site/garden /out/road edge:S t:120 spec:Block-wall+fence air:1 h:1200
+boundary /site/garden /out/road edge:y- t:120 spec:Block-wall+fence air:1 h:1200
   door w:900 style:gate-hinged name:Gate
-boundary /site/garden /out/w edge:W t:120 spec:Block-wall air:1 h:1200
+boundary /site/garden /out/w edge:x- t:120 spec:Block-wall air:1 h:1200
 ```
 
 `air:1` means "something is there but it blocks neither outside air nor light". That one word makes the garden **semi-outdoor** by derivation, so it drops out of the interior floor area and is reported separately. It also means a window looking across the garden takes no daylight penalty.
@@ -126,13 +126,13 @@ npx tsx src/cli.ts diff examples/house.muro examples/house/main.muro
 + asset W2
 + asset W3
 ± boundary /home/bed1 | /home/hall2: + door Bedroom-sliding-door SD1 w:800 h:2000 style:sliding name:Bedroom-sliding-door / − door at:0.5 (w:800)
-± boundary /home/bed1 | /out/road edge:S: + window at:0.5 ref W1 / + window at:0.5 name Full-height-window
-± boundary /home/hall1 | /home/ldk: + door edge:E at:0.5 ref SD1 / + door edge:E at:0.5 h 2000 / + door edge:E at:0.5 name Single-sliding-door / + door edge:E at:0.5 style sliding
+± boundary /home/bed1 | /out/road edge:y-: + window at:0.5 ref W1 / + window at:0.5 name Full-height-window
+± boundary /home/hall1 | /home/ldk: + door edge:x+ at:0.5 ref SD1 / + door edge:x+ at:0.5 h 2000 / + door edge:x+ at:0.5 name Single-sliding-door / + door edge:x+ at:0.5 style sliding
 ± boundary /home/hall1 | /site/east: door Entrance at 0.5 → Y2+1820 / + door Entrance ref D1 / + door Entrance h 2100 / + door Entrance style hinged
 ± boundary /home/ldk | /site/garden: + window at:X2 W1 w:2600 h:2200 sill:0 name:Full-height-window / − window Full-height-window (w:2600 h:2200 sill:0 name:Full-height-window)
 ± boundary /home/ldk | /site/west: + window at:0.5 ref W2 / + window at:0.5 name Waist-height-window
-± boundary /home/void | /out/road edge:S: + window Void-clerestory ref W3
-± boundary /out/road | /site/garden edge:S: + door at:X2 GT1 w:900 h:1200 style:gate-hinged name:Gate / − door Gate (w:900 style:gate-hinged name:Gate)
+± boundary /home/void | /out/road edge:y-: + window Void-clerestory ref W3
+± boundary /out/road | /site/garden edge:y-: + door at:X2 GT1 w:900 h:1200 style:gate-hinged name:Gate / − door Gate (w:900 style:gate-hinged name:Gate)
 ```
 
 What shows up is that assets appeared, and that opening positions moved from ratios to grid references. Not line order, not formatting. **Splitting the file into five is not itself a difference.**

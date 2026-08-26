@@ -77,7 +77,7 @@ npx tsx src/cli.ts runs examples/two-rooms.muro
 ```
 
 ```text
-There is no vertical circulation (write stair:N / ramp:N / escalator:N / lift:1 on a space)
+There is no vertical circulation (write stair:y+ / ramp:y+ / escalator:y+ / lift:1 on a space)
 ```
 
 **Writing a stair boundary (`boundary /a /b type:stair`) alone puts nothing here.** A boundary kind is the relation "these two spaces are joined by a stair", not the form of the stair itself. For the form, write `stair:<direction of climb>` on the stair space. `examples/house` has only the former, so `runs` returns the line above.

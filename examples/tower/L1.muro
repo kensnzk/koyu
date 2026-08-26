@@ -18,7 +18,7 @@ space /L1/st1 stair X5+3200..X6 Y3..Y4 name:東階段 lease.category:common
 # ---- 内部 ----
 boundary /L1/s1 /L1/s2 t:150 spec:LGS
 boundary /L1/s1 /L1/back t:150 spec:LGS
-  door w:900 edge:E
+  door w:900 edge:x+
 boundary /L1/s2 /L1/back t:150 spec:LGS
   door w:900
 boundary /L1/s2 /L1/hall t:150 spec:LGS
@@ -39,10 +39,10 @@ boundary /L1/corridor /L1/garb t:150 spec:LGS
 boundary /L1/corridor /L1/mech t:200 spec:RC
   door w:900
 boundary /L1/elec /L1/corridor t:200 spec:RC
-  door w:900 edge:S
+  door w:900 edge:y-
 boundary /L1/mgr /L1/corridor t:150 spec:LGS
-  door w:900 edge:S
-  seg w:1800 at:X5 edge:S spec:受付ガラス
+  door w:900 edge:y-
+  seg w:1800 at:X5 edge:y- spec:受付ガラス
 boundary /L1/corridor /L1/ev t:200 spec:RC
 
 # ---- 北列の間仕切り ----
@@ -54,27 +54,27 @@ boundary /L1/ev /L1/mgr t:200 spec:RC
 boundary /L1/mgr /L1/st1 t:200 spec:RC
 
 # ---- 外周 (南=商業前面、東=駐車・駐輪、西=通路、北=植栽帯) ----
-boundary /L1/s1 /site/walk edge:S t:100 spec:店舗サッシ
+boundary /L1/s1 /site/walk edge:y- t:100 spec:店舗サッシ
   door AD1 at:X2 name:店舗1入口
-boundary /L1/s2 /site/walk edge:S t:100 spec:店舗サッシ
+boundary /L1/s2 /site/walk edge:y- t:100 spec:店舗サッシ
   door AD1 at:X4+3200 name:店舗2入口
-boundary /L1/hall /site/walk edge:S t:100 spec:カーテンウォール
+boundary /L1/hall /site/walk edge:y- t:100 spec:カーテンウォール
   door AD1 at:X5+3200 name:エントランス
-boundary /L1/s1 /site/west edge:W t:200 spec:RC
-boundary /L1/corridor /site/west edge:W t:200 spec:RC
-boundary /L1/st2 /site/west edge:W t:200 spec:RC
+boundary /L1/s1 /site/west edge:x- t:200 spec:RC
+boundary /L1/corridor /site/west edge:x- t:200 spec:RC
+boundary /L1/st2 /site/west edge:x- t:200 spec:RC
   door FD1 name:西階段屋外出口
-boundary /L1/hall /site/park edge:E t:200 spec:RC
+boundary /L1/hall /site/park edge:x+ t:200 spec:RC
   window W2
-boundary /L1/corridor /site/cycle edge:E t:200 spec:RC
+boundary /L1/corridor /site/cycle edge:x+ t:200 spec:RC
   door w:900 name:通用口
-boundary /L1/st1 /site/cycle edge:E t:200 spec:RC
+boundary /L1/st1 /site/cycle edge:x+ t:200 spec:RC
   door FD1 name:東階段屋外出口
-boundary /L1/st2 /site/green edge:N t:200 spec:RC
-boundary /L1/garb /site/green edge:N t:200 spec:RC
+boundary /L1/st2 /site/green edge:y+ t:200 spec:RC
+boundary /L1/garb /site/green edge:y+ t:200 spec:RC
   door w:1200 name:ゴミ搬出口
-boundary /L1/mech /site/green edge:N t:200 spec:RC
-boundary /L1/elec /site/green edge:N t:200 spec:RC
-boundary /L1/ev /site/green edge:N t:200 spec:RC
-boundary /L1/mgr /site/green edge:N t:200 spec:RC
-boundary /L1/st1 /site/green edge:N t:200 spec:RC
+boundary /L1/mech /site/green edge:y+ t:200 spec:RC
+boundary /L1/elec /site/green edge:y+ t:200 spec:RC
+boundary /L1/ev /site/green edge:y+ t:200 spec:RC
+boundary /L1/mgr /site/green edge:y+ t:200 spec:RC
+boundary /L1/st1 /site/green edge:y+ t:200 spec:RC

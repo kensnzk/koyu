@@ -43,7 +43,7 @@ test("several segments for one pair: the LDK and the bedroom touch on two edges 
   const b = m.boundaries.find((x) => x.a === "/L2/A/ldk" && x.b === "/L2/A/bedroom")!;
   assert.equal(segmentsFor(m, b).length, 2); // 縦 (W) と横 (N)
   const r = check(m);
-  assert.deepEqual(r.errors, []); // door edge:W で曖昧が解けている
+  assert.deepEqual(r.errors, []); // door edge:x- で曖昧が解けている
 });
 
 test("an attribute inherited from the zone: the rooms of a layout inherit the dwelling's lease category", () => {
@@ -96,7 +96,7 @@ level L1 0 h:2400
 space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
-  window w:600 h:600 edge:S
+  window w:600 h:600 edge:y-
 `);
   const r = daylightInputs(m);
   assert.equal(r.length, 1);
@@ -117,7 +117,7 @@ level L1 0 h:2400 slab:150
 space /out outside:1
 ${space}
 boundary /L1/a /out t:150
-  window w:2600 h:2200 edge:S
+  window w:2600 h:2200 edge:y-
 `;
 
 test("daylight: only daylight:1 is in scope — the type is never looked at", () => {
@@ -144,14 +144,14 @@ space /out outside:1
 `;
   const whole = parse(`${head}space /L1/a unit X1..X3 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
-  window w:2600 h:2200 edge:S`);
+  window w:2600 h:2200 edge:y-`);
   const split = parse(`${head}zone /L1/a
 space /L1/a/ldk ldk X1..X2 Y1..Y2 daylight:1
 space /L1/a/bed bedroom X2..X3 Y1..Y2 daylight:1
 boundary /L1/a/ldk /out t:150
-  window w:2600 h:2200 edge:S
+  window w:2600 h:2200 edge:y-
 boundary /L1/a/bed /out t:150
-  window w:2600 h:2200 edge:S`);
+  window w:2600 h:2200 edge:y-`);
   assert.equal(daylightInputs(whole).length, 1); // 住戸まるごとが一室
   assert.equal(daylightInputs(split).length, 2); // 割れば室ごと
   assert.equal(Math.round(daylightInputs(whole)[0]!.floor * 100) / 100, 32.4);

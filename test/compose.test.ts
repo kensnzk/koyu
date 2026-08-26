@@ -69,7 +69,7 @@ test("parseFiles: the same composition runs over a virtual file set (for the bro
       ].join("\n"),
       "assets.muro": "asset D1 door w:800 h:2000 style:sliding\n",
       "floors/L1.muro":
-        "space /a room X1..X2 Y1..Y2 level:L1\nboundary /a /out2 edge:S t:150\n  door D1\nspace /out2 outside:1\n",
+        "space /a room X1..X2 Y1..Y2 level:L1\nboundary /a /out2 edge:y- t:150\n  door D1\nspace /out2 outside:1\n",
     },
     "main.muro",
   );
@@ -181,7 +181,7 @@ test("asset reference: an undefined asset is an error", () => {
   assert.throws(
     () =>
       parse(
-        `${BASE}\nspace /a room X1..X2 Y1..Y2 level:L1\nboundary /a /out edge:S t:150\n  door NOPE`,
+        `${BASE}\nspace /a room X1..X2 Y1..Y2 level:L1\nboundary /a /out edge:y- t:150\n  door NOPE`,
       ),
     /Undefined opening asset/,
   );

@@ -13,9 +13,9 @@ boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
 
 boundary /L1/ldk /out t:150
-  window w:2400 h:1800 edge:S
+  window w:2400 h:1800 edge:y-
 boundary /L1/hall /out t:150
-  door w:900 h:2000 edge:S
+  door w:900 h:2000 edge:y-
 
 boundary /L1/hall /L2/hall type:stair
 
@@ -23,5 +23,5 @@ boundary /L2/bed /L2/hall t:120
   door w:800 h:2000
 
 boundary /L2/bed /out t:150
-  window w:1800 h:1200 edge:S
+  window w:1800 h:1200 edge:y-
 boundary /L2/hall /out t:150

@@ -16,7 +16,7 @@ There are two axes, `X` and `Y`. X is positive to the east and Y is positive to 
 
 ## Grid lines are named for you
 
-You write only coordinates; you do not name them. The coordinates of `grid X` become `X1` `X2` `X3` … from west to east, and those of `grid Y` become `Y1` `Y2` `Y3` … from south to north.
+You write only coordinates; you do not name them. The coordinates of `grid X` become `X1` `X2` `X3` … from in ascending X, and those of `grid Y` become `Y1` `Y2` `Y3` … from in ascending Y.
 
 ```muro-part
 grid X 0 6400 12800 19200

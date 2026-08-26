@@ -101,7 +101,7 @@ The named area is the sole placement frame. There is no second absolute-position
 Changing the area moves its component with it, and the pair `(parent space path, area name)` is
 the instance identity.
 
-Alignment uses stable model X/Y, not screen direction or compass direction. `min`, `center` and
+Alignment uses stable model X/Y, not screen direction or bearing. `min`, `center` and
 `max` refer to the bounds of the area on each axis. Offsets are applied after alignment. A
 positive `offset-x` moves along +X and a positive `offset-y` along +Y. Positive rotation is
 counter-clockwise from +X.

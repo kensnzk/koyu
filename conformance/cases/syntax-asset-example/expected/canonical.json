@@ -67,7 +67,7 @@
           "w": 1200,
           "h": 2100,
           "at": 0.5,
-          "edge": "S",
+          "edge": "y-",
           "attrs": {
             "name": "大扉",
             "style": "hinged"

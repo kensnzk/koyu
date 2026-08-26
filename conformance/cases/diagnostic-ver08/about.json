@@ -4,5 +4,5 @@
   "docs/reference/muro/door.md",
   "docs/reference/muro/version.md"
  ],
- "why": "The expanded opening operation vocabulary arrives in muro 1.5. A file declaring 1.4 may keep hinged, sliding and auto, but it may not use sliding-double: an older processor rejects that value. VER08 points at the written opening and tells the author to raise the version."
+ "why": "The expanded opening operation vocabulary arrives in muro 1.6. A file declaring 1.4 may keep hinged, sliding and auto, but it may not use sliding-double: an older processor rejects that value. VER08 points at the written opening and tells the author to raise the version."
 }

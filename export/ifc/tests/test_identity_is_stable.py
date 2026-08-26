@@ -37,7 +37,7 @@ space /L1/b room X2..X3 Y1..Y2
 space /out name:outside outside:1
 boundary /L1/a /L1/b t:120
   door w:800
-boundary /L1/b /out edge:S t:150
+boundary /L1/b /out edge:y- t:150
   door w:900
 """
 

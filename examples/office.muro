@@ -2,7 +2,7 @@
 # 基本計画の解像度で書く。垂れ壁や建具詳細は表現しない — 省略ではなく抽象度の選択。
 # 高さの一貫性は level の宣言 (z / h / slab) と check の不変量が担保する。
 
-muro 1.5
+muro 1.6
 name 小さなオフィス
 unit mm
 
@@ -48,12 +48,12 @@ boundary /L1/wc-m /L1/wc-w t:80 spec:LGS
 boundary /L1/wc-w /L1/machine t:120 spec:LGS
 
 boundary /L1/hall /out t:180 spec:EW1 fire:60
-  door w:1800 edge:S name:エントランス
-  window w:2400 edge:W sill:800
+  door w:1800 edge:y- name:エントランス
+  window w:2400 edge:x- sill:800
 boundary /L1/office /out t:180 spec:EW1 fire:60
-  window w:3600 edge:S at:0.25 sill:800
-  window w:3600 edge:S at:0.72 sill:800
-  window w:2400 edge:E sill:800
+  window w:3600 edge:y- at:0.25 sill:800
+  window w:3600 edge:y- at:0.72 sill:800
+  window w:2400 edge:x+ sill:800
 boundary /L1/corridor /out t:180 spec:EW1 fire:60
 boundary /L1/stair /out t:180 spec:EW1 fire:60
 boundary /L1/ev /out t:180 spec:EW1
@@ -92,11 +92,11 @@ boundary /L2/wc-m /L2/wc-w t:80 spec:LGS
 boundary /L2/wc-w /L2/machine t:120 spec:LGS
 
 boundary /L2/void /out t:180 spec:EW1 fire:60
-  window w:3600 edge:S sill:800    # 吹抜けの大開口
+  window w:3600 edge:y- sill:800    # 吹抜けの大開口
 boundary /L2/office /out t:180 spec:EW1 fire:60
-  window w:3600 edge:S at:0.3 sill:800
-  window w:3600 edge:S at:0.75 sill:800
-  window w:2400 edge:E sill:800
+  window w:3600 edge:y- at:0.3 sill:800
+  window w:3600 edge:y- at:0.75 sill:800
+  window w:2400 edge:x+ sill:800
 boundary /L2/corridor /out t:180 spec:EW1
 boundary /L2/stair /out t:180 spec:EW1 fire:60
 boundary /L2/ev /out t:180 spec:EW1

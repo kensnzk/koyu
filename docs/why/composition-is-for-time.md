@@ -38,7 +38,7 @@ So six rules are laid down.
 Three layers. `main.muro` holds the given, `plan.muro` the plan, `as-built.muro` the measurements.
 
 ```muro-part
-muro 1.5
+muro 1.6
 grid X 0 3600 7200
 grid Y 0 4500
 level L1 0 h:2400 slab:150
@@ -60,7 +60,7 @@ boundary /L1/b /out t:150 spec:EW1
 over /L1/a /L1/b t:125 spec:PW1-実測
 over /L1/a h:2380
 over /L1/a /out
-  + window w:1200 h:1100 edge:S name:W9
+  + window w:1200 h:1100 edge:y- name:W9
 ```
 
 ```text

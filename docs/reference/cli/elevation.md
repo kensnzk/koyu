@@ -10,7 +10,7 @@ Writes the elevation of one face as SVG. **An elevation is a section whose plane
 ## Arguments
 
 ```text
-koyu elevation <entry.muro> [--face N|E|S|W] [-s <scale>] [-o <out.svg>]
+koyu elevation <entry.muro> [--face y+|E|S|W] [-s <scale>] [-o <out.svg>]
 ```
 
 ## Flags
@@ -26,14 +26,14 @@ There is no `--at`. The plane is placed at the near extreme of the mass along th
 ## Output
 
 ```sh
-npx tsx src/cli.ts elevation examples/house/main.muro --face S -o out/house-elevation-S.svg
+npx tsx src/cli.ts elevation examples/house/main.muro --face y- -o out/house-elevation-y-.svg
 ```
 
 ```text
-Generated the elevation: out/house-elevation-S.svg
+Generated the elevation: out/house-elevation-y-.svg
 ```
 
-![South elevation of a two-storey house: the mass seen head-on, the storey datums running out into the left margin, the windows and the entrance door reading as openings in the wall face](../../img/house-elevation-S.svg)
+![South elevation of a two-storey house: the mass seen head-on, the storey datums running out into the left margin, the windows and the entrance door reading as openings in the wall face](../../img/house-elevation-y-.svg)
 
 ## Openings are holes, and nothing cuts them
 
@@ -60,7 +60,7 @@ elevation takes no --at (the plane is placed outside the mass; koyu section take
 ```
 
 ```sh
-npx tsx src/cli.ts elevation examples/house/main.muro --face SW
+npx tsx src/cli.ts elevation examples/house/main.muro --face x-y-
 ```
 
 ```text
@@ -75,11 +75,11 @@ A flag that was silently ignored would draw a different building from the one as
 |---|---|
 | 0 | It was written |
 | 1 | There was nothing to draw, or the input could not be read |
-| 2 | `--face` named no compass point, or `--at` was given |
+| 2 | `--face` named no face, or `--at` was given |
 
 ## See also
 
 - [koyu section](section.md) — the same drawing with the plane inside the mass
 - [koyu axo](axo.md) — the solid seen from a corner, where an oblique face still reads
 - [The section](../form/section.md) — the classified set this draws
-- [orientation and the a side](../muro/orientation.md) — what N/E/S/W mean
+- [orientation and the a side](../muro/orientation.md) — what x+/x-/y+/y- mean

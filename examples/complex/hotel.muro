@@ -69,49 +69,49 @@ boundary /L14..L19/s03 /L14..L19/ps t:250 spec:RC
 boundary /L14..L19/s04 /L14..L19/st2 t:250 spec:RC
 
 # ---- 外周 ----
-boundary /L14..L19/r01 /out edge:S t:250 spec:PC板
+boundary /L14..L19/r01 /out edge:y- t:250 spec:PC板
   window W1
-boundary /L14..L19/r02 /out edge:S t:250 spec:PC板
+boundary /L14..L19/r02 /out edge:y- t:250 spec:PC板
   window W1
-boundary /L14..L19/r03 /out edge:S t:250 spec:PC板
+boundary /L14..L19/r03 /out edge:y- t:250 spec:PC板
   window W1
-boundary /L14..L19/r04 /out edge:S t:250 spec:PC板
+boundary /L14..L19/r04 /out edge:y- t:250 spec:PC板
   window W1
-boundary /L14..L19/r05 /out edge:S t:250 spec:PC板
+boundary /L14..L19/r05 /out edge:y- t:250 spec:PC板
   window W1
-boundary /L14..L19/r06 /out edge:S t:250 spec:PC板
+boundary /L14..L19/r06 /out edge:y- t:250 spec:PC板
   window W1
-boundary /L14..L19/r07 /out edge:S t:250 spec:PC板
+boundary /L14..L19/r07 /out edge:y- t:250 spec:PC板
   window W1
-boundary /L14..L19/r08 /out edge:S t:250 spec:PC板
+boundary /L14..L19/r08 /out edge:y- t:250 spec:PC板
   window W1
-boundary /L14..L19/r01 /out edge:W t:250 spec:PC板
+boundary /L14..L19/r01 /out edge:x- t:250 spec:PC板
   window W2
-boundary /L14..L19/r08 /out edge:E t:250 spec:PC板
+boundary /L14..L19/r08 /out edge:x+ t:250 spec:PC板
   window W2
-boundary /L14..L19/corridor /out edge:W t:250 spec:PC板
+boundary /L14..L19/corridor /out edge:x- t:250 spec:PC板
   window W2
-boundary /L14..L19/corridor /out edge:E t:250 spec:PC板
+boundary /L14..L19/corridor /out edge:x+ t:250 spec:PC板
   window W2
-boundary /L14..L19/s01 /out edge:N t:250 spec:PC板
+boundary /L14..L19/s01 /out edge:y+ t:250 spec:PC板
   window W1
-boundary /L14..L19/s02 /out edge:N t:250 spec:PC板
+boundary /L14..L19/s02 /out edge:y+ t:250 spec:PC板
   window W1
-boundary /L14..L19/s03 /out edge:N t:250 spec:PC板
+boundary /L14..L19/s03 /out edge:y+ t:250 spec:PC板
   window W1
-boundary /L14..L19/s04 /out edge:N t:250 spec:PC板
+boundary /L14..L19/s04 /out edge:y+ t:250 spec:PC板
   window W1
-boundary /L14..L19/s05 /out edge:N t:250 spec:PC板
+boundary /L14..L19/s05 /out edge:y+ t:250 spec:PC板
   window W1
-boundary /L14..L19/s01 /out edge:W t:250 spec:PC板
+boundary /L14..L19/s01 /out edge:x- t:250 spec:PC板
   window W1
-boundary /L14..L19/s05 /out edge:E t:250 spec:PC板
+boundary /L14..L19/s05 /out edge:x+ t:250 spec:PC板
   window W1
-boundary /L14..L19/ps /out edge:N t:250 spec:PC板
-boundary /L14..L19/tea /out edge:N t:250 spec:PC板
-boundary /L14..L19/st1 /out edge:N t:250 spec:PC板
-boundary /L14..L19/ev1 /out edge:N t:250 spec:PC板
-boundary /L14..L19/ev2 /out edge:N t:250 spec:PC板
-boundary /L14..L19/wcm /out edge:N t:250 spec:PC板
-boundary /L14..L19/wcw /out edge:N t:250 spec:PC板
-boundary /L14..L19/st2 /out edge:N t:250 spec:PC板
+boundary /L14..L19/ps /out edge:y+ t:250 spec:PC板
+boundary /L14..L19/tea /out edge:y+ t:250 spec:PC板
+boundary /L14..L19/st1 /out edge:y+ t:250 spec:PC板
+boundary /L14..L19/ev1 /out edge:y+ t:250 spec:PC板
+boundary /L14..L19/ev2 /out edge:y+ t:250 spec:PC板
+boundary /L14..L19/wcm /out edge:y+ t:250 spec:PC板
+boundary /L14..L19/wcw /out edge:y+ t:250 spec:PC板
+boundary /L14..L19/st2 /out edge:y+ t:250 spec:PC板

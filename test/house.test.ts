@@ -67,8 +67,8 @@ test("an undeclared level: is an error", () => {
 });
 
 test("a hinge whose axis does not match the segment is an error", () => {
-  // ldk|hall1 の扉は垂直線分 (edge:E) — hinge:W は水平用なので合わない
-  const m = parse(src.replace("hinge:S swing:b", "hinge:W swing:b"));
+  // ldk|hall1 の扉は垂直線分 (edge:x+) — hinge:x- は水平用なので合わない
+  const m = parse(src.replace("hinge:y- swing:b", "hinge:x- swing:b"));
   const r = check(m);
   assert.ok(r.errors.some((e) => e.includes("vertical segment")));
 });

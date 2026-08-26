@@ -20,7 +20,7 @@ Between two spaces that touch, and about which nothing has been declared, a **wa
 `validate` lists **every** room that cannot reach the exterior. You do not have to nominate a starting point.
 
 ```muro
-muro 1.5
+muro 1.6
 name A sealed house
 unit mm
 
@@ -37,21 +37,21 @@ space /L1/hall hall    X2..X3 Y1..Y2 name:Entry
 space /L2/bed  bedroom X1..X2 Y1..Y2 name:Bedroom
 space /L2/hall hall    X2..X3 Y1..Y2 name:Upper-hall
 
-boundary /L1/hall /out edge:E t:150 spec:EW
+boundary /L1/hall /out edge:x+ t:150 spec:EW
   door w:900 name:Front-door
-boundary /L1/ldk /out edge:W t:150 spec:EW
-boundary /L2/bed /out edge:W t:150 spec:EW
-boundary /L2/hall /out edge:E t:150 spec:EW
+boundary /L1/ldk /out edge:x- t:150 spec:EW
+boundary /L2/bed /out edge:x- t:150 spec:EW
+boundary /L2/hall /out edge:x+ t:150 spec:EW
 
 boundary /L1/hall /L2/hall type:stair
-boundary /L1/ldk /out edge:S
-boundary /L1/ldk /out edge:N
-boundary /L1/hall /out edge:S
-boundary /L1/hall /out edge:N
-boundary /L2/bed /out edge:S
-boundary /L2/bed /out edge:N
-boundary /L2/hall /out edge:S
-boundary /L2/hall /out edge:N
+boundary /L1/ldk /out edge:y-
+boundary /L1/ldk /out edge:y+
+boundary /L1/hall /out edge:y-
+boundary /L1/hall /out edge:y+
+boundary /L2/bed /out edge:y-
+boundary /L2/bed /out edge:y+
+boundary /L2/hall /out edge:y-
+boundary /L2/hall /out edge:y+
 ```
 
 ```text

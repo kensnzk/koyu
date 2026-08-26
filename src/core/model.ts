@@ -56,6 +56,13 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
   // place fixed furniture or equipment footprints while keeping SVG artwork out of Form
   // (ADR-0068, ADR-0075).
   { muro: "1.5", since: "0.28.0", until: null },
+  // 1.6 takes the compass out of the notation. `edge:`, `hinge:` and the direction a vertical run
+  // rises are written as axis words — `x+` `x-` `y+` `y-` — because that is what they always
+  // meant; `N` was never a bearing, only a spelling of +Y. The four letters are gone at every
+  // version rather than only from 1.6, the way the exterior default was: leaving the old spelling
+  // readable would leave it to be copied forward, and one axis has one word (ADR-0076).
+  // `azimuth` keeps the only true bearing in the language.
+  { muro: "1.6", since: "0.29.0", until: null },
 ];
 
 /** The word a version line is written with from 1.2 on. */
@@ -82,7 +89,7 @@ export const LAST_KOYU_SPELLED_VERSION = "1.1";
  * `since` column is written in this vocabulary, and every surface that answers "which muro
  * does this build speak" needs both halves at once.
  */
-export const KOYU_VERSION = "0.28.0";
+export const KOYU_VERSION = "0.29.0";
 
 /**
  * Whether `a` names a later language version than `b`.
@@ -221,8 +228,8 @@ export const DEFAULT_LANGUAGE_VERSION = "1.1";
  */
 export const CANONICAL_FORMAT = "koyu-canonical/2.0";
 
-/** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
-export type Edge = "N" | "E" | "S" | "W";
+/** 軸の向き。edge指定は「最初に書いた空間」の矩形から見た辺。方位ではない (azimuth が唯一の方位) */
+export type Edge = "y+" | "x+" | "y-" | "x-";
 
 export interface Level {
   name: string;
@@ -392,7 +399,7 @@ export interface Opening {
   atAxis?: "X" | "Y";
   /** 区間が複数あるとき (外部境界など) の辺の指定 */
   edge?: Edge;
-  /** 開き勝手: 吊元の側 (水平線分ならW/E、垂直線分ならS/N)。既定は始端側 */
+  /** 開き勝手: 吊元の側 (水平線分なら x+/x-、垂直線分なら y+/y-)。既定は始端側 */
   hinge?: Edge;
   /** 開き勝手: 開く側 (境界のa側/b側)。既定はa側 (領域を持つ方) */
   swing?: "a" | "b";
@@ -618,7 +625,7 @@ export interface SiteOrigin {
  * **方位角であって回転角ではない。**「+Y から北へ時計回り」と綴れば逆向きの方位角になり、
  * 建築も測量も時計回りの角を北から対象へ測るので、読者の既定の読みが定義の逆になる。
  *
- * `N/E/S/W` は依然として軸の語である (docs/reference/muro/orientation.md)。方位を持つ場所は
+ * `x+/x-/y+/y-` は軸の語である (docs/reference/muro/orientation.md)。方位を持つ場所は
  * ここひとつで、面の真方位角は deg / deg+90 / deg+180 / deg+270 と消費者の側で一行で出る
  */
 export interface Azimuth {

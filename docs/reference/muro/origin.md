@@ -119,7 +119,7 @@ That is [SIT06](../diagnostics/sit.md#sit06). The reverse is not warned about �
 ## In full
 
 ```muro
-muro 1.5
+muro 1.6
 name 測地の最小例
 unit mm
 grid X 0 8000
@@ -135,11 +135,11 @@ space /out/road name:前面道路 road:6000 outside:1
 
 polygon /site -2000,-2000 12000,-2000 12000,9000 -2000,9000
 
-boundary /site/house /out/road edge:S t:150
+boundary /site/house /out/road edge:y- t:150
   door w:900 name:玄関
-boundary /site/house /out/road edge:N t:150
-boundary /site/house /out/road edge:E t:150
-boundary /site/house /out/road edge:W t:150
+boundary /site/house /out/road edge:y+ t:150
+boundary /site/house /out/road edge:x+ t:150
+boundary /site/house /out/road edge:x- t:150
 ```
 
 ## Neighbouring pages

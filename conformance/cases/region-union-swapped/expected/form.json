@@ -80,7 +80,7 @@
     "x2": 6000,
     "y2": 3000,
     "horizontal": true,
-    "edgeOfA": "N"
+    "edgeOfA": "y+"
    },
    "material": {
     "t": 100,
@@ -131,7 +131,7 @@
     "x2": 3000,
     "y2": 0,
     "horizontal": true,
-    "edgeOfA": "S"
+    "edgeOfA": "y-"
    },
    "material": {
     "t": 100,
@@ -182,7 +182,7 @@
     "x2": 0,
     "y2": 3000,
     "horizontal": false,
-    "edgeOfA": "W"
+    "edgeOfA": "x-"
    },
    "material": {
     "t": 100,
@@ -233,7 +233,7 @@
     "x2": 6000,
     "y2": 0,
     "horizontal": true,
-    "edgeOfA": "S"
+    "edgeOfA": "y-"
    },
    "material": {
     "t": 100,
@@ -284,7 +284,7 @@
     "x2": 6000,
     "y2": 3000,
     "horizontal": false,
-    "edgeOfA": "E"
+    "edgeOfA": "x+"
    },
    "material": {
     "t": 100,

@@ -61,10 +61,10 @@ boundary /L1/living /out
 ```
 
 ```text
-✖ b2.muro:line 7: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/living | /out)
+✖ b2.muro:line 7: There is more than one boundary segment; pick an edge with edge:y+/E/S/W (/L1/living | /out)
 ```
 
-Compass directions come from the coordinate system. **N=+Y, S=−Y, E=+X, W=−X** — the names come from drawing with north up, and they stay words about axes however the building actually sits ([`azimuth`](../reference/muro/azimuth.md) is where the real bearing is written). And `edge` is **the side as seen from the rectangle of `a`** — the space written first.
+Compass directions come from the coordinate system. **`y+`=+Y, `y-`=−Y, `x+`=+X, `x-`=−X** — the names come from drawing with north up, and they stay words about axes however the building actually sits ([`azimuth`](../reference/muro/azimuth.md) is where the real bearing is written). And `edge` is **the side as seen from the rectangle of `a`** — the space written first.
 
 ```muro
 grid X 0 3600
@@ -73,10 +73,10 @@ level L1 0 h:2400 slab:150
 space /L1/living room X1..X2 Y1..Y2
 space /out outside:1
 boundary /L1/living /out t:150
-  door w:900 edge:S
+  door w:900 edge:y-
 ```
 
-Swap the order of the two paths and `edge:S` picks a different side. The convention is in [orientation](../reference/muro/orientation.md), and choosing an edge is covered in [positions](../reference/muro/positions.md).
+Swap the order of the two paths and `edge:y-` picks a different side. The convention is in [orientation](../reference/muro/orientation.md), and choosing an edge is covered in [positions](../reference/muro/positions.md).
 
 ## Rule 3 — the same pair of spaces may not carry two boundaries
 

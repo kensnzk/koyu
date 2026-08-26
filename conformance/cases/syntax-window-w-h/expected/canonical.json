@@ -50,7 +50,7 @@
       "a": "/L1/a",
       "kind": "wall",
       "t": 150,
-      "edge": "E",
+      "edge": "x+",
       "openings": [
         {
           "kind": "door",
@@ -71,7 +71,17 @@
       "a": "/L1/a",
       "kind": "wall",
       "t": 150,
-      "edge": "N",
+      "edge": "x-"
+    },
+    {
+      "between": [
+        "/L1/a",
+        "/out"
+      ],
+      "a": "/L1/a",
+      "kind": "wall",
+      "t": 150,
+      "edge": "y+",
       "openings": [
         {
           "kind": "window",
@@ -92,7 +102,7 @@
       "a": "/L1/a",
       "kind": "wall",
       "t": 150,
-      "edge": "S",
+      "edge": "y-",
       "openings": [
         {
           "kind": "window",
@@ -105,16 +115,6 @@
           }
         }
       ]
-    },
-    {
-      "between": [
-        "/L1/a",
-        "/out"
-      ],
-      "a": "/L1/a",
-      "kind": "wall",
-      "t": 150,
-      "edge": "W"
     }
   ]
 }

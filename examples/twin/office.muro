@@ -40,46 +40,46 @@ boundary /L21..L34/aoff2 /L21..L34/aoffE t:120 spec:スチールパーティシ�
   door D1 at:0.3
 
 # 外皮 — 全周カーテンウォール。南西の隅だけ斜め
-boundary /L6..L20/aoff1 /out edge:S t:250 spec:カーテンウォール
+boundary /L6..L20/aoff1 /out edge:y- t:250 spec:カーテンウォール
   window CW2 at:0.14
   window CW2 at:0.38
   window CW2 at:0.62
   window CW2 at:0.86
 boundary /L6..L20/aoff1 /out t:250 spec:カーテンウォール
   line X3+4200,Y6 X3,Y6+4200
-boundary /L6..L20/aoff1 /out edge:E t:250 spec:カーテンウォール
-boundary /L6..L20/aoff2 /out edge:N t:250 spec:カーテンウォール
+boundary /L6..L20/aoff1 /out edge:x+ t:250 spec:カーテンウォール
+boundary /L6..L20/aoff2 /out edge:y+ t:250 spec:カーテンウォール
   window CW2 at:0.14
   window CW2 at:0.38
   window CW2 at:0.62
   window CW2 at:0.86
-boundary /L6..L20/aoff2 /out edge:W t:250 spec:カーテンウォール
-boundary /L6..L20/aoff2 /out edge:E t:250 spec:カーテンウォール
-boundary /L6..L20/aoffW /out edge:W t:250 spec:カーテンウォール
+boundary /L6..L20/aoff2 /out edge:x- t:250 spec:カーテンウォール
+boundary /L6..L20/aoff2 /out edge:x+ t:250 spec:カーテンウォール
+boundary /L6..L20/aoffW /out edge:x- t:250 spec:カーテンウォール
   window CW2
-boundary /L6..L20/aoffE /out edge:E t:250 spec:カーテンウォール
+boundary /L6..L20/aoffE /out edge:x+ t:250 spec:カーテンウォール
   window CW2
-boundary /L21..L34/aoff1 /out edge:S t:250 spec:カーテンウォール
+boundary /L21..L34/aoff1 /out edge:y- t:250 spec:カーテンウォール
   window CW2 at:0.14
   window CW2 at:0.38
   window CW2 at:0.62
   window CW2 at:0.86
 boundary /L21..L34/aoff1 /out t:250 spec:カーテンウォール
   line X3+4200,Y6 X3,Y6+4200
-boundary /L21..L34/aoff1 /out edge:E t:250 spec:カーテンウォール
-boundary /L21..L34/aoff2 /out edge:N t:250 spec:カーテンウォール
+boundary /L21..L34/aoff1 /out edge:x+ t:250 spec:カーテンウォール
+boundary /L21..L34/aoff2 /out edge:y+ t:250 spec:カーテンウォール
   window CW2 at:0.14
   window CW2 at:0.38
   window CW2 at:0.62
   window CW2 at:0.86
-boundary /L21..L34/aoff2 /out edge:W t:250 spec:カーテンウォール
-boundary /L21..L34/aoff2 /out edge:E t:250 spec:カーテンウォール
-boundary /L21..L34/aoffW /out edge:W t:250 spec:カーテンウォール
+boundary /L21..L34/aoff2 /out edge:x- t:250 spec:カーテンウォール
+boundary /L21..L34/aoff2 /out edge:x+ t:250 spec:カーテンウォール
+boundary /L21..L34/aoffW /out edge:x- t:250 spec:カーテンウォール
   window CW2
-boundary /L21..L34/aoffE /out edge:E t:250 spec:カーテンウォール
+boundary /L21..L34/aoffE /out edge:x+ t:250 spec:カーテンウォール
   window CW2
-boundary /L6..L20/aoff1 /out edge:W t:250 spec:カーテンウォール
-boundary /L21..L34/aoff1 /out edge:W t:250 spec:カーテンウォール
+boundary /L6..L20/aoff1 /out edge:x- t:250 spec:カーテンウォール
+boundary /L21..L34/aoff1 /out edge:x- t:250 spec:カーテンウォール
 
 # ---- M2 中間機械階 — 客の階数に現れない ----
 space /M2/amach service X3..X11 Y6..Y7 + X3..X4 Y7..Y8+4200 + X10..X11 Y7..Y8+4200 + X3..X11 Y8+4200..Y10 name:中間機械室 lease.category:common
@@ -87,17 +87,17 @@ boundary /M2/amach /M2/ahall type:open
 # 隅切りは塔屋まで通す — 斜めの面が途中で消えると別の塔に見える
 boundary /M2/amach /out t:250 spec:ルーバー
   line X3+4200,Y6 X3,Y6+4200
-boundary /M2/amach /out edge:S t:250 spec:ルーバー
-boundary /M2/amach /out edge:N t:250 spec:ルーバー
-boundary /M2/amach /out edge:W t:250 spec:ルーバー
-boundary /M2/amach /out edge:E t:250 spec:ルーバー
+boundary /M2/amach /out edge:y- t:250 spec:ルーバー
+boundary /M2/amach /out edge:y+ t:250 spec:ルーバー
+boundary /M2/amach /out edge:x- t:250 spec:ルーバー
+boundary /M2/amach /out edge:x+ t:250 spec:ルーバー
 
 # ---- R1 塔屋 ----
 space /R1/ptop service X3..X11 Y6..Y7 + X3..X4 Y7..Y8+4200 + X10..X11 Y7..Y8+4200 + X3..X11 Y8+4200..Y10 name:塔屋・冷却塔 lease.category:common
 boundary /R1/ptop /R1/ahall type:open
 boundary /R1/ptop /out t:250 spec:ルーバー
   line X3+4200,Y6 X3,Y6+4200
-boundary /R1/ptop /out edge:S t:250 spec:ルーバー
-boundary /R1/ptop /out edge:N t:250 spec:ルーバー
-boundary /R1/ptop /out edge:W t:250 spec:ルーバー
-boundary /R1/ptop /out edge:E t:250 spec:ルーバー
+boundary /R1/ptop /out edge:y- t:250 spec:ルーバー
+boundary /R1/ptop /out edge:y+ t:250 spec:ルーバー
+boundary /R1/ptop /out edge:x- t:250 spec:ルーバー
+boundary /R1/ptop /out edge:x+ t:250 spec:ルーバー

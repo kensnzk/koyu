@@ -92,14 +92,14 @@ The keys writable on a zone are the ones listed here, plus any namespaced key co
 The zone carrying `site:1` is the site. Site area, road frontage, building coverage and floor area ratio are all derived starting from it.
 
 ```muro
-muro 1.5
+muro 1.6
 grid X 0 12000
 grid Y 0 10000
 level L1 0 h:3000 slab:200
 zone /site name:敷地 site:1 area:120.00
 space /site/bldg office X1..X2 Y1..Y2 level:L1 name:事務所
 space /road road:6000 name:前面道路 outside:1
-boundary /site/bldg /road edge:S t:200
+boundary /site/bldg /road edge:y- t:200
 polygon /site 0,0 12000,0 12000,10000 0,10000
 ```
 

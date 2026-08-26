@@ -158,7 +158,7 @@ A component placement is represented entirely by ordinary area attributes: `name
   "openings": [
     {
       "kind": "door", "ref": "SD1", "w": 800, "h": 2000,
-      "at": 0.5, "edge": "E", "hinge": "S", "swing": "b",
+      "at": 0.5, "edge": "x+", "hinge": "y-", "swing": "b",
       "attrs": { "name": "片引き戸", "style": "sliding" }
     }
   ]

@@ -126,9 +126,9 @@ boundary /L1/a /L1/b
   door w:900
 boundary /L1/b /L1/c
   window w:1200
-boundary /L1/a /out edge:W
+boundary /L1/a /out edge:x-
   window w:1600 h:1100
-boundary /L1/c /out edge:N
+boundary /L1/c /out edge:y+
 `;
 
 /** SVG から塗りつぶされた四辺形を拾う (色は問わない — 拾う色だけを引数で選ぶ) */
@@ -290,7 +290,7 @@ test("derive: the constructors agree — a band is its own centreline thickened,
   const ramp = runPrism({
     kind: "incline",
     rect: { x1: 0, y1: 0, x2: 1000, y2: 2000 },
-    up: "E",
+    up: "x+",
     z0: 0,
     z1: 600,
     t: 200,
@@ -336,7 +336,7 @@ test("drawing: every black band of a section is a body the plane cut, and nothin
   // `cut` classification of the `Form`, not a shape the drawing worked out for itself. If the two
   // ever disagree, a viewer written against `Form` draws a different building from `koyu section`.
   const m = parseFile(join(root, "examples/house/main.muro"));
-  const section = sectionForm(derive(m), { axis: "X", at: 4540, atRef: "X2+900", look: "W" });
+  const section = sectionForm(derive(m), { axis: "X", at: 4540, atRef: "X2+900", look: "x-" });
   const svg = svgSection(m, { axis: "X", at: 4540, atRef: "X2+900" });
 
   // The air of a room and the leaf of an opening are cut too, but they are not matter and are not
@@ -389,7 +389,7 @@ column 600 L1
   assert.ok(derive(m).columns.length > 25000, "the model is large enough to overflow a spread");
   for (const svg of [
     svgSection(m, { axis: "X", at: 80000 }),
-    svgElevation(m, { face: "S" }),
+    svgElevation(m, { face: "y-" }),
   ]) {
     assert.match(svg, /^<svg xmlns/);
     assert.ok(svg.trimEnd().endsWith("</svg>"));
@@ -404,9 +404,9 @@ test("drawing: a plane with the whole building behind the viewer is said so, not
   // Looking west from a plane far to the west leaves the building behind you. Nothing is produced,
   // and an empty sheet must not be written out and then announced as a drawing.
   const m = parseFile(join(root, "examples/two-rooms.muro"));
-  assert.throws(() => svgSection(m, { axis: "X", at: -900000, look: "W" }), /There is nothing to draw/);
+  assert.throws(() => svgSection(m, { axis: "X", at: -900000, look: "x-" }), /There is nothing to draw/);
   // The same plane looked at the other way is the whole building in elevation, and draws.
-  assert.match(svgSection(m, { axis: "X", at: -900000, look: "E" }), /^<svg xmlns/);
+  assert.match(svgSection(m, { axis: "X", at: -900000, look: "x+" }), /^<svg xmlns/);
 });
 
 test("drawing: every drawing carries the mark", () => {
@@ -415,7 +415,7 @@ test("drawing: every drawing carries the mark", () => {
     svgPlan(m, { level: "L1" }),
     svgAxo(m),
     svgSection(m, { axis: "Y", at: 2250 }),
-    svgElevation(m, { face: "S" }),
+    svgElevation(m, { face: "y-" }),
   ]) {
     assert.match(svg, /<g transform="translate\([^)]*\) scale\([^)]*\)"><path d="M1027\.53 171\.361/);
   }

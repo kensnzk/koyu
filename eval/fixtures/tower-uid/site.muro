@@ -22,12 +22,12 @@ boundary /site/park /site/cycle type:open
 boundary /site/green /site/cycle type:open
 
 # ---- 道路との接続 (接道): 商業前面と車路は開放、駐輪は柵 ----
-boundary /site/walk /out/road-s edge:S type:open
-boundary /site/park /out/road-e edge:E type:open
-boundary /site/cycle /out/road-e edge:E t:120 spec:フェンス air:1 h:1200
+boundary /site/walk /out/road-s edge:y- type:open
+boundary /site/park /out/road-e edge:x+ type:open
+boundary /site/cycle /out/road-e edge:x+ t:120 spec:フェンス air:1 h:1200
 
 # ---- 隣地境界: 塀は境界の語彙 (物はspec、外気は遮らない) ----
-boundary /site/walk /out/w edge:W t:120 spec:ブロック塀 air:1 h:1800
-boundary /site/west /out/w edge:W t:120 spec:ブロック塀 air:1 h:1800
-boundary /site/green /out/n edge:N t:120 spec:ブロック塀+フェンス air:1 h:1800
-boundary /site/cycle /out/n edge:N t:120 spec:フェンス air:1 h:1200
+boundary /site/walk /out/w edge:x- t:120 spec:ブロック塀 air:1 h:1800
+boundary /site/west /out/w edge:x- t:120 spec:ブロック塀 air:1 h:1800
+boundary /site/green /out/n edge:y+ t:120 spec:ブロック塀+フェンス air:1 h:1800
+boundary /site/cycle /out/n edge:y+ t:120 spec:フェンス air:1 h:1200

@@ -80,7 +80,7 @@
       "a": "/site/house",
       "kind": "wall",
       "t": 150,
-      "edge": "E"
+      "edge": "x+"
     },
     {
       "between": [
@@ -90,7 +90,7 @@
       "a": "/site/house",
       "kind": "wall",
       "t": 150,
-      "edge": "N"
+      "edge": "x-"
     },
     {
       "between": [
@@ -100,7 +100,17 @@
       "a": "/site/house",
       "kind": "wall",
       "t": 150,
-      "edge": "S",
+      "edge": "y+"
+    },
+    {
+      "between": [
+        "/out/road",
+        "/site/house"
+      ],
+      "a": "/site/house",
+      "kind": "wall",
+      "t": 150,
+      "edge": "y-",
       "openings": [
         {
           "kind": "door",
@@ -111,16 +121,6 @@
           }
         }
       ]
-    },
-    {
-      "between": [
-        "/out/road",
-        "/site/house"
-      ],
-      "a": "/site/house",
-      "kind": "wall",
-      "t": 150,
-      "edge": "W"
     }
   ]
 }

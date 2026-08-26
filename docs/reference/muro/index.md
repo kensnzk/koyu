@@ -43,7 +43,7 @@ A line beginning with whitespace is subordinate to the non-indented line above i
 | Line | Parent | What it declares |
 |---|---|---|
 | [`door w:900 at:X4`](door.md) | `boundary` / `stack` | an opening that is passed through |
-| [`window w:1800 h:1200 edge:S`](window.md) | `boundary` / `stack` | an opening that admits light. Not passed through |
+| [`window w:1800 h:1200 edge:y-`](window.md) | `boundary` / `stack` | an opening that admits light. Not passed through |
 | [`seg w:1800 at:X5 spec:ガラス`](seg.md) | `boundary` / `stack` | an uncounted segmentation of a boundary |
 | [`line X3,Y1 X3+600,Y2-900`](line.md) | `boundary` | a drawn line — the boundary realised as an act of design. One per boundary |
 | [`area X1..X2 Y1..Y2 floor:タイル`](area.md) | `space` | an uncounted segmentation or component host inside a room. Affects no counted area, room count or graph |

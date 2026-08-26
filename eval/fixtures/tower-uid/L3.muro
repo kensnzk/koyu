@@ -21,8 +21,8 @@ boundary /L3/C /L3/tC t:100 spec:サッシ
 
 boundary /L3/tA /L3/tB t:60 spec:隔て板 air:1
 boundary /L3/tB /L3/tC t:60 spec:隔て板 air:1
-boundary /L3/tA /out/road-s edge:S t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L3/tB /out/road-s edge:S t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L3/tC /out/road-s edge:S t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L3/tA /out/w edge:W t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L3/tC /out/road-e edge:E t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L3/tA /out/road-s edge:y- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L3/tB /out/road-s edge:y- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L3/tC /out/road-s edge:y- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L3/tA /out/w edge:x- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L3/tC /out/road-e edge:x+ t:120 spec:パラペット+手すり air:1 h:1200

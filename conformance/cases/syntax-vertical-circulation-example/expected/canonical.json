@@ -84,7 +84,7 @@
       "attrs": {
         "form": "return",
         "name": "階段",
-        "stair": "N",
+        "stair": "y+",
         "turn": "R",
         "use": "common"
       }
@@ -140,7 +140,7 @@
       "attrs": {
         "form": "return",
         "name": "階段",
-        "stair": "N",
+        "stair": "y+",
         "turn": "R",
         "use": "common"
       }
@@ -191,7 +191,7 @@
       "a": "/L1/ev",
       "kind": "wall",
       "t": 200,
-      "edge": "N"
+      "edge": "y+"
     },
     {
       "between": [
@@ -245,7 +245,7 @@
       "a": "/L1/hall",
       "kind": "wall",
       "t": 200,
-      "edge": "E"
+      "edge": "x+"
     },
     {
       "between": [
@@ -255,7 +255,17 @@
       "a": "/L1/hall",
       "kind": "wall",
       "t": 200,
-      "edge": "S",
+      "edge": "x-"
+    },
+    {
+      "between": [
+        "/L1/hall",
+        "/out"
+      ],
+      "a": "/L1/hall",
+      "kind": "wall",
+      "t": 200,
+      "edge": "y-",
       "openings": [
         {
           "kind": "door",
@@ -269,13 +279,13 @@
     },
     {
       "between": [
-        "/L1/hall",
+        "/L1/office",
         "/out"
       ],
-      "a": "/L1/hall",
+      "a": "/L1/office",
       "kind": "wall",
       "t": 200,
-      "edge": "W"
+      "edge": "x+"
     },
     {
       "between": [
@@ -285,17 +295,7 @@
       "a": "/L1/office",
       "kind": "wall",
       "t": 200,
-      "edge": "E"
-    },
-    {
-      "between": [
-        "/L1/office",
-        "/out"
-      ],
-      "a": "/L1/office",
-      "kind": "wall",
-      "t": 200,
-      "edge": "N"
+      "edge": "y+"
     },
     {
       "between": [
@@ -313,7 +313,7 @@
       "a": "/L1/st",
       "kind": "wall",
       "t": 200,
-      "edge": "N"
+      "edge": "x-"
     },
     {
       "between": [
@@ -323,7 +323,7 @@
       "a": "/L1/st",
       "kind": "wall",
       "t": 200,
-      "edge": "W"
+      "edge": "y+"
     },
     {
       "between": [
@@ -355,7 +355,7 @@
       "a": "/L2/ev",
       "kind": "wall",
       "t": 200,
-      "edge": "N"
+      "edge": "y+"
     },
     {
       "between": [
@@ -409,7 +409,7 @@
       "a": "/L2/hall",
       "kind": "wall",
       "t": 200,
-      "edge": "E"
+      "edge": "x+"
     },
     {
       "between": [
@@ -419,7 +419,7 @@
       "a": "/L2/hall",
       "kind": "wall",
       "t": 200,
-      "edge": "S"
+      "edge": "x-"
     },
     {
       "between": [
@@ -429,7 +429,7 @@
       "a": "/L2/hall",
       "kind": "wall",
       "t": 200,
-      "edge": "W"
+      "edge": "y-"
     },
     {
       "between": [
@@ -439,7 +439,7 @@
       "a": "/L2/office",
       "kind": "wall",
       "t": 200,
-      "edge": "E"
+      "edge": "x+"
     },
     {
       "between": [
@@ -449,7 +449,7 @@
       "a": "/L2/office",
       "kind": "wall",
       "t": 200,
-      "edge": "N"
+      "edge": "y+"
     },
     {
       "between": [
@@ -459,7 +459,7 @@
       "a": "/L2/st",
       "kind": "wall",
       "t": 200,
-      "edge": "N"
+      "edge": "x-"
     },
     {
       "between": [
@@ -469,7 +469,7 @@
       "a": "/L2/st",
       "kind": "wall",
       "t": 200,
-      "edge": "W"
+      "edge": "y+"
     }
   ]
 }

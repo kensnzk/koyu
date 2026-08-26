@@ -70,9 +70,9 @@ space /L1/a room X1..X2 Y1..Y2 daylight:1
 space /L1/b room X2..X3 Y1..Y2 daylight:1
 space /out outside:1
 boundary /L1/a /out t:150
-  window w:1800 h:1500 edge:S
+  window w:1800 h:1500 edge:y-
 boundary /L1/b /out t:150
-  window w:400 h:400 edge:S
+  window w:400 h:400 edge:y-
 ```
 
 ```sh

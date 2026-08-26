@@ -4,8 +4,8 @@ grid Y 0 4000
 level L1 0 h:2600 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out outside:1
-boundary /L1/a /out edge:N
-  door w:1600 hinge:W swing:a style:sliding-double
-boundary /L1/a /out edge:S
-boundary /L1/a /out edge:E
-boundary /L1/a /out edge:W
+boundary /L1/a /out edge:y+
+  door w:1600 hinge:x- swing:a style:sliding-double
+boundary /L1/a /out edge:y-
+boundary /L1/a /out edge:x+
+boundary /L1/a /out edge:x-

@@ -144,16 +144,16 @@ A file that could not be read exits 1, with a single `✖` on stderr. `--json` d
 Here is the cautions-only exit code for real.
 
 ```muro-caution
-muro 1.5
+muro 1.6
 grid X 0 4500
 grid Y 0 3600
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 space /out outside:1
 boundary /L1/a /out t:120
-  door w:900 edge:S
-  window w:2400 h:1500 edge:N
-  window w:1200 edge:E
+  door w:900 edge:y-
+  window w:2400 h:1500 edge:y+
+  window w:1200 edge:x+
 ```
 
 ```sh

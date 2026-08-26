@@ -8,13 +8,13 @@ space /L1/lower room X2..X3 Y1..Y2 level:L1 name:Lower
 space /L1/upper room X1..X2 Y2..Y3 level:L1 name:Upper
 space /L1/overhead room X2..X3 Y2..Y3 level:L1 name:Overhead
 space /outside exterior outside:1 name:Outside
-boundary /L1/rolling /outside edge:S t:200
+boundary /L1/rolling /outside edge:y- t:200
   door w:1800 h:2400 style:rolling-shutter name:rolling-shutter
-boundary /L1/overhead /outside edge:N t:200
+boundary /L1/overhead /outside edge:y+ t:200
   door w:1800 h:2400 style:overhead name:overhead
-boundary /L1/rolling /outside edge:W
-boundary /L1/lower /outside edge:S
-boundary /L1/lower /outside edge:E
-boundary /L1/upper /outside edge:N
-boundary /L1/upper /outside edge:W
-boundary /L1/overhead /outside edge:E
+boundary /L1/rolling /outside edge:x-
+boundary /L1/lower /outside edge:y-
+boundary /L1/lower /outside edge:x+
+boundary /L1/upper /outside edge:y+
+boundary /L1/upper /outside edge:x-
+boundary /L1/overhead /outside edge:x+

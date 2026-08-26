@@ -18,7 +18,7 @@ The rules of the notation itself are in the [notation reference](../reference/mu
 | A wall between rooms | One `boundary` line. Omit it and a wall still stands — but it cannot be passed | `examples/two-rooms.muro` |
 | Hang a door or a window | `door` / `window` indented under a boundary | `examples/two-rooms.muro` |
 | Position an opening | `at:0.75` (a ratio) or `at:X2+600` (a grid reference) | `examples/office.muro` / `examples/house/L1.muro` |
-| Pick a side for an opening onto the outside | `edge:N` / `edge:E` / `edge:S` / `edge:W` | `examples/two-rooms.muro` |
+| Pick a side for an opening onto the outside | `edge:y+` / `edge:x+` / `edge:y-` / `edge:x-` | `examples/two-rooms.muro` |
 | Divide by dimension and order rather than position | [`band`](../reference/muro/band.md) plus indented `space` lines | `examples/tower/typical.muro` / `examples/complex/hotel.muro` |
 | Cut on a diagonal | [`line`](../reference/muro/line.md) indented under a boundary | `examples/complex/L1.muro` |
 | Change a floor finish without dividing the room | [`area`](../reference/muro/area.md) indented under a space | `/L1/hall` in `examples/office.muro` |
@@ -49,9 +49,9 @@ The rules of the notation itself are in the [notation reference](../reference/mu
 | A shaft nobody walks | `type:shaft` | `examples/office.muro` |
 | Remove the floor (a void) | a `type:void` boundary plus a space declaring `void:1` | `examples/office.muro` |
 | Many storeys of circulation at once | [`stack`](../reference/muro/stack.md) `ev L1..L10 type:shaft` | `examples/mansion.muro` |
-| Get riser counts and treads out | Write `stair:N form:return` on the space, then ask [`runs`](../reference/cli/runs.md) | `examples/basement/main.muro` |
-| A ramp | `ramp:E form:return slope:6` on the space | `examples/basement/main.muro` |
-| An escalator | `escalator:N` on the space; the connection is `type:stair` | `examples/complex/L1.muro` |
+| Get riser counts and treads out | Write `stair:y+ form:return` on the space, then ask [`runs`](../reference/cli/runs.md) | `examples/basement/main.muro` |
+| A ramp | `ramp:x+ form:return slope:6` on the space | `examples/basement/main.muro` |
+| An escalator | `escalator:y+` on the space; the connection is `type:stair` | `examples/complex/L1.muro` |
 | A lift | `lift:1` on the space; the connection is `type:shaft` | `examples/basement/main.muro` |
 | An atrium through several storeys | `stack atrium L1..L5 type:void` | `examples/complex/main.muro` |
 | Express a lift passing a floor | Run the shaft through; place no lobby space | `examples/twin/core.muro` |

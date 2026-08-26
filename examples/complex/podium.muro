@@ -18,7 +18,7 @@ space /L2..L5/mall corridor X3..X8 Y2..Y2+3600 name:モール lease.category:com
 space /L2..L5/north backyard X4..X7 Y5..Y6 name:北側サービス lease.category:common
 space /L2..L5/bohW backyard X3..X4 Y4-3200..Y6 name:バックヤード西 lease.category:common
 space /L2..L5/bohE backyard X7..X8 Y4-3200..Y6 name:バックヤード東 lease.category:common
-space /L2..L4/es escalator X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター lease.category:common escalator:N
+space /L2..L4/es escalator X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター lease.category:common escalator:y+
 space /L5/es corridor X2+2400..X2+5600 Y4..Y4+12000 name:エスカレーター上部 lease.category:common
 
 # ---- 西列: 吹抜けに面する区画 (南→北に5区画) ----
@@ -105,36 +105,36 @@ boundary /L2..L5/north /L2..L5/bohE t:200 spec:RC
   door w:1200
 
 # ---- 外周 ----
-boundary /L2..L5/w01 /out edge:W t:300 spec:カーテンウォール
+boundary /L2..L5/w01 /out edge:x- t:300 spec:カーテンウォール
   window CW1
-boundary /L2..L5/w02 /out edge:W t:300 spec:カーテンウォール
+boundary /L2..L5/w02 /out edge:x- t:300 spec:カーテンウォール
   window CW1
-boundary /L2..L5/w03 /out edge:W t:300 spec:カーテンウォール
+boundary /L2..L5/w03 /out edge:x- t:300 spec:カーテンウォール
   window CW1
-boundary /L2..L5/w04 /out edge:W t:300 spec:カーテンウォール
+boundary /L2..L5/w04 /out edge:x- t:300 spec:カーテンウォール
   window CW1
-boundary /L2..L5/w05 /out edge:W t:300 spec:カーテンウォール
-boundary /L2..L5/w01 /out edge:S t:300 spec:カーテンウォール
-boundary /L2..L5/wgal /out edge:S t:300 spec:カーテンウォール
-boundary /L2..L5/wgal /out edge:N t:300 spec:カーテンウォール
-boundary /L2..L5/atrium /out edge:S t:300 spec:カーテンウォール
-boundary /L2..L5/atrium /out edge:N t:300 spec:カーテンウォール
-boundary /L2..L5/s01 /out edge:S t:300 spec:カーテンウォール
+boundary /L2..L5/w05 /out edge:x- t:300 spec:カーテンウォール
+boundary /L2..L5/w01 /out edge:y- t:300 spec:カーテンウォール
+boundary /L2..L5/wgal /out edge:y- t:300 spec:カーテンウォール
+boundary /L2..L5/wgal /out edge:y+ t:300 spec:カーテンウォール
+boundary /L2..L5/atrium /out edge:y- t:300 spec:カーテンウォール
+boundary /L2..L5/atrium /out edge:y+ t:300 spec:カーテンウォール
+boundary /L2..L5/s01 /out edge:y- t:300 spec:カーテンウォール
   window CW1
-boundary /L2..L5/s02 /out edge:S t:300 spec:カーテンウォール
+boundary /L2..L5/s02 /out edge:y- t:300 spec:カーテンウォール
   window CW1
-boundary /L2..L5/s03 /out edge:S t:300 spec:カーテンウォール
+boundary /L2..L5/s03 /out edge:y- t:300 spec:カーテンウォール
   window CW1
-boundary /L2..L5/s04 /out edge:S t:300 spec:カーテンウォール
+boundary /L2..L5/s04 /out edge:y- t:300 spec:カーテンウォール
   window CW1
-boundary /L2..L5/s05 /out edge:S t:300 spec:カーテンウォール
+boundary /L2..L5/s05 /out edge:y- t:300 spec:カーテンウォール
   window CW1
-boundary /L2..L5/s05 /out edge:E t:300 spec:カーテンウォール
+boundary /L2..L5/s05 /out edge:x+ t:300 spec:カーテンウォール
   window CW1
-boundary /L2..L5/n05 /out edge:E t:300 spec:カーテンウォール
+boundary /L2..L5/n05 /out edge:x+ t:300 spec:カーテンウォール
   window CW1
-boundary /L2..L5/mall /out edge:E t:300 spec:カーテンウォール
-boundary /L2..L5/bohE /out edge:E t:300 spec:カーテンウォール
-boundary /L2..L5/bohW /out edge:N t:300 spec:カーテンウォール
-boundary /L2..L5/bohE /out edge:N t:300 spec:カーテンウォール
-boundary /L2..L5/north /out edge:N t:300 spec:カーテンウォール
+boundary /L2..L5/mall /out edge:x+ t:300 spec:カーテンウォール
+boundary /L2..L5/bohE /out edge:x+ t:300 spec:カーテンウォール
+boundary /L2..L5/bohW /out edge:y+ t:300 spec:カーテンウォール
+boundary /L2..L5/bohE /out edge:y+ t:300 spec:カーテンウォール
+boundary /L2..L5/north /out edge:y+ t:300 spec:カーテンウォール

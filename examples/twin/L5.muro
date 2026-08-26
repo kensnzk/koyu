@@ -50,7 +50,7 @@ boundary /L5/prep /L5/hfoy t:120 spec:LGS
 boundary /L5/foyer /L5/gdnS t:300 spec:カーテンウォール
   door AD2 at:0.25 name:南庭園へ
 boundary /L5/foyer /L5/gdnN t:300 spec:カーテンウォール
-boundary /L5/hfoy /L5/gdnN edge:N t:300 spec:カーテンウォール
+boundary /L5/hfoy /L5/gdnN edge:y+ t:300 spec:カーテンウォール
   door AD2 at:0.3 name:北庭園へ
 boundary /L5/lounge /L5/gdnS t:300 spec:カーテンウォール
   window CW2
@@ -60,36 +60,36 @@ boundary /L5/bq /L5/gdnS t:300 spec:カーテンウォール
 boundary /L5/acorr5 /L5/gdnS t:300 spec:カーテンウォール
 
 # 庭園の縁 — パラペット+手すり。air:1 なので半屋外に導出される
-boundary /L5/gdnS /out edge:S t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L5/gdnS /out edge:W t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L5/gdnS /out edge:E t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L5/gdnN /out edge:N t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L5/gdnN /out edge:E t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L5/gdnS /out edge:y- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L5/gdnS /out edge:x- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L5/gdnS /out edge:x+ t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L5/gdnN /out edge:y+ t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L5/gdnN /out edge:x+ t:120 spec:パラペット+手すり air:1 h:1200
 
 # 外皮
-boundary /L5/acorr5 /out edge:W t:250 spec:カーテンウォール
-boundary /L5/acorr5 /out edge:N t:250 spec:カーテンウォール
-boundary /L5/ball /out edge:N t:250 spec:カーテンウォール
+boundary /L5/acorr5 /out edge:x- t:250 spec:カーテンウォール
+boundary /L5/acorr5 /out edge:y+ t:250 spec:カーテンウォール
+boundary /L5/ball /out edge:y+ t:250 spec:カーテンウォール
   window CW2 at:0.25
   window CW2 at:0.75
-boundary /L5/foyer /out edge:N t:250 spec:カーテンウォール
-boundary /L5/recep /out edge:E t:250 spec:PC板
+boundary /L5/foyer /out edge:y+ t:250 spec:カーテンウォール
+boundary /L5/recep /out edge:x+ t:250 spec:PC板
   window W2
-boundary /L5/prep /out edge:E t:250 spec:PC板
-boundary /L5/hfoy /out edge:E t:250 spec:PC板
+boundary /L5/prep /out edge:x+ t:250 spec:PC板
+boundary /L5/hfoy /out edge:x+ t:250 spec:PC板
 
 # ---- M1 機械階 — 宴会場の直上。客の階数に現れない ----
 space /M1/machA service X3..X11 Y6..Y7 + X3..X4 Y7..Y8+4200 + X10..X11 Y7..Y8+4200 + X3..X11 Y8+4200..Y10 name:A棟低層機械室 lease.category:common
 space /M1/machB service X14..X19 Y6..Y7+2400 + X14..X15+5600 Y7+2400..Y8+4200 + X15+5600..X16 Y7+2400..Y7+5600 + X16..X17 Y7+2400..Y8+4200 + X17..X17+2800 Y7+2400..Y7+5600 + X17+2800..X19 Y7+2400..Y8+4200 name:B棟低層機械室 lease.category:common
 boundary /M1/machA /M1/ahall type:open
-boundary /M1/machB /M1/bst1 edge:W t:250 spec:RC
+boundary /M1/machB /M1/bst1 edge:x- t:250 spec:RC
   door FD1 name:階段1から機械室
-boundary /M1/machB /M1/bst2 edge:E t:250 spec:RC
+boundary /M1/machB /M1/bst2 edge:x+ t:250 spec:RC
   door FD1 name:階段2から機械室
-boundary /M1/machA /out edge:S t:250 spec:ルーバー
-boundary /M1/machA /out edge:N t:250 spec:ルーバー
-boundary /M1/machA /out edge:W t:250 spec:ルーバー
-boundary /M1/machA /out edge:E t:250 spec:ルーバー
-boundary /M1/machB /out edge:S t:250 spec:ルーバー
-boundary /M1/machB /out edge:W t:250 spec:ルーバー
-boundary /M1/machB /out edge:E t:250 spec:ルーバー
+boundary /M1/machA /out edge:y- t:250 spec:ルーバー
+boundary /M1/machA /out edge:y+ t:250 spec:ルーバー
+boundary /M1/machA /out edge:x- t:250 spec:ルーバー
+boundary /M1/machA /out edge:x+ t:250 spec:ルーバー
+boundary /M1/machB /out edge:y- t:250 spec:ルーバー
+boundary /M1/machB /out edge:x- t:250 spec:ルーバー
+boundary /M1/machB /out edge:x+ t:250 spec:ルーバー

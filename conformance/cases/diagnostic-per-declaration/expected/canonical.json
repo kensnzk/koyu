@@ -48,7 +48,7 @@
       ],
       "a": "/L1/a",
       "kind": "wall",
-      "edge": "N"
+      "edge": "y+"
     }
   ]
 }

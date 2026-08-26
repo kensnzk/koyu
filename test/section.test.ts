@@ -31,7 +31,7 @@ import { parseFile } from "../src/parse-file.js";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const form = (file: string) => derive(parseFile(join(root, file)));
 
-const FACES: Edge[] = ["N", "E", "S", "W"];
+const FACES: Edge[] = ["y+", "x+", "y-", "x-"];
 
 /** Every bundled entry, so a claim about "any building" is tested against every building we have. */
 const ENTRIES = [
@@ -59,7 +59,7 @@ test("section: the plane cuts the walls where the walls are, and to the heights 
     axis: "Y",
     at: 2250,
     atRef: "Y1+2250",
-    look: "N",
+    look: "y+",
   });
   const walls = pick(s, "cut", "boundary").map((e) => [...span(e, "u"), ...span(e, "z")]);
 
@@ -85,7 +85,7 @@ test("section: the plane cuts the walls where the walls are, and to the heights 
 });
 
 test("section: the surfaces the level declared are cut at the heights the level declared", () => {
-  const s = sectionForm(form("examples/two-rooms.muro"), { axis: "Y", at: 2250, look: "N" });
+  const s = sectionForm(form("examples/two-rooms.muro"), { axis: "Y", at: 2250, look: "y+" });
   const slabs = pick(s, "cut", "slab")
     .filter((e) => e.ref === "/L1/a")
     .map((e) => [e.kind, ...span(e, "z")]);
@@ -97,7 +97,7 @@ test("section: the surfaces the level declared are cut at the heights the level 
 });
 
 test("section: a room is cut open to its own ceiling height", () => {
-  const s = sectionForm(form("examples/two-rooms.muro"), { axis: "Y", at: 2250, look: "N" });
+  const s = sectionForm(form("examples/two-rooms.muro"), { axis: "Y", at: 2250, look: "y+" });
   const rooms = pick(s, "cut", "space").map((e) => [e.ref, ...span(e, "u"), ...span(e, "z")]);
   assert.deepEqual(rooms, [
     ["/L1/a", 0, 3600, 0, 2400],
@@ -109,7 +109,7 @@ test("section: a space with no volume to cut produces nothing, and neither does 
   // The garden and the yards of the house are semi-outdoor. A storey's ceiling height reaches
   // them, so they carry a z range — but no ceiling is derived over them, and cutting one would
   // paint a garden as a room.
-  const s = sectionForm(form("examples/house/main.muro"), { axis: "X", at: 4540, look: "W" });
+  const s = sectionForm(form("examples/house/main.muro"), { axis: "X", at: 4540, look: "x-" });
   const cut = new Set(pick(s, "cut", "space").map((e) => e.ref));
   assert.equal(cut.has("/home/ldk"), true);
   for (const outdoor of ["/site/garden", "/site/west", "/site/east", "/site/north"]) {
@@ -120,7 +120,7 @@ test("section: a space with no volume to cut produces nothing, and neither does 
 test("section: a space is never drawn from outside — a void has no face to see", () => {
   for (const entry of ENTRIES) {
     const f = form(entry);
-    const s = sectionForm(f, { axis: "X", at: 0, look: "W" });
+    const s = sectionForm(f, { axis: "X", at: 0, look: "x-" });
     assert.deepEqual(
       pick(s, "beyond", "space"),
       [],
@@ -142,30 +142,30 @@ test("section: on the default look, u is the world coordinate along the cut line
       )!,
       "u",
     );
-  assert.equal(defaultLook("Y"), "N");
-  assert.deepEqual(west("N"), [-75, 75]); // the wall on x 0, read as x
-  assert.deepEqual(west("S"), [-75, 75]); // and mirrored, which for a wall on the origin is itself
+  assert.equal(defaultLook("Y"), "y+");
+  assert.deepEqual(west("y+"), [-75, 75]); // the wall on x 0, read as x
+  assert.deepEqual(west("y-"), [-75, 75]); // and mirrored, which for a wall on the origin is itself
 
   // A wall away from the origin shows the mirror plainly: X3 stands at x 7200.
   const east = (look: Edge): [number, number] => {
     const s = sectionForm(f, { axis: "Y", at: 2250, look });
     const e = pick(s, "cut", "boundary").filter((x) => span(x, "z")[1] === 2600);
-    return span(e.sort((a, b) => span(a, "u")[0] - span(b, "u")[0])[look === "N" ? e.length - 1 : 0]!, "u");
+    return span(e.sort((a, b) => span(a, "u")[0] - span(b, "u")[0])[look === "y+" ? e.length - 1 : 0]!, "u");
   };
-  assert.deepEqual(east("N"), [7125, 7275]);
-  assert.deepEqual(east("S"), [-7275, -7125]);
+  assert.deepEqual(east("y+"), [7125, 7275]);
+  assert.deepEqual(east("y-"), [-7275, -7125]);
 });
 
 test("section: looking along the plane instead of across it is refused, not answered", () => {
   assert.throws(
-    () => sectionForm(form("examples/two-rooms.muro"), { axis: "X", at: 3600, look: "N" }),
+    () => sectionForm(form("examples/two-rooms.muro"), { axis: "X", at: 3600, look: "y+" }),
     /runs along the X plane rather than across it/,
   );
 });
 
 test("section: an axis-parallel directed line gives the same classified entities as the axis form", () => {
   const f = form("examples/two-rooms.muro");
-  const axis = sectionForm(f, { axis: "Y", at: 2250, look: "N" });
+  const axis = sectionForm(f, { axis: "Y", at: 2250, look: "y+" });
   const line = sectionForm(f, { cut: { x1: 0, y1: 2250, x2: 7200, y2: 2250 } });
   assert.deepEqual(line.entities, axis.entities);
 });
@@ -213,8 +213,8 @@ test("elevation: the plane misses the mass, so it cuts nothing — on every face
 });
 
 test("elevation: standing to the south means looking north", () => {
-  const s = elevationForm(form("examples/two-rooms.muro"), "S");
-  assert.equal(s.look, "N");
+  const s = elevationForm(form("examples/two-rooms.muro"), "y-");
+  assert.equal(s.look, "y+");
   assert.equal(s.axis, "Y");
   // The plane sits at the near extreme: the outer face of the south wall, `t:150` on y 0.
   assert.equal(s.at, -75);
@@ -224,7 +224,7 @@ test("elevation: an opening is a hole in the wall face, with no operation that c
   // ADR-0026 recorded that openings do not read as holes in a wall face, and said it would be paid
   // for when elevations arrived. It is paid by the derivation rather than by the drawing: a wall
   // arrives as the run of intervals its openings split it into, so the gap is already there.
-  const s = elevationForm(form("examples/two-rooms.muro"), "S");
+  const s = elevationForm(form("examples/two-rooms.muro"), "y-");
   // The south wall of /L1/b carries `door w:900 h:2100` and `window w:2600 h:1100`.
   const face = pick(s, "beyond", "boundary").filter((e) => e.ref.startsWith("/L1/b|/out"));
   const heights = face.map((e) => span(e, "z"));
@@ -249,10 +249,10 @@ test("section: a ramp cut along its rise leans, and cut across it lies level", (
   const f = form("examples/basement/main.muro");
   const ramp = f.runs.find((r) => r.path === "/B1/ramp");
   assert.ok(ramp, "the basement has a car ramp");
-  assert.equal(ramp.up, "E"); // it travels along +X, so its height varies with x
+  assert.equal(ramp.up, "x+"); // it travels along +X, so its height varies with x
 
   // A plane of constant x meets the ramp at one point of its travel, so the cut is level.
-  const across = sectionForm(f, { axis: "X", at: (ramp.rect.x1 + ramp.rect.x2) / 2, look: "W" });
+  const across = sectionForm(f, { axis: "X", at: (ramp.rect.x1 + ramp.rect.x2) / 2, look: "x-" });
   const level = pick(across, "cut", "run").filter((e) => e.ref === ramp.path);
   assert.ok(level.length > 0, "the plane meets the ramp");
   for (const e of level) {
@@ -263,7 +263,7 @@ test("section: a ramp cut along its rise leans, and cut across it lies level", (
   // A plane of constant y runs the length of the travel, so the cut leans by the whole rise.
   // `form:return` puts the two flights side by side across the width, so the middle of the ramp is
   // the line between them and meets only the landing — this cuts through one flight.
-  const along = sectionForm(f, { axis: "Y", at: ramp.rect.y1 + ramp.width / 4, look: "N" });
+  const along = sectionForm(f, { axis: "Y", at: ramp.rect.y1 + ramp.width / 4, look: "y+" });
   const flight = pick(along, "cut", "run")
     .filter((e) => e.ref === ramp.path)
     .map((e) => span(e, "z"))
@@ -278,7 +278,7 @@ test("section: a ramp cut along its rise leans, and cut across it lies level", (
 
 test("section: the same Form and the same plane give the same bytes", () => {
   const f = form("examples/house/main.muro");
-  const spec = { axis: "X", at: 4540, atRef: "X2+900", look: "W" } as const;
+  const spec = { axis: "X", at: 4540, atRef: "X2+900", look: "x-" } as const;
   assert.equal(JSON.stringify(sectionForm(f, spec)), JSON.stringify(sectionForm(f, spec)));
 });
 
@@ -295,7 +295,7 @@ space /out outside:1
 `;
   const written = parse(base + "boundary /L1/a /L1/b t:120\nboundary /L1/a /out\nboundary /L1/b /out\n");
   const swapped = parse(base + "boundary /L1/b /L1/a t:120\nboundary /L1/b /out\nboundary /L1/a /out\n");
-  const spec = { axis: "Y", at: 2250, look: "N" } as const;
+  const spec = { axis: "Y", at: 2250, look: "y+" } as const;
   const a = sectionForm(derive(written), spec);
   const b = sectionForm(derive(swapped), spec);
   // The a/b order of a boundary and the order the boundaries were written are both information the
@@ -311,7 +311,7 @@ test("section: it reads a Form and nothing else", () => {
   // A JSON round-trip strips every reference the `Form` did not carry as data. Passing proves the
   // derivation reached for no `Model`, which is what keeps it unable to invent shape.
   const f = form("examples/office.muro");
-  const spec = { axis: "X", at: 0, look: "W" } as const;
+  const spec = { axis: "X", at: 0, look: "x-" } as const;
   assert.deepEqual(sectionForm(JSON.parse(JSON.stringify(f)), spec), sectionForm(f, spec));
 });
 
@@ -333,7 +333,7 @@ test("the grid reference of a cut resolves through the same function the source 
 test("section: every entity names its subject and says how far behind the plane it stands", () => {
   for (const entry of ENTRIES) {
     const f = form(entry);
-    const s = sectionForm(f, { axis: "X", at: 0, look: "E" });
+    const s = sectionForm(f, { axis: "X", at: 0, look: "x+" });
     for (const e of s.entities) {
       assert.ok(e.ref.length > 0, `${entry}: an entity carries the identity of its subject`);
       assert.ok(e.polygon.length >= 3, `${entry}: ${e.ref} has a shape`);
@@ -364,7 +364,7 @@ boundary /L1/b /out
   const f = derive(m);
   const thin = f.boundaries.find((b) => b.a === "/L1/a" && b.b === "/L1/b")!;
   assert.equal(thin.material?.t, 1);
-  const s = sectionForm(f, { axis: "X", at: 3600, look: "W" });
+  const s = sectionForm(f, { axis: "X", at: 3600, look: "x-" });
   const mine = s.entities.filter((e) => e.ref === thin.ref);
   assert.deepEqual(
     mine.map((e) => e.class),
@@ -379,8 +379,8 @@ test("section: what stands behind the plane is never a negative distance from it
   for (const entry of ENTRIES) {
     const f = form(entry);
     for (const spec of [
-      { axis: "X", at: 0, look: "E" } as const,
-      { axis: "Y", at: 0, look: "N" } as const,
+      { axis: "X", at: 0, look: "x+" } as const,
+      { axis: "Y", at: 0, look: "y+" } as const,
     ]) {
       for (const e of sectionForm(f, spec).entities) {
         assert.ok(e.depth >= 0, `${entry}: ${e.ref} reports depth ${e.depth}`);

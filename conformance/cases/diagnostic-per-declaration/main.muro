@@ -5,4 +5,4 @@ grid Y 0 3000
 level L1 0 h:2700 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
-boundary /L1/a /L1/b edge:N
+boundary /L1/a /L1/b edge:y+

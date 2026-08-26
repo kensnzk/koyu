@@ -10,7 +10,7 @@ Writes an axonometric as SVG. Floors, roofs, walls, columns and vertical runs ar
 ## Arguments
 
 ```text
-koyu axo <entry.muro> [-o <out.svg>] [-d NE|NW|SE|SW] [-l <levels>] [-s <scale>] [--no-walls] [--ceilings]
+koyu axo <entry.muro> [-o <out.svg>] [-d x+y+|NW|SE|SW] [-l <levels>] [-s <scale>] [--no-walls] [--ceilings]
 ```
 
 Takes one entry path. The drawing goes to a file; stdout gets one line naming where it went.
@@ -41,7 +41,7 @@ Generated the axonometric: out/axo.svg
 Stacking flags does not change the shape of the output.
 
 ```sh
-npx tsx src/cli.ts axo examples/complex/main.muro -l L1..L3 -d NE -s 0.5 --ceilings -o out/axo2.svg
+npx tsx src/cli.ts axo examples/complex/main.muro -l L1..L3 -d x+y+ -s 0.5 --ceilings -o out/axo2.svg
 ```
 
 ```text

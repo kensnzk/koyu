@@ -18,11 +18,11 @@ grid Y 0 4000
 level L1 0 h:2600 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out outside:1
-boundary /L1/a /out edge:N
+boundary /L1/a /out edge:y+
   ${opening}
-boundary /L1/a /out edge:S
-boundary /L1/a /out edge:E
-boundary /L1/a /out edge:W
+boundary /L1/a /out edge:y-
+boundary /L1/a /out edge:x+
+boundary /L1/a /out edge:x-
 `;
 
 test("opening styles: the ledger accepts exactly the public operation vocabulary", () => {
@@ -41,7 +41,7 @@ test("opening styles: muro 1.4 refuses every operation introduced in 1.5", () =>
   for (const style of MURO_1_5_OPENING_STYLES) {
     const kind = style === "fixed" || style === "projecting" || style === "curtain-wall" ? "window" : "door";
     const d = checkDiagnostics(
-      parse(shell("muro 1.4", `${kind} w:1600 h:1200 hinge:W swing:a style:${style}`)),
+      parse(shell("muro 1.4", `${kind} w:1600 h:1200 hinge:x- swing:a style:${style}`)),
     ).filter((x) => x.code === "VER08");
     assert.equal(d.length, 1, style);
     assert.equal(d[0]!.severity, "error");
@@ -52,7 +52,7 @@ test("opening styles: muro 1.4 refuses every operation introduced in 1.5", () =>
 test("opening styles: legacy styles retain their meaning before 1.5", () => {
   for (const style of ["hinged", "sliding", "auto"]) {
     const d = checkDiagnostics(
-      parse(shell("muro 1.4", `door w:1600 hinge:W swing:a style:${style}`)),
+      parse(shell("muro 1.4", `door w:1600 hinge:x- swing:a style:${style}`)),
     ).filter((x) => x.code === "VER08");
     assert.deepEqual(d, [], style);
   }
@@ -60,7 +60,7 @@ test("opening styles: legacy styles retain their meaning before 1.5", () => {
 
 test("opening styles: 1.5 window operation geometry does not alter older Forms", () => {
   for (const style of ["hinged", "sliding", "auto"]) {
-    const model = parse(shell("muro 1.4", `window w:1600 h:1200 hinge:W swing:a style:${style}`));
+    const model = parse(shell("muro 1.4", `window w:1600 h:1200 hinge:x- swing:a style:${style}`));
     const diagnostics = checkDiagnostics(model);
     assert.equal(diagnostics.some((item) => item.code === "OPN09" || item.code === "VER08"), false, style);
     assert.equal(derive(model).openings[0]!.swing, undefined, style);
@@ -83,7 +83,7 @@ test("opening styles: door-only and window-only operations cannot cross kinds", 
   ];
   const windowOnly = ["fixed", "projecting", "curtain-wall"];
   const opn09 = (kind: "door" | "window", style: string) =>
-    checkDiagnostics(parse(shell("muro 1.5", `${kind} w:1600 h:1200 hinge:W swing:a style:${style}`)))
+    checkDiagnostics(parse(shell("muro 1.5", `${kind} w:1600 h:1200 hinge:x- swing:a style:${style}`)))
       .filter((x) => x.code === "OPN09");
 
   for (const style of shared) {
@@ -110,11 +110,11 @@ grid Y 0 4000
 level L1 0 h:2600 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out outside:1
-boundary /L1/a /out edge:N
+boundary /L1/a /out edge:y+
   door Bad
-boundary /L1/a /out edge:S
-boundary /L1/a /out edge:E
-boundary /L1/a /out edge:W
+boundary /L1/a /out edge:y-
+boundary /L1/a /out edge:x+
+boundary /L1/a /out edge:x-
 `);
   const d = checkDiagnostics(model).filter((x) => x.code === "OPN09");
   assert.equal(d.length, 1);
@@ -124,7 +124,7 @@ boundary /L1/a /out edge:W
 
 test("opening styles: an unknown spelling remains ATT02 only", () => {
   const d = checkDiagnostics(
-    parse(shell("muro 1.5", "door w:1600 h:1200 hinge:W swing:a style:hingedd")),
+    parse(shell("muro 1.5", "door w:1600 h:1200 hinge:x- swing:a style:hingedd")),
   );
   assert.equal(d.filter((x) => x.code === "ATT02").length, 1);
   assert.equal(d.filter((x) => x.code === "OPN09").length, 0);
@@ -173,7 +173,7 @@ grid Y 0 4000
 level L1 0 h:2600 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out outside:1
-boundary /L1/a /out edge:N
+boundary /L1/a /out edge:y+
   window CW
 `);
   const d = checkDiagnostics(model).filter((x) => x.code === "OPN10");
@@ -183,12 +183,12 @@ boundary /L1/a /out edge:N
 });
 
 test("opening styles: an incompatible operation is not approximated by the renderer", () => {
-  const doorModel = parse(shell("muro 1.5", "door w:1600 h:1200 hinge:W swing:a style:fixed"));
+  const doorModel = parse(shell("muro 1.5", "door w:1600 h:1200 hinge:x- swing:a style:fixed"));
   const doorOpening = derive(doorModel).openings[0]!;
   const doorRoles = planMarks(derive(doorModel), "L1").filter((mark) => mark.ref === doorOpening.ref);
   assert.equal(doorRoles.some((mark) => mark.role === "door-leaf" || mark.role === "door-arc"), false);
 
-  const windowModel = parse(shell("muro 1.5", "window w:1600 h:1200 hinge:W swing:a style:rolling-shutter"));
+  const windowModel = parse(shell("muro 1.5", "window w:1600 h:1200 hinge:x- swing:a style:rolling-shutter"));
   const windowOpening = derive(windowModel).openings[0]!;
   const windowRoles = planMarks(derive(windowModel), "L1").filter((mark) => mark.ref === windowOpening.ref);
   assert.deepEqual(windowRoles.map((mark) => mark.role), ["window"]);
@@ -202,8 +202,8 @@ grid Y 0 4000
 level L1 0 h:2600 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out outside:1
-boundary /L1/a /out edge:N
-  door DD hinge:W swing:a
+boundary /L1/a /out edge:y+
+  door DD hinge:x- swing:a
 `);
   const d = checkDiagnostics(model).filter((x) => x.code === "VER08");
   assert.equal(d.length, 1);
@@ -271,7 +271,7 @@ test("opening styles: every window keeps an unfilled wall frame and adds only it
 });
 
 test("opening styles: names never select a symbol", () => {
-  const model = parse(shell("muro 1.5", "door w:1000 hinge:W swing:a style:hinged name:auto-double-gate"));
+  const model = parse(shell("muro 1.5", "door w:1000 hinge:x- swing:a style:hinged name:auto-double-gate"));
   const form = derive(model);
   const roles = planMarks(form, "L1")
     .filter((m) => m.of === "opening")
@@ -286,7 +286,7 @@ test("opening styles: vertical door operations have plan marks but no horizontal
     ["rolling-shutter", "rolling-shutter"],
     ["overhead", "overhead-door"],
   ] as const) {
-    const model = parse(shell("muro 1.5", `door w:1800 h:2400 hinge:W swing:a style:${style}`));
+    const model = parse(shell("muro 1.5", `door w:1800 h:2400 hinge:x- swing:a style:${style}`));
     const marks = planMarks(derive(model), "L1").filter((mark) => mark.of === "opening");
     assert.ok(marks.some((mark) => mark.role === role), style);
     assert.ok(!marks.some((mark) => mark.role === "slide-tail"), style);

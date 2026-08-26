@@ -27,12 +27,12 @@ before the opening that references it. Boundaries may name spaces declared later
 ## The version line
 
 ```muro
-muro 1.5
+muro 1.6
 ```
 
 Optional. If you write it, it goes in the ENTRY layer only, exactly once — never
-in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3 1.4 1.5.
-Write `muro 1.5`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
+in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3 1.4 1.5 1.6.
+Write `muro 1.6`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
 and earlier. A file with no version line is read as 1.1 and stays there.
 
 ## grid — the reference lines
@@ -43,7 +43,7 @@ grid Y 0 5600 7600 13200
 ```
 
 Coordinates only; names are automatic. X coordinates become X1 X2 X3… west to
-east, Y coordinates become Y1 Y2… south to north. Indices start at 1; there is
+east, Y coordinates become Y1 Y2… in ascending Y. Indices start at 1; there is
 no X0.
 
 - Two or more coordinates per axis. One is an error.
@@ -101,7 +101,7 @@ space /out name:Outside outside:1
 - Never nest two spaces with regions — overlapping regions are a GEO02 error.
   To subdivide, make the parent a `zone` (which has no geometry).
 - Attributes: `name:` `h:` `daylight:`(0/1) `ceiling:`(0/1) `level:` `uid:`
-  `floor:` `spec:` `stair:`(N/E/S/W) `lift:`(1) and a few more. Any key outside
+  `floor:` `spec:` `stair:`(x+/x-/y+/y-) `lift:`(1) and a few more. Any key outside
   the ledger is an ATT03 error unless it is namespaced (`acme.note:x`).
 - A NAMESPACED key is how every division of the building other than purpose is
   written — a tenancy `lease.category:common`, a fire compartment
@@ -160,8 +160,8 @@ boundary /L1/entry /L1/hall t:120 spec:PW1
   door w:900 h:2000
 boundary /L1/hall /L1/corridor type:open
 boundary /L1/hall /out t:180 spec:EW1 fire:60
-  door w:1800 edge:S name:Entrance
-  window w:2400 edge:W sill:800
+  door w:1800 edge:y- name:Entrance
+  window w:2400 edge:x- sill:800
 boundary /L1/stair /L2/stair type:stair
 boundary /L1/void /L2/void type:void
 ```
@@ -177,7 +177,7 @@ derived from where the two spaces touch; you never give it coordinates.
   (`air:1`).
 - **A derived wall has no door, so it cannot be walked through.** If a room must
   be reachable, declare the boundary and give it a door.
-- Other attributes: `t:`(mm) `air:1`(railing) `edge:`(N/E/S/W, seen from the
+- Other attributes: `t:`(mm) `air:1`(railing) `edge:`(x+/x-/y+/y-, seen from the
   first path) `h:` `spec:` `fire:` `sound:`.
 - Errors to avoid: the same pair declared twice (BND02), a boundary between
   spaces that do not touch (BND04), a boundary naming a space that does not
@@ -188,7 +188,7 @@ derived from where the two spaces touch; you never give it coordinates.
 `door` and `window`, indented under a boundary. `w:` is required (in mm, or
 supplied by an asset). A door without `h:` reaches 2000. Position with
 `at:0.4` (a ratio along the segment, default 0.5) or `at:X2+450` (a grid
-reference on the segment's own axis). Use `edge:N|E|S|W` when the boundary has
+reference on the segment's own axis). Use `edge:y+|E|S|W` when the boundary has
 more than one segment — against an `outside:1` space it is effectively required,
 and omitting it is an OPN05 error.
 
@@ -197,7 +197,7 @@ asset SD1 door w:800 h:2000 style:sliding name:Sliding
 asset W1 window w:2600 h:2200 sill:0
 
 boundary /home/ldk /home/hall t:120
-  door SD1 edge:E
+  door SD1 edge:x+
 ```
 
 The first bare token after `door` is an ASSET NAME, not a label — labels go in
@@ -220,7 +220,7 @@ zone above it supplies the value.
 
 ```muro-part
 # main.muro — the entry
-muro 1.5
+muro 1.6
 name Corner building
 unit mm
 grid X 0 6400 12800
@@ -265,7 +265,7 @@ space /out/road name:South-road road:6000 outside:1
 space /out/n name:North-neighbour outside:1
 zone /site name:Site site:1 area:48.00
 space /site/approach yard X1..X3 Y1-1200..Y1 level:L1 name:Approach
-boundary /site/approach /out/road edge:S t:120 spec:Fence air:1 h:1200
+boundary /site/approach /out/road edge:y- t:120 spec:Fence air:1 h:1200
 ```
 
 Only then does `koyu site` have coverage and floor-area ratio to report. If the

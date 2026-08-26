@@ -32,13 +32,13 @@ The **first token on the opening line that is not a `key:value`** is read as an 
 
 ```muro-part
 boundary /home/ldk /home/hall1 t:120 spec:LGS
-  door SD1 edge:E hinge:S swing:b
+  door SD1 edge:x+ hinge:y- swing:b
 ```
 
 The asset's attributes become the defaults, and **the instance's attributes override them**.
 
 ```muro
-muro 1.5
+muro 1.6
 unit mm
 grid X 0 3600 7200
 grid Y 0 4500
@@ -47,7 +47,7 @@ asset D1 door w:900 h:2100 style:hinged name:玄関ドア
 space /L1/a room X1..X2 Y1..Y2 name:室
 space /out name:外部 outside:1
 boundary /L1/a /out t:150
-  door D1 w:1200 edge:S name:大扉
+  door D1 w:1200 edge:y- name:大扉
 ```
 
 The composed opening comes out like this. `h` and `style` flowed in from the asset; `w` and `name` were replaced by the instance.
@@ -59,7 +59,7 @@ The composed opening comes out like this. `h` and `style` flowed in from the ass
   "w": 1200,
   "h": 2100,
   "at": 0.5,
-  "edge": "S",
+  "edge": "y-",
   "attrs": {
     "name": "大扉",
     "style": "hinged"
@@ -152,7 +152,7 @@ the package data subpath `@kensnzk/koyu/assets/*`.
 The `name` in `asset W1 window … name:掃き出し窓` is **the name of a type of leaf**, not of an individual. So hanging the same asset twice on one wall does not collide.
 
 ```muro
-muro 1.5
+muro 1.6
 unit mm
 grid X 0 7200
 grid Y 0 4500
@@ -160,12 +160,12 @@ level L1 0 h:2400 slab:150
 asset D1 door w:900 h:2100 name:片開き戸
 space /L1/a room X1..X2 Y1..Y2 name:室
 space /out name:外部 outside:1
-boundary /L1/a /out t:150 edge:S
+boundary /L1/a /out t:150 edge:y-
   door D1 at:0.25
   door D1 at:0.75
-boundary /L1/a /out edge:E
-boundary /L1/a /out edge:N
-boundary /L1/a /out edge:W
+boundary /L1/a /out edge:x+
+boundary /L1/a /out edge:y+
+boundary /L1/a /out edge:x-
 ```
 
 `check` comes back green. An opening's identity comes from a `name` unique inside its boundary, but **only a name written on the opening's own line counts as a claim** — the same value inherited from a referenced asset is not one. Write `name:D9` on both and it collides then, and only then.

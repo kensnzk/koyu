@@ -32,9 +32,9 @@ boundary /L1/a /L1/b
   door w:900
 boundary /L1/b /L1/c
   window w:1200
-boundary /L1/a /out edge:W
+boundary /L1/a /out edge:x-
   window w:1600 h:1100
-boundary /L1/c /out edge:N
+boundary /L1/c /out edge:y+
 `;
 
 /** 四点を回転と向きに依らない一つの綴りへ */
@@ -115,8 +115,8 @@ grid Y 0 8000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 level L3 6000 h:2700 slab:300
-space /L1/s stair X1..X2 Y1..Y2 stair:N
-space /L2/s stair X1..X2 Y1..Y2 stair:N
+space /L1/s stair X1..X2 Y1..Y2 stair:y+
+space /L2/s stair X1..X2 Y1..Y2 stair:y+
 space /L3/s stair X1..X2 Y1..Y2
 stack s L1..L3 type:stair
 `),

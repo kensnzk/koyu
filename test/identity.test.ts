@@ -69,7 +69,7 @@ test("identity: a uid written on a space or a zone is accepted", () => {
 for (const [what, body] of [
   ["boundary", `${TWO_ROOMS}\nboundary /L1/a /L1/b t:120 uid:bd-1`],
   ["opening", `${TWO_ROOMS}\nboundary /L1/a /L1/b t:120\n  door w:780 h:2000 uid:op-1`],
-  ["seg", `${TWO_ROOMS}\nboundary /L1/a /out t:150\n  seg w:600 at:0.5 edge:S uid:sg-1`],
+  ["seg", `${TWO_ROOMS}\nboundary /L1/a /out t:150\n  seg w:600 at:0.5 edge:y- uid:sg-1`],
   ["area", `space /L1/a room X1..X2 Y1..Y2\n  area X1..X2 Y1..Y2 uid:ar-1`],
   ["column", `space /L1/a room X1..X2 Y1..Y2\ncolumn 600 L1 uid:col-1`],
   ["asset", `asset D1 door w:800 h:2000 uid:as-1\nspace /L1/a room X1..X2 Y1..Y2`],
@@ -153,8 +153,8 @@ test("identity: nothing assigns a uid on its own — parse and check leave the s
 test("identity: two openings of one name in one boundary are an error (UID04)", () => {
   const src = `${TWO_ROOMS}
 boundary /L1/a /out t:150
-  window w:1200 h:1100 edge:S at:0.25 name:W1
-  window w:1200 h:1100 edge:S at:0.75 name:W1`;
+  window w:1200 h:1100 edge:y- at:0.25 name:W1
+  window w:1200 h:1100 edge:y- at:0.75 name:W1`;
   const d = checkDiagnostics(parse(`${BASE}\n${src}`)).filter((x) => x.code === "UID04");
   assert.equal(d.length, 1);
   assert.equal(d[0]!.severity, "error");
@@ -166,8 +166,8 @@ boundary /L1/a /out t:150
 test("identity: the same rule holds for a seg in a boundary, an area in a space, and a column in the model", () => {
   const seg = `${TWO_ROOMS}
 boundary /L1/a /out t:150
-  seg w:600 at:0.2 edge:S name:S1
-  seg w:600 at:0.6 edge:S name:S1`;
+  seg w:600 at:0.2 edge:y- name:S1
+  seg w:600 at:0.6 edge:y- name:S1`;
   assert.deepEqual(codes(seg), ["UID04"]);
 
   const area = `space /L1/a room X1..X2 Y1..Y2
@@ -184,8 +184,8 @@ column 500 L1 x:X2 name:C1`;
 test("identity: an element with no name claims no identity, so it is not in the population", () => {
   const src = `${TWO_ROOMS}
 boundary /L1/a /out t:150
-  window w:1200 h:1100 edge:S at:0.25
-  window w:1200 h:1100 edge:S at:0.75`;
+  window w:1200 h:1100 edge:y- at:0.25
+  window w:1200 h:1100 edge:y- at:0.75`;
   assert.deepEqual(codes(src), []);
 });
 
@@ -193,8 +193,8 @@ test("identity: a name inherited from an asset is the type's name, not a claim (
   const src = `asset W1 window w:1200 h:1100 name:掃き出し窓
 ${TWO_ROOMS}
 boundary /L1/a /out t:150
-  window W1 edge:S at:0.25
-  window W1 edge:S at:0.75`;
+  window W1 edge:y- at:0.25
+  window W1 edge:y- at:0.75`;
   assert.deepEqual(codes(src), []);
   const m = parse(`${BASE}\n${src}`);
   const b = m.boundaries.find((x) => x.a === "/L1/a" && x.b === "/out")!;
@@ -207,8 +207,8 @@ test("identity: a name written on the instance is a claim even when the asset ca
   const src = `asset W1 window w:1200 h:1100 name:掃き出し窓
 ${TWO_ROOMS}
 boundary /L1/a /out t:150
-  window W1 edge:S at:0.25 name:W-e
-  window W1 edge:S at:0.75 name:W-e`;
+  window W1 edge:y- at:0.25 name:W-e
+  window W1 edge:y- at:0.75 name:W-e`;
   assert.deepEqual(codes(src), ["UID04"]);
 });
 
@@ -273,10 +273,10 @@ boundary /L1/a /L1/b t:120
 test("diff: duplicate names do not throw — a model that check rejects still diffs", () => {
   const src = `${TWO_ROOMS}
 boundary /L1/a /out t:150
-  window w:1200 h:1100 edge:S at:0.25 name:W1
-  window w:1200 h:1100 edge:S at:0.75 name:W1`;
+  window w:1200 h:1100 edge:y- at:0.25 name:W1
+  window w:1200 h:1100 edge:y- at:0.75 name:W1`;
   const a = build(src);
-  const b = build(src.replace("h:1100 edge:S at:0.75", "h:1300 edge:S at:0.75"));
+  const b = build(src.replace("h:1100 edge:y- at:0.75", "h:1300 edge:y- at:0.75"));
   assert.ok(checkDiagnostics(a).some((d) => d.code === "UID04"));
   assert.doesNotThrow(() => renderDiff(semanticDiff(a, b)));
 });

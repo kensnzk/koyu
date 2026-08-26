@@ -30,7 +30,7 @@ outside this rule. Their upper operation will be visible in a section representa
 `violation`
 
 ```muro-fail
-muro 1.5
+muro 1.6
 grid X 0 4000 8000
 grid Y 0 4000 8000
 level L1 0 h:2700 slab:150
@@ -39,7 +39,7 @@ space /L1/b room X2..X3 Y1..Y2 level:L1
 space /L1/c room X1..X2 Y2..Y3 level:L1
 space /L1/d room X2..X3 Y2..Y3 level:L1
 boundary /L1/a /L1/b
-  door w:900 style:sliding hinge:N at:Y2-500
+  door w:900 style:sliding hinge:y+ at:Y2-500
 ```
 
 ```text
@@ -71,7 +71,7 @@ attributes written inline produce the same geometry.
 `violation`
 
 ```muro-fail
-muro 1.5
+muro 1.6
 grid X 0 4000 8000
 grid Y 0 4000 8000
 level L1 0 h:2700 slab:150
@@ -80,8 +80,8 @@ space /L1/b room X2..X3 Y1..Y2 level:L1
 space /L1/c room X1..X2 Y2..Y3 level:L1
 space /L1/d room X2..X3 Y2..Y3 level:L1
 boundary /L1/a /L1/b
-  door w:900 h:2100 style:sliding hinge:N at:Y2-1500
-  door w:900 h:2100 style:hinged hinge:S at:Y2-500
+  door w:900 h:2100 style:sliding hinge:y+ at:Y2-1500
+  door w:900 h:2100 style:hinged hinge:y- at:Y2-500
 ```
 
 ```text

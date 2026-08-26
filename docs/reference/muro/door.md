@@ -67,10 +67,10 @@ Where several openings share a segment, their centres must be at least `(w₁+w�
 Where one boundary has split into several segments, no door can be placed until a side is picked. A boundary with the outside usually splits across all four sides of the room, so `edge:` is near enough mandatory there.
 
 ```text
-✖ There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/living | /out)
+✖ There is more than one boundary segment; pick an edge with edge:y+/E/S/W (/L1/living | /out)
 ```
 
-The compass is N=+Y, S=−Y, E=+X, W=−X, and it reads **the side as seen from the form of a — the space written first**. An `edge:` on the boundary applies first; an `edge:` on the opening narrows within what is left.
+The four faces are `x+` `x-` `y+` `y-`, named by the axis they look along, and it reads **the side as seen from the form of a — the space written first**. An `edge:` on the boundary applies first; an `edge:` on the opening narrows within what is left.
 
 With no segments at all, nothing can be placed (OPN04). Nor can an opening wider than the segment (OPN06 — equal lengths are fine).
 
@@ -85,10 +85,10 @@ With no segments at all, nothing can be placed (OPN04). Nor can an opening wider
 The wrong axis is an error.
 
 ```text
-✖ hinge:N: a horizontal segment takes W/E
+✖ hinge:y+: a horizontal segment takes W/E
 ```
 
-N/E/S/W are words of the axes, so they do not reach a diagonal segment. There the hinge always sits at the start end.
+x+/x-/y+/y- are words of the axes, so they do not reach a diagonal segment. There the hinge always sits at the start end.
 
 ## swing — which side it opens into
 
@@ -123,13 +123,13 @@ Anything outside the complete style vocabulary is ATT02 (error).
 
 The operation is never inferred from `name:`, width, position or an asset name. An asset may
 supply `style:`, but it supplies the same explicit fact as an opening that writes it directly.
-The values after the original `hinged`, `sliding` and `auto` set require muro 1.5; writing
+The values after the original `hinged`, `sliding` and `auto` set require muro 1.6; writing
 one under an older version declaration is VER08.
 
 ## Written out
 
 ```muro
-muro 1.5
+muro 1.6
 name Door operations
 unit mm
 
@@ -144,12 +144,12 @@ space /L1/b room X2..X3 Y1..Y2 name:Room-B
 space /out name:Outside outside:1
 
 boundary /L1/a /L1/b t:120 spec:LGS
-  door SD1 hinge:N swing:b
+  door SD1 hinge:y+ swing:b
 
 boundary /L1/a /out t:150 spec:EW
-  door w:900 h:2100 edge:S at:X1+1200 name:Service-door hinge:W
+  door w:900 h:2100 edge:y- at:X1+1200 name:Service-door hinge:x-
 boundary /L1/b /out t:150 spec:EW
-  door w:1200 h:2100 edge:S at:0.4 style:auto name:Main-entrance
+  door w:1200 h:2100 edge:y- at:0.4 style:auto name:Main-entrance
 ```
 
 The three doors are derived at centres (3600, 2250), (1200, 0) and (5040, 0) in that order. The second sits exactly where its grid reference says; the third sits 0.4 along a 3600-long segment that starts at x=3600.

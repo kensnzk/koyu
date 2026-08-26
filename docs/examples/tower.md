@@ -55,7 +55,7 @@ boundary /L3/A/ldk /L3/tA t:100 spec:サッシ
   window W1 at:X2 name:掃き出し
   window W3 at:X2+4800
 boundary /L3/tA /L3/tB t:60 spec:隔て板 air:1
-boundary /L3/tA /out/road-s edge:S t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L3/tA /out/road-s edge:y- t:120 spec:パラペット+手すり air:1 h:1200
 ```
 
 The consequence shows up in the drawings.

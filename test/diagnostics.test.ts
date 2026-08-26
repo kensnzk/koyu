@@ -163,15 +163,15 @@ boundary /L1/s /L2/s type:stair
 });
 
 test("message: when the spaces do touch but the edge is mistaken, it does not misdirect toward the layout (BND04)", () => {
-  // 東西に並ぶ二室の共有辺は E/W。edge:N を書いても「接していない」は事実に反する
+  // 東西に並ぶ二室の共有辺は E/W。edge:y+ を書いても「接していない」は事実に反する
   const m = parse(`${BASE}
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
-boundary /L1/a /L1/b edge:N`);
+boundary /L1/a /L1/b edge:y+`);
   const d = checkDiagnostics(m).filter((x) => x.code === "BND04");
   assert.equal(d.length, 1);
-  assert.match(d[0]!.message, /No shared edge on edge:N/);
-  assert.match(d[0]!.message, /they actually touch on E/);
+  assert.match(d[0]!.message, /No shared edge on edge:y\+/);
+  assert.match(d[0]!.message, /they actually touch on x\+/);
 });
 
 test("population: one place answers \"total floor area\" — stats, site and MCP do not diverge", () => {
@@ -215,7 +215,7 @@ test("sufficiency: SUF is emitted when a value needed to build the shape is miss
   assert.deepEqual(
     suf(
       `grid X 0 3000 6000\ngrid Y 0 6000\nlevel L1 0 h:2700 slab:300\nlevel L2 3000 h:2700 slab:300\n` +
-        `space /L1/a room X1..X2 Y1..Y2\nspace /L2/s stair X1..X2 Y1..Y2 stair:N`,
+        `space /L1/a room X1..X2 Y1..Y2\nspace /L2/s stair X1..X2 Y1..Y2 stair:y+`,
     ),
     [["SUF04", "warning", 6]],
   );
@@ -277,7 +277,7 @@ space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:900 at:0.4
   door w:900 at:0.5
-boundary /L1/a /L1/b edge:E t:120
+boundary /L1/a /L1/b edge:x+ t:120
 boundary /L1/a /L1/far t:120
   door w:900
   seg w:600 spec:GL

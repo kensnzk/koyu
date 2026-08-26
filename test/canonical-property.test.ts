@@ -78,7 +78,7 @@ const COVERAGE: Array<[string, RegExp]> = [
   ["boundary type", /"kind":"open"/],
   ["ceiling", /"ceiling":0/],
   ["daylight", /"daylight":1/],
-  ["hinge", /"hinge":"E"/],
+  ["hinge", /"hinge":"x\+"/],
 ];
 
 /**
@@ -160,13 +160,13 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
   // 段数・踏面・勾配は書かれない — 導出が出す (だから形の側でしか確かめられない)。
   body.push({
     lines: [
-      `space /L1..L2/st stair X1..X2 Y4..Y5 name:階段 use:common stair:${pick(rnd, ["N", "S"])} form:return`,
+      `space /L1..L2/st stair X1..X2 Y4..Y5 name:階段 use:common stair:${pick(rnd, ["y+", "y-"])} form:return`,
     ],
   });
   body.push({ lines: ["space /L1..L2/ev shaft X2..X3 Y4..Y5 name:EV use:common lift:1"] });
   body.push({
     lines: [
-      `space /B1..L1/rmp ramp X3..X4 Y4..Y5 name:車路 use:parking ramp:E form:return slope:${pick(rnd, [6, 8])}`,
+      `space /B1..L1/rmp ramp X3..X4 Y4..Y5 name:車路 use:parking ramp:x+ form:return slope:${pick(rnd, [6, 8])}`,
     ],
   });
   // 境界の型 — 物の名 (spec) ではなく関係の型。`shaft` は縦の関係なので同一レベル間では VRT02 になる
@@ -213,8 +213,8 @@ function generate(rnd: () => number): { header: Block[]; body: Block[] } {
   // 外部への境界 — 通り参照の明示位置 (at:Y…) を必ず一つ書く
   body.push({
     lines: [
-      `boundary /L1/r11 /out edge:S t:200 spec:RC`,
-      `  door w:900 at:X1+900 hinge:E name:玄関`,
+      `boundary /L1/r11 /out edge:y- t:200 spec:RC`,
+      `  door w:900 at:X1+900 hinge:x+ name:玄関`,
       `  window w:1200 h:1400 at:X1+2000 name:地窓`,
       `  seg w:900 at:X1+600 spec:タイル`,
     ],

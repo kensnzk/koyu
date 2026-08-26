@@ -8,7 +8,7 @@
 
 # 貫通アトリウム — 南広場から北の緑地まで抜ける。二つの塔の間そのもの
 space /L1/atrium corridor X11..X12 Y4..Y12 + X12+3200..X14 Y4..Y12 + X12..X12+3200 Y4..Y6+2100 + X12..X12+3200 Y6+19100..Y12 name:貫通アトリウム lease.category:common floor:石張り
-space /L1/es1 escalator X12..X12+3200 Y6+2100..Y6+19100 name:エスカレーター lease.category:common escalator:N
+space /L1/es1 escalator X12..X12+3200 Y6+2100..Y6+19100 name:エスカレーター lease.category:common escalator:y+
 
 # 南の店舗列 (隅切りが両端に載る)
 band X X2..X11 Y4..Y5
@@ -25,8 +25,8 @@ space /L1/w03 shop X8..X11 Y6..Y7 name:西区画03 lease.category:rentable
 # A棟エントランスホール — 西面の4スパン (Y6..Y10) を占め、L2まで吹き抜ける。
 # 南北モールと直結し、EVホールへも直結。エスカレーター2本 (es3 上り / es4 下り) を刳り抜く
 space /L1/alobby corridor X2..X4 Y6..Y6+6400 + X2..X2+2600 Y6+6400..Y7+4200 + X2+4200..X4 Y6+6400..Y7+4200 + X2..X2+600 Y7+4200..Y8+4200 + X2+2200..X2+2600 Y7+4200..Y8+4200 + X2+4200..X4 Y7+4200..Y8+4200 + X2..X2+600 Y8+4200..Y9+2000 + X2+2200..X4 Y8+4200..Y9+2000 + X2..X4 Y9+2000..Y10 name:A棟エントランスホール lease.category:common floor:石張り
-space /L1/es3 escalator X2+600..X2+2200 Y7+4200..Y9+2000 name:上りエスカレーター lease.category:common escalator:N
-space /L1/es4 escalator X2+2600..X2+4200 Y6+6400..Y8+4200 name:下りエスカレーター lease.category:common escalator:S
+space /L1/es3 escalator X2+600..X2+2200 Y7+4200..Y9+2000 name:上りエスカレーター lease.category:common escalator:y+
+space /L1/es4 escalator X2+2600..X2+4200 Y6+6400..Y8+4200 name:下りエスカレーター lease.category:common escalator:y-
 space /L1/eside shop X10..X11 Y7..Y8+4200 name:東脇区画 lease.category:rentable
 space /L1/w05 shop X4..X8 Y8+4200..Y10 name:西区画06 lease.category:rentable
 space /L1/w06 shop X8..X11 Y8+4200..Y10 name:西区画07 lease.category:rentable
@@ -48,7 +48,7 @@ space /L1/bousai service X14..X16 Y11..Y12 name:防災センター lease.categor
 space /L1/load backyard X16..X19 Y11..Y12 name:荷捌き lease.category:common
 space /L1/n04 shop X14..X16 Y9..Y10 name:北区画04 lease.category:rentable
 # 車路 — B1 から 1/6 で上がる直進斜路 (25.2m)。出口は東広場
-space /L1/ramp parking X16..X19 Y9..Y10 name:車路 ramp:E
+space /L1/ramp parking X16..X19 Y9..Y10 name:車路 ramp:x+
 
 # ---- 動線 ----
 boundary /L1/atrium /L1/es1 type:open
@@ -102,55 +102,55 @@ boundary /L1/e02 /L1/e01 t:120 spec:LGS
   door D1 at:0.3
 
 # ---- 外皮 — 面が開く ----
-boundary /L1/atrium /site/plazaS edge:S t:300 spec:カーテンウォール
+boundary /L1/atrium /site/plazaS edge:y- t:300 spec:カーテンウォール
   door ADW name:南正面大開口
-boundary /L1/atrium /site/green edge:N t:300 spec:カーテンウォール
+boundary /L1/atrium /site/green edge:y+ t:300 spec:カーテンウォール
   door ADW name:北正面大開口
 # 隅切り — 敷地の辺の振れを写す。切る相手は /out (広場は領域を持つので線の片側に限定できない)
 boundary /L1/s01 /out t:300 spec:カーテンウォール
   line X2,Y5-2100 X4,Y4
-boundary /L1/s01 /site/plazaS edge:S t:300 spec:カーテンウォール
+boundary /L1/s01 /site/plazaS edge:y- t:300 spec:カーテンウォール
   window CW1 at:0.75
-boundary /L1/s02 /site/plazaS edge:S t:300 spec:カーテンウォール
+boundary /L1/s02 /site/plazaS edge:y- t:300 spec:カーテンウォール
   window CW1 at:0.3
   window CW1 at:0.7
-boundary /L1/s03 /site/plazaS edge:S t:300 spec:カーテンウォール
+boundary /L1/s03 /site/plazaS edge:y- t:300 spec:カーテンウォール
   window CW1 at:0.4
 boundary /L1/s04 /out t:300 spec:カーテンウォール
   line X19-8400,Y4 X19,Y5
-boundary /L1/s04 /site/plazaS edge:S t:300 spec:カーテンウォール
+boundary /L1/s04 /site/plazaS edge:y- t:300 spec:カーテンウォール
   window CW1 at:0.3
-boundary /L1/s01 /site/plazaW edge:W t:300 spec:カーテンウォール
-boundary /L1/mallSw /site/plazaW edge:W t:300 spec:カーテンウォール
+boundary /L1/s01 /site/plazaW edge:x- t:300 spec:カーテンウォール
+boundary /L1/mallSw /site/plazaW edge:x- t:300 spec:カーテンウォール
   door AD2 name:西側入口
-boundary /L1/mallSe /site/plazaE edge:E t:300 spec:カーテンウォール
+boundary /L1/mallSe /site/plazaE edge:x+ t:300 spec:カーテンウォール
   door AD2 name:東側入口
-boundary /L1/alobby /site/plazaW edge:W t:300 spec:カーテンウォール
+boundary /L1/alobby /site/plazaW edge:x- t:300 spec:カーテンウォール
   door ADW at:0.125 name:オフィス大開口1
   door ADW at:0.375 name:オフィス大開口2
   door ADW at:0.625 name:オフィス大開口3
-boundary /L1/mallNw /site/plazaW edge:W t:300 spec:カーテンウォール
+boundary /L1/mallNw /site/plazaW edge:x- t:300 spec:カーテンウォール
 boundary /L1/n01 /out t:300 spec:カーテンウォール
   line X2,Y12-4200 X4,Y12
-boundary /L1/n01 /site/green edge:N t:300 spec:カーテンウォール
+boundary /L1/n01 /site/green edge:y+ t:300 spec:カーテンウォール
   window CW1 at:0.7
-boundary /L1/n02 /site/green edge:N t:300 spec:カーテンウォール
+boundary /L1/n02 /site/green edge:y+ t:300 spec:カーテンウォール
   window CW1 at:0.3
   window CW1 at:0.7
-boundary /L1/n03 /site/green edge:N t:300 spec:カーテンウォール
+boundary /L1/n03 /site/green edge:y+ t:300 spec:カーテンウォール
   window CW1 at:0.4
-boundary /L1/bousai /site/green edge:N t:300 spec:RC
+boundary /L1/bousai /site/green edge:y+ t:300 spec:RC
 boundary /L1/load /out t:300 spec:RC
   line X19-4200,Y12 X19,Y12-2100
-boundary /L1/load /site/green edge:N t:300 spec:RC
-boundary /L1/load /site/plazaE edge:E t:300 spec:RC
+boundary /L1/load /site/green edge:y+ t:300 spec:RC
+boundary /L1/load /site/plazaE edge:x+ t:300 spec:RC
   door LG1 at:0.7 name:荷捌き入口
-boundary /L1/n01 /site/plazaW edge:W t:300 spec:カーテンウォール
-boundary /L1/e01 /site/plazaE edge:E t:300 spec:カーテンウォール
+boundary /L1/n01 /site/plazaW edge:x- t:300 spec:カーテンウォール
+boundary /L1/e01 /site/plazaE edge:x+ t:300 spec:カーテンウォール
   window CW1
-boundary /L1/e02 /site/plazaE edge:E t:300 spec:カーテンウォール
+boundary /L1/e02 /site/plazaE edge:x+ t:300 spec:カーテンウォール
   window CW1
-boundary /L1/ramp /site/plazaE edge:E t:300 spec:RC
+boundary /L1/ramp /site/plazaE edge:x+ t:300 spec:RC
   door VG1 name:車路出入口
-boundary /L1/mallNe /site/plazaE edge:E t:300 spec:カーテンウォール
+boundary /L1/mallNe /site/plazaE edge:x+ t:300 spec:カーテンウォール
   door AD2 name:北東入口

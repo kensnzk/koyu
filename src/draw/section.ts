@@ -208,7 +208,7 @@ function sheet(
   // point. The other axis is what runs across the sheet, so that is the one that marks it.
   if ("axis" in section) {
     const across = section.axis === "X" ? model.grid.Y : model.grid.X;
-    const sign = section.look === "W" || section.look === "N" ? 1 : -1;
+    const sign = section.look === "x-" || section.look === "y+" ? 1 : -1;
     for (const [i, c] of across.coords.entries()) {
       const u = c * sign;
       if (u < minU - 1 || u > maxU + 1) continue;

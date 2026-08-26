@@ -97,17 +97,17 @@ boundary /L1/living /out t:150
 ```
 
 ```text
-✖ edge.muro:line 7: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/living | /out)
+✖ edge.muro:line 7: There is more than one boundary segment; pick an edge with edge:y+/E/S/W (/L1/living | /out)
 ```
 
 **The fix.** Pick the edge with `edge:` when placing an opening in an exterior wall.
 
 ```muro-part
 boundary /L1/living /out t:150
-  door w:900 edge:S
+  door w:900 edge:y-
 ```
 
-Compass directions are read **from the rectangle of the space written first**: `N`=+Y, `S`=−Y, `E`=+X, `W`=−X. They are words about axes, not about where the building really points — that is [`azimuth`](../reference/muro/azimuth.md), and it does not change which face `edge:N` picks. To confine the boundary line itself to one edge, write `edge:` on the `boundary`.
+Compass directions are read **from the rectangle of the space written first**: `N`=+Y, `S`=−Y, `E`=+X, `W`=−X. They are words about axes, not about where the building really points — that is [`azimuth`](../reference/muro/azimuth.md), and it does not change which face `edge:y+` picks. To confine the boundary line itself to one edge, write `edge:` on the `boundary`.
 
 ## 4. A region is given as two ranges
 
@@ -251,7 +251,7 @@ The exit code is 2 and the declared level names are printed alongside. `koyu lev
 Between touching spaces, a **wall with no door** is derived when nothing is declared. **Doors are never added automatically.** A two-storey house with only the envelope and the stair declared seals every room while `check` stays green.
 
 ```muro
-muro 1.5
+muro 1.6
 name 密封された二室
 unit mm
 grid X 0 3600 7200
@@ -260,12 +260,12 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2 name:居室A
 space /L1/b room X2..X3 Y1..Y2 name:居室B
 space /out name:外部 outside:1
-boundary /L1/a /out t:150 spec:EW edge:W
-boundary /L1/b /out t:150 spec:EW edge:E
-boundary /L1/a /out edge:S
-boundary /L1/a /out edge:N
-boundary /L1/b /out edge:S
-boundary /L1/b /out edge:N
+boundary /L1/a /out t:150 spec:EW edge:x-
+boundary /L1/b /out t:150 spec:EW edge:x+
+boundary /L1/a /out edge:y-
+boundary /L1/a /out edge:y+
+boundary /L1/b /out edge:y-
+boundary /L1/b /out edge:y+
 ```
 
 ```text
@@ -306,7 +306,7 @@ boundary /L1/a /L1/b t:120 spec:LGS
 **Every side of a space is a wall unless something says otherwise, the outside included.** What silence cannot supply is *which* outside — street, neighbour, garden — and that decides frontage, daylight and specification. So the wall is derived and [BND08](../reference/diagnostics/bnd.md#bnd08) asks for the name.
 
 ```muro-warn
-muro 1.5
+muro 1.6
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -330,7 +330,7 @@ boundary /L1/a /out t:150 spec:EW
 boundary /L1/b /out t:150 spec:EW
 ```
 
-**Half a declaration does not silence it.** Write `boundary /L1/a /out edge:S` and the south run is yours; north and west still take the default, and BND08 still names them. The outside is not a pair to be suppressed as a unit — it is whatever the rest of the perimeter faces.
+**Half a declaration does not silence it.** Write `boundary /L1/a /out edge:y-` and the south run is yours; north and west still take the default, and BND08 still names them. The outside is not a pair to be suppressed as a unit — it is whatever the rest of the perimeter faces.
 
 ## 11. An attribute has no effect
 

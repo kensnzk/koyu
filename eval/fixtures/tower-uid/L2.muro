@@ -30,9 +30,9 @@ boundary /L2/corridor /L2/stor t:150 spec:LGS
 boundary /L2/corridor /L2/wc t:150 spec:LGS
   door w:800
 boundary /L2/ps /L2/corridor t:150 spec:LGS
-  door w:700 edge:S
+  door w:700 edge:y-
 boundary /L2/off /L2/corridor t:150 spec:LGS
-  door w:900 edge:S
+  door w:900 edge:y-
 boundary /L2/corridor /L2/ev t:200 spec:RC
 
 # ---- 北列の間仕切り ----
@@ -44,26 +44,26 @@ boundary /L2/ev /L2/off t:200 spec:RC
 boundary /L2/off /L2/st1 t:200 spec:RC
 
 # ---- 外周 ----
-boundary /L2/s3 /out/road-s edge:S t:100 spec:カーテンウォール
+boundary /L2/s3 /out/road-s edge:y- t:100 spec:カーテンウォール
   window W4 at:X2
-boundary /L2/s4 /out/road-s edge:S t:100 spec:カーテンウォール
+boundary /L2/s4 /out/road-s edge:y- t:100 spec:カーテンウォール
   window W4 at:X4
-boundary /L2/void /out/road-s edge:S t:100 spec:カーテンウォール
-boundary /L2/s3 /out/w edge:W t:200 spec:RC
+boundary /L2/void /out/road-s edge:y- t:100 spec:カーテンウォール
+boundary /L2/s3 /out/w edge:x- t:200 spec:RC
   window W2
-boundary /L2/corridor /out/w edge:W t:200 spec:RC
+boundary /L2/corridor /out/w edge:x- t:200 spec:RC
   window W2
-boundary /L2/st2 /out/w edge:W t:200 spec:RC
+boundary /L2/st2 /out/w edge:x- t:200 spec:RC
   window W2
-boundary /L2/void /out/road-e edge:E t:100 spec:カーテンウォール
-boundary /L2/st1 /out/road-e edge:E t:200 spec:RC
+boundary /L2/void /out/road-e edge:x+ t:100 spec:カーテンウォール
+boundary /L2/st1 /out/road-e edge:x+ t:200 spec:RC
   window W2
-boundary /L2/st2 /out/n edge:N t:200 spec:RC
-boundary /L2/stor /out/n edge:N t:200 spec:RC
-boundary /L2/wc /out/n edge:N t:200 spec:RC
+boundary /L2/st2 /out/n edge:y+ t:200 spec:RC
+boundary /L2/stor /out/n edge:y+ t:200 spec:RC
+boundary /L2/wc /out/n edge:y+ t:200 spec:RC
   window W2
-boundary /L2/ps /out/n edge:N t:200 spec:RC
-boundary /L2/ev /out/n edge:N t:200 spec:RC
-boundary /L2/off /out/n edge:N t:200 spec:RC
+boundary /L2/ps /out/n edge:y+ t:200 spec:RC
+boundary /L2/ev /out/n edge:y+ t:200 spec:RC
+boundary /L2/off /out/n edge:y+ t:200 spec:RC
   window W2
-boundary /L2/st1 /out/n edge:N t:200 spec:RC
+boundary /L2/st1 /out/n edge:y+ t:200 spec:RC

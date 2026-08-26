@@ -83,7 +83,7 @@
           "w": 800,
           "h": 2000,
           "at": 0.5,
-          "hinge": "N",
+          "hinge": "y+",
           "swing": "b",
           "attrs": {
             "name": "片引き戸",
@@ -109,8 +109,8 @@
           "w": 900,
           "h": 2100,
           "at": "X1+1200",
-          "edge": "S",
-          "hinge": "W",
+          "edge": "y-",
+          "hinge": "x-",
           "attrs": {
             "name": "勝手口"
           }
@@ -134,7 +134,7 @@
           "w": 1200,
           "h": 2100,
           "at": 0.4,
-          "edge": "S",
+          "edge": "y-",
           "attrs": {
             "name": "玄関",
             "style": "auto"

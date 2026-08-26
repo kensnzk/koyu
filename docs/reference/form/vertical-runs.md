@@ -8,7 +8,7 @@ mode: reference
 Riser count, going and slope are never written. **They are derived from the region, the storey pitch and one declared direction of rise.**
 
 ```muro-part
-space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 stair:N form:return
+space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 stair:y+ form:return
 ```
 
 ```sh
@@ -29,7 +29,7 @@ The 21, the 176mm, the 300mm and the 6000mm appear nowhere in the source. Here i
 
 ## Local coordinates
 
-A run is measured in **t** (from 0 in the direction of travel) and **s** (from **the left of the direction of travel**). The direction of rise, `stair:N`, fixes t, and s follows from it. Which way a turn goes is decided here.
+A run is measured in **t** (from 0 in the direction of travel) and **s** (from **the left of the direction of travel**). The direction of rise, `stair:y+`, fixes t, and s follows from it. Which way a turn goes is decided here.
 
 `turn:` is L **only when `L` is written**; unwritten and invalid values are both R.
 
@@ -40,7 +40,7 @@ Any of these produces no shape whatsoever. [RUN01–05 / SUF04](../diagnostics/r
 - Zero or two or more vertical-circulation declarations
 - The region is not a single rectangle
 - The level cannot be determined
-- A value other than N/E/S/W on anything but a lift, or a value other than `1` on a lift
+- A value other than x+/x-/y+/y- on anything but a lift, or a value other than `1` on a lift
 - `form:` other than `straight` or `return`
 - `form:return` on something other than a stair or a ramp
 - No level above (lifts excepted)
@@ -95,7 +95,7 @@ For the stair, n is `max(1, max(k − 1, risers − k − 1))` and the target go
 
 ### Solve it
 
-`/B2/st` is a 2600 × 5400 rectangle. `stair:N`, so the length is 5400 and the width 2600, over a storey rise of 3700.
+`/B2/st` is a 2600 × 5400 rectangle. `stair:y+`, so the length is 5400 and the width 2600, over a storey rise of 3700.
 
 ```text
 entry       = 1100                             (default)

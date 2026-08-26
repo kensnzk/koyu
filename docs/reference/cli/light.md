@@ -51,7 +51,7 @@ A room where no window could be counted reads `no window`.
 
 ## Windows without h
 
-**A `window` with no `h` cannot have its area counted.** That room's line gains `⚠ windows without h: are not counted` at the end. The `/L1/b` above is written `window w:2600 edge:E` and still comes out as 0.00 m2 — it has a width but no height.
+**A `window` with no `h` cannot have its area counted.** That room's line gains `⚠ windows without h: are not counted` at the end. The `/L1/b` above is written `window w:2600 edge:x+` and still comes out as 0.00 m2 — it has a width but no height.
 
 The numbers on a line carrying that warning are a lower bound, not the actual window area.
 

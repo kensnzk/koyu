@@ -12,7 +12,7 @@ space /L2/avoid X12+3200..X13 Y5..Y11 + X12..X12+3200 Y5..Y6+5600 + X12..X12+320
 space /L3/avoid X12+3200..X13 Y5..Y11 + X12..X12+3200 Y5..Y7 + X12..X12+3200 Y8+3600..Y11 name:吹抜け void:1
 # L4 の吹抜けは基壇のセットバックに合わせて短い — 段々は吹抜けにも及ぶ
 space /L4/avoid X12+3200..X13 Y6..Y10 + X12..X12+3200 Y6..Y7 + X12..X12+3200 Y8+3600..Y10 name:吹抜け void:1
-space /L2..L4/es2 escalator X12..X12+3200 Y7..Y7+12000 name:エスカレーター lease.category:common escalator:N
+space /L2..L4/es2 escalator X12..X12+3200 Y7..Y7+12000 name:エスカレーター lease.category:common escalator:y+
 space /L2/es1 corridor X12..X12+3200 Y6+5600..Y7 name:エスカレーター乗降 lease.category:common
 boundary /L1/atrium /L2/avoid type:void
 boundary /L2/avoid /L3/avoid type:void
@@ -70,7 +70,7 @@ boundary /L2/acorr /L2/alvoid t:60 spec:手すり air:1 h:1100
 boundary /L2/w04 /L2/alvoid t:60 spec:手すり air:1 h:1100
 boundary /L2/e03 /L2/e01 t:120 spec:LGS
   door D1 at:0.3 name:バック
-boundary /L2/bcorr /L2/e01 edge:S t:180 spec:LGS
+boundary /L2/bcorr /L2/e01 edge:y- t:180 spec:LGS
   door FD1 at:0.62 name:付室へ
 boundary /L2/bcorr /L2/bst1 t:250 spec:RC
   door FD1 at:0.171 name:階段1
@@ -89,7 +89,7 @@ boundary /L2/w03 /L2/mallSw t:120 spec:店舗サッシ
   door SD1
 boundary /L2/e01 /L2/mallSe t:120 spec:店舗サッシ
   door SD1 at:0.2
-boundary /L2/e02 /L2/mallSe edge:S t:120 spec:店舗サッシ
+boundary /L2/e02 /L2/mallSe edge:y- t:120 spec:店舗サッシ
   door SD1 at:0.2
 boundary /L2/eside /L2/gal t:120 spec:店舗サッシ
   door SD1 at:0.3
@@ -154,7 +154,7 @@ boundary /L3/acorr /L3/ahall type:open
 boundary /L3/acorr /L3/w01 type:open
 boundary /L3/e03 /L3/e01 t:120 spec:LGS
   door D1 at:0.3 name:バック
-boundary /L3/bcorr /L3/e01 edge:S t:180 spec:LGS
+boundary /L3/bcorr /L3/e01 edge:y- t:180 spec:LGS
   door FD1 at:0.62 name:付室へ
 boundary /L3/bcorr /L3/bst1 t:250 spec:RC
   door FD1 at:0.171 name:階段1
@@ -173,7 +173,7 @@ boundary /L3/w03 /L3/mallSw t:120 spec:店舗サッシ
   door SD1
 boundary /L3/e01 /L3/mallSe t:120 spec:店舗サッシ
   door SD1 at:0.2
-boundary /L3/e02 /L3/mallSe edge:S t:120 spec:店舗サッシ
+boundary /L3/e02 /L3/mallSe edge:y- t:120 spec:店舗サッシ
   door SD1 at:0.2
 boundary /L3/eside /L3/galW t:120 spec:店舗サッシ
   door SD1 at:0.3
@@ -215,7 +215,7 @@ boundary /L4/w06 /L4/mallNw t:120 spec:店舗サッシ
   door SD1 at:0.167
 boundary /L4/e03 /L4/e01 t:120 spec:LGS
   door D1 at:0.3 name:バック
-boundary /L4/bcorr /L4/e01 edge:S t:180 spec:LGS
+boundary /L4/bcorr /L4/e01 edge:y- t:180 spec:LGS
   door FD1 at:0.62 name:付室へ
 boundary /L4/bcorr /L4/bst1 t:250 spec:RC
   door FD1 at:0.171 name:階段1
@@ -228,7 +228,7 @@ boundary /L4/w03 /L4/mallSw t:120 spec:店舗サッシ
   door SD1
 boundary /L4/e01 /L4/mallSe t:120 spec:店舗サッシ
   door SD1 at:0.2
-boundary /L4/e02 /L4/mallSe edge:S t:120 spec:店舗サッシ
+boundary /L4/e02 /L4/mallSe edge:y- t:120 spec:店舗サッシ
   door SD1 at:0.2
 boundary /L4/eside /L4/gal t:120 spec:店舗サッシ
   door SD1 at:0.3
@@ -250,83 +250,83 @@ boundary /L4/mallSw /L4/tS t:300 spec:カーテンウォール
   door AD2 at:0.062 name:南テラスへ
 boundary /L4/mallNw /L4/tN t:300 spec:カーテンウォール
   door AD2 at:0.062 name:北テラスへ
-boundary /L3/tW /out edge:W t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L3/tW /out edge:S t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L3/tW /out edge:N t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L3/tN /out edge:N t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L3/tN /out edge:E t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L4/tS /out edge:S t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L4/tS /out edge:W t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L4/tS /out edge:E t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L4/tN /out edge:N t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L4/tN /out edge:W t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L4/tN /out edge:E t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L3/tW /out edge:x- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L3/tW /out edge:y- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L3/tW /out edge:y+ t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L3/tN /out edge:y+ t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L3/tN /out edge:x+ t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L4/tS /out edge:y- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L4/tS /out edge:x- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L4/tS /out edge:x+ t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L4/tN /out edge:y+ t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L4/tN /out edge:x- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L4/tN /out edge:x+ t:120 spec:パラペット+手すり air:1 h:1200
 
 # ---- 外皮 ----
 boundary /L2/s01 /out t:300 spec:カーテンウォール
   line X2,Y5-2100 X4,Y4
-boundary /L2/s01 /out edge:S t:300 spec:カーテンウォール
+boundary /L2/s01 /out edge:y- t:300 spec:カーテンウォール
   window CW1 at:0.75
-boundary /L2/s02 /out edge:S t:300 spec:カーテンウォール
+boundary /L2/s02 /out edge:y- t:300 spec:カーテンウォール
   window CW1 at:0.3
   window CW1 at:0.7
 boundary /L2/s04 /out t:300 spec:カーテンウォール
   line X19-8400,Y4 X19,Y5
-boundary /L2/s04 /out edge:S t:300 spec:カーテンウォール
+boundary /L2/s04 /out edge:y- t:300 spec:カーテンウォール
   window CW1 at:0.35
-boundary /L2/gal /out edge:S t:300 spec:カーテンウォール
+boundary /L2/gal /out edge:y- t:300 spec:カーテンウォール
   window CW1
-boundary /L2/gal /out edge:N t:300 spec:カーテンウォール
+boundary /L2/gal /out edge:y+ t:300 spec:カーテンウォール
   window CW1
-boundary /L2/s01 /out edge:W t:300 spec:カーテンウォール
+boundary /L2/s01 /out edge:x- t:300 spec:カーテンウォール
   window W2
-boundary /L2/mallSw /out edge:W t:300 spec:カーテンウォール
-boundary /L2/es4 /out edge:W t:300 spec:カーテンウォール
-boundary /L2/es3 /out edge:W t:300 spec:カーテンウォール
-boundary /L2/alvoid /out edge:W t:300 spec:カーテンウォール
-boundary /L2/mallNw /out edge:W t:300 spec:カーテンウォール
-boundary /L2/n01 /out edge:W t:300 spec:カーテンウォール
+boundary /L2/mallSw /out edge:x- t:300 spec:カーテンウォール
+boundary /L2/es4 /out edge:x- t:300 spec:カーテンウォール
+boundary /L2/es3 /out edge:x- t:300 spec:カーテンウォール
+boundary /L2/alvoid /out edge:x- t:300 spec:カーテンウォール
+boundary /L2/mallNw /out edge:x- t:300 spec:カーテンウォール
+boundary /L2/n01 /out edge:x- t:300 spec:カーテンウォール
   window W2
-boundary /L2/mallSe /out edge:E t:300 spec:カーテンウォール
-boundary /L2/e02 /out edge:E t:300 spec:カーテンウォール
+boundary /L2/mallSe /out edge:x+ t:300 spec:カーテンウォール
+boundary /L2/e02 /out edge:x+ t:300 spec:カーテンウォール
   window CW1
-boundary /L2/n05 /out edge:E t:300 spec:カーテンウォール
+boundary /L2/n05 /out edge:x+ t:300 spec:カーテンウォール
   window CW1
-boundary /L2/mallNe /out edge:E t:300 spec:カーテンウォール
-boundary /L2/nE /out edge:E t:300 spec:カーテンウォール
+boundary /L2/mallNe /out edge:x+ t:300 spec:カーテンウォール
+boundary /L2/nE /out edge:x+ t:300 spec:カーテンウォール
 boundary /L2/n01 /out t:300 spec:カーテンウォール
   line X2,Y12-4200 X4,Y12
-boundary /L2/n01 /out edge:N t:300 spec:カーテンウォール
+boundary /L2/n01 /out edge:y+ t:300 spec:カーテンウォール
   window CW1 at:0.7
-boundary /L2/n02 /out edge:N t:300 spec:カーテンウォール
+boundary /L2/n02 /out edge:y+ t:300 spec:カーテンウォール
   window CW1 at:0.3
 boundary /L2/nE /out t:300 spec:カーテンウォール
   line X19-4200,Y12 X19,Y12-2100
-boundary /L2/nE /out edge:N t:300 spec:カーテンウォール
+boundary /L2/nE /out edge:y+ t:300 spec:カーテンウォール
   window CW1 at:0.3
-boundary /L3/s01 /out edge:S t:300 spec:カーテンウォール
+boundary /L3/s01 /out edge:y- t:300 spec:カーテンウォール
   window CW1 at:0.3
   window CW1 at:0.7
-boundary /L3/s02 /out edge:S t:300 spec:カーテンウォール
+boundary /L3/s02 /out edge:y- t:300 spec:カーテンウォール
   window CW1 at:0.3
-boundary /L3/s04 /out edge:S t:300 spec:カーテンウォール
+boundary /L3/s04 /out edge:y- t:300 spec:カーテンウォール
   window CW1 at:0.3
-boundary /L3/s04 /out edge:E t:300 spec:カーテンウォール
-boundary /L3/mallSe /out edge:E t:300 spec:カーテンウォール
-boundary /L3/e02 /out edge:E t:300 spec:カーテンウォール
+boundary /L3/s04 /out edge:x+ t:300 spec:カーテンウォール
+boundary /L3/mallSe /out edge:x+ t:300 spec:カーテンウォール
+boundary /L3/e02 /out edge:x+ t:300 spec:カーテンウォール
   window CW1
-boundary /L3/mallNe /out edge:E t:300 spec:カーテンウォール
-boundary /L3/nE /out edge:E t:300 spec:カーテンウォール
+boundary /L3/mallNe /out edge:x+ t:300 spec:カーテンウォール
+boundary /L3/nE /out edge:x+ t:300 spec:カーテンウォール
   window CW1
-boundary /L4/mallSw /out edge:W t:300 spec:カーテンウォール
-boundary /L4/w01 /out edge:W t:300 spec:カーテンウォール
-boundary /L4/acorr /out edge:W t:300 spec:カーテンウォール
-boundary /L4/w04 /out edge:W t:300 spec:カーテンウォール
-boundary /L4/mallNw /out edge:W t:300 spec:カーテンウォール
-boundary /L4/mallSe /out edge:E t:300 spec:カーテンウォール
-boundary /L4/e02 /out edge:E t:300 spec:カーテンウォール
+boundary /L4/mallSw /out edge:x- t:300 spec:カーテンウォール
+boundary /L4/w01 /out edge:x- t:300 spec:カーテンウォール
+boundary /L4/acorr /out edge:x- t:300 spec:カーテンウォール
+boundary /L4/w04 /out edge:x- t:300 spec:カーテンウォール
+boundary /L4/mallNw /out edge:x- t:300 spec:カーテンウォール
+boundary /L4/mallSe /out edge:x+ t:300 spec:カーテンウォール
+boundary /L4/e02 /out edge:x+ t:300 spec:カーテンウォール
   window CW1
-boundary /L4/mallNe /out edge:E t:300 spec:カーテンウォール
+boundary /L4/mallNe /out edge:x+ t:300 spec:カーテンウォール
 
-boundary /L3/gal /out edge:S t:300 spec:カーテンウォール
-boundary /L3/galW /out edge:S t:300 spec:カーテンウォール
+boundary /L3/gal /out edge:y- t:300 spec:カーテンウォール
+boundary /L3/galW /out edge:y- t:300 spec:カーテンウォール

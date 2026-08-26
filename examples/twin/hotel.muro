@@ -56,33 +56,33 @@ boundary /L6..L12/hn04 /L6..L12/corr t:180 spec:戸境RC
   door D2 at:0.3 name:客室扉
 
 # 外皮
-boundary /L6..L12/hs01 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs01 /out edge:y- t:250 spec:PC板
   window HW1
-boundary /L6..L12/hs02 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs02 /out edge:y- t:250 spec:PC板
   window HW1
-boundary /L6..L12/hs03 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs03 /out edge:y- t:250 spec:PC板
   window HW1
-boundary /L6..L12/hs04 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs04 /out edge:y- t:250 spec:PC板
   window HW1
-boundary /L6..L12/hs05 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs05 /out edge:y- t:250 spec:PC板
   window HW1
-boundary /L6..L12/hs06 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs06 /out edge:y- t:250 spec:PC板
   window HW1
-boundary /L6..L12/hs07 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs07 /out edge:y- t:250 spec:PC板
   window HW1
-boundary /L6..L12/hs08 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs08 /out edge:y- t:250 spec:PC板
   window HW1
-boundary /L6..L12/hs09 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs09 /out edge:y- t:250 spec:PC板
   window HW1
-boundary /L6..L12/hs10 /out edge:S t:250 spec:PC板
+boundary /L6..L12/hs10 /out edge:y- t:250 spec:PC板
   window HW1
-boundary /L6..L12/hs01 /out edge:W t:250 spec:PC板
-boundary /L6..L12/hs10 /out edge:E t:250 spec:PC板
-boundary /L6..L12/corr /out edge:W t:250 spec:PC板
+boundary /L6..L12/hs01 /out edge:x- t:250 spec:PC板
+boundary /L6..L12/hs10 /out edge:x+ t:250 spec:PC板
+boundary /L6..L12/corr /out edge:x- t:250 spec:PC板
   window W2
-boundary /L6..L12/corr /out edge:E t:250 spec:PC板
+boundary /L6..L12/corr /out edge:x+ t:250 spec:PC板
   window W2
-boundary /L6..L12/hn01 /out edge:W t:250 spec:PC板
+boundary /L6..L12/hn01 /out edge:x- t:250 spec:PC板
   window HW1
-boundary /L6..L12/hn04 /out edge:E t:250 spec:PC板
+boundary /L6..L12/hn04 /out edge:x+ t:250 spec:PC板
   window HW1

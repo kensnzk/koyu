@@ -24,10 +24,10 @@ A stair, a ramp, an escalator and a lift are one relation — "you can pass betw
 The declaration is one attribute. **The key names the device; the value gives the direction of rise.**
 
 ```muro-part
-space /L1/s stair X1..X2 Y1..Y2 stair:N
+space /L1/s stair X1..X2 Y1..Y2 stair:y+
 ```
 
-The four keys are `stair:`, `ramp:`, `escalator:` and `lift:`. The value is a compass direction (N=+Y, S=-Y, E=+X, W=-X); only `lift:`, which has no direction, takes `1`.
+The four keys are `stair:`, `ramp:`, `escalator:` and `lift:`. The value is an axis word — `x+` `x-` `y+` `y-`; only `lift:`, which has no direction, takes `1`.
 
 RUN asks only whether **a unique shape follows from the declaration**. Whether the resulting shape is comfortable to climb is an architectural judgement, and `koyu validate` says that separately.
 
@@ -42,7 +42,7 @@ grid X 0 3000 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
-space /L1/s stair X1..X2 Y1..Y2 stair:N ramp:N
+space /L1/s stair X1..X2 Y1..Y2 stair:y+ ramp:y+
 space /L2/s stair X1..X2 Y1..Y2
 space /out outside:1
 boundary /L1/s /out
@@ -50,7 +50,7 @@ boundary /L2/s /out
 ```
 
 ```text
-More than one vertical circulation declaration: stair:N ramp:N (one space carries one)
+More than one vertical circulation declaration: stair:y+ ramp:y+ (one space carries one)
 ```
 
 **Cause** — the four keys select a device's **shape-generation rule**. One space cannot hold a shape under two rules at once.
@@ -74,7 +74,7 @@ boundary /L2/s /out
 ```
 
 ```text
-The value of stair is the direction it rises, N/E/S/W: stair:up
+The value of stair is the direction it rises, x+/x-/y+/y-: stair:up
 ```
 
 **Cause** — dividing the rise into steps needs to know which way it climbs. That is the one piece of information the region cannot supply, so it has to be written. `up`, `1` and `north` all fail.
@@ -85,7 +85,7 @@ The value of stair is the direction it rises, N/E/S/W: stair:up
 The value of lift is 1: lift:N
 ```
 
-**Fix** — write one compass letter (`stair:N`). A lift takes `lift:1`.
+**Fix** — write one axis word (`stair:y+`). A lift takes `lift:1`.
 
 ## RUN03 — the region must be a single rectangle {#run03}
 
@@ -96,7 +96,7 @@ grid X 0 3000 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
-space /L1/s stair X1..X2 Y1..Y2 + X2..X3 Y1..Y2 stair:N
+space /L1/s stair X1..X2 Y1..Y2 + X2..X3 Y1..Y2 stair:y+
 space /L2/s stair X1..X3 Y1..Y2
 space /out outside:1
 boundary /L1/s /out
@@ -134,7 +134,7 @@ grid X 0 3000 6000
 grid Y 0 6000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
-space /L1/s stair X1..X2 Y1..Y2 stair:N form:spiral
+space /L1/s stair X1..X2 Y1..Y2 stair:y+ form:spiral
 space /L2/s stair X1..X2 Y1..Y2
 space /out outside:1
 boundary /L1/s /out
@@ -172,7 +172,7 @@ grid X 0 3000
 grid Y 0 12000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
-space /L1/r ramp X1..X2 Y1..Y2 ramp:N slope:12
+space /L1/r ramp X1..X2 Y1..Y2 ramp:y+ slope:12
 space /L2/r ramp X1..X2 Y1..Y2
 space /out outside:1
 boundary /L1/r /out
@@ -213,7 +213,7 @@ koyu validate ramp.muro --profile koyu.profile.schematic-screen --as-of 2026-08-
 Validation — 0 violations / 2 cautions
 ```
 
-The file above is green under `check`. **`slope:` is not the slope you are writing; it is the steepest slope you will accept**, and it exists only to be checked against. `koyu.schematic.run.disconnected` names the hardest mismatch to notice — a stair drawn on the plan that circulation cannot pass through — which is what you get when the shape declaration (`ramp:N`) is written and the topology declaration (`stack` / `boundary type:stair`) is forgotten.
+The file above is green under `check`. **`slope:` is not the slope you are writing; it is the steepest slope you will accept**, and it exists only to be checked against. `koyu.schematic.run.disconnected` names the hardest mismatch to notice — a stair drawn on the plan that circulation cannot pass through — which is what you get when the shape declaration (`ramp:y+`) is written and the topology declaration (`stack` / `boundary type:stair`) is forgotten.
 
 Cramped steps work the same way.
 

@@ -125,7 +125,7 @@ const USAGE: Array<[string, string[], RegExp]> = [
   ],
   ["axo with a scale that is not a number", ["axo", "examples/two-rooms.muro", "-s", "abc"], /^-s takes a positive number: abc$/],
   ["axo with a scale of zero", ["axo", "examples/two-rooms.muro", "-s", "0"], /^-s takes a positive number: 0$/],
-  ["axo in a direction that does not exist", ["axo", "examples/two-rooms.muro", "-d", "XYZ"], /^-d is one of NE \/ NW \/ SE \/ SW: XYZ$/],
+  ["axo in a direction that does not exist", ["axo", "examples/two-rooms.muro", "-d", "XYZ"], /^-d is one of x\+y\+ \/ x-y\+ \/ x\+y- \/ x-y-: XYZ$/],
   ["section with no cutting plane", ["section", "examples/two-rooms.muro"], /^Usage: koyu section /],
   [
     "section on a grid line that was never declared",
@@ -139,15 +139,15 @@ const USAGE: Array<[string, string[], RegExp]> = [
   ],
   [
     "section looked at along the plane instead of across it",
-    ["section", "examples/two-rooms.muro", "--at", "X2", "--look", "N"],
-    /^--look N runs along X2 rather than across it/,
+    ["section", "examples/two-rooms.muro", "--at", "X2", "--look", "y+"],
+    /^--look y\+ runs along X2 rather than across it/,
   ],
   [
     "elevation given a cutting plane (the plane is derived, so naming one is a mistake)",
     ["elevation", "examples/two-rooms.muro", "--at", "X2"],
     /^elevation takes no --at/,
   ],
-  ["elevation of a face that does not exist", ["elevation", "examples/two-rooms.muro", "--face", "SW"], /^-f is one of N \/ E \/ S \/ W: SW$/],
+  ["elevation of a face that does not exist", ["elevation", "examples/two-rooms.muro", "--face", "SW"], /^-f is one of y\+ \/ x\+ \/ y- \/ x-: SW$/],
 ];
 
 for (const [name, args, shape] of USAGE) {
@@ -279,7 +279,7 @@ test("cli: every subcommand the usage line advertises actually runs", () => {
     // `grid Y 0 4500`, so Y1+2250 cuts mid-room through both rooms. `Y1` alone would run along the
     // south exterior wall's centre line, which is a legal cut and a poor drawing.
     section: ["--at", "Y1+2250", "-o", join(tmp, "advertised-section.svg")],
-    elevation: ["--face", "S", "-o", join(tmp, "advertised-elevation.svg")],
+    elevation: ["--face", "y-", "-o", join(tmp, "advertised-elevation.svg")],
     validate: PROFILE_ARGS,
   };
   for (const sub of m[1]!.split("|")) {

@@ -473,7 +473,7 @@ function swingOf(
   let along: Pt;
   let inward: Pt;
   if (seg.diagonal) {
-    // 斜めの線分では吊元を始端側に固定する — hinge の N/E/S/W は軸の言葉なので使えない。
+    // 斜めの線分では吊元を始端側に固定する — hinge の x+/x-/y+/y- は軸の言葉なので使えない。
     // 開く側は法線のうち開く空間の中心へ向く方をとる
     const dx = seg.x2 - seg.x1;
     const dy = seg.y2 - seg.y1;
@@ -484,12 +484,12 @@ function swingOf(
     inward = { x: n.x * sign, y: n.y * sign };
     hinge = { x: cx - along.x * (o.w / 2), y: cy - along.y * (o.w / 2) };
   } else if (seg.horizontal) {
-    const fromEast = o.hinge === "E";
+    const fromEast = o.hinge === "x+";
     hinge = { x: fromEast ? cx + o.w / 2 : cx - o.w / 2, y: cy };
     along = { x: fromEast ? -1 : 1, y: 0 };
     inward = { x: 0, y: centre.y > cy ? 1 : -1 };
   } else {
-    const fromNorth = o.hinge === "N";
+    const fromNorth = o.hinge === "y+";
     hinge = { x: cx, y: fromNorth ? cy + o.w / 2 : cy - o.w / 2 };
     along = { x: 0, y: fromNorth ? -1 : 1 };
     inward = { x: centre.x > cx ? 1 : -1, y: 0 };
@@ -565,11 +565,11 @@ export function runPrism(s: RunSolid): FormPrism {
   const r = s.rect;
   const top = poly.map((p) => {
     const u =
-      s.up === "E"
+      s.up === "x+"
         ? (p.x - r.x1) / Math.max(1, r.x2 - r.x1)
-        : s.up === "W"
+        : s.up === "x-"
           ? (r.x2 - p.x) / Math.max(1, r.x2 - r.x1)
-          : s.up === "N"
+          : s.up === "y+"
             ? (p.y - r.y1) / Math.max(1, r.y2 - r.y1)
             : (r.y2 - p.y) / Math.max(1, r.y2 - r.y1);
     return s.z0 + u * (s.z1 - s.z0);

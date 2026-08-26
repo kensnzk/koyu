@@ -36,12 +36,12 @@ The two basement levels. The same layout is written once as `/B2..B1/`.
 
 ```muro-part
 space /B2..B1/park parking X1..X3 Y1..Y3 name:駐車場
-space /B2..B1/ramp ramp X3..X5 Y1..Y2 name:車路 ramp:E form:return slope:6
-space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 lease.category:common stair:N form:return
+space /B2..B1/ramp ramp X3..X5 Y1..Y2 name:車路 ramp:x+ form:return slope:6
+space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 lease.category:common stair:y+ form:return
 space /B2..B1/ev shaft X3+2600..X3+5200 Y2..Y2+5400 name:EV lease.category:common lift:1
 ```
 
-`ramp:E` is "a ramp rising east", `stair:N` is "a stair rising north", `lift:1` is "a lift". `form:return` makes it a scissor arrangement. **Those four words are the whole of vertical circulation in this notation.**
+`ramp:x+` is "a ramp rising east", `stair:y+` is "a stair rising north", `lift:1` is "a lift". `form:return` makes it a scissor arrangement. **Those four words are the whole of vertical circulation in this notation.**
 
 The vertical relations are three lines.
 
@@ -56,16 +56,16 @@ A ramp and a stair are the same relation — "you can get between these levels".
 The perimeter is earth. It is said in the `spec` vocabulary rather than by adding boundary kinds.
 
 ```muro-part
-boundary /B2..B1/park /out edge:W t:500 spec:RC土圧壁
-boundary /B2..B1/park /out edge:S t:500 spec:RC土圧壁
-boundary /B2..B1/ramp /out edge:E t:500 spec:RC土圧壁
+boundary /B2..B1/park /out edge:x- t:500 spec:RC土圧壁
+boundary /B2..B1/park /out edge:y- t:500 spec:RC土圧壁
+boundary /B2..B1/ramp /out edge:x+ t:500 spec:RC土圧壁
 ```
 
 The vehicle shutter is a `door`, exactly like a door for people. Only the dimensions and the asset name differ.
 
 ```muro-part
 asset VG1 door w:6000 h:3000 style:rolling-shutter name:Vehicle-shutter
-boundary /L1/ramp /road edge:E t:200 spec:RC
+boundary /L1/ramp /road edge:x+ t:200 spec:RC
   door VG1 name:Vehicle-entrance
 ```
 

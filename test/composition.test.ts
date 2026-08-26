@@ -30,7 +30,7 @@ space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:900 name:D1
   door w:800 at:0.8 name:D2
-boundary /L1/a /out edge:W t:200
+boundary /L1/a /out edge:x- t:200
 `;
 
 /** 層を並べて合成する — 並びがそのまま強度の宣言である */

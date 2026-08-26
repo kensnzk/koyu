@@ -20,7 +20,7 @@ koyu does have a machine format — canonical JSON. **Two spellings sharing one 
 Here is the body of the bundled `two-rooms.muro`, comments removed.
 
 ```muro
-muro 1.5
+muro 1.6
 name 二室
 unit mm
 grid X 0 3600 7200
@@ -32,10 +32,10 @@ space /out name:外部 outside:1
 boundary /L1/a /L1/b t:120 spec:PW1
   door w:780 h:2000
 boundary /L1/a /out t:150 spec:EW1 fire:60
-  window w:2600 h:1100 edge:S name:腰窓
+  window w:2600 h:1100 edge:y- name:腰窓
 boundary /L1/b /out t:150 spec:EW1 fire:60
-  door w:900 h:2100 edge:S name:玄関
-  window w:2600 h:1100 edge:E name:腰窓
+  door w:900 h:2100 edge:y- name:玄関
+  window w:2600 h:1100 edge:x+ name:腰窓
 ```
 
 The same content written straightforwardly in YAML:
@@ -102,8 +102,8 @@ Indentation carries containment.
 
 ```muro-part
 boundary /L1/b /out t:150 spec:EW1 fire:60
-  door w:900 h:2100 edge:S name:玄関
-  window w:2600 h:1100 edge:E name:腰窓
+  door w:900 h:2100 edge:y- name:玄関
+  window w:2600 h:1100 edge:x+ name:腰窓
 ```
 
 **That the openings belong to the boundary is said by the indentation, not by an `openings:` key.** The structure — a relation, and intervals placed on it — is the shape on the page.
@@ -142,7 +142,7 @@ That is not a direct effect of being a DSL, but it pairs with the decision to **
 
 ```muro-part
 space /L1/a room X1..X2 Y1..Y2
-  door w:900 at:X2+450 edge:S
+  door w:900 at:X2+450 edge:y-
 ```
 
 `X2+450` means "450 mm from grid line X2". **Not a coordinate but the way the decision is stated.**

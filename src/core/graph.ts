@@ -31,7 +31,7 @@ export interface Segment {
 }
 
 /**
- * 凸片の軸平行な辺 (向きから N/E/S/W を読む)。頂点列は反時計回りなので、
+ * 凸片の軸平行な辺 (向きから x+/x-/y+/y- を読む)。頂点列は反時計回りなので、
  * +x へ進む辺が南、+y が東、-x が北、-y が西の面になる。
  * 斜めの辺は返さない — それは描かれた線であり、自分の境界が実現を持っている
  */
@@ -44,14 +44,14 @@ function polyEdges(poly: Pt[]): Array<{ edge: Edge; fixed: number; lo: number; h
     const dy = q.y - p.y;
     if (Math.abs(dy) < EPS && Math.abs(dx) > EPS) {
       out.push({
-        edge: dx > 0 ? "S" : "N",
+        edge: dx > 0 ? "y-" : "y+",
         fixed: p.y,
         lo: Math.min(p.x, q.x),
         hi: Math.max(p.x, q.x),
       });
     } else if (Math.abs(dx) < EPS && Math.abs(dy) > EPS) {
       out.push({
-        edge: dy > 0 ? "E" : "W",
+        edge: dy > 0 ? "x+" : "x-",
         fixed: p.x,
         lo: Math.min(p.y, q.y),
         hi: Math.max(p.y, q.y),
@@ -61,7 +61,7 @@ function polyEdges(poly: Pt[]): Array<{ edge: Edge; fixed: number; lo: number; h
   return out;
 }
 
-const FACING: Record<Edge, Edge> = { N: "S", S: "N", E: "W", W: "E" };
+const FACING: Record<Edge, Edge> = { "y+": "y-", "y-": "y+", "x+": "x-", "x-": "x+" };
 
 /** 凸片の外周のうち、他の空間の凸片と向かい合っていない区間 (= 外部に面する壁) */
 function pieceOutline(pieces: Pt[][], others: Pt[][]): Segment[] {
@@ -84,7 +84,7 @@ function pieceOutline(pieces: Pt[][], others: Pt[][]): Segment[] {
           return out;
         });
       }
-      const horizontal = e.edge === "N" || e.edge === "S";
+      const horizontal = e.edge === "y+" || e.edge === "y-";
       for (const [s, t] of intervals) {
         segs.push(
           horizontal
@@ -113,7 +113,7 @@ function sharedFromPieces(A: Pt[][], B: Pt[][]): Segment[] {
       const hi = Math.min(ea.hi, o.hi);
       if (hi - lo <= EPS) continue;
       out.push(
-        ea.edge === "N" || ea.edge === "S"
+        ea.edge === "y+" || ea.edge === "y-"
           ? { x1: lo, y1: ea.fixed, x2: hi, y2: ea.fixed, horizontal: true, edgeOfA: ea.edge }
           : { x1: ea.fixed, y1: lo, x2: ea.fixed, y2: hi, horizontal: false, edgeOfA: ea.edge },
       );
@@ -231,7 +231,7 @@ function facesTheOutside(s: Space, siteZones: readonly string[], index: GapIndex
  *
  * 抑制は**組ではなく区間で効く。**外部は組ではない — 「他の何にも面していない残り」だからで、
  * 抑制すべき相手が居ない。`envelopeGaps` が宣言された境界の実現する区間を引いた残りが、
- * そのまま導出される壁になる。だから `boundary /L1/a /road edge:S` と書いた空間の
+ * そのまま導出される壁になる。だから `boundary /L1/a /road edge:y-` と書いた空間の
  * 北・東・西にも壁が立つ (1.3 までは何も立たなかった)。
  */
 function deriveExteriorBoundaries(model: Model): void {
@@ -688,7 +688,7 @@ export function placeBand(
     return fail("04", `No boundary segment can hold the ${label} (${b.a} | ${b.b})`);
   }
   if (segs.length > 1) {
-    return fail("05", `There is more than one boundary segment; pick an edge with edge:N/E/S/W (${b.a} | ${b.b})`);
+    return fail("05", `There is more than one boundary segment; pick an edge with edge:x+/x-/y+/y- (${b.a} | ${b.b})`);
   }
   const seg = segs[0]!;
   const len = segmentLength(seg);

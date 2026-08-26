@@ -182,17 +182,17 @@ Three worth naming.
 ## daylight — the scope is declared
 
 ```muro
-muro 1.5
+muro 1.6
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150
 space /L1/living living X1..X2 Y1..Y2 daylight:1 name:居間
 space /out name:外部 outside:1
-boundary /L1/living /out edge:S t:120
+boundary /L1/living /out edge:y- t:120
   window w:2400 h:1800
-boundary /L1/living /out edge:E
-boundary /L1/living /out edge:N
-boundary /L1/living /out edge:W
+boundary /L1/living /out edge:x+
+boundary /L1/living /out edge:y+
+boundary /L1/living /out edge:x-
 ```
 
 ```text
@@ -239,8 +239,8 @@ Voids, the outside, semi-outdoor spaces and vertical circulation never get a cei
 Stairs, ramps, escalators and lifts are declared with the key that names the device and the direction of ascent. **No riser count, going, landing or gradient is written** — they are derived from the region and the storey height.
 
 ```muro-part
-space /B2..B1/ramp ramp X3..X5 Y1..Y2 name:車路 ramp:E form:return slope:6
-space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 lease.category:common stair:N form:return
+space /B2..B1/ramp ramp X3..X5 Y1..Y2 name:車路 ramp:x+ form:return slope:6
+space /B2..B1/st stair X3..X3+2600 Y2..Y2+5400 name:避難階段 lease.category:common stair:y+ form:return
 space /B2..B1/ev shaft X3+2600..X3+5200 Y2..Y2+5400 name:EV lease.category:common lift:1
 ```
 

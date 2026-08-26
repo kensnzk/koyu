@@ -23,7 +23,7 @@ npm install --save-dev tsx
 Put `"type": "module"` in `package.json`. For the building to read, drop in `house.muro` — the thirty lines from stage 6 of [the tutorial](index.md) will do exactly as they are.
 
 ```muro-part
-muro 1.5
+muro 1.6
 name 小さな家
 
 grid X 0 3600 5400
@@ -96,7 +96,7 @@ consistent
 
 ## Feeding it a broken file
 
-Drop one `edge:S` from a window in `house.muro` to make `broken.muro`, and hand it to the same program.
+Drop one `edge:y-` from a window in `house.muro` to make `broken.muro`, and hand it to the same program.
 
 ```sh
 npx tsx read.ts broken.muro
@@ -108,7 +108,7 @@ npx tsx read.ts broken.muro
   /L1/hall  hall  7.20 m2
   /L2/bed  bedroom  14.40 m2
   /L2/hall  hall  7.20 m2
-  error OPN05 line 29 — There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L2/bed | /out)
+  error OPN05 line 29 — There is more than one boundary segment; pick an edge with edge:y+/E/S/W (/L2/bed | /out)
 not consistent
 {
   type: 'ldk',

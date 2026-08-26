@@ -19,7 +19,7 @@ import { esc, Extent, INK, openSheet, r2 } from "./sheet.js";
 
 export interface AxoOptions {
   /** 見る向き — 建物のどの隅から見下ろすか (既定 SE) */
-  dir?: "NE" | "NW" | "SE" | "SW";
+  dir?: "x+y+" | "x-y+" | "x+y-" | "x-y-";
   /** px per mm (既定 0.02) */
   scale?: number;
   /** 描くレベル (既定すべて) */
@@ -56,7 +56,7 @@ const C = {
 /** 軸測図のSVG。ソースに形は無い — ここに出るものはすべて規則からの生成物である */
 export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   const scale = opts.scale ?? 0.02;
-  const dir = opts.dir ?? "SE";
+  const dir = opts.dir ?? "x+y-";
 
   // **形はすべて Form が持つ** (ADR-0040) — 壁の厚みも、開口で割られた区間も、
   // 柱の z 範囲も、段板の立体も。ここが決めるのは投影と陰影と紙面だけである
@@ -66,7 +66,7 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   );
 
   // 見る向き: 平面を90度ずつ回してから等角に落とす
-  const turn = { NE: 0, NW: 1, SW: 2, SE: 3 }[dir];
+  const turn = { "x+y+": 0, "x-y+": 1, "x-y-": 2, "x+y-": 3 }[dir];
   const rot = (p: Pt): Pt => {
     let { x, y } = p;
     for (let i = 0; i < turn; i++) [x, y] = [y, -x];

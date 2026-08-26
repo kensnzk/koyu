@@ -8,22 +8,22 @@ level L1 0 h:2800 slab:200
 space /L1/gallery room X1..X2 Y1..Y2 name:Opening-symbols
 space /outside exterior outside:1 name:Outside
 
-boundary /L1/gallery /outside t:200 edge:N
-  door w:900 at:0.18 hinge:W swing:a style:hinged name:north-hinged
-  door w:1200 at:0.50 hinge:W swing:a style:sliding name:north-sliding
+boundary /L1/gallery /outside t:200 edge:y+
+  door w:900 at:0.18 hinge:x- swing:a style:hinged name:north-hinged
+  door w:1200 at:0.50 hinge:x- swing:a style:sliding name:north-sliding
   window w:1650 h:1100 at:0.82 name:north-window
 
-boundary /L1/gallery /outside t:200 edge:E
-  door w:900 at:0.22 hinge:S swing:a style:hinged name:east-hinged
-  door w:1200 at:0.52 hinge:S swing:a style:sliding name:east-sliding
+boundary /L1/gallery /outside t:200 edge:x+
+  door w:900 at:0.22 hinge:y- swing:a style:hinged name:east-hinged
+  door w:1200 at:0.52 hinge:y- swing:a style:sliding name:east-sliding
   window w:1650 h:1100 at:0.82 name:east-window
 
-boundary /L1/gallery /outside t:200 edge:S
-  door w:900 at:0.18 hinge:E swing:a style:hinged name:south-hinged
-  door w:1200 at:0.50 hinge:E swing:a style:sliding name:south-sliding
+boundary /L1/gallery /outside t:200 edge:y-
+  door w:900 at:0.18 hinge:x+ swing:a style:hinged name:south-hinged
+  door w:1200 at:0.50 hinge:x+ swing:a style:sliding name:south-sliding
   window w:1650 h:1100 at:0.82 name:south-window
 
-boundary /L1/gallery /outside t:200 edge:W
-  door w:900 at:0.22 hinge:N swing:a style:hinged name:west-hinged
-  door w:1200 at:0.52 hinge:N swing:a style:sliding name:west-sliding
+boundary /L1/gallery /outside t:200 edge:x-
+  door w:900 at:0.22 hinge:y+ swing:a style:hinged name:west-hinged
+  door w:1200 at:0.52 hinge:y+ swing:a style:sliding name:west-sliding
   window w:1650 h:1100 at:0.82 name:west-window

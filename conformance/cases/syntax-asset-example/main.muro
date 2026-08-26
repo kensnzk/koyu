@@ -7,4 +7,4 @@ asset D1 door w:900 h:2100 style:hinged name:玄関ドア
 space /L1/a room X1..X2 Y1..Y2 name:室
 space /out name:外部 outside:1
 boundary /L1/a /out t:150
-  door D1 w:1200 edge:S name:大扉
+  door D1 w:1200 edge:y- name:大扉

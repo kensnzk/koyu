@@ -21,9 +21,9 @@
 違うのは形だけなので、**装置は空間の属性で宣言する**。ADR-0020 が `daylight:1` で作った形をそのまま使う。
 
 ```
-space /L1/st1 stair X4..X4+2800 Y4..Y5 name:階段1 stair:N form:return
-space /B1/ramp ramp X1..X4 Y1..Y1+7000 name:車路 ramp:E form:return slope:6
-space /L1/es escalator X6..X6+12000 Y5+2700..Y5+5300 escalator:E
+space /L1/st1 stair X4..X4+2800 Y4..Y5 name:階段1 stair:y+ form:return
+space /B1/ramp ramp X1..X4 Y1..Y1+7000 name:車路 ramp:x+ form:return slope:6
+space /L1/es escalator X6..X6+12000 Y5+2700..Y5+5300 escalator:x+
 space /L1/ev1 shaft X4+2800..X4+8000 Y4..Y5 name:EVバンク1 lift:1
 ```
 

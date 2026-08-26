@@ -187,7 +187,7 @@ SIT03 and SIT05 are [retired numbers](retired.md).
 | Code | severity | One line |
 |---|---|---|
 | [RUN01](run.md) | error | More than one vertical-circulation declaration on one space |
-| [RUN02](run.md) | error | The value must be a direction of travel, N/E/S/W |
+| [RUN02](run.md) | error | The value must be a direction of travel, x+/x-/y+/y- |
 | [RUN03](run.md) | error | The region is not a single rectangle, or the level is unknown |
 | [RUN05](run.md) | error | `form` is invalid, or the shape is not determined |
 
@@ -219,8 +219,8 @@ RUN04, RUN06, RUN07 and RUN08 are [retired numbers](retired.md).
 | [VER05](ver.md) | error | A koyu 1.0-or-earlier file writes exterior / void in the type position |
 | [VER06](ver.md) | error | The file declares a language version newer than this build reads |
 | [VER07](ver.md) | error | The file declares a version in which a key it writes is retired |
-| [VER08](ver.md) | error | A pre-1.5 file uses opening presentation introduced in muro 1.5 |
-| [VER09](ver.md#ver09) | error | A pre-1.5 file uses component assets or placement introduced in muro 1.5 |
+| [VER08](ver.md) | error | A pre-1.5 file uses opening presentation introduced in muro 1.6 |
+| [VER09](ver.md#ver09) | error | A pre-1.5 file uses component assets or placement introduced in muro 1.6 |
 
 ### SYN — syntax and composition
 

@@ -4,7 +4,7 @@ space /home/ldk   ldk  X1..X2 Y1..Y3 + X2..X3 Y1..Y2 level:L1 name:LDK floor:オ
 space /home/hall1 hall X2..X3 Y2..Y3 level:L1 name:玄関・階段
 
 boundary /home/ldk /home/hall1 t:120 spec:LGS
-  door SD1 edge:E hinge:S swing:b   # The asset operation selects the sliding plan symbol.
+  door SD1 edge:x+ hinge:y- swing:b   # The asset operation selects the sliding plan symbol.
 boundary /home/ldk /site/garden t:150 spec:EW
   window W1 at:X2 name:Full-height-window
 boundary /home/ldk /site/west t:150 spec:EW

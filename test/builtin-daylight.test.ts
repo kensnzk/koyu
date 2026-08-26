@@ -59,8 +59,8 @@ level L1 0 h:2400 slab:150
 space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
-  window w:${windowWidthMm} h:1000 edge:S
-  door w:900 edge:N`;
+  window w:${windowWidthMm} h:1000 edge:y-
+  door w:900 edge:y+`;
 }
 
 test("the daylight reference fixtures map to the new schematic rule identities", () => {
@@ -122,7 +122,7 @@ level L1 0 h:2400 slab:150
 space /out outside:1
 space /L1/a room X1..X2 Y1..Y2
 boundary /L1/a /out t:150
-  door w:900 edge:N`);
+  door w:900 edge:y+`);
   for (const ruleId of [DAYLIGHT_RATIO_RULE_ID.id, DAYLIGHT_UNKNOWN_RULE_ID.id]) {
     const run = noPopulation.rules.find((item) => item.rule.id === ruleId);
     assert.equal(run?.state, "not-applicable", ruleId);
@@ -163,10 +163,10 @@ space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:150
   window w:600
 boundary /L1/a /out t:150
-  window w:2400 h:1200 edge:S
-  door w:900 edge:N
+  window w:2400 h:1200 edge:y-
+  door w:900 edge:y+
 boundary /L1/b /out t:150
-  door w:900 edge:N`,
+  door w:900 edge:y+`,
   ];
 
   for (const source of sources) {

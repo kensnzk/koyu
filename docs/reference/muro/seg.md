@@ -33,7 +33,7 @@ Without `w`, parse stops there and then.
 Whether it can be placed is decided in the same order as for an opening — take the segments, narrow by `edge`, place nothing if there are none, place nothing if there are two or more and no side is chosen, place nothing if the width exceeds the segment length.
 
 ```text
-✖ There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)
+✖ There is more than one boundary segment; pick an edge with edge:y+/E/S/W (/L1/a | /out)
 ✖ The seg width 9000 exceeds the boundary segment length 3600
 ✖ The seg position Y1+1000 is on the wrong axis: a horizontal segment takes an X grid line
 ```
@@ -43,7 +43,7 @@ Whether it can be placed is decided in the same order as for an opening — take
 They replace the boundary's `spec` for that stretch alone.
 
 ```muro
-muro 1.5
+muro 1.6
 name 分節の書き方
 unit mm
 
@@ -55,12 +55,12 @@ space /L1/office office X1..X2 Y1..Y2 name:事務室
   area X1..X1+2000 Y1..Y2 name:土間 floor:モルタル
 space /out name:外部 outside:1
 
-boundary /L1/office /out t:180 spec:RC edge:S
+boundary /L1/office /out t:180 spec:RC edge:y-
   seg w:3000 at:X1+4000 spec:カーテンウォール fire:60
   window w:2400 h:2000 at:X1+4000 name:嵌め殺し
-boundary /L1/office /out t:180 spec:RC edge:N
-boundary /L1/office /out t:180 spec:RC edge:E
-boundary /L1/office /out t:180 spec:RC edge:W
+boundary /L1/office /out t:180 spec:RC edge:y+
+boundary /L1/office /out t:180 spec:RC edge:x+
+boundary /L1/office /out t:180 spec:RC edge:x-
   door w:900 h:2100 name:出入口
 ```
 

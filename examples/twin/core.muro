@@ -19,7 +19,7 @@ space /B2..R1/aevLs3 shaft X5+5600..X6 Y7+1800..Y7+4200 name:A棟低層EV南3 le
 space /B2..R1/aevHs1 shaft X6..X6+2800 Y7+1800..Y7+4200 name:A棟高層EV南1 lease.category:common lift:1
 space /B2..R1/aevHs2 shaft X6+2800..X6+5600 Y7+1800..Y7+4200 name:A棟高層EV南2 lease.category:common lift:1
 space /B2..R1/aevHs3 shaft X6+5600..X7 Y7+1800..Y7+4200 name:A棟高層EV南3 lease.category:common lift:1
-space /B2..L34/ast1 stair X4..X4+7000 Y7+1400..Y7+4200 name:A棟階段1 lease.category:common stair:E form:return
+space /B2..L34/ast1 stair X4..X4+7000 Y7+1400..Y7+4200 name:A棟階段1 lease.category:common stair:x+ form:return
 space /R1/ast1t service X4..X4+7000 Y7+1400..Y7+4200 name:階段1塔屋 lease.category:common
 space /B2..R1/aps1 shaft X4..X4+7000 Y7..Y7+1400 h:2800 name:A棟PS1 lease.category:common
 space /B2..R1/agomi service X4+7000..X5 Y7..Y7+4200 h:2800 name:A棟ごみ置場 lease.category:common
@@ -38,7 +38,7 @@ space /B2..R1/aevLn3 shaft X5+5600..X6 Y8..Y8+2400 name:A棟低層EV北3 lease.c
 space /B2..R1/aevHn1 shaft X6..X6+2800 Y8..Y8+2400 name:A棟高層EV北1 lease.category:common lift:1
 space /B2..R1/aevHn2 shaft X6+2800..X6+5600 Y8..Y8+2400 name:A棟高層EV北2 lease.category:common lift:1
 space /B2..R1/aevHn3 shaft X6+5600..X7 Y8..Y8+2400 name:A棟高層EV北3 lease.category:common lift:1
-space /B2..L34/ast2 stair X7..X7+7000 Y8..Y8+2800 name:A棟階段2 lease.category:common stair:E form:return
+space /B2..L34/ast2 stair X7..X7+7000 Y8..Y8+2800 name:A棟階段2 lease.category:common stair:x+ form:return
 space /R1/ast2t service X7..X7+7000 Y8..Y8+2800 name:階段2塔屋 lease.category:common
 space /B2..R1/aps2 shaft X7..X7+7000 Y8+2800..Y8+4200 h:2800 name:A棟PS2 lease.category:common
 space /B2..R1/autl service X7+7000..X8+4200 Y8..Y8+4200 h:2800 name:A棟湯沸・掃除 lease.category:common
@@ -97,8 +97,8 @@ space /B2..L18/bev2 shaft X16+2800..X16+5600 Y8+4200..Y8+6600 name:B棟客用EV2
 space /B2..L18/bev3 shaft X16+5600..X17 Y8+4200..Y8+6600 name:B棟客用EV3 lease.category:common lift:1
 space /B2..L18/bds2 shaft X17..X17+2800 Y8+4200..Y9 h:2800 name:B棟DS lease.category:common
 space /B2..L18/beps shaft X16..X17 Y8+6600..Y9 h:2800 name:B棟EPS lease.category:common
-space /B2..L18/bst1 stair X15+5600..X16 Y7+5600..Y8+4200 name:B棟階段1 lease.category:common stair:N form:return
-space /B2..L18/bst2 stair X17..X17+2800 Y7+5600..Y8+4200 name:B棟階段2 lease.category:common stair:N form:return
+space /B2..L18/bst1 stair X15+5600..X16 Y7+5600..Y8+4200 name:B棟階段1 lease.category:common stair:y+ form:return
+space /B2..L18/bst2 stair X17..X17+2800 Y7+5600..Y8+4200 name:B棟階段2 lease.category:common stair:y+ form:return
 space /B2..L18/bsv1 shaft X17+2800..X17+5600 Y8+4200..Y8+6600 name:B棟サービスEV1 lease.category:common lift:1
 space /B2..L18/bsv2 shaft X17+5600..X18 Y8+4200..Y8+6600 name:B棟サービスEV2 lease.category:common lift:1
 # サービスEVの乗場前室 — 客用ホールを通らずにリネン・配膳が回る
@@ -117,7 +117,7 @@ boundary /L5/bhall2 /L5/bev3 t:250 spec:RC
 boundary /L6..L18/bhall2 /L6..L18/bev1 t:250 spec:RC
 boundary /L6..L18/bhall2 /L6..L18/bev2 t:250 spec:RC
 boundary /L6..L18/bhall2 /L6..L18/bev3 t:250 spec:RC
-boundary /B1..L1/bhall1 /B1..L1/bst1 edge:W t:250 spec:RC
+boundary /B1..L1/bhall1 /B1..L1/bst1 edge:x- t:250 spec:RC
   door FD1 at:0.8 name:階段1防火戸
 boundary /L5/bhall2 /L5/bst1 t:250 spec:RC
   door FD1 at:0.8 name:階段1防火戸
@@ -137,9 +137,9 @@ boundary /L5/bhall2 /L5/bsrv t:180 spec:LGS
   door D1 at:0.7 name:サービス室
 boundary /L6..L18/bhall2 /L6..L18/bsrv t:180 spec:LGS
   door D1 at:0.7 name:サービス室
-boundary /L5/bslob /L5/bst2 edge:N t:250 spec:RC
+boundary /L5/bslob /L5/bst2 edge:y+ t:250 spec:RC
   door FD1 at:0.5 name:階段2からサービス
-boundary /L6..L18/bslob /L6..L18/bst2 edge:N t:250 spec:RC
+boundary /L6..L18/bslob /L6..L18/bst2 edge:y+ t:250 spec:RC
   door FD1 at:0.5 name:階段2からサービス
 boundary /L5/bslob /L5/bsv1 t:250 spec:RC
 boundary /L5/bslob /L5/bsv2 t:250 spec:RC
@@ -147,12 +147,12 @@ boundary /L6..L18/bslob /L6..L18/bsv1 t:250 spec:RC
 boundary /L6..L18/bslob /L6..L18/bsv2 t:250 spec:RC
 
 # B帯の外皮 — 塔の階では帯の北面が外周になる (基壇では内側なので基壇には書かない)
-boundary /M1..L18/blin /out edge:N t:250 spec:PC板
-boundary /M1..L18/blin /out edge:W t:250 spec:PC板
-boundary /M1..L18/beps /out edge:N t:250 spec:PC板
-boundary /M1..L18/bds2 /out edge:N t:250 spec:PC板
-boundary /M1..L18/bps /out edge:N t:250 spec:PC板
-boundary /M1..L18/blin2 /out edge:N t:250 spec:PC板
-boundary /L5..L18/blin2 /out edge:E t:250 spec:PC板
-boundary /B2..B1/blin2 /out edge:E t:700 spec:RC土圧壁
-boundary /L2..L4/blin2 /out edge:E t:300 spec:PC板
+boundary /M1..L18/blin /out edge:y+ t:250 spec:PC板
+boundary /M1..L18/blin /out edge:x- t:250 spec:PC板
+boundary /M1..L18/beps /out edge:y+ t:250 spec:PC板
+boundary /M1..L18/bds2 /out edge:y+ t:250 spec:PC板
+boundary /M1..L18/bps /out edge:y+ t:250 spec:PC板
+boundary /M1..L18/blin2 /out edge:y+ t:250 spec:PC板
+boundary /L5..L18/blin2 /out edge:x+ t:250 spec:PC板
+boundary /B2..B1/blin2 /out edge:x+ t:700 spec:RC土圧壁
+boundary /L2..L4/blin2 /out edge:x+ t:300 spec:PC板

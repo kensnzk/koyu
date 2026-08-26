@@ -22,50 +22,50 @@ space /L1/rolling-shutter room X7..X8 Y3..Y4 name:Rolling-shutter
 space /L1/overhead room X8..X9 Y3..Y4 name:Overhead
 space /outside exterior outside:1 name:Outside
 
-boundary /L1/hinged /outside t:200 edge:N
-  door w:1000 at:0.5 hinge:W swing:a style:hinged name:hinged
-boundary /L1/double /outside t:200 edge:N
-  door w:1800 at:0.5 hinge:W swing:a style:hinged-double name:double
-boundary /L1/unequal /outside t:200 edge:N
-  door w:1800 at:0.5 hinge:W swing:a style:hinged-unequal name:unequal
-boundary /L1/single-slide /outside t:200 edge:N
-  door w:1400 at:0.5 hinge:W swing:a style:sliding name:single-slide
-boundary /L1/double-slide /outside t:200 edge:N
-  door w:1800 at:0.5 hinge:W swing:a style:sliding-double name:double-slide
-boundary /L1/bypass /outside t:200 edge:N
-  door w:1800 at:0.5 hinge:W swing:a style:sliding-bypass name:bypass
-boundary /L1/auto-single /outside t:200 edge:N
-  door w:1400 at:0.5 hinge:W swing:a style:auto-single name:auto-single
-boundary /L1/auto-double /outside t:200 edge:N
-  door w:1800 at:0.5 hinge:W swing:a style:auto-double name:auto-double
-boundary /L1/entrance /outside t:200 edge:N
-  door w:1800 at:0.5 hinge:W swing:a style:entrance name:entrance
-boundary /L1/swing-gate /outside t:120 air:1 h:1200 edge:N
-  door w:1400 h:1200 at:0.5 hinge:W swing:a style:gate-hinged name:swing-gate
-boundary /L1/double-gate /outside t:120 air:1 h:1200 edge:N
-  door w:1800 h:1200 at:0.5 hinge:W swing:a style:gate-hinged-double name:double-gate
-boundary /L1/slide-gate /outside t:120 air:1 h:1200 edge:N
-  door w:1800 h:1200 at:0.5 hinge:W swing:a style:gate-sliding name:slide-gate
-boundary /L1/rolling-shutter /outside t:200 edge:N
-  door w:1800 h:2400 at:0.5 hinge:W swing:a style:rolling-shutter name:rolling-shutter
-boundary /L1/overhead /outside t:200 edge:N
-  door w:1800 h:2400 at:0.5 hinge:W swing:a style:overhead name:overhead
+boundary /L1/hinged /outside t:200 edge:y+
+  door w:1000 at:0.5 hinge:x- swing:a style:hinged name:hinged
+boundary /L1/double /outside t:200 edge:y+
+  door w:1800 at:0.5 hinge:x- swing:a style:hinged-double name:double
+boundary /L1/unequal /outside t:200 edge:y+
+  door w:1800 at:0.5 hinge:x- swing:a style:hinged-unequal name:unequal
+boundary /L1/single-slide /outside t:200 edge:y+
+  door w:1400 at:0.5 hinge:x- swing:a style:sliding name:single-slide
+boundary /L1/double-slide /outside t:200 edge:y+
+  door w:1800 at:0.5 hinge:x- swing:a style:sliding-double name:double-slide
+boundary /L1/bypass /outside t:200 edge:y+
+  door w:1800 at:0.5 hinge:x- swing:a style:sliding-bypass name:bypass
+boundary /L1/auto-single /outside t:200 edge:y+
+  door w:1400 at:0.5 hinge:x- swing:a style:auto-single name:auto-single
+boundary /L1/auto-double /outside t:200 edge:y+
+  door w:1800 at:0.5 hinge:x- swing:a style:auto-double name:auto-double
+boundary /L1/entrance /outside t:200 edge:y+
+  door w:1800 at:0.5 hinge:x- swing:a style:entrance name:entrance
+boundary /L1/swing-gate /outside t:120 air:1 h:1200 edge:y+
+  door w:1400 h:1200 at:0.5 hinge:x- swing:a style:gate-hinged name:swing-gate
+boundary /L1/double-gate /outside t:120 air:1 h:1200 edge:y+
+  door w:1800 h:1200 at:0.5 hinge:x- swing:a style:gate-hinged-double name:double-gate
+boundary /L1/slide-gate /outside t:120 air:1 h:1200 edge:y+
+  door w:1800 h:1200 at:0.5 hinge:x- swing:a style:gate-sliding name:slide-gate
+boundary /L1/rolling-shutter /outside t:200 edge:y+
+  door w:1800 h:2400 at:0.5 hinge:x- swing:a style:rolling-shutter name:rolling-shutter
+boundary /L1/overhead /outside t:200 edge:y+
+  door w:1800 h:2400 at:0.5 hinge:x- swing:a style:overhead name:overhead
 
-boundary /L1/hinged /outside edge:S
-boundary /L1/double /outside edge:S
-boundary /L1/unequal /outside edge:S
-boundary /L1/single-slide /outside edge:S
-boundary /L1/double-slide /outside edge:S
-boundary /L1/bypass /outside edge:S
-boundary /L1/auto-single /outside edge:S
-boundary /L1/auto-double /outside edge:S
-boundary /L1/entrance /outside edge:S
-boundary /L1/swing-gate /outside edge:S
-boundary /L1/double-gate /outside edge:S
-boundary /L1/slide-gate /outside edge:S
-boundary /L1/rolling-shutter /outside edge:S
-boundary /L1/overhead /outside edge:S
-boundary /L1/hinged /outside edge:W
-boundary /L1/bypass /outside edge:E
-boundary /L1/auto-single /outside edge:W
-boundary /L1/overhead /outside edge:E
+boundary /L1/hinged /outside edge:y-
+boundary /L1/double /outside edge:y-
+boundary /L1/unequal /outside edge:y-
+boundary /L1/single-slide /outside edge:y-
+boundary /L1/double-slide /outside edge:y-
+boundary /L1/bypass /outside edge:y-
+boundary /L1/auto-single /outside edge:y-
+boundary /L1/auto-double /outside edge:y-
+boundary /L1/entrance /outside edge:y-
+boundary /L1/swing-gate /outside edge:y-
+boundary /L1/double-gate /outside edge:y-
+boundary /L1/slide-gate /outside edge:y-
+boundary /L1/rolling-shutter /outside edge:y-
+boundary /L1/overhead /outside edge:y-
+boundary /L1/hinged /outside edge:x-
+boundary /L1/bypass /outside edge:x+
+boundary /L1/auto-single /outside edge:x-
+boundary /L1/overhead /outside edge:x+

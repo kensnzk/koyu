@@ -32,7 +32,7 @@ space /L1/hall hall X2..X3 Y1..Y2 name:玄関
 
 | Position | Meaning |
 |---|---|
-| 1st positional | The direction of division. `X` = west to east, `Y` = south to north. The same spelling as in `grid X 0 6400 …` |
+| 1st positional | The direction of division. `X` = in ascending X, `Y` = in ascending Y. The same spelling as in `grid X 0 6400 …` |
 | 2nd and 3rd positionals | The extent of the band: one `X?..X?` and one `Y?..Y?`, in either order, with the same lexis as a [space](space.md) region |
 
 **No `key:value` may be written on this line.** A band does not survive into the model, so there is nowhere for an attribute to live. Attributes go on the member `space` lines.
@@ -48,7 +48,7 @@ A `+` union cannot be written either. A band divides one rectangle in one direct
 On a space region, `X2..X1` is another spelling of the same rectangle and is normalized to ascending order. **On a band, a descending spelling is refused.** The order of the members carries meaning — the one written first lands on the low-coordinate side — so quietly normalizing the spelling would quietly reverse the order.
 
 ```text
-✖ b1.muro:line 4: A band range is written in ascending order (members run west to east / south to north): X3..X1
+✖ b1.muro:line 4: A band range is written in ascending order (members run in ascending X / in ascending Y): X3..X1
 ```
 
 ## Members

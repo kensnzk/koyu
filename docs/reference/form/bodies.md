@@ -132,9 +132,9 @@ The hinge is decided like this.
 
 | Segment | Hinge |
 |---|---|
-| horizontal | east end with `hinge:E`, west end otherwise |
-| vertical | north end with `hinge:N`, south end otherwise |
-| diagonal | **pinned to the start point.** `hinge`'s N/E/S/W are words about axes and do not apply to a diagonal |
+| horizontal | east end with `hinge:x+`, west end otherwise |
+| vertical | north end with `hinge:y+`, south end otherwise |
+| diagonal | **pinned to the start point.** `hinge`'s x+/x-/y+/y- are words about axes and do not apply to a diagonal |
 
 The trace is a quarter circle centred on the hinge with **radius equal to the opening width**, sweeping from the leaf tip (the opening width from the hinge, into the swing side) to the far jamb (the opening width from the hinge, along the segment). The sweep direction is the sign of the cross product of those two points about the hinge.
 

@@ -14,7 +14,7 @@
 
 ```
 space /L1/room room X1..X2 Y1..Y2       # 3000 × 6000 = 18.00㎡
-boundary /L1/room /out edge:W
+boundary /L1/room /out edge:x-
   line X1,Y1+2000 X1+2000,Y1            # 西南の隅を斜めに落とす
 ```
 

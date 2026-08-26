@@ -45,7 +45,7 @@ space /out outside:1
 boundary /L1/a /L1/b
 ${line}
   door w:900 at:0.25 name:D1
-boundary /L1/a /out edge:S
+boundary /L1/a /out edge:y-
 `;
   // 同じ二点を結ぶ線を、両方の端から書く
   sameForm(
@@ -64,7 +64,7 @@ space /out outside:1
 boundary /L1/a /L1/b
 ${line}
   door w:900 at:0.25 name:D1
-boundary /L1/a /out edge:S
+boundary /L1/a /out edge:y-
 `;
   const fwd = derive(parse(src("  line X1,Y1+2000 X2,Y1+4000"))).openings[0]!;
   const rev = derive(parse(src("  line X2,Y1+4000 X1,Y1+2000"))).openings[0]!;
@@ -85,7 +85,7 @@ space /L1/c room X3..X4 Y1..Y2
 space /out outside:1
 ${first}
 ${second}
-boundary /L1/a /out edge:S
+boundary /L1/a /out edge:y-
 `;
   // 二本の線は互いに交差し、切り分けの結果を読み合う — 順序が効く形である
   sameForm(src(ab, bc), src(bc, ab), "boundaries with lines declared in the other order");
@@ -98,7 +98,7 @@ space /L1/c room X3..X4 Y1..Y2
 space /out outside:1
 ${first}
 ${second}
-boundary /L1/a /out edge:S
+boundary /L1/a /out edge:y-
 `;
   const ab = `boundary /L1/a /L1/b\n  line X2,Y1 X3,Y2`;
   const bc = `boundary /L1/b /L1/c\n  line X3,Y1 X2,Y2`;
@@ -149,7 +149,7 @@ test("uniqueness: a derived boundary takes its a/b from the canonical order, not
 test("uniqueness: the written order of a region union does not move the form", () => {
   const src = (union: string) => `${BASE}space /L1/L room ${union}
 space /out outside:1
-boundary /L1/L /out edge:N
+boundary /L1/L /out edge:y+
 `;
   // The canonical form sorts `at` into canonical spelling order, discarding the written order of
   // `+`. That discarded order survived in the convex pieces, slabs and plan entities, so with two
@@ -171,14 +171,14 @@ boundary /L1/L /out edge:N
 test("uniqueness: which space is written first does not flip which side a line keeps", () => {
   const src = (bnd: string) => `${BASE}space /L1/room room X1..X2 Y1..Y2
 space /out outside:1
-boundary /L1/room /out edge:S
-boundary /L1/room /out edge:E
-boundary /L1/room /out edge:N
+boundary /L1/room /out edge:y-
+boundary /L1/room /out edge:x+
+boundary /L1/room /out edge:y+
 ${bnd}
   line X1,Y1+2000 X1+2000,Y1
 `;
-  const roomFirst = derive(parse(src("boundary /L1/room /out edge:W")));
-  const outFirst = derive(parse(src("boundary /out /L1/room edge:W")));
+  const roomFirst = derive(parse(src("boundary /L1/room /out edge:x-")));
+  const outFirst = derive(parse(src("boundary /out /L1/room edge:x-")));
   const area = (f: ReturnType<typeof derive>) =>
     Math.round((f.spaces.find((s) => s.path === "/L1/room")!.areaM2 ?? 0) * 100) / 100;
   // a/b の向きで結果が反転していた (別の格子での実測は 26.00㎡ ↔ 34.00㎡)。

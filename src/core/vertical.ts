@@ -132,8 +132,8 @@ export function runDecls(s: Space): RunDecl[] {
   return out;
 }
 
-const EDGES = new Set<string>(["N", "E", "S", "W"]);
-const OPPOSITE: Record<Edge, Edge> = { N: "S", S: "N", E: "W", W: "E" };
+const EDGES = new Set<string>(["y+", "x+", "y-", "x-"]);
+const OPPOSITE: Record<Edge, Edge> = { "y+": "y-", "y-": "y+", "x+": "x-", "x-": "x+" };
 
 // ---- 局所座標 (t = 進む向き / s = 進行方向の左からの距離) ----
 
@@ -143,13 +143,13 @@ const OPPOSITE: Record<Edge, Edge> = { N: "S", S: "N", E: "W", W: "E" };
  */
 export function toWorld(rect: Rect, up: Edge, t0: number, t1: number, s0: number, s1: number): Rect {
   switch (up) {
-    case "N":
+    case "y+":
       return { x1: rect.x1 + s0, x2: rect.x1 + s1, y1: rect.y1 + t0, y2: rect.y1 + t1 };
-    case "S":
+    case "y-":
       return { x1: rect.x2 - s1, x2: rect.x2 - s0, y1: rect.y2 - t1, y2: rect.y2 - t0 };
-    case "E":
+    case "x+":
       return { x1: rect.x1 + t0, x2: rect.x1 + t1, y1: rect.y2 - s1, y2: rect.y2 - s0 };
-    case "W":
+    case "x-":
       return { x1: rect.x2 - t1, x2: rect.x2 - t0, y1: rect.y1 + s0, y2: rect.y1 + s1 };
   }
 }
@@ -158,7 +158,7 @@ export function toWorld(rect: Rect, up: Edge, t0: number, t1: number, s0: number
 function extent(rect: Rect, up: Edge): { length: number; width: number } {
   const dx = rect.x2 - rect.x1;
   const dy = rect.y2 - rect.y1;
-  return up === "N" || up === "S" ? { length: dy, width: dx } : { length: dx, width: dy };
+  return up === "y+" || up === "y-" ? { length: dy, width: dx } : { length: dx, width: dy };
 }
 
 // ---- 導出 ----
@@ -192,7 +192,7 @@ export function verticalRun(
   const li = levels.findIndex((l) => l.name === s.level);
   if (li < 0) return undefined;
 
-  const up = device === "lift" ? "N" : (value as Edge);
+  const up = device === "lift" ? "y+" : (value as Edge);
   if (device !== "lift" && !EDGES.has(value)) return undefined;
   if (device === "lift" && value !== "1") return undefined;
 
@@ -413,13 +413,13 @@ export function slopeText(slope: number): string {
 /** 走りの局所座標 (t,s) を世界の点へ (toWorld の点版 — 向きが保たれる) */
 export function toPoint(rect: Rect, up: Edge, t: number, s: number): Pt {
   switch (up) {
-    case "N":
+    case "y+":
       return { x: rect.x1 + s, y: rect.y1 + t };
-    case "S":
+    case "y-":
       return { x: rect.x2 - s, y: rect.y2 - t };
-    case "E":
+    case "x+":
       return { x: rect.x1 + t, y: rect.y2 - s };
-    case "W":
+    case "x-":
       return { x: rect.x2 - t, y: rect.y1 + s };
   }
 }
@@ -779,7 +779,7 @@ export function runIssues(model: Model): RunIssue[] {
         message:
           device === "lift"
             ? `The value of lift is 1: lift:${value}`
-            : `The value of ${device} is the direction it rises, N/E/S/W: ${device}:${value}`,
+            : `The value of ${device} is the direction it rises, x+/x-/y+/y-: ${device}:${value}`,
         ...at,
       });
       continue;

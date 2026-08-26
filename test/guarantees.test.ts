@@ -53,8 +53,8 @@ test("canonical JSON: the declaration order of openings does not change the byte
 test("canonical JSON: the declaration order of boundaries on the same pair of spaces (differing edge) does not change the bytes either", () => {
   const src = (bounds: string) =>
     `${BASE}\nspace /L1/a room X2..X3 Y1..Y2\nspace /out outside:1\n${bounds}`;
-  const j1 = toCanonical(parse(src("boundary /L1/a /out edge:N t:100\nboundary /L1/a /out edge:S t:150")));
-  const j2 = toCanonical(parse(src("boundary /L1/a /out edge:S t:150\nboundary /L1/a /out edge:N t:100")));
+  const j1 = toCanonical(parse(src("boundary /L1/a /out edge:y+ t:100\nboundary /L1/a /out edge:y- t:150")));
+  const j2 = toCanonical(parse(src("boundary /L1/a /out edge:y- t:150\nboundary /L1/a /out edge:y+ t:100")));
   assert.equal(j1, j2);
 });
 
@@ -74,7 +74,7 @@ test("check: a duplicate boundary on the same pair of spaces is an error (a wall
 test("check: on the same pair of spaces a different edge is a different boundary (not an error)", () => {
   const r = check(
     parse(
-      `${BASE}\nspace /L1/a room X2..X3 Y1..Y2\nspace /out outside:1\nboundary /L1/a /out edge:N\nboundary /L1/a /out edge:S`,
+      `${BASE}\nspace /L1/a room X2..X3 Y1..Y2\nspace /out outside:1\nboundary /L1/a /out edge:y+\nboundary /L1/a /out edge:y-`,
     ),
   );
   assert.deepEqual(r.errors, []);
@@ -83,7 +83,7 @@ test("check: on the same pair of spaces a different edge is a different boundary
 test("check: a pair mixing edge-restricted and unrestricted boundaries is a warning (the segments overlap)", () => {
   const r = check(
     parse(
-      `${BASE}\nspace /L1/z room X1..X2 Y1..Y2\nspace /L1/n room X1..X2 Y2..Y3\nboundary /L1/z /L1/n\nboundary /L1/z /L1/n edge:N t:200`,
+      `${BASE}\nspace /L1/z room X1..X2 Y1..Y2\nspace /L1/n room X1..X2 Y2..Y3\nboundary /L1/z /L1/n\nboundary /L1/z /L1/n edge:y+ t:200`,
     ),
   );
   assert.deepEqual(r.errors, []);

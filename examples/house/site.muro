@@ -20,12 +20,12 @@ boundary /site/west /site/north type:open
 boundary /site/east /site/north type:open
 
 # ---- Site boundary: the gate uses an asset reference at an explicit position. ----
-boundary /site/garden /out/road edge:S t:120 spec:ブロック塀+フェンス air:1 h:1200
+boundary /site/garden /out/road edge:y- t:120 spec:ブロック塀+フェンス air:1 h:1200
   door GT1 at:X2 name:Gate   # The grid-based position is explicit; overshooting is an error.
-boundary /site/garden /out/w edge:W t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/garden /out/e edge:E t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/west /out/w edge:W t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/west /out/n edge:N t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/east /out/e edge:E t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/east /out/n edge:N t:120 spec:ブロック塀 air:1 h:1200
-boundary /site/north /out/n edge:N t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/garden /out/w edge:x- t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/garden /out/e edge:x+ t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/west /out/w edge:x- t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/west /out/n edge:y+ t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/east /out/e edge:x+ t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/east /out/n edge:y+ t:120 spec:ブロック塀 air:1 h:1200
+boundary /site/north /out/n edge:y+ t:120 spec:ブロック塀 air:1 h:1200

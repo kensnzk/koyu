@@ -59,7 +59,7 @@ test("the consistency check passes", () => {
 });
 
 test("a door on an exterior boundary is ambiguous without an edge, so it is an error", () => {
-  const m = parse(exampleSrc.replace("edge:S ", ""));
+  const m = parse(exampleSrc.replace("edge:y- ", ""));
   const r = check(m);
   assert.ok(r.errors.some((e) => e.includes("more than one boundary segment")));
 });
@@ -165,7 +165,7 @@ test("canonical JSON is stable", () => {
   const j2 = toCanonical(parse(exampleSrc));
   assert.equal(j1, j2);
   assert.ok(j1.includes('"between"'));
-  assert.ok(j1.includes('"muro": "1.5"'), "the version key names the language, whatever word the source used");
+  assert.ok(j1.includes('"muro": "1.6"'), "the version key names the language, whatever word the source used");
 });
 
 test("a plan SVG is generated", () => {

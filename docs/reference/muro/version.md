@@ -6,13 +6,13 @@ mode: reference
 # muro — the version line
 
 ```muro-part
-muro 1.5
+muro 1.6
 ```
 
 **One line declaring which version of the semantics this file is read under.** These are the accepted versions, and the order is the order of old to new.
 
 ```text
-0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3   1.4   1.5
+0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3   1.4   1.5   1.6
 ```
 
 **Omitted, the file is read as `1.1` — and always will be.** The reading of an undeclared file is frozen; it does not follow the newest version.
@@ -70,7 +70,7 @@ Exactly two tokens: the word and the version.
 | `muro 1.2` | accepted |
 | `muro` | `muro takes a version: muro 1.2` |
 | `muro 1.2 latest` | `Extra tokens on the muro version declaration: latest` |
-| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5)` |
+| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6)` |
 
 **It is declared in the base layer only, and only once.**
 
@@ -151,10 +151,10 @@ division. A processor implementing 1.4 rejects those styles and `panels:`, so a 
 cannot declare itself as 1.4.
 
 ```text
-A muro 1.4 file uses a 1.5 opening style: sliding-double on door (/L1/a | /out) — raise the version to muro 1.5
+A muro 1.4 file uses a 1.5 opening style: sliding-double on door (/L1/a | /out) — raise the version to muro 1.6
 ```
 
-**The fix**: raise the version to `muro 1.5`. The original `hinged`, `sliding` and `auto` values
+**The fix**: raise the version to `muro 1.6`. The original `hinged`, `sliding` and `auto` values
 remain valid under their earlier versions.
 
 ### VER09 — component assets and placement in a file declaring 1.4 or older
@@ -163,10 +163,10 @@ Muro 1.5 adds `component` assets and the area's `asset:`, X/Y alignment, X/Y off
 attributes. A processor implementing 1.4 cannot read that placement contract.
 
 ```text
-A muro 1.4 file declares a 1.5 component asset: WC — raise the version to muro 1.5
+A muro 1.4 file declares a 1.5 component asset: WC — raise the version to muro 1.6
 ```
 
-**The fix**: raise the version to `muro 1.5`.
+**The fix**: raise the version to `muro 1.6`.
 
 ## What the version covers
 

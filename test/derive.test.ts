@@ -42,12 +42,12 @@ const digest = (file: string): string =>
  * and ordering all affect these values.
  */
 const GOLDEN: Record<string, string> = {
-  "examples/two-rooms.muro": "642a6ecea5c4b05f",
-  "examples/office.muro": "7cf1f4c1fe0aa530",
-  "examples/house/main.muro": "2eaf9e454f0b1d91",
-  "examples/basement/main.muro": "ec6c647018cb1a14",
-  "examples/tower/main.muro": "f7e0e47145a555da",
-  "examples/complex/main.muro": "946a452b02bf4670",
+  "examples/two-rooms.muro": "2c5e83dff741982d",
+  "examples/office.muro": "bf576da70f00e9a9",
+  "examples/house/main.muro": "9ef24d4ba338fd68",
+  "examples/basement/main.muro": "59218b0ade72ad7e",
+  "examples/tower/main.muro": "da635b8160be13f6",
+  "examples/complex/main.muro": "fd2b7d42a0302c5e",
 };
 
 test("derive: the Form of every bundled example matches its golden", () => {
@@ -151,7 +151,7 @@ space /L1/b room X2..X3 Y1..Y2
 space /out outside:1
 boundary /L1/a /L1/b
   door w:900
-boundary /L1/a /out edge:W
+boundary /L1/a /out edge:x-
   window w:1600 h:1100
 `;
 

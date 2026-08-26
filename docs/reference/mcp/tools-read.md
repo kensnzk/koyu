@@ -175,7 +175,7 @@ Take these two files.
 
 ```muro-part
 # main.muro — entry
-muro 1.5
+muro 1.6
 name 二層
 unit mm
 
@@ -193,7 +193,7 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
 space /out name:外部 outside:1
 
 boundary /L1/b /out t:150
-  door w:900 h:2100 edge:S name:玄関
+  door w:900 h:2100 edge:y- name:玄関
 ```
 
 Calling it with `main.muro` as the entry gives this.
@@ -206,7 +206,7 @@ Calling it with `main.muro` as the entry gives this.
  },
  {
   "file": "<abs>/tiny/L1.muro",
-  "source": "# L1.muro\nspace /L1/a room X1..X2 Y1..Y2 name:居室A\nspace /L1/b room X2..X3 Y1..Y2 name:居室B\nspace /out name:外部 outside:1\n\nboundary /L1/b /out t:150\n  door w:900 h:2100 edge:S name:玄関\n"
+  "source": "# L1.muro\nspace /L1/a room X1..X2 Y1..Y2 name:居室A\nspace /L1/b room X2..X3 Y1..Y2 name:居室B\nspace /out name:外部 outside:1\n\nboundary /L1/b /out t:150\n  door w:900 h:2100 edge:y- name:玄関\n"
  }
 ]
 ```

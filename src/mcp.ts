@@ -218,8 +218,8 @@ const str = (v: unknown, name: string): string => {
  */
 const edge = (v: unknown, name: string): Edge => {
   const s = str(v, name);
-  if (s !== "N" && s !== "E" && s !== "S" && s !== "W") {
-    throw new Error(`${name} is one of N / E / S / W: ${s}`);
+  if (s !== "y+" && s !== "x+" && s !== "y-" && s !== "x-") {
+    throw new Error(`${name} is one of x+ / x- / y+ / y-: ${s}`);
   }
   return s;
 };
@@ -477,7 +477,7 @@ const TOOLS: Record<string, Tool> = {
         },
         look: {
           type: "string",
-          enum: ["N", "E", "S", "W"],
+          enum: ["y+", "x+", "y-", "x-"],
           description: "Direction of view. Must cross the plane: E or W for an X reference, N or S for a Y reference. Defaults to W and N",
         },
       },
@@ -510,8 +510,8 @@ const TOOLS: Record<string, Tool> = {
         ...FILE_PROP,
         face: {
           type: "string",
-          enum: ["N", "E", "S", "W"],
-          description: "The side the viewer stands on. S is the south elevation, seen from the south",
+          enum: ["y+", "x+", "y-", "x-"],
+          description: "The side the viewer stands on. y- is the face seen from the −Y side",
         },
       },
       required: ["file", "face"],

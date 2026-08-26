@@ -150,7 +150,7 @@ grid Y 0 6000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y2
-space /L2/s stair X1..X2 Y1..Y2 stair:N
+space /L2/s stair X1..X2 Y1..Y2 stair:y+
 space /out outside:1
 boundary /L1/a /out
 boundary /L2/s /out
@@ -173,7 +173,7 @@ level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 level R 6000 slab:300
 space /L1/a room X1..X2 Y1..Y2
-space /L2/s stair X1..X2 Y1..Y2 stair:N
+space /L2/s stair X1..X2 Y1..Y2 stair:y+
 space /out outside:1
 boundary /L1/a /out
 boundary /L2/s /out

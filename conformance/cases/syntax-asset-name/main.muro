@@ -6,6 +6,6 @@ level L1 0 h:2400 slab:150
 asset D1 door w:900 h:2100 name:片開き戸
 space /L1/a room X1..X2 Y1..Y2 name:室
 space /out name:外部 outside:1
-boundary /L1/a /out t:150 edge:S
+boundary /L1/a /out t:150 edge:y-
   door D1 at:0.25
   door D1 at:0.75

@@ -46,7 +46,7 @@ A window counts only when the other side of that boundary is **the exterior (`ex
 
 ```muro-part
 boundary /L1/a /out t:150 spec:EW
-  window w:2600 h:2200 edge:S name:Sliding-window
+  window w:2600 h:2200 edge:y- name:Sliding-window
 ```
 
 The attributes a window accepts are in [window](../reference/muro/window.md).
@@ -69,10 +69,10 @@ If the opening references a joinery asset, the `h:` may live on the asset ([asse
 
 ## 4. Pick the edge with `edge:` when the perimeter breaks into pieces
 
-A boundary with a space that has no region — `/out` and its like — is whatever is left of the room's perimeter after the parts touching other spaces are removed, and it usually falls on several sides. Say which with `edge:N/E/S/W`. N is +Y, S is −Y, E is +X, W is −X, read from the rectangle of the space **written first** on the boundary line.
+A boundary with a space that has no region — `/out` and its like — is whatever is left of the room's perimeter after the parts touching other spaces are removed, and it usually falls on several sides. Say which with `edge:y+/E/S/W`. N is +Y, S is −Y, E is +X, W is −X, read from the rectangle of the space **written first** on the boundary line.
 
 ```text
-✖ daylight-noedge.muro:line 17: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)
+✖ daylight-noedge.muro:line 17: There is more than one boundary segment; pick an edge with edge:y+/E/S/W (/L1/a | /out)
 ```
 
 ## Check it
@@ -80,7 +80,7 @@ A boundary with a space that has no region — `/out` and its like — is whatev
 Run `light`. Exit 0 if every room in scope passes, 1 if any falls short.
 
 ```muro
-muro 1.5
+muro 1.6
 name Daylight practice
 unit mm
 
@@ -96,10 +96,10 @@ space /out name:Outside outside:1
 boundary /L1/a /L1/b t:120
   door w:780 h:2000
 boundary /L1/a /out t:150 spec:EW
-  window w:2600 h:2200 edge:S name:Sliding-window
+  window w:2600 h:2200 edge:y- name:Sliding-window
 boundary /L1/b /out t:150 spec:EW
-  door w:900 h:2100 edge:S at:X2+900 name:Front-door
-  window w:2600 h:1100 edge:E name:High-window
+  door w:900 h:2100 edge:y- at:X2+900 name:Front-door
+  window w:2600 h:1100 edge:x+ name:High-window
 ```
 
 ```text
@@ -133,7 +133,7 @@ A window that faces a balcony, a terrace or a garden is discounted. **If a space
 A sliding window (2600×2200 = 5.72 m²) onto an open terrace counts in full.
 
 ```muro
-muro 1.5
+muro 1.6
 name Daylight through a terrace
 unit mm
 
@@ -148,7 +148,7 @@ space /out name:Outside outside:1
 
 boundary /L1/liv /L1/bal t:100 spec:Sash
   window w:2600 h:2200
-boundary /L1/bal /out edge:S t:120 spec:Balustrade air:1 h:1100
+boundary /L1/bal /out edge:y- t:120 spec:Balustrade air:1 h:1100
 boundary /L1/liv /out
 ```
 
@@ -159,7 +159,7 @@ boundary /L1/liv /out
 Put a balcony on the storey above, in the same position, and the terrace is under cover: 0.7 applies. **Neither the window nor the floor has changed.**
 
 ```muro
-muro 1.5
+muro 1.6
 name Daylight through a terrace
 unit mm
 
@@ -176,8 +176,8 @@ space /out name:Outside outside:1
 
 boundary /L1/liv /L1/bal t:100 spec:Sash
   window w:2600 h:2200
-boundary /L1/bal /out edge:S t:120 spec:Balustrade air:1 h:1100
-boundary /L2/bal /out edge:S t:120 spec:Balustrade air:1 h:1100
+boundary /L1/bal /out edge:y- t:120 spec:Balustrade air:1 h:1100
+boundary /L2/bal /out edge:y- t:120 spec:Balustrade air:1 h:1100
 boundary /L1/liv /out
 ```
 

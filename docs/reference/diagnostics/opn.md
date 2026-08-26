@@ -45,16 +45,16 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out outside:1
 boundary /L1/a /L1/b t:120
-  door w:800 hinge:E
+  door w:800 hinge:x+
 boundary /L1/a /out
 boundary /L1/b /out
 ```
 
-`hinge:E: a vertical segment takes N/S`
+`hinge:x+: a vertical segment takes N/S`
 
-**Cause** — `hinge` says which **end** the hinge is at. It only means something as a compass along the segment. The two rooms here sit east and west, so the edge they share is a **vertical segment running north–south**, whose ends are N and S.
+**Cause** — `hinge` says which **end** the hinge is at. It only means something as an axis along the segment. The two rooms here sit east and west, so the edge they share is a **vertical segment running north–south**, whose ends are N and S.
 
-**Fix** — for a vertical segment (running north–south) use `hinge:N` or `hinge:S`; for a horizontal one (running east–west) use `hinge:W` or `hinge:E`. Omitted, it takes the starting end of the segment.
+**Fix** — for a vertical segment (running north–south) use `hinge:y+` or `hinge:y-`; for a horizontal one (running east–west) use `hinge:x-` or `hinge:x+`. Omitted, it takes the starting end of the segment.
 
 ## OPN02 — the openings overlap {#opn02}
 
@@ -119,7 +119,7 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out outside:1
 boundary /L1/a /L1/b t:120
-  door w:800 edge:N
+  door w:800 edge:y+
 boundary /L1/a /out
 boundary /L1/b /out
 ```
@@ -128,7 +128,7 @@ boundary /L1/b /out
 
 **Cause** — there is no segment where the opening's `edge:` narrowed to. The two rooms here sit east and west, so their shared edge is on E (seen from the a side) and there is nothing on N. The same code also appears when the boundary itself has no segment — **arriving together with [BND04](bnd.md#bnd04) / [BND06](bnd.md#bnd06)**.
 
-**Fix** — correct the compass of `edge:`. It is read **from the rectangle of the space written first**: **N=+Y, S=−Y, E=+X, W=−X**. X is east-positive and Y is north-positive. On a boundary with only one segment, `edge:` is unnecessary.
+**Fix** — correct the face named by `edge:`. It is read **from the rectangle of the space written first**: **`y+`=+Y, `y-`=−Y, `x+`=+X, `x-`=−X**. X is east-positive and Y is north-positive. On a boundary with only one segment, `edge:` is unnecessary.
 
 ## OPN05 — there is more than one boundary segment {#opn05}
 
@@ -146,11 +146,11 @@ boundary /L1/a /out t:150
 boundary /L1/b /out t:150
 ```
 
-`There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)`
+`There is more than one boundary segment; pick an edge with edge:y+/E/S/W (/L1/a | /out)`
 
 **Cause** — a boundary with the outside (`/out` and other spaces with no region) is **all that remains** of the room's perimeter not touching another room, and it usually splits across several edges. Where on that boundary the door goes is not settled. You may as well remember it as: **placing an opening on an external wall always needs `edge:`**.
 
-**Fix** — select the side with `edge:`. The compass is read **from the rectangle of the space written first (here `/L1/a`): N=+Y, S=−Y, E=+X, W=−X**. To put the entrance on the south, `door w:900 edge:S`.
+**Fix** — select the side with `edge:`. The face is read **from the rectangle of the space written first (here `/L1/a`): `y+`=+Y, `y-`=−Y, `x+`=+X, `x-`=−X**. To put the entrance on the −Y face, `door w:900 edge:y-`.
 
 **Note** — the same happens between two interior rooms when an L-shaped space splits their shared edge in two. Faced with ambiguity, this check **refuses rather than guesses**.
 
@@ -232,7 +232,7 @@ boundary /L1/b /out
 `error`
 
 ```muro-bad
-muro 1.5
+muro 1.6
 grid X 0 4000 8000
 grid Y 0 4000
 level L1 0 h:2600 slab:150
@@ -262,17 +262,17 @@ declaration and is not reported again on every instance that inherits it.
 `error`
 
 ```muro-bad
-muro 1.5
+muro 1.6
 grid X 0 4000
 grid Y 0 4000
 level L1 0 h:2600 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /out outside:1
-boundary /L1/a /out edge:N
+boundary /L1/a /out edge:y+
   window w:3200 h:2400 style:curtain-wall panels:2.5
-boundary /L1/a /out edge:S
-boundary /L1/a /out edge:E
-boundary /L1/a /out edge:W
+boundary /L1/a /out edge:y-
+boundary /L1/a /out edge:x+
+boundary /L1/a /out edge:x-
 ```
 
 `panels on a curtain wall is a positive whole number: panels:2.5`

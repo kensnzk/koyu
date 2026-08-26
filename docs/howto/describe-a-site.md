@@ -52,10 +52,10 @@ space /site/north yard X1..X2 Y2..Y2+3000 level:L1 name:North-path
 **Skip this step and the garden counts as building footprint.** Gardens and paths are spaces with regions whose type is not `exterior`. A space is judged outdoor **only when it has an `open` or `air:1` boundary to the exterior**, and that is derived, not declared. Walls and fences are written with `air:1`.
 
 ```muro-part
-boundary /site/garden /out/road edge:S t:120 spec:Block-wall air:1 h:1200
+boundary /site/garden /out/road edge:y- t:120 spec:Block-wall air:1 h:1200
   door w:900 name:Gate
-boundary /site/garden /out/w edge:W t:120 spec:Block-wall air:1 h:1200
-boundary /site/west /out/n edge:N t:120 spec:Block-wall air:1 h:1200
+boundary /site/garden /out/w edge:x- t:120 spec:Block-wall air:1 h:1200
+boundary /site/west /out/n edge:y+ t:120 spec:Block-wall air:1 h:1200
 ```
 
 No default boundary is derived against a space that has no region, which is what the `exterior` spaces under `/out` usually are. **Which piece of outside you face is information, and information is named**, so write one line per perimeter space. Where the perimeter breaks into several sides, pick one with `edge:` — `N`=+Y, `S`=−Y, `E`=+X, `W`=−X.
@@ -80,7 +80,7 @@ Keep the polygon in a layer of its own. That keeps given geometry from mixing wi
 ## Check it
 
 ```muro
-muro 1.5
+muro 1.6
 name A house with its site
 unit mm
 
@@ -114,15 +114,15 @@ boundary /site/west /site/north type:open
 boundary /site/east /site/north type:open
 
 # The site boundary — a wall that is solid but does not enclose air is air:1
-boundary /site/garden /out/road edge:S t:120 spec:Block-wall air:1 h:1200
+boundary /site/garden /out/road edge:y- t:120 spec:Block-wall air:1 h:1200
   door w:900 name:Gate
-boundary /site/garden /out/w edge:W t:120 spec:Block-wall air:1 h:1200
-boundary /site/garden /out/e edge:E t:120 spec:Block-wall air:1 h:1200
-boundary /site/west /out/w edge:W t:120 spec:Block-wall air:1 h:1200
-boundary /site/west /out/n edge:N t:120 spec:Block-wall air:1 h:1200
-boundary /site/east /out/e edge:E t:120 spec:Block-wall air:1 h:1200
-boundary /site/east /out/n edge:N t:120 spec:Block-wall air:1 h:1200
-boundary /site/north /out/n edge:N t:120 spec:Block-wall air:1 h:1200
+boundary /site/garden /out/w edge:x- t:120 spec:Block-wall air:1 h:1200
+boundary /site/garden /out/e edge:x+ t:120 spec:Block-wall air:1 h:1200
+boundary /site/west /out/w edge:x- t:120 spec:Block-wall air:1 h:1200
+boundary /site/west /out/n edge:y+ t:120 spec:Block-wall air:1 h:1200
+boundary /site/east /out/e edge:x+ t:120 spec:Block-wall air:1 h:1200
+boundary /site/east /out/n edge:y+ t:120 spec:Block-wall air:1 h:1200
+boundary /site/north /out/n edge:y+ t:120 spec:Block-wall air:1 h:1200
 
 polygon /site -2000,-3000 9000,-3000 9000,11000 -2000,11000
 ```

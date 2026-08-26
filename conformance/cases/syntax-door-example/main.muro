@@ -13,9 +13,9 @@ space /L1/b room X2..X3 Y1..Y2 name:居室B
 space /out name:外部 outside:1
 
 boundary /L1/a /L1/b t:120 spec:LGS
-  door SD1 hinge:N swing:b
+  door SD1 hinge:y+ swing:b
 
 boundary /L1/a /out t:150 spec:EW
-  door w:900 h:2100 edge:S at:X1+1200 name:勝手口 hinge:W
+  door w:900 h:2100 edge:y- at:X1+1200 name:勝手口 hinge:x-
 boundary /L1/b /out t:150 spec:EW
-  door w:1200 h:2100 edge:S at:0.4 style:auto name:玄関
+  door w:1200 h:2100 edge:y- at:0.4 style:auto name:玄関

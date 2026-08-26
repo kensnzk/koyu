@@ -110,11 +110,11 @@ export interface LineFormSection {
 
 /** The direction of view as a unit vector in plan. */
 function look(edge: Edge): Pt {
-  return edge === "N"
+  return edge === "y+"
     ? { x: 0, y: 1 }
-    : edge === "S"
+    : edge === "y-"
       ? { x: 0, y: -1 }
-      : edge === "E"
+      : edge === "x+"
         ? { x: 1, y: 0 }
         : { x: -1, y: 0 };
 }
@@ -126,7 +126,7 @@ function look(edge: Edge): Pt {
  * than answered — the same treatment `svgPlan` gives a level that was never declared.
  */
 export function axisOf(edge: Edge): SectionAxis {
-  return edge === "E" || edge === "W" ? "X" : "Y";
+  return edge === "x+" || edge === "x-" ? "X" : "Y";
 }
 
 /**
@@ -137,7 +137,7 @@ export function axisOf(edge: Edge): SectionAxis {
  * reversed. Looking the other way mirrors the sheet, which is why it has to be asked for.
  */
 export function defaultLook(axis: SectionAxis): Edge {
-  return axis === "X" ? "W" : "N";
+  return axis === "X" ? "x-" : "y+";
 }
 
 /**
@@ -384,7 +384,7 @@ export function sectionForm(form: Form, spec: SectionSpec | LineSectionSpec): Fo
  */
 export function elevationForm(form: Form, face: Edge): FormSection {
   // Standing to the south means looking north.
-  const from: Edge = face === "N" ? "S" : face === "S" ? "N" : face === "E" ? "W" : "E";
+  const from: Edge = face === "y+" ? "y-" : face === "y-" ? "y+" : face === "x+" ? "x-" : "x+";
   const axis = axisOf(from);
   const d = look(from);
   const bodies = cuttableBodies(form);

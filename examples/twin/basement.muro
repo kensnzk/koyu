@@ -8,7 +8,7 @@
 
 space /B2..B1/park parking X2..X4 Y4..Y12 + X10..X11 Y4..Y12 + X4..X10 Y4..Y7 + X4..X10 Y8+4200..Y12 name:駐車場西
 space /B2..B1/parkE parking X11..X16 Y4..Y7 + X14..X16 Y7..Y7+2400 + X16..X17 Y7..Y7+2400 + X16..X17 Y4..Y7 + X11..X14 Y7..Y12 + X14..X16 Y9..Y11 name:駐車場東
-space /B2..B1/ramp parking X16..X19 Y9..Y10 name:車路 ramp:E
+space /B2..B1/ramp parking X16..X19 Y9..Y10 name:車路 ramp:x+
 space /B2..B1/mech service X17..X19 Y4..Y7 name:熱源機械室 lease.category:common
 space /B2..B1/elec service X17..X19 Y7..Y7+5600 + X17+2800..X19 Y7+5600..Y8+4200 name:受変電・発電機 lease.category:common
 space /B2..B1/mon service X14..X16 Y7+2400..Y7+5600 + X14..X15+5600 Y7+5600..Y8+4200 name:中央監視・MDF lease.category:common
@@ -19,17 +19,17 @@ space /B2..B1/store backyard X14..X19 Y11..Y12 + X16..X17 Y10..Y11 name:倉庫�
 boundary /B2..B1/park /B2..B1/parkE type:open
 boundary /B2..B1/parkE /B2..B1/ramp t:300 spec:RC
   door VG1 name:車路ゲート
-boundary /B2..B1/mon /B2..B1/parkE edge:S t:250 spec:RC
+boundary /B2..B1/mon /B2..B1/parkE edge:y- t:250 spec:RC
   door FD1 at:0.3 name:中央監視へ
-boundary /B2..B1/mech /B2..B1/parkE edge:W t:250 spec:RC
+boundary /B2..B1/mech /B2..B1/parkE edge:x- t:250 spec:RC
   door FD1 at:0.42 name:熱源機械室へ
-boundary /B2..B1/elec /B2..B1/parkE edge:W t:250 spec:RC
+boundary /B2..B1/elec /B2..B1/parkE edge:x- t:250 spec:RC
   door FD1 at:0.7 name:受変電へ
-boundary /B2..B1/store /B2..B1/gomi edge:S t:180 spec:LGS
+boundary /B2..B1/store /B2..B1/gomi edge:y- t:180 spec:LGS
   door FD2 at:0.2
 boundary /B2..B1/gomi /B2..B1/ramp t:300 spec:RC
   door FD2 at:0.3 name:ごみ搬出
-boundary /B2..B1/store /B2..B1/parkE edge:S t:250 spec:RC
+boundary /B2..B1/store /B2..B1/parkE edge:y- t:250 spec:RC
   door FD2 at:0.3 name:倉庫へ
 boundary /B2/bhpit /B2/bst2 t:250 spec:RC
   door FD1 at:0.7 name:ピット点検
@@ -37,21 +37,21 @@ boundary /B2/bhpit /B2/bst2 t:250 spec:RC
 # コアへ
 boundary /B2..B1/ahall /B2..B1/park type:open
 boundary /B1/bhall1 /B1/parkE type:open
-boundary /B2..B1/bst1 /B2..B1/mon edge:S t:250 spec:RC
+boundary /B2..B1/bst1 /B2..B1/mon edge:y- t:250 spec:RC
   door FD1 name:階段1から監視室
 boundary /B2/bhpit /B2/parkE t:250 spec:RC
   door FD1 at:0.3 name:ピットから駐車場
 
 # 土圧壁
-boundary /B2..B1/park /out edge:W t:700 spec:RC土圧壁
-boundary /B2..B1/park /out edge:S t:700 spec:RC土圧壁
-boundary /B2..B1/park /out edge:N t:700 spec:RC土圧壁
-boundary /B2..B1/parkE /out edge:S t:700 spec:RC土圧壁
-boundary /B2..B1/parkE /out edge:N t:700 spec:RC土圧壁
-boundary /B2..B1/mech /out edge:S t:700 spec:RC土圧壁
-boundary /B2..B1/mech /out edge:E t:700 spec:RC土圧壁
-boundary /B2..B1/elec /out edge:E t:700 spec:RC土圧壁
-boundary /B2..B1/ramp /out edge:E t:700 spec:RC土圧壁
-boundary /B2..B1/gomi /out edge:E t:700 spec:RC土圧壁
-boundary /B2..B1/store /out edge:E t:700 spec:RC土圧壁
-boundary /B2..B1/store /out edge:N t:700 spec:RC土圧壁
+boundary /B2..B1/park /out edge:x- t:700 spec:RC土圧壁
+boundary /B2..B1/park /out edge:y- t:700 spec:RC土圧壁
+boundary /B2..B1/park /out edge:y+ t:700 spec:RC土圧壁
+boundary /B2..B1/parkE /out edge:y- t:700 spec:RC土圧壁
+boundary /B2..B1/parkE /out edge:y+ t:700 spec:RC土圧壁
+boundary /B2..B1/mech /out edge:y- t:700 spec:RC土圧壁
+boundary /B2..B1/mech /out edge:x+ t:700 spec:RC土圧壁
+boundary /B2..B1/elec /out edge:x+ t:700 spec:RC土圧壁
+boundary /B2..B1/ramp /out edge:x+ t:700 spec:RC土圧壁
+boundary /B2..B1/gomi /out edge:x+ t:700 spec:RC土圧壁
+boundary /B2..B1/store /out edge:x+ t:700 spec:RC土圧壁
+boundary /B2..B1/store /out edge:y+ t:700 spec:RC土圧壁

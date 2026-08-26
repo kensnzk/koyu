@@ -26,7 +26,7 @@ Between two spaces whose plans overlap there is a **floor**, whether or not you 
 A vertical relation is a relation between two spaces, so **both ends have to exist**. A stair needs a stair space on every storey it serves; a shaft needs a shaft space on every storey it passes.
 
 ```muro-part
-space /L1..L3/st stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:N form:return
+space /L1..L3/st stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:y+ form:return
 space /L1..L3/ev shaft X3..X4 Y1..Y2 name:Lift  lease.category:common lift:1
 ```
 
@@ -40,9 +40,9 @@ Riser count, riser height, tread and slope appear **nowhere in the source**. You
 
 | Attribute | Meaning |
 |---|---|
-| `stair:N/E/S/W` | a stair, and the direction of climb (N=+Y, S=−Y, E=+X, W=−X) |
-| `ramp:N/E/S/W` | a ramp |
-| `escalator:N/E/S/W` | an escalator |
+| `stair:x+/x-/y+/y-` | a stair, and the axis it climbs along |
+| `ramp:y+/E/S/W` | a ramp |
+| `escalator:y+/E/S/W` | an escalator |
 | `lift:1` | a lift (no going) |
 | `form:return` / `form:straight` | scissor/return flights, or one straight flight |
 | `slope:` | declares the **maximum** gradient; used by validation |
@@ -76,7 +76,7 @@ A relation that spans storeys belongs to no storey's layer. Put it in the base l
 ## Check it
 
 ```muro
-muro 1.5
+muro 1.6
 name Connecting storeys
 unit mm
 
@@ -90,7 +90,7 @@ level R 12600 slab:600
 
 space /out name:Outside outside:1
 
-space /L1..L3/st   stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:N form:return
+space /L1..L3/st   stair X2..X3 Y1..Y2 name:Stair lease.category:common stair:y+ form:return
 space /L1..L3/ev   shaft X3..X4 Y1..Y2 name:Lift lease.category:common lift:1
 space /L1..L3/hall hall  X2..X4 Y2..Y3 name:Lift-lobby lease.category:common
 
@@ -104,23 +104,23 @@ boundary /L1..L3/st /L1..L3/ev t:200 spec:RC
 
 boundary /L1/lobby /L1/st t:200 spec:RC
 boundary /L1/lobby /L1/hall type:open
-boundary /L1/lobby /out edge:W t:200 spec:CW
+boundary /L1/lobby /out edge:x- t:200 spec:CW
   door w:1800 name:Front-entrance
-boundary /L1/lobby /out edge:N t:200 spec:CW
-boundary /L1/lobby /out edge:S t:200 spec:CW
+boundary /L1/lobby /out edge:y+ t:200 spec:CW
+boundary /L1/lobby /out edge:y- t:200 spec:CW
 
 boundary /L2..L3/office /L2..L3/st t:200 spec:RC
 boundary /L2..L3/office /L2..L3/hall t:200 spec:RC
   door w:1600 name:Tenancy-entrance
-boundary /L2..L3/office /out edge:W t:200 spec:CW
-boundary /L2..L3/office /out edge:N t:200 spec:CW
-boundary /L2..L3/office /out edge:S t:200 spec:CW
+boundary /L2..L3/office /out edge:x- t:200 spec:CW
+boundary /L2..L3/office /out edge:y+ t:200 spec:CW
+boundary /L2..L3/office /out edge:y- t:200 spec:CW
 
-boundary /L1..L3/st /out edge:S t:200 spec:RC
-boundary /L1..L3/ev /out edge:S t:200 spec:RC
-boundary /L1..L3/ev /out edge:E t:200 spec:RC
-boundary /L1..L3/hall /out edge:N t:200 spec:RC
-boundary /L1..L3/hall /out edge:E t:200 spec:RC
+boundary /L1..L3/st /out edge:y- t:200 spec:RC
+boundary /L1..L3/ev /out edge:y- t:200 spec:RC
+boundary /L1..L3/ev /out edge:x+ t:200 spec:RC
+boundary /L1..L3/hall /out edge:y+ t:200 spec:RC
+boundary /L1..L3/hall /out edge:x+ t:200 spec:RC
 
 stack st L1..L3 type:stair
 stack ev L1..L3 type:shaft

@@ -348,9 +348,9 @@ grid Y 0 4000
 level L1 0 h:2700 slab:150
 space /out outside:1
 space /L1/a room X1..X2 Y1..Y2
-boundary /L1/a /out edge:N
+boundary /L1/a /out edge:y+
   door w:900 at:0.5
-boundary /L1/a /out edge:S
+boundary /L1/a /out edge:y-
   door w:900 at:0.5`;
   const value = collisionValue(source);
   assert.equal(value.doors.length, 2);

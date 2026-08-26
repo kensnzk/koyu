@@ -49,7 +49,7 @@
       "a": "/L1/living",
       "kind": "wall",
       "t": 120,
-      "edge": "S",
+      "edge": "y-",
       "openings": [
         {
           "kind": "window",

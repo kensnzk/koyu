@@ -162,8 +162,8 @@ space /L1/a room X1..X3 Y1..Y2 ceiling:none
 zone /L1 name:一階 areaa:100
 space /out outside:1
 boundary /L1/a /out t:150 h:tall
-  window w:1200 h:1100 edge:S at:0.5 styl:sliding
-  seg w:900 edge:N at:0.5 sond:D45
+  window w:1200 h:1100 edge:y- at:0.5 styl:sliding
+  seg w:900 edge:y+ at:0.5 sond:D45
 column 600 L1 spek:RC
 ```
 

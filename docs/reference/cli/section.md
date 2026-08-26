@@ -12,7 +12,7 @@ The command names axis-parallel cuts because its input is a muro grid reference.
 ## Arguments
 
 ```text
-koyu section <entry.muro> --at <X3|X3+450|Y2-600> [--look N|E|S|W] [-s <scale>] [-o <out.svg>]
+koyu section <entry.muro> --at <X3|X3+450|Y2-600> [--look y+|E|S|W] [-s <scale>] [-o <out.svg>]
 ```
 
 Takes one entry path and one cutting plane. The drawing goes to a file; stdout gets one line naming where it went.
@@ -65,7 +65,7 @@ npx tsx src/cli.ts section examples/house/main.muro
 ```
 
 ```text
-Usage: koyu section <file.muro> --at <X3|X3+450|Y2-600> [--look N|E|S|W] [-s <scale>] [-o <out.svg>]
+Usage: koyu section <file.muro> --at <X3|X3+450|Y2-600> [--look y+|E|S|W] [-s <scale>] [-o <out.svg>]
 ```
 
 ```sh
@@ -77,11 +77,11 @@ Undefined grid reference: X9 (declared: X1 X2 X3 Y1 Y2 Y3)
 ```
 
 ```sh
-npx tsx src/cli.ts section examples/house/main.muro --at X2 --look N
+npx tsx src/cli.ts section examples/house/main.muro --at X2 --look y+
 ```
 
 ```text
---look N runs along X2 rather than across it (an X reference is looked at from E or W, a Y reference from N or S)
+--look y+ runs along X2 rather than across it (an X reference is looked at from E or W, a Y reference from N or S)
 ```
 
 ## Exit codes

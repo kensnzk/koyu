@@ -19,7 +19,7 @@ koyu は平面図をSVGで吐く。生成して、見て、直す — この輪�
 ```sh
 koyu axo examples/complex/main.muro -o out/axo.svg
 koyu axo examples/complex/main.muro -l B2..L6 --no-walls   # 壁を落として中を見る
-koyu axo examples/complex/main.muro -d NW                  # 別の隅から
+koyu axo examples/complex/main.muro -d x-y+                  # 別の隅から
 ```
 
 **2. 実行時依存は増やさない。**

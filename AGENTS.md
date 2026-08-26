@@ -51,7 +51,7 @@ npx tsx src/cli.ts check bad.muro --strict                  # warnings also exit
 npx tsx src/cli.ts plan  examples/office.muro -l L2 -o out/office-L2.svg
 npx tsx src/cli.ts axo   examples/complex/main.muro -o out/axo.svg   # solids come out as SVG too
 npx tsx src/cli.ts section examples/house/main.muro --at X2+900          # the cut is named by a grid line, never by a coordinate
-npx tsx src/cli.ts elevation examples/house/main.muro --face S
+npx tsx src/cli.ts elevation examples/house/main.muro --face y-
 npx tsx src/cli.ts doors examples/mansion.muro /L9/A/ldk /out
 npx tsx src/cli.ts json  examples/two-rooms.muro            # canonical JSON
 ```
@@ -145,7 +145,7 @@ Publishing needs no token: npm Trusted Publishing (OIDC) trusts `publish.yml` it
 
 The human-facing output of `check` carries no diagnostic codes. Add `--json` and the codes appear. To go from a code to the cause and the fix, use [docs/reference/diagnostics/](docs/reference/diagnostics/index.md) — every code has a section in its family page carrying its severity and how to fix it. To go from a symptom, use [docs/howto/by-symptom.md](docs/howto/by-symptom.md).
 
-There are three traps people hit often. `grid` and `level` have no effect unless declared **before** use (`boundary` may forward-reference). To divide a space into a plan, make the parent a `zone` rather than a `space`. An opening onto the outside has several boundary segments, so select the edge with `edge:N/E/S/W` (N=+Y, S=-Y, E=+X, W=-X). Details are in [docs/howto/troubleshooting.md](docs/howto/troubleshooting.md).
+There are three traps people hit often. `grid` and `level` have no effect unless declared **before** use (`boundary` may forward-reference). To divide a space into a plan, make the parent a `zone` rather than a `space`. An opening onto the outside has several boundary segments, so select the edge with `edge:y+/E/S/W` (N=+Y, S=-Y, E=+X, W=-X). Details are in [docs/howto/troubleshooting.md](docs/howto/troubleshooting.md).
 
 ## If you do not know the notation itself
 

@@ -10,9 +10,9 @@ Riser counts, treads, landings and slopes are never written in `.muro`. **What i
 The declaration is an attribute on a space. **The key names the device and the value gives the direction of ascent.**
 
 ```muro-part
-space /L1/st  stair      X1..X2 Y1..Y2 name:階段 stair:N form:return turn:R
-space /L1/rmp ramp       X2..X3 Y1..Y2 name:斜路 ramp:E slope:8
-space /L1/es  escalator  X3..X4 Y1..Y2 name:エスカレーター escalator:N lane:1200
+space /L1/st  stair      X1..X2 Y1..Y2 name:階段 stair:y+ form:return turn:R
+space /L1/rmp ramp       X2..X3 Y1..Y2 name:斜路 ramp:x+ slope:8
+space /L1/es  escalator  X3..X4 Y1..Y2 name:エスカレーター escalator:y+ lane:1200
 space /L1/ev  shaft      X4..X5 Y1..Y2 name:昇降機 lift:1
 ```
 
@@ -23,12 +23,12 @@ space /L1/ev  shaft      X4..X5 Y1..Y2 name:昇降機 lift:1
 | `escalator:` | Direction of ascent, `N` / `E` / `S` / `W` |
 | `lift:` | `1` (a lift has no direction) |
 
-`N` is +Y, `S` is −Y, `E` is +X, `W` is −X. The type in the second position (`stair`, `ramp`, `shaft`, …) is open vocabulary used for aggregation; what generates the form is the attribute key.
+`y+` is +Y, `y-` is −Y, `x+` is +X, `x-` is −X. The type in the second position (`stair`, `ramp`, `shaft`, …) is open vocabulary used for aggregation; what generates the form is the attribute key.
 
 **One space carries one declaration.**
 
 ```text
-RUN01  More than one vertical circulation declaration: stair:N ramp:N (one space carries one)
+RUN01  More than one vertical circulation declaration: stair:y+ ramp:y+ (one space carries one)
 ```
 
 ## What has to hold for a form to exist
@@ -42,7 +42,7 @@ If the declaration does not determine a form uniquely, `check` stops. Five thing
 5. For everything but a lift, **a level above**
 
 ```text
-RUN02  The value of stair is the direction it rises, N/E/S/W: stair:up
+RUN02  The value of stair is the direction it rises, x+/x-/y+/y-: stair:up
 RUN02  The value of lift is 1: lift:2
 RUN03  The region of vertical circulation is a single rectangle (a union leaves the step division undetermined): /L1/st
 SUF04  No level sits above L3, so no form is generated for /L3/st
@@ -156,7 +156,7 @@ The second flight of a turning run carries more steps and is therefore finer. Lo
 **A vertical circulation declaration makes a form; it does not join storeys.** Which level connects to which is held by a vertical boundary — `stack`, or `boundary … type:stair`.
 
 ```muro-part
-space /L1..L2/st stair X1..X2 Y2..Y3 name:階段 stair:N form:return
+space /L1..L2/st stair X1..X2 Y2..Y3 name:階段 stair:y+ form:return
 stack st L1..L2 type:stair
 ```
 
@@ -199,7 +199,7 @@ In three dimensions a stair flight of k risers carries **k−1 treads** (the top
 ## A complete example
 
 ```muro
-muro 1.5
+muro 1.6
 name 階段室のある小さなコア
 unit mm
 
@@ -211,7 +211,7 @@ level L2 4200 h:3600 slab:600
 level R  8400 slab:500
 
 space /L1..L2/hall   hall   X1..X4 Y1..Y2 name:ホール lease.category:common
-space /L1..L2/st     stair  X1..X2 Y2..Y3 name:階段 lease.category:common stair:N form:return turn:R
+space /L1..L2/st     stair  X1..X2 Y2..Y3 name:階段 lease.category:common stair:y+ form:return turn:R
 space /L1..L2/ev     shaft  X2..X3 Y2..Y3 name:昇降機 lease.category:common lift:1
 space /L1..L2/office office X3..X4 Y2..Y3 name:事務室 lease.category:exclusive
 
@@ -224,16 +224,16 @@ boundary /L1..L2/ev /L1..L2/hall t:180 spec:RC
 boundary /L1..L2/office /L1..L2/hall t:100 spec:LGS
   door w:900 name:D3
 
-boundary /L2/hall /out edge:S t:200
-boundary /L1..L2/hall /out edge:W t:200
-boundary /L1..L2/hall /out edge:E t:200
-boundary /L1..L2/st /out edge:W t:200
-boundary /L1..L2/st /out edge:N t:200
-boundary /L1..L2/ev /out edge:N t:200
-boundary /L1..L2/office /out edge:N t:200
-boundary /L1..L2/office /out edge:E t:200
+boundary /L2/hall /out edge:y- t:200
+boundary /L1..L2/hall /out edge:x- t:200
+boundary /L1..L2/hall /out edge:x+ t:200
+boundary /L1..L2/st /out edge:x- t:200
+boundary /L1..L2/st /out edge:y+ t:200
+boundary /L1..L2/ev /out edge:y+ t:200
+boundary /L1..L2/office /out edge:y+ t:200
+boundary /L1..L2/office /out edge:x+ t:200
 
-boundary /L1/hall /out edge:S t:200
+boundary /L1/hall /out edge:y- t:200
   door w:1800 name:E1
 
 stack st L1..L2 type:stair

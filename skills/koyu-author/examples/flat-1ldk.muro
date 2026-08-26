@@ -1,4 +1,4 @@
-muro 1.5
+muro 1.6
 name 1LDK on an 8 by 6 metre site
 unit mm
 
@@ -20,7 +20,7 @@ band X X1..X2 Y2..Y3
 space /out name:Outside outside:1
 
 boundary /L1/entry /out t:120 spec:EW
-  door w:900 edge:S name:Front
+  door w:900 edge:y- name:Front
 boundary /L1/entry /L1/ldk type:open
 boundary /L1/ldk /L1/wc t:100
   door w:700
@@ -31,9 +31,9 @@ boundary /L1/wash /L1/bath t:100
 boundary /L1/ldk /L1/bed t:100
   door w:900
 boundary /L1/ldk /out t:120 spec:EW
-  window w:2400 edge:N sill:400 h:2000
+  window w:2400 edge:y+ sill:400 h:2000
 boundary /L1/bed /out t:120 spec:EW
-  window w:1600 edge:N sill:800 h:1400
+  window w:1600 edge:y+ sill:800 h:1400
 boundary /L1/wc /out t:120 spec:EW
 boundary /L1/wash /out t:120 spec:EW
 boundary /L1/bath /out t:120 spec:EW

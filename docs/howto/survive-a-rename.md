@@ -19,7 +19,7 @@ File paths in the output below are absolute when you actually run these commands
 `uid:` may be written on **`space` and `zone`, and nothing else**. That list is closed.
 
 ```muro
-muro 1.5
+muro 1.6
 name Office
 unit mm
 
@@ -34,14 +34,14 @@ space /out name:Outside outside:1
 
 boundary /L1/office /L1/meeting t:120 spec:LGS
   door w:900 h:2000 name:D1
-boundary /L1/office /out edge:W t:200 spec:RC
+boundary /L1/office /out edge:x- t:200 spec:RC
   window w:2400 h:1800 name:W1
-boundary /L1/meeting /out edge:E t:200 spec:RC
+boundary /L1/meeting /out edge:x+ t:200 spec:RC
   door w:1800 h:2100 name:Front-entrance
-boundary /L1/office /out edge:S
-boundary /L1/office /out edge:N
-boundary /L1/meeting /out edge:S
-boundary /L1/meeting /out edge:N
+boundary /L1/office /out edge:y-
+boundary /L1/office /out edge:y+
+boundary /L1/meeting /out edge:y-
+boundary /L1/meeting /out edge:y+
 ```
 
 Write `uid:` on a boundary, an opening, a `seg`, an `area`, a column or an asset and it errors. **It is never silently ignored.**
@@ -112,9 +112,9 @@ renamed /L1/office → /L1/studio (uid:u-7f3k9m2qx4b8dhtv)
 + space /L1/studio (room 53.76 m2)
 − space /L1/office (room 53.76 m2)
 + boundary /L1/meeting | /L1/studio (wall t:120)
-+ boundary /L1/studio | /out edge:W (wall t:200)
++ boundary /L1/studio | /out edge:x- (wall t:200)
 − boundary /L1/meeting | /L1/office
-− boundary /L1/office | /out edge:W
+− boundary /L1/office | /out edge:x-
 ```
 
 The space dies and is reborn, and its boundaries with it. Any external register holding `/L1/office` is now pointing at nothing.

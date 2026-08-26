@@ -48,8 +48,8 @@ polygon /site -1000,-1000 11000,-1000 11000,7000 -1000,7000
 space /a room X1..X2 Y1..Y2 level:L1
 space /site/yard yard X1-1000..X1 Y1..Y2 level:L1
 space /out road:6000 outside:1
-boundary /a /out edge:S t:150
-boundary /site/yard /out edge:S t:120 air:1 spec:フェンス`,
+boundary /a /out edge:y- t:150
+boundary /site/yard /out edge:y- t:120 air:1 spec:フェンス`,
   );
   const r = siteReport(m);
   assert.equal(r.polygon?.points.length, 4);

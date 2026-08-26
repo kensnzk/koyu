@@ -17,7 +17,7 @@ All CMP codes are errors.
 `error`
 
 ```muro-bad
-muro 1.5
+muro 1.6
 grid X 0 3000
 grid Y 0 3000
 level L1 0 h:2600 slab:150
@@ -50,7 +50,7 @@ the structural consistency check.
 `error`
 
 ```muro-bad
-muro 1.5
+muro 1.6
 grid X 0 3000
 grid Y 0 3000
 level L1 0 h:2600 slab:150

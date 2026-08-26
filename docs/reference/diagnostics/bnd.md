@@ -122,14 +122,14 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out outside:1
-boundary /L1/a /L1/b edge:N t:120
+boundary /L1/a /L1/b edge:y+ t:120
 boundary /L1/a /out
 boundary /L1/b /out
 ```
 
-`No shared edge on edge:N: /L1/a | /L1/b (they actually touch on E)`
+`No shared edge on edge:y+: /L1/a | /L1/b (they actually touch on E)`
 
-Here the mistake is not the layout but **one word of compass**. `edge:` is read from the rectangle of the space written first: **N=+Y, S=−Y, E=+X, W=−X**. X is east-positive and Y is north-positive.
+Here the mistake is not the layout but **one word of axis**. `edge:` is read from the rectangle of the space written first: **`y+`=+Y, `y-`=−Y, `x+`=+X, `x-`=−X**. X is east-positive and Y is north-positive.
 
 ## BND05 — edge-restricted and unrestricted boundaries coexist on one pair {#bnd05}
 
@@ -143,14 +143,14 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out outside:1
 boundary /L1/a /L1/b t:120
-boundary /L1/a /L1/b edge:E t:150
+boundary /L1/a /L1/b edge:x+ t:150
 boundary /L1/a /out
 boundary /L1/b /out
 ```
 
 `The same pair of spaces carries both an edge-restricted and an unrestricted boundary (the segments overlap): /L1/a | /L1/b`
 
-**Cause** — a boundary with no `edge` points at **all** the segments of that pair; one with `edge:E` points at the E side among them. Write both and two boundaries ride on the E side, doubling both the thickness (`t`) and the specification. It slips past the [BND02](#bnd02) duplicate error, but is almost never the intended state.
+**Cause** — a boundary with no `edge` points at **all** the segments of that pair; one with `edge:x+` points at the E side among them. Write both and two boundaries ride on the E side, doubling both the thickness (`t`) and the specification. It slips past the [BND02](#bnd02) duplicate error, but is almost never the intended state.
 
 **Fix** — if the specification is common to every side, consolidate into the one without `edge`. To vary per side, write **every** one with `edge:`.
 
@@ -167,18 +167,18 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out outside:1
-boundary /L1/a /out edge:E t:150
-boundary /L1/a /out edge:N t:150
-boundary /L1/a /out edge:S t:150
-boundary /L1/a /out edge:W t:150
+boundary /L1/a /out edge:x+ t:150
+boundary /L1/a /out edge:y+ t:150
+boundary /L1/a /out edge:y- t:150
+boundary /L1/a /out edge:x- t:150
 boundary /L1/b /out t:150
 ```
 
-`No edge remains on the perimeter for edge:E, so the boundary segment is of zero length: /L1/a | /out`
+`No edge remains on the perimeter for edge:x+, so the boundary segment is of zero length: /L1/a | /out`
 
 **Cause** — a boundary with a space that has no region (an `exterior`, say) is **what remains of the room's perimeter after removing the intervals that touch other spaces**. Here `/L1/a`'s E side is occupied entirely by `/L1/b`, so nothing remains facing `/out`. The boundary you wrote points at nothing.
 
-**Fix** — the edge was mistaken. The compass of `edge:` is **read from the rectangle of the space written first (the a side)**: **N=+Y (north), S=−Y (south), E=+X (east), W=−X (west)**. Here `edge:W` is correct. Remove the compass entirely and the boundary points at all three remaining sides.
+**Fix** — the edge was mistaken. The face named by `edge:` is **read from the rectangle of the space written first (the a side)**: **`y+`=+Y, `y-`=−Y, `x+`=+X, `x-`=−X**. Here `edge:x-` is correct. Remove `edge:` entirely and the boundary points at all three remaining sides.
 
 **Note** — if that boundary carries an opening or a `seg`, there is no segment to place it on, so [OPN04](opn.md#opn04) / [SEG04](seg.md#seg04) come out alongside.
 
@@ -187,17 +187,17 @@ boundary /L1/b /out t:150
 `warning`
 
 ```muro-warn
-muro 1.5
+muro 1.6
 grid X 0 3600 7200
 grid Y 0 4000
 level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /road outside:1 road:6000
-boundary /L1/a /road edge:S
-boundary /L1/a /road edge:N
-boundary /L1/a /road edge:W
-boundary /L1/b /road edge:S
+boundary /L1/a /road edge:y-
+boundary /L1/a /road edge:y+
+boundary /L1/a /road edge:x-
+boundary /L1/b /road edge:y-
 ```
 
 `A default wall was derived where /L1/b faces the outside: E 4000mm / N 3600mm (7600mm over 2 runs) — write a boundary to say which outside it faces`
@@ -209,8 +209,8 @@ boundary /L1/b /road edge:S
 **Fix** — write the boundary. One line per counterpart, and `edge:` where the sides differ.
 
 ```muro-part
-boundary /L1/b /road edge:E
-boundary /L1/b /neighbour edge:N
+boundary /L1/b /road edge:x+
+boundary /L1/b /neighbour edge:y+
 ```
 
 **Suppression is by run, not by pair.** Everywhere else one declaration on a pair suppresses the whole derivation ([defaults](../muro/defaults.md)); the outside is not a pair — it is "whatever the rest faces" — so there is nothing to suppress as a unit. Each declared boundary takes the runs it reaches, and the default takes what is left. That is why `/L1/a`, which wrote three of its four sides, draws nothing: the fourth is its shared edge with `/L1/b`.

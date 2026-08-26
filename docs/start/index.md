@@ -219,15 +219,15 @@ npx tsx src/cli.ts check out/house.muro
 ```
 
 ```text
-✖ …/out/house.muro:line 13: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/ldk | /out)
-✖ …/out/house.muro:line 15: There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/hall | /out)
+✖ …/out/house.muro:line 13: There is more than one boundary segment; pick an edge with edge:y+/E/S/W (/L1/ldk | /out)
+✖ …/out/house.muro:line 15: There is more than one boundary segment; pick an edge with edge:y+/E/S/W (/L1/hall | /out)
 ```
 
 (Errors give their location as an absolute path; the front of it is elided with `…` here. This is [OPN05](../reference/diagnostics/opn.md#opn05).)
 
 This is where the outside differs from the inside. A room-to-room boundary is a single shared edge, but a room-to-outside boundary is **the perimeter minus the stretches that touch other spaces**, and it breaks into several edges. `/L1/ldk` faces the outside on three sides — north, south and west — so the notation cannot tell where you want the window.
 
-Pick an edge with `edge:`. The compass points are these.
+Pick an edge with `edge:`. The four faces are these.
 
 | Symbol | Direction | On the drawing |
 |---|---|---|
@@ -238,7 +238,7 @@ Pick an edge with `edge:`. The compass points are these.
 
 `N` is +Y and `E` is +X — the names come from drawing with north up. The `edge` direction is read **from the rectangle of the space written first**.
 
-Put the window and the front door on the south face: add `edge:S` on lines 13 and 15. Add `daylight:1` to `ldk` at the same time — you will use it at the end of this stage.
+Put the window and the front door on the south face: add `edge:y-` on lines 13 and 15. Add `daylight:1` to `ldk` at the same time — you will use it at the end of this stage.
 
 ```muro
 grid X 0 3600 5400
@@ -253,9 +253,9 @@ boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
 
 boundary /L1/ldk /out t:150
-  window w:2400 h:1800 edge:S
+  window w:2400 h:1800 edge:y-
 boundary /L1/hall /out t:150
-  door w:900 h:2000 edge:S
+  door w:900 h:2000 edge:y-
 ```
 
 ```sh
@@ -308,14 +308,14 @@ boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
 
 boundary /L1/ldk /out t:150
-  window w:2400 h:1800 edge:S
+  window w:2400 h:1800 edge:y-
 boundary /L1/hall /out t:150
-  door w:900 h:2000 edge:S
+  door w:900 h:2000 edge:y-
 
 boundary /L1/hall /L2/hall type:stair
 
 boundary /L2/bed /out t:150
-  window w:1800 h:1200 edge:S
+  window w:1800 h:1200 edge:y-
 boundary /L2/hall /out t:150
 ```
 
@@ -390,9 +390,9 @@ boundary /L1/ldk /L1/hall t:120
   door w:800 h:2000
 
 boundary /L1/ldk /out t:150
-  window w:2400 h:1800 edge:S
+  window w:2400 h:1800 edge:y-
 boundary /L1/hall /out t:150
-  door w:900 h:2000 edge:S
+  door w:900 h:2000 edge:y-
 
 boundary /L1/hall /L2/hall type:stair
 
@@ -400,7 +400,7 @@ boundary /L2/bed /L2/hall t:120
   door w:800 h:2000
 
 boundary /L2/bed /out t:150
-  window w:1800 h:1200 edge:S
+  window w:1800 h:1200 edge:y-
 boundary /L2/hall /out t:150
 ```
 
@@ -440,7 +440,7 @@ To look things up: [Vertical circulation](../reference/muro/vertical-circulation
 Finally, add what has been left out so far.
 
 ```muro
-muro 1.5
+muro 1.6
 name 小さな家
 
 grid X 0 3600 5400
@@ -458,9 +458,9 @@ boundary /L1/ldk /L1/hall t:120 spec:PW1
   door w:800 h:2000 name:LDK扉
 
 boundary /L1/ldk /out t:150 spec:EW1
-  window w:2400 h:1800 edge:S name:掃き出し窓
+  window w:2400 h:1800 edge:y- name:掃き出し窓
 boundary /L1/hall /out t:150 spec:EW1
-  door w:900 h:2000 edge:S name:玄関
+  door w:900 h:2000 edge:y- name:玄関
 
 boundary /L1/hall /L2/hall type:stair
 
@@ -468,7 +468,7 @@ boundary /L2/bed /L2/hall t:120 spec:PW1
   door w:800 h:2000
 
 boundary /L2/bed /out t:150 spec:EW1
-  window w:1800 h:1200 edge:S
+  window w:1800 h:1200 edge:y-
 boundary /L2/hall /out t:150 spec:EW1
 ```
 

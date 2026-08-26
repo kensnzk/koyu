@@ -42,7 +42,7 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out outside:1
 boundary /L1/a /out
-  door w:900 edge:S`;
+  door w:900 edge:y-`;
 
 const MODEL = parse(MODEL_SOURCE);
 const SECOND_MODEL = parse(MODEL_SOURCE);
@@ -690,7 +690,7 @@ space /out outside:1
 boundary /L1/a /L1/b t:120
   door w:900 at:0.4
   door w:900 at:0.5
-boundary /L1/a /L1/b edge:E t:120
+boundary /L1/a /L1/b edge:x+ t:120
 boundary /L1/a /L1/far t:120
   door w:900
   seg w:600 spec:GL

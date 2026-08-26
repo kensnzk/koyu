@@ -73,7 +73,7 @@ A boundary's `name:` and `stack`'s first argument are different things: the firs
 The spaces themselves fit on one line through [span expansion](#span-expansion), so the pair reads like this.
 
 ```muro-part
-space /L1..L3/st stair X1..X2 Y1..Y2 name:stair lease.category:common stair:N form:return
+space /L1..L3/st stair X1..X2 Y1..Y2 name:stair lease.category:common stair:y+ form:return
 stack st L1..L3 type:stair
 ```
 
@@ -154,7 +154,7 @@ Span expansion also happens while the file is parsed. The expanded paths are wha
 A space that runs vertically needs **both** a column of spaces and a column of relations. One without the other is not a way through.
 
 ```muro-part
-space /L1..L3/st stair X1..X2 Y1..Y2 name:stair lease.category:common stair:N form:return
+space /L1..L3/st stair X1..X2 Y1..Y2 name:stair lease.category:common stair:y+ form:return
 space /L1..L3/ev shaft X2..X3 Y1..Y2 name:lift lease.category:common lift:1
 
 stack st L1..L3 type:stair

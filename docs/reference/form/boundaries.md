@@ -25,7 +25,7 @@ Walk the counter-clockwise vertex list of a piece and read only the axis-paralle
 | +y | **E** |
 | −y | **W** |
 
-So **N = +Y, S = −Y, E = +X, W = −X**. A diagonal edge has no orientation.
+The four faces are **`y+` = +Y, `y-` = −Y, `x+` = +X, `x-` = −X**. A diagonal edge faces no axis.
 
 Two edges "face each other" when their orientations are opposite (N↔S / E↔W) and their fixed coordinates differ by at most `EPS`.
 
@@ -52,7 +52,7 @@ Take the axis-parallel edges of A's pieces and B's pieces that **face each other
 
 For each edge of each piece, subtract the intervals covered by facing edges of the counterpart. **Other pieces of the same space count as counterparts too**, so an L written as two rectangles grows no wall along its internal seam. The order of subtraction does not affect the result.
 
-An outline splits into several faces. That is why placing an opening onto the exterior needs `edge:N/E/S/W` ([OPN05](../diagnostics/opn.md)).
+An outline splits into several faces. That is why placing an opening onto the exterior needs `edge:y+/E/S/W` ([OPN05](../diagnostics/opn.md)).
 
 ## Collinear merging
 
@@ -94,7 +94,7 @@ Parts of a space's outline face **neither another space nor a declared boundary*
 
 The counterpart of such a wall is the outside, and it is not a space. It carries the reserved spelling `outside`, which no space can collide with because every space path begins with `/`. Declaring `space /out outside:1` does not replace it — it **names** a part of the outside, and a boundary written to that name wins over the default wherever it reaches.
 
-**Suppression is by run, not by pair.** Between two spaces one declaration suppresses the whole pair ([defaults](../muro/defaults.md)). The outside is not a pair — it is whatever the rest of the perimeter faces — so there is nothing to suppress as a unit. Each declared boundary takes the runs it reaches and the default takes what is left, which is why writing `edge:S` alone still leaves a wall standing on N, E and W.
+**Suppression is by run, not by pair.** Between two spaces one declaration suppresses the whole pair ([defaults](../muro/defaults.md)). The outside is not a pair — it is whatever the rest of the perimeter faces — so there is nothing to suppress as a unit. Each declared boundary takes the runs it reaches and the default takes what is left, which is why writing `edge:y-` alone still leaves a wall standing on N, E and W.
 
 **Which spaces are in the population.** Every space that has a region and a level, except three: a space declared `outside:1` (it is the outside), a [semi-outdoor](regions.md) space (its openness was declared, with `open` or `air:1`), and a space under a `site:1` zone (paving is not a room). **A void is not excluded** — where one reaches the edge of the building the outer wall passes it exactly as it passes a room.
 
@@ -107,6 +107,6 @@ That population cannot chase its own tail: a semi-outdoor space is one with an `
 - [Regions](regions.md) — where the edges come from
 - [Matter](bodies.md) — thickness and z land on the segment
 - [boundary](../muro/boundary.md) — how to write one
-- [orientation](../muro/orientation.md) — the N/E/S/W convention
+- [orientation](../muro/orientation.md) — the x+/x-/y+/y- convention
 - [BND diagnostics](../diagnostics/bnd.md) — when no segment can be derived
 - [BND08](../diagnostics/bnd.md#bnd08) — a face onto the outside that nobody named

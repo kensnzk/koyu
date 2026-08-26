@@ -211,15 +211,15 @@ test("mcp: a direction outside the four is refused, not drawn as something near 
     await c.request("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "test", version: "0" } });
 
     const badLook = await c.call("section_svg", { file: "examples/two-rooms.muro", at: "Y1+2250", look: "SW" });
-    assert.equal(badLook.isError, true, "SW is not a direction of view");
-    assert.match(badLook.text, /look is one of N \/ E \/ S \/ W: SW/);
+    assert.equal(badLook.isError, true, "a compass word is not a direction of view");
+    assert.match(badLook.text, /look is one of x\+ \/ x- \/ y\+ \/ y-: SW/);
 
     const badFace = await c.call("elevation_svg", { file: "examples/two-rooms.muro", face: "SW" });
     assert.equal(badFace.isError, true, "and it is not a face either");
-    assert.match(badFace.text, /face is one of N \/ E \/ S \/ W: SW/);
+    assert.match(badFace.text, /face is one of x\+ \/ x- \/ y\+ \/ y-: SW/);
 
     // The four that are directions still draw.
-    const good = await c.call("elevation_svg", { file: "examples/two-rooms.muro", face: "S" });
+    const good = await c.call("elevation_svg", { file: "examples/two-rooms.muro", face: "y-" });
     assert.equal(good.isError, undefined);
     assert.match(good.text, /^<svg xmlns/);
 

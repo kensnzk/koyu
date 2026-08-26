@@ -130,7 +130,7 @@ export const DIAGNOSTIC_CODES = {
   ATT03: "error", // 台帳に無い属性キー — 名前空間が無い (ADR-0033)
   DAY01: "error", // daylightの値が 0/1 以外 (ADR-0020)
   RUN01: "error", // 一つの空間に縦動線の宣言が複数 (ADR-0021)
-  RUN02: "error", // 縦動線の値が上る向き (N/E/S/W) でない
+  RUN02: "error", // 縦動線の値が上る向き (x+/x-/y+/y-) でない
   RUN03: "error", // 縦動線の領域が矩形一つでない / レベルが不明
   RUN05: "error", // form の値が不正、または形が決まらない
   LIN01: "error", // 描かれた線が二つの空間を分離しない (ADR-0022)
@@ -447,7 +447,7 @@ function checkEnvelope(ctx: Ctx): void {
     if (runs.length === 0) continue;
     const total = runs.reduce((sum, r) => sum + segmentLength(r), 0);
     const faces = runs
-      .map((r) => `${r.edgeOfA ?? (r.horizontal ? "N/S" : "E/W")} ${Math.round(segmentLength(r))}mm`)
+      .map((r) => `${r.edgeOfA ?? (r.horizontal ? "y+/y-" : "x+/x-")} ${Math.round(segmentLength(r))}mm`)
       .join(" / ");
     emit(
       "BND08",
@@ -1098,7 +1098,7 @@ function checkBoundarySegments(ctx: Ctx, b: Boundary, sa: Space, sb: Space, bAt:
   if (sa.rects.length > 0 && sb.rects.length > 0 && segs.length === 0) {
     // **線分がゼロの理由は二つある。**接していないか、edge: で絞った先に共有辺が
     // 無いか。前者だと断言すると、実際には接している二室について「割付を直せ」と
-    // 言うことになる — 直すべきは方角一語である (N=+Y, S=-Y, E=+X, W=-X)
+    // 言うことになる — 直すべきは軸の語一つである
     const without = b.edge ? segmentsFor(model, { ...b, edge: undefined }) : [];
     if (without.length > 0) {
       const dirs = [...new Set(without.map((g) => g.edgeOfA))].filter((d): d is Edge => d !== undefined);
@@ -1180,12 +1180,12 @@ function checkOpenings(ctx: Ctx, b: Boundary): void {
     }
     if (o.hinge && "segment" in placed) {
       const okAxis = placed.segment.horizontal
-        ? o.hinge === "W" || o.hinge === "E"
-        : o.hinge === "N" || o.hinge === "S";
+        ? o.hinge === "x-" || o.hinge === "x+"
+        : o.hinge === "y+" || o.hinge === "y-";
       if (!okAxis) {
         emit(
           "OPN01",
-          `hinge:${o.hinge}: ${placed.segment.horizontal ? "a horizontal segment takes W/E" : "a vertical segment takes N/S"}`,
+          `hinge:${o.hinge}: ${placed.segment.horizontal ? "a horizontal segment takes x+/x-" : "a vertical segment takes y+/y-"}`,
           { line: o.line, file: b.file, path: [b.a, b.b] },
         );
       }

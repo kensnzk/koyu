@@ -42,7 +42,7 @@ space /out outside:1
 space /site/a room X1..X2 Y1..Y2 level:L1
 space /site/b room X2..X3 Y1..Y2 level:L1
 boundary /site/a /out t:150
-  door w:900 edge:W
+  door w:900 edge:x-
 boundary /site/a /site/b t:120
   door w:800
 boundary /site/b /out t:150`;

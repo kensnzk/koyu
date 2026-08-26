@@ -4,7 +4,7 @@
 //   npm run koyu -- diff   before.muro after.muro # 構成の言葉の差分 (--json で ModelDiff)
 //   npm run koyu -- plan   examples/office.muro -l L2 -o out/office-L2.svg
 //   npm run koyu -- section examples/office.muro --at X2+900   # the cut is named by a grid line
-//   npm run koyu -- elevation examples/office.muro --face S
+//   npm run koyu -- elevation examples/office.muro --face y-
 //   npm run koyu -- doors  examples/office.muro /L2/office /out
 //   npm run koyu -- graph  examples/office.muro
 //   npm run koyu -- stats  examples/office.muro
@@ -586,7 +586,7 @@ function main(argv: string[]): number {
       // 軸測図 — 立体をそのまま投影する。平面と同じく生成物のSVGなので、
       // 実行環境もWebGLも要らず、生成して見るという同じ手で立体を確かめられる
       const outPath = opt(rest, "-o", "--out") ?? "out/axo.svg";
-      const dirOpt = enumOpt(rest, ["NE", "NW", "SE", "SW"] as const, "-d", "--dir");
+      const dirOpt = enumOpt(rest, ["x+y+", "x-y+", "x+y-", "x-y-"] as const, "-d", "--dir");
       const lv = opt(rest, "-l", "--levels");
       const sc = numOpt(rest, "-s", "--scale");
       const svg = svgAxo(model, {
@@ -607,7 +607,7 @@ function main(argv: string[]): number {
       const at = opt(rest, "--at");
       if (!at) {
         console.log(
-          "Usage: koyu section <file.muro> --at <X3|X3+450|Y2-600> [--look N|E|S|W] [-s <scale>] [-o <out.svg>]",
+          "Usage: koyu section <file.muro> --at <X3|X3+450|Y2-600> [--look x+|x-|y+|y-] [-s <scale>] [-o <out.svg>]",
         );
         return 2;
       }
@@ -617,10 +617,10 @@ function main(argv: string[]): number {
           `Undefined grid reference: ${at} (declared: ${model.grid.X.names.join(" ")} ${model.grid.Y.names.join(" ")})`,
         );
       }
-      const chosen = enumOpt(rest, ["N", "E", "S", "W"] as const, "--look");
+      const chosen = enumOpt(rest, ["y+", "x+", "y-", "x-"] as const, "--look");
       if (chosen && axisOf(chosen) !== g.axis) {
         die(
-          `--look ${chosen} runs along ${at} rather than across it (an X reference is looked at from E or W, a Y reference from N or S)`,
+          `--look ${chosen} runs along ${at} rather than across it (an X reference is looked at from x+ or x-, a Y reference from y+ or y-)`,
         );
       }
       const sc = numOpt(rest, "-s", "--scale");
@@ -643,7 +643,7 @@ function main(argv: string[]): number {
       if (rest.includes("--at")) {
         die("elevation takes no --at (the plane is placed outside the mass; koyu section takes a cut)");
       }
-      const face = enumOpt(rest, ["N", "E", "S", "W"] as const, "-f", "--face") ?? "S";
+      const face = enumOpt(rest, ["y+", "x+", "y-", "x-"] as const, "-f", "--face") ?? "y-";
       const sc = numOpt(rest, "-s", "--scale");
       const outPath = opt(rest, "-o", "--out") ?? `out/elevation-${face}.svg`;
       const svg = svgElevation(model, { face, ...(sc !== undefined ? { scale: sc } : {}) });
@@ -657,7 +657,7 @@ function main(argv: string[]): number {
       // 縦動線 (ADR-0021): 段数も踏面も勾配も原本には書かれていない。全て導出値である
       const runs = verticalRuns(model);
       if (runs.length === 0) {
-        console.log("There is no vertical circulation (write stair:N / ramp:N / escalator:N / lift:1 on a space)");
+        console.log("There is no vertical circulation (write stair:y+ / ramp:y+ / escalator:y+ / lift:1 on a space)");
         return 0;
       }
       for (const r of runs) {

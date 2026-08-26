@@ -42,15 +42,15 @@ Being semi-outdoor is derived too: a space that meets an exterior across a `type
 The effective window area is below one seventh of the floor area.
 
 ```muro-fail
-muro 1.5
+muro 1.6
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150
 space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
-  window w:600 h:600 edge:S
-  door w:900 edge:N
+  window w:600 h:600 edge:y-
+  door w:900 edge:y+
 ```
 
 ```text
@@ -69,7 +69,7 @@ A 600×600 window is 0.36 m²; the floor is 3600×4500 = 16.20 m², so 2.31 m² 
 The same window through a balcony with a floor above it is multiplied by 0.7.
 
 ```muro-fail
-muro 1.5
+muro 1.6
 grid X 0 3600 5400
 grid Y 0 4500
 level L1 0 h:2400 slab:150
@@ -82,9 +82,9 @@ boundary /L1/b /out type:open
 boundary /L1/a /L1/b t:150
   window w:2400 h:1200
 boundary /L1/a /out t:150
-  door w:900 edge:N
+  door w:900 edge:y+
 boundary /L2/a /out t:150
-  door w:900 edge:N
+  door w:900 edge:y+
 ```
 
 ```text
@@ -101,16 +101,16 @@ The window is 2400×1200 = 2.88 m², but `/L2/a` sits on top of the balcony, so 
 A `window` without `h:` has dropped out of the sum.
 
 ```muro-caution
-muro 1.5
+muro 1.6
 grid X 0 3600
 grid Y 0 4500
 level L1 0 h:2400 slab:150
 space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 boundary /L1/a /out t:150
-  window w:2400 h:1200 edge:S
-  window w:600 edge:E
-  door w:900 edge:N
+  window w:2400 h:1200 edge:y-
+  window w:600 edge:x+
+  door w:900 edge:y+
 ```
 
 ```text

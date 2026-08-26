@@ -19,23 +19,23 @@ boundary /L7..L13/officeW /L7..L13/ps t:250 spec:RC
 boundary /L7..L13/officeE /L7..L13/st2 t:250 spec:RC
 
 # ---- 外周 ----
-boundary /L7..L13/officeW /out edge:W t:250 spec:カーテンウォール
+boundary /L7..L13/officeW /out edge:x- t:250 spec:カーテンウォール
   window CW2 at:0.5
-boundary /L7..L13/officeW /out edge:S t:250 spec:カーテンウォール
+boundary /L7..L13/officeW /out edge:y- t:250 spec:カーテンウォール
   window CW2 at:X2
-boundary /L7..L13/officeW /out edge:N t:250 spec:カーテンウォール
+boundary /L7..L13/officeW /out edge:y+ t:250 spec:カーテンウォール
   window CW2 at:X2
-boundary /L7..L13/officeS /out edge:S t:250 spec:カーテンウォール
+boundary /L7..L13/officeS /out edge:y- t:250 spec:カーテンウォール
   window CW2 at:X5
-boundary /L7..L13/officeE /out edge:E t:250 spec:カーテンウォール
+boundary /L7..L13/officeE /out edge:x+ t:250 spec:カーテンウォール
   window CW2 at:0.5
-boundary /L7..L13/officeE /out edge:S t:250 spec:カーテンウォール
-boundary /L7..L13/officeE /out edge:N t:250 spec:カーテンウォール
-boundary /L7..L13/ps /out edge:N t:250 spec:PC板
-boundary /L7..L13/tea /out edge:N t:250 spec:PC板
-boundary /L7..L13/st1 /out edge:N t:250 spec:PC板
-boundary /L7..L13/ev1 /out edge:N t:250 spec:PC板
-boundary /L7..L13/ev2 /out edge:N t:250 spec:PC板
-boundary /L7..L13/wcm /out edge:N t:250 spec:PC板
-boundary /L7..L13/wcw /out edge:N t:250 spec:PC板
-boundary /L7..L13/st2 /out edge:N t:250 spec:PC板
+boundary /L7..L13/officeE /out edge:y- t:250 spec:カーテンウォール
+boundary /L7..L13/officeE /out edge:y+ t:250 spec:カーテンウォール
+boundary /L7..L13/ps /out edge:y+ t:250 spec:PC板
+boundary /L7..L13/tea /out edge:y+ t:250 spec:PC板
+boundary /L7..L13/st1 /out edge:y+ t:250 spec:PC板
+boundary /L7..L13/ev1 /out edge:y+ t:250 spec:PC板
+boundary /L7..L13/ev2 /out edge:y+ t:250 spec:PC板
+boundary /L7..L13/wcm /out edge:y+ t:250 spec:PC板
+boundary /L7..L13/wcw /out edge:y+ t:250 spec:PC板
+boundary /L7..L13/st2 /out edge:y+ t:250 spec:PC板

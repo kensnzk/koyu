@@ -48,7 +48,7 @@ Every piece of output on this page was obtained by actually running it. Absolute
 ### When there are warnings
 
 ```muro-warn
-muro 1.5
+muro 1.6
 name 警告
 unit mm
 grid X 0 3600 7200
@@ -87,7 +87,7 @@ boundary /L1/b /out
 ### When there are errors
 
 ```muro-bad
-muro 1.5
+muro 1.6
 name 二重宣言
 unit mm
 grid X 0 3600 7200
@@ -168,7 +168,7 @@ boundary /L1/b /out
 The default between touching spaces is a wall, and a wall is impassable without a door. So a building with no door written at all stays sealed and green.
 
 ```muro-fail
-muro 1.5
+muro 1.6
 name 密封
 unit mm
 grid X 0 3600 7200
@@ -302,7 +302,7 @@ The whole reason the report is this shape is that a bare list of failures cannot
 Violations and cautions mix freely in one response.
 
 ```muro-caution
-muro 1.5
+muro 1.6
 name 窓の高さ
 unit mm
 grid X 0 3600 7200
@@ -314,9 +314,9 @@ space /out name:外部 outside:1
 boundary /L1/a /L1/b t:120
   door w:780 h:2000
 boundary /L1/a /out t:150
-  window w:2600 edge:S name:腰窓
+  window w:2600 edge:y- name:腰窓
 boundary /L1/b /out t:150
-  door w:900 h:2100 edge:S name:玄関
+  door w:900 h:2100 edge:y- name:玄関
 ```
 
 ```text

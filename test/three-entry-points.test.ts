@@ -33,7 +33,7 @@ space /out outside:1
 space /L1/a room X1..X2 Y1..Y2 daylight:1
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /out t:150
-  window w:600 h:600 edge:S
+  window w:600 h:600 edge:y-
 boundary /L1/b /out t:150
 `;
 

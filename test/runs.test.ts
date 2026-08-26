@@ -34,7 +34,7 @@ level L2 3000 h:2700 slab:300
 
 test("stair: the number of risers, the riser and the tread are derived though none of them is written", () => {
   const m = parse(`${BASE}
-space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:y+
 space /L2/s stair X1..X2 Y1..Y1+7000
 stack s L1..L2 type:stair
 `);
@@ -59,7 +59,7 @@ grid X 0 3000
 grid Y 0 8000
 level L1 0 h:2400 slab:300
 level L2 ${pitch} h:2400 slab:300
-space /L1/s stair X1..X2 Y1..Y1+7000 stair:N form:return
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:y+ form:return
 space /L2/s stair X1..X2 Y1..Y1+7000
 stack s L1..L2 type:stair
 `;
@@ -75,7 +75,7 @@ stack s L1..L2 type:stair
 
 test("a run does not start at the edge of the region — the entry floor is where the door opens", () => {
   const m = parse(`${BASE}
-space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:y+
 space /L2/s stair X1..X2 Y1..Y1+7000
 stack s L1..L2 type:stair
 `);
@@ -90,7 +90,7 @@ stack s L1..L2 type:stair
 
 test("escalator: the nominal width decides how many units, and the one beside an up unit goes down", () => {
   const m = parse(`${BASE}
-space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:N
+space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:y+
 space /L2/e escalator X1..X2 Y1..Y1+7000
 stack e L1..L2 type:stair
 `);
@@ -107,7 +107,7 @@ test("escalator: the down unit tilts the same way as the up unit (the direction 
   // reversed は「人が t の減る向きに進む」だけを言う。機械としては二台とも同じ向きに
   // 架かっている — ここを混ぜたために、下りの台が鏡像に傾いていた
   const m = parse(`${BASE}
-space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:N
+space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:y+
 space /L2/e escalator X1..X2 Y1..Y1+7000
 stack e L1..L2 type:stair
 `);
@@ -118,7 +118,7 @@ stack e L1..L2 type:stair
   assert.equal(decks.length, 2);
   assert.deepEqual(
     inc.map((s) => (s.kind === "incline" ? s.up : "")),
-    ["N", "N", "N", "N", "N", "N"],
+    ["y+", "y+", "y+", "y+", "y+", "y+"],
     "the down unit and its balustrades rise toward N as well",
   );
 });
@@ -126,7 +126,7 @@ stack e L1..L2 type:stair
 test("plan: both parallel units appear cut, and the break line is drawn at that unit's own position", () => {
   // 可視を部品の番号で決めていたため、二台目が自分の階の平面から丸ごと消えていた
   const m = parse(`${BASE}
-space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:N
+space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:y+
 space /L2/e escalator X1..X2 Y1..Y1+7000
 stack e L1..L2 type:stair
 `);
@@ -149,8 +149,8 @@ stack e L1..L2 type:stair
 test("plan: the descending run appears in what the ascending run left — per unit even when parallel", () => {
   const m = parse(`${BASE}
 level L3 6000 h:2700 slab:300
-space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:N
-space /L2/e escalator X1..X2 Y1..Y1+7000 escalator:N
+space /L1/e escalator X1..X2 Y1..Y1+7000 escalator:y+
+space /L2/e escalator X1..X2 Y1..Y1+7000 escalator:y+
 space /L3/e escalator X1..X2 Y1..Y1+7000
 stack e L1..L3 type:stair
 `);
@@ -166,7 +166,7 @@ test("plan: twins are twins only once the direction matches too, not the positio
   // 揃っていないなら双子ではない — 下りる走りは丸ごと見える
   const src = (upper: string) => `${BASE}
 level L3 6000 h:2700 slab:300
-space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:y+
 space /L2/s stair X1..X2 Y1..Y1+7000 stair:${upper}
 space /L3/s stair X1..X2 Y1..Y1+7000
 stack s L1..L3 type:stair
@@ -177,16 +177,16 @@ stack s L1..L3 type:stair
     return Math.max(...ys) - Math.min(...ys);
   };
   // 向きが揃うなら、下りは上りが隠した残り (切断線から先) にだけ現れる
-  const same = span("N");
+  const same = span("y+");
   // 向きが違えば双子ではない — 切断位置を借りず、丸ごと見える
-  const flipped = span("S");
+  const flipped = span("y-");
   assert.ok(same < flipped - 1000, `aligned ${Math.round(same)} < flipped ${Math.round(flipped)}`);
   assert.equal(Math.round(flipped), 4800); // 乗り込みを除いた走りの全長
 });
 
 test("stair: a return stair has a different tread per flight — the tightest flight represents it for checking", () => {
   const m = parse(`${BASE}
-space /L1/s stair X1..X2 Y1..Y1+7000 stair:N form:return
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:y+ form:return
 space /L2/s stair X1..X2 Y1..Y1+7000
 stack s L1..L2 type:stair
 `);
@@ -199,7 +199,7 @@ stack s L1..L2 type:stair
 
 test("ramp: the slope is derived rather than written, and a slope steeper than the declared slope: draws a finding", () => {
   const m = parse(`${BASE}
-space /L1/r ramp X1..X2 Y1..Y1+7000 ramp:N slope:12
+space /L1/r ramp X1..X2 Y1..Y1+7000 ramp:y+ slope:12
 space /L2/r ramp X1..X2 Y1..Y1+7000
 stack r L1..L2 type:stair
 `);
@@ -212,7 +212,7 @@ stack r L1..L2 type:stair
 
 test("the shape is there but the graph cannot pass — with no vertical boundary a finding comes out (run.disconnected)", () => {
   const m = parse(`${BASE}
-space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:y+
 space /L2/s stair X1..X2 Y1..Y1+7000
 `);
   const r = check(m);
@@ -224,7 +224,7 @@ space /L2/s stair X1..X2 Y1..Y1+7000
 test("vertical circulation is exempt from the height invariant (its ceiling is not a surface)", () => {
   // 天井高2700 + 上階slab300 = 3000 で階高ちょうど。階段室だけ h を超えても通る
   const m = parse(`${BASE}
-space /L1/s stair X1..X2 Y1..Y1+7000 h:2900 stair:N
+space /L1/s stair X1..X2 Y1..Y1+7000 h:2900 stair:y+
 space /L2/s stair X1..X2 Y1..Y1+7000
 stack s L1..L2 type:stair
 `);
@@ -233,7 +233,7 @@ stack s L1..L2 type:stair
 
 test("plan: the ascending run is cut at the break line, and beyond it the descending run shows", () => {
   const m = parse(`${BASE}
-space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:y+
 space /L2/s stair X1..X2 Y1..Y1+7000
 stack s L1..L2 type:stair
 `);
@@ -250,9 +250,9 @@ stack s L1..L2 type:stair
 
 test("solid: a stair becomes a set of treads, a ramp becomes an inclined slab", () => {
   const m = parse(`${BASE}
-space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:y+
 space /L2/s stair X1..X2 Y1..Y1+7000
-space /L1/r ramp X2..X3 Y1..Y1+7000 ramp:N
+space /L1/r ramp X2..X3 Y1..Y1+7000 ramp:y+
 space /L2/r ramp X2..X3 Y1..Y1+7000
 stack s L1..L2 type:stair
 stack r L1..L2 type:stair
@@ -319,12 +319,12 @@ space /L1/a room X1..X3 Y1..Y2
 space /out outside:1
 boundary /L1/a /out t:200
   line X2,Y2 X3,Y2-8000
-boundary /L1/a /out edge:N t:200
+boundary /L1/a /out edge:y+ t:200
 `);
   assert.equal(check(m).errors.length, 0);
   assert.equal(areaM2(m.spaces.get("/L1/a")!), 256 - 32); // 隅切り8000×8000の半分
   // 切り落とされた側の北面は短くなる
-  const north = m.boundaries.find((b) => b.edge === "N")!;
+  const north = m.boundaries.find((b) => b.edge === "y+")!;
   const len = segmentsFor(m, north).reduce((a, s) => a + (s.x2 - s.x1), 0);
   assert.equal(len, 8000);
 });
@@ -352,7 +352,7 @@ level L1 0 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y3
 space /L1/b room X2..X3 Y1..Y3
 space /out outside:1
-boundary /L1/a /out edge:S
+boundary /L1/a /out edge:y-
 boundary /L1/a /L1/b
   line X1,Y1 X1,Y2
 boundary /L1/a /out
@@ -397,8 +397,8 @@ space /out outside:1
 space /L1/a room X1..X3 Y1..Y2
 space /L2/b room X1..X2 Y1..Y2
 space /L2/t terrace X2..X3 Y1..Y2
-boundary /L2/t /out edge:E air:1 t:120
-boundary /L2/t /out edge:S air:1 t:120
+boundary /L2/t /out edge:x+ air:1 t:120
+boundary /L2/t /out edge:y- air:1 t:120
 column 800 L1..L2
 `);
   // L1: 全6交点 (屋内)。L2: /L2/b の内側4点は立つが、露天テラス /L2/t だけの X3列は立たない
@@ -414,7 +414,7 @@ level L2 3000 h:2700 slab:300
 level L3 6000 h:2700 slab:300
 space /out outside:1
 space /L2/t terrace X2..X3 Y1..Y2
-boundary /L2/t /out edge:E air:1 t:120
+boundary /L2/t /out edge:x+ air:1 t:120
 space /L3/c room X2..X3 Y1..Y2
 column 800 L2
 `);
@@ -469,7 +469,7 @@ grid Y 0 8000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 space /L1/a room X1..X2 Y1..Y2 ceiling:0
-space /L1/s stair X2..X3 Y1..Y1+7000 stair:N
+space /L1/s stair X2..X3 Y1..Y1+7000 stair:y+
 space /L2/s stair X2..X3 Y1..Y1+7000
 space /L2/v X1..X2 Y1..Y2 void:1
 boundary /L1/a /L2/v type:void
@@ -492,7 +492,7 @@ grid Y 0 8000
 level L1 0 h:2700 slab:300
 level L2 3000 h:2700 slab:300
 level R 6000 slab:300
-space /L1/s stair X1..X2 Y1..Y1+7000 stair:N
+space /L1/s stair X1..X2 Y1..Y1+7000 stair:y+
 space /L2/s stair X1..X2 Y1..Y1+7000
 space /L1/a room X2..X3 Y1..Y1+7000
 space /L2/a room X2..X3 Y1..Y1+7000
@@ -510,7 +510,7 @@ stack s L1..L2 type:stair
   // 段板・柱・床がそれぞれ面として出る (面の数が桁で足りていることを見る)
   assert.ok(svg.split("<path").length > 100, "faces are generated");
   // 向きを変えると別の投影になる
-  assert.notEqual(svgAxo(m, { dir: "NW" }), svg);
+  assert.notEqual(svgAxo(m, { dir: "x-y+" }), svg);
 });
 
 test("axo: a solid carries a bottom face — where it can be looked at from below, the inside does not show", () => {

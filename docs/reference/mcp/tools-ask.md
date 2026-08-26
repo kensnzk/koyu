@@ -330,7 +330,7 @@ Both come back with `isError: true`. Confirm the grid in [`model_summary`](tools
 | `face` | yes | The side the viewer stands on — `N`, `E`, `S` or `W`. `S` is the south elevation, seen from the south |
 
 ```json
-{"name": "elevation_svg", "arguments": {"file": "<abs>/examples/house/main.muro", "face": "S"}}
+{"name": "elevation_svg", "arguments": {"file": "<abs>/examples/house/main.muro", "face": "y-"}}
 ```
 
 ```text

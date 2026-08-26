@@ -4,4 +4,4 @@ level L1 0 h:2400 slab:150
 space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 boundary /L1/a /L1/b t:120
-  door w:800 edge:N
+  door w:800 edge:y+

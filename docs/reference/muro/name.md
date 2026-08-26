@@ -93,7 +93,7 @@ The whole unit convention is this one table.
 | Length (coordinates, dimensions, wall thickness, ceiling height, opening width) | mm |
 | A position along a segment | a ratio in 0..1 |
 | Reported area | m² (to the wall centerline) |
-| Angle | not writable — direction is carried by the [grid](grid.md) and the edge names (N/E/S/W) |
+| Angle | not writable — direction is carried by the [grid](grid.md) and the edge names (x+/x-/y+/y-) |
 
 A decimal such as `0.1` may appear in a length, but the offset in a [grid reference](positions.md) is an integer only (`X2+600.5` is rejected as an undefined grid line name).
 
@@ -102,7 +102,7 @@ A decimal such as `0.1` may appear in a length, but the offset in a [grid refere
 Neither line is indented. `name` and `unit` may sit anywhere among the other declarations, but `grid` and `level` have to precede their **use**, which in practice fixes the opening of a file to this order.
 
 ```muro-part
-muro 1.5
+muro 1.6
 name 街角の複合ビル
 unit mm
 grid X 0 6400 12800

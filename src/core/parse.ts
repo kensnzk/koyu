@@ -35,7 +35,7 @@ import { deriveDefaultBoundaries, derivePieces } from "./graph.js";
 /** 境界のトポロジー語 — 増やすのは最後の手段である (docs/reference/muro/attributes.md 規則1) */
 const BOUNDARY_KINDS = new Set(["wall", "open", "stair", "shaft", "void"]);
 
-const EDGES = new Set(["N", "E", "S", "W"]);
+const EDGES = new Set(["y+", "x+", "y-", "x-"]);
 
 /**
  * 帯 (band, ADR-0019) の宣言 — parse の局所状態であり Model には入らない。
@@ -1286,7 +1286,7 @@ function parseOpening(
   const edge = takeEdge(attrs, ln);
   const hingeRaw = takeString(attrs, "hinge");
   if (hingeRaw !== undefined && !EDGES.has(hingeRaw)) {
-    throw new SourceError(ln, `hinge is given as N/E/S/W: ${hingeRaw}`);
+    throw new SourceError(ln, `hinge is given as x+/x-/y+/y-: ${hingeRaw}`);
   }
   const swingRaw = takeString(attrs, "swing");
   if (swingRaw !== undefined && swingRaw !== "a" && swingRaw !== "b") {
@@ -1565,7 +1565,7 @@ function applyBoundaryAttr(
   } else if (key === "air") {
     b.air = v === 1 ? true : undefined;
   } else if (key === "edge") {
-    if (!EDGES.has(String(v))) throw new SourceError(ln, `edge is given as N/E/S/W: ${v}`);
+    if (!EDGES.has(String(v))) throw new SourceError(ln, `edge is given as x+/x-/y+/y-: ${v}`);
     b.edge = String(v) as Edge;
   } else {
     b.attrs[key] = v;
@@ -1776,6 +1776,6 @@ function takeString(attrs: Attrs, key: string): string | undefined {
 function takeEdge(attrs: Attrs, ln: number): Edge | undefined {
   const v = takeString(attrs, "edge");
   if (v === undefined) return undefined;
-  if (!EDGES.has(v)) throw new SourceError(ln, `edge is given as N/E/S/W: ${v}`);
+  if (!EDGES.has(v)) throw new SourceError(ln, `edge is given as x+/x-/y+/y-: ${v}`);
   return v as Edge;
 }

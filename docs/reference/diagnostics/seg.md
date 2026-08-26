@@ -108,7 +108,7 @@ space /L1/a room X1..X2 Y1..Y2
 space /L1/b room X2..X3 Y1..Y2
 space /out outside:1
 boundary /L1/a /L1/b t:120
-  seg w:800 edge:N spec:X
+  seg w:800 edge:y+ spec:X
 boundary /L1/a /out
 boundary /L1/b /out
 ```
@@ -117,7 +117,7 @@ boundary /L1/b /out
 
 **Cause** — there is no segment where the `seg`'s `edge:` narrowed to. The two rooms here sit east and west, so their shared edge is on E (seen from the a side) and there is nothing on N. The same code appears when the boundary itself has no segment, arriving together with [BND04](bnd.md#bnd04) / [BND06](bnd.md#bnd06).
 
-**Fix** — correct the compass of `edge:`. It is read **from the rectangle of the space written first**: **N=+Y, S=−Y, E=+X, W=−X**. On a boundary with only one segment, `edge:` is unnecessary.
+**Fix** — correct the face named by `edge:`. It is read **from the rectangle of the space written first**: **`y+`=+Y, `y-`=−Y, `x+`=+X, `x-`=−X**. On a boundary with only one segment, `edge:` is unnecessary.
 
 ## SEG05 — there is more than one boundary segment for the seg {#seg05}
 
@@ -135,11 +135,11 @@ boundary /L1/a /out t:150
 boundary /L1/b /out t:150
 ```
 
-`There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)`
+`There is more than one boundary segment; pick an edge with edge:y+/E/S/W (/L1/a | /out)`
 
 **Cause** — a boundary with the outside (a space with no region) is **all that remains** of the room's perimeter not touching another room, and it usually splits across several edges. Which edge is meant is not settled. **A `seg` on an external wall always needs `edge:`.**
 
-**Fix** — select the side with `edge:`. The compass is read from the rectangle of the space written first (here `/L1/a`): **N=+Y, S=−Y, E=+X, W=−X**.
+**Fix** — select the side with `edge:`. The face is read from the rectangle of the space written first (here `/L1/a`): **`y+`=+Y, `y-`=−Y, `x+`=+X, `x-`=−X**.
 
 ## SEG06 — the seg is wider than the boundary segment {#seg06}
 

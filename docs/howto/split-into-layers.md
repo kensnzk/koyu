@@ -22,7 +22,7 @@ The facts about the whole building — the version, `name`, `unit`, `grid`, `lev
 
 ```muro-part
 # main.muro
-muro 1.5
+muro 1.6
 name A small office
 unit mm
 
@@ -131,7 +131,7 @@ Dropping a space drops the boundaries it held. [`koyu diff`](../reference/cli/di
 $ npx tsx src/cli.ts diff main.muro dropped/main.muro
 − space /L2/office (room 53.76 m2)
 − boundary /L2/core | /L2/office
-− boundary /L2/office | /out edge:W
+− boundary /L2/office | /out edge:x-
 ```
 
 ## 7. Definition and override are different statements

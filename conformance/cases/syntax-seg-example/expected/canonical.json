@@ -63,7 +63,7 @@
       "a": "/L1/office",
       "kind": "wall",
       "t": 180,
-      "edge": "E",
+      "edge": "x+",
       "attrs": {
         "spec": "RC"
       }
@@ -76,7 +76,31 @@
       "a": "/L1/office",
       "kind": "wall",
       "t": 180,
-      "edge": "N",
+      "edge": "x-",
+      "attrs": {
+        "spec": "RC"
+      },
+      "openings": [
+        {
+          "kind": "door",
+          "w": 900,
+          "h": 2100,
+          "at": 0.5,
+          "attrs": {
+            "name": "出入口"
+          }
+        }
+      ]
+    },
+    {
+      "between": [
+        "/L1/office",
+        "/out"
+      ],
+      "a": "/L1/office",
+      "kind": "wall",
+      "t": 180,
+      "edge": "y+",
       "attrs": {
         "spec": "RC"
       }
@@ -89,7 +113,7 @@
       "a": "/L1/office",
       "kind": "wall",
       "t": 180,
-      "edge": "S",
+      "edge": "y-",
       "attrs": {
         "spec": "RC"
       },
@@ -111,30 +135,6 @@
           "attrs": {
             "fire": 60,
             "spec": "カーテンウォール"
-          }
-        }
-      ]
-    },
-    {
-      "between": [
-        "/L1/office",
-        "/out"
-      ],
-      "a": "/L1/office",
-      "kind": "wall",
-      "t": 180,
-      "edge": "W",
-      "attrs": {
-        "spec": "RC"
-      },
-      "openings": [
-        {
-          "kind": "door",
-          "w": 900,
-          "h": 2100,
-          "at": 0.5,
-          "attrs": {
-            "name": "出入口"
           }
         }
       ]

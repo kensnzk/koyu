@@ -212,7 +212,7 @@ The value comes from the **deepest zone** whose path is a prefix of the space's 
 **Which key travels is chosen by whatever asks for it.** Core hands nothing down of its own accord; the resolution runs when something names a key — [`koyu stats --by`](../cli/stats.md), the MCP `model_summary`, a validation rule reading the key it cares about. A space is therefore grouped along as many divisions at once as it carries.
 
 ```muro
-muro 1.5
+muro 1.6
 name 継承の例
 grid X 0 4000 8000
 grid Y 0 4000

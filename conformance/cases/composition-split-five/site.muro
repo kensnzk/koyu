@@ -1,2 +1,2 @@
 space /out name:外部 outside:1
-boundary /L1/a /out edge:W t:200
+boundary /L1/a /out edge:x- t:200

@@ -4,7 +4,7 @@ grid X 0 4000 8000
 grid Y 0 4000 8000
 level L1 0 h:2700 slab:150
 
-asset SD1 door w:900 h:2100 style:sliding hinge:N name:single-slide
+asset SD1 door w:900 h:2100 style:sliding hinge:y+ name:single-slide
 asset AD1 door w:1200 h:2400 style:auto name:automatic
 asset RS1 door w:1800 h:2400 style:rolling-shutter name:rolling-shutter
 

@@ -33,21 +33,21 @@ test("default boundary: an explicit bare wall declaration and its omission mean 
 });
 
 test("default boundary: nothing is derived for a pair that carries a declaration (an edge-restricted one suppresses it too)", () => {
-  const m = parse(`${BASE}\n${ROOMS}\nboundary /L1/a /L1/b edge:E t:200`);
+  const m = parse(`${BASE}\n${ROOMS}\nboundary /L1/a /L1/b edge:x+ t:200`);
   assert.equal(m.boundaries.filter((b) => b.derived && b.b !== EXTERIOR).length, 0);
 });
 
 test("default boundary: against the outside, suppression is by run and not by pair — the sides left unwritten still get a wall", () => {
   // The outside is not a pair. It is whatever the rest of the perimeter faces, so there is
   // nothing to suppress as a unit: a declaration takes the runs it reaches and the default
-  // takes the rest (ADR-0065). Writing edge:S is what proves it — three sides remain.
-  const m = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /out outside:1\nboundary /L1/a /out edge:S`);
+  // takes the rest (ADR-0065). Writing edge:y- is what proves it — three sides remain.
+  const m = parse(`${BASE}\nspace /L1/a room X1..X2 Y1..Y2\nspace /out outside:1\nboundary /L1/a /out edge:y-`);
   const derived = m.boundaries.filter((b) => b.derived);
   assert.equal(derived.length, 1);
   assert.equal(derived[0]!.b, EXTERIOR);
   assert.deepEqual(
     segmentsFor(m, derived[0]!).map((seg) => seg.edgeOfA).sort(),
-    ["E", "N", "W"],
+    ["x+", "x-", "y+"],
   );
 });
 

@@ -78,7 +78,7 @@ function onlyOutcome(source: string, ruleId: string = SLIDING_STORAGE_LEAVES_SPA
 }
 
 test("single sliding storage is measured on the intended room side and names the crossed room", () => {
-  const source = fourRooms("door w:900 style:sliding hinge:N at:Y2-500");
+  const source = fourRooms("door w:900 style:sliding hinge:y+ at:Y2-500");
   const opening = analysisValue(source).openings[0]!;
 
   assert.equal(opening.style, "sliding");
@@ -91,7 +91,7 @@ test("single sliding storage is measured on the intended room side and names the
 });
 
 test("single sliding storage passes when its full parked leaf remains in the intended room", () => {
-  const source = fourRooms("door w:900 style:sliding hinge:N at:Y2-1500");
+  const source = fourRooms("door w:900 style:sliding hinge:y+ at:Y2-1500");
   const opening = analysisValue(source).openings[0]!;
 
   assert.equal(opening.storage[0]!.outsideTargetMm, 0);
@@ -100,13 +100,13 @@ test("single sliding storage passes when its full parked leaf remains in the int
 });
 
 test("double sliding storage uses half a leaf at each jamb, while bypass needs no external storage", () => {
-  const doubleSource = fourRooms("door w:900 style:sliding-double hinge:N at:Y2-500");
+  const doubleSource = fourRooms("door w:900 style:sliding-double hinge:y+ at:Y2-500");
   const double = analysisValue(doubleSource).openings[0]!;
   assert.deepEqual(double.storage.map((leaf) => leaf.widthMm), [450, 450]);
   assert.deepEqual(double.storage.map((leaf) => leaf.outsideTargetMm), [400, 0]);
   assert.equal(onlyOutcome(doubleSource).status, "fail");
 
-  const bypassSource = fourRooms("window w:900 h:1200 style:sliding-bypass hinge:N at:Y2-500");
+  const bypassSource = fourRooms("window w:900 h:1200 style:sliding-bypass hinge:y+ at:Y2-500");
   const bypass = analysisValue(bypassSource).openings[0]!;
   assert.deepEqual(bypass.storage, []);
   assert.equal(onlyOutcome(bypassSource).status, "pass");
@@ -119,7 +119,7 @@ grid Y 0 4000
 level L1 0 h:2700 slab:150
 space /empty room level:L1
 space /room room X1..X2 Y1..Y2 level:L1
-boundary /empty /room edge:S
+boundary /empty /room edge:y-
   window w:900 h:1200 style:sliding swing:a at:0.5`;
   const opening = analysisValue(source).openings[0]!;
 
@@ -129,31 +129,31 @@ boundary /empty /room edge:S
 });
 
 test("automatic single and double doors park behind sidelights inside the opening", () => {
-  const single = analysisValue(fourRooms("door w:900 style:auto-single hinge:N at:Y2-500")).openings[0]!;
-  const double = analysisValue(fourRooms("door w:900 style:auto hinge:N at:Y2-500")).openings[0]!;
+  const single = analysisValue(fourRooms("door w:900 style:auto-single hinge:y+ at:Y2-500")).openings[0]!;
+  const double = analysisValue(fourRooms("door w:900 style:auto hinge:y+ at:Y2-500")).openings[0]!;
   assert.deepEqual(single.storage, []);
   assert.deepEqual(double.storage, []);
-  assert.equal(onlyOutcome(fourRooms("door w:900 style:auto hinge:N at:Y2-500")).status, "pass");
+  assert.equal(onlyOutcome(fourRooms("door w:900 style:auto hinge:y+ at:Y2-500")).status, "pass");
 });
 
 test("an asset and the same inline attributes derive identical operation geometry", () => {
-  const inline = analysisValue(fourRooms("door w:900 style:sliding hinge:N at:Y2-500"));
+  const inline = analysisValue(fourRooms("door w:900 style:sliding hinge:y+ at:Y2-500"));
   const asset = analysisValue(fourRooms(
     "door SD1 at:Y2-500",
-    "asset SD1 door w:900 style:sliding hinge:N\n",
+    "asset SD1 door w:900 style:sliding hinge:y+\n",
   ));
   assert.deepEqual(asset, inline);
 });
 
 test("the drawing-only sliding gap cannot change storage analysis", () => {
-  const model = parse(fourRooms("door w:900 style:sliding hinge:N at:Y2-1500"));
+  const model = parse(fourRooms("door w:900 style:sliding hinge:y+ at:Y2-1500"));
   const form = derive(model);
   const atWall = planMarks(form, "L1", { slideGap: 0 });
   const farFromWall = planMarks(form, "L1", { slideGap: 500 });
   assert.notDeepEqual(atWall, farFromWall, "the symbol itself must prove that its paper offset changed");
 
-  const first = analysisValue(fourRooms("door w:900 style:sliding hinge:N at:Y2-1500"));
-  const second = analysisValue(fourRooms("door w:900 style:sliding hinge:N at:Y2-1500"));
+  const first = analysisValue(fourRooms("door w:900 style:sliding hinge:y+ at:Y2-1500"));
+  const second = analysisValue(fourRooms("door w:900 style:sliding hinge:y+ at:Y2-1500"));
   assert.deepEqual(second, first);
 });
 
@@ -167,7 +167,7 @@ space /L1/b room X2..X3 Y1..Y2 level:L1
 space /L1/c room X1..X2 Y2..Y3 level:L1
 space /L1/d room X2..X3 Y2..Y3 level:L1
 boundary /L1/a /L1/c
-  door w:900 style:sliding hinge:E at:X2-500`;
+  door w:900 style:sliding hinge:x+ at:X2-500`;
   const opening = analysisValue(source).openings[0]!;
   assert.equal(opening.storage[0]!.outsideTargetMm, 850);
   assert.deepEqual(opening.storage[0]!.crossedSpaces, [{ ref: "/L1/b", lengthMm: 850 }]);
@@ -190,14 +190,14 @@ boundary /L1/a /out t:150
 });
 
 test("storage overlapping a separate aperture is measured only when the height ranges overlap", () => {
-  const source = fourRooms(`door w:900 h:2100 style:sliding hinge:N at:Y2-1500
-  door w:900 h:2100 style:hinged hinge:S at:Y2-500`);
+  const source = fourRooms(`door w:900 h:2100 style:sliding hinge:y+ at:Y2-1500
+  door w:900 h:2100 style:hinged hinge:y- at:Y2-500`);
   const opening = analysisValue(source).openings.find((item) => item.style === "sliding")!;
   assert.deepEqual(opening.storage[0]!.overlappedOpenings.map((item) => item.lengthMm), [800]);
   assert.equal(onlyOutcome(source).status, "pass", "the leaf remains in its intended room");
   assert.equal(onlyOutcome(source, SLIDING_STORAGE_OVERLAPS_OPENING_RULE_ID.id).status, "fail");
 
-  const above = fourRooms(`door w:900 h:900 style:sliding hinge:N at:Y2-1500
+  const above = fourRooms(`door w:900 h:900 style:sliding hinge:y+ at:Y2-1500
   window w:900 h:600 style:fixed at:Y2-500`);
   const separated = analysisValue(above).openings[0]!;
   assert.deepEqual(separated.storage[0]!.overlappedOpenings, []);

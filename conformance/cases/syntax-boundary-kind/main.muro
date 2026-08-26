@@ -9,7 +9,7 @@ level L2 3000 h:2700 slab:250
 
 space /L1/hall   hall   X1..X2 Y1..Y2 name:ホール
 space /L1/lounge lounge X2..X3 Y1..Y2 name:ラウンジ
-space /L1/st     stair  X3..X4 Y1..Y2 name:階段室 stair:E
+space /L1/st     stair  X3..X4 Y1..Y2 name:階段室 stair:x+
 space /L1/ev     shaft  X4..X5 Y1..Y2 name:EV1F lift:1
 space /L2/void          X1..X2 Y1..Y2 name:吹抜け void:1
 space /L2/office office X2..X3 Y1..Y2 name:事務室
@@ -21,7 +21,7 @@ boundary /L1/hall /L1/lounge type:open
 boundary /L1/lounge /L1/st t:150 spec:RC
   door w:900 h:2000 name:階段扉
 boundary /L1/hall /out t:180 spec:EW
-  door w:1200 h:2100 edge:S name:玄関
+  door w:1200 h:2100 edge:y- name:玄関
 boundary /L2/void /L2/office t:150 spec:手すり air:1 h:1100
 
 boundary /L1/hall /L2/void type:void

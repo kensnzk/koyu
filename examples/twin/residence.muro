@@ -37,25 +37,25 @@ boundary /L13..L18/rn02 /L13..L18/rcorr t:180 spec:戸境RC
 
 # 外皮 — 掃き出しは引違い部 (door) と FIX部 (window) に分けて書く。
 # 窓しか無い住戸には出入りできない、が導出の答えになる
-boundary /L13..L18/rs01 /out edge:S t:250 spec:PC板
+boundary /L13..L18/rs01 /out edge:y- t:250 spec:PC板
   window RW1
-boundary /L13..L18/rs02 /out edge:S t:250 spec:PC板
+boundary /L13..L18/rs02 /out edge:y- t:250 spec:PC板
   window RW1
-boundary /L13..L18/rs03 /out edge:S t:250 spec:PC板
+boundary /L13..L18/rs03 /out edge:y- t:250 spec:PC板
   window RW1
-boundary /L13..L18/rs04 /out edge:S t:250 spec:PC板
+boundary /L13..L18/rs04 /out edge:y- t:250 spec:PC板
   window RW1
-boundary /L13..L18/rs05 /out edge:S t:250 spec:PC板
+boundary /L13..L18/rs05 /out edge:y- t:250 spec:PC板
   window RW1
-boundary /L13..L18/rs01 /out edge:W t:250 spec:PC板
-boundary /L13..L18/rs05 /out edge:E t:250 spec:PC板
-boundary /L13..L18/rlounge /out edge:W t:250 spec:PC板
+boundary /L13..L18/rs01 /out edge:x- t:250 spec:PC板
+boundary /L13..L18/rs05 /out edge:x+ t:250 spec:PC板
+boundary /L13..L18/rlounge /out edge:x- t:250 spec:PC板
   window RW1
-boundary /L13..L18/rn02 /out edge:E t:250 spec:PC板
+boundary /L13..L18/rn02 /out edge:x+ t:250 spec:PC板
   window RW1
-boundary /L13..L18/rcorr /out edge:W t:250 spec:PC板
+boundary /L13..L18/rcorr /out edge:x- t:250 spec:PC板
   window W2
-boundary /L13..L18/rcorr /out edge:E t:250 spec:PC板
+boundary /L13..L18/rcorr /out edge:x+ t:250 spec:PC板
   window W2
 
 # ---- B棟屋上 (L19の高さ) — 塔屋と庭園 ----
@@ -65,12 +65,12 @@ space /L19/btop service X15+5600..X18 Y7+5600..Y9 name:B棟塔屋・EV機械室 
 space /L19/broof terrace X14..X19 Y6..Y7+5600 + X14..X15+5600 Y7+5600..Y9 + X18..X19 Y7+5600..Y9 name:B棟屋上庭園 lease.category:common floor:緑化
 boundary /L18/bst1 /L19/btop type:stair
 boundary /L18/bst2 /L19/btop type:stair
-boundary /L19/btop /L19/broof edge:W t:250 spec:PC板
-boundary /L19/btop /L19/broof edge:E t:250 spec:PC板
-boundary /L19/btop /L19/broof edge:S t:250 spec:PC板
+boundary /L19/btop /L19/broof edge:x- t:250 spec:PC板
+boundary /L19/btop /L19/broof edge:x+ t:250 spec:PC板
+boundary /L19/btop /L19/broof edge:y- t:250 spec:PC板
   door FD1 at:0.3 name:庭園へ
-boundary /L19/btop /out edge:N t:250 spec:ルーバー
-boundary /L19/broof /out edge:S t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L19/broof /out edge:N t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L19/broof /out edge:W t:120 spec:パラペット+手すり air:1 h:1200
-boundary /L19/broof /out edge:E t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L19/btop /out edge:y+ t:250 spec:ルーバー
+boundary /L19/broof /out edge:y- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L19/broof /out edge:y+ t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L19/broof /out edge:x- t:120 spec:パラペット+手すり air:1 h:1200
+boundary /L19/broof /out edge:x+ t:120 spec:パラペット+手すり air:1 h:1200
