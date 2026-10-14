@@ -5,6 +5,8 @@ mode: reference
 
 # boundary — the boundary between two spaces
 
+For `mode spatial`, see [spatial models](mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
+
 ```text
 boundary /pathA /pathB [key:value...]
   door … / window … / seg … / line …      # one level of indentation
@@ -48,7 +50,7 @@ Writing a `wall` boundary to a space on a different level is an error (BND03). R
 Floors are not written. Spaces on consecutive levels are vertically adjacent wherever they overlap in plan, and the default reading of that adjacency is "there is a floor". Only the exceptions are declared, with `stair` / `shaft` / `void`.
 
 ```muro
-muro 1.5
+muro 1.6
 name 五つの kind
 unit mm
 
@@ -106,7 +108,7 @@ boundary /L2/ev /out
 You need not write a boundary at all. **Wherever two spaces with regions touch in plan on the same level and no boundary has been declared for that pair, a `wall` boundary is derived.** This is the horizontal counterpart of the vertical "default is a floor".
 
 ```muro
-muro 1.5
+muro 1.6
 unit mm
 grid X 0 3600 7200
 grid Y 0 4000
@@ -160,7 +162,7 @@ A key that is not in the ledger cannot be written — writing it is ATT03 (error
 `boundary /L1/a /out` and `boundary /out /L1/a` are two spellings of the same relation. **Area, shape and the position of the segments do not depend on the order.**
 
 ```muro
-muro 1.5
+muro 1.6
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -184,7 +186,7 @@ Exactly **two** things read the order.
 Get `edge` the wrong way round and the tool says so on the spot.
 
 ```muro-bad
-muro 1.5
+muro 1.6
 unit mm
 grid X 0 6000
 grid Y 0 4000 8000

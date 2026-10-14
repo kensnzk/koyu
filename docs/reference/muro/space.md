@@ -5,6 +5,8 @@ mode: reference
 
 # space — spaces
 
+For `mode spatial`, see [spatial models](mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
+
 ```muro-part
 space /L5/A/ldk ldk X1+3200..X2+3200 Y1..Y1+4000 + X2+3200..X3 Y1..Y1+2400 name:LDK floor:オーク
 space /out/road-s name:南側道路 road:12000 outside:1
@@ -182,7 +184,7 @@ Three worth naming.
 ## daylight — the scope is declared
 
 ```muro
-muro 1.5
+muro 1.6
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150

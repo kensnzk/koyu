@@ -66,6 +66,12 @@ interface BandMember {
   line: number;
 }
 
+function checkModeVersion(model: Model): void {
+  if (model.mode && !isNewerVersion(model.version, "1.5")) {
+    throw new SourceError(model.modeSource?.line ?? 0, "mode spatial requires muro 1.6", model.modeSource?.file, "VER10");
+  }
+}
+
 function emptyModel(): Model {
   return {
     version: DEFAULT_LANGUAGE_VERSION,
@@ -100,6 +106,7 @@ export function parse(source: string): Model {
   // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / docs/reference/form/index.md)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
   // 出所の無い BND04 が出る — 書いていない関係を責めることになる
+  checkModeVersion(model);
   derivePieces(model);
   deriveDefaultBoundaries(model);
   return model;
@@ -121,6 +128,7 @@ export function parseWith(loader: LayerLoader, entry: string): Model {
   // 描かれた線で領域を切り分けてから、既定の壁を導く (ADR-0022 / docs/reference/form/index.md)。
   // 逆順だと、線で接触が消えた組にも既定境界が生まれ、線分ゼロの境界に
   // 出所の無い BND04 が出る — 書いていない関係を責めることになる
+  checkModeVersion(model);
   derivePieces(model);
   deriveDefaultBoundaries(model);
   return model;
@@ -326,6 +334,14 @@ function ingest(
         }
         model.version = v;
         model.versionDeclared = true;
+        break;
+      }
+      case "mode": {
+        if (rest.length !== 1 || rest[0] !== "spatial") throw new SourceError(ln, "mode takes exactly one value: spatial");
+        if (file !== undefined && model.layers[0] !== file) throw new SourceError(ln, "The mode is declared only in the base layer (the entry)");
+        if (model.mode) throw new SourceError(ln, "The mode is declared once");
+        model.mode = "spatial";
+        model.modeSource = { line: ln, ...(file ? { file } : {}) };
         break;
       }
       case "import": {

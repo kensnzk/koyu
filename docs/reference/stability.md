@@ -13,9 +13,9 @@ Each is counted independently. Mixing them makes it impossible to say which prom
 
 | Version | What it attaches to | Currently |
 |---|---|---|
-| **The muro version** | **the language, its semantics and the rules of composition.** "A file written this way keeps meaning this" | **1.5** |
+| **The muro version** | **the language, its semantics and the rules of composition.** "A file written this way keeps meaning this" | **1.6** |
 | **The koyu version** | **the implementation.** "This implementation's surfaces will not break." It declares which muro it implements — `koyu --version`, `package.json`'s `muro` field, and the MCP `serverInfo` all say so, from one ledger | The package version |
-| **The canonical JSON format version** | **the spelling.** The set of keys, their order, collation, normalisation, number notation | `koyu-canonical/2.0` |
+| **The canonical JSON format version** | **the spelling.** The set of keys, their order, collation, normalisation, number notation | `koyu-canonical/2.1` |
 | **The assessment context version** | **the input `koyu validate` takes** — the effective date and the external values a judgement is made against | `koyu-context/1` |
 
 A `.muro` file declares only [the language version](muro/version.md). It announces semantics, not the maturity of a processor.
@@ -23,14 +23,14 @@ A `.muro` file declares only [the language version](muro/version.md). It announc
 **A version is carried where something checks it, and nowhere else.** `koyu-context/1` is on this list because `validate` reads the string on arrival and refuses an input that does not match it. The shapes `validate` *returns* — `koyu-assessment`, `koyu-analysis` — carry no version at all: nothing reads them back, and judgement is [the face that does not freeze](../why/three-domains.md), so a version on it would announce a stability nobody intends to keep.
 
 ```muro-part
-muro 1.5
+muro 1.6
 ```
 
 **A separate format version is needed because the same semantics can be respelled with different keys.** Adding the `a` key, which preserves the written direction of a boundary, changed the spelling without changing one word of the language. The converse also happens: a language version can rise without the spelling moving.
 
 ## The two lines need not arrive together
 
-As things stand, **muro has reached 1.5 and koyu is still 0.x.**
+As things stand, **muro has reached 1.6 and koyu is still 0.x.**
 
 That is not a lag; it is what having two promises means. muro 1.0 says "what could be read at this version stays readable with the same meaning"; koyu 1.0 would say "this implementation's surfaces will not break". **The language is settled and the implementation has promised no freeze at all** — the first can settle first, and it did.
 
@@ -46,13 +46,15 @@ So **adding a check never moves the language version.** If the derived artefacts
 
 An older declared version is **accepted only where the meaning is preserved**. Combinations where the declared version and vocabulary disagree are stopped by the [VER diagnostics](diagnostics/ver.md).
 
-**One rule is exempt, and says so on its own page.** The rule that makes a face onto the outside a wall reaches every accepted version rather than being gated by the version line ([the version line](muro/version.md)). It is the only such exemption, and [BND08](diagnostics/bnd.md#bnd08) reports every file it reaches.
+**Spatial mode is an explicit opt-in in muro 1.6.** Its unwritten faces stay unresolved; omitting the mode preserves the building reading. See [mode](muro/mode.md).
+
+**One building-reading rule is exempt, and says so on its own page.** The rule that makes a face onto the outside a wall reaches every accepted version rather than being gated by the version line ([the version line](muro/version.md)). It is the only such exemption, and [BND08](diagnostics/bnd.md#bnd08) reports every file it reaches.
 
 ## The eight surfaces that freeze
 
 | Surface | What is promised |
 |---|---|
-| **The grammar and semantics of muro 1.5** | what could be read at this version stays readable with the same meaning |
+| **The grammar and semantics of muro 1.6** | what could be read at this version stays readable with the same meaning |
 | **The rules of composition** | layer strength order, resolution of single values, editing of sets, provenance. The same input always gives the same result |
 | **[Identity](identity.md)** | same uid, same thing. The rules for paths and names |
 | **[The three attribute tiers and namespaces](scope.md)** | including the promise that the carried tier is not read |

@@ -5,6 +5,8 @@ mode: reference
 
 # slab — the floor build-up
 
+For `mode spatial`, see [spatial models](mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated. Spatial mode does not infer roofs.
+
 ```text
 level <name> <z> [h:ceiling height] [slab:floor build-up] [underground:1]
 ```
@@ -25,7 +27,7 @@ A floor is laid over every space on that level satisfying all of the following.
 The floor's z range runs **from FL − slab to FL**. Its outline is the derived convex piece, so a floor cut by a [drawn line](line.md) comes out cut.
 
 ```muro
-muro 1.5
+muro 1.6
 name 床組みの例
 unit mm
 grid X 0 6000
@@ -58,7 +60,7 @@ Those two rooms generate these surfaces.
 **No default is fabricated.** Where a needed value is not written, the element is not built rather than given an invented default. So a level with no `slab:` generates no floors at all, and that gets said.
 
 ```muro-warn
-muro 1.5
+muro 1.6
 unit mm
 grid X 0 6000
 grid Y 0 4000
@@ -83,7 +85,7 @@ The form is still determinate, so this is a warning (SUF03). All that disappears
 For each space, **ceiling height + the slab of the level above ≤ storey height** is checked, where storey height is the difference to the next level's z. Exceed it and the space collides into the floor above — an error.
 
 ```muro-bad
-muro 1.5
+muro 1.6
 unit mm
 grid X 0 6000
 grid Y 0 4000

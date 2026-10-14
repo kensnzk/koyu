@@ -129,7 +129,7 @@ one under an older version declaration is VER08.
 ## Written out
 
 ```muro
-muro 1.5
+muro 1.6
 name Door operations
 unit mm
 

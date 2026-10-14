@@ -1,5 +1,7 @@
 # muro — the notation, the working subset
 
+Use `muro 1.6` with `mode spatial` for allocation before boundary decisions. Declare the mode once in the entry; imports cannot change it. Unwritten faces stay unresolved, and `h:` / `slab:` may be omitted. `check` still verifies structural consistency. Architectural assessment is unevaluated until the mode is removed; removing it restores default walls.
+
 The normative reference is [docs/reference/muro](../../docs/reference/muro/index.md)
 in the koyu repository; this file is the subset an agent needs to write a
 building, self-contained so the skill works detached from the repository.
@@ -27,11 +29,11 @@ before the opening that references it. Boundaries may name spaces declared later
 ## The version line
 
 ```muro
-muro 1.5
+muro 1.6
 ```
 
 Optional. If you write it, it goes in the ENTRY layer only, exactly once — never
-in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3 1.4 1.5.
+in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3 1.4 1.5 1.6.
 Write `muro 1.5`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
 and earlier. A file with no version line is read as 1.1 and stays there.
 
@@ -220,7 +222,7 @@ zone above it supplies the value.
 
 ```muro-part
 # main.muro — the entry
-muro 1.5
+muro 1.6
 name Corner building
 unit mm
 grid X 0 6400 12800

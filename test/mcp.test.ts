@@ -3,7 +3,7 @@
 
 import assert from "node:assert/strict";
 import { spawn, type ChildProcess } from "node:child_process";
-import { cpSync, existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { test } from "node:test";
@@ -230,4 +230,31 @@ test("mcp: a direction outside the four is refused, not drawn as something near 
   } finally {
     c.kill();
   }
+});
+
+test("MCP: saved spatial mode survives summary, canonical output, plan and assessment", async () => {
+  const c = new McpClient();
+  const dir = mkdtempSync(join(tmpdir(), "koyu-spatial-mcp-"));
+  cpSync(join(root, "examples/spatial"), dir, { recursive: true });
+  try {
+    await c.request("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "test", version: "0" } });
+    const file = join(dir, "main.muro");
+    const summary = JSON.parse((await c.call("model_summary", { file })).text);
+    assert.equal(summary.mode, "spatial");
+    assert.equal(summary.boundaries, 0);
+    assert.equal(JSON.parse((await c.call("check", { file })).text).ok, true);
+    assert.equal(JSON.parse((await c.call("canonical_json", { file })).text).mode, "spatial");
+    assert.match((await c.call("plan_svg", { file, level: "L1" })).text, /data-unresolved/);
+    const report = JSON.parse((await c.call("validate", { file, profile: "koyu.profile.schematic-screen", asOf: "2026-10-14" })).text);
+    assert.equal(report.summary.state, "incomplete");
+    assert.equal(report.summary.rules.evaluated, 0);
+    assert.equal((await c.call("doors", { file, from: "/L1/a", to: "/L1/b" })).isError, true);
+    const before = JSON.parse((await c.call("canonical_json", { file })).text);
+    const content = readFileSync(join(dir, "layout.muro"), "utf8") + "\nboundary /L1/a /L1/b type:open\n";
+    assert.equal(JSON.parse((await c.call("write_layer", { file, layer: "layout.muro", content })).text).ok, true);
+    const after = JSON.parse((await c.call("canonical_json", { file })).text);
+    assert.equal(after.mode, "spatial");
+    assert.deepEqual(after.spaces, before.spaces);
+    assert.equal(after.boundaries.length, 1);
+  } finally { c.kill(); rmSync(dir, { recursive: true, force: true }); }
 });

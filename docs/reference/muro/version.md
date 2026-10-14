@@ -6,13 +6,13 @@ mode: reference
 # muro — the version line
 
 ```muro-part
-muro 1.5
+muro 1.6
 ```
 
 **One line declaring which version of the semantics this file is read under.** These are the accepted versions, and the order is the order of old to new.
 
 ```text
-0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3   1.4   1.5
+0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3   1.4   1.5   1.6
 ```
 
 **Omitted, the file is read as `1.1` — and always will be.** The reading of an undeclared file is frozen; it does not follow the newest version.
@@ -25,7 +25,7 @@ The cost is the same statement from the other side: **an undeclared file never g
 
 ### One rule does not follow the version line
 
-**The rule that makes a face onto the outside a wall reaches every accepted version.** A run of perimeter that no declared boundary covers carries a wall in a file declaring `0.1`, in a file declaring nothing, and in every version between — not only in the one that introduced it.
+**In the building reading (no `mode spatial`), the rule that makes a face onto the outside a wall reaches every accepted version.** A run of perimeter that no declared boundary covers carries a wall in a file declaring `0.1`, in a file declaring nothing, and in every version between — not only in the one that introduced it.
 
 This is the one place muro sets aside "a file written this way keeps meaning this", and it is set aside deliberately rather than overlooked. Up to 1.3 that face got no wall at all, so an older file read this way gains walls it did not have. The reason for reading it that way anyway is that the alternative — refusing every file that has not closed its envelope — would refuse most files ever written, including every one with no version line; and the state being refused is one nobody chose, since nothing reported it. [BND08](../diagnostics/bnd.md#bnd08) fires on exactly the files this affects, so no file changes meaning without saying so.
 
@@ -70,7 +70,7 @@ Exactly two tokens: the word and the version.
 | `muro 1.2` | accepted |
 | `muro` | `muro takes a version: muro 1.2` |
 | `muro 1.2 latest` | `Extra tokens on the muro version declaration: latest` |
-| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5)` |
+| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6)` |
 
 **It is declared in the base layer only, and only once.**
 

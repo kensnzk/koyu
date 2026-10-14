@@ -1,80 +1,43 @@
 ---
-title: Try the spatial model prototype
+title: Start with a spatial model
 mode: howto
 ---
 
-# Try the spatial model prototype
+# Start with a spatial model
 
-This repository experiment lets a spatial allocation stand on its own. It accepts grid, level
-and space declarations without physical boundaries, ceiling heights or slab thicknesses. It
-returns area, adjacency and overlap in plan across levels, and draws the space allocation.
+Use `muro 1.6` with `mode spatial` when the spaces, grid and levels are ready but their boundaries
+are still undecided. This uses the ordinary parser, API, CLI and MCP tools.
 
-It runs from a repository checkout with dependencies installed. It is not an npm API or a new
-accepted Muro language version.
-
-## Write and save a spatial entry
-
-Use a `.spatial` file whose first non-comment declaration is `mode spatial`. The rest uses Muro
-notation. This example is the experimental input format, not a normal `.muro` file:
-
-```text
-mode spatial
-muro 1.5
-grid X 0 4000 8000
-grid Y 0 4000
-level L1 0
-space /L1/a room X1..X2 Y1..Y2 uid:space-a
-space /L1/b room X2..X3 Y1..Y2 uid:space-b
-```
-
-The normal Muro parser rejects the marker. Reopening this source as ordinary Muro therefore
-cannot silently turn its unresolved boundaries into default walls. The spatial entry may import
-ordinary `.muro` layers. The entry declares the Muro version; imported layers do not.
-
-## Inspect and draw
-
-The bundled study has two levels. Select one explicitly when drawing:
+From a repository checkout:
 
 ```sh
-npm run spatial -- check experiments/spatial-model/examples/layout.spatial
-npm run spatial -- json experiments/spatial-model/examples/layout.spatial -o out/spatial-model/layout.json
-npm run spatial -- plan experiments/spatial-model/examples/layout.spatial -l L1 -o out/spatial-model/layout.svg
+npm run build
+node dist/cli.js check examples/spatial/main.muro --strict
+node dist/cli.js json examples/spatial/main.muro
+node dist/cli.js plan examples/spatial/main.muro -l L1 -o out/spatial-L1.svg
+node dist/cli.js plan examples/spatial/main.muro -l L2 -o out/spatial-L2.svg
 ```
 
-The commands read source files and do not rewrite them. JSON is a report tagged
-`koyu-spatial-prototype`; keep the source files to continue editing. `check` and `json` exit 1
-when structural diagnostics contain errors. Invalid syntax, unsupported inputs and command usage
-errors exit 2. `plan` refuses an invalid model.
+The entry imports `layout.muro`, which defines four spaces on two levels without any boundaries,
+ceiling heights or floor thicknesses. Dashed faces in the plan are unresolved. They are not walls
+or declarations of passage.
 
-The diagram shows space regions and area. Dashed lines identify unresolved boundary segments;
-solid lines identify declared relations. These lines do not depict physical walls or opening
-geometry. The report keeps grid coordinates in millimetres and areas in square metres.
+To resolve one relation, add this to the entry:
 
-## Add boundary decisions
+```muro-part
+boundary /L1/a /L1/b type:open
+```
 
-The second entry imports the same spaces and adds an open relation and a wall with a door:
+To ask for architectural assessment:
 
 ```sh
-npm run spatial -- check experiments/spatial-model/examples/partial.spatial
-npm run spatial -- plan experiments/spatial-model/examples/partial.spatial -l L1 -o out/spatial-model/partial.svg
+node dist/cli.js validate examples/spatial/main.muro --profile koyu.profile.schematic-screen --as-of 2026-10-14 --json
 ```
 
-The space paths, UIDs and regions stay the same. Only the declared segments become resolved.
-The rest remain unresolved, including unnamed exterior segments. A declared wall without a door
-has blocked passage; an open relation or a wall with a door has passage according to the written
-declaration. Invalid models report passage as unknown.
+The spatial model returns an incomplete assessment with indeterminate rules, and this command
+exits 1. It has no architectural pass or fail verdict. Structural contradictions still fail
+`check`; omitting a boundary, ceiling height or floor thickness does not.
 
-## What the result establishes
-
-`consistent` means the spatial declarations pass the applicable structural checks. Overlaps,
-missing levels, invalid references and invalid written attributes remain errors. Missing ceiling
-height (`SUF01`) and slab thickness (`SUF03`) do not prevent this spatial projection. Height is
-reported only when it is known; the prototype never chooses one.
-
-Geometric adjacency does not establish circulation. Overlap across levels does not establish a
-stair, a void or another vertical connection. Circulation, daylight and egress assessments are
-always `not-evaluated`. Areas are space allocations, not a certified gross or legal floor-area
-calculation. Diagonal `line` declarations are explicitly unsupported in this prototype.
-
-The experiment does not change [ordinary boundary defaults](../reference/muro/defaults.md),
-[canonical JSON](../reference/json/index.md), or the [meaning of a normal check](../reference/scope.md).
+When moving to a building model, remove `mode spatial`, supply the physical declarations, and
+check again. Space paths and `uid` values remain unchanged. See [mode](../reference/muro/mode.md)
+for the complete contract and [defaults](../reference/muro/defaults.md) for the building reading.

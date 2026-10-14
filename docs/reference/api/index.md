@@ -120,6 +120,12 @@ for (const s of model.spaces.values()) {
 /out	exterior	-
 ```
 
+`Model.mode` is `"spatial"` only when the entry declares it. Its absence selects the building
+reading. `derive` retains the mode and unresolved planar faces in Form; `semanticDiff` reports
+mode changes through `ModelDiff.mode` (`from` / `to`, each `"building"` or `"spatial"`).
+`doorsBetween` and `daylightInputs` throw for spatial models, and `assess` / `runAnalysis` return
+unevaluated results. See [spatial models](../muro/mode.md) for the full contract.
+
 `model.spaces` is a `Map<string, Space>` and `model.boundaries` is a `Boundary[]`. **A path is the identity of a space**, and a boundary belongs to neither space it joins — it is a first-class relation sitting in an array. See Model and its types.
 
 **An empty diagnostic list does not mean the building works.** `checkDiagnostics` says only that what is written is not self-contradictory as data. A two-storey house with not one door declared stays sealed shut with an empty list. The architectural judgement is made separately by `assess`, under a profile you name.

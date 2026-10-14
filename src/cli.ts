@@ -310,7 +310,9 @@ function main(argv: string[]): number {
         );
         // **緑の意味を、緑を出す場所で言う。**構造整合が成り立っただけであって、
         // 建築として妥当かはここでは何も言っていない (docs/reference/scope.md)
-        console.log("  Structural consistency only — architectural validity is what koyu validate says, separately");
+        console.log(model.mode === "spatial"
+          ? "  Spatial model — unwritten boundaries are unresolved; architectural assessment is not evaluated"
+          : "  Structural consistency only — architectural validity is what koyu validate says, separately");
         return strict && warnings.length > 0 ? 1 : 0;
       }
       return 1;
@@ -334,7 +336,7 @@ function main(argv: string[]): number {
       const violations = report.findings.filter((f) => f.level === "violation").length;
       const cautions = report.findings.length - violations;
       console.log(
-        report.findings.length === 0
+        model.mode === "spatial" ? "Spatial model — architectural assessment is not evaluated" : report.findings.length === 0
           ? "✔ Nothing caught by validation (this is a judgement, not a guarantee about the composition)"
           : `Validation — ${qty(violations, "violation", "violations")} / ${qty(cautions, "caution", "cautions")}`,
       );
@@ -388,6 +390,10 @@ function main(argv: string[]): number {
       return 0;
     }
     case "doors": {
+      if (model.mode === "spatial") {
+        console.error("Circulation is not evaluated in spatial mode");
+        return 2;
+      }
       const [from, to] = rest;
       if (!from || !to) {
         console.log("Usage: koyu doors <file> /pathA /pathB");
@@ -402,6 +408,7 @@ function main(argv: string[]): number {
       return 0;
     }
     case "graph": {
+      if (model.mode === "spatial") console.log("Spatial model — declared relations only; missing boundaries are unresolved");
       for (const s of model.spaces.values()) {
         const ns = neighbors(model, s.path);
         console.log(`${s.path} (${displayName(s)})`);
@@ -506,6 +513,10 @@ function main(argv: string[]): number {
       return 0;
     }
     case "light": {
+      if (model.mode === "spatial") {
+        console.error("Daylight is not evaluated in spatial mode");
+        return 2;
+      }
       // **数だけを返す。**床面積と有効窓面積は模型から出る事実であり、そこへ線を引くのは
       // 規則の側の仕事である。閾値をここに書けば validate と二重になり、片方だけが古くなる
       // (docs/reference/scope.md)。合否は koyu validate が言う

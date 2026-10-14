@@ -5,6 +5,8 @@ mode: reference
 
 # koyu plan
 
+For `mode spatial`, see [spatial models](../muro/mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
+
 Writes the plan drawing of one level as SVG. **There is no operation anywhere that draws a wall** — walls appear because they are derived from boundaries.
 
 ## Arguments

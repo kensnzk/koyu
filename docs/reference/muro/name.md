@@ -33,7 +33,7 @@ The building's name here is `街角の 複合ビル`.
 ```text
 $ npx tsx src/cli.ts json nm.muro
 {
-  "format": "koyu-canonical/2.0",
+  "format": "koyu-canonical/2.1",
   "name": "街角の 複合ビル",
   "unit": "mm",
 ```
@@ -102,7 +102,7 @@ A decimal such as `0.1` may appear in a length, but the offset in a [grid refere
 Neither line is indented. `name` and `unit` may sit anywhere among the other declarations, but `grid` and `level` have to precede their **use**, which in practice fixes the opening of a file to this order.
 
 ```muro-part
-muro 1.5
+muro 1.6
 name 街角の複合ビル
 unit mm
 grid X 0 6400 12800

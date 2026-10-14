@@ -60,7 +60,7 @@ RUN_TYPE = {
 # 1.x to 2.0 bump renamed the language-version key, which this exporter never reads — it takes
 # spaces, assets, zones, the geodetic frame and attributes. That is why both are listed, and it
 # is a sentence someone has to be able to write again for the next major.
-READS_CANONICAL = ("koyu-canonical/1.2", "koyu-canonical/2.0")
+READS_CANONICAL = ("koyu-canonical/1.2", "koyu-canonical/2.0", "koyu-canonical/2.1")
 
 
 def export(data: dict) -> ifcopenshell.file:
@@ -72,6 +72,8 @@ def export(data: dict) -> ifcopenshell.file:
             f"The document says {declared!r}. Nothing is wrong with the document — "
             "the exporter has not learnt this spelling of the canonical form."
         )
+    if canonical.get("mode") is not None:
+        raise ValueError("IFC export requires a building model; spatial mode is not supported")
     name = canonical.get("name") or "koyu"
     space_attrs = {p: s.get("attrs", {}) for p, s in canonical.get("spaces", {}).items()}
     boundary_attrs = _boundary_attrs(canonical)

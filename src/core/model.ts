@@ -56,6 +56,7 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
   // place fixed furniture or equipment footprints while keeping SVG artwork out of Form
   // (ADR-0068, ADR-0075).
   { muro: "1.5", since: "0.28.0", until: null },
+  { muro: "1.6", since: "0.29.0", until: null },
 ];
 
 /** The word a version line is written with from 1.2 on. */
@@ -82,7 +83,7 @@ export const LAST_KOYU_SPELLED_VERSION = "1.1";
  * `since` column is written in this vocabulary, and every surface that answers "which muro
  * does this build speak" needs both halves at once.
  */
-export const KOYU_VERSION = "0.28.0";
+export const KOYU_VERSION = "0.29.0";
 
 /**
  * Whether `a` names a later language version than `b`.
@@ -213,13 +214,14 @@ export const DEFAULT_LANGUAGE_VERSION = "1.1";
  * shape koyu writes. The key inside it names the language, and is spelled `muro` for the same
  * reason the version line is.
  *
- * **That rename is why this is 2.0 and not 1.3.** An existing key changed its name, which the
+ * **That rename introduced 2.0 rather than 1.3.** An existing key changed its name, which the
  * rule above puts squarely in major. Shipping it as a minor would have told every reader that
  * `1.x` stays compatible — so a reader expecting `koyu` would have accepted the document and
  * found no language version in it, which is the silent misread the format version exists to
  * prevent.
  */
-export const CANONICAL_FORMAT = "koyu-canonical/2.0";
+// 2.1 adds the optional spatial mode key; existing key spellings and order stay unchanged.
+export const CANONICAL_FORMAT = "koyu-canonical/2.1";
 
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";
@@ -477,6 +479,9 @@ export function srcRef(line: number, file?: string): string {
 
 export interface Model {
   version: string;
+  /** Absent means the building reading. Spatial mode leaves unwritten boundaries unresolved. */
+  mode?: "spatial";
+  modeSource?: { line: number; file?: string };
   name?: string;
   unit: "mm";
   /**
@@ -701,7 +706,7 @@ export class SourceError extends Error {
      * module, so the union cannot be imported here — and widening it to `string` would let
      * a typo reach `check --json` as a code no page documents.
      */
-    public code?: "VER06",
+    public code?: "VER06" | "VER10",
   ) {
     super(`${file ? `${file}:` : ""}line ${line}: ${raw}`);
     this.name = "SourceError";
@@ -1214,6 +1219,7 @@ export function toCanonical(model: Model): string {
     // A document written `koyu 1.1` still says `"muro": "1.1"` here: the key is the name of
     // the thing being versioned, not a copy of how the author spelled the declaration.
     ...(model.versionDeclared ? { muro: model.version } : {}),
+    ...(model.mode ? { mode: model.mode } : {}),
     ...(model.name ? { name: model.name } : {}),
     unit: model.unit,
     // 測地の枠 (ADR-0057) — **単位を言った直後、グリッドを言う前。**この二つは grid が張る

@@ -215,7 +215,7 @@ export function assess(model: Model, options: AssessmentOptions): AssessmentRepo
     }
   }
 
-  const summary = summarize(prepared.modelState, runs);
+  const summary = { ...summarize(prepared.modelState, runs), ...(prepared.spatial ? { state: "incomplete" as const } : {}) };
   const report: AssessmentReport = {
     schema: ASSESSMENT_FORMAT,
     profile: identityOf(prepared.profile),
@@ -237,9 +237,10 @@ interface PreparedRun {
   readonly usedContext: Set<string>;
   readonly diagnostics: readonly Diagnostic[];
   readonly modelState: "consistent" | "inconsistent";
+  readonly spatial: boolean;
 }
 
-type PreparedConfiguration = Omit<PreparedRun, "diagnostics" | "modelState">;
+type PreparedConfiguration = Omit<PreparedRun, "diagnostics" | "modelState" | "spatial">;
 
 function prepareConfiguration(options: AssessmentOptions): PreparedConfiguration {
   try {
@@ -290,7 +291,7 @@ function diagnoseModel(model: Model, configured: PreparedConfiguration): Prepare
   const modelState = diagnostics.some((diagnostic) => diagnostic.severity === "error")
     ? "inconsistent"
     : "consistent";
-  return { ...configured, diagnostics, modelState };
+  return { ...configured, diagnostics, modelState, spatial: model.mode === "spatial" };
 }
 
 function preflightRegistry(input: AssessmentRegistryInput): void {
@@ -1024,6 +1025,12 @@ class AnalysisSession {
       )) as AnalysisArtifact<T>;
     }
     const definition = requireResolved(reference, this.definitions, reference, "analysis");
+    if (this.model.mode === "spatial") {
+      return this.store(reference, unavailable(
+        [{ kind: "model", subjects: [{ kind: "model", ref: "/" }], reason: "spatial mode leaves physical boundaries unresolved" }],
+        [{ kind: "koyu.spatial-model", message: "Analysis is not evaluated in spatial mode" }],
+      )) as AnalysisArtifact<T>;
+    }
 
     const dependencyArtifacts = new Map<string, AnalysisArtifact<JsonValue>>();
     const dependencyMissing: MissingInput[] = [];
@@ -1106,6 +1113,12 @@ function executeRule(
   prepared: PreparedRun,
 ): RuleRun {
   const identity = { rule: identityOf(rule), ruleSet: identityOf(ruleSet) };
+  if (prepared.spatial) return {
+    ...identity, state: "indeterminate",
+    evaluation: { applicability: "indeterminate", reason: "Architectural assessment is not evaluated in spatial mode",
+      missing: [{ kind: "model", subjects: [{ kind: "model", ref: "/" }], reason: "spatial mode leaves physical boundaries unresolved" }], evidence: [] },
+    issues: [{ kind: "koyu.spatial-model", message: "Switch to the building reading before architectural assessment" }],
+  };
   const artifacts = new Map<string, AnalysisArtifact<JsonValue>>();
   const missing: MissingInput[] = [];
   const issues: ExecutionIssue[] = [];
@@ -1773,6 +1786,7 @@ function modelReport(
 ): AnalysisReport["model"] {
   return {
     languageVersion: model.version,
+    ...(model.mode ? { mode: model.mode } : {}),
     ...(model.name !== undefined ? { name: model.name } : {}),
     state,
     diagnostics: diagnostics.map((diagnostic) => ({

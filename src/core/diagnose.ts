@@ -147,6 +147,7 @@ export const DIAGNOSTIC_CODES = {
   VER07: "error", // the file declares a version in which a key it writes is retired (ADR-0061)
   VER08: "error", // the file uses opening presentation introduced in muro 1.5 (ADR-0068/0074)
   VER09: "error", // the file uses component assets or area placement introduced in muro 1.5
+  VER10: "error", // spatial mode requires muro 1.6
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
 } as const satisfies Record<string, "error" | "warning">;
 
@@ -1373,7 +1374,7 @@ function checkSpaceSufficiency(ctx: Ctx): void {
       emit("SUF02", `${s.path} has a region, but its level cannot be determined (give it at the head of the path or with level:)`, at);
       continue; // z が決まらない空間には、天井高を問う意味が無い
     }
-    if (isVoid(s) || isOutside(s) || isSemiOutdoor(model, s)) continue;
+    if (model.mode === "spatial" || isVoid(s) || isOutside(s) || isSemiOutdoor(model, s)) continue;
     if (heff(model, s) === undefined) {
       emit(
         "SUF01",
@@ -1392,6 +1393,7 @@ function checkSpaceSufficiency(ctx: Ctx): void {
  * 決定的な規則であり、複数の形が出るわけではない。ただし床の無い建物になることは知らされるべきである
  */
 function checkLevelSufficiency(ctx: Ctx): void {
+  if (ctx.model.mode === "spatial") return;
   const { emit, withRect, levels } = ctx;
   for (const l of levels) {
     if (l.slab !== undefined) continue;

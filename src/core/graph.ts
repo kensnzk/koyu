@@ -6,6 +6,7 @@
 import type { Boundary, Edge, Model, Opening, Pt, Rect, Space } from "./model.js";
 import {
   canonicalBoundaryOrder,
+  canonicalSpaceOrder,
   canonicalizeDrawn,
   compareCanonical,
   EXTERIOR,
@@ -152,6 +153,35 @@ export function mergeCollinear(segs: Segment[]): Segment[] {
   return out;
 }
 
+/** An allocated face with no boundary declaration; it asserts no wall or passage. */
+export interface UnresolvedBoundary {
+  a: string;
+  b: string;
+  level: string;
+  segment: Segment;
+}
+
+export function unresolvedBoundaries(model: Model): UnresolvedBoundary[] {
+  if (model.mode !== "spatial") return [];
+  const spaces = canonicalSpaceOrder(model).filter(s => s.rects.length > 0 && s.level !== undefined);
+  const result: UnresolvedBoundary[] = [];
+  for (let i = 0; i < spaces.length; i++) {
+    const a = spaces[i]!;
+    for (let j = i + 1; j < spaces.length; j++) {
+      const b = spaces[j]!;
+      if (a.level !== b.level) continue;
+      let segments = sharedFromPieces(piecesOf(a), piecesOf(b));
+      for (const boundary of model.boundaries) {
+        if (!((boundary.a === a.path && boundary.b === b.path) || (boundary.a === b.path && boundary.b === a.path))) continue;
+        for (const covered of segmentsFor(model, boundary)) segments = segments.flatMap(s => subtractOverlap(s, covered));
+      }
+      for (const segment of segments) result.push({ a: a.path, b: b.path, level: a.level!, segment });
+    }
+    for (const segment of envelopeGaps(model, a)) result.push({ a: a.path, b: EXTERIOR, level: a.level!, segment });
+  }
+  return result;
+}
+
 /**
  * 既定境界の導出 (ADR-0014) — 垂直の「既定は床」と対称の、水平の「既定は壁」。
  * 同一レベル (未特定同士を含む) で平面が接する領域つき空間の組に、宣言境界がその組に
@@ -160,6 +190,7 @@ export function mergeCollinear(segs: Segment[]): Segment[] {
  * 合成・スパン展開の完了後に呼ぶ (parse / parseWith の出口)。冪等。
  */
 export function deriveDefaultBoundaries(model: Model): void {
+  if (model.mode === "spatial") return;
   const declared = new Set<string>();
   for (const b of model.boundaries) declared.add([b.a, b.b].sort().join("|"));
   const withRect = [...model.spaces.values()].filter((s) => s.rects.length > 0);
@@ -770,6 +801,7 @@ export interface Route {
 
 /** aからbまで扉をいくつ通るか (最小)。到達不能なら undefined */
 export function doorsBetween(model: Model, from: string, to: string): Route | undefined {
+  if (model.mode === "spatial") throw new Error("Circulation is not evaluated in spatial mode");
   if (!model.spaces.has(from) || !model.spaces.has(to)) return undefined;
   const dist = new Map<string, number>();
   const prev = new Map<string, string>();

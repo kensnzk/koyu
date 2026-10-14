@@ -5,6 +5,8 @@ mode: reference
 
 # koyu stats
 
+For `mode spatial`, see [spatial models](../muro/mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated. Spatial totals describe allocation, not verified enclosed floor area.
+
 Gives floor areas by level, reports semi-outdoor and outdoor separately, and totals by zone and by type — and, when you name one with `--by`, by any attribute key.
 
 ## Arguments

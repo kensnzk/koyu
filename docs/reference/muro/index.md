@@ -17,7 +17,8 @@ A line that starts flush is a declaration in its own right.
 
 | Line | What it declares |
 |---|---|
-| [`muro 1.2`](version.md) | the language version this file is read under. Base layer only, once |
+| [`mode spatial`](mode.md) | leaves unwritten boundaries unresolved. Base layer only, once; requires muro 1.6 |
+| [`muro 1.6`](version.md) | the language version this file is read under. Base layer only, once |
 | [`name 街角の複合ビル`](name.md) | the name of the building. The rest of the line is the value. Once |
 | [`unit mm`](name.md) | the unit of length. v0 is mm only |
 | [`grid X 0 6400 12800`](grid.md) | grid line coordinates. Once per axis; named `X1`, `X2`, … automatically |

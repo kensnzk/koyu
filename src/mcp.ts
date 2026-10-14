@@ -113,6 +113,7 @@ function summarize(model: Model, file: string, by: readonly string[] = []): unkn
   const components = placedComponents(model).components;
   return {
     name: model.name,
+    ...(model.mode ? { mode: model.mode } : {}),
     unit: model.unit,
     layers: layerFiles(model),
     levels: levelsSorted(model).map((l) => ({

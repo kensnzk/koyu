@@ -18,6 +18,7 @@ All VER codes are errors.
 | VER07 | error | The file declares a version in which a key it writes is retired |
 | VER08 | error | A pre-1.5 file uses opening presentation introduced in muro 1.5 |
 | VER09 | error | A pre-1.5 file uses component assets or placement introduced in muro 1.5 |
+| VER10 | error | Spatial mode requires muro 1.6 |
 
 **VER06 is the one that points at the tool rather than the file.** The other guards say the declared
 version and the vocabulary do not agree. VER06 says the opposite: the file is fine and the reader
@@ -34,10 +35,10 @@ have to agree.
 muro 1.5
 ```
 
-These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1 / 1.2 / 1.3 / 1.4 / 1.5**. Anything else stops at the parser, before any semantic check runs.
+These versions are accepted: **0.1 / 0.2 / 0.3 / 0.4 / 0.5 / 1.0 / 1.1 / 1.2 / 1.3 / 1.4 / 1.5 / 1.6**. Anything else stops at the parser, before any semantic check runs.
 
 ```text
-Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5)
+Unsupported koyu version: 0.9 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
 ```
 
 The declaration is written **once**, in the base layer (the entry). By convention it goes on the first line. Writing it in an imported layer is an error — silent overwriting by composition order is forbidden.
@@ -236,7 +237,7 @@ current values come from its version ledger rather than being copied onto this p
 **Why it is a separate code from an unreadable version.** A version that never existed is a different situation with the opposite advice, and it keeps the `SYN01` it always had:
 
 ```text
-Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5)
+Unsupported koyu version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6)
 ```
 
 Both used to print that second sentence, so nothing downstream could tell a stale build from a corrupt file without reading English prose. The split is *later than anything I know* against *not a version I have*, which is answerable; *real* against *fake* is not, and `9.9` is treated as the future because that is the more useful of the two readings.
@@ -330,6 +331,19 @@ A muro 1.4 file declares a 1.5 component asset: WC — raise the version to muro
 attributes arrive in muro 1.5. A processor implementing 1.4 cannot read that placement contract.
 
 **The fix** — raise the first line to `muro 1.5`.
+
+## VER10 — spatial mode before muro 1.6 {#ver10}
+
+`error`
+
+```muro-bad
+muro 1.5
+mode spatial
+```
+
+`mode spatial` changes how unwritten boundaries are read. It requires `muro 1.6`.
+The parser rejects it under an earlier or undeclared version before deriving any walls.
+Declare the newer version in the entry file, or remove the mode to retain the building reading.
 
 ## Why declare a version at all
 

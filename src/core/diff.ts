@@ -87,6 +87,7 @@ export interface BoundaryChange {
 
 export interface ModelDiff {
   version?: { from: string; to: string };
+  mode?: { from: "building" | "spatial"; to: "building" | "spatial" };
   name?: { from?: string; to?: string };
   grid: GridChange[];
   levels: { added: string[]; removed: string[]; changed: ChangedItem[] };
@@ -464,6 +465,7 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
     boundaries: { added: [], removed: [], changed: [] },
     columns: { added: [], removed: [], changed: [] },
   };
+  if (a.mode !== b.mode) d.mode = { from: a.mode ?? "building", to: b.mode ?? "building" };
   if (a.version !== b.version) d.version = { from: a.version, to: b.version };
   if (a.name !== b.name) {
     d.name = { ...(a.name !== undefined ? { from: a.name } : {}), ...(b.name !== undefined ? { to: b.name } : {}) };
@@ -689,6 +691,7 @@ export function renderDiff(d: ModelDiff): string[] {
   // **The label names the language, not the implementation.** It also may not be the written
   // declaration: from 1.2 the word is `muro`, so printing `koyu 1.2` would show a line the
   // parser refuses. This is a label for a change, not a copy of either file's first line.
+  if (d.mode) out.push(`± mode ${d.mode.from} → ${d.mode.to}`);
   if (d.version) out.push(`± muro ${d.version.from} → ${d.version.to}`);
   if (d.name) out.push(`± name ${d.name.from ?? "—"} → ${d.name.to ?? "—"}`);
   for (const n of d.levels.added) out.push(`+ level ${n}`);

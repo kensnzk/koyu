@@ -1,0 +1,6 @@
+{
+  "pins": [
+    "docs/reference/diagnostics/ver.md#ver10"
+  ],
+  "why": "An earlier language version must not acquire spatial semantics."
+}

@@ -7,6 +7,9 @@ mode: reference
 
 For **spaces declared with `daylight:1`**, lists whether the effective window area reaches one seventh of the floor area.
 
+A [spatial model](../muro/mode.md) leaves this question unevaluated. The command prints a
+not-evaluated message on stderr and exits 2; it does not return a negative building result.
+
 ## Arguments
 
 ```text

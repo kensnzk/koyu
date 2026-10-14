@@ -7,6 +7,10 @@ mode: reference
 
 Compares two models **in the language of composition**. Line order, formatting, and the difference between a bare `wall` declaration and leaving it out (the default wall) are not differences. This is not a text diff; it is a diff of meaning.
 
+Switching between spatial and building readings is a semantic change. JSON reports `mode`
+with `from` and `to` values of `"spatial"` or `"building"`; text reports a `mode` change.
+In spatial mode, removing a declared wall leaves an unresolved face and is also a difference.
+
 ## Arguments
 
 ```text
