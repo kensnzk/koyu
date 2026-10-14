@@ -204,24 +204,23 @@ export const NEWEST_LANGUAGE_VERSION = SUPPORTED_LANGUAGE_VERSIONS[SUPPORTED_LAN
 export const DEFAULT_LANGUAGE_VERSION = "1.1";
 
 /**
- * 機械形式 (正準JSON) が自分を名乗る版 (ADR-0036)。**言語版でもツール版でもない** —
- * 数えるのは綴りだけである。minorはキーが増えたとき、majorは既存のキーの名前・並び・照合順・
- * 正規化・数の綴りが変わったとき。**minorでも全ての文書のバイトは動く** — この文字列自体が
- * 第一キーだからで、増えたキーを持たない文書も先頭行だけは変わる (ADR-0051 が実測している)。
- * 意味論の版は muro が持つので、`muro` キー (書かれた版宣言の素通し) とは別の面である。
+ * The canonical spelling version is independent of the language and package versions.
+ * A format bump changes every document's bytes, including unchanged older sources.
+ * The optional `mode` key is gated by an explicit Muro 1.6 declaration and spatial opt-in;
+ * it keeps format 2.0 so building documents retain their existing canonical bytes.
+ * Consumers must understand the declared language and mode before interpreting a document.
  *
  * The format keeps the name `koyu` because it is the implementation's output spelling — the
  * shape koyu writes. The key inside it names the language, and is spelled `muro` for the same
  * reason the version line is.
  *
  * **That rename introduced 2.0 rather than 1.3.** An existing key changed its name, which the
- * rule above puts squarely in major. Shipping it as a minor would have told every reader that
+ * format policy puts squarely in major. Shipping it as a minor would have told every reader that
  * `1.x` stays compatible — so a reader expecting `koyu` would have accepted the document and
  * found no language version in it, which is the silent misread the format version exists to
  * prevent.
  */
-// 2.1 adds the optional spatial mode key; existing key spellings and order stay unchanged.
-export const CANONICAL_FORMAT = "koyu-canonical/2.1";
+export const CANONICAL_FORMAT = "koyu-canonical/2.0";
 
 /** 方位。edge指定は「最初に書いた空間」の矩形から見た辺。N=+Y, S=-Y, E=+X, W=-X */
 export type Edge = "N" | "E" | "S" | "W";

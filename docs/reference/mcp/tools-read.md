@@ -328,7 +328,7 @@ Narrowing by `level` puts site and building spaces side by side.
 
 ```text
 {
- "format": "koyu-canonical/2.1",
+ "format": "koyu-canonical/2.0",
  "muro": "1.3",
  "name": "二室",
  "unit": "mm",

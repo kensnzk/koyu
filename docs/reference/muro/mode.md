@@ -76,7 +76,7 @@ provider or rule evaluator is executed, including third-party ones. The same app
 `runAnalysis`; there is no opt-in to architectural assessment while this mode remains set.
 
 Canonical JSON carries `"mode": "spatial"` immediately after `muro` in format
-`koyu-canonical/2.1`. Consumers must preserve this field and must not apply building defaults.
+`koyu-canonical/2.0`. Consumers must preserve this field and must not apply building defaults.
 The bundled IFC exporter rejects spatial models explicitly. Other exporters and viewers must
 implement this mode before accepting it.
 

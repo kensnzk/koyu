@@ -15,7 +15,7 @@ Each is counted independently. Mixing them makes it impossible to say which prom
 |---|---|---|
 | **The muro version** | **the language, its semantics and the rules of composition.** "A file written this way keeps meaning this" | **1.6** |
 | **The koyu version** | **the implementation.** "This implementation's surfaces will not break." It declares which muro it implements — `koyu --version`, `package.json`'s `muro` field, and the MCP `serverInfo` all say so, from one ledger | The package version |
-| **The canonical JSON format version** | **the spelling.** The set of keys, their order, collation, normalisation, number notation | `koyu-canonical/2.1` |
+| **The canonical JSON format version** | **the spelling.** The set of keys, their order, collation, normalisation, number notation | `koyu-canonical/2.0` |
 | **The assessment context version** | **the input `koyu validate` takes** — the effective date and the external values a judgement is made against | `koyu-context/1` |
 
 A `.muro` file declares only [the language version](muro/version.md). It announces semantics, not the maturity of a processor.
@@ -47,6 +47,10 @@ So **adding a check never moves the language version.** If the derived artefacts
 An older declared version is **accepted only where the meaning is preserved**. Combinations where the declared version and vocabulary disagree are stopped by the [VER diagnostics](diagnostics/ver.md).
 
 **Spatial mode is an explicit opt-in in muro 1.6.** Its unwritten faces stay unresolved; omitting the mode preserves the building reading. See [mode](muro/mode.md).
+
+Its optional canonical `mode` field is gated by that opt-in and keeps format 2.0.
+Existing building sources produce the same canonical bytes; support for format 2.0
+alone does not imply support for spatial mode. See [JSON compatibility](json/index.md).
 
 **One building-reading rule is exempt, and says so on its own page.** The rule that makes a face onto the outside a wall reaches every accepted version rather than being gated by the version line ([the version line](muro/version.md)). It is the only such exemption, and [BND08](diagnostics/bnd.md#bnd08) reports every file it reaches.
 

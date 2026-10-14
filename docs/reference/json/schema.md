@@ -19,7 +19,7 @@ The key order is fixed.
 
 | Key | Present | Content |
 |---|---|---|
-| `format` | **always** | the version of this format itself; currently `"koyu-canonical/2.1"` |
+| `format` | **always** | the version of this format itself; currently `"koyu-canonical/2.0"` |
 | `muro` | only with a version declaration | [the language version](../muro/version.md), passed through. **Spelled `muro` whatever word the source used** — a file written `koyu 1.1` still says `"muro": "1.1"`, because the key names the thing being versioned |
 | `mode` | only with `mode spatial` | `"spatial"`; absence means the building reading. Consumers must not infer walls for a spatial model |
 | `name` | if `name` was written | the name of the building |

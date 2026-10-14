@@ -60,7 +60,7 @@ RUN_TYPE = {
 # 1.x to 2.0 bump renamed the language-version key, which this exporter never reads — it takes
 # spaces, assets, zones, the geodetic frame and attributes. That is why both are listed, and it
 # is a sentence someone has to be able to write again for the next major.
-READS_CANONICAL = ("koyu-canonical/1.2", "koyu-canonical/2.0", "koyu-canonical/2.1")
+READS_CANONICAL = ("koyu-canonical/1.2", "koyu-canonical/2.0")
 
 
 def export(data: dict) -> ifcopenshell.file:

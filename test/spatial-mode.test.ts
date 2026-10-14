@@ -37,7 +37,7 @@ test("spatial mode preserves unknown faces without manufacturing walls, heights 
   assert.deepEqual(form.boundaries, []);
   assert.deepEqual(form.slabs, []);
   assert.equal(JSON.parse(toCanonical(model)).mode, "spatial");
-  assert.equal(JSON.parse(toCanonical(model)).format, "koyu-canonical/2.1");
+  assert.equal(JSON.parse(toCanonical(model)).format, "koyu-canonical/2.0");
   assert.match(svgPlan(model), /data-unresolved="true"/);
 });
 

@@ -56,4 +56,4 @@ def test_the_current_format_is_one_this_exporter_reads(pair):
 
 def test_spatial_model_is_refused_before_export():
     with pytest.raises(ValueError, match="spatial mode"):
-        export({"canonical": {"format": "koyu-canonical/2.1", "mode": "spatial", "unit": "mm"}})
+        export({"canonical": {"format": "koyu-canonical/2.0", "mode": "spatial", "unit": "mm"}})

@@ -33,7 +33,7 @@ The building's name here is `街角の 複合ビル`.
 ```text
 $ npx tsx src/cli.ts json nm.muro
 {
-  "format": "koyu-canonical/2.1",
+  "format": "koyu-canonical/2.0",
   "name": "街角の 複合ビル",
   "unit": "mm",
 ```
