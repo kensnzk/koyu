@@ -34,6 +34,7 @@ Every page has the same three parts: what it assumes, the steps, and how to chec
 | Have an agent write the building | [The agent loop](agent-loop.md) |
 | Check the MCP responses by hand | [Debug MCP over stdio](debug-mcp.md) |
 | Read a building from your own program | [Embed koyu in a program](embed-in-a-program.md) |
+| Inspect space allocation before boundary decisions | [Try the spatial model prototype](try-spatial-model.md) |
 | Edit this documentation | [How this documentation is written](write-docs.md) |
 
 ## When you are stuck

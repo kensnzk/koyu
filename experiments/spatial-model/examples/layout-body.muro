@@ -1,0 +1,8 @@
+grid X 0 4000 6000 10000
+grid Y 0 2000 6000
+level L1 0
+level L2 3200
+space /L1/a room X1..X2 Y2..Y3 uid:space-a name:"Room A"
+space /L1/b room X2..X4 Y2..Y3 uid:space-b name:"Room B"
+space /L1/c circulation X1..X4 Y1..Y2 uid:space-c name:"Shared space"
+space /L2/d room X1..X2 Y1..Y3 uid:space-d name:"Upper space"

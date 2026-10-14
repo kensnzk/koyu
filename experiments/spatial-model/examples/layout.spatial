@@ -1,0 +1,4 @@
+mode spatial
+muro 1.5
+name Spatial study
+import layout-body.muro
