@@ -101,7 +101,7 @@ def test_a_model_with_no_frame_claims_no_position(built):
     """
     data, f, _ = built("examples/two-rooms.muro")
     assert "origin" not in data["canonical"]
-    assert f.by_type("IfcMapConversion") == []
+    assert not f.by_type("IfcMapConversion")
     # A subcontext inherits true north from its parent, so only the parent is asked.
     parents = [
         c
