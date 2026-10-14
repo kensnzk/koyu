@@ -5,6 +5,8 @@ mode: reference
 
 # BND — boundary diagnostics
 
+For `mode spatial`, see [spatial models](../muro/mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
+
 A boundary is not a thing but **a relation between two spaces**. The wall centerline segment is derived from that relation and the layout of both spaces, so a way of writing under which the relation does not stand produces no segment at all. These seven catch that.
 
 A boundary between two touching spaces **is derived as a wall whether or not you write it**, and so is the boundary between a space and the outside. You write a `boundary` to declare an exception (`type:open`, `air:1`), to hang an attribute, an opening or a `seg` on it, or — outside — to say *which* outside a face looks at.

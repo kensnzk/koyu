@@ -92,7 +92,7 @@ MCPサーバーとCLIは*確かめる*側。muroで仕事をするための知�
 
 ## 構成
 
-規範は [docs/reference/](docs/reference/index.md) に体系化してある — 記法・診断・判定・CLI・MCP・API・導出される形・正準JSON。**この木が正である。** ADR ([docs/decisions/](docs/decisions/)) は「なぜ」を持つが後から直さないので、現在の真ではなく履歴である。行程は [docs/roadmap.md](docs/roadmap.md)。同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。実装は src/ に約7,500行 (パーサ・グラフ・チェック・平面図生成・CLI・MCPサーバー)、テストは test/。
+規範は [docs/reference/](docs/reference/index.md) に体系化してある — 記法・診断・判定・CLI・MCP・API・導出される形・正準JSON。**この木が正である。** ADR ([docs/decisions/](docs/decisions/)) は「なぜ」を持つが後から直さないので、現在の真ではなく履歴である。同じ二室をIFC4・IFCXで書いた三方比較は [examples/comparison/](examples/comparison/README.md)。実装は src/ に約7,500行 (パーサ・グラフ・チェック・平面図生成・CLI・MCPサーバー)、テストは test/。
 
 ## 技術方針
 

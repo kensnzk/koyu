@@ -126,6 +126,16 @@ for (const file of entries()) {
     profile: SCHEMATIC_PROFILE_ID,
     context: GATE_CONTEXT,
   });
+  if (model.mode === "spatial") {
+    if (report.summary.state !== "incomplete" || report.rules.some(r => r.state !== "indeterminate") || report.findings.length) {
+      problems.push("Spatial assessment must stay unevaluated");
+    }
+    if (problems.length) {
+      console.log(`✖ ${name}\n    ${problems.join("\n    ")}`);
+      failed++;
+    } else console.log(`✔ ${name} (spatial consistency; architectural assessment not evaluated)`);
+    continue;
+  }
   // 判定できなかったものを黙って通さない — 「不明」は「合格」ではない
   for (const run of report.rules) {
     if (run.state === "error") problems.push(`規則が実行できなかった [${run.rule.id}] — ${run.issues[0]?.message ?? ""}`);

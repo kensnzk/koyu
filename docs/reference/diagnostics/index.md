@@ -221,6 +221,7 @@ RUN04, RUN06, RUN07 and RUN08 are [retired numbers](retired.md).
 | [VER07](ver.md) | error | The file declares a version in which a key it writes is retired |
 | [VER08](ver.md) | error | A pre-1.5 file uses opening presentation introduced in muro 1.5 |
 | [VER09](ver.md#ver09) | error | A pre-1.5 file uses component assets or placement introduced in muro 1.5 |
+| [VER10](ver.md#ver10) | error | Spatial mode requires muro 1.6 |
 
 ### SYN — syntax and composition
 

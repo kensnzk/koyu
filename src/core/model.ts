@@ -56,6 +56,7 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
   // place fixed furniture or equipment footprints while keeping SVG artwork out of Form
   // (ADR-0068, ADR-0075).
   { muro: "1.5", since: "0.28.0", until: null },
+  { muro: "1.6", since: "0.29.0", until: null },
 ];
 
 /** The word a version line is written with from 1.2 on. */
@@ -82,7 +83,7 @@ export const LAST_KOYU_SPELLED_VERSION = "1.1";
  * `since` column is written in this vocabulary, and every surface that answers "which muro
  * does this build speak" needs both halves at once.
  */
-export const KOYU_VERSION = "0.28.0";
+export const KOYU_VERSION = "0.29.0";
 
 /**
  * Whether `a` names a later language version than `b`.
@@ -203,18 +204,18 @@ export const NEWEST_LANGUAGE_VERSION = SUPPORTED_LANGUAGE_VERSIONS[SUPPORTED_LAN
 export const DEFAULT_LANGUAGE_VERSION = "1.1";
 
 /**
- * 機械形式 (正準JSON) が自分を名乗る版 (ADR-0036)。**言語版でもツール版でもない** —
- * 数えるのは綴りだけである。minorはキーが増えたとき、majorは既存のキーの名前・並び・照合順・
- * 正規化・数の綴りが変わったとき。**minorでも全ての文書のバイトは動く** — この文字列自体が
- * 第一キーだからで、増えたキーを持たない文書も先頭行だけは変わる (ADR-0051 が実測している)。
- * 意味論の版は muro が持つので、`muro` キー (書かれた版宣言の素通し) とは別の面である。
+ * The canonical spelling version is independent of the language and package versions.
+ * A format bump changes every document's bytes, including unchanged older sources.
+ * The optional `mode` key is gated by an explicit Muro 1.6 declaration and spatial opt-in;
+ * it keeps format 2.0 so building documents retain their existing canonical bytes.
+ * Consumers must understand the declared language and mode before interpreting a document.
  *
  * The format keeps the name `koyu` because it is the implementation's output spelling — the
  * shape koyu writes. The key inside it names the language, and is spelled `muro` for the same
  * reason the version line is.
  *
- * **That rename is why this is 2.0 and not 1.3.** An existing key changed its name, which the
- * rule above puts squarely in major. Shipping it as a minor would have told every reader that
+ * **That rename introduced 2.0 rather than 1.3.** An existing key changed its name, which the
+ * format policy puts squarely in major. Shipping it as a minor would have told every reader that
  * `1.x` stays compatible — so a reader expecting `koyu` would have accepted the document and
  * found no language version in it, which is the silent misread the format version exists to
  * prevent.
@@ -477,6 +478,9 @@ export function srcRef(line: number, file?: string): string {
 
 export interface Model {
   version: string;
+  /** Absent means the building reading. Spatial mode leaves unwritten boundaries unresolved. */
+  mode?: "spatial";
+  modeSource?: { line: number; file?: string };
   name?: string;
   unit: "mm";
   /**
@@ -701,7 +705,7 @@ export class SourceError extends Error {
      * module, so the union cannot be imported here — and widening it to `string` would let
      * a typo reach `check --json` as a code no page documents.
      */
-    public code?: "VER06",
+    public code?: "VER06" | "VER10",
   ) {
     super(`${file ? `${file}:` : ""}line ${line}: ${raw}`);
     this.name = "SourceError";
@@ -1214,6 +1218,7 @@ export function toCanonical(model: Model): string {
     // A document written `koyu 1.1` still says `"muro": "1.1"` here: the key is the name of
     // the thing being versioned, not a copy of how the author spelled the declaration.
     ...(model.versionDeclared ? { muro: model.version } : {}),
+    ...(model.mode ? { mode: model.mode } : {}),
     ...(model.name ? { name: model.name } : {}),
     unit: model.unit,
     // 測地の枠 (ADR-0057) — **単位を言った直後、グリッドを言う前。**この二つは grid が張る

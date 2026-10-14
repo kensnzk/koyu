@@ -235,6 +235,7 @@ export interface AnalysisReport<T extends JsonValue = JsonValue> {
   readonly profile: ComponentIdentity;
   readonly model: {
     readonly languageVersion: string;
+    readonly mode?: "spatial";
     readonly name?: string;
     readonly state: "consistent" | "inconsistent";
     readonly diagnostics: readonly Diagnostic[];

@@ -7,6 +7,9 @@ mode: reference
 
 Gives the route from one space to another **through the fewest doors** on the space graph. It is the escape-and-circulation question.
 
+A [spatial model](../muro/mode.md) leaves this question unevaluated. The command prints a
+not-evaluated message on stderr and exits 2; it does not return a negative building result.
+
 ## Arguments
 
 ```text

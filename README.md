@@ -105,7 +105,7 @@ The MCP server and the CLI are the half that *judges*; the knowledge for working
 
 ## Layout
 
-The documentation lives in [docs/](docs/index.md) — tutorial, explanations, how-to, and the normative reference (the notation, diagnostics, verdicts, CLI, MCP, API, the derived form, canonical JSON). **That tree is authoritative**; ADRs in [docs/decisions/](docs/decisions/) record why each decision was made and are never amended, so they are history rather than current truth. The roadmap is [docs/roadmap.md](docs/roadmap.md). The implementation is ~7,500 lines in src/ (parser, graph, checks, plan generation, CLI, MCP server), tests in test/. The same two rooms written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).
+The documentation lives in [docs/](docs/index.md) — tutorial, explanations, how-to, and the normative reference (the notation, diagnostics, verdicts, CLI, MCP, API, the derived form, canonical JSON). **That tree is authoritative**; ADRs in [docs/decisions/](docs/decisions/) record why each decision was made and are never amended, so they are history rather than current truth. The implementation is ~7,500 lines in src/ (parser, graph, checks, plan generation, CLI, MCP server), tests in test/. The same two rooms written three ways (this notation, IFC4, IFCX) is in [examples/comparison/](examples/comparison/README.md).
 
 ## Technical stance
 

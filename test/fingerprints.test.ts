@@ -93,6 +93,9 @@
 // Their canonical bytes and derived opening classifications therefore move deliberately under
 // ADR-0070 and ADR-0071.
 
+// Muro 1.6 keeps canonical format 2.0. Only explicit source version declarations
+// change existing canonical fingerprints; every existing Form fingerprint is retained.
+
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync } from "node:fs";
@@ -108,28 +111,29 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 
 /** entry → [canonical SHA-256, Form SHA-256]. Both columns were first measured at v0.17.0 */
 const BASELINE: Readonly<Record<string, readonly [string, string]>> = {
+  "examples/spatial/main.muro": ["a6cda66d7fb72d90f6dfcdd6df659fe8e21b80d25fcbdd6f4cf489abd5c4ef19", "c09bd2c29d6f3e1c5d00e19f87cdf3c44966e0317aaac0cce912445577376f02"],
   "examples/basement/main.muro": [
-    "de503c349cda3dadb53daf6f090b7875910b68e3b44497b47fc4f24afe5febf9",
+    "d10b49e521e952d56958194c95253d1448a784fa4501ccaceb75d043b02bf51c",
     "ec6c647018cb1a14713d3a771b6dc0f32b6f2c3b782cf40fe78c9a8a150167ba",
   ],
   "examples/complex/main.muro": [
-    "6d8636c92320b8e29b2ceb6080052f606106db4d6e9f2edbf22c0412f0aea788",
+    "fdc8d667d6d5843b1b6a3c6920e561b4d179b93920fdc22f0d76379127aa22e0",
     "946a452b02bf467081804f089eab4db72f3002ae5a8b13a955c5027ba7df17f0",
   ],
   "examples/house.muro": [
-    "2cb24dac4057631da0f04a6bca80133d09025e7fec39d27c08d369dd60c7e785",
+    "8b10cd262b2bc28327bc833626b55bee68611c4c1a827dbc5f097186257fbd11",
     "26145386b412fe7a6cfa041493c3371c7190f7a0ea9c6616df95ae489a591ccb",
   ],
   "examples/house/main.muro": [
-    "c183b5311af03bbcab8897d0725d688031bc9a432630232629cd54284930a6b7",
+    "fbc196a8c9d9f5dfa17fcee118b03ee59bd4fc769c54d84a9ad37b2ad511d6ae",
     "2eaf9e454f0b1d91bb481f75dbc56f17ce81f21fceecae1b1b623fb5dbbc8974",
   ],
   "examples/mansion.muro": [
-    "262cab7db9670a83f006e307904057b2bf46189947988c64a821a5c2b57318d7",
+    "0aeaff2f20317f3f5258b835780d74b9b55a51369f8853dab44ec98fca53946d",
     "c5afa884e909bce64ab64277e00af6af617de420be5c6a71917b1dcd227dcb43",
   ],
   "examples/office.muro": [
-    "2434e7f640357f33057b1b556cf4bc811305c84d7c75ff22cf153231b0e8d179",
+    "3cbe219f226d2e080fed81460730d7df4a67c512530447c4508265df62088456",
     "7cf1f4c1fe0aa53033118cac9f596a2913cf37e006f403259563f5e5d244e697",
   ],
   "examples/steps/01-one-room.muro": [
@@ -153,19 +157,19 @@ const BASELINE: Readonly<Record<string, readonly [string, string]>> = {
     "d4c0a82880f05d127f92948247121b3df1a1a599527690240f7b0ca24c91aace",
   ],
   "examples/steps/06-finished.muro": [
-    "4f12540a116abb11af8f300f0e0f86119a9912afa2801e5ed8640bdbc9086817",
+    "ed9b9c8b4bb20198fd5a19e86d8fa3fe23491ff3d9c9ce22ca519d420b8f4ed8",
     "433b74d5b0ccffb19bce6cc415375236f8e33ecfa9b4139d328a64138e41adc6",
   ],
   "examples/tower/main.muro": [
-    "7fb7eb0f02ee5c8352fb70ff1030a68638acca727694360b687cbfe3c4b60800",
+    "75e2a3b27220cc6cadb08e80df5c88fc536b9952a281d1c507db86be8c9bf071",
     "f7e0e47145a555da4cb2ff38a888c473771d19059a637a257c2771ec38b04702",
   ],
   "examples/twin/main.muro": [
-    "23f33d4af5dd629940f3c74e424550764142bc1727573903d41ae11694783448",
+    "7493fbbb35dc5f6c46eab96a52978f3744b3e38851524f0de75d05d62a7e9457",
     "bfbbfccdba79a58b72f73344de02ecce17fe12b06a136464baad7aed2c92a69e",
   ],
   "examples/two-rooms.muro": [
-    "f5a3ca851da8a50f55b770166fbb7f6d48fdad680573f2c5bb99a2c3f67a4876",
+    "d4c3849aef46ade491a2ff90240f1da7a9e206629422bf0a5d10d67461700425",
     "642a6ecea5c4b05f14b14c9a38a6dc44a2b2e808a468b6867eb57471566aa08a",
   ],
 };

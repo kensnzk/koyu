@@ -72,6 +72,8 @@ def export(data: dict) -> ifcopenshell.file:
             f"The document says {declared!r}. Nothing is wrong with the document — "
             "the exporter has not learnt this spelling of the canonical form."
         )
+    if canonical.get("mode") is not None:
+        raise ValueError("IFC export requires a building model; spatial mode is not supported")
     name = canonical.get("name") or "koyu"
     space_attrs = {p: s.get("attrs", {}) for p, s in canonical.get("spaces", {}).items()}
     boundary_attrs = _boundary_attrs(canonical)

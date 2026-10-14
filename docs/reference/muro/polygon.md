@@ -30,7 +30,7 @@ The first positional argument is the path of a [zone](zone.md). Where that zone 
 ```
 
 ```muro
-muro 1.5
+muro 1.6
 name 敷地の最小例
 unit mm
 grid X 0 8000

@@ -1,0 +1,7 @@
+{
+  "pins": [
+    "docs/reference/muro/mode.md"
+  ],
+  "why": "Spatial mode preserves unresolved faces and explicit relations without physical defaults.",
+  "sameBuildingAs": "spatial-unresolved"
+}

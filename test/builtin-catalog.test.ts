@@ -213,7 +213,7 @@ test("the whole pack runs against a bundled example and reports every rule", () 
   assert.equal(report.summary.rules.error, 0);
 });
 
-test("every bundled example runs the whole pack clean, with nothing left unjudged", () => {
+test("bundled buildings are judged and spatial examples explicitly remain unjudged", () => {
   const registry = createSchematicRegistry();
 
   for (const name of bundledExamples()) {
@@ -224,6 +224,12 @@ test("every bundled example runs the whole pack clean, with nothing left unjudge
       context: CONTEXT,
     });
 
+    if (model.mode === "spatial") {
+      assert.equal(report.summary.state, "incomplete", name);
+      assert.ok(report.rules.every(run => run.state === "indeterminate"), name);
+      assert.deepEqual(report.findings, [], name);
+      continue;
+    }
     // A rule that threw would otherwise look exactly like "nothing found".
     assert.deepEqual(report.rules.filter((run) => run.state === "error").map((r) => r.rule.id), [], name);
     assert.deepEqual(report.rules.filter((run) => run.state === "indeterminate").map((r) => r.rule.id), [], name);

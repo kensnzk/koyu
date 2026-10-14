@@ -19,7 +19,7 @@
 // 切断高さは Form の**入力**であって中身ではない。
 
 import { CEILING_T, ROOF_T, slabs, type Slab } from "./fabric.js";
-import { placeBand, placeOpening, segmentLength, segmentsFor, type Segment } from "./graph.js";
+import { placeBand, placeOpening, segmentLength, segmentsFor, unresolvedBoundaries, type UnresolvedBoundary, type Segment } from "./graph.js";
 import {
   areaM2,
   columnsFor,
@@ -341,6 +341,9 @@ export interface FormPlan {
  * 座標・厚み・z 範囲・向き・対象の同一性だけを持ち、描き方は消費者が決める
  */
 export interface Form {
+  /** Present only in spatial mode. These faces have no physical or passage meaning. */
+  mode?: "spatial";
+  unresolved?: UnresolvedBoundary[];
   input: FormInput;
   levels: FormLevel[];
   spaces: FormSpace[];
@@ -380,7 +383,7 @@ export function levelPitch(model: Model, level: string): number | undefined {
     const h = heff(model, s);
     if (h !== undefined && (top === undefined || h > top)) top = h;
   }
-  return top === undefined ? undefined : top + ROOF_T;
+  return top === undefined ? undefined : top + (model.mode === "spatial" ? 0 : ROOF_T);
 }
 
 /** 境界が立つレベル — 領域を持つ側の空間が決める (a を先に見る) */
@@ -1048,6 +1051,7 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
   );
 
   return {
+    ...(model.mode === "spatial" ? { mode: model.mode, unresolved: unresolvedBoundaries(model) } : {}),
     input: { cut },
     levels: formLevels,
     spaces,

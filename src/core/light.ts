@@ -33,6 +33,7 @@ export interface DaylightInput {
  * 上が開いた半屋外越しなら1.0。この係数は形の導出であって判定ではない。
  */
 export function daylightInputs(model: Model): DaylightInput[] {
+  if (model.mode === "spatial") throw new Error("Daylight is not evaluated in spatial mode");
   const out: DaylightInput[] = [];
   for (const s of model.spaces.values()) {
     if (s.rects.length === 0) continue;

@@ -97,6 +97,13 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     }
   }
 
+  if (form.mode === "spatial") {
+    parts.push(`<desc>Spatial model: dashed faces are unresolved; circulation, daylight and egress are not evaluated.</desc>`);
+    for (const face of form.unresolved ?? []) {
+      if (face.level === level) parts.push(`<g data-unresolved="true">${line(face.segment, FAINT, 1, "6 4")}</g>`);
+    }
+  }
+
   // Uncounted area subdivisions, such as a floor-finish change, reproduce the written input.
   for (const s of modelRooms) {
     for (const a of s.areas) {
@@ -424,7 +431,8 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   }
 
   // Sheet title.
-  const title = `${model.name ?? "Untitled"} — ${level} plan`;
+  const title = `${model.name ?? "Untitled"} — ${level} ${model.mode === "spatial" ? "spatial plan" : "plan"}`;
+  if (model.mode === "spatial") parts.push(`<text x="${M - 62}" y="${H - 38}" font-size="9" fill="${FAINT}">Dashed: unresolved boundary</text>`);
   parts.push(`<text x="${M - 62}" y="${H - 18}" font-size="12" fill="${INK}">${esc(title)}</text>`);
 
   parts.push("</svg>");

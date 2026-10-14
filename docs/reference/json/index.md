@@ -67,16 +67,23 @@ npx tsx src/cli.ts json examples/two-rooms.muro
 
 ## Two versions — of the format and of the language
 
-The first thing the document announces is **the version of the format itself**. `koyu` comes next, and it is [the version of the language](../muro/version.md), not of the format.
+The first thing the document announces is **the version of the format itself**. `muro` comes next when declared, and it is [the version of the language](../muro/version.md), not of the format.
 
 | Key | Version of what | Raised when |
 |---|---|---|
-| `format` | **the spelling of canonical JSON** — the set of keys, their order, the collation, the normalisation, the spelling of numbers. Currently `koyu-canonical/2.0` | minor when a key is added; major when an existing spelling changes |
+| `format` | **the spelling of canonical JSON** — the keys, their order, the collation, the normalisation, the spelling of numbers. Currently `koyu-canonical/2.0` | minor for additions to existing documents; major when an existing spelling changes |
 | `muro` | **the language version of the source**, passed through. **Absent if it was not written.** Spelled `muro` whatever word the source used — a file written `koyu 1.1` still says `"muro": "1.1"` | when the semantics of the language change |
 
 They are separate because **the same semantics can be respelled with different keys**. Adding the `a` key, which preserves the written direction of a boundary, changed the spelling without changing one word of the language. The converse also happens: a language version can rise without the spelling moving.
 
 **A minor bump still moves the bytes of every document.** `format` is the first key there is, so a document that gains none of the new keys still gains a new first line. Nothing about a minor bump is invisible; what "minor" promises is that no *existing* key changed its name, its place or its spelling.
+
+**Spatial mode keeps format 2.0.** The optional `mode: "spatial"` field is present only
+for a source that explicitly declares both Muro 1.6 and spatial mode. Existing building
+sources retain their canonical bytes. A consumer must check the language and mode as well
+as the format: accepting format 2.0 alone does not establish spatial support. A consumer
+that does not support spatial mode must reject it, never discard the field or apply
+building defaults.
 
 **A source with no version declaration gets no version stamped.** Stamping one would claim a version the author never wrote. A source that wants its version recorded here writes the line — `muro 1.2` from 1.2 on, `koyu 1.1` and earlier before it.
 
@@ -102,7 +109,7 @@ There is one question to ask before sorting anything: **would reordering this ar
 
 `import`, spans, `stack` and bands are expanded and do not remain.
 
-**Default boundaries do not appear.** Touching spaces default to a wall, but canonical JSON holds only the written composition; the meaning — including the default wall — belongs to the derived model. **Consumers must apply `deriveDefaultBoundaries` before reading meaning.**
+**Default boundaries do not appear.** Touching spaces default to a wall, but canonical JSON holds only the written composition; the meaning — including the default wall — belongs to the derived model. **Consumers must preserve `mode` and apply `deriveDefaultBoundaries` before reading meaning.** That function adds no boundaries in spatial mode. A reader that does not implement spatial mode must reject a document carrying it.
 
 So "1 boundary" from `koyu check` and `"boundaries": []` from `koyu json` do not contradict each other. The first counts derived meaning, the second counts written composition.
 

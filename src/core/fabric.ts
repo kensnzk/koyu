@@ -109,7 +109,7 @@ export function slabs(model: Model): Slab[] {
       // 吹抜けは、天窓で塞がれた竪穴か、空に開いた中庭かのどちらかであり、
       // 後者は半屋外として導出される (ADR-0007)。だから除くのは外部と半屋外だけである。
       // 逆に**覆っている側には吹抜けも数える** — 竪穴の途中の階に屋根は架からない。
-      if (isExterior || semi) continue;
+      if (model.mode === "spatial" || isExterior || semi) continue;
       // **覆っているものも導出された形で取る。**割付で取ると、上階を斜めに切った
       // 範囲まで「覆われている」と数えてしまい、その真下に屋根が架からなかった
       const covers: Pt[][] = [];

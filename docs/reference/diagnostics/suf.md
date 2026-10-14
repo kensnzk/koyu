@@ -5,6 +5,8 @@ mode: reference
 
 # SUF — sufficiency
 
+For `mode spatial`, see [spatial models](../muro/mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
+
 The SUF entries do not ask whether a value is *right*; each asks **whether the value needed to make a shape is written at all**.
 
 | Code | Severity | What it says |

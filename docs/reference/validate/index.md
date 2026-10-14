@@ -5,6 +5,8 @@ mode: reference
 
 # koyu validate — architectural judgement
 
+For `mode spatial`, see [spatial models](../muro/mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
+
 [`koyu check`](../cli/check.md) says only that what is written is not self-contradictory as data. Whether the daylight is sufficient, whether the stair can be climbed, whether a car can leave the garage, whether the building fits on its site — none of that is in there. **`koyu validate` says it, and this volume documents it.**
 
 ```sh

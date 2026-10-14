@@ -5,6 +5,8 @@ mode: reference
 
 # What happens when you write nothing
 
+For `mode spatial`, see [spatial models](mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
+
 **Writing nothing means something.** And it means one of three things.
 
 | Kind of silence | What happens | Example |
@@ -20,7 +22,7 @@ This page is the one table of defaults. How values are written is in [the three 
 ## The smallest file
 
 ```muro-warn
-muro 1.5
+muro 1.6
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -40,7 +42,7 @@ Nothing was written about the perimeter, so the perimeter is a wall — the plan
 The warning is not about the shape, which is complete. It is about the one thing silence could not supply: **which** outside those four faces look at. Say it and the warning goes.
 
 ```muro
-muro 1.5
+muro 1.6
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -53,7 +55,7 @@ boundary /L1/a /out
 
 | Written nothing | What happens |
 |---|---|
-| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.5` to opt into current semantics → [the version line](version.md) |
+| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.6` to opt into current semantics → [the version line](version.md) |
 | `unit mm` | mm. v0 has no other unit |
 | `name` | the building has no name |
 | `grid X` / `grid Y` | **no grid reference can be written at all.** Any line with a region stops with `Undefined grid line name` |
@@ -178,7 +180,7 @@ Riser count, tread and slope are never written. **What is written is the region 
 **Because the default between touching spaces is a wall, a two-storey building with no door declared anywhere is completely sealed — and green.**
 
 ```muro
-muro 1.5
+muro 1.6
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150

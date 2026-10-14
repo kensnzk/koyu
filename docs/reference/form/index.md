@@ -5,6 +5,8 @@ mode: reference
 
 # Form — derive(model)
 
+For `mode spatial`, see [spatial models](../muro/mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
+
 The source has no shape. The plan, the areas, the circulation — none of it is written. All of it is **derived**. And there is exactly one function that does the deriving.
 
 ```ts

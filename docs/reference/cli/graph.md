@@ -5,6 +5,8 @@ mode: reference
 
 # koyu graph
 
+For `mode spatial`, see [spatial models](../muro/mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
+
 Lists adjacency space by space, with the kind of each boundary and the number of doors. It is the map you read before [`koyu doors`](doors.md) gives an answer.
 
 ## Arguments

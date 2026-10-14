@@ -5,6 +5,8 @@ mode: reference
 
 # Scope — what a green check means
 
+For `mode spatial`, see [spatial models](muro/mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
+
 ```sh
 npx tsx src/cli.ts check examples/two-rooms.muro
 ```

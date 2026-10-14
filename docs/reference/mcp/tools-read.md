@@ -9,6 +9,10 @@ These tools only read. **None of them writes anything.** Each takes `file`, the 
 
 Every piece of output on this page was obtained by actually running it. Absolute paths are shortened to `<abs>`.
 
+For a [spatial model](../muro/mode.md), `model_summary` includes `mode: "spatial"` and counts
+only declared boundaries. `canonical_json` retains the mode. Space areas describe allocation,
+not confirmed enclosed floor area.
+
 ## At a glance
 
 | Tool | What comes back | When to call it |

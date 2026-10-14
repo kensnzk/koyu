@@ -157,6 +157,7 @@ export interface AssessmentReport {
   readonly ruleSets: readonly ComponentIdentity[];
   readonly model: {
     readonly languageVersion: string;
+    readonly mode?: "spatial";
     readonly name?: string;
     readonly state: "consistent" | "inconsistent";
     readonly diagnostics: readonly Diagnostic[];
