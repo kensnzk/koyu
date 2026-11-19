@@ -7,7 +7,7 @@
 // 段割り・踊り場・勾配・立体・平面の切断をルールで生成する。
 // 段数も踏面も勾配も書かれない — 書かないが検査する (RUN06 / RUN07)。
 
-import { isNewerVersion, levelsSorted, regionOf, type Edge, type Model, type Pt, type Rect, type Space } from "./model.js";
+import { gridRef, isNewerVersion, levelsSorted, regionOf, type Edge, type Model, type Pt, type Rect, type Space } from "./model.js";
 import { boundsOf, rectToPoly, subtract } from "./poly.js";
 import { EPS, SPAN_EPS } from "./tolerance.js";
 
@@ -202,6 +202,35 @@ function runFrame(model: Model, s: Space, device: RunDevice, upper?: string): Re
   return rect;
 }
 
+/** Two ordered transverse grid spans, expressed in the run's local s coordinates. */
+function returnFlightSpans(model: Model, s: Space, rect: Rect, up: Edge): [number, number, number, number] | undefined {
+  const width = extent(rect, up).width;
+  const written = s.attrs["flights"];
+  if (written === undefined) return [0, width / 2, width / 2, width];
+  if (typeof written !== "string" || isNewerVersion("1.6", model.version)) return undefined;
+  const acrossX = up === "N" || up === "S";
+  const axis = acrossX ? "X" : "Y";
+  const min = acrossX ? rect.x1 : rect.y1;
+  const max = acrossX ? rect.x2 : rect.y2;
+  const ranges = written.split(",");
+  if (ranges.length !== 2) return undefined;
+  const ends: number[] = [];
+  for (const range of ranges) {
+    const tokens = range.split("..");
+    if (tokens.length !== 2) return undefined;
+    for (const token of tokens) {
+      const point = gridRef(model, token);
+      if (point?.axis !== axis || point.coord < min || point.coord > max) return undefined;
+      ends.push(point.coord);
+    }
+  }
+  const [a, b, c, d] = ends as [number, number, number, number];
+  if (!(a < b && b <= c && c < d)) return undefined;
+  return up === "N" || up === "W"
+    ? [a - min, b - min, c - min, d - min]
+    : [max - d, max - c, max - b, max - a];
+}
+
 /** 一つの空間の縦動線。宣言が無い/壊れているときは undefined */
 export function verticalRun(
   model: Model,
@@ -226,6 +255,8 @@ export function verticalRun(
   if (!RUN_FORMS.includes(formRaw as RunForm)) return undefined;
   const form = formRaw as RunForm;
   if (device !== "stair" && device !== "ramp" && form !== "straight") return undefined;
+
+  if (s.attrs["flights"] !== undefined && (device !== "stair" || form !== "return")) return undefined;
 
   const z0 = levels[li]!.z;
   if (!upper && device !== "lift") return undefined; // 上る先が無い — SUF04
@@ -278,9 +309,11 @@ export function verticalRun(
     const mid = returnLanding(s, device, rise, length - entry, width);
     const flightLen = length - entry - mid;
     if (flightLen <= 0) return undefined; // RUN05
-    const half = width / 2;
-    const [aS, aE] = turn === "R" ? [0, half] : [half, width];
-    const [bS, bE] = turn === "R" ? [half, width] : [0, half];
+    const spans = returnFlightSpans(model, s, rect, up);
+    if (!spans) return undefined;
+    const [leftStart, leftEnd, rightStart, rightEnd] = spans;
+    const [aS, aE] = turn === "R" ? [leftStart, leftEnd] : [rightStart, rightEnd];
+    const [bS, bE] = turn === "R" ? [rightStart, rightEnd] : [leftStart, leftEnd];
     const tA0 = entry;
     const tA1 = entry + flightLen;
 
@@ -292,7 +325,7 @@ export function verticalRun(
       tread = flightLen / Math.max(1, k - 1);
       parts.push(
         flight(rect, up, tA0, tA1, aS, aE, z0, zMid, false, k, flightLen / Math.max(1, k - 1)),
-        landingPart(rect, up, tA1, length, 0, width, zMid),
+        landingPart(rect, up, tA1, length, leftStart, rightEnd, zMid),
         // 二本目は遠端から近端へ戻る — t が減る向きに走り、z は増える
         flight(rect, up, tA0, tA1, bS, bE, z1, zMid, true, risersTotal - k, flightLen / Math.max(1, risersTotal - k - 1)),
       );
@@ -652,7 +685,8 @@ function sameFrame(a: VerticalRun, b: VerticalRun): boolean {
     a.up === b.up &&
     a.form === b.form &&
     a.device === b.device &&
-    a.parts.length === b.parts.length
+    a.parts.length === b.parts.length &&
+    a.parts.every((part, i) => Math.abs(part.s0 - b.parts[i]!.s0) < SPAN_EPS && Math.abs(part.s1 - b.parts[i]!.s1) < SPAN_EPS)
   );
 }
 
@@ -789,8 +823,12 @@ export function runIssues(model: Model): RunIssue[] {
   const levels = levelsSorted(model);
   for (const s of model.spaces.values()) {
     const decls = runDecls(s);
-    if (decls.length === 0) continue;
     const at = { path: s.path, line: s.line, ...(s.file !== undefined ? { file: s.file } : {}) };
+    if (s.attrs["flights"] !== undefined && (s.attrs["stair"] === undefined || s.attrs["form"] !== "return")) {
+      out.push({ code: "RUN05", message: "flights requires a stair with form:return", ...at });
+      continue;
+    }
+    if (decls.length === 0) continue;
     if (decls.length > 1) {
       out.push({
         code: "RUN01",
@@ -812,7 +850,8 @@ export function runIssues(model: Model): RunIssue[] {
       continue;
     }
     const li = levels.findIndex((l) => l.name === s.level);
-    if (!runFrame(model, s, device, li < 0 ? undefined : levels[li + 1]?.name)) {
+    const frame = runFrame(model, s, device, li < 0 ? undefined : levels[li + 1]?.name);
+    if (!frame) {
       out.push({
         code: "RUN03",
         message:
@@ -821,6 +860,10 @@ export function runIssues(model: Model): RunIssue[] {
             : `The region of vertical circulation is a single rectangle (a union leaves the step division undetermined): ${s.path}`,
         ...at,
       });
+      continue;
+    }
+    if (s.attrs["flights"] !== undefined && !returnFlightSpans(model, s, frame, value as Edge)) {
+      out.push({ code: "RUN05", message: "flights requires muro 1.6 and two ordered, non-overlapping transverse grid spans within the stair frame", ...at });
       continue;
     }
     if (!s.level) {

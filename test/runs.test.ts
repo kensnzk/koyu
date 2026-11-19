@@ -702,3 +702,42 @@ test("a compound departure cannot borrow an unrelated, ambiguous or mismatched f
     assert.ok(checkDiagnostics(m).some(d => d.code === "RUN03" && d.path?.includes("/L1/st")));
   }
 });
+
+test("return stair grid spans locate treads on the plan and on every solid in either direction", () => {
+  for (const up of ["N", "E", "S", "W"]) {
+    for (const turn of ["L", "R"]) {
+      const axis = up === "N" || up === "S" ? "X" : "Y";
+      const source = `muro 1.6
+grid X 500 7500
+grid Y 500 7500
+level L1 0
+level L2 3300
+space /L1/s X1..X2 Y1..Y2 stair:${up} form:return turn:${turn} flights:${axis}1+100..${axis}1+1500,${axis}2-5200..${axis}2-3500
+`;
+      const m = parse(source);
+      const bounds = (r: { x1: number; x2: number; y1: number; y2: number }) =>
+        axis === "X" ? [r.x1, r.x2] : [r.y1, r.y2];
+      const [run] = verticalRuns(m);
+      assert.ok(run);
+      const bands = [[600,2000],[2300,4000]];
+      const firstLow = (up === "N" || up === "W") === (turn === "R");
+      assert.deepEqual(bounds(run.parts[0]!.rect), bands[firstLow ? 0 : 1]);
+      assert.deepEqual(bounds(run.parts[2]!.rect), bands[firstLow ? 1 : 0]);
+      const widths = new Set(runSolids(run).map(s => bounds(s.rect).join(",")));
+      assert.deepEqual([...widths].sort(), ["2300,4000","600,2000","600,4000"].sort());
+      for (const [level, expected] of [["L1", [bands[firstLow ? 0 : 1]]], ["L2", bands]] as const) {
+        const draw = runDrawsForLevel(m, level)[0]!;
+        const marks = new Set(draw.treads.map(t => bounds(t).sort((a,b) => a-b).join(",")));
+        assert.deepEqual(marks, new Set(expected.map(b => b!.join(","))));
+      }
+    }
+  }
+});
+
+test("a written stair span with a wrong axis, reversed order, missing grid or overlap is diagnosed", () => {
+  for (const spans of ["Y1..Y2,X2..X3","X1..X2,X1..X3","X2..X1,X2..X3","X1..X2,X2..X9","X1..X2,X2..X3+10","X1..X2"]) {
+    const m = parse(OVER_ROOM.replace("turn:L", "turn:L flights:" + spans));
+    assert.ok(checkDiagnostics(m).some(d => d.code === "RUN05" && d.path?.includes("/L1/st")));
+    assert.equal(verticalRuns(m).some(r => r.path === "/L1/st"), false);
+  }
+});
