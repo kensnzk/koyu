@@ -154,6 +154,7 @@ The second flight of a turning run carries more steps and is therefore finer. Lo
 | `lift:` | — | A lift (the value is `1`) |
 | `form:` | `straight` | `straight` / `return`. Only a stair and a ramp turn back |
 | `turn:` | `R` | Direction of the turn. Only a literal `L` means left |
+| `flights:` | two equal halves | Two transverse grid ranges for a return stair, in increasing world-coordinate order |
 | `entry:` | 1100 | Depth of the boarding band in mm |
 | `landing:` | derived | Depth of the intermediate landing in mm (minimum 1100) |
 | `riser:` | 180 | **Upper limit** on a riser in mm. It sets the riser count |
@@ -162,6 +163,13 @@ The second flight of a turning run carries more steps and is therefore finer. Lo
 | `slope:` | — | The denominator of an acceptable slope. **It does not affect the form** — only validation reads it |
 
 `entry:`, `landing:`, `riser:`, `tread:`, `lane:` and `slope:` must all be positive numbers.
+
+In muro 1.6 a return stair may give the transverse ends of both flights, for example
+`flights:X1+200..X1+1550,X1+1750..X2-100`. Use X references for north/south ascent
+and Y references for east/west ascent. Each range runs from the lower to the higher
+coordinate, inside the stair frame. The ranges may touch. The intervening interval
+has no treads; the landing spans both flights. This declaration creates no wall.
+`turn:` selects the departure flight. Omitting `flights:` divides the frame width equally.
 
 ## The topology is written separately
 

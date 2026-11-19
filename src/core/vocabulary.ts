@@ -211,6 +211,7 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
     form: free(), // straight / return。RUN05 が守る
     turn: one("R", "L"),
     entry: num(), // 乗り込みの床の奥行 mm
+    flights: free(), // Two transverse grid ranges for a return stair; RUN05 checks the resolved spans.
     landing: num(), // 中間踊り場の奥行 mm
     riser: num(), // 蹴上げの上限 mm
     tread: num(), // 目標踏面 mm

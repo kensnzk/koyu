@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/vertical-circulation.md"],
+  "why": "Transverse grid offsets locate both flights of a return stair and leave an interval between their treads."
+}

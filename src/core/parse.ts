@@ -830,7 +830,7 @@ function parseSpace(rest: string[], ln: number, model: Model): Space {
   for (const t of rest.slice(type === undefined ? 1 : 2)) {
     if (t === "+") {
       groups.push([]);
-    } else if (t.includes("..")) {
+    } else if (!t.includes(":") && t.includes("..")) {
       groups[groups.length - 1]!.push(t);
     } else {
       attrTokens.push(t);
@@ -924,7 +924,7 @@ function parseBandMember(rest: string[], ln: number): BandMember {
   let w: number | "rest" | undefined;
   const attrTokens: string[] = [];
   for (const t of rest.slice(type === undefined ? 1 : 2)) {
-    if (t === "+" || t.includes("..")) {
+    if (t === "+" || (!t.includes(":") && t.includes(".."))) {
       throw new SourceError(ln, `A region may not be written on a band member (the band and w: give it): ${t}`);
     }
     if (t.startsWith("level:")) {
