@@ -1,0 +1,8 @@
+{
+  "/runs/0/path": "/L1/st",
+  "/runs/0/parts/0/kind": "flight",
+  "/runs/0/parts/1/kind": "landing",
+  "/runs/0/parts/2/rect/x1": 0,
+  "/runs/0/parts/2/rect/x2": 2000,
+  "/runs/0/parts/2/z0": 3000
+}

@@ -257,7 +257,7 @@ B1→L1	stair	避難階段	rise 3700mm	return	21 risers of 176mm, tread 300mm	go
 L1→R	lift	EV	/L1/ev
 ```
 
-One space carries one device (two is [RUN01](../diagnostics/run.md)), and its region must be a single rectangle. **Which storeys it connects belongs to the vertical [boundary](boundary.md), not to the space** — the device declaration is a rule for generating form, not a topology. The whole set of rules is in [vertical circulation](vertical-circulation.md).
+One space carries one device (two is [RUN01](../diagnostics/run.md)), and the run needs a rectangular frame. **Which storeys it connects belongs to the vertical [boundary](boundary.md), not to the space** — the device declaration is a rule for generating form, not a topology. The whole set of rules is in [vertical circulation](vertical-circulation.md).
 
 ## What a space produces
 

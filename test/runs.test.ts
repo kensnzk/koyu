@@ -656,3 +656,49 @@ boundary /L1/b /out t:150
   const derived = m.boundaries.filter((b) => b.derived);
   for (const b of derived) assert.ok(segmentsFor(m, b).length > 0, `${b.a}|${b.b} has segments`);
 });
+
+const OVER_ROOM = `muro 1.6
+grid X 0 2000 4000 6000
+grid Y 0 5000 7000
+level L1 0 h:2700 slab:300
+level L2 3000 h:2700 slab:300
+level L3 6000 h:2700 slab:300
+space /L1/st X2..X3 Y1..Y2 + X1..X3 Y2..Y3 stair:N form:return turn:L
+space /L1/store X1..X2 Y1..Y2
+space /L2/st X1..X3 Y1..Y3 stair:N form:return turn:L
+space /L3/st X1..X3 Y1..Y3
+boundary /L2/st /L1/st type:stair
+boundary /L2/st /L3/st type:stair
+`;
+
+test("a return stair rises above a separately tallied room and arrives on the middle plan", () => {
+  const m = parse(OVER_ROOM);
+  assert.deepEqual(check(m).errors, []);
+  assert.equal(areaM2(m.spaces.get("/L1/store")!), 10);
+  assert.equal(areaM2(m.spaces.get("/L1/st")!), 18);
+  const [lower, upper] = verticalRuns(m);
+  assert.deepEqual(lower!.rect, upper!.rect);
+  assert.deepEqual(lower!.parts.map(p => p.kind), ["flight", "landing", "flight"]);
+  assert.equal(lower!.parts[0]!.z0, 0);
+  assert.equal(lower!.parts[2]!.z0, 3000);
+  assert.ok(runSolids(lower!).length > 2);
+  assert.deepEqual(runDrawsForLevel(m, "L2").map(d => [d.path, d.dir, d.treads.length > 0]),
+    [["/L2/st", "up", true], ["/L1/st", "down", true]]);
+});
+
+test("a compound departure cannot borrow an unrelated, ambiguous or mismatched frame", () => {
+  const link = "boundary /L2/st /L1/st type:stair";
+  for (const source of [
+    OVER_ROOM.replace(link, ""),
+    OVER_ROOM.replace(link, "boundary /L3/st /L1/st type:stair"),
+    OVER_ROOM.replace("space /L2/st X1..X3", "space /L2/st X1..X4"),
+    OVER_ROOM + "space /L2/other X3..X4 Y1..Y2\nboundary /L1/st /L2/other type:stair\n",
+    OVER_ROOM.replace("muro 1.6", "muro 1.5"),
+    OVER_ROOM.replace("stair:N form:return", "ramp:N form:return"),
+    OVER_ROOM.replace("stair:N form:return", "stair:N form:straight"),
+  ]) {
+    const m = parse(source);
+    assert.equal(verticalRuns(m).some(r => r.path === "/L1/st"), false);
+    assert.ok(checkDiagnostics(m).some(d => d.code === "RUN03" && d.path?.includes("/L1/st")));
+  }
+});

@@ -38,7 +38,7 @@ A run is measured in **t** (from 0 in the direction of travel) and **s** (from *
 Any of these produces no shape whatsoever. [RUN01–05 / SUF04](../diagnostics/run.md) put it into words.
 
 - Zero or two or more vertical-circulation declarations
-- The region is not a single rectangle
+- The [rectangular frame](../muro/vertical-circulation.md#a-room-beneath-a-return-stair) cannot be determined
 - The level cannot be determined
 - A value other than N/E/S/W on anything but a lift, or a value other than `1` on a lift
 - `form:` other than `straight` or `return`

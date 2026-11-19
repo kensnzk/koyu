@@ -37,7 +37,7 @@ If the declaration does not determine a form uniquely, `check` stops. Five thing
 
 1. Exactly **one** vertical circulation declaration
 2. A value that reads as a direction (`1` for a lift)
-3. A region that is **a single rectangle** — an L shape built with `+` will not do
+3. A single rectangular frame for the run
 4. A level that can be determined
 5. For everything but a lift, **a level above**
 
@@ -49,6 +49,18 @@ SUF04  No level sits above L3, so no form is generated for /L3/st
 ```
 
 `SUF04` is a warning; the rest are errors. **A lift has a form even with no level above it** — the car closes within its own level.
+
+### A room beneath a return stair
+
+In muro 1.6 a return stair can rise over a different room on its departure level. Allocate
+the floor to each room as usual. Write `stair:` and `form:return` on the departure space,
+and connect it with `type:stair` to its arrival space on the next level.
+
+When the departure floor is a union, the arrival space supplies the rectangular frame for
+both flights and their landing. There must be one connected arrival space on that level.
+Its single rectangle must reach the same four outer limits as the departure floor and
+remain fully covered by the arrival space after any boundary cuts. The room beneath the
+flight retains its floor area. A connection alone supplies no direction of ascent.
 
 ## form — straight and turning back
 
