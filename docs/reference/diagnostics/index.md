@@ -188,7 +188,7 @@ SIT03 and SIT05 are [retired numbers](retired.md).
 |---|---|---|
 | [RUN01](run.md) | error | More than one vertical-circulation declaration on one space |
 | [RUN02](run.md) | error | The value must be a direction of travel, N/E/S/W |
-| [RUN03](run.md) | error | The region is not a single rectangle, or the level is unknown |
+| [RUN03](run.md) | error | The run has no rectangular frame, or the level is unknown |
 | [RUN05](run.md) | error | `form` is invalid, or the shape is not determined |
 
 RUN04, RUN06, RUN07 and RUN08 are [retired numbers](retired.md).

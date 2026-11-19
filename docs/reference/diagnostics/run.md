@@ -11,7 +11,7 @@ The live RUN entries are listed below. RUN04, RUN06, RUN07 and RUN08 are **retir
 |---|---|---|
 | RUN01 | error | One space carries more than one vertical-circulation declaration |
 | RUN02 | error | The value is not a direction of rise |
-| RUN03 | error | The region is not a single rectangle, or the level is undetermined |
+| RUN03 | error | The run has no rectangular frame, or the level is undetermined |
 | RUN04 | — | **retired** |
 | RUN05 | error | `form` is invalid, or the shape cannot be settled |
 | RUN06 RUN07 RUN08 | — | **retired** |
@@ -87,7 +87,7 @@ The value of lift is 1: lift:N
 
 **Fix** — write one compass letter (`stair:N`). A lift takes `lift:1`.
 
-## RUN03 — the region must be a single rectangle {#run03}
+## RUN03 — the run needs a rectangular frame {#run03}
 
 `error`
 
@@ -109,7 +109,7 @@ The region of vertical circulation is a single rectangle (a union leaves the ste
 
 **Cause** — the step division follows from the length along the direction of travel and the width across it. An L-shaped or U-shaped union has neither uniquely.
 
-**Fix** — allocate the stair enclosure as a single rectangle. Most places that seem to want an L-shaped stair enclosure actually want a stair plus a landing hall.
+**Fix** — allocate a rectangular enclosure, or declare the [connected arrival enclosure](../muro/vertical-circulation.md#a-room-beneath-a-return-stair) of a return stair above another room.
 
 RUN03 also covers two more states under the same code.
 

@@ -7,7 +7,8 @@
 // 段割り・踊り場・勾配・立体・平面の切断をルールで生成する。
 // 段数も踏面も勾配も書かれない — 書かないが検査する (RUN06 / RUN07)。
 
-import { levelsSorted, type Edge, type Model, type Pt, type Rect, type Space } from "./model.js";
+import { isNewerVersion, levelsSorted, regionOf, type Edge, type Model, type Pt, type Rect, type Space } from "./model.js";
+import { boundsOf, rectToPoly, subtract } from "./poly.js";
 import { EPS, SPAN_EPS } from "./tolerance.js";
 
 /** 装置。トポロジーではなく形の生成規則を選ぶ語 */
@@ -178,6 +179,29 @@ export function verticalRuns(model: Model): VerticalRun[] {
   return out.sort((a, b) => (a.z0 - b.z0) || (a.path < b.path ? -1 : 1));
 }
 
+/** The upper enclosure can supply the common frame above a separately allocated room. */
+function runFrame(model: Model, s: Space, device: RunDevice, upper?: string): Rect | undefined {
+  if (s.rects.length <= 1) return s.rects[0];
+  if (!upper || device !== "stair" || s.attrs["form"] !== "return" || isNewerVersion("1.6", model.version)) return undefined;
+
+  const bounds = boundsOf(regionOf(s));
+  if (!bounds) return undefined;
+  let arrival: Space | undefined;
+  for (const boundary of model.boundaries) {
+    if (boundary.kind !== "stair") continue;
+    const peer = boundary.a === s.path ? boundary.b : boundary.b === s.path ? boundary.a : undefined;
+    if (!peer) continue;
+    const space = model.spaces.get(peer);
+    if (space?.level !== upper) continue;
+    if (arrival && arrival !== space) return undefined;
+    arrival = space;
+  }
+  if (!arrival || arrival.rects.length !== 1) return undefined;
+  const rect = arrival.rects[0]!;
+  if (!sameRect(bounds, rect) || subtract(rectToPoly(rect), regionOf(arrival)).length) return undefined;
+  return rect;
+}
+
 /** 一つの空間の縦動線。宣言が無い/壊れているときは undefined */
 export function verticalRun(
   model: Model,
@@ -187,10 +211,12 @@ export function verticalRun(
   const decls = runDecls(s);
   if (decls.length !== 1) return undefined;
   const { device, value } = decls[0]!;
-  if (s.rects.length !== 1 || !s.level) return undefined;
-  const rect = s.rects[0]!;
+  if (!s.level) return undefined;
   const li = levels.findIndex((l) => l.name === s.level);
   if (li < 0) return undefined;
+  const upper = levels[li + 1];
+  const rect = runFrame(model, s, device, upper?.name);
+  if (!rect) return undefined;
 
   const up = device === "lift" ? "N" : (value as Edge);
   if (device !== "lift" && !EDGES.has(value)) return undefined;
@@ -202,7 +228,6 @@ export function verticalRun(
   if (device !== "stair" && device !== "ramp" && form !== "straight") return undefined;
 
   const z0 = levels[li]!.z;
-  const upper = levels[li + 1];
   if (!upper && device !== "lift") return undefined; // 上る先が無い — SUF04
   const z1 = upper?.z ?? z0;
   const rise = z1 - z0;
@@ -611,6 +636,11 @@ export function runDrawsForLevel(model: Model, level: string, cut = CUT_HEIGHT):
   return out;
 }
 
+function sameRect(a: Rect, b: Rect): boolean {
+  return Math.abs(a.x1 - b.x1) < SPAN_EPS && Math.abs(a.y1 - b.y1) < SPAN_EPS
+    && Math.abs(a.x2 - b.x2) < SPAN_EPS && Math.abs(a.y2 - b.y2) < SPAN_EPS;
+}
+
 /**
  * 同じ枠を共有する走りか。**位置だけでは足りない** — 向き (up) と形 (form) と
  * 台数が揃って初めて部品が番号どおりに対応する。向きが違う走りに双子の切断位置を
@@ -618,10 +648,7 @@ export function runDrawsForLevel(model: Model, level: string, cut = CUT_HEIGHT):
  */
 function sameFrame(a: VerticalRun, b: VerticalRun): boolean {
   return (
-    Math.abs(a.rect.x1 - b.rect.x1) < SPAN_EPS &&
-    Math.abs(a.rect.y1 - b.rect.y1) < SPAN_EPS &&
-    Math.abs(a.rect.x2 - b.rect.x2) < SPAN_EPS &&
-    Math.abs(a.rect.y2 - b.rect.y2) < SPAN_EPS &&
+    sameRect(a.rect, b.rect) &&
     a.up === b.up &&
     a.form === b.form &&
     a.device === b.device &&
@@ -784,7 +811,8 @@ export function runIssues(model: Model): RunIssue[] {
       });
       continue;
     }
-    if (s.rects.length !== 1) {
+    const li = levels.findIndex((l) => l.name === s.level);
+    if (!runFrame(model, s, device, li < 0 ? undefined : levels[li + 1]?.name)) {
       out.push({
         code: "RUN03",
         message:
@@ -817,7 +845,6 @@ export function runIssues(model: Model): RunIssue[] {
       continue;
     }
 
-    const li = levels.findIndex((l) => l.name === s.level);
     if (device !== "lift" && (li < 0 || !levels[li + 1])) {
       out.push({
         code: "SUF04",
