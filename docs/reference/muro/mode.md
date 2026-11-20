@@ -6,7 +6,7 @@ mode: reference
 # mode — spatial models
 
 ```muro
-muro 1.6
+muro 1.7
 mode spatial
 grid X 0 4000 8000
 grid Y 0 4000

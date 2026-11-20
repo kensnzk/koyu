@@ -17,7 +17,7 @@
 //
 // Every z is true world z. A plate is a face (`bottom === top`), because Form derives no thickness
 // for the ground and inventing one here would be a paper decision made in the wrong place.
-import { formBodies } from "../core/bodies.js";
+import { formBodies, type FormSubject } from "../core/bodies.js";
 import type { Form, FormSwing } from "../core/derive.js";
 import type { Pt } from "../core/model.js";
 import type { Seg2 } from "../core/vertical.js";
@@ -57,15 +57,7 @@ export interface SceneMark {
   extent: { x1: number; y1: number; x2: number; y2: number };
 }
 
-export type SceneSubject =
-  | "space"
-  | "boundary"
-  | "opening"
-  | "column"
-  | "slab"
-  | "run"
-  | "site"
-  | "level";
+export type SceneSubject = FormSubject | "site" | "level";
 
 /**
  * The geometric treatment. **Five, and closed.** Anything a consumer branches a *material* on
@@ -256,9 +248,12 @@ export function sceneOf(form: Form): Scene {
         });
         break;
       }
+      case "roof":
+      case "beam":
+      case "foundation":
       case "slab": {
         nodes.push({
-          of: "slab",
+          of: body.of,
           role: "body",
           ref: body.ref,
           ...(body.kind !== undefined ? { kind: body.kind } : {}),

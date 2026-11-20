@@ -70,3 +70,8 @@ export type {
   Seg2,
   VerticalRun,
 } from "./core/vertical.js";
+
+export { areaSchedule } from "./core/area-schedule.js";
+
+export type { FormRoof, RoofVertex } from "./core/roof.js";
+export type { FormMember, FormFoundation } from "./core/members.js";

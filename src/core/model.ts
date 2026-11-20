@@ -3,6 +3,7 @@
 // 形はここには無い。形は生成物である。(docs/writing-architecture.md)
 
 import * as poly from "./poly.js";
+import type { BeamDecl, FoundationDecl } from "./members.js";
 
 export type AttrValue = string | number;
 export type Attrs = Record<string, AttrValue>;
@@ -57,6 +58,7 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
   // (ADR-0068, ADR-0075).
   { muro: "1.5", since: "0.28.0", until: null },
   { muro: "1.6", since: "0.29.0", until: null },
+  { muro: "1.7", since: "0.31.0", until: null },
 ];
 
 /** The word a version line is written with from 1.2 on. */
@@ -83,7 +85,7 @@ export const LAST_KOYU_SPELLED_VERSION = "1.1";
  * `since` column is written in this vocabulary, and every surface that answers "which muro
  * does this build speak" needs both halves at once.
  */
-export const KOYU_VERSION = "0.30.0";
+export const KOYU_VERSION = "0.31.0";
 
 /**
  * Whether `a` names a later language version than `b`.
@@ -282,6 +284,17 @@ export function gridRef(model: Model, token: string): GridPosition | undefined {
   return undefined;
 }
 
+/** Resolve one grid-relative point for drawn lines and structural placements. */
+export function gridPoint(model: Model, token: string, line: number): Pt {
+  const parts = token.split(",");
+  if (parts.length !== 2) throw new SourceError(line, `A point takes the form <X grid line>,<Y grid line>: ${token}`);
+  const x = gridRef(model, parts[0]!), y = gridRef(model, parts[1]!);
+  if (!x || !y) throw new SourceError(line, `Undefined grid line name: ${!x ? parts[0] : parts[1]}`);
+  if (x.axis !== "X" || y.axis !== "Y") throw new SourceError(line, `A point is written X grid line first, then Y: ${token}`);
+  if (!Number.isFinite(x.coord) || !Number.isFinite(y.coord)) throw new SourceError(line, `Grid coordinates must be finite: ${token}`);
+  return { x: x.coord, y: y.coord };
+}
+
 /** mm矩形 (x1<x2, y1<y2) */
 export interface Rect {
   x1: number;
@@ -476,7 +489,27 @@ export function srcRef(line: number, file?: string): string {
   return `${file ? `${file}:` : ""}line ${line}`;
 }
 
+/** Source dimensions are relative to the named storey, in millimetres. */
+export interface RoofDecl {
+  path: string;
+  level: string;
+  type?: "flat" | "shed" | "gable" | "hip";
+  eaveZ?: number;
+  highZ?: number;
+  rise?: "+X" | "-X" | "+Y" | "-Y";
+  ridgeAxis?: "X" | "Y";
+  slope?: number;
+  thickness?: number;
+  outline?: string[];
+  holes: string[][];
+  faces: string[][];
+  attrs: Attrs;
+  line: number;
+  file?: string;
+}
+
 export interface Model {
+  roofs?: RoofDecl[];
   version: string;
   /** Absent means the building reading. Spatial mode leaves unwritten boundaries unresolved. */
   mode?: "spatial";
@@ -501,6 +534,8 @@ export interface Model {
   polygons: Map<string, SitePolygon>;
   /** 柱の宣言 (ADR-0023)。位置は書かれない — 通り芯の交点から導出される */
   columns: ColumnDecl[];
+  beams?: BeamDecl[];
+  foundations?: FoundationDecl[];
   /**
    * 合成に参加したレイヤー (ローダーのキー)。**この並びが層の強度順序である** (docs/reference/muro/import.md)。
    * entry が添字0で最も弱く、**後の層ほど強い**。単一ソースの parse では空。
@@ -550,6 +585,9 @@ export interface Pt {
  * という規則で導出される。壁が境界から現れるのと同じ構えを、点の要素に適用したもの
  */
 export interface ColumnDecl {
+  /** One grid-relative centre shared by every member in this run. */
+  at?: string;
+  sections?: Array<{ levels: string[]; w: number; d: number }>;
   /** 一辺 mm (角柱)。`d:` があれば矩形断面の奥行 */
   size: number;
   depth?: number;
@@ -705,7 +743,7 @@ export class SourceError extends Error {
      * module, so the union cannot be imported here — and widening it to `string` would let
      * a typo reach `check --json` as a code no page documents.
      */
-    public code?: "VER06" | "VER10",
+    public code?: "VER06" | "VER10" | "VER11",
   ) {
     super(`${file ? `${file}:` : ""}line ${line}: ${raw}`);
     this.name = "SourceError";
@@ -745,6 +783,9 @@ export function columnSites(
   level: string,
 ): Array<{ x: number; y: number; grid: string }> {
   if (!c.levels.includes(level)) return [];
+  if (c.at) {
+    return [{ ...gridPoint(model, c.at, c.line), grid: c.at.replace(",", "/") }];
+  }
   const floors = [...model.spaces.values()].filter(
     (s) =>
       s.level === level &&
@@ -784,16 +825,27 @@ export function columnSites(
 export function columnsFor(model: Model, level: string): Column[] {
   const out: Column[] = [];
   const seen = new Set<string>();
+  const explicitBases = new Set<string>();
+  const explicitCentres = new Set<string>();
+  for (const c of model.columns) {
+    if (!c.at || !c.levels.includes(level)) continue;
+    explicitBases.add(c.at.replace(/[+-]\d+/g, "").replace(",", "/"));
+    const p = gridPoint(model, c.at, c.line);
+    explicitCentres.add(`${p.x},${p.y}`);
+  }
   for (let ci = 0; ci < model.columns.length; ci++) {
     const c = model.columns[ci]!;
+    const section = c.sections?.find(s => s.levels.includes(level));
     for (const site of columnSites(model, c, level)) {
-      if (seen.has(site.grid)) continue; // 同じ交点に二本は立たない (先の宣言が勝つ)
-      seen.add(site.grid);
+      const centre = `${site.x},${site.y}`;
+      if (!c.at && (explicitBases.has(site.grid) || explicitCentres.has(centre))) continue;
+      if (seen.has(centre)) continue;
+      seen.add(centre);
       out.push({
         x: site.x,
         y: site.y,
-        w: c.size,
-        d: c.depth ?? c.size,
+        w: section?.w ?? c.size,
+        d: section?.d ?? c.depth ?? c.size,
         level,
         grid: site.grid,
         decl: ci,
@@ -1180,7 +1232,21 @@ export function normalizeRegionOrder(model: Model): void {
   }
 }
 
-/** 正準JSON — 機械形式。差分とレイヤー合成の土台 (キーは安定順) */
+/** Source facts shared by canonical JSON and the semantic diff. */
+export function canonicalMemberDefinition(member: RoofDecl | BeamDecl | FoundationDecl): Record<string, unknown> {
+  if ("faces" in member) {
+    return {
+      level: member.level, type: member.type, eaveZ: member.eaveZ, highZ: member.highZ,
+      rise: member.rise, ridgeAxis: member.ridgeAxis, slope: member.slope, thickness: member.thickness,
+      outline: member.outline, holes: member.holes.length ? member.holes : undefined,
+      faces: member.faces.length ? member.faces : undefined,
+      ...(Object.keys(member.attrs).length ? { attrs: Object.fromEntries(sortObj(member.attrs)) } : {}),
+    };
+  }
+  const { path, line, file, ...definition } = member;
+  return definition;
+}
+
 export function toCanonical(model: Model): string {
   // Keys taken from the source go in a Map so the collation order survives serialisation
   const spaces = new Map<string, unknown>();
@@ -1250,6 +1316,9 @@ export function toCanonical(model: Model): string {
         ]),
       ),
     ),
+    ...(model.roofs?.length ? {
+      roofs: sortObj(Object.fromEntries(model.roofs.map(roof => [roof.path, canonicalMemberDefinition(roof)]))),
+    } : {}),
     ...(assets.size ? { assets } : {}),
     ...(polygons.size ? { polygons } : {}),
     // **柱の宣言順は意味である。**同じ交点に二本は立たず、先の宣言が勝つ (ADR-0023) ので、
@@ -1261,12 +1330,16 @@ export function toCanonical(model: Model): string {
             size: c.size,
             ...(c.depth !== undefined ? { d: c.depth } : {}),
             levels: c.levels,
+            ...(c.at ? { at: c.at } : {}),
+            ...(c.sections ? { sections: [...c.sections].sort((a,b) => c.levels.indexOf(a.levels[0]!) - c.levels.indexOf(b.levels[0]!)) } : {}),
             ...(c.xNames ? { x: sortGridNames(model.grid.X.names, c.xNames) } : {}),
             ...(c.yNames ? { y: sortGridNames(model.grid.Y.names, c.yNames) } : {}),
             ...(Object.keys(c.attrs).length ? { attrs: sortObj(c.attrs) } : {}),
           })),
         }
       : {}),
+    ...(model.beams?.length ? { beams: sortObj(Object.fromEntries(model.beams.map(m => [m.path, canonicalMemberDefinition(m)]))) } : {}),
+    ...(model.foundations?.length ? { foundations: sortObj(Object.fromEntries(model.foundations.map(m => [m.path, canonicalMemberDefinition(m)]))) } : {}),
     ...(zones.size ? { zones } : {}),
     spaces,
     boundaries,

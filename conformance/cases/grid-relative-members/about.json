@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/column.md#explicit-continuous-centre", "docs/reference/muro/members.md"],
+  "why": "Both column storeys share one centre, the upper section changes, and the beam and pad resolve from their own XY references and storey datums."
+}

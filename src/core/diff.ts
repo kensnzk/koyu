@@ -13,6 +13,8 @@ import {
   canonicalSpaceEntry,
   openingIdentity,
   polygonAreaM2,
+  canonicalMemberDefinition,
+  compareCanonical,
   type Attrs,
   type AttrValue,
   type Boundary,
@@ -90,6 +92,7 @@ export interface ModelDiff {
   mode?: { from: "building" | "spatial"; to: "building" | "spatial" };
   name?: { from?: string; to?: string };
   grid: GridChange[];
+  members?: Partial<Record<"roofs" | "beams" | "foundations", { added: string[]; removed: string[]; changed: ChangedItem[] }>>;
   levels: { added: string[]; removed: string[]; changed: ChangedItem[] };
   assets: { added: string[]; removed: string[]; changed: ChangedItem[] };
   polygons: { added: string[]; removed: string[]; changed: ChangedItem[] };
@@ -465,6 +468,27 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
     boundaries: { added: [], removed: [], changed: [] },
     columns: { added: [], removed: [], changed: [] },
   };
+  // Compare written definitions only; a grid move is already reported by the grid diff.
+  for (const kind of ["roofs", "beams", "foundations"] as const) {
+    const oldMembers = a[kind] ?? [], newMembers = b[kind] ?? [];
+    if (!oldMembers.length && !newMembers.length) continue;
+    const left = new Map(oldMembers.map(m => [m.path, canonicalMemberDefinition(m)]));
+    const right = new Map(newMembers.map(m => [m.path, canonicalMemberDefinition(m)]));
+    const added = [...right.keys()].filter(path => !left.has(path)).sort(compareCanonical);
+    const removed = [...left.keys()].filter(path => !right.has(path)).sort(compareCanonical);
+    const changed: ChangedItem[] = [];
+    for (const path of [...left.keys()].sort(compareCanonical)) {
+      const previous = left.get(path)!, next = right.get(path);
+      if (!next) continue;
+      const fields: FieldChange[] = [];
+      for (const field of [...new Set([...Object.keys(previous), ...Object.keys(next)])].sort(compareCanonical)) {
+        const from = JSON.stringify(previous[field]), to = JSON.stringify(next[field]);
+        if (from !== to) fields.push(fieldChange(field, from, to));
+      }
+      if (fields.length) changed.push({ path, fields });
+    }
+    if (added.length || removed.length || changed.length) (d.members ??= {})[kind] = { added, removed, changed };
+  }
   if (a.mode !== b.mode) d.mode = { from: a.mode ?? "building", to: b.mode ?? "building" };
   if (a.version !== b.version) d.version = { from: a.version, to: b.version };
   if (a.name !== b.name) {
@@ -552,6 +576,8 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
         `${c.size} square`,
         ...(c.depth !== undefined ? [`d:${c.depth}`] : []),
         c.levels.length > 2 ? `${c.levels[0]}..${c.levels[c.levels.length - 1]}` : c.levels.join(","),
+        ...(c.at ? [`at:${c.at}`] : []),
+        ...(c.sections ? [...c.sections].sort((a,b) => c.levels.indexOf(a.levels[0]!) - c.levels.indexOf(b.levels[0]!)).map(s => `section ${s.levels.join(",")} w:${s.w} d:${s.d}`) : []),
         ...(c.xNames ? [`x:${c.xNames.join(",")}`] : []),
         ...(c.yNames ? [`y:${c.yNames.join(",")}`] : []),
         ...Object.entries(c.attrs).map(([k, v]) => `${k}:${v}`),
@@ -723,6 +749,12 @@ export function renderDiff(d: ModelDiff): string[] {
   }
   for (const x of d.boundaries.removed) out.push(`− boundary ${betweenLabel(x)}`);
   for (const c of d.boundaries.changed) out.push(`± boundary ${betweenLabel(c)}: ${fmtFields(c.fields)}`);
+  for (const [kind, members] of Object.entries(d.members ?? {})) {
+    const noun = kind.slice(0, -1);
+    for (const path of members.added) out.push(`+ ${noun} ${path}`);
+    for (const path of members.removed) out.push(`− ${noun} ${path}`);
+    for (const c of members.changed) out.push(`± ${noun} ${c.path}: ${fmtFields(c.fields)}`);
+  }
   for (const c of d.columns.added) out.push(`+ column ${c.label}`);
   for (const c of d.columns.removed) out.push(`− column ${c.label}`);
   for (const c of d.columns.changed) out.push(`± column ${c.path}: ${fmtFields(c.fields)}`);

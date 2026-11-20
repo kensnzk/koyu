@@ -12,6 +12,7 @@ import {
   DEFAULT_LANGUAGE_VERSION,
   type Edge,
   gridRef,
+  gridPoint as resolvePoint,
   type GridPosition,
   isNewerVersion,
   KOYU_VERSION,
@@ -24,12 +25,15 @@ import {
   type Opening,
   type Pt,
   type Rect,
+  type RoofDecl,
   type Seg,
   SourceError,
   type Space,
   SUPPORTED_LANGUAGE_VERSIONS,
   type Zone,
 } from "./model.js";
+import { matOutline, memberRef, type BeamDecl, type FoundationDecl } from "./members.js";
+import { readRoofGeometry } from "./roof.js";
 import { deriveDefaultBoundaries, derivePieces } from "./graph.js";
 
 /** 境界のトポロジー語 — 増やすのは最後の手段である (docs/reference/muro/attributes.md 規則1) */
@@ -67,6 +71,19 @@ interface BandMember {
 }
 
 function checkModeVersion(model: Model): void {
+  const structural = model.columns.find(c => c.at !== undefined) ?? model.beams?.[0] ?? model.foundations?.[0];
+  if (structural && !isNewerVersion(model.version, "1.6")) {
+    throw new SourceError(structural.line, "Explicit column centres, beams and foundations require muro 1.7", structural.file, "VER11");
+  }
+  for (const f of model.foundations ?? []) {
+    const { type } = f;
+    if (type === "mat" && f.outline.length === 0) throw new SourceError(f.line, "A mat foundation requires an outline", f.file);
+  }
+  const roof = model.roofs?.[0];
+  if (roof && !isNewerVersion(model.version, "1.6")) {
+    throw new SourceError(roof.line, "roof requires muro 1.7", roof.file, "VER11");
+  }
+  for (const declaredRoof of model.roofs ?? []) readRoofGeometry(model, declaredRoof);
   if (model.mode && !isNewerVersion(model.version, "1.5")) {
     throw new SourceError(model.modeSource?.line ?? 0, "mode spatial requires muro 1.6", model.modeSource?.file, "VER10");
   }
@@ -189,6 +206,9 @@ function ingest(
   const layer = file === undefined ? 0 : Math.max(0, model.layers.indexOf(file));
   let current: Boundary[] = [];
   let currentSpaces: Space[] = [];
+  let currentColumn: Model["columns"][number] | undefined;
+  let currentMat: (FoundationDecl & { type: "mat" }) | undefined;
+  let currentRoof: RoofDecl | undefined;
   let over: OverTarget | undefined;
   let band: BandDecl | undefined; // 帯は次の非字下げ行か層の終わりで展開される (ADR-0019)
   // **原本は NFC として読む** (ADR-0036)。`が` は一つの符号位置とも「か + 濁点」とも綴れ、
@@ -216,11 +236,43 @@ function ingest(
           ln,
           `Only + (add) / - (remove) / = (replace) may sit directly under over: ${head}`,
         );
+      } else if (currentRoof && (head === "outline" || head === "hole" || head === "face")) {
+        if (rest.length < 3) throw new SourceError(ln, `A roof ${head} needs at least three vertices`);
+        const vertices = rest.map(vertex => {
+          if (head !== "face") return memberRef(model, vertex, ln);
+          const parts = vertex.split(",");
+          if (parts.length !== 3) throw new SourceError(ln, "A face vertex takes X-ref,Y-ref,level-relative-z");
+          const z = toNumber(parts.pop()!, ln, "Face elevation");
+          if (!Number.isFinite(z)) throw new SourceError(ln, "A roof face elevation must be finite");
+          return `${memberRef(model, parts.join(","), ln)},${z}`;
+        });
+        if (head === "face") currentRoof.faces.push(vertices);
+        else if (head === "hole") currentRoof.holes.push(vertices);
+        else {
+          if (currentRoof.outline) throw new SourceError(ln, "A roof has one outer outline");
+          currentRoof.outline = vertices;
+        }
       } else if (head === "door" || head === "window") {
         if (current.length === 0) {
           throw new SourceError(ln, `${head} is written indented directly under boundary`);
         }
         for (const b of current) b.openings.push(parseOpening(head, rest, ln, model));
+      } else if (head === "section") {
+        if (!currentColumn?.at) throw new SourceError(ln, "A section override is written directly under a column with an explicit centre");
+        const levels = columnLevels(model, rest[0], ln, true);
+        const attrs = parseAttrs(rest.slice(1), ln);
+        const w = memberDimension(attrs, "w", ln);
+        const d = memberDimension(attrs, "d", ln);
+        rejectExtraMemberAttrs(attrs, ln);
+        const sections = currentColumn.sections ??= [];
+        if (levels.some(l => !currentColumn!.levels.includes(l) || sections.some(s => s.levels.includes(l)))) {
+          throw new SourceError(ln, "Column section levels must belong to the column run and may be assigned only once");
+        }
+        sections.push({ levels, w, d });
+      } else if (head === "outline" && currentMat) {
+        if (currentMat.outline.length) throw new SourceError(ln, "A mat foundation has one outline");
+        currentMat.outline = rest.map(token => memberRef(model, token, ln));
+        matOutline(model, currentMat);
       } else if (head === "seg") {
         if (current.length === 0) {
           throw new SourceError(ln, "seg is written indented directly under boundary");
@@ -267,6 +319,9 @@ function ingest(
     }
     current = [];
     currentSpaces = [];
+    currentColumn = undefined;
+    currentMat = undefined;
+    currentRoof = undefined;
     over = undefined;
     switch (head) {
       // **The version line is the only declaration that names the language, which is why it
@@ -422,6 +477,13 @@ function ingest(
           line: ln,
           ...(file ? { file } : {}),
         });
+        break;
+      }
+      case "roof": {
+        const roof = parseRoof(rest, ln, file, model);
+        if (model.roofs?.some((other) => other.path === roof.path)) throw new SourceError(ln, `Duplicate roof: ${roof.path}`);
+        (model.roofs ??= []).push(roof);
+        currentRoof = roof;
         break;
       }
       case "polygon": {
@@ -647,21 +709,26 @@ function ingest(
         };
         break;
       }
+      case "beam":
+      case "foundation": {
+        const member = parseMember(model, head, rest, ln, file);
+        if ("type" in member) {
+          (model.foundations ??= []).push(member);
+          const { type } = member;
+          if (type === "mat") currentMat = member;
+        } else {
+          (model.beams ??= []).push(member);
+        }
+        break;
+      }
       case "column": {
         // 柱 (ADR-0023) — 寸法と階と通りだけを書く。位置は通り芯の交点から導出される
         const size = toNumber(rest[0] ?? "", ln, "The column dimension");
         if (size <= 0) throw new SourceError(ln, "A column dimension is written as a positive value in mm");
-        const span = rest[1];
-        if (!span) {
-          throw new SourceError(ln, "column takes the form column <size mm> <L?..L?|level name> [x:grid,..] [y:grid,..]");
-        }
-        const levels = /\.\./.test(span)
-          ? resolveSpanLevels(model, span, ln)
-          : (() => {
-              if (!model.levels[span]) throw new SourceError(ln, `Undeclared level: ${span}`);
-              return [span];
-            })();
         const attrs = parseAttrs(rest.slice(2), ln);
+        const centre = takeString(attrs, "at");
+        const levels = columnLevels(model, rest[1], ln, centre !== undefined);
+        const at = centre === undefined ? undefined : memberRef(model, centre, ln);
         const depth = takeNumber(attrs, "d", ln, { positive: true });
         const names = (key: "x" | "y"): string[] | undefined => {
           const v = takeString(attrs, key);
@@ -677,8 +744,10 @@ function ingest(
         };
         const xNames = names("x");
         const yNames = names("y");
-        model.columns.push({
+        if (at && (xNames || yNames)) throw new SourceError(ln, "A column uses at: or the x:/y: array selectors");
+        currentColumn = {
           size,
+          ...(at ? { at } : {}),
           ...(depth !== undefined ? { depth } : {}),
           levels,
           ...(xNames ? { xNames } : {}),
@@ -686,7 +755,8 @@ function ingest(
           attrs,
           line: ln,
           ...(file ? { file } : {}),
-        });
+        };
+        model.columns.push(currentColumn);
         break;
       }
       case "band": {
@@ -807,6 +877,98 @@ function ingest(
 }
 
 // ---- 各要素 ----
+
+function parseRoof(rest: string[], ln: number, file: string | undefined, model: Model): RoofDecl {
+  const path = rest[0];
+  if (!path?.startsWith("/")) throw new SourceError(ln, "roof takes a path beginning with /");
+  const attrs = parseAttrs(rest.slice(1), ln);
+  const level = takeString(attrs, "level");
+  if (!level || !Object.hasOwn(model.levels, level)) throw new SourceError(ln, "roof level must name a declared level");
+  const type = takeString(attrs, "type");
+  if (type !== undefined && type !== "flat" && type !== "shed" && type !== "gable" && type !== "hip") {
+    throw new SourceError(ln, `Unknown roof type: ${type}`);
+  }
+  const rise = takeString(attrs, "rise");
+  if (rise !== undefined && (type !== "shed" || !["+X", "-X", "+Y", "-Y"].includes(rise))) {
+    throw new SourceError(ln, "A shed rises toward +X, -X, +Y or -Y");
+  }
+  const ridgeAxis = takeString(attrs, "ridge-axis");
+  if (ridgeAxis !== undefined && (type !== "gable" || (ridgeAxis !== "X" && ridgeAxis !== "Y"))) {
+    throw new SourceError(ln, "A gable ridge-axis is X or Y");
+  }
+  const rawSlope = takeString(attrs, "slope");
+  let slope: number | undefined;
+  if (rawSlope !== undefined) {
+    const ratio = /^(\d+(?:\.\d+)?)(?:\/(\d+(?:\.\d+)?))?$/.exec(rawSlope);
+    slope = ratio ? Number(ratio[1]) / Number(ratio[2] ?? 1) : NaN;
+    if (!Number.isFinite(slope) || slope <= 0) throw new SourceError(ln, "slope takes a positive rise/run ratio");
+  }
+  const eaveZ = takeNumber(attrs, "eave-z", ln);
+  const highZ = takeNumber(attrs, "high-z", ln);
+  const thickness = takeNumber(attrs, "t", ln, { positive: true });
+  if ([eaveZ, highZ, thickness].some(value => value !== undefined && !Number.isFinite(value))) {
+    throw new SourceError(ln, "Roof heights and thickness must be finite");
+  }
+  if (highZ !== undefined && eaveZ !== undefined && (slope !== undefined || highZ <= eaveZ)) {
+    throw new SourceError(ln, "Use two increasing heights, or one height and a slope");
+  }
+  if (type === "flat" && (slope !== undefined || highZ !== undefined)) throw new SourceError(ln, "A flat roof uses eave-z");
+  return { path, level, type, rise: rise as RoofDecl["rise"], ridgeAxis, slope, eaveZ, highZ, thickness,
+    holes: [], faces: [], attrs, line: ln, file };
+}
+
+function columnLevels(model: Model, span: string | undefined, line: number, namedEndpoints: boolean): string[] {
+  if (!span) throw new SourceError(line, "A column or section requires a level or level range");
+  if (namedEndpoints && Object.hasOwn(model.levels, span)) return [span];
+  if (span.includes("..")) return resolveSpanLevels(model, span, line, namedEndpoints);
+  if (!Object.hasOwn(model.levels, span)) throw new SourceError(line, `Undeclared level: ${span}`);
+  return [span];
+}
+
+function memberDimension(attrs: Attrs, key: string, line: number): number {
+  const value = takeNumber(attrs, key, line, { positive: true });
+  if (!Number.isFinite(value)) throw new SourceError(line, `A finite positive dimension ${key}: is required`);
+  return value!;
+}
+
+function rejectExtraMemberAttrs(attrs: Attrs, line: number): void {
+  const key = Object.keys(attrs)[0];
+  if (key) throw new SourceError(line, `Unexpected structural attribute: ${key}`);
+}
+
+function parseMember(model: Model, kind: "beam" | "foundation", rest: string[], line: number, file?: string): BeamDecl | FoundationDecl {
+  const [path, ...tokens] = rest;
+  if (!path?.startsWith("/") || path.length === 1) throw new SourceError(line, `A ${kind} requires its own path`);
+  const siblings = kind === "beam" ? model.beams : model.foundations;
+  if (siblings?.some(m => m.path === path)) throw new SourceError(line, `Duplicate ${kind} path: ${path}`);
+  const attrs = parseAttrs(tokens, line);
+  const level = takeString(attrs, "level");
+  if (!level || !Object.hasOwn(model.levels, level)) throw new SourceError(line, `A ${kind} requires a declared level`);
+  const top = takeNumber(attrs, "top", line);
+  if (top !== undefined && !Number.isFinite(top)) throw new SourceError(line, "A structural top elevation must be finite");
+  const base = { path, level, ...(top !== undefined ? { top } : {}), line, ...(file ? { file } : {}) };
+  const dim = (key: string): number => memberDimension(attrs, key, line);
+  const point = (key: string): string => memberRef(model, takeString(attrs, key) ?? "", line);
+  function span() {
+    const from = point("from"), to = point("to");
+    const a = resolvePoint(model, from, line), b = resolvePoint(model, to, line);
+    if (a.x === b.x && a.y === b.y) throw new SourceError(line, "The endpoints of a structural span must differ");
+    return { from, to, w: dim("w") };
+  }
+  let member: BeamDecl | FoundationDecl;
+  if (kind === "beam") {
+    member = { ...base, ...span(), d: dim("d") };
+  } else {
+    const type = takeString(attrs, "type");
+    const t = dim("t");
+    if (type === "pad") member = { ...base, type, at: point("at"), w: dim("w"), d: dim("d"), t };
+    else if (type === "strip") member = { ...base, type, ...span(), t };
+    else if (type === "mat") member = { ...base, type, outline: [], t };
+    else throw new SourceError(line, "A foundation type is pad, strip or mat");
+  }
+  rejectExtraMemberAttrs(attrs, line);
+  return member;
+}
 
 function parseSpace(rest: string[], ln: number, model: Model): Space {
   const path = rest[0];
@@ -1124,20 +1286,6 @@ function parseDrawnLine(
   return { aRef, bRef, a, b, line: ln };
 }
 
-/** 通り語の対 `X3,Y1` / `X3+600,Y2-900` を点へ */
-function resolvePoint(model: Model, token: string, ln: number): Pt {
-  const parts = token.split(",");
-  if (parts.length !== 2) {
-    throw new SourceError(ln, `A point takes the form <X grid line>,<Y grid line>: ${token}`);
-  }
-  const p = resolveRef(model, parts[0]!, ln);
-  const q = resolveRef(model, parts[1]!, ln);
-  if (p.axis !== "X" || q.axis !== "Y") {
-    throw new SourceError(ln, `A point is written X grid line first, then Y: ${token}`);
-  }
-  return { x: p.coord, y: q.coord };
-}
-
 /** 数えない分節: 室内の領域 (床材の切替など) */
 function parseArea(rest: string[], ln: number, model: Model): Area {
   const regionTokens = rest.filter((t) => t.includes(".."));
@@ -1181,11 +1329,14 @@ function parseAt(
 }
 
 /** レベルのスパン (L2..L9) を、宣言済みレベルのz順の並びに解決する */
-function resolveSpanLevels(model: Model, token: string, ln: number): string[] {
-  const m = /^([A-Za-z]+\d+)\.\.([A-Za-z]+\d+)$/.exec(token);
-  if (!m) throw new SourceError(ln, `Cannot read the level range: ${token}`);
-  const from = model.levels[m[1]!];
-  const to = model.levels[m[2]!];
+function resolveSpanLevels(model: Model, token: string, ln: number, namedEndpoints = false): string[] {
+  const ends = token.split("..");
+  if (ends.length !== 2 || ends.some(name => !name || (!namedEndpoints && !/^[A-Za-z]+\d+$/.test(name)))) {
+    throw new SourceError(ln, `Cannot read the level range: ${token}`);
+  }
+  const [start, end] = ends as [string, string];
+  const from = Object.hasOwn(model.levels, start) ? model.levels[start] : undefined;
+  const to = Object.hasOwn(model.levels, end) ? model.levels[end] : undefined;
   if (!from || !to) {
     throw new SourceError(ln, `The range includes an undeclared level (declare level first): ${token}`);
   }
@@ -1692,6 +1843,13 @@ function applyTypedPatch(item: { attrs: Attrs } & Record<string, unknown>, patch
  *   drop column <名>          柱の宣言
  */
 function applyDrop(model: Model, rest: string[], ln: number): void {
+  if (rest[0] === "beam" || rest[0] === "foundation") {
+    const members = rest[0] === "beam" ? model.beams : model.foundations;
+    const index = members?.findIndex(m => m.path === rest[1]) ?? -1;
+    if (rest.length !== 2 || index < 0 || !members) throw new SourceError(ln, `No such ${rest[0]}: ${rest[1] ?? ""}`);
+    members.splice(index, 1);
+    return;
+  }
   if (rest[0] === "column") {
     const name = rest[1];
     if (!name) throw new SourceError(ln, "drop column takes the name of a column");

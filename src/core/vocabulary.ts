@@ -307,7 +307,15 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
     sound: carry(),
   },
 
+  roof: {
+    level: structure(), type: structure(), "eave-z": structure(), "high-z": structure(),
+    slope: structure(), rise: structure(), "ridge-axis": structure(), t: structure(),
+  },
+  beam: { level: structure(), from: structure(), to: structure(), w: structure(), d: structure(), top: structure() },
+  foundation: { type: structure(), level: structure(), from: structure(), to: structure(), at: structure(), w: structure(), d: structure(), t: structure(), top: structure() },
+  section: { w: structure(), d: structure() },
   column: {
+    at: structure(),
     // 構造 — parse が持ち上げる
     d: structure(),
     x: structure(),

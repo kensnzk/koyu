@@ -128,6 +128,8 @@ npx tsx src/cli.ts diff before.muro after.muro --json
 }
 ```
 
+Authored roofs, beams and foundations with changed definitions appear under `members.roofs`, `members.beams` and `members.foundations`. Each group records paths added or removed, and changed fields for matching paths. Empty member groups are omitted.
+
 With no differences the same skeleton comes out; every array is simply empty.
 
 ## What is not a difference

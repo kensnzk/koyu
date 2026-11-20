@@ -19,12 +19,15 @@ export type {
   Opening,
   Pt,
   Rect,
+  RoofDecl,
   Seg,
   SiteOrigin,
   SitePolygon,
   Space,
   Zone,
 } from "./core/model.js";
+export type { BeamDecl, FoundationDecl } from "./core/members.js";
+
 
 export {
   areaM2,

@@ -158,7 +158,7 @@
     },
     "keyword-child": {
       "comment": "字下げして書く語 — src/core/parse.ts の indented 分岐。+ / - / = は over の下の集合編集 (ADR-0035)",
-      "match": "^[ \\t]+(door|window|seg|line|area|space)\\b",
+      "match": "^[ \\t]+(door|window|seg|line|area|space|section|outline|hole|face)\\b",
       "captures": { "1": { "name": "keyword.other.child.muro" } }
     },
     "keyword-edit": {
@@ -168,7 +168,7 @@
     },
     "keyword-directive": {
       "comment": "行頭に書く語 — src/core/parse.ts の switch (head)",
-      "match": "^(mode|koyu|muro|import|over|drop|asset|polygon|origin|azimuth|name|unit|grid|level|column|band|space|boundary|zone|stack)\\b",
+      "match": "^(mode|koyu|muro|import|over|drop|asset|polygon|origin|azimuth|name|unit|grid|level|column|roof|beam|foundation|band|space|boundary|zone|stack)\\b",
       "captures": { "1": { "name": "keyword.control.directive.muro" } }
     },
     "path": {
@@ -178,7 +178,7 @@
     },
     "attr-ledger": {
       "comment": "The ledger keys that are not carrier-tier — the attributes the tools act on. ATTR_LEDGER in src/core/vocabulary.ts is the contract; free k:v gets a different colour",
-      "match": "\\b(underground|escalator|elevation|daylight|northing|vertical|ceiling|flights|landing|outside|offset-x|offset-y|align-x|align-y|plan-svg|easting|panels|asset|rotate|hinge|level|riser|slope|stair|style|swing|tread|pitch|entry|lane|lift|form|road|slab|site|area|turn|type|edge|name|ramp|void|epsg|uid|air|use|at|h|w|t|d|x|y)(:)",
+      "match": "\\b(underground|ridge-axis|elevation|escalator|daylight|northing|offset-x|offset-y|plan-svg|vertical|align-x|align-y|ceiling|easting|flights|landing|outside|eave-z|high-z|panels|rotate|asset|entry|hinge|level|pitch|riser|slope|stair|style|swing|tread|area|edge|epsg|form|from|lane|lift|name|ramp|rise|road|site|slab|turn|type|void|air|top|uid|use|at|to|d|h|t|w|x|y)(:)",
       "captures": {
         "1": { "name": "entity.other.attribute-name.muro" },
         "2": { "name": "punctuation.separator.key-value.muro" }

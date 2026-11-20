@@ -16,7 +16,7 @@ import type { Pt } from "./model.js";
 import type { Seg2 } from "./vertical.js";
 
 /** What a body stands for. */
-export type FormSubject = "space" | "boundary" | "opening" | "column" | "slab" | "run";
+export type FormSubject = "space" | "boundary" | "opening" | "column" | "slab" | "run" | "roof" | "beam" | "foundation";
 
 /** A body of the Form, in the one shape every body reduces to. */
 export interface FormBody {
@@ -62,6 +62,7 @@ export function formBodies(form: Form): FormBody[] {
         of: "boundary",
         ref: b.ref,
         kind: b.kind,
+        level: b.level,
         ...flat(p.footprint, p.z0, p.z1),
         centre: { x1: p.x1, y1: p.y1, x2: p.x2, y2: p.y2 },
       });
@@ -77,7 +78,7 @@ export function formBodies(form: Form): FormBody[] {
     });
   }
   for (const c of form.columns) {
-    out.push({ of: "column", ref: c.ref, ...flat(columnRect(c), c.z0, c.z1) });
+    out.push({ of: "column", ref: c.ref, level: c.level, ...flat(columnRect(c), c.z0, c.z1) });
   }
   for (const sl of form.slabs) {
     // **面は自分の階を持って出る。**持たずに出せば、読む側が空間のパスから引き直すことに
@@ -93,7 +94,25 @@ export function formBodies(form: Form): FormBody[] {
   for (const run of form.runs) {
     for (const s of run.solids) {
       const pr = runPrism(s);
-      out.push({ of: "run", ref: run.path, kind: run.device, poly: pr.poly, bottom: pr.bottom, top: pr.top });
+      out.push({ of: "run", ref: run.path, kind: run.device, level: run.level, poly: pr.poly, bottom: pr.bottom, top: pr.top });
+    }
+  }
+  for (const roof of form.roofs ?? []) {
+    for (const face of roof.faces) {
+      const top = face.vertices.map((v) => v.z);
+      out.push({
+        of: "roof", ref: roof.ref, level: roof.level,
+        poly: face.vertices.map(({ x, y }) => ({ x, y })),
+        top, bottom: top.map((z) => z - roof.thickness),
+      });
+    }
+  }
+  for (const beam of form.beams ?? []) {
+    out.push({ of: "beam", ref: beam.ref, level: beam.level, ...flat(beam.outline, beam.z0, beam.z1) });
+  }
+  for (const f of form.foundations ?? []) {
+    for (const ring of f.pieces ?? [f.outline]) {
+      out.push({ of: "foundation", ref: f.ref, level: f.level, kind: f.type, ...flat(ring, f.z0, f.z1) });
     }
   }
   return out;

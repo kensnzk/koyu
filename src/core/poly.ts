@@ -35,6 +35,50 @@ export const area = (poly: Pt[]): number => Math.abs(signedArea(poly));
 /** 凸片の集合の面積 mm² (片同士は重ならない前提 — check の GEO01/GEO02 が保証する) */
 export const areaOf = (pieces: Pt[][]): number => pieces.reduce((a, p) => a + area(p), 0);
 
+/** Decompose one simple ring into disjoint convex polygons, retaining the original vertex data. */
+export function convexPieces<T extends Pt>(raw: T[], invalid: (message: string) => never): T[][] {
+  if (raw.length < 3 || area(raw) <= AREA_EPS) return invalid("A ring needs positive projected area");
+  const ring = signedArea(raw) < 0 ? [...raw].reverse() : [...raw];
+  const cross = (a: Pt, b: Pt, p: Pt) => (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+  const between = (p: Pt, a: Pt, b: Pt) =>
+    Math.min(a.x, b.x) <= p.x && p.x <= Math.max(a.x, b.x) &&
+    Math.min(a.y, b.y) <= p.y && p.y <= Math.max(a.y, b.y);
+  const count = ring.length;
+  for (let i = 0; i < count; i++) {
+    const a = ring[i]!, b = ring[(i + 1) % count]!;
+    if (a.x === b.x && a.y === b.y) return invalid("Repeated polygon vertex");
+    for (let j = i + 2; j < count; j++) {
+      if ((j + 1) % count === i) continue;
+      const c = ring[j]!, d = ring[(j + 1) % count]!;
+      const ac = cross(a, b, c), ad = cross(a, b, d), ca = cross(c, d, a), cb = cross(c, d, b);
+      if ((ac * ad < 0 && ca * cb < 0) ||
+          (ac === 0 && between(c, a, b)) || (ad === 0 && between(d, a, b)) ||
+          (ca === 0 && between(a, c, d)) || (cb === 0 && between(b, c, d))) {
+        return invalid("A polygon ring crosses itself");
+      }
+    }
+  }
+  const corners = ring.filter((p, i) =>
+    Math.abs(cross(ring[(i + count - 1) % count]!, p, ring[(i + 1) % count]!)) > CROSS_EPS);
+  const convexAt = (p: T, i: number) =>
+    cross(corners[(i + corners.length - 1) % corners.length]!, p, corners[(i + 1) % corners.length]!) > 0;
+  if (corners.every(convexAt)) return [corners];
+  const output: T[][] = [];
+  while (corners.length > 3) {
+    const n = corners.length;
+    const ear = corners.findIndex((b, i) => {
+      const a = corners[(i + n - 1) % n]!, c = corners[(i + 1) % n]!;
+      return convexAt(b, i) && !corners.some(p => p !== a && p !== b && p !== c &&
+        cross(a, b, p) >= 0 && cross(b, c, p) >= 0 && cross(c, a, p) >= 0);
+    });
+    if (ear < 0) return invalid("A polygon ring must be simple");
+    output.push([corners[(ear + n - 1) % n]!, corners[ear]!, corners[(ear + 1) % n]!]);
+    corners.splice(ear, 1);
+  }
+  output.push(corners);
+  return output;
+}
+
 export function rectToPoly(r: Rect): Pt[] {
   return [
     { x: r.x1, y: r.y1 },

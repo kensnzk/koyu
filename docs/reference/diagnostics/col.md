@@ -10,9 +10,9 @@ The COL entries in the diagnostic ledger are warnings.
 | Code | Severity | What it says |
 |---|---|---|
 | COL01 | warning | Not one column stands for this declaration — the intersections have no floor |
-| COL02 | warning | Not one column stands for this declaration — an earlier one took the same intersections |
+| COL02 | warning | Other column declarations supersede every placement for this declaration |
 
-**A column's position is never written.** You write a size, storeys and grid lines; where it stands is derived. It is the same stance that makes walls emerge from boundaries, applied to a point element.
+A column array derives positions from its grid and floor. A column with an explicit centre takes its position from the authored grid references.
 
 ```muro
 grid X 0 3000 6000
@@ -42,7 +42,7 @@ At **a grid intersection that has a floor on that storey**. "Has a floor" means 
 
 The third is easy to forget. **No column stands under a balcony** — unless a floor overlaps it from above, in which case there is something to hold up and it does stand.
 
-**Two columns never share an intersection.** Where several declarations aim at the same intersection on the same level, **the earlier declaration wins**. There is no implicit rule such as "take the larger one".
+Distinct explicit centres can share a base crossing. They supersede its array candidate. For coincident centres the explicit declaration wins over an array, then declaration order decides. COL02 includes the declaration that produced each superseding column.
 
 **The population is the declaration.** COL01 and COL02 both ask not "how many stood on this level" but "how many stood **for this declaration**". Counting the former would let a declaration producing nothing pass in silence the moment any other declaration on that storey stood a single column.
 

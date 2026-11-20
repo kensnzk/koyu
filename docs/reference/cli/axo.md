@@ -28,6 +28,8 @@ Takes one entry path. The drawing goes to a file; stdout gets one line naming wh
 
 A range does not require digits at its endpoints. A name like `R` works as an endpoint, and every level whose `z` falls between the two endpoints is selected.
 
+Use `--roof-sketches` to include recorded schematic assumptions for explicit roof declarations, or `--no-roof-sketches` to use only specified geometry. Without either flag, spatial mode uses the specified geometry and building mode enables the sketch assumptions.
+
 ## Output
 
 ```sh

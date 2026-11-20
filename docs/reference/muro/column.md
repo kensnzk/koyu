@@ -1,15 +1,15 @@
 ---
-title: column — the element whose position is not written
+title: column — grid arrays and explicit centres
 mode: reference
 ---
 
-# column — the element whose position is not written
+# column — grid arrays and explicit centres
 
 ```text
 column <size mm> <level range|level name> [d:depth] [x:grid,…] [y:grid,…] [attributes…]
 ```
 
-**A column's position is written nowhere.** What is written is which storeys, at what size, on which grid lines. A column stands **at the grid intersections that have a floor on that level** — the same shape of rule that puts a wall where two spaces touch.
+A grid array places columns at eligible intersections on each storey. An explicit run places one column at the same grid-relative centre on every named storey.
 
 ```muro-part
 column 800 L1..L6
@@ -18,7 +18,20 @@ column 900 B2..L6 x:X2,X3 y:Y2 d:1200 spec:SRC
 
 The first positional argument is the side in mm (a positive number), the second a level range or a level name. Write three lines splitting the storeys and you get a column that thins as it rises.
 
-## What counts as a floor
+## Explicit continuous centre
+
+```muro-part
+column 800 L1..L5 at:X2+150,Y3-75 d:900
+  section L4..L5 w:600 d:700
+```
+
+`at:` accepts an X and Y grid reference. Each signed offset is in whole millimetres. The example places the centre 150 mm along positive X from X2 and 75 mm along negative Y from Y3. The lower three sections measure 800 × 900 mm and the upper two measure 600 × 700 mm, all centred on the same axis. Changing the parent position moves all five. A centre that actually moves at an upper storey starts a separate declaration there.
+
+An explicit run or section range may use any two declared level names, including `Pit..L5` or `L5..Roof`. Expansion includes all declared levels between their elevations, in ascending order.
+
+An explicit centre can lie beyond a floor edge. It replaces an array candidate at the named base crossing, regardless of declaration order. Distinct explicit centres at that crossing are retained. Coincident positions have one column, with the first explicit declaration taking precedence. A zero offset has the same reference as a bare grid line. `x:` and `y:` select an array and cannot accompany `at:`. Section overrides require an explicit parent, stay within its storeys and cannot overlap.
+
+## What counts as a floor for an array
 
 The population of "floors" a column stands on is every space on that level satisfying all of the following.
 
@@ -32,7 +45,7 @@ That last clause is the rule that **a floor holding up nothing but sky gets no c
 Whether a space is semi-outdoor is derived, not declared (a space with a region meeting the outside across an `open` or `air:1` boundary). Whether it is covered from above is derived too (does any space on any level above overlap it in plan).
 
 ```muro
-muro 1.6
+muro 1.7
 unit mm
 grid X 0 6000 12000
 grid Y 0 6000
@@ -86,6 +99,7 @@ The floor test reads the **derived form** too. Where an intersection falls on th
 | Attribute | Tier | Meaning |
 |---|---|---|
 | `d` | structure | a positive number, mm — the depth of a rectangular section. Defaults to the side (a square column) |
+| `at` | structure | one explicit grid-relative centre for the run |
 | `x` / `y` | structure | restrict which grid lines to stand on, comma separated. Unwritten means all of them |
 | `name` | interpreted | display name, and what `drop column` points at |
 | `spec` | carried | the name of the thing — carried and nothing more |
@@ -96,7 +110,7 @@ A list of grid names has no order — `x:X2,X1` and `x:X1,X2` are the same compo
 
 ## Declaration order is meaning
 
-**Two columns never stand at one intersection; the earlier declaration wins.** So reordering the column declarations gives a different building. The canonical JSON does not reorder them — reordering would let two different buildings produce byte-identical canonical JSON.
+**Array candidates at the same intersection use the earliest array declaration; an explicit centre supersedes the candidate.** So reordering the column declarations gives a different building. The canonical JSON does not reorder them — reordering would let two different buildings produce byte-identical canonical JSON.
 
 A declaration that stands nowhere is reported with its reason split in two. Either **the intersections it aims at have no floor**, or there is a floor but **an earlier declaration took it** — and the two want opposite fixes.
 

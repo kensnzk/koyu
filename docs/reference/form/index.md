@@ -10,7 +10,7 @@ For `mode spatial`, see [spatial models](../muro/mode.md): unwritten boundaries 
 The source has no shape. The plan, the areas, the circulation — none of it is written. All of it is **derived**. And there is exactly one function that does the deriving.
 
 ```ts
-import { derive } from "@kensnzk/koyu";
+import { derive } from "@kensnzk/koyu/form";
 
 const form = derive(model);           // cut height defaults to 1200mm
 const low  = derive(model, { cut: 900 });
@@ -51,7 +51,7 @@ The shape of a space is `pieces` (the derived convex pieces), not `rects` (the w
 
 ### 3. No invented defaults
 
-If a value that is needed was not written, the derivation does not quietly supply one — **it does not build the element**. With no ceiling height there is no ceiling; with no `slab:` not a single floor is generated. (A roof needs no ceiling height: where there is a level above, it sits at that level's z. See [Matter](bodies.md).) A shape that came out thin must never come out thin in silence, so the [SUF diagnostics](../diagnostics/suf.md) say so as errors.
+A [typed roof sketch](../muro/roof.md) records its working dimensions as assumptions and records the sketch setting in `input.roofSketches`. For level-derived fabric, if a value that is needed was not written, the derivation does not quietly supply one — **it does not build the element**. With no ceiling height there is no ceiling; with no `slab:` not a single floor is generated. (A roof needs no ceiling height: where there is a level above, it sits at that level's z. See [Matter](bodies.md).) A shape that came out thin must never come out thin in silence, so the [SUF diagnostics](../diagnostics/suf.md) say so as errors.
 
 The exception is the [derivation constants](constants.md). Wall thickness 100mm, head height 2000mm, maximum riser 180mm — these are rules the specification fixes, not defaults invented on the spot.
 
@@ -68,7 +68,7 @@ Every outline `Form` returns is counter-clockwise (positive signed area), and re
 | **z ranges** — walls, openings, columns, slabs, solids | **Drafting symbols** — the diagonal of a void, the two slashes of a break line, the circle of a grid bubble, the head of an arrow |
 | **Direction** — edge orientation, direction of rise, hinge and swing side, whether an arrow goes up | **Scale, page margin, viewBox** |
 | **Identity of the subject** — which space, area, asset, boundary or opening this shape belongs to | **SVG artwork, draw order, stacking, shading** |
-| **[Plan classification](plan.md)** — cut / below / above / swing / anchor | **The judgement of what to draw and what to leave out** |
+| **[Plan classification](plan.md)** — cut / below / above / swing / anchor / footprint | **The judgement of what to draw and what to leave out** |
 
 `svgPlan`, `svgAxo` and outside viewers take every coordinate and physical dimension from this
 `Form`. A drawing may join presentation resources such as component SVG bytes, but those supply no
@@ -96,7 +96,10 @@ interface Form {
   openings: FormOpening[];    // centre, width, z range, leaf thickness, operation and panel count
   components?: FormComponent[]; // fixed footprints placed by named areas; absent when empty
   segs: FormSeg[];            // where the uncounted segments sit
-  slabs: Slab[];              // floors, ceilings, roofs
+  roofs?: FormRoof[];         // authored roof extents, modelled planes and assumptions
+  slabs: Slab[];              // floors, ceilings, inferred horizontal roofs
+  beams?: FormMember[];        // positioned horizontal beams
+  foundations?: FormFoundation[]; // pads, strips and mats
   columns: FormColumn[];      // columns standing on grid intersections
   runs: FormRun[];            // vertical circulation: step division and solids
   site: FormSite[];           // the given site polygon and its area
@@ -141,6 +144,12 @@ Every element of `Form` carries its subject's identity. Boundaries, openings, `s
 **The vertices of the quadrilateral run start+n → end+n → end−n → start−n**, so joining the midpoints of the two opposing sides gives the centre line back.
 
 The body of a wall is not one of these constructors' results, because [a junction has already been settled in it](bodies.md): where two walls meet, one runs through and the other stops at its face, so the body runs past the end of its centre line or stops short of it. `FormPanel.footprint` and the plan entity of an interval carry **both that body and the centre line** — the axis cannot be read off the body, and whether to draw something as thick or as a single line (a rail or a fence that does not enclose) is a judgement about appearance.
+
+## Area and member quantities
+
+`areaSchedule(form)` from `@kensnzk/koyu/form` reads an already derived Form. The CLI exposes it as `koyu stats building.muro --geometry`. Each level reports the sum of Core's per-space areas in square metres, separated into indoor, semi-outdoor and outdoor allocations. Voids contribute no floor area. In a spatial model these are allocations from the source and its stated boundaries.
+
+Explicit roofs report their horizontal area, the area covered by modeled faces in projection, and surface area when available, alongside the assumptions used for the faces. Remaining implicit flat roof slabs are listed by space and level. Structural members report their own footprint and gross geometric volume in cubic metres. Intersections between members can occupy the same physical volume. These quantities do not change the allocated floor areas. Use a jurisdiction's counting rules separately for regulatory areas.
 
 ## Neighbouring pages
 

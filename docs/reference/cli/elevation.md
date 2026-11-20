@@ -23,6 +23,8 @@ koyu elevation <entry.muro> [--face N|E|S|W] [-s <scale>] [-o <out.svg>]
 
 There is no `--at`. The plane is placed at the near extreme of the mass along the line of sight, which is derived rather than named — and naming one is [refused rather than ignored](#a-calling-mistake-is-returned-as-a-calling-mistake).
 
+Use `--roof-sketches` to include recorded schematic assumptions for explicit roof declarations, or `--no-roof-sketches` to use only specified geometry. Without either flag, spatial mode uses the specified geometry and building mode enables the sketch assumptions.
+
 ## Output
 
 ```sh
