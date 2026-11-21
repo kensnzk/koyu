@@ -1,0 +1,17 @@
+{
+  "/roofs/0/projectedAreaM2": 48,
+  "/roofs/0/thickness": 150,
+  "/columns/0/x": 100,
+  "/columns/0/y": 150,
+  "/columns/0/w": 600,
+  "/columns/1/x": 100,
+  "/columns/1/y": 150,
+  "/columns/1/w": 400,
+  "/beams/0/areaM2": 2,
+  "/beams/0/z0": 3500,
+  "/beams/0/z1": 4000,
+  "/foundations/0/areaM2": 3.6,
+  "/foundations/0/z0": -900,
+  "/foundations/0/z1": -300,
+  "/spaces/0/areaM2": 48
+}

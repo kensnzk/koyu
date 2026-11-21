@@ -26,6 +26,8 @@ Takes one entry path. The drawing goes to a file; stdout gets one line naming wh
 
 There is no long form of `-o` (no `--out`), and no flag for scale or cut height.
 
+Use `--roof-sketches` to include recorded schematic assumptions for explicit roof declarations, or `--no-roof-sketches` to use only specified geometry. Without either flag, spatial mode uses the specified geometry and building mode enables the sketch assumptions.
+
 ## Output
 
 ```sh
@@ -72,28 +74,14 @@ const svg = svgPlan(model, {
 
 **The `-l=L2` form does nothing.** Separate the flag from its value with a space (`-l L2`). `-l=L2` is silently ignored and the default level is drawn. An undeclared level name stops with exit 2, but the `=` spelling does not stop — the flag itself is never recognised.
 
-**A level with no space that has a region cannot be drawn.** Pass a roof level declared without spaces (`level R 5800 slab:500`) to `-l` and you get a raw exception, not a tidy diagnostic.
-
-```sh
-npx tsx src/cli.ts plan examples/house/main.muro -l R -o out/house-R.svg
-```
-
-```text
-<absolute path>/src/draw/plan.ts:39
-    throw new Error(`There is no space with a region on level ${level}`);
-          ^
-
-Error: There is no space with a region on level R
-```
-
-The exit code is 1.
+**A level can be drawn from its roof or structural members alone.** A level datum without any plan geometry has no drawing extent and returns exit code 1.
 
 ## Exit codes
 
 | Exit code | Meaning |
 |---|---|
 | 0 | It was written |
-| 1 | It could not be drawn (a level with no space that has a region), or the input could not be read |
+| 1 | It could not be drawn (a level with no plan geometry), or the input could not be read |
 | 2 | `-l` was given an undeclared level name / no file path was given |
 
 An undeclared level name is treated as a calling mistake. **An empty SVG is never written out silently and announced as "generated".**

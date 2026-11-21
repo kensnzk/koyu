@@ -58,6 +58,7 @@ The union is closed. A consumer that spells `Record<MarkRole, …>` stops compil
 | `window-sash` / `window-sash-centre` / `window-fixed` | sliding, projecting and fixed window operations |
 | `curtain-wall-mullion` | a thin transverse mark at an explicit curtain-wall panel boundary |
 | `column` | a column |
+| `roof` / `beam` / `foundation` | a roof outline or face, a beam, or a foundation on the selected level |
 | `run-outline` / `run-tread` / `run-break` / `run-arrow` / `run-note` | vertical circulation |
 | `void-above` | the projection of an upper void onto the plan below |
 

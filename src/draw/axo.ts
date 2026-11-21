@@ -13,11 +13,12 @@
 // as a body with its junctions already settled — there is no corner to repair here. What this page
 // decides is the projection, the shading, the stacking order and the page.
 
-import { columnRect, derive, runPrism } from "../core/derive.js";
+import { formBodies } from "../core/bodies.js";
+import { derive, type DeriveOptions } from "../core/derive.js";
 import { type Model, type Pt } from "../core/model.js";
-import { esc, Extent, INK, openSheet, r2 } from "./sheet.js";
+import { esc, Extent, INK, MEMBER_INK, openSheet, r2, subjectAttrs } from "./sheet.js";
 
-export interface AxoOptions {
+export interface AxoOptions extends Pick<DeriveOptions, "roofSketches"> {
   /** 見る向き — 建物のどの隅から見下ろすか (既定 SE) */
   dir?: "NE" | "NW" | "SE" | "SW";
   /** px per mm (既定 0.02) */
@@ -36,6 +37,7 @@ interface Prism {
   top: number[];
   bottom: number[];
   fill: string;
+  attrs?: string;
   /** 奥行きの並べ替えに使う代表点 */
   depth: number;
 }
@@ -60,7 +62,7 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
 
   // **形はすべて Form が持つ** (ADR-0040) — 壁の厚みも、開口で割られた区間も、
   // 柱の z 範囲も、段板の立体も。ここが決めるのは投影と陰影と紙面だけである
-  const form = derive(model);
+  const form = derive(model, opts);
   const names = new Set(
     form.levels.filter((l) => !opts.levels || opts.levels.includes(l.name)).map((l) => l.name),
   );
@@ -85,14 +87,14 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   };
 
   const prisms: Prism[] = [];
-  const add = (poly: Pt[], bottom: number | number[], top: number | number[], fill: string) => {
+  const add = (poly: Pt[], bottom: number | number[], top: number | number[], fill: string, attrs?: string) => {
     if (poly.length < 3) return;
     const b = Array.isArray(bottom) ? bottom : poly.map(() => bottom);
     const t = Array.isArray(top) ? top : poly.map(() => top);
     const cx = poly.reduce((a, p) => a + p.x, 0) / poly.length;
     const cy = poly.reduce((a, p) => a + p.y, 0) / poly.length;
     const cz = t.reduce((a, v) => a + v, 0) / t.length;
-    prisms.push({ poly, bottom: b, top: t, fill, depth: depthOf({ x: cx, y: cy }, cz) });
+    prisms.push({ poly, bottom: b, top: t, fill, attrs, depth: depthOf({ x: cx, y: cy }, cz) });
   };
 
   // ---- 敷地 (地盤面) ----
@@ -100,34 +102,31 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   // 厚みの版として見せるかは**紙の側の判断**である
   for (const poly of form.site) add(poly.points, GROUND_Z0, GROUND_Z1, C.ground);
 
-  // ---- 床・屋根 (ADR-0024) ----
-  for (const sl of form.slabs) {
-    if (!names.has(sl.level)) continue;
-    if (sl.kind === "ceiling" && !opts.ceilings) continue;
-    add(sl.outline, sl.z0, sl.z1, sl.kind === "roof" ? C.roof : sl.kind === "floor" ? C.floor : C.ceiling);
-  }
-
-  // ---- 壁 (境界から生成) — **開口で割られた区間として立つ** ----
-  if (opts.walls !== false) {
-    for (const b of form.boundaries) {
-      if (!b.material || (b.level !== undefined && !names.has(b.level))) continue;
-      for (const p of b.material.panels) add(p.footprint, p.z0, p.z1, C.wall);
+  for (const body of formBodies(form)) {
+    if (body.level !== undefined && !names.has(body.level)) continue;
+    let fill: string;
+    switch (body.of) {
+      case "slab":
+        if (body.kind === "ceiling" && !opts.ceilings) continue;
+        fill = body.kind === "roof" ? C.roof : body.kind === "floor" ? C.floor : C.ceiling;
+        break;
+      case "boundary":
+        if (opts.walls === false) continue;
+        fill = C.wall;
+        break;
+      case "column":
+      case "run":
+        fill = C[body.of];
+        break;
+      case "roof":
+      case "beam":
+      case "foundation":
+        fill = MEMBER_INK[body.of];
+        break;
+      default:
+        continue;
     }
-  }
-
-  // ---- 柱 (ADR-0023) ----
-  for (const c of form.columns) {
-    if (!names.has(c.level)) continue;
-    add(columnRect(c), c.z0, c.z1, C.column);
-  }
-
-  // ---- 縦動線 (ADR-0021) — 段は段として、斜路は傾いた版として ----
-  for (const run of form.runs) {
-    if (!names.has(run.level)) continue;
-    for (const s of run.solids) {
-      const pr = runPrism(s);
-      add(pr.poly, pr.bottom, pr.top, C.run);
-    }
+    add(body.poly, body.bottom, body.top, fill, subjectAttrs(body.of, body.ref));
   }
 
   if (prisms.length === 0) throw new Error("There is nothing to draw");
@@ -156,6 +155,7 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
     return `<path d="${d} Z" fill="${tint(fill, shade)}" stroke="${INK}" stroke-width="0.35" stroke-opacity="0.5"/>`;
   };
   for (const pr of prisms) {
+    if (pr.attrs) out.push(`<g ${pr.attrs}>`);
     const n = pr.poly.length;
     // **底面から描く。**箱を「上面+側面」だけで作ると底の無い箱になり、
     // 下から覗ける所 (-l で階を絞った最下段・外へ張り出した柱) で中が見える。
@@ -179,6 +179,7 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
     }
     const top = pr.poly.map((p, i) => proj(p, pr.top[i]!));
     out.push(face(top, pr.fill, 1));
+    if (pr.attrs) out.push("</g>");
   }
   out.push(
     `<text x="${M - 24}" y="${H - 12}" font-size="11" fill="${INK}">${esc(model.name ?? "Untitled")} — axonometric (from ${dir})</text>`,

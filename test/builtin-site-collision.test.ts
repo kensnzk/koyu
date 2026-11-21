@@ -301,6 +301,15 @@ test("door and column edge contact along the boundary is not an overlap", () => 
   assert.equal(onlyOutcome(assessSource(overlapping), COLUMN_BLOCKS_DOOR_RULE_ID.id).status, "fail");
 });
 
+test("a continuous explicit column centre moves the door interference with the drawn column", () => {
+  const source = alongOverlapSource(1000).replace("koyu 1.1", "muro 1.7");
+  assert.equal(collisionValue(source).doors[0]!.firstColumnIntersection, null);
+  const moved = source.replace("x:X2 y:Y2", "at:X2+900,Y2-100");
+  const hit = collisionValue(moved).doors[0]!.firstColumnIntersection!;
+  assert.equal(hit.ref, "L1/X2+900/Y2-100");
+  assert.deepEqual(hit.centerMm, { x: 4900, y: 4900 });
+});
+
 function acrossOverlapSource(depth: number): string {
   return `koyu 1.1
 grid X 0 4000 8000

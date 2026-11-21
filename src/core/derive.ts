@@ -18,6 +18,7 @@
 // (幾何・分類・対象の同一性) を持ち、分類は cut / below / above / swing / anchor に割れる。
 // 切断高さは Form の**入力**であって中身ではない。
 
+import { roofForms, replaceRoofSlabs, type FormRoof } from "./roof.js";
 import { CEILING_T, ROOF_T, slabs, type Slab } from "./fabric.js";
 import { placeBand, placeOpening, segmentLength, segmentsFor, unresolvedBoundaries, type UnresolvedBoundary, type Segment } from "./graph.js";
 import {
@@ -47,8 +48,10 @@ import {
   isVoid,
   isNewerVersion,
 } from "./model.js";
+import { memberPlanEntities } from "./member-plans.js";
 import { clipHalf } from "./poly.js";
 import { EPS, PARALLEL_EPS, POINT_EPS, SPAN_EPS } from "./tolerance.js";
+import { structuralMembers, type FormMember, type FormFoundation } from "./members.js";
 import { placedComponents, type PlacedComponent } from "./components.js";
 import {
   CUT_HEIGHT,
@@ -116,12 +119,16 @@ export const DERIVATION_CONSTANTS: Readonly<Record<string, number>> = {
 
 /** 導出の入力 — **形を決める引数**。縮尺も余白も向きもここには無い (それは見た目である) */
 export interface DeriveOptions {
+  /** Supply documented working dimensions for typed roof sketches. Defaults to building mode only. */
+  roofSketches?: boolean;
   /** 平面の切断面の高さ mm (FL から。既定 1200) */
   cut?: number;
 }
 
 export interface FormInput {
   cut: number;
+  /** Present when a roof declaration makes this input relevant. */
+  roofSketches?: boolean;
 }
 
 export interface FormLevel {
@@ -307,9 +314,11 @@ export type PlanClass =
   /** 動きの軌跡 (扉) */
   | "swing"
   /** 記号を置く座 */
-  | "anchor";
+  | "anchor"
+  /** An authored footprint whose surface elevation is unspecified. */
+  | "footprint";
 
-export type PlanSubject = "space" | "boundary" | "opening" | "column" | "run";
+export type PlanSubject = "space" | "boundary" | "opening" | "column" | "run" | "roof" | "beam" | "foundation";
 
 /** 縦動線のエンティティが何の線か (作図の役) */
 export type PlanRole = "outline" | "tread" | "break" | "arrow";
@@ -341,6 +350,7 @@ export interface FormPlan {
  * 座標・厚み・z 範囲・向き・対象の同一性だけを持ち、描き方は消費者が決める
  */
 export interface Form {
+  roofs?: FormRoof[];
   /** Present only in spatial mode. These faces have no physical or passage meaning. */
   mode?: "spatial";
   unresolved?: UnresolvedBoundary[];
@@ -355,6 +365,8 @@ export interface Form {
   segs: FormSeg[];
   slabs: Slab[];
   columns: FormColumn[];
+  beams?: FormMember[];
+  foundations?: FormFoundation[];
   runs: FormRun[];
   site: FormSite[];
   plans: FormPlan[];
@@ -870,6 +882,8 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
     ...(levelPitch(model, l.name) !== undefined ? { pitch: levelPitch(model, l.name)! } : {}),
   }));
   const pitchOf = new Map(formLevels.map((l) => [l.name, l.pitch]));
+  const roofSketches = opts.roofSketches ?? model.mode !== "spatial";
+  const roofs = roofForms(model, roofSketches, pitchOf);
   const zOf = new Map(levels.map((l) => [l.name, l.z]));
 
   // ---- 空間 ----
@@ -1044,23 +1058,27 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
 
   // ---- Area-hosted components ----
   const components = placedComponents(model).components;
+  const { beams, foundations } = structuralMembers(model);
 
   // ---- 平面 ----
   const plans = levels.map((l) =>
-    planOf(model, l.name, l.z + cut, cut, { spaces, boundaries, openings, columns }),
+    planOf(model, l.name, l.z + cut, cut, { spaces, boundaries, openings, columns, roofs, beams, foundations }),
   );
 
   return {
     ...(model.mode === "spatial" ? { mode: model.mode, unresolved: unresolvedBoundaries(model) } : {}),
-    input: { cut },
+    input: { cut, ...(roofs.length ? { roofSketches } : {}) },
     levels: formLevels,
     spaces,
     boundaries,
     openings,
     ...(components.length > 0 ? { components } : {}),
     segs,
-    slabs: slabs(model),
+    slabs: replaceRoofSlabs(slabs(model), roofs),
+    ...(roofs.length ? { roofs } : {}),
     columns,
+    ...(beams.length ? { beams } : {}),
+    ...(foundations.length ? { foundations } : {}),
     runs,
     site,
     plans,
@@ -1072,12 +1090,7 @@ function planOf(
   level: string,
   cutZ: number,
   cut: number,
-  form: {
-    spaces: FormSpace[];
-    boundaries: FormBoundary[];
-    openings: FormOpening[];
-    columns: FormColumn[];
-  },
+  form: Pick<Form, "spaces" | "boundaries" | "openings" | "columns" | "roofs" | "beams" | "foundations">,
 ): FormPlan {
   const entities: PlanEntity[] = [];
 
@@ -1198,5 +1211,6 @@ function planOf(
     }
   }
 
+  for (const member of memberPlanEntities(form, level, cutZ)) entities.push(member);
   return { level, cut, cutZ, entities };
 }

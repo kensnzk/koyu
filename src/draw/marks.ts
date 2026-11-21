@@ -17,7 +17,7 @@
 // consumer's — three consumers spell three different sets of them today,
 // and a mark that carried one would make koyu's language mix everyone's. A mark carries the seat
 // (`at`) and the unrounded facts (`note`); the words are put on at the far end.
-import { band, type Form, type FormOpening, type FormPlan, type FormRun, type PlanClass, type PlanEntity } from "../core/derive.js";
+import { band, type Form, type FormOpening, type FormPlan, type FormRun, type PlanClass, type PlanSubject, type PlanEntity } from "../core/derive.js";
 import { polyBounds, type Pt } from "../core/model.js";
 import { toPoint, type RunDevice, type RunPart, type Seg2 } from "../core/vertical.js";
 import { ARCHITECTURAL_PLAN_CONVENTION } from "./conventions/architectural.js";
@@ -82,6 +82,9 @@ export type MarkRole =
   /** the meeting or overlap mark between window sashes */
   | "window-sash-centre"
   | "column"
+  | "roof"
+  | "beam"
+  | "foundation"
   | "run-outline"
   | "run-tread"
   /** where the plane crosses the run — one line; making two of it is the consumer's convention */
@@ -96,7 +99,7 @@ export type MarkRole =
 export type MarkArc = NonNullable<PlanEntity["arc"]>;
 
 /** What a mark stands for. `PlanSubject` plus the two Form arrays that make marks without entities. */
-export type MarkSubject = "space" | "boundary" | "opening" | "column" | "run" | "seg";
+export type MarkSubject = PlanSubject | "seg";
 
 /**
  * The facts an annotation is worded from. **No wording, no units, no rounding** — a ramp at
@@ -741,10 +744,11 @@ export function planMarks(form: Form, level: string, opts?: MarkOptions): Mark[]
     }
   }
 
-  // ---- columns (written nowhere — they appear where grid lines meet a floor) ----
+  // Project member geometry as classified by the cut.
   for (const e of plan.entities) {
-    if (e.of === "column" && e.polygon) {
-      marks.push({ role: "column", of: "column", ref: e.ref, class: e.class, polygon: e.polygon });
+    if (e.of === "column" || e.of === "roof" || e.of === "beam" || e.of === "foundation") {
+      marks.push({ role: e.of, of: e.of, ref: e.ref, class: e.class,
+        ...(e.polygon ? { polygon: e.polygon } : {}), ...(e.lines ? { lines: e.lines } : {}) });
     }
   }
 

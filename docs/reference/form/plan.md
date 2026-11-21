@@ -30,8 +30,8 @@ Their plan SVG remains presentation and is joined to the footprint only by the d
 
 ```ts
 interface PlanEntity {
-  class: "cut" | "below" | "above" | "swing" | "anchor";
-  of: "space" | "boundary" | "opening" | "column" | "run";
+  class: "cut" | "below" | "above" | "swing" | "anchor" | "footprint";
+  of: "space" | "boundary" | "opening" | "column" | "run" | "roof" | "beam" | "foundation";
   ref: string;                 // identity of the subject
   role?: "outline" | "tread" | "break" | "arrow";
   polygon?: Pt[];
@@ -48,6 +48,9 @@ interface PlanEntity {
 | `above` | the projection of what is above the cut |
 | `swing` | the trace of movement (a door) |
 | `anchor` | a seat for a symbol |
+| `footprint` | the projected part of an authored roof outline for which no surface elevation is available |
+
+A beam or foundation appears on its declared level at its resolved plan position. An inclined roof face can cross the horizontal cut. The plan partitions its projection into the portion above the plane, the part cut through its thickness, and the portion below. A surface of zero thickness contributes a line where it crosses the plane. An outline with no elevations still defines its plan footprint.
 
 `role` says **what kind of line** a vertical-circulation entity is in drafting terms — the side lines of a run (`outline`), nosings or step marks (`tread`), the break line (`break`), the direction-of-travel arrow (`arrow`).
 
@@ -114,7 +117,7 @@ For the two spaces joined by a `void` boundary, **the derived shape of the upper
 ## Neighbouring pages
 
 - [Form](index.md) — what `Form` holds and does not hold
-- [The section](section.md) — the vertical plane, and why it needs two classes where this needs five
+- [The section](section.md) — the vertical plane, and its cut geometry and visible background
 - [Matter](bodies.md) — walls, openings, columns and slabs before the cut
 - [Area-hosted components](components.md) — placed footprints and the boundary of the plan-only contract
 - [The arithmetic of vertical runs](vertical-runs.md) — how a run is divided

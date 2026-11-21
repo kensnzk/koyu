@@ -18,12 +18,13 @@ A line that starts flush is a declaration in its own right.
 | Line | What it declares |
 |---|---|
 | [`mode spatial`](mode.md) | leaves unwritten boundaries unresolved. Base layer only, once; requires muro 1.6 |
-| [`muro 1.6`](version.md) | the language version this file is read under. Base layer only, once |
+| [`muro 1.7`](version.md) | the language version this file is read under. Base layer only, once |
 | [`name 街角の複合ビル`](name.md) | the name of the building. The rest of the line is the value. Once |
 | [`unit mm`](name.md) | the unit of length. v0 is mm only |
 | [`grid X 0 6400 12800`](grid.md) | grid line coordinates. Once per axis; named `X1`, `X2`, … automatically |
 | [`level L1 0 h:3600 slab:600`](level.md) | a level — name, z, ceiling height, slab thickness. A range such as `L4..L10` requires `pitch:` |
 | [`space /L5/A/ldk ldk X1..X2 Y1..Y2`](space.md) | **a space** — path, type, region. The primary element |
+| [`roof /cover level:L1 type:gable`](roof.md) | a building roof or canopy with a traced or derived footprint and optional top faces |
 | [`band X X1..X3 Y1..Y2`](band.md) | a band — divides by dimension and order rather than by position. Members are indented `space` lines |
 | [`boundary /L5/A/hall /L5/corridor`](boundary.md) | **a boundary** — the relation joining two spaces. A wall is a relation, not a thing |
 | [`stack ev L1..L11 type:shaft`](stack.md) | a vertical stack, declared at once. Puts a vertical boundary on each consecutive pair of levels |
@@ -32,7 +33,9 @@ A line that starts flush is a declaration in its own right.
 | [`polygon /site -2600,-7000 …`](polygon.md) | the site shape. **The only line that writes a shape from free vertices off the grid** |
 | [`origin epsg:6677 easting:… northing:…`](origin.md) | where the model's `(0,0,0)` sits in a coordinate reference system. **In metres.** Once |
 | [`azimuth Y 347.5`](azimuth.md) | the true bearing of the +Y axis, clockwise from true north. Once |
-| [`column 800 B2..L1`](column.md) | a column. **No position is written** — it stands where a grid intersection has floor |
+| [`beam /frame/b1 level:L2 …`](members.md) | a horizontal member with two grid-relative endpoints and a rectangular section |
+| [`foundation /frame/f1 level:L1 …`](members.md) | a pad, strip or mat with its own extent, thickness and top elevation |
+| [`column 800 B2..L1`](column.md) | columns at floor-supported grid intersections, or a run sharing one explicit centre |
 | [`import ./assets.muro`](import.md) | layers another file on. **The order is the declaration of strength**; later layers are stronger |
 | [`over /L5/A/ldk h:2600`](over-drop.md) | an override. An error if the target does not exist |
 | [`drop /L5/A/store`](over-drop.md) | a removal — of a space, a boundary, or a column declaration |
@@ -43,10 +46,13 @@ A line beginning with whitespace is subordinate to the non-indented line above i
 
 | Line | Parent | What it declares |
 |---|---|---|
+| [`outline`, `hole`, `face`](roof.md) | `roof` | projected perimeter, opening in the roof, or surveyed sloping panel |
 | [`door w:900 at:X4`](door.md) | `boundary` / `stack` | an opening that is passed through |
 | [`window w:1800 h:1200 edge:S`](window.md) | `boundary` / `stack` | an opening that admits light. Not passed through |
 | [`seg w:1800 at:X5 spec:ガラス`](seg.md) | `boundary` / `stack` | an uncounted segmentation of a boundary |
 | [`line X3,Y1 X3+600,Y2-900`](line.md) | `boundary` | a drawn line — the boundary realised as an act of design. One per boundary |
+| [`section L3 w:600 d:700`](column.md) | explicit `column` | changes the rectangular section on the named storeys |
+| [`outline X1,Y1 …`](members.md) | mat `foundation` | grid-relative perimeter |
 | [`area X1..X2 Y1..Y2 floor:タイル`](area.md) | `space` | an uncounted segmentation or component host inside a room. Affects no counted area, room count or graph |
 | [`space /L1/wet wet w:4800`](band.md) | `band` | a band member. Carries a width `w:` instead of a region |
 | [`+ window w:600 name:W1`](over-drop.md) | `over` | adds to a set. `name:` is required |

@@ -9,7 +9,7 @@ mode: explanation
 
 The distinction is not housekeeping: the two carry [separate version lines](reference/stability.md), and a file declares which language it is written in, not which program will open it.
 
-**Space is the primary element.** A wall is not a thing; it is the boundary relation between two spaces. An opening is a connection cut into that boundary. What gets authored is spatial regions and the boundary relations between them — plans, areas and circulation are not written but derived.
+**Space is the primary element.** A wall is not a thing; it is the boundary relation between two spaces. An opening is a connection cut into that boundary. The source describes spaces, boundaries and the dimensions of building elements. Core uses these declarations to derive plans, areas and circulation.
 
 One room is written like this. Four lines, and it is a complete file.
 
@@ -47,7 +47,7 @@ boundary /L1/b /out
 
 **A wall appears. There is no operation anywhere in this notation that draws a wall.** A wall is the boundary relation between two spaces, derived from how those spaces are laid out. Where a pair of touching spaces carries no declaration at all, that means "wall" rather than "undefined".
 
-The resolution is schematic-design level. Not modelling downstand beams is not an omission but a chosen height of abstraction — the early design phase, where BIM has always been too heavy, is exactly where this notation lives. A whole building fits in a few hundred lines of text, which puts architecture on the same ground as git and LLMs.
+The resolution is schematic-design level. A [roof or canopy](reference/muro/roof.md) can start with an outline. [Columns](reference/muro/column.md), [beams and foundations](reference/muro/members.md) can be positioned from the grid and measured in the same model. A whole building fits in a few hundred lines of text, which puts architecture on the same ground as git and LLMs.
 
 ## Where to start
 

@@ -5,7 +5,7 @@ mode: reference
 
 # Matter — walls, openings, columns, slabs
 
-A [boundary segment](boundaries.md) is a centre line. Thickness and z land on it and it becomes a wall; openings split the wall; columns rise where a grid intersection meets a floor; floors, ceilings and roofs appear out of what the levels already declared. **None of it has a "place it" operation.**
+A [boundary segment](boundaries.md) is a centre line. Its thickness and height define a wall, and openings split that wall. Levels and space extents supply floors, ceilings and inferred horizontal roofs. A [declared roof](../muro/roof.md) can describe an independent canopy, folded roof planes or a traced extent. [Columns](../muro/column.md) can use grid intersections or a continuous grid-relative centre.
 
 ## Storey pitch — how far walls and columns rise
 
@@ -18,7 +18,7 @@ there is a level above : pitch = z of the level above − z of this level
 there is none          : pitch = the tallest ceiling height on this storey + ROOF_T (200mm)
 ```
 
-Aligning to the apex of the roof when nothing is above is required because the roof is pitched by the same formula. Without it the wall either punches through the roof or leaves a gap beneath it.
+The top storey pitch aligns with the top of an inferred horizontal roof. A declared sloping roof supplies its own elevations. The wall and column height calculation still follows storey datums.
 
 **If no ceiling height can be determined, neither can the pitch, and no wall and no column stands on that level.** [SUF01](../diagnostics/suf.md) already says so as an error.
 
@@ -151,17 +151,17 @@ quarter-circle arc. Hinged door and window styles carry the trace.
 
 ## Columns
 
-The position of a column is written nowhere. **It emerges where a grid intersection meets a floor.**
+An array column stands where a grid intersection meets an eligible floor. An explicit column uses the declared grid-relative centre on every storey of its run.
 
 The population of floors is: on that level, neither `exterior` nor `void`, has a region, and **is not a semi-outdoor space that holds up nothing but sky**. The last clause excludes roof gardens and terraces — semi-outdoor with no floor above — because a column there has nothing to hold up.
 
 If the declaration names grids, only those are considered; otherwise all of them. The scan runs X outer, Y inner. If the intersection lies inside one of the floors' pieces (points on an edge count as inside, within `POINT_EPS`), a column stands there.
 
-**Two columns never stand on the same intersection — the earlier declaration wins.** That is why declaration order is meaning, and why canonical JSON does not reorder columns.
+Explicit placements supersede array candidates at the named base crossing and at coincident centres. Distinct explicit centres may share a base crossing. Within the same priority the first declaration takes a coincident centre.
 
 A column's z range runs from that level's FL to FL + pitch.
 
-## Floors, ceilings and roofs
+## Floors, ceilings and inferred roofs
 
 The scan goes level by level in ascending z, spaces in **path collation order** within a level, and floor → ceiling → roof within a space. Declaration order is information the canonical form discards, so it is never read ([promise 1 of shape](index.md)). Every outline is a derived piece.
 

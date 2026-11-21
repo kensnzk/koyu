@@ -26,6 +26,8 @@ Takes one entry path and one cutting plane. The drawing goes to a file; stdout g
 | `-s <n>` / `--scale <n>` | px per mm. Defaults to `0.05`, the same as [`plan`](plan.md), so a plan and a section of one building can be laid side by side |
 | `-o <path>` / `--out <path>` | Where to write. Defaults to `out/section-<the reference>.svg` |
 
+Use `--roof-sketches` to include recorded schematic assumptions for explicit roof declarations, or `--no-roof-sketches` to use only specified geometry. Without either flag, spatial mode uses the specified geometry and building mode enables the sketch assumptions.
+
 ## Output
 
 ```sh
@@ -42,7 +44,7 @@ The output directory is created if it does not exist.
 
 ## What is on the sheet
 
-**Solid black is what the plane cut** — walls, floors, ceilings, roofs, columns, the solids of a stair or a ramp. It is the [`cut` classification of the shape](../form/section.md) itself; there is no operation that works out a poché on the paper side.
+Solid black marks cut walls, slabs, columns and vertical circulation. Authored roof faces, beams and foundations use their member colours. A roof surface with zero thickness has a cut line. It is the [`cut` classification of the shape](../form/section.md) itself; there is no operation that works out a poché on the paper side.
 
 **Behind it stands what the plane did not cut**, painted far to near. A wall seen head-on carries its openings as holes, because [a wall is the run of intervals its openings split it into](../form/bodies.md) before any drawing starts.
 

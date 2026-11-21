@@ -5,6 +5,8 @@ mode: reference
 
 # koyu stats
 
+For `--geometry`, the drawing flags `--roof-sketches` and `--no-roof-sketches` select the same roof assumptions as the plans and sections.
+
 For `mode spatial`, see [spatial models](../muro/mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated. Spatial totals describe allocation, not verified enclosed floor area.
 
 Gives floor areas by level, reports semi-outdoor and outdoor separately, and totals by zone and by type — and, when you name one with `--by`, by any attribute key.
@@ -13,6 +15,7 @@ Gives floor areas by level, reports semi-outdoor and outdoor separately, and tot
 
 ```text
 koyu stats <entry.muro> [--by <key>]...
+koyu stats <entry.muro> --geometry
 ```
 
 Takes one entry path.
@@ -21,6 +24,7 @@ Takes one entry path.
 
 | Flag | Meaning |
 |---|---|
+| `--geometry` | Emit the geometric area and quantity schedule as JSON. See [Form quantities](../form/index.md#area-and-member-quantities). |
 | `--by <key>` | Add a line totalling floor area by the effective value of `<key>`. Repeatable, and there is no default — see [Totalling by an attribute key](#by). |
 
 ## Output

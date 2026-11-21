@@ -35,7 +35,7 @@ Baking any of them in would stop the scene being a projection of the `Form`, and
 |---|---|
 | `volume` | the air a space encloses, floor to ceiling |
 | `plate` | a space or the site read as a horizontal face (`bottom === top`) |
-| `body` | matter — a wall body, a column, a slab, a tread, a ramp, a leaf |
+| `body` | matter — a wall body, a column, a slab, an authored roof face, a beam, a foundation, a tread, a ramp, a leaf |
 | `edge` | a line, not a body — a boundary's centreline, the site edge |
 | `mark` | a seat for a symbol or a word |
 
@@ -43,7 +43,7 @@ A plate is a **face**, not a slab. `Form` derives no thickness for the ground, a
 
 ## `level` is a fact about the numbers
 
-Every solid carries `ring`, `bottom` and `top`, one z per vertex. `level` is true when every `bottom` is one number and every `top` is one number — a right prism. It is not a hint about materials: it is what lets a consumer take the cheap extrude path and know when it must stitch a per-vertex buffer instead, which a flight of stairs and a ramp both require.
+Every solid carries `ring`, `bottom` and `top`, one z per vertex. `level` is true when every `bottom` is one number and every `top` is one number — a right prism. It is not a hint about materials: it is what lets a consumer take the cheap extrude path and know when it must stitch a per-vertex buffer instead, which a sloping roof face or a ramp requires. Roof faces carry absolute surface elevations. Their underside follows their modelled vertical thickness, and a zero thickness gives coincident top and bottom vertices. An outline with no heights contributes only to the plan.
 
 ## A wall body is its footprint
 

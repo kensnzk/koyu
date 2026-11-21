@@ -9,21 +9,19 @@
 // the position where a cut crosses a run. The architectural convention and this renderer decide
 // whether a break becomes a diagonal zigzag and whether an arrowhead is open.
 
-import { derive } from "../core/derive.js";
+import { derive, type DeriveOptions } from "../core/derive.js";
 import { displayName, polyBounds, type Model, type Pt } from "../core/model.js";
 import { slopeText } from "../core/vertical.js";
 import { planMarks, type Mark } from "./marks.js";
 import { ARCHITECTURAL_PLAN_CONVENTION } from "./conventions/architectural.js";
 import { componentSvg } from "./component-svg.js";
-import { esc, Extent, FAINT, GRID, INK, openSheet, OUTDOOR, PAPER, ROOM, SEMI_OUTDOOR } from "./sheet.js";
+import { esc, Extent, FAINT, GRID, INK, openSheet, OUTDOOR, PAPER, ROOM, SEMI_OUTDOOR, MEMBER_INK, subjectAttrs } from "./sheet.js";
 import { writtenOf } from "./written.js";
 
-export interface PlanOptions {
+export interface PlanOptions extends DeriveOptions {
   level?: string;
   /** px per mm */
   scale?: number;
-  /** Cut height above finished floor, mm. It changes the slice, so it is passed into Form. */
-  cut?: number;
   /** Plan SVG bytes keyed by component asset name, for models made with the pure `parse` entry. */
   componentSvgs?: Readonly<Record<string, string>>;
 }
@@ -33,12 +31,10 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
   if (!level) throw new Error("No level is defined");
   const scale = opts.scale ?? 0.05;
 
-  const form = derive(model, opts.cut !== undefined ? { cut: opts.cut } : {});
+  const form = derive(model, opts);
   const plan = form.plans.find((p) => p.level === level);
   const rooms = form.spaces.filter((s) => s.level === level);
-  if (!plan || rooms.length === 0) {
-    throw new Error(`There is no space with a region on level ${level}`);
-  }
+  if (!plan) throw new Error(`There is no plan on level ${level}`);
 
   // Site geometry (ADR-0011) appears on the lowest plan, which also serves as the site plan.
   const lowest = form.levels[0]?.name;
@@ -55,6 +51,11 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
     ext.see(r.x2, r.y2);
   }
   for (const p of polyPts) ext.see(p.x, p.y);
+  for (const e of plan.entities) {
+    if (e.of !== "roof" && e.of !== "beam" && e.of !== "foundation" && e.of !== "column") continue;
+    for (const p of e.polygon ?? []) ext.see(p.x, p.y);
+  }
+  if (ext.empty) throw new Error(`There is no geometry to draw on level ${level}`);
   const minX = ext.min0;
   const maxX = ext.max0;
   const minY = ext.min1;
@@ -237,9 +238,25 @@ export function svgPlan(model: Model, opts: PlanOptions = {}): string {
       // Only intervals and columns cut by the plane become black bodies. Sill walls lie below the
       // cut; no paper-coloured mask is needed to erase openings.
       case "wall":
-      case "column":
         parts.push(fill(k.polygon!, INK));
         break;
+      case "column":
+        parts.push(`<g ${subjectAttrs(k.of, k.ref)}>${fill(k.polygon!, INK)}</g>`);
+        break;
+      case "roof":
+      case "beam":
+      case "foundation": {
+        const ink = MEMBER_INK[k.role];
+        const dash = k.class === "above" ? "6 3" : k.class === "footprint" ? "2 3" : "";
+        parts.push(`<g ${subjectAttrs(k.of, k.ref)} data-class="${k.class}">`);
+        if (k.polygon) {
+          const opacity = k.class === "cut" ? 0.55 : k.class === "footprint" ? 0 : 0.08;
+          parts.push(`<path d="${path2d(k.polygon)}" fill="${ink}" fill-opacity="${opacity}" stroke="${ink}" stroke-width="1.1"${dash ? ` stroke-dasharray="${dash}"` : ""}/>`);
+        }
+        for (const g of k.lines ?? []) parts.push(line(g, ink, 1.4));
+        parts.push("</g>");
+        break;
+      }
       // A sliding leaf has no swing trace. Its solid line closes the opening; the thin dashed
       // continuation says which way it retracts without turning the opening into a box.
       case "slide-panel":

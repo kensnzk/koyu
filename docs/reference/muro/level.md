@@ -54,13 +54,13 @@ On every other element an unknown key becomes the diagnostic [ATT03](../diagnost
 
 `h:` is the **default** ceiling height for spaces on this storey. A space's own `h:` wins over it.
 
-With neither, the ceiling height cannot be determined, and there is no height to extrude a ceiling or a roof to. That is an error, not a warning.
+With neither value, the effective ceiling height is undetermined and no ceiling surface can be placed for that space.
 
 ```text
 The ceiling height of /L2/a cannot be determined (neither the space's h: nor level L2's h: is there)
 ```
 
-[SUF01](../diagnostics/suf.md) reports the spaces whose ceiling height is undetermined. Voids (`void`), the outside (`exterior`) and semi-outdoor spaces have no ceiling, so they are not subject to it.
+In building mode [SUF01](../diagnostics/suf.md#suf01) reports this as an error for an indoor space with a region and a known level. Voids, exterior and semi-outdoor spaces are exempt, as are spaces in spatial mode. A [roof](roof.md) with its own surface elevations can still be placed.
 
 ## slab: — the slab thickness
 
@@ -168,7 +168,7 @@ boundary /L1/hall /out
 ✖ roof.muro:line 5: /L1/hall collides into the floor above: ceiling height 3600 + R's slab 500 = 4100 > storey height 3800
 ```
 
-Delete `level R` and the same file turns green — a ceiling height with nothing above it has nothing to be reconciled against. **Declaring the roof is putting the top storey's height into the arithmetic.**
+Delete `level R` and the same file turns green — a ceiling height with nothing above it has nothing to be reconciled against. **Declaring the upper level gives the height check a datum.**
 
 ## Declare it before you use it
 
@@ -228,12 +228,13 @@ Total 43.20 m2 (indoor floor area)
 
 A level is defined once across all layers. Changing a declared level's values from another layer is `over level`, and only `h` / `slab` / `underground` can be rewritten (`pitch` is an input to the expansion, so after expansion there is nothing to point at). The strength rules are in [over / drop](over-drop.md).
 
-## Surfaces come from the level
+## Surfaces derived from a level
 
-Floors, ceilings and roofs have no vocabulary of their own, because `slab:` **already declares** the floor and `h:` already declares the ceiling.
+A level supplies the base dimensions for floors and ceilings. It can also supply the upper datum for a horizontal roof slab.
 
 - **Floor** — generated under every space on a storey that carries `slab:`, except voids and the outside.
 - **Ceiling** — hung at the height that `h:` fixes. Not in voids, the outside, semi-outdoor spaces, or vertical circulation.
-- **Roof** — laid over whatever is not covered by a space on any level above. Put a penthouse on a podium and the podium roof appears without being written.
+- **Inferred roof slab** — building mode covers eligible space regions where no higher space covers them. A penthouse on a podium leaves a roof on the exposed part of the podium.
+- **Declared roof or canopy** — its `level:` identifies the reference storey for its heights. Its [roof parameters or surveyed faces](roof.md) determine its surface.
 
 A room with no ceiling — an exposed soffit — is declared space-side with `ceiling:0`. See [space](space.md).

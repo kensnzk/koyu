@@ -51,6 +51,17 @@ export const r2 = (v: number): number => Math.round(v * 100) / 100;
 export const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+/** Conventional colours for the authored envelope and framing in each projection. */
+export const MEMBER_INK = { roof: "#367b81", beam: "#a36625", foundation: "#72628e" };
+export function memberInk(subject: string): string | undefined {
+  return Object.hasOwn(MEMBER_INK, subject) ? MEMBER_INK[subject as keyof typeof MEMBER_INK] : undefined;
+}
+
+/** Identify projected parts for selection or inspection, including paths with quoted names. */
+export function subjectAttrs(subject: string, ref: string): string {
+  return `data-of="${esc(subject).replace(/"/g, "&quot;")}" data-ref="${esc(ref).replace(/"/g, "&quot;")}"`;
+}
+
 /** The opening element, the paper under the drawing, and the mark in the corner. */
 export function openSheet(w: number, h: number): string[] {
   return [

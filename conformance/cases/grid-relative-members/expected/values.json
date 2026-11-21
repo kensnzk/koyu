@@ -1,0 +1,13 @@
+{
+  "/columns/0/x": 150,
+  "/columns/1/x": 150,
+  "/columns/1/y": -75,
+  "/columns/1/w": 600,
+  "/columns/1/d": 700,
+  "/beams/0/z0": 2500,
+  "/beams/0/z1": 3200,
+  "/beams/0/areaM2": 2,
+  "/foundations/0/z0": -1300,
+  "/foundations/0/z1": -600,
+  "/foundations/0/outline/0": { "x": -750, "y": -1075 }
+}

@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/roof.md", "docs/reference/muro/column.md", "docs/reference/form/index.md"],
+  "why": "Both storeys share the same offset column centre. The 8 x 6 m roof, beam and footing have distinct physical quantities and add no rooms."
+}

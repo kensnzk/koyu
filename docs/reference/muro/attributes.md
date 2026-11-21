@@ -170,7 +170,18 @@ OPN09, while a word outside this row is ATT02.
 |---|---|---|---|
 | `area` | (the region is positional) | `name` `asset` `align-x` `align-y` `offset-x` `offset-y` `rotate` | `floor` `spec` |
 | `seg` | `w` `at` `edge` | `name` | `spec` `fire` `sound` |
-| `column` | `d` `x` `y` | `name` | `spec` |
+| `column` | `d` `x` `y` `at` | `name` | `spec` |
+
+### Structural member fields
+
+| Element | Structural keys |
+|---|---|
+| `roof` | `level` `type` `eave-z` `high-z` `slope` `rise` `ridge-axis` `t` |
+| `section` under an explicit column | `w` `d` |
+| `beam` | `level` `from` `to` `w` `d` `top` |
+| `foundation` | `level` `type` `at` `from` `to` `w` `d` `t` `top` |
+
+[Beam and foundation geometry](members.md) specifies the combinations each kind accepts.
 
 ### level holds no attribute dictionary
 
@@ -212,7 +223,7 @@ The value comes from the **deepest zone** whose path is a prefix of the space's 
 **Which key travels is chosen by whatever asks for it.** Core hands nothing down of its own accord; the resolution runs when something names a key — [`koyu stats --by`](../cli/stats.md), the MCP `model_summary`, a validation rule reading the key it cares about. A space is therefore grouped along as many divisions at once as it carries.
 
 ```muro
-muro 1.6
+muro 1.7
 name 継承の例
 grid X 0 4000 8000
 grid Y 0 4000

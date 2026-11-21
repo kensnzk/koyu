@@ -28,9 +28,11 @@ The key order is fixed.
 | `azimuth` | if [`azimuth`](../muro/azimuth.md) was written | a number: the true bearing of +Y, clockwise from true north, `0 ≤ v < 360` |
 | `grid` | **always** | `{ "X": [coords…], "Y": [coords…] }` — the names `X1..` are implicit |
 | `levels` | **always** | name → `{ z, h?, slab?, underground? }`; keys in collation order |
+| `roofs` | if declared | path → level, roof parameters, grid-relative outline, holes and panels |
 | `assets` | if declared | name → `{ kind, attrs? }`; keys in collation order |
 | `polygons` | if declared | path → `[[x, y], …]`; keys in collation order |
 | `columns` | if declared | an array, **in declaration order** |
+| `beams` / `foundations` | if declared | path → section, grid references and level-relative elevations |
 | `zones` | if declared | path → `{ attrs? }`; keys in collation order |
 | `spaces` | **always** | path → space; keys in path collation order |
 | `boundaries` | **always** | an array; lexicographic by `between`, ties by canonical content |
@@ -105,11 +107,17 @@ Only the coordinate arrays. Grid names are implicitly `X1`, `X2`, … from the f
 |---|---|
 | `size` | section width in mm |
 | `d` | depth in mm. Omitted when it equals `size` |
+| `at` | an explicit pair of grid references shared by the storeys, when authored |
+| `sections` | level-specific width and depth overrides, ordered by first affected storey |
 | `levels` | the levels the column stands on |
 | `x` / `y` | the grids it targets. Omit for all grids. **Ordered by grid order** (`x:X2,X1` and `x:X1,X2` are the same composition) |
 | `attrs` | attributes |
 
-**This is the one array that is never sorted.** Two columns never stand on the same intersection and the earlier declaration wins, so declaration order is the composition itself.
+**This is the one array that is never sorted.** Coincident centres use explicit placement first and declaration order second. The order between equivalent-priority candidates affects the built result.
+
+## roofs, beams and foundations
+
+These optional Muro 1.7 records use paths in collation order. Roof dimensions use `eaveZ`, `highZ`, `slope`, `rise`, `ridgeAxis` and `thickness`. An `outline` is an ordered ring of grid-point strings. A roof's `holes` and `faces` hold nested rings. A face vertex includes the written level-relative height. The canonical record carries the authored driving parameters. Sketch defaults, derived absolute elevations, solid vertices and quantities are available in Form. A reader of canonical format 2.0 must also support the declared Muro edition before interpreting these fields.
 
 ## zones
 

@@ -1,0 +1,14 @@
+muro 1.7
+mode spatial
+grid X 0 8000
+grid Y 0 6000
+level L1 0
+level L2 4000
+level R 8000
+space /L1/hall X1..X2 Y1..Y2
+roof /roof level:L2 type:gable eave-z:3000 ridge-axis:X slope:1/4 t:150
+  outline X1,Y1 X2,Y1 X2,Y2 X1,Y2
+column 600 L1..L2 at:X1+100,Y1+150 d:800
+  section L2 w:400 d:500
+beam /beam level:L2 from:X1+100,Y1+150 to:X2+100,Y1+150 w:250 d:500
+foundation /footing level:L1 type:pad at:X1+100,Y1+150 w:1800 d:2000 t:600 top:-300

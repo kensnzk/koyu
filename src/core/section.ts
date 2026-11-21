@@ -17,17 +17,17 @@
 // with its windows, the stair beyond the cut — and none of that falls out of cutting. Nor does the
 // decision to throw the near half away, which is a choice of viewpoint and has to be an input.
 
-import { formBodies, type FormBody } from "./bodies.js";
+import { formBodies, type FormBody, type FormSubject } from "./bodies.js";
 import type { Form } from "./derive.js";
 import type { Edge, Pt } from "./model.js";
 import { crossing, hull, signedArea } from "./poly.js";
-import { EPS } from "./tolerance.js";
+import { AREA_EPS, EPS } from "./tolerance.js";
 
 /** Which axis names the plane. `"X"` means the plane `x = at`. */
 export type SectionAxis = "X" | "Y";
 
 /**
- * What a vertical plane divides the mass into. **Two, where a plan has five.**
+ * What a vertical plane divides the mass into.
  *
  * A plan is looked at from above, so it carries what is below the cut, what is above it dropped
  * back down, and the symbols of movement. A section is looked at from the side: what the plane
@@ -37,7 +37,7 @@ export type SectionAxis = "X" | "Y";
  */
 export type SectionClass = "cut" | "beyond";
 
-export type SectionSubject = "space" | "boundary" | "opening" | "column" | "slab" | "run";
+export type SectionSubject = FormSubject;
 
 /** A point on the section. **Not a plan coordinate** — `u` runs across the sheet, `z` is height. */
 export interface SectionPt {
@@ -83,7 +83,7 @@ export interface SectionEntity {
   ref: string;
   /** what the subject already says it is — a slab's face, an opening's leaf, a run's device */
   kind?: string;
-  /** counter-clockwise in (u, z), like every outline `Form` returns */
+  /** Counter-clockwise in (u, z); an edge-on surface has two endpoints. */
   polygon: SectionPt[];
   /**
    * How far behind the plane the nearest point of the body stands, mm. `0` for anything the plane
@@ -241,7 +241,9 @@ function shadowOf(body: FormBody, u: (p: Pt) => number): SectionPt[] | undefined
     if (t > zHi) zHi = t;
     if (b !== body.bottom[0] || t !== body.top[0]) level = false;
   }
-  if (uHi - uLo <= EPS || zHi - zLo <= EPS) return undefined;
+  if (uHi - uLo <= EPS) return undefined;
+  if (body.of === "roof" && zHi === zLo) return [{ u: uLo, z: zLo }, { u: uHi, z: zHi }];
+  if (zHi - zLo <= EPS) return undefined;
   if (level) {
     return [
       { u: uLo, z: zLo },
@@ -256,7 +258,10 @@ function shadowOf(body: FormBody, u: (p: Pt) => number): SectionPt[] | undefined
     pts.push({ x: v, y: body.bottom[i]! }, { x: v, y: body.top[i]! });
   }
   const ring = hull(pts);
-  return ring.length >= 3 ? ring.map((p) => ({ u: p.x, z: p.y })) : undefined;
+  if (ring.length >= 3) return ring.map((p) => ({ u: p.x, z: p.y }));
+  if (body.of !== "roof") return undefined;
+  // A pitched surface can project edge-on to a line, just as a horizontal surface can.
+  return [uLo, uHi].map((value) => ({ u: value, z: pts.find((p) => p.x === value)!.y }));
 }
 
 interface SectionFrame {
@@ -295,6 +300,28 @@ function lineFrame(spec: LineSectionSpec): SectionFrame {
   return { u, behind, cut: (body) => lineCutOf(body, u, behind) };
 }
 
+/** Project the part of a cut roof behind the section line, including a higher ridge behind the cut. */
+function roofBehind(body: FormBody, frame: SectionFrame): SectionPt[] | undefined {
+  const poly: Pt[] = [], bottom: number[] = [], top: number[] = [];
+  for (let i = 0; i < body.poly.length; i++) {
+    const j = (i + 1) % body.poly.length;
+    const a = body.poly[i]!, b = body.poly[j]!;
+    const da = frame.behind(a), db = frame.behind(b);
+    if (da >= 0) {
+      poly.push(a);
+      bottom.push(body.bottom[i]!);
+      top.push(body.top[i]!);
+    }
+    if ((da < 0 && db > 0) || (da > 0 && db < 0)) {
+      const t = da / (da - db);
+      poly.push({ x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) });
+      bottom.push(body.bottom[i]! + t * (body.bottom[j]! - body.bottom[i]!));
+      top.push(body.top[i]! + t * (body.top[j]! - body.top[i]!));
+    }
+  }
+  return poly.length < 3 ? undefined : shadowOf({ ...body, poly, bottom, top }, frame.u);
+}
+
 function entitiesOf(bodies: FormBody[], frame: SectionFrame): SectionEntity[] {
   const { u, behind } = frame;
 
@@ -315,9 +342,19 @@ function entitiesOf(bodies: FormBody[], frame: SectionFrame): SectionEntity[] {
     const wholly = { behind: lo >= -EPS && hi > EPS, front: hi <= EPS && lo < -EPS };
     if (!wholly.behind && !wholly.front) {
       // It reaches both sides: the plane crossed it.
-      const polygon = frame.cut(body);
+      const cut = frame.cut(body);
+      const polygon = cut && body.of === "roof" && body.bottom.every((z, i) => z === body.top[i])
+        ? cut.slice(0, 2)
+        : cut;
       if (polygon) {
         out.push({ class: "cut", of: body.of, ref: body.ref, ...(body.kind ? { kind: body.kind } : {}), polygon, depth: 0 });
+        if (body.of === "roof") {
+          const background = roofBehind(body, frame);
+          // The cut is contained in the shadow. A larger shadow exposes matter behind the cut.
+          if (background && sectionArea(background) > sectionArea(polygon) + AREA_EPS) {
+            out.push({ class: "beyond", of: body.of, ref: body.ref, polygon: background, depth: 0 });
+          }
+        }
       }
       continue;
     }

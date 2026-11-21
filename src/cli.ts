@@ -17,6 +17,8 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { check, checkDiagnostics, type Diagnostic } from "./core/diagnose.js";
+import { areaSchedule } from "./core/area-schedule.js";
+import { derive } from "./core/derive.js";
 import { renderDiff, semanticDiff } from "./core/diff.js";
 import { doorsBetween, neighbors } from "./core/graph.js";
 import { daylightInputs } from "./core/light.js";
@@ -212,6 +214,12 @@ function firstModelLine(evidence: AssessmentReport["findings"][number]["outcome"
   return "";
 }
 
+function roofSketchOptions(args: string[]): { roofSketches?: boolean } {
+  const on = args.includes("--roof-sketches"), off = args.includes("--no-roof-sketches");
+  if (on && off) die("Choose either --roof-sketches or --no-roof-sketches");
+  return on || off ? { roofSketches: on } : {};
+}
+
 function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   // Asked before the usage text, because it takes no file and a tool that cannot state its
@@ -383,7 +391,7 @@ function main(argv: string[]): number {
       const explicit = opt(rest, "-o");
       const outFile =
         explicit ?? `${file.replace(/\.muro$/, "")}-${level}.svg`;
-      const svg = svgPlan(model, { level, componentSvgs: componentSvgFiles(model, level) });
+      const svg = svgPlan(model, { level, ...roofSketchOptions(rest), componentSvgs: componentSvgFiles(model, level) });
       mkdirSync(dirname(outFile), { recursive: true });
       writeFileSync(outFile, svg);
       console.log(`Generated the plan: ${outFile}`);
@@ -436,6 +444,10 @@ function main(argv: string[]): number {
       return 0;
     }
     case "stats": {
+      if (rest.includes("--geometry")) {
+        console.log(JSON.stringify(areaSchedule(derive(model, roofSketchOptions(rest))), null, 2));
+        return 0;
+      }
       const levels = levelsSorted(model);
       const spaces = [...model.spaces.values()];
       let total = 0;
@@ -601,6 +613,7 @@ function main(argv: string[]): number {
       const lv = opt(rest, "-l", "--levels");
       const sc = numOpt(rest, "-s", "--scale");
       const svg = svgAxo(model, {
+        ...roofSketchOptions(rest),
         ...(dirOpt ? { dir: dirOpt } : {}),
         ...(lv ? { levels: expandLevelArg(model, lv) } : {}),
         ...(sc !== undefined ? { scale: sc } : {}),
@@ -637,6 +650,7 @@ function main(argv: string[]): number {
       const sc = numOpt(rest, "-s", "--scale");
       const outPath = opt(rest, "-o", "--out") ?? `out/section-${at}.svg`;
       const svg = svgSection(model, {
+        ...roofSketchOptions(rest),
         axis: g.axis,
         at: g.coord,
         atRef: at,
@@ -657,7 +671,7 @@ function main(argv: string[]): number {
       const face = enumOpt(rest, ["N", "E", "S", "W"] as const, "-f", "--face") ?? "S";
       const sc = numOpt(rest, "-s", "--scale");
       const outPath = opt(rest, "-o", "--out") ?? `out/elevation-${face}.svg`;
-      const svg = svgElevation(model, { face, ...(sc !== undefined ? { scale: sc } : {}) });
+      const svg = svgElevation(model, { face, ...roofSketchOptions(rest), ...(sc !== undefined ? { scale: sc } : {}) });
       mkdirSync(dirname(outPath), { recursive: true });
       writeFileSync(outPath, svg);
       console.log(`Generated the elevation: ${outPath}`);

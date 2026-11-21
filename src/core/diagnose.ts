@@ -148,6 +148,7 @@ export const DIAGNOSTIC_CODES = {
   VER08: "error", // the file uses opening presentation introduced in muro 1.5 (ADR-0068/0074)
   VER09: "error", // the file uses component assets or area placement introduced in muro 1.5
   VER10: "error", // spatial mode requires muro 1.6
+  VER11: "error", // explicit roofs and structural members require muro 1.7
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
 } as const satisfies Record<string, "error" | "warning">;
 
@@ -702,18 +703,23 @@ function checkColumns(ctx: Ctx): void {
     const at = { line: c.line, file: c.file };
     // 一本も立たない理由は二つある。**狙う交点に床が無い**か、床はあるが先の宣言に
     // 取られたか。後者を「床がありません」と言うと、直しようのない場所へ人を送る
-    const sites = new Set(c.levels.flatMap((lv) => columnSites(model, c, lv).map((p) => `${lv}|${p.grid}`)));
-    if (sites.size > 0) {
-      // 影を作ったのは、この宣言と同じ交点に**実際に立った**先の宣言だけである
-      const shadow = model.columns.filter((o, oi) => {
-        if (oi >= ci) return false;
-        return o.levels.some((lv) =>
-          columnsFor(model, lv).some((k) => k.decl === oi && sites.has(`${lv}|${k.grid}`)),
-        );
-      });
+    const candidates = c.levels.flatMap(level => columnSites(model, c, level).map(p => ({...p, level})));
+    if (candidates.length > 0) {
+      const winners = new Set<number>();
+      for (const candidate of candidates) {
+        for (const placed of columnsFor(model, candidate.level)) {
+          const sameCentre = placed.x === candidate.x && placed.y === candidate.y;
+          const base = placed.grid.replace(/[+-]\d+/g, "");
+          if (sameCentre || (!c.at && candidate.grid === base)) winners.add(placed.decl);
+        }
+      }
+      const shadow = model.columns.filter((_, i) => winners.has(i));
+      const explicit = shadow.some(o => o.at);
       emit(
         "COL02",
-        `This column declaration (${c.levels.join(",")} ${c.size}mm square) stands nowhere because an earlier declaration took the same intersections (at the same intersection the earlier declaration wins)`,
+        explicit
+          ? `This column declaration is superseded by an explicit centre at the same location or base crossing`
+          : `This column declaration (${c.levels.join(",")} ${c.size}mm square) stands nowhere because an earlier declaration took the same intersections (at the same intersection the earlier declaration wins)`,
         { ...at, related: shadow.map((o) => loc(o.line, o.file)) },
       );
     } else {

@@ -13,16 +13,16 @@ For `mode spatial`, see [spatial models](mode.md): unwritten boundaries stay unr
 |---|---|---|
 | **A default applies** | a fixed value or a fixed rule stands in for what was not written | a boundary with no `type:` is a `wall` |
 | **Nothing is generated** | no value is invented, and the element is simply not made. The shape is still determinate, just thinner | a level with no `slab:` gets no floor at all (`SUF03`, a warning) |
-| **It stops** | information needed for a single determinate shape is missing | with no ceiling height anywhere, `SUF01`, an error |
+| **A diagnostic reports missing information** | the affected part lacks a required dimension | an indoor space in building mode with no effective ceiling height produces `SUF01`, an error |
 
-**No default is ever invented in order to press on.** That is why the same description always yields the same shape — and why **a shape that came out thin is always reported.**
+The same description and derivation options yield the same shape. A [roof sketch](roof.md#early-design) exposes the working assumptions it used. An outline alone can be a complete input for a plan view.
 
 This page is the one table of defaults. How values are written is in [the three tiers of attribute](attributes.md), how positions are spelled in [positions and regions](positions.md), and the compass defaults in [orientation and the a side](orientation.md).
 
 ## The smallest file
 
 ```muro-warn
-muro 1.6
+muro 1.7
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -42,7 +42,7 @@ Nothing was written about the perimeter, so the perimeter is a wall — the plan
 The warning is not about the shape, which is complete. It is about the one thing silence could not supply: **which** outside those four faces look at. Say it and the warning goes.
 
 ```muro
-muro 1.6
+muro 1.7
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150
@@ -55,12 +55,12 @@ boundary /L1/a /out
 
 | Written nothing | What happens |
 |---|---|
-| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.6` to opt into current semantics → [the version line](version.md) |
+| the version line | omitted, the file is read as `1.1` — frozen, not the newest. Write `muro 1.7` to opt into current semantics → [the version line](version.md) |
 | `unit mm` | mm. v0 has no other unit |
 | `name` | the building has no name |
 | `grid X` / `grid Y` | **no grid reference can be written at all.** Any line with a region stops with `Undefined grid line name` |
 | `level` | a space with a region has no determinable level — `SUF02` (error) |
-| `h:` on a level | unless the space carries its own `h:`, the ceiling height is undetermined — `SUF01` (error). Neither ceiling nor roof can be generated |
+| `h:` on a level | the space uses its own `h:` if present. An indoor space with neither height has no ceiling surface; building mode reports [SUF01](../diagnostics/suf.md#suf01) |
 | `slab:` on a level | **not one floor is generated on that storey.** `SUF03` (a warning) — the shape is determinate, so it does not stop |
 | `underground:` on a level | treated as above ground. It is never inferred from a negative z |
 | `pitch:` on a level | required on a range declaration (`L4..L10`); it cannot be written on a single level |
@@ -71,7 +71,7 @@ boundary /L1/a /out
 |---|---|
 | a region | the space has no region. It appears in no area, carries no column and no floor — which is exactly right for an `exterior` or an aggregation-only space |
 | `level:` | the first path segment, if it names a level. If it does not match, `SUF02` (error) |
-| `h:` | the level's `h:`. With neither, `SUF01` (error) |
+| `h:` | the level's `h:`. With neither, the effective height is unknown; see [SUF01](../diagnostics/suf.md#suf01) for its scope |
 | `daylight:` | **out of scope for the daylight question.** It is never inferred from the type — neither `room` nor `ldk` puts a space in scope |
 | `ceiling:` | a ceiling is derived as the outline of the room × its ceiling height. `ceiling:0` builds none |
 | a namespaced key (`lease.category:`, `fire.compartment:`, …) | the value of the deepest zone ancestor carrying that key. With none there either, the space is in no grouping for it — [`stats --by`](../cli/stats.md) totals it under `(unspecified)` rather than dropping it |
@@ -151,6 +151,10 @@ Riser count, tread and slope are never written. **What is written is the region 
 | `polygon` | the site area is derived from the union of the spaces on the site and the indoor footprint. No site boundary line is drawn |
 | `w:rest` in a band | **the band is closed.** The member widths must sum to the extent of the band, or the file stops — the same arithmetic as "part dimensions add up to the overall dimension" on a drawing |
 
+## roof
+
+A declared roof can carry just an outline. Its missing heights leave the projection available in plan. For a typed roof, the [sketch rules](roof.md#early-design) govern the exposed footprint, working slope, direction and eave datum when the author omits them. Roof sketches are enabled by default in building mode. Spatial mode requires an explicit opt-in. Omitting `t:` leaves a top surface with zero vertical thickness.
+
 ## Constants of derivation
 
 **These are not ledger defaults.** The ledger says what may be written; this table says what is derived when nothing was. **What you write always wins.**
@@ -164,7 +168,7 @@ Riser count, tread and slope are never written. **What is written is the region 
 | Head height | 2000 mm | doors rise to it; everything else hangs down from it |
 | Height of a non-door opening | 1200 mm | the `h:` default |
 | Ceiling face thickness | 30 mm | |
-| Roof slab thickness | 200 mm | also how far above the ceiling height the top storey is capped |
+| Inferred roof slab thickness | 200 mm | used when the next level has no `slab:` or there is no next level. Building mode also adds 200 mm to the highest known ceiling when deriving the top storey pitch |
 | Plan cut plane | FL + 1200 mm | the height at which a plan is cut |
 | Maximum riser | 180 mm | the `riser:` default |
 | Target tread | 300 mm | the `tread:` default |
@@ -180,7 +184,7 @@ Riser count, tread and slope are never written. **What is written is the region 
 **Because the default between touching spaces is a wall, a two-storey building with no door declared anywhere is completely sealed — and green.**
 
 ```muro
-muro 1.6
+muro 1.7
 grid X 0 3600
 grid Y 0 4000
 level L1 0 h:2400 slab:150

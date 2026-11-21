@@ -29,7 +29,7 @@ A section is therefore not a field of `Form`. Every entry of `Form` is total —
 ```ts
 interface SectionEntity {
   class: "cut" | "beyond";
-  of: "space" | "boundary" | "opening" | "column" | "slab" | "run";
+  of: "space" | "boundary" | "opening" | "column" | "slab" | "run" | "roof" | "beam" | "foundation";
   ref: string;                 // identity of the subject
   kind?: string;               // what the subject already says it is
   polygon: { u: number; z: number }[];
@@ -42,7 +42,7 @@ interface SectionEntity {
 | `cut` | what the plane crossed |
 | `beyond` | what stands behind the plane, seen head-on |
 
-**Two, where a plan has five.** A plan is looked at from above, so it carries what is below the cut, what is above it dropped back down, and the symbols of movement. A section is looked at from the side, and **what stands in front of the plane is not hidden by convention — it is behind the viewer.** So it is not produced at all, and fixing that here is what stops each consumer deciding it separately.
+A plan is looked at from above, so it carries what is below the cut, what is above it dropped back down, and the symbols of movement. A section is looked at from the side, and **what stands in front of the plane is not hidden by convention — it is behind the viewer.** So it is not produced at all, and fixing that here is what stops each consumer deciding it separately.
 
 `depth` is how far behind the plane the nearest point of the body stands. **It is a distance, not a draw order**; `Form` holds no draw order, and whether to sort by it, fade by it or ignore it is the drawing's business.
 
@@ -76,7 +76,7 @@ The line direction is left-to-right on the sheet. `u = 0` is `(x1,y1)`, positive
 
 ## The geometry is exact
 
-Every body in a `Form` is a prism over a **convex** ring, and muro has no curves and no pitched roofs — a roof is a flat slab and a parapet is an `air:1` rail. So:
+A body is a prism over a convex ring with lower and upper heights at each vertex. The same representation describes a sloping roof face, a horizontal beam and a foundation below its datum. An edge-on roof surface of zero thickness has two section points. When a higher part of a roof is visible behind the cut, its projection also contributes a background entity. A roof outline without surface heights supplies no section entity.
 
 - **A convex ring meets the plane in exactly one interval.** The cut is that interval by the body's height. For a directed line, the ring is first expressed in the line's orthonormal frame and then goes through the same intersection operation as an axis cut.
 - **The height is read at the crossing**, off the edge the crossing sits on. A per-vertex height means the height is linear along each edge, so reading it there is exact rather than sampled. A ramp cut across its rise comes out level; cut along it, the section leans by the whole rise.

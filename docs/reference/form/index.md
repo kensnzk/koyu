@@ -7,23 +7,23 @@ mode: reference
 
 For `mode spatial`, see [spatial models](../muro/mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
 
-The source has no shape. The plan, the areas, the circulation — none of it is written. All of it is **derived**. And there is exactly one function that does the deriving.
+Muro records the spaces, relations and dimensions of a building. A roof can also carry a traced outline or surveyed panels. `derive` resolves those declarations into model coordinates for drawings, solids and quantities.
 
 ```ts
-import { derive } from "@kensnzk/koyu";
+import { derive } from "@kensnzk/koyu/form";
 
 const form = derive(model);           // cut height defaults to 1200mm
 const low  = derive(model, { cut: 900 });
 ```
 
-`derive(model, {cut?}) → Form` is **the one entry point to shape**. Measuring an area, locating a wall, getting the elements of a plan, assembling a solid — every one of them comes out of this single return value.
+`derive(model, {cut?, roofSketches?}) → Form` is **the one entry point to shape**. Measuring an area, locating a wall, getting the elements of a plan, assembling a solid — every one of them comes out of this single return value.
 
 ## Four promises
 
 ### 1. Shape is a function of the canonical form
 
 ```text
-toCanonical(a) === toCanonical(b)  ⟹  derive(a) ≡ derive(b)
+toCanonical(a) === toCanonical(b)  ⟹  derive(a, options) ≡ derive(b, options)
 ```
 
 [Canonical JSON](../json/index.md) is the definition of "what makes two buildings the same". Therefore **information the canonical form discards must not change the shape** — not the order the endpoints of a line were written in, not the declaration order of boundaries, not the declaration order of spaces, not the order the parts of a `+` region union were written in, not the order of the lines in the file.
@@ -49,11 +49,13 @@ The shape of a space is `pieces` (the derived convex pieces), not `rects` (the w
 
 `FormSpace.outline` is always the derived pieces. The written allocation never appears in `Form`.
 
-### 3. No invented defaults
+### 3. Declared dimensions and derivation defaults
 
-If a value that is needed was not written, the derivation does not quietly supply one — **it does not build the element**. With no ceiling height there is no ceiling; with no `slab:` not a single floor is generated. (A roof needs no ceiling height: where there is a level above, it sits at that level's z. See [Matter](bodies.md).) A shape that came out thin must never come out thin in silence, so the [SUF diagnostics](../diagnostics/suf.md) say so as errors.
+With a [roof declaration](../muro/roof.md), `input.roofSketches` records whether working assumptions were enabled; each declared roof lists the assumptions actually used. Building mode enables them by default. Spatial mode uses the supplied geometry unless the caller enables roof sketches. An outline alone contributes a plan projection.
 
-The exception is the [derivation constants](constants.md). Wall thickness 100mm, head height 2000mm, maximum riser 180mm — these are rules the specification fixes, not defaults invented on the spot.
+A space with no effective height has no ceiling, and a level with no `slab:` supplies no floor slabs. An [inferred roof slab](../muro/slab.md#thickness-of-an-inferred-roof-slab) follows its own level-based rule. [SUF](../diagnostics/suf.md) distinguishes missing indoor ceiling heights from missing floor thicknesses.
+
+The [derivation constants](constants.md) fix such dimensions as the default 100 mm wall thickness, 2,000 mm opening head and 180 mm maximum riser.
 
 ### 4. Pieces run counter-clockwise
 
@@ -68,7 +70,7 @@ Every outline `Form` returns is counter-clockwise (positive signed area), and re
 | **z ranges** — walls, openings, columns, slabs, solids | **Drafting symbols** — the diagonal of a void, the two slashes of a break line, the circle of a grid bubble, the head of an arrow |
 | **Direction** — edge orientation, direction of rise, hinge and swing side, whether an arrow goes up | **Scale, page margin, viewBox** |
 | **Identity of the subject** — which space, area, asset, boundary or opening this shape belongs to | **SVG artwork, draw order, stacking, shading** |
-| **[Plan classification](plan.md)** — cut / below / above / swing / anchor | **The judgement of what to draw and what to leave out** |
+| **[Plan classification](plan.md)** — cut / below / above / swing / anchor / footprint | **The judgement of what to draw and what to leave out** |
 
 `svgPlan`, `svgAxo` and outside viewers take every coordinate and physical dimension from this
 `Form`. A drawing may join presentation resources such as component SVG bytes, but those supply no
@@ -79,7 +81,7 @@ That `Form` carries no appearance is machine-enforced: the `Form` of every bundl
 
 ## The frame is not in the Form either
 
-[`origin`](../muro/origin.md) and [`azimuth`](../muro/azimuth.md) say where the model sits on the earth and which way it faces. **Neither appears here, and no coordinate in a `Form` is a geographic coordinate.** Every number in a `Form` is millimetres in the model's own frame, exactly as it would be with no `origin` written at all.
+[`origin`](../muro/origin.md) and [`azimuth`](../muro/azimuth.md) say where the model sits on the earth and which way it faces. **Neither appears here, and no coordinate in a `Form` is a geographic coordinate.** Coordinates and lengths use millimetres in the model's own frame. Areas such as `projectedAreaM2` and `surfaceAreaM2` use square metres.
 
 That is the shape of the promise, not an omission. `Form` is the shape; the frame is what the shape's numbers mean, and placing the one inside the other would invite a reader to treat `Form` coordinates as coordinates on a map. Anything doing that placement reads the frame from the [canonical JSON](../json/schema.md) and applies it itself — and it needs the meridian convergence to do it, which is written out on the [`origin`](../muro/origin.md) page.
 
@@ -89,14 +91,17 @@ That is the shape of the promise, not an omission. `Form` is the shape; the fram
 
 ```ts
 interface Form {
-  input: FormInput;           // the argument the derivation was given (cut height)
+  input: FormInput;           // cut height and, with declared roofs, the roof sketch setting
   levels: FormLevel[];        // levels and storey pitch
   spaces: FormSpace[];        // derived pieces, area, volume, indoor / semi-outdoor / covered
   boundaries: FormBoundary[]; // centre segment, and if there is matter, its panels
   openings: FormOpening[];    // centre, width, z range, leaf thickness, operation and panel count
   components?: FormComponent[]; // fixed footprints placed by named areas; absent when empty
   segs: FormSeg[];            // where the uncounted segments sit
-  slabs: Slab[];              // floors, ceilings, roofs
+  roofs?: FormRoof[];         // authored roof extents, modelled planes and assumptions
+  slabs: Slab[];              // floors, ceilings, inferred horizontal roofs
+  beams?: FormMember[];        // positioned horizontal beams
+  foundations?: FormFoundation[]; // pads, strips and mats
   columns: FormColumn[];      // columns standing on grid intersections
   runs: FormRun[];            // vertical circulation: step division and solids
   site: FormSite[];           // the given site polygon and its area
@@ -104,7 +109,7 @@ interface Form {
 }
 ```
 
-Each entry of `levels` carries `pitch` — the storey height, i.e. how far walls and columns rise. It is the difference to the level above if there is one, and otherwise **the tallest ceiling height on that storey plus the roof slab thickness**. `levelPitch(model, level)` answers it on its own.
+Each entry of `levels` carries `pitch` when the storey height can be determined. Walls and columns use the difference to the next level. On the top storey, building mode uses the highest known ceiling height plus the inferred roof thickness; spatial mode uses that height alone. A declared roof has its own elevations.
 
 ```text
 levels: [ { name: "L1", z: 0, h: 2400, slab: 150, pitch: 2600 } ]
@@ -141,6 +146,12 @@ Every element of `Form` carries its subject's identity. Boundaries, openings, `s
 **The vertices of the quadrilateral run start+n → end+n → end−n → start−n**, so joining the midpoints of the two opposing sides gives the centre line back.
 
 The body of a wall is not one of these constructors' results, because [a junction has already been settled in it](bodies.md): where two walls meet, one runs through and the other stops at its face, so the body runs past the end of its centre line or stops short of it. `FormPanel.footprint` and the plan entity of an interval carry **both that body and the centre line** — the axis cannot be read off the body, and whether to draw something as thick or as a single line (a rail or a fence that does not enclose) is a judgement about appearance.
+
+## Area and member quantities
+
+`areaSchedule(form)` from `@kensnzk/koyu/form` reads an already derived Form. The CLI exposes it as `koyu stats building.muro --geometry`. Each level reports the sum of Core's per-space areas in square metres, separated into indoor, semi-outdoor and outdoor allocations. Voids contribute no floor area. In a spatial model these are allocations from the source and its stated boundaries.
+
+Explicit roofs report their horizontal area, the area covered by modeled faces in projection, and surface area when available, alongside the assumptions used for the faces. Remaining implicit flat roof slabs are listed by space and level. Structural members report their own footprint and gross geometric volume in cubic metres. Intersections between members can occupy the same physical volume. These quantities do not change the allocated floor areas. Use a jurisdiction's counting rules separately for regulatory areas.
 
 ## Neighbouring pages
 

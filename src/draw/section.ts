@@ -11,7 +11,7 @@
 // `cut` comes back empty and everything is `beyond`. Writing it as a second renderer would be
 // writing the same painter twice and inviting the two to drift.
 
-import { derive, type Form } from "../core/derive.js";
+import { derive, type DeriveOptions, type Form } from "../core/derive.js";
 import { displayName, type Edge, type Model } from "../core/model.js";
 import {
   defaultLook,
@@ -24,9 +24,9 @@ import {
   type SectionEntity,
   type SectionPt,
 } from "../core/section.js";
-import { esc, Extent, FAINT, GRID, INK, openSheet, r2, ROOM } from "./sheet.js";
+import { esc, Extent, FAINT, GRID, INK, openSheet, r2, ROOM, memberInk, subjectAttrs } from "./sheet.js";
 
-export interface SectionOptions {
+export interface SectionOptions extends Pick<DeriveOptions, "roofSketches"> {
   /** which axis the plane is named on. `"X"` means the plane `x = at` */
   axis: SectionAxis;
   /** where the plane sits, world mm */
@@ -42,7 +42,7 @@ export interface SectionOptions {
 }
 
 /** A section whose plane follows a directed line in plan. */
-export interface LineSectionOptions {
+export interface LineSectionOptions extends Pick<DeriveOptions, "roofSketches"> {
   cut: SectionLine;
   /** a caller-owned name for the cut */
   atRef?: string;
@@ -59,7 +59,7 @@ export interface SectionGuide {
   showVertices?: boolean;
 }
 
-export interface ElevationOptions {
+export interface ElevationOptions extends Pick<DeriveOptions, "roofSketches"> {
   /** the side the viewer stands on. `S` is the south elevation, seen from the south */
   face: Edge;
   /** px per mm */
@@ -74,7 +74,7 @@ const GLASS = "#b9c3c0";
 const LABEL = "#8a8171";
 
 export function svgSection(model: Model, opts: SectionOptions | LineSectionOptions): string {
-  const form = derive(model);
+  const form = derive(model, { roofSketches: opts.roofSketches });
   if ("cut" in opts) {
     const section = sectionForm(form, {
       cut: opts.cut,
@@ -102,7 +102,7 @@ export function svgSection(model: Model, opts: SectionOptions | LineSectionOptio
 }
 
 export function svgElevation(model: Model, opts: ElevationOptions): string {
-  const form = derive(model);
+  const form = derive(model, { roofSketches: opts.roofSketches });
   const section = elevationForm(form, opts.face);
   return sheet(model, form, section, opts.scale, `${model.name ?? "Untitled"} — ${opts.face} elevation`);
 }
@@ -173,9 +173,9 @@ function sheet(
     .filter((e) => e.class === "beyond")
     .sort((a, b) => b.depth - a.depth || rank(a) - rank(b));
   for (const e of beyond) {
-    const face = e.of === "opening" ? GLASS : BEYOND;
+    const face = e.of === "opening" ? GLASS : memberInk(e.of) ?? BEYOND;
     parts.push(
-      `<path d="${path2d(e.polygon)}" fill="${face}" stroke="${INK}" stroke-width="0.35" stroke-opacity="0.5"/>`,
+      `<path ${subjectAttrs(e.of, e.ref)} d="${path2d(e.polygon)}" fill="${face}" stroke="${e.polygon.length === 2 ? face : INK}" stroke-width="${e.polygon.length === 2 ? 1.2 : 0.35}" stroke-opacity="0.5"/>`,
     );
   }
 
@@ -226,7 +226,9 @@ function sheet(
   // openings split it into, so the hole is in it from the start.
   for (const e of section.entities) {
     if (e.class !== "cut" || e.of === "space" || e.of === "opening") continue;
-    parts.push(`<path d="${path2d(e.polygon)}" fill="${INK}"/>`);
+    const colour = memberInk(e.of) ?? INK;
+    const stroke = e.polygon.length === 2 ? ` stroke="${colour}" stroke-width="1.4"` : "";
+    parts.push(`<g ${subjectAttrs(e.of, e.ref)}><path d="${path2d(e.polygon)}" fill="${colour}"${stroke}/></g>`);
   }
   // A leaf the plane cut is not matter in the way a wall is — it reads as the opening it fills.
   for (const e of section.entities) {

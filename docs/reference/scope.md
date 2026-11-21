@@ -93,7 +93,7 @@ Core holds the questions of quantity and graph. **It just never says pass or fai
 | Vertical runs | riser count, riser, going, slope | whether it is cramped (`koyu.schematic.stair.proportion`), whether the slope is acceptable (`koyu.schematic.ramp.declared-slope` / `koyu.schematic.escalator.usual-slope`) |
 | Envelope | outline runs no declared boundary reaches, and the default wall on them | whether the building should be open there instead |
 | Circulation | the minimum-door route and passability | whether you can reach the outside (`access.*`) |
-| Columns and openings | columns standing on grid intersections, openings on a segment | whether they collide (`koyu.schematic.column.blocksdoor`) |
+| Columns and openings | [column](muro/column.md) dimensions and centres from grid intersections or explicit offsets, openings on a segment | whether they collide (`koyu.schematic.column.blocksdoor`) |
 
 **Thresholds belong to architecture.** Neither 1/7 nor 2m nor 240mm is an invariant a composition must satisfy. **Core returns numbers; validation draws lines through them.**
 

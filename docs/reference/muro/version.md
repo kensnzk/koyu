@@ -6,13 +6,13 @@ mode: reference
 # muro — the version line
 
 ```muro-part
-muro 1.6
+muro 1.7
 ```
 
 **One line declaring which version of the semantics this file is read under.** These are the accepted versions, and the order is the order of old to new.
 
 ```text
-0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3   1.4   1.5   1.6
+0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3   1.4   1.5   1.6   1.7
 ```
 
 **Omitted, the file is read as `1.1` — and always will be.** The reading of an undeclared file is frozen; it does not follow the newest version.
@@ -70,7 +70,7 @@ Exactly two tokens: the word and the version.
 | `muro 1.2` | accepted |
 | `muro` | `muro takes a version: muro 1.2` |
 | `muro 1.2 latest` | `Extra tokens on the muro version declaration: latest` |
-| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6)` |
+| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7)` |
 
 **It is declared in the base layer only, and only once.**
 
@@ -177,3 +177,7 @@ The version belongs to **the language, its semantics and the rules of compositio
 - Drawing is not covered either. The look of the SVG produced from the same shape may change
 
 The bundled examples are always written at the newest version. A change that raises the version brings the examples along in the same change.
+
+### VER11 — roofs and structural geometry require muro 1.7
+
+Declare `muro 1.7` to write a `roof`, a `beam`, a `foundation` or a column with an explicit centre and storey sections. Earlier editions retain their existing column array and slab behaviour.
