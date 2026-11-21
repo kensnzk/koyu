@@ -143,7 +143,7 @@ The order is the ledger's.
 
 | Code | severity | One line |
 |---|---|---|
-| [SUF01](suf.md) | error | The ceiling height cannot be determined; no ceiling and no roof can be generated |
+| [SUF01](suf.md) | error | An indoor space in building mode has neither a space nor a level ceiling height |
 | [SUF02](suf.md) | error | The level cannot be determined; not one solid can be generated |
 | [SUF03](suf.md) | warning | The level has no `slab`, so not one floor is generated |
 | [SUF04](suf.md) | warning | A vertical-circulation declaration produces no shape at all |

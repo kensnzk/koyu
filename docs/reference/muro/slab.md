@@ -5,7 +5,7 @@ mode: reference
 
 # slab — the floor build-up
 
-For `mode spatial`, see [spatial models](mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated. Spatial mode does not infer roofs.
+For `mode spatial`, see [spatial models](mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated. Spatial mode skips inferred roof slabs and can carry a [declared roof](roof.md).
 
 ```text
 level <name> <z> [h:ceiling height] [slab:floor build-up] [underground:1]
@@ -13,7 +13,7 @@ level <name> <z> [h:ceiling height] [slab:floor build-up] [underground:1]
 
 `slab:` is an attribute of a [level](level.md). It gives **the thickness of that storey's floor build-up in mm** — the structural slab, the void and the finishes that together fill the distance from the ceiling below to this storey's FL.
 
-**There is no line that places a floor.** Writing `slab:` has already declared the floor, and the surface is derived from it. It is the same posture that has a wall appear out of a boundary and a [column](column.md) appear out of a grid intersection. There is no operation for laying a floor, none for hanging a ceiling, none for putting on a roof.
+Writing `slab:` on a level gives the thickness of the floors derived from its spaces. Building mode also derives horizontal roof slabs over exposed space regions. A [roof declaration](roof.md) gives a roof or canopy its own perimeter and elevations.
 
 ## When a floor is generated
 
@@ -53,7 +53,7 @@ Those two rooms generate these surfaces.
 | ceiling | /L2/a | 5870 … 5900 |
 | roof | /L2/a | 6150 … 6400 |
 
-`/L1/a` has no roof because `/L2/a` overlaps it. A roof is laid only over the part **not covered by a space above**.
+No roof slab is inferred over `/L1/a` because `/L2/a` covers its entire region. The roof slab over `/L2/a` follows its exposed region.
 
 ## Without slab, not one floor appears
 
@@ -115,18 +115,20 @@ L1	z:0	h:2700	slab:200
 
 The leftover is the plenum above the ceiling. It never goes negative — the collision error stands before it could.
 
-## Roof thickness comes from slab too
+## Thickness of an inferred roof slab
 
-The apex and the thickness of a roof switch formula on whether there is a level above.
+Building mode sets the top elevation and vertical thickness of an inferred roof slab as follows.
 
 | | Apex | Thickness |
 |---|---|---|
 | a level above | that level's z | that level's `slab`, or 200mm |
-| no level above | FL + ceiling height + 200mm | 200mm |
+| no level above | FL + effective ceiling height (0 if undetermined) + 200mm | 200mm |
 
 **Where there is a level above, ceiling height is not read.** So a roof is generated even when no ceiling height can be determined. The roof of `/L2/a` above sits at 6150 … 6400 because level `R` carries z:6400 and slab:250.
 
-This is what declaring a level with no spaces in it (a roof level `R`, say) is for — it becomes the ceiling of the top storey's height check, and it supplies the roof slab thickness.
+A level such as `R` can supply that upper datum and slab thickness even when it holds no spaces. At the top of a building with no upper datum, the zero fallback in the table can leave the inferred slab directly above FL. [SUF01](../diagnostics/suf.md#suf01) reports a missing ceiling height for an indoor space.
+
+For a declared roof, `t:` gives the vertical thickness. Omitting it leaves only the top surface. An explicit outline replaces the inferred roof within its perimeter on the reference storey, including any holes.
 
 ## Floor finish is a different vocabulary
 

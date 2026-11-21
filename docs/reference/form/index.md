@@ -7,7 +7,7 @@ mode: reference
 
 For `mode spatial`, see [spatial models](../muro/mode.md): unwritten boundaries stay unresolved, heights and slabs may be omitted, and architectural assessment is not evaluated.
 
-The source has no shape. The plan, the areas, the circulation — none of it is written. All of it is **derived**. And there is exactly one function that does the deriving.
+Muro records the spaces, relations and dimensions of a building. A roof can also carry a traced outline or surveyed panels. `derive` resolves those declarations into model coordinates for drawings, solids and quantities.
 
 ```ts
 import { derive } from "@kensnzk/koyu/form";
@@ -16,14 +16,14 @@ const form = derive(model);           // cut height defaults to 1200mm
 const low  = derive(model, { cut: 900 });
 ```
 
-`derive(model, {cut?}) → Form` is **the one entry point to shape**. Measuring an area, locating a wall, getting the elements of a plan, assembling a solid — every one of them comes out of this single return value.
+`derive(model, {cut?, roofSketches?}) → Form` is **the one entry point to shape**. Measuring an area, locating a wall, getting the elements of a plan, assembling a solid — every one of them comes out of this single return value.
 
 ## Four promises
 
 ### 1. Shape is a function of the canonical form
 
 ```text
-toCanonical(a) === toCanonical(b)  ⟹  derive(a) ≡ derive(b)
+toCanonical(a) === toCanonical(b)  ⟹  derive(a, options) ≡ derive(b, options)
 ```
 
 [Canonical JSON](../json/index.md) is the definition of "what makes two buildings the same". Therefore **information the canonical form discards must not change the shape** — not the order the endpoints of a line were written in, not the declaration order of boundaries, not the declaration order of spaces, not the order the parts of a `+` region union were written in, not the order of the lines in the file.
@@ -49,11 +49,13 @@ The shape of a space is `pieces` (the derived convex pieces), not `rects` (the w
 
 `FormSpace.outline` is always the derived pieces. The written allocation never appears in `Form`.
 
-### 3. No invented defaults
+### 3. Declared dimensions and derivation defaults
 
-A [typed roof sketch](../muro/roof.md) records its working dimensions as assumptions and records the sketch setting in `input.roofSketches`. For level-derived fabric, if a value that is needed was not written, the derivation does not quietly supply one — **it does not build the element**. With no ceiling height there is no ceiling; with no `slab:` not a single floor is generated. (A roof needs no ceiling height: where there is a level above, it sits at that level's z. See [Matter](bodies.md).) A shape that came out thin must never come out thin in silence, so the [SUF diagnostics](../diagnostics/suf.md) say so as errors.
+With a [roof declaration](../muro/roof.md), `input.roofSketches` records whether working assumptions were enabled; each declared roof lists the assumptions actually used. Building mode enables them by default. Spatial mode uses the supplied geometry unless the caller enables roof sketches. An outline alone contributes a plan projection.
 
-The exception is the [derivation constants](constants.md). Wall thickness 100mm, head height 2000mm, maximum riser 180mm — these are rules the specification fixes, not defaults invented on the spot.
+A space with no effective height has no ceiling, and a level with no `slab:` supplies no floor slabs. An [inferred roof slab](../muro/slab.md#thickness-of-an-inferred-roof-slab) follows its own level-based rule. [SUF](../diagnostics/suf.md) distinguishes missing indoor ceiling heights from missing floor thicknesses.
+
+The [derivation constants](constants.md) fix such dimensions as the default 100 mm wall thickness, 2,000 mm opening head and 180 mm maximum riser.
 
 ### 4. Pieces run counter-clockwise
 
@@ -79,7 +81,7 @@ That `Form` carries no appearance is machine-enforced: the `Form` of every bundl
 
 ## The frame is not in the Form either
 
-[`origin`](../muro/origin.md) and [`azimuth`](../muro/azimuth.md) say where the model sits on the earth and which way it faces. **Neither appears here, and no coordinate in a `Form` is a geographic coordinate.** Every number in a `Form` is millimetres in the model's own frame, exactly as it would be with no `origin` written at all.
+[`origin`](../muro/origin.md) and [`azimuth`](../muro/azimuth.md) say where the model sits on the earth and which way it faces. **Neither appears here, and no coordinate in a `Form` is a geographic coordinate.** Coordinates and lengths use millimetres in the model's own frame. Areas such as `projectedAreaM2` and `surfaceAreaM2` use square metres.
 
 That is the shape of the promise, not an omission. `Form` is the shape; the frame is what the shape's numbers mean, and placing the one inside the other would invite a reader to treat `Form` coordinates as coordinates on a map. Anything doing that placement reads the frame from the [canonical JSON](../json/schema.md) and applies it itself — and it needs the meridian convergence to do it, which is written out on the [`origin`](../muro/origin.md) page.
 
@@ -89,7 +91,7 @@ That is the shape of the promise, not an omission. `Form` is the shape; the fram
 
 ```ts
 interface Form {
-  input: FormInput;           // the argument the derivation was given (cut height)
+  input: FormInput;           // cut height and, with declared roofs, the roof sketch setting
   levels: FormLevel[];        // levels and storey pitch
   spaces: FormSpace[];        // derived pieces, area, volume, indoor / semi-outdoor / covered
   boundaries: FormBoundary[]; // centre segment, and if there is matter, its panels
@@ -107,7 +109,7 @@ interface Form {
 }
 ```
 
-Each entry of `levels` carries `pitch` — the storey height, i.e. how far walls and columns rise. It is the difference to the level above if there is one, and otherwise **the tallest ceiling height on that storey plus the roof slab thickness**. `levelPitch(model, level)` answers it on its own.
+Each entry of `levels` carries `pitch` when the storey height can be determined. Walls and columns use the difference to the next level. On the top storey, building mode uses the highest known ceiling height plus the inferred roof thickness; spatial mode uses that height alone. A declared roof has its own elevations.
 
 ```text
 levels: [ { name: "L1", z: 0, h: 2400, slab: 150, pitch: 2600 } ]

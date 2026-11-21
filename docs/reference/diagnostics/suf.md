@@ -11,12 +11,12 @@ The SUF entries do not ask whether a value is *right*; each asks **whether the v
 
 | Code | Severity | What it says |
 |---|---|---|
-| SUF01 | error | The ceiling height cannot be determined — no ceiling and no roof can be generated |
+| SUF01 | error | An indoor space in building mode has no effective ceiling height |
 | SUF02 | error | It has a region but no determinable level — not one solid can be generated |
 | SUF03 | warning | The level has no `slab:` — not one floor is generated on that storey |
 | SUF04 | warning | A vertical circulation is declared but no shape is generated for it |
 
-**Not making a shape and not being able to make one are different things.** koyu's derivation rules are deterministic and never invent a default: with no ceiling height written, nothing quietly substitutes 2400 — no ceiling is made. The same composition always yields the same shape. But **that the shape came out thin has to be told**. That is what SUF is for.
+A space can have a known floor area and an unknown ceiling height. The SUF diagnostics identify the missing dimensions that affect its geometry.
 
 **These are not validity judgements.** SUF never says "that ceiling height is wrong". It says only "no ceiling height is written".
 
@@ -39,20 +39,22 @@ The ceiling height of /L1/a cannot be determined (neither the space's h: nor lev
 
 **Cause** — the space has no `h:`, and neither does the level it sits on. The effective ceiling height is undetermined.
 
-A ceiling height is not one number used once; it is a number **many things read**. When it is undetermined, all of the following fall away.
+The missing height affects each derived element differently.
 
 - **No ceiling is generated.** A ceiling is what the effective ceiling height gives.
-- **No roof is generated.** The top storey's roof apex sits at `the level's z + effective ceiling height + 200mm`.
-- **The height invariant cannot be formed.** [HGT01](./hgt.md) goes quiet, and a storey-piercing ceiling height passes green.
+- **An inferred roof slab can still appear.** In building mode its top follows the next level's datum when available. On the top storey the [slab formula](../muro/slab.md#thickness-of-an-inferred-roof-slab) uses zero for the missing height. A [declared roof](../muro/roof.md) with its own elevations can be derived independently.
+- **The ceiling clearance check lacks an input.** [HGT01](./hgt.md) cannot compare this space's ceiling with the floor above.
 - **If there is no level above, the storey height is undetermined too.** Walls and columns rise the full storey height. With a level above, the storey height is the difference in `z` — but **the top storey's height is fixed by "the tallest of the level's own `h:` and the effective ceiling heights of the spaces on it, plus 200mm"**. If not one ceiling height is determined, that number does not exist and **not one wall and not one column stands on that level**.
 
-That last point is visible. Add exterior walls and columns to the four-line file above (which has only a top storey) and not one solid comes out. Add `level L2 3000 h:2400 slab:150` on top and walls and columns stand without a single `h:` being written — because the storey height now comes from the difference in `z`.
+In the example above the floor slab remains. The walls and columns need a storey height. Adding `level L2 3000` gives L1 a 3,000 mm storey height while its ceiling height remains undetermined.
 
 **Three kinds are not blamed.** For these the shape is settled without a ceiling height.
 
 - Voids (`void:1`) — having neither floor nor ceiling is what a void is
 - The exterior (`outside:1`) — it is the ground
 - Semi-outdoor spaces — a space with a region meeting the exterior across `type:open` or `air:1`. A balcony has no ceiling height
+
+**Scope** — spatial mode permits a missing ceiling height. In building mode, `ceiling:0` suppresses the ceiling material for a space; its effective height is still checked.
 
 **Fix** — write a base ceiling height on the level.
 
@@ -166,7 +168,7 @@ No level sits above L2, so no form is generated for /L2/s
 
 A lift (`lift:`) is exempt from SUF04 — its shape is not a division into steps.
 
-**Fix** — if the stair goes out to the roof, declare the roof surface as a level.
+**Fix** — if the stair goes out to the roof, declare the destination storey as a level.
 
 ```muro
 grid X 0 3000 6000

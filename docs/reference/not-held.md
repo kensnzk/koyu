@@ -7,23 +7,21 @@ mode: reference
 
 **The resolution of this data is that of a schematic design.** Not for lack of ambition — that is where it is placed. What follows is the list of things deliberately left out.
 
-## Geometry in the source
+## Geometry derived from written dimensions
 
-**The plan, the areas, the circulation are not written. They are [derived](form/index.md).** What a space holds is a reference to grid lines, not coordinates. A wall's position emerges from the relation between two spaces, a column from a grid intersection meeting a floor, a step division from a region and a storey pitch.
+**The plan, the areas, the circulation are not written. They are [derived](form/index.md).** What a space holds is a reference to grid lines, not coordinates. A wall's position emerges from the relation between two spaces, and a stair's step division follows its region and storey pitch.
 
-There are exactly two exceptions, both **givens**: the site [`polygon`](muro/polygon.md) and a [drawn line](muro/line.md). The first is given rather than designed; the second is the line the designer drew, and nothing else produces it.
+Surveyed site vertices belong in a [site polygon](muro/polygon.md). [Boundary lines](muro/line.md), [roof perimeters and surveyed panels](muro/roof.md), and [structural members](muro/members.md) accept grid-relative positions. A reader can derive their geometry again after a grid edit.
 
 **Why not hold it.** Geometry is increasingly obtainable from reality. Scanning, SLAM, photogrammetry — the ways to acquire form keep getting cheaper. There is no reason to write into the source what will simply be available.
 
 And there are things a point cloud never yields. **What kind of space this is. Whose boundary this is. Whether this door may be used. Since when.** Meaning, relation and identity cannot be observed. They have to be written.
 
-So the source holds what has to be written. **Not holding shape in the source is not a compromise; it is the definition of the role.** And holding only what has to be written makes it light. Light enough that one whole building fits in a machine's field of view. **Lightness is not the goal; it is what falls out of the role.**
+The source holds these relationships and the dimensions or observations needed to reproduce the shape. A reader generates the plan, meshes and quantities. That keeps the source light. Light enough that one whole building fits in a machine's field of view. **Lightness is not the goal; it is what falls out of the role.**
 
-## A placement mechanism
+## Element placement
 
-**Containment gives no seat.** A column or a piece of equipment carries only "which space contains it", and no shape can be made from that.
-
-Add a placement mechanism and coordinates come back into the source. A column has shape because the given (a grid) crosses a derivation (a floor), not because somebody wrote "put it here".
+Muro describes placement for specific elements. A [column](muro/column.md) can follow floor-supported grid crossings or one grid-relative centre across storeys. A [component asset](muro/asset.md) can be placed in a named area. Muro has no general-purpose transform for arbitrary 3D objects.
 
 ## Architectural judgement as part of the source contract
 
@@ -63,4 +61,4 @@ That is why an unknown key without a namespace is an error ([ATT03](diagnostics/
 - [Stability](stability.md) — the list of surfaces that do not freeze
 - [Form](form/index.md) — the side that is derived
 - [attributes](muro/attributes.md) — the three tiers and namespaces
-- [polygon](muro/polygon.md) / [line](muro/line.md) — the two exceptions
+- [Site polygon](muro/polygon.md) and [drawn boundary line](muro/line.md)

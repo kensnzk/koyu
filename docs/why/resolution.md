@@ -46,6 +46,8 @@ By lease.category: rentable 558.08 m2 (11.7%) / common 1611.52 m2 (33.7%) / excl
 
 (The last line. Which key to count by is the caller's choice — nothing in the notation privileges this one.)
 
+A [roof or canopy](../reference/muro/roof.md) can carry its outline, slope or surveyed faces. The same section can show the underside of a [beam](../reference/muro/members.md), a column's changing width and the depth of its footing.
+
 ## What cannot be said at this resolution
 
 | Not sayable | Where it belongs |
@@ -53,9 +55,8 @@ By lease.category: rentable 558.08 m2 (11.7%) / common 1611.52 m2 (33.7%) / excl
 | junctions, substrates, connections | detailed design. The language of things |
 | material layer build-ups (`spec` is a name only) | detailed design; a candidate for a later composition layer |
 | curved and free-form geometry | out of scope. This targets buildings an orthogonal grid suffices for |
-| structural analysis (stresses, member sizing) | structure is a separate layer of things |
+| structural analysis (stresses, member sizing) | requires an analysis model with loads, restraints and material properties |
 | services calculations (loads, air volumes, pipe sizing) | out of scope. Risers, lifts and plant rooms are writable as spaces |
-| pitched roofs, eaves, parapets | not yet. Flat roofs are derived |
 | composite vertical profiles (upstand plus coping handrail) | not yet |
 | 2nd-level space boundaries for thermal analysis | out of scope |
 | door and window frames, ironmongery, folding leaves | not yet |
