@@ -49,7 +49,7 @@ A wall appears as a run of intervals divided by its openings. Where a door sits 
 
 The centre is taken as a parameter from the start of the segment to its end. **Segments — both derived ones and those of a [drawn line](line.md) — always run in ascending coordinate order**, so the same `at:` lands in the same place regardless of which space was written as `a` and which end of the line was written first.
 
-An absolute position picks an axis. A horizontal segment takes an X grid reference, a vertical segment a Y one. A diagonal segment takes no absolute position at all — only a ratio.
+An absolute position picks an axis. A horizontal segment takes an X grid reference, a vertical segment a Y one. A wall parallel to the sloping Y grid takes an X reference at its crossing. Other oblique walls take a ratio.
 
 ```text
 ✖ The door position Y1+1000 is on the wrong axis: a horizontal segment takes an X grid line
@@ -64,7 +64,7 @@ Where several openings share a segment, their centres must be at least `(w₁+w�
 
 ## edge — which side
 
-Where one boundary has split into several segments, no door can be placed until a side is picked. A boundary with the outside usually splits across all four sides of the room, so `edge:` is near enough mandatory there.
+Where one boundary has several segments, use `edge:` to select a side. In muro 1.8, an absolute grid reference at `at:` can select among the remaining segments if exactly one admits the entire opening at that position. A fractional position requires one selected segment.
 
 ```text
 ✖ There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/living | /out)
@@ -76,25 +76,15 @@ With no segments at all, nothing can be placed (OPN04). Nor can an opening wider
 
 ## hinge — which jamb it hangs on
 
-| Segment | Accepted | Default |
-|---|---|---|
-| horizontal | `W` / `E` | the start end (west) |
-| vertical | `N` / `S` | the start end (south) |
-| diagonal | — | fixed at the start end |
+In Muro 1.8, stand in the space selected by `swing:` and face the closed door. `hinge:L` selects the left jamb and `hinge:R` selects the right jamb. The same choice follows the wall when its grid frame rotates.
 
-The wrong axis is an error.
-
-```text
-✖ hinge:N: a horizontal segment takes W/E
-```
-
-N/E/S/W are words of the axes, so they do not reach a diagonal segment. There the hinge always sits at the start end.
+Compass values name the jamb in world coordinates. A horizontal segment accepts W/E and a vertical segment accepts S/N. A diagonal in Muro 1.8 accepts any of the four directions: N selects the higher Y jamb, E selects the higher X jamb. Omission selects the segment's start. In earlier editions a diagonal uses its start jamb.
 
 ## swing — which side it opens into
 
 `swing:a` / `swing:b` says whether the door opens toward the a side or the b side of the boundary. **Written nothing, it is "a if a has a region, otherwise b".** This is one of the two things that read [the order in which the boundary was written](boundary.md).
 
-The **direction** it swings is not written. It follows from the component pointing at the centre of the nearest convex piece of the **derived form** of the side it opens into. The arc is a quarter circle centred on the hinge with a radius equal to the width.
+The **direction** it swings is not written. It follows from the component pointing at the centre of the nearest convex piece of the **derived form** of the side it opens into. In Muro 1.8, a door opening into an unbounded `outside:1` space takes its outward normal from the room on the opposite side. Its left and right jambs are read from outside facing the door. The arc is a quarter circle centred on the hinge with a radius equal to the width.
 
 ## style — the kind of leaf
 
@@ -129,7 +119,7 @@ one under an older version declaration is VER08.
 ## Written out
 
 ```muro
-muro 1.7
+muro 1.8
 name Door operations
 unit mm
 
@@ -190,3 +180,5 @@ To look a code up by cause and cure, there is [the list of diagnostic codes](../
 - [asset](asset.md) — putting the defaults of a leaf in one place
 - [seg](seg.md) — a segmentation along a boundary that cuts no hole
 - [koyu check](../cli/check.md)
+
+A frame reference such as `at:A2+450` centres the opening at the crossing between that local grid line and the boundary. The width is measured along the actual wall. The same placement applies to a window or specification band.

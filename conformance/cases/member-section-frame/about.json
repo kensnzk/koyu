@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/column.md", "docs/reference/muro/members.md"],
+  "why": "Both pads are centred on the same mixed-frame crossing. Choosing the quarter-turned frame moves the width edge to the north; the column also retains its centre."
+}

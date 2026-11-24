@@ -52,7 +52,7 @@ boundary /L1/b /out
 
 `hinge:E: a vertical segment takes N/S`
 
-**Cause** — `hinge` says which **end** the hinge is at. It only means something as a compass along the segment. The two rooms here sit east and west, so the edge they share is a **vertical segment running north–south**, whose ends are N and S.
+**Cause** — `hinge` says which **end** the hinge is at. A compass value must distinguish the two jambs on the segment. Muro 1.8 also accepts `hinge:L` and `hinge:R` from the swing side on any segment. The two rooms here sit east and west, so the edge they share is a **vertical segment running north–south**, whose ends are N and S.
 
 **Fix** — for a vertical segment (running north–south) use `hinge:N` or `hinge:S`; for a horizontal one (running east–west) use `hinge:W` or `hinge:E`. Omitted, it takes the starting end of the segment.
 
@@ -148,11 +148,11 @@ boundary /L1/b /out t:150
 
 `There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)`
 
-**Cause** — a boundary with the outside (`/out` and other spaces with no region) is **all that remains** of the room's perimeter not touching another room, and it usually splits across several edges. Where on that boundary the door goes is not settled. You may as well remember it as: **placing an opening on an external wall always needs `edge:`**.
+**Cause** — several segments of the boundary remain candidates for the opening. This often happens on exterior boundaries or on shared sides of concave rooms.
 
 **Fix** — select the side with `edge:`. The compass is read **from the rectangle of the space written first (here `/L1/a`): N=+Y, S=−Y, E=+X, W=−X**. To put the entrance on the south, `door w:900 edge:S`.
 
-**Note** — the same happens between two interior rooms when an L-shaped space splits their shared edge in two. Faced with ambiguity, this check **refuses rather than guesses**.
+In muro 1.8, an absolute grid reference at `at:` resolves the ambiguity if exactly one candidate admits the entire opening at that position. Fractions such as `at:0.5` refer to a position along a single selected segment.
 
 ## OPN06 — the opening is wider than the boundary segment {#opn06}
 

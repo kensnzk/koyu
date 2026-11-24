@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parse, parseFiles, toCanonical } from "../src/index.js";
-import { derive } from "../src/form.js";
+import { derive, elevationForm, sectionForm } from "../src/form.js";
+import { sceneOf } from "../src/draw/index.js";
 import { areaOf } from "../src/core/poly.js";
 
 const base = `muro 1.7
@@ -62,6 +63,60 @@ test("a shed canopy can project beyond the rooms; it contributes 4.8 m2 in proje
   assert.equal(roof.projectedAreaM2, 4.8);
   close(roof.surfaceAreaM2!, 4.8 * Math.hypot(1, 1 / 20));
   assert.deepEqual([...new Set(roof.faces[0]!.vertices.map((p) => p.z))], [2850, 2910]);
+});
+
+test("a gable or shed keeps its eave heights in a translated, rotated wing", () => {
+  const prefix = `muro 1.8
+grid X 0 1500
+grid Y 0 2000
+frame AB at:X2,Y2 angle:20 A:0,8000 B:0,6000
+level L1 0 h:3000
+roof /wing level:L1 eave-z:3000 slope:1/4 t:150 `;
+  const model = (spec: string) => parse(prefix + spec + "\n  outline A1,B1 A2,B1 A2,B2 A1,B2");
+  const angle = Math.PI / 9, cos = Math.cos(angle), sin = Math.sin(angle);
+  for (const [spec, zAt] of [
+    ["type:gable ridge-axis:A", (a, b) => 3000 + Math.min(b, 6000 - b) / 4],
+    ["type:gable ridge-axis:B", (a, b) => 3000 + Math.min(a, 8000 - a) / 4],
+    ["type:shed rise:+B", (a, b) => 3000 + b / 4],
+    ["type:shed rise:-A", (a, b) => 3000 + (8000 - a) / 4],
+  ] as [string, (a: number, b: number) => number][]) {
+    const form = derive(model(spec));
+    const roof = form.roofs![0]!;
+    const faceCount = spec.includes("gable") ? 2 : 1;
+    assert.equal(roof.faces.length, faceCount);
+    close(roof.modeledProjectionM2, 48);
+    close(roof.surfaceAreaM2!, 48 * Math.hypot(1, 0.25));
+    for (const { vertices } of roof.faces) {
+      for (const { x, y, z } of vertices) {
+        const a = cos * (x - 1500) + sin * (y - 2000);
+        const b = -sin * (x - 1500) + cos * (y - 2000);
+        close(z, zAt(a, b));
+      }
+    }
+    assert.equal(sceneOf(form).nodes.filter(n => n.of === "roof" && n.solid).length, faceCount);
+    assert.ok(form.plans[0]!.entities.some(e => e.of === "roof"));
+    assert.ok(sectionForm(form, { axis: "X", at: 4000, look: "W" }).entities.some(e => e.of === "roof" && e.class === "cut"));
+    assert.ok(elevationForm(form, "S").entities.some(e => e.of === "roof"));
+  }
+  for (const [type, axis] of [["gable", "ridge-axis:A"], ["shed", "rise:+B"]]) {
+    const roof = derive(model("type:" + type)).roofs![0]!;
+    assert.deepEqual(roof.assumptions, [axis]);
+    assert.deepEqual(roof.faces, derive(model("type:" + type + " " + axis)).roofs![0]!.faces);
+  }
+  const square = parse(prefix.replace("angle:20", "angle:30").replace("B:0,6000", "B:0,8000") +
+    "type:gable\n  outline A1,B1 A2,B1 A2,B2 A1,B2");
+  assert.deepEqual(derive(square).roofs![0]!.assumptions, ["ridge-axis:A"]);
+  const fromRooms = parse(prefix.replace("roof /wing", "space /L1/wing A1..A2 B1..B2\nroof /wing") + "type:gable");
+  const inferred = derive(fromRooms).roofs![0]!;
+  assert.deepEqual(inferred.assumptions, ["outline:exposed-storey", "ridge-axis:A"]);
+  close(inferred.modeledProjectionM2, 48);
+  const worldShed = derive(model("type:shed rise:+Y")).roofs![0]!;
+  for (const p of worldShed.faces[0]!.vertices) close(p.z, 3000 + (p.y - 2000) / 4);
+  const incompatible = derive(model("type:gable ridge-axis:X")).roofs![0]!;
+  close(incompatible.projectedAreaM2, 48);
+  assert.equal(incompatible.modeledProjectionM2, 0);
+  assert.throws(() => model("type:gable ridge-axis:C"), /declared frame direction/);
+  assert.throws(() => model("type:shed rise:+A1"), /declared frame direction/);
 });
 
 test("spatial readback keeps an outline without an invented height; a sketch is opt-in", () => {

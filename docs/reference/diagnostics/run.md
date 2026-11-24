@@ -147,7 +147,7 @@ form is straight / return: form:spiral (write a spiral as a succession of turns)
 
 **Cause** — `form` takes exactly two values, `straight` and `return`. koyu has introduced no curves, so a spiral stair or ramp is approximated as a succession of turns.
 
-RUN05 also covers two more states under the same code.
+RUN05 also covers a device that cannot turn back, incompatible run dimensions, or an invalid station for a returning stair flight.
 
 ```text
 form:return may not be written on lift (only a stair and a ramp turn back)
@@ -160,6 +160,8 @@ The form of the vertical circulation is undetermined: /L1/s (check that the land
 ```
 
 The written values do not fit together and no shape comes out. Nearly always `landing:` (the depth of an intermediate landing) or `entry:` (the depth of the boarding floor) has eaten the whole length of the run.
+
+For [`arrival-at:`](../muro/vertical-circulation.md#an-independent-arrival-line), declare muro 1.8 and a stair with `form:return`. Use the longitudinal grid of that stair and place the arrival line inside the enclosure, strictly before the intermediate landing.
 
 **Fix** — use `form:return`, or stack the turns across several levels. If the run is short, lengthen the enclosure or shorten the landing.
 

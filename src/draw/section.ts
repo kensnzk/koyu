@@ -12,7 +12,7 @@
 // writing the same painter twice and inviting the two to drift.
 
 import { derive, type DeriveOptions, type Form } from "../core/derive.js";
-import { displayName, type Edge, type Model } from "../core/model.js";
+import { displayName, frameGridRef, gridRef, gridPoint, namedAxisGeometry, yGridAt, type Edge, type Model } from "../core/model.js";
 import {
   defaultLook,
   elevationForm,
@@ -24,9 +24,9 @@ import {
   type SectionEntity,
   type SectionPt,
 } from "../core/section.js";
-import { esc, Extent, FAINT, GRID, INK, openSheet, r2, ROOM, memberInk, subjectAttrs } from "./sheet.js";
+import { esc, Extent, memberInk, openSheet, r2, sheetPalette, subjectAttrs, type SheetOptions } from "./sheet.js";
 
-export interface SectionOptions extends Pick<DeriveOptions, "roofSketches"> {
+export interface SectionOptions extends Pick<DeriveOptions, "roofSketches">, SheetOptions {
   /** which axis the plane is named on. `"X"` means the plane `x = at` */
   axis: SectionAxis;
   /** where the plane sits, world mm */
@@ -42,7 +42,7 @@ export interface SectionOptions extends Pick<DeriveOptions, "roofSketches"> {
 }
 
 /** A section whose plane follows a directed line in plan. */
-export interface LineSectionOptions extends Pick<DeriveOptions, "roofSketches"> {
+export interface LineSectionOptions extends Pick<DeriveOptions, "roofSketches">, SheetOptions {
   cut: SectionLine;
   /** a caller-owned name for the cut */
   atRef?: string;
@@ -59,19 +59,31 @@ export interface SectionGuide {
   showVertices?: boolean;
 }
 
-export interface ElevationOptions extends Pick<DeriveOptions, "roofSketches"> {
+export interface ElevationOptions extends Pick<DeriveOptions, "roofSketches">, SheetOptions {
   /** the side the viewer stands on. `S` is the south elevation, seen from the south */
   face: Edge;
+  /** Read the face in this rotated grid frame. Omit to use world directions. */
+  frame?: string;
   /** px per mm */
   scale?: number;
 }
 
-/** What stands behind the plane, in a tone that does not compete with the cut. */
-const BEYOND = "#b8b0a0";
-/** Glazing, cool so that it does not read as matter. */
-const GLASS = "#b9c3c0";
-/** Annotation. */
-const LABEL = "#8a8171";
+/** Directed section line for an oblique primary or supplementary reference. */
+export function referenceCut(model: Model, at: string, reverse = false): SectionLine | undefined {
+  const named = namedAxisGeometry(model, at);
+  let endpoints;
+  if (named) {
+    endpoints = [named.a, named.b] as const;
+  } else {
+    const ref = gridRef(model, at);
+    if (ref?.axis !== "Y" || !model.grid.Y.slope) return;
+    const x = model.grid.X.coords[0] ?? 0;
+    const xEnd = x + 1000;
+    endpoints = [{ x, y: yGridAt(model, ref.coord, x) }, { x: xEnd, y: yGridAt(model, ref.coord, xEnd) }] as const;
+  }
+  const [a, b] = reverse ? [endpoints[1], endpoints[0]] : endpoints;
+  return { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
+}
 
 export function svgSection(model: Model, opts: SectionOptions | LineSectionOptions): string {
   const form = derive(model, { roofSketches: opts.roofSketches });
@@ -81,7 +93,7 @@ export function svgSection(model: Model, opts: SectionOptions | LineSectionOptio
       ...(opts.atRef !== undefined ? { atRef: opts.atRef } : {}),
     });
     const where = opts.atRef ?? `(${opts.cut.x1}, ${opts.cut.y1})–(${opts.cut.x2}, ${opts.cut.y2})`;
-    return sheet(model, form, section, opts.scale, `${model.name ?? "Untitled"} — section along ${where}`, opts.guides);
+    return sheet(model, form, section, opts, `${model.name ?? "Untitled"} — section along ${where}`, opts.guides);
   }
   const look = opts.look ?? defaultLook(opts.axis);
   const section = sectionForm(form, {
@@ -95,7 +107,7 @@ export function svgSection(model: Model, opts: SectionOptions | LineSectionOptio
     model,
     form,
     section,
-    opts.scale,
+    opts,
     `${model.name ?? "Untitled"} — section at ${where} looking ${look}`,
     opts.guides,
   );
@@ -103,8 +115,16 @@ export function svgSection(model: Model, opts: SectionOptions | LineSectionOptio
 
 export function svgElevation(model: Model, opts: ElevationOptions): string {
   const form = derive(model, { roofSketches: opts.roofSketches });
+  if (opts.frame !== undefined) {
+    const grid = model.frames?.get(opts.frame);
+    if (!grid) throw new Error(`Undefined grid frame: ${opts.frame}`);
+    const section = elevationForm(form, opts.face, grid);
+    const family = opts.face === "S" || opts.face === "N" ? 1 : 0;
+    return sheet(model, form, section, opts, `${model.name ?? "Untitled"} — ${opts.frame} ${opts.face} elevation`,
+      [], grid.name[family] + "1");
+  }
   const section = elevationForm(form, opts.face);
-  return sheet(model, form, section, opts.scale, `${model.name ?? "Untitled"} — ${opts.face} elevation`);
+  return sheet(model, form, section, opts, `${model.name ?? "Untitled"} — ${opts.face} elevation`);
 }
 
 /**
@@ -120,11 +140,13 @@ function sheet(
   model: Model,
   form: Form,
   section: FormSection | LineFormSection,
-  scale: number | undefined,
+  opts: SheetOptions & { scale?: number },
   heading: string,
   guides: SectionGuide[] = [],
+  parallelGridLine?: string,
 ): string {
-  const s = scale ?? 0.05;
+  const palette = sheetPalette(opts.drawingStyle);
+  const s = opts.scale ?? 0.05;
 
   // **Folded, never spread** — a wall is one body per interval, so a large building runs past the
   // limit on how many arguments a call may take.
@@ -156,14 +178,14 @@ function sheet(
   const path2d = (poly: SectionPt[]): string =>
     poly.map((p, i) => `${i === 0 ? "M" : "L"} ${sx(p.u)} ${sy(p.z)}`).join(" ") + " Z";
 
-  const parts: string[] = openSheet(W, H);
+  const parts: string[] = openSheet(W, H, palette);
 
   // ---- the air the plane opened ----
   // Behind everything, because it is not a surface. It is the storey's volume, and it shows only
   // where nothing stands behind the plane to be seen instead.
   for (const e of section.entities) {
     if (e.class !== "cut" || e.of !== "space") continue;
-    parts.push(`<path d="${path2d(e.polygon)}" fill="${ROOM}"/>`);
+    parts.push(`<path d="${path2d(e.polygon)}" fill="${palette.room}"/>`);
   }
 
   // ---- what stands behind the plane, far first ----
@@ -173,9 +195,9 @@ function sheet(
     .filter((e) => e.class === "beyond")
     .sort((a, b) => b.depth - a.depth || rank(a) - rank(b));
   for (const e of beyond) {
-    const face = e.of === "opening" ? GLASS : memberInk(e.of) ?? BEYOND;
+    const face = e.of === "opening" ? palette.glass : memberInk(palette, e.of) ?? palette.beyond;
     parts.push(
-      `<path ${subjectAttrs(e.of, e.ref)} d="${path2d(e.polygon)}" fill="${face}" stroke="${e.polygon.length === 2 ? face : INK}" stroke-width="${e.polygon.length === 2 ? 1.2 : 0.35}" stroke-opacity="0.5"/>`,
+      `<path ${subjectAttrs(e.of, e.ref)} d="${path2d(e.polygon)}" fill="${face}" stroke="${e.polygon.length === 2 ? face : palette.ink}" stroke-width="${e.polygon.length === 2 ? 1.2 : 0.35}" stroke-opacity="0.5"/>`,
     );
   }
 
@@ -184,9 +206,9 @@ function sheet(
   for (const l of form.levels) {
     if (l.z < minZ - 1 || l.z > maxZ + 1) continue;
     parts.push(
-      `<line x1="${ML - 26}" y1="${sy(l.z)}" x2="${W - MR + 26}" y2="${sy(l.z)}" stroke="${GRID}" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>`,
-      `<text x="${ML - 34}" y="${sy(l.z) - 4}" text-anchor="end" font-size="10" fill="${GRID}">${esc(l.name)}</text>`,
-      `<text x="${ML - 34}" y="${sy(l.z) + 9}" text-anchor="end" font-size="8.5" fill="${FAINT}">${l.z >= 0 ? "+" : ""}${l.z}</text>`,
+      `<line x1="${ML - 26}" y1="${sy(l.z)}" x2="${W - MR + 26}" y2="${sy(l.z)}" stroke="${palette.grid}" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>`,
+      `<text x="${ML - 34}" y="${sy(l.z) - 4}" text-anchor="end" font-size="10" fill="${palette.grid}">${esc(l.name)}</text>`,
+      `<text x="${ML - 34}" y="${sy(l.z) + 9}" text-anchor="end" font-size="8.5" fill="${palette.faint}">${l.z >= 0 ? "+" : ""}${l.z}</text>`,
     );
   }
 
@@ -198,26 +220,53 @@ function sheet(
   // every model that does not say otherwise, and because nothing in the source can say otherwise.
   if (minZ - 1 <= 0 && 0 <= maxZ + 1) {
     parts.push(
-      `<line x1="0" y1="${sy(0)}" x2="${W}" y2="${sy(0)}" stroke="${INK}" stroke-width="1.2"/>`,
-      `<text x="${W - MR + 26}" y="${sy(0) + 14}" text-anchor="end" font-size="8" fill="${LABEL}">z 0</text>`,
+      `<line x1="0" y1="${sy(0)}" x2="${W}" y2="${sy(0)}" stroke="${palette.ink}" stroke-width="1.2"/>`,
+      `<text x="${W - MR + 26}" y="${sy(0) + 14}" text-anchor="end" font-size="8" fill="${palette.label}">z 0</text>`,
     );
   }
 
   // ---- the grid, along the sheet ----
   // The axis the plane is named on gets no bubbles — every one of its lines would land on the same
   // point. The other axis is what runs across the sheet, so that is the one that marks it.
+  const gridMarks: { name: string; u: number }[] = [];
   if ("axis" in section) {
     const across = section.axis === "X" ? model.grid.Y : model.grid.X;
     const sign = section.look === "W" || section.look === "N" ? 1 : -1;
-    for (const [i, c] of across.coords.entries()) {
-      const u = c * sign;
-      if (u < minU - 1 || u > maxU + 1) continue;
-      parts.push(
-        `<line x1="${sx(u)}" y1="${MT - 26}" x2="${sx(u)}" y2="${H - MB + 26}" stroke="${GRID}" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>`,
-        `<circle cx="${sx(u)}" cy="${MT - 40}" r="11" fill="none" stroke="${GRID}" stroke-width="1"/>`,
-        `<text x="${sx(u)}" y="${MT - 36}" text-anchor="middle" font-size="10" fill="${GRID}">${across.names[i]!}</text>`,
-      );
+    across.coords.forEach((c, i) => {
+      const position = section.axis === "X" ? yGridAt(model, c, section.at) : c;
+      gridMarks.push({ name: across.names[i]!, u: position * sign });
+    });
+  } else if (section.atRef && model.grid.Y.slope && gridRef(model, section.atRef)?.axis === "Y") {
+    const { x1, y1, x2, y2 } = section.cut;
+    const dx = x2 - x1;
+    if (dx !== 0) {
+      const factor = Math.hypot(dx, y2 - y1) / dx;
+      model.grid.X.coords.forEach((x, i) => gridMarks.push({ name: model.grid.X.names[i]!, u: (x - x1) * factor }));
     }
+  }
+  const gridLine = parallelGridLine ?? section.atRef;
+  if ("cut" in section && gridLine) {
+    const at = frameGridRef(model, gridLine);
+    if (at) {
+      const frame = model.frames!.get(at.frame)!;
+      const other = at.index === 0 ? 1 : 0;
+      const { x1, y1, x2, y2 } = section.cut;
+      const length = Math.hypot(x2 - x1, y2 - y1);
+      for (let i = 0; i < frame.coords[other].length; i++) {
+        const name = frame.name[other]! + (i + 1);
+        const p = gridPoint(model, gridLine + "," + name);
+        const u = ((p.x - x1) * (x2 - x1) + (p.y - y1) * (y2 - y1)) / length;
+        gridMarks.push({ name, u });
+      }
+    }
+  }
+  for (const { name, u } of gridMarks) {
+    if (u < minU - 1 || u > maxU + 1) continue;
+    parts.push(
+      `<line x1="${sx(u)}" y1="${MT - 26}" x2="${sx(u)}" y2="${H - MB + 26}" stroke="${palette.grid}" stroke-width="0.8" stroke-dasharray="7 3 1.5 3"/>`,
+      `<circle cx="${sx(u)}" cy="${MT - 40}" r="11" fill="none" stroke="${palette.grid}" stroke-width="1"/>`,
+      `<text x="${sx(u)}" y="${MT - 36}" text-anchor="middle" font-size="10" fill="${palette.grid}">${esc(name)}</text>`,
+    );
   }
 
   // ---- what the plane cut ----
@@ -226,7 +275,7 @@ function sheet(
   // openings split it into, so the hole is in it from the start.
   for (const e of section.entities) {
     if (e.class !== "cut" || e.of === "space" || e.of === "opening") continue;
-    const colour = memberInk(e.of) ?? INK;
+    const colour = memberInk(palette, e.of) ?? palette.ink;
     const stroke = e.polygon.length === 2 ? ` stroke="${colour}" stroke-width="1.4"` : "";
     parts.push(`<g ${subjectAttrs(e.of, e.ref)}><path d="${path2d(e.polygon)}" fill="${colour}"${stroke}/></g>`);
   }
@@ -234,7 +283,7 @@ function sheet(
   for (const e of section.entities) {
     if (e.class !== "cut" || e.of !== "opening") continue;
     parts.push(
-      `<path d="${path2d(e.polygon)}" fill="${e.kind === "window" ? GLASS : ROOM}" stroke="${INK}" stroke-width="1"/>`,
+      `<path d="${path2d(e.polygon)}" fill="${e.kind === "window" ? palette.glass : palette.room}" stroke="${palette.ink}" stroke-width="1"/>`,
     );
   }
 
@@ -245,17 +294,17 @@ function sheet(
     const points = guide.points.filter((p) => Number.isFinite(p.u) && Number.isFinite(p.z));
     if (points.length >= 2) {
       parts.push(
-        `<polyline points="${points.map((p) => `${sx(p.u)},${sy(p.z)}`).join(" ")}" fill="none" stroke="#A84940" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`,
+        `<polyline points="${points.map((p) => `${sx(p.u)},${sy(p.z)}`).join(" ")}" fill="none" stroke="${palette.guide}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`,
       );
     }
     if (guide.showVertices) {
       for (const p of points) {
-        parts.push(`<circle cx="${sx(p.u)}" cy="${sy(p.z)}" r="2.8" fill="#A84940"/>`);
+        parts.push(`<circle cx="${sx(p.u)}" cy="${sy(p.z)}" r="2.8" fill="${palette.guide}"/>`);
       }
     }
     const last = points[points.length - 1];
     if (last && guide.label) {
-      parts.push(`<text x="${sx(last.u) + 7}" y="${sy(last.z) - 7}" font-size="10" fill="#A84940">${esc(guide.label)}</text>`);
+      parts.push(`<text x="${sx(last.u) + 7}" y="${sy(last.z) - 7}" font-size="10" fill="${palette.guide}">${esc(guide.label)}</text>`);
     }
   }
 
@@ -269,12 +318,12 @@ function sheet(
     const cx = sx((b.u0 + b.u1) / 2);
     const cy = sy((b.z0 + b.z1) / 2);
     parts.push(
-      `<text x="${cx}" y="${cy}" text-anchor="middle" font-size="12" fill="${INK}">${esc(displayName(space))}</text>`,
-      `<text x="${cx}" y="${cy + 14}" text-anchor="middle" font-size="9" fill="${LABEL}">h ${Math.round(b.z1 - b.z0)}</text>`,
+      `<text x="${cx}" y="${cy}" text-anchor="middle" font-size="12" fill="${palette.ink}">${esc(displayName(space))}</text>`,
+      `<text x="${cx}" y="${cy + 14}" text-anchor="middle" font-size="9" fill="${palette.label}">h ${Math.round(b.z1 - b.z0)}</text>`,
     );
   }
 
-  parts.push(`<text x="${ML - 62}" y="${H - 18}" font-size="12" fill="${INK}">${esc(heading)}</text>`, "</svg>");
+  parts.push(`<text x="${ML - 62}" y="${H - 18}" font-size="12" fill="${palette.ink}">${esc(heading)}</text>`, "</svg>");
   return parts.join("\n") + "\n";
 }
 

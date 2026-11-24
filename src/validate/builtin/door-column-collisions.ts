@@ -7,11 +7,13 @@ import type {
   SubjectRef,
 } from "../../analysis/contracts.js";
 import { codePointCompare } from "../../analysis/json.js";
-import { placeOpening, type Segment } from "../../core/graph.js";
+import { placeOpening, segmentLength, type Segment } from "../../core/graph.js";
+import { CROSS_EPS } from "../../core/tolerance.js";
 import {
   canonicalBoundaryOrder,
   canonicalOpeningOrder,
   columnsFor,
+  frameCoordinates,
   levelsSorted,
   type Boundary,
   type Column,
@@ -41,6 +43,8 @@ export type ColumnObservation = {
   readonly centerMm: { readonly x: number; readonly y: number };
   readonly widthMm: number;
   readonly depthMm: number;
+  /** World unit direction of width, supplied for a frame-aligned section. */
+  readonly widthAxis?: { readonly x: number; readonly y: number };
 };
 
 export type DoorColumnObservation = {
@@ -150,19 +154,23 @@ function firstIntersectingColumn(
   opening: Opening,
   columns: readonly Column[],
 ): Column | undefined {
-  const half = opening.w / 2;
+  const length = segmentLength(segment);
   for (const column of columns) {
-    const x1 = column.x - column.w / 2;
-    const x2 = column.x + column.w / 2;
-    const y1 = column.y - column.d / 2;
-    const y2 = column.y + column.d / 2;
-    const along = segment.horizontal
-      ? Math.max(centerX - half, x1) < Math.min(centerX + half, x2)
-      : Math.max(centerY - half, y1) < Math.min(centerY + half, y2);
-    const across = segment.horizontal
-      ? y1 < segment.y1 && segment.y1 < y2
-      : x1 < segment.x1 && segment.x1 < x2;
-    if (along && across) return column;
+    // Project onto the column axes before testing its two sides and the segment normal.
+    const local = (x: number, y: number) => column.basis
+      ? frameCoordinates({ origin: column, basis: column.basis }, { x, y })
+      : { x: x - column.x, y: y - column.y };
+    const a = local(segment.x1, segment.y1), b = local(segment.x2, segment.y2);
+    const center = local(centerX, centerY);
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const halfX = (Math.abs(dx) / length) * (opening.w / 2);
+    const halfY = (Math.abs(dy) / length) * (opening.w / 2);
+    // Strict overlap on all three excludes contact at one endpoint or corner.
+    if ((column.w / 2 + halfX - Math.abs(center.x)) * length <= CROSS_EPS ||
+        (column.d / 2 + halfY - Math.abs(center.y)) * length <= CROSS_EPS) continue;
+    const distanceOnNormal = Math.abs(dx * center.y - dy * center.x);
+    const radiusOnNormal = (Math.abs(dy) * column.w + Math.abs(dx) * column.d) / 2;
+    if (radiusOnNormal - distanceOnNormal > CROSS_EPS) return column;
   }
   return undefined;
 }
@@ -197,6 +205,7 @@ function columnObservation(column: Column): ColumnObservation {
     centerMm: { x: column.x, y: column.y },
     widthMm: column.w,
     depthMm: column.d,
+    ...(column.basis ? { widthAxis: column.basis[0] } : {}),
   };
 }
 

@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/grid.md#inclining-the-y-grid-family", "docs/reference/json/schema.md"],
+  "why": "Northings are measured at X1 (1000 mm). At X2 (7000 mm), Y2 (6000 mm) is 1200 mm farther north. The column stands at the resulting world position on the range perimeter."
+}

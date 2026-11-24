@@ -8,6 +8,7 @@ import type {
 } from "../../analysis/contracts.js";
 import { passable } from "../../core/graph.js";
 import {
+  hasRegion,
   canonicalSpaceOrder,
   effectiveAttr,
   isOutside,
@@ -100,7 +101,7 @@ export const ACCESS_ANALYSIS: AnalysisDefinition<AccessAnalysisValue> = freezeBu
     const commonCorridorRefs = spaces
       .filter((space) =>
         space.type === "corridor"
-        && space.rects.length > 0
+        && hasRegion(space)
         && leaseCategory(coreModel, space) === "common"
       )
       .map((space) => space.path);
@@ -120,7 +121,7 @@ export const ACCESS_ANALYSIS: AnalysisDefinition<AccessAnalysisValue> = freezeBu
       .filter((observation) => observation.neighbours.length > 0);
 
     const rentableAvoidingExteriorRoutes = spaces
-      .filter((space) => space.type === "stair" && space.rects.length > 0)
+      .filter((space) => space.type === "stair" && hasRegion(space))
       .map((space) => routeObservation(
         space.path,
         findRoute(coreModel, [space.path], exterior, {
@@ -138,7 +139,7 @@ export const ACCESS_ANALYSIS: AnalysisDefinition<AccessAnalysisValue> = freezeBu
 
     const commonCorridorHorizontalRoutes = spaces
       .filter((space) =>
-        space.rects.length > 0
+        hasRegion(space)
         && space.type !== "shaft"
         && (space.attrs["stair"] != null || space.attrs["escalator"] != null)
         && leaseCategory(coreModel, space) === "common"
@@ -505,7 +506,7 @@ function isVehicleSpace(space: Space): boolean {
 }
 
 function baseAccessPopulation(space: Space): boolean {
-  return space.rects.length > 0 && !isOutside(space) && !impassable(space);
+  return hasRegion(space) && !isOutside(space) && !impassable(space);
 }
 
 function impassable(space: Space): boolean {

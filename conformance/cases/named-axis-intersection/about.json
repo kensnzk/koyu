@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/grid.md#named-lines-and-their-intersections", "docs/reference/muro/positions.md", "docs/reference/json/schema.md"],
+  "why": "Two named lines cross at (3000,2000) mm. The column centre follows their intersection. Canonical JSON preserves the references that locate it and define the lines."
+}

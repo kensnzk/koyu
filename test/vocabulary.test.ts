@@ -50,9 +50,10 @@ const BRANCHES_ON_TYPE = [
 // exactly as long as it takes to say so.
 const ALLOWED = new Set([
   // RoofDecl.type is a closed geometric choice; Space.type remains an open label.
+  'src/core/roof.ts: if (!model.frames?.size || (roof.type !== "gable" && roof.type !== "shed")) return undefined;',
   'src/core/roof.ts: if (roof.type === "flat") {',
   'src/core/roof.ts: if (roof.type === "shed") {',
-  'src/core/roof.ts: } else if (roof.type === "gable") {',
+  'src/core/roof.ts: if (roof.type === "shed" || roof.type === "gable") {',
   'src/core/diagnose.ts: if (s.type === undefined || !LEGACY_DAYLIT.has(s.type) || s.attrs["daylight"] !== undefined) continue;',
 ]);
 

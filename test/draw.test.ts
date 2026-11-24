@@ -32,7 +32,7 @@ import { svgAxo } from "../src/draw/axo.js";
 import { planMarks } from "../src/draw/marks.js";
 import { svgPlan } from "../src/draw/plan.js";
 import { svgElevation, svgSection } from "../src/draw/section.js";
-import { OUTDOOR, ROOM, SEMI_OUTDOOR } from "../src/draw/sheet.js";
+import { sheetPalette, type DrawingStyle } from "../src/draw/sheet.js";
 import { parseFile } from "../src/parse-file.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -169,7 +169,7 @@ test("drawing: every black band of the plan is a cut interval of the Form — no
   const svg = svgPlan(m, { level: "L1" });
 
   // 紙に出た黒い四辺形 (壁の切られた区間 + 柱)
-  const drawn = filledQuads(svg, "#1f1f1f");
+  const drawn = filledQuads(svg, sheetPalette().ink);
   assert.ok(drawn.length > 0, "the plan draws something black");
 
   // Form が言う、そのレベルで切られた区間 + 柱
@@ -337,7 +337,7 @@ test("drawing: every black band of a section is a body the plane cut, and nothin
   // ever disagree, a viewer written against `Form` draws a different building from `koyu section`.
   const m = parseFile(join(root, "examples/house/main.muro"));
   const section = sectionForm(derive(m), { axis: "X", at: 4540, atRef: "X2+900", look: "W" });
-  const svg = svgSection(m, { axis: "X", at: 4540, atRef: "X2+900" });
+  const svg = svgSection(m, { axis: "X", at: 4540, atRef: "X2+900", drawingStyle: "classic" });
 
   // The air of a room and the leaf of an opening are cut too, but they are not matter and are not
   // painted as it. What is left is the poché.
@@ -358,6 +358,7 @@ test("drawing: a directed-line section carries caller reference geometry in the 
   const svg = svgSection(m, {
     cut: { x1: 0, y1: 1000, x2: 7200, y2: 3500 },
     atRef: "legal cut",
+    drawingStyle: "classic",
     guides: [
       {
         points: [
@@ -417,7 +418,36 @@ test("drawing: every drawing carries the mark", () => {
     svgSection(m, { axis: "Y", at: 2250 }),
     svgElevation(m, { face: "S" }),
   ]) {
-    assert.match(svg, /<g transform="translate\([^)]*\) scale\([^)]*\)"><path d="M1027\.53 171\.361/);
+    const mark = /<g [^>]*data-brand="koyu"[^>]*>([\s\S]*?)<\/g>/.exec(svg);
+    assert.ok(mark, "the sheet carries the Koyu symbol");
+    assert.equal([...mark[1]!.matchAll(/<path\b/g)].length, 3);
+  }
+});
+
+test("drawing: each sheet can switch palettes without changing the projected drawing", () => {
+  const model = parse(SRC);
+  const renderers = [
+    (drawingStyle?: DrawingStyle) => svgPlan(model, { level: "L1", drawingStyle }),
+    (drawingStyle?: DrawingStyle) => svgSection(model, { axis: "X", at: 2000, drawingStyle }),
+    (drawingStyle?: DrawingStyle) => svgElevation(model, { face: "S", drawingStyle }),
+    (drawingStyle?: DrawingStyle) => svgAxo(model, { drawingStyle }),
+  ];
+  const omitPaint = (svg: string) => svg.replace(/(fill|stroke)="#[a-f0-9]{6}"/gi, '$1="colour"');
+  for (const render of renderers) {
+    const ink = render("ink");
+    const blueprint = render("blueprint");
+    const classic = render("classic");
+    assert.equal(render(), ink, "rendering with other styles cannot change the default");
+    assert.equal(omitPaint(ink), omitPaint(blueprint));
+    assert.equal(omitPaint(ink), omitPaint(classic));
+    for (const [sheet, paper, pen] of [
+      [ink, "#ffffff", "#101619"],
+      [blueprint, "#061426", "#f1f8ff"],
+      [classic, "#faf8f4", "#1f1f1f"],
+    ] as const) {
+      assert.match(sheet, new RegExp(`<rect width="[^"]+" height="[^"]+" fill="${paper}"`));
+      assert.match(sheet, new RegExp(`<text [^>]+fill="${pen}"`));
+    }
   }
 });
 
@@ -457,7 +487,8 @@ boundary /L1/yard /out`));
   assert.equal(of("/L1/deck").semiOutdoor, true);
   assert.equal(of("/L1/yard").outside, true);
 
-  const fills = new Set([ROOM, SEMI_OUTDOOR, OUTDOOR]);
+  const { room, semiOutdoor, outdoor } = sheetPalette();
+  const fills = new Set([room, semiOutdoor, outdoor]);
   assert.equal(fills.size, 3, "the three are three colours, not two spelled twice");
   for (const c of fills) {
     assert.ok(svg.includes(`fill="${c}"`), `the plan draws nothing in ${c}`);

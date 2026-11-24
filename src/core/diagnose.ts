@@ -14,16 +14,20 @@ import {
   placeOpening,
   planOverlap,
   segmentLength,
+  runsAlongYGrid,
   segmentsFor,
   spacesOverlap,
 } from "./graph.js";
-import { heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type Attrs, type Boundary, type Edge, type Level, type Model, type Space,
+import { hasRegion, heff, isSemiOutdoor, levelsSorted, SUPPORTED_LANGUAGE_VERSIONS, type Attrs, type Boundary, type Edge, type Level, type Model, type Space,
   columnSites,
+  sameColumnCentre,
+  allocatedPieces,
   openingIdentity,
   regionOf,
   columnsFor,
   pointInPolygon,
-  rectToPoly,
+  gridRangeOutline,
+  hasPolygonAllocation,
   srcRef,
   polygonSelfIntersection,
   isOutside,
@@ -40,6 +44,7 @@ import {
   openingStyleOwner,
 } from "./vocabulary.js";
 import { runDecls, runIssues } from "./vertical.js";
+import { areaOf, overlaps, subtract } from "./poly.js";
 import { placedComponents } from "./components.js";
 
 export interface CheckResult {
@@ -148,6 +153,7 @@ export const DIAGNOSTIC_CODES = {
   VER08: "error", // the file uses opening presentation introduced in muro 1.5 (ADR-0068/0074)
   VER09: "error", // the file uses component assets or area placement introduced in muro 1.5
   VER10: "error", // spatial mode requires muro 1.6
+  VER12: "error", // named grid geometry requires muro 1.8
   VER11: "error", // explicit roofs and structural members require muro 1.7
   SYN01: "error", // 構文・合成エラー (SourceError の写し — check --json のみ)
 } as const satisfies Record<string, "error" | "warning">;
@@ -311,7 +317,7 @@ export function checkDiagnostics(model: Model): Diagnostic[] {
   });
 
 
-  const withRect = [...model.spaces.values()].filter((s) => s.rects.length > 0);
+  const withRect = [...model.spaces.values()].filter((s) => hasRegion(s));
   const levels = levelsSorted(model);
   const levelIndex = new Map(levels.map((l, i) => [l.name, i]));
   const ctx: Ctx = { model, emit, loc, withRect, levels, levelIndex };
@@ -415,6 +421,11 @@ function checkComponents(ctx: Ctx): void {
 
 /** 吹抜けが下階の空間の平面をどれだけ覆うか (0..1) */
 function voidCoverage(s: Space, partners: Space[]): number {
+  if (hasPolygonAllocation(s) || partners.some(hasPolygonAllocation)) {
+    const source = allocatedPieces(s), covers = partners.flatMap(allocatedPieces);
+    const area = areaOf(source);
+    return area > 0 ? 1 - areaOf(source.flatMap(piece => subtract(piece, covers))) / area : 0;
+  }
   let inter = 0;
   for (const r of s.rects) {
     for (const p of partners) {
@@ -543,7 +554,10 @@ function checkSelfOverlap(ctx: Ctx): void {
   for (const s of withRect) {
     for (let i = 0; i < s.rects.length; i++) {
       for (let j = i + 1; j < s.rects.length; j++) {
-        if (planOverlap(s.rects[i]!, s.rects[j]!)) {
+        const overlapping = s.rangePolygons
+          ? overlaps([s.rangePolygons[i]!], [s.rangePolygons[j]!])
+          : planOverlap(s.rects[i]!, s.rects[j]!);
+        if (overlapping) {
           // どの組かを言わなければ、三つ重なる空間にバイト同一の診断が三件並ぶ
           emit("GEO01", `Regions within ${s.path} overlap: ${gridRefText(s, i)} and ${gridRefText(s, j)}`, {
             line: s.line,
@@ -655,7 +669,7 @@ function checkDrawnLines(ctx: Ctx): void {
     const sa = model.spaces.get(b.a);
     const sb = model.spaces.get(b.b);
     if (!sa || !sb) continue;
-    if (sa.rects.length === 0 && sb.rects.length === 0) {
+    if (!hasRegion(sa) && !hasRegion(sb)) {
       emit("LIN01", `A line cannot be drawn between spaces that have no region: ${b.a} | ${b.b}`, bAt);
       continue;
     }
@@ -665,7 +679,7 @@ function checkDrawnLines(ctx: Ctx): void {
     if (b.drawn.effect === "undetermined") {
       emit(
         "LIN01",
-        sa.rects.length > 0 && sb.rects.length > 0
+        hasRegion(sa) && hasRegion(sb)
           ? `Line ${b.drawn.aRef}..${b.drawn.bRef} does not separate ${b.a} and ${b.b} (draw it so the two allocations fall on opposite sides)`
           : `Line ${b.drawn.aRef}..${b.drawn.bRef} bisects the allocation exactly, so which side to keep is undetermined`,
         bAt,
@@ -708,7 +722,7 @@ function checkColumns(ctx: Ctx): void {
       const winners = new Set<number>();
       for (const candidate of candidates) {
         for (const placed of columnsFor(model, candidate.level)) {
-          const sameCentre = placed.x === candidate.x && placed.y === candidate.y;
+          const sameCentre = sameColumnCentre(model, placed, candidate);
           const base = placed.grid.replace(/[+-]\d+/g, "");
           if (sameCentre || (!c.at && candidate.grid === base)) winners.add(placed.decl);
         }
@@ -1050,7 +1064,7 @@ function checkBoundaryValidity(ctx: Ctx): void {
       checkVerticalBoundary(ctx, b, sa, sb, bAt);
       continue; // 垂直境界は水平の検査 (線分・開口・seg) を一切受けない
     }
-    if (sa.rects.length > 0 && sb.rects.length > 0 && sa.level !== sb.level) {
+    if (hasRegion(sa) && hasRegion(sb) && sa.level !== sb.level) {
       emit(
         "BND03",
         `A wall boundary cannot be written to a space on a different level (vertical takes type:stair/shaft/void): ${b.a} | ${b.b}`,
@@ -1068,7 +1082,7 @@ function checkBoundaryValidity(ctx: Ctx): void {
 function checkVerticalBoundary(ctx: Ctx, b: Boundary, sa: Space, sb: Space, bAt: At): void {
   const { emit, levelIndex } = ctx;
   // 垂直境界: 隣り合うレベルの、平面で重なる空間同士にしか張れない
-  if (sa.rects.length === 0 || sb.rects.length === 0 || !sa.level || !sb.level) {
+  if (!hasRegion(sa) || !hasRegion(sb) || !sa.level || !sb.level) {
     emit("VRT01", `A ${b.kind} boundary is written between spaces that have both a region and a level`, bAt);
     return; // 前提が崩れているので、以降の判定は意味を持たない
   }
@@ -1102,7 +1116,7 @@ function checkBoundarySegments(ctx: Ctx, b: Boundary, sa: Space, sb: Space, bAt:
   // 何も切っていないかであり、それは LIN01 / LIN03 が言う
   if (b.drawn) return;
   const segs = segmentsFor(model, b);
-  if (sa.rects.length > 0 && sb.rects.length > 0 && segs.length === 0) {
+  if (hasRegion(sa) && hasRegion(sb) && segs.length === 0) {
     // **線分がゼロの理由は二つある。**接していないか、edge: で絞った先に共有辺が
     // 無いか。前者だと断言すると、実際には接している二室について「割付を直せ」と
     // 言うことになる — 直すべきは方角一語である (N=+Y, S=-Y, E=+X, W=-X)
@@ -1120,7 +1134,7 @@ function checkBoundarySegments(ctx: Ctx, b: Boundary, sa: Space, sb: Space, bAt:
       emit("BND04", `The spaces do not touch, so no boundary can be derived: ${b.a} | ${b.b}`, bAt);
     }
   }
-  if ((sa.rects.length > 0 ? 1 : 0) + (sb.rects.length > 0 ? 1 : 0) === 1 && segs.length === 0) {
+  if ((hasRegion(sa) ? 1 : 0) + (hasRegion(sb) ? 1 : 0) === 1 && segs.length === 0) {
     emit(
       "BND06",
       `No edge remains on the perimeter${b.edge ? ` for edge:${b.edge}` : ""}, so the boundary segment is of zero length: ${b.a} | ${b.b}`,
@@ -1182,17 +1196,19 @@ function checkOpenings(ctx: Ctx, b: Boundary): void {
       placedOnSeg.push({
         o,
         key: `${s.x1},${s.y1},${s.x2},${s.y2}`,
-        c: s.horizontal ? placed.cx : placed.cy,
+        c: Math.hypot(placed.cx - s.x1, placed.cy - s.y1),
       });
     }
-    if (o.hinge && "segment" in placed) {
-      const okAxis = placed.segment.horizontal
+    if (o.hinge && o.hinge !== "L" && o.hinge !== "R" && "segment" in placed &&
+      !(placed.segment.diagonal && !olderThan(model.version, "1.8"))) {
+      const eastWest = placed.segment.horizontal || runsAlongYGrid(model, placed.segment);
+      const okAxis = eastWest
         ? o.hinge === "W" || o.hinge === "E"
         : o.hinge === "N" || o.hinge === "S";
       if (!okAxis) {
         emit(
           "OPN01",
-          `hinge:${o.hinge}: ${placed.segment.horizontal ? "a horizontal segment takes W/E" : "a vertical segment takes N/S"}`,
+          `hinge:${o.hinge}: ${placed.segment.horizontal ? "a horizontal segment takes W/E" : eastWest ? "a wall parallel to the sloping Y grid takes W/E" : "a vertical segment takes N/S"}`,
           { line: o.line, file: b.file, path: [b.a, b.b] },
         );
       }
@@ -1245,7 +1261,7 @@ function checkAreas(ctx: Ctx): void {
   // 数えない分節 (area) は親の領域に収まっているか
   for (const s of model.spaces.values()) {
     for (const a of s.areas) {
-      if (s.rects.length === 0) {
+      if (!hasRegion(s)) {
         emit("SEG01", `An area cannot be written on ${s.path}, which has no region`, {
           line: a.line,
           file: s.file,
@@ -1255,7 +1271,7 @@ function checkAreas(ctx: Ctx): void {
       }
       // 内包も導出された形で見る — 割付で見ると、切り落とした側に置いた床材が通ってしまう
       const inside = regionOf(s).some((g) =>
-        rectToPoly(a.rect).every((pt) => pointInPolygon(pt, g, EPS)),
+        gridRangeOutline(model, a.rect, a.frame).every((pt) => pointInPolygon(pt, g, EPS)),
       );
       if (!inside) {
         emit("SEG02", `The area spills outside the region of ${s.path}`, { line: a.line, file: s.file, path: [s.path] });

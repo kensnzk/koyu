@@ -67,9 +67,32 @@ These two used to be written in the type position. That position is an open voca
 
 Moved into the attribute position, the spelling is guarded by the ledger instead ([ATT03](../diagnostics/att.md#att03) refuses an unknown key, [ATT02](../diagnostics/att.md#att02) refuses a value outside the domain). `outsid:1` is an error; `acme.outside:1` passes as carrier tier — because that is **the author spelling out "this word is mine and the tool does not read it"**. Being open and being trustworthy hold together as long as the boundary is declared ([scope](../scope.md)).
 
+## Grid-intersection cells
+
+In muro 1.8, `cell:<point>;<point>;<point>…` traces the outer perimeter of one space. Each corner is the intersection of two grid lines, which may belong to different [frames](grid.md#rotated-orthogonal-frames). Each frame's offsets follow its local dimension directions. List distinct corners in perimeter order with no whitespace inside the value. The perimeter may turn inward. It must enclose positive area without crossing itself.
+
+An indented `hole` child excludes an inner perimeter from this space. List its corners as space-separated grid points. Each inner perimeter must lie strictly inside the outer perimeter and remain separate from the other holes. A neighbouring space can occupy that region and share its edges. The declaration applies to this space on its own level.
+
+```muro
+muro 1.8
+mode spatial
+grid X 0 2000 6000 8000
+grid Y 0 1000 2000 3000 6000
+frame AB at:X1,Y1+4000 angle:45 A:0,2000 B:0,2000
+level L1 0
+space /L1/hall cell:X1,Y1;X4,Y1;X4,Y4;X3,Y4;X3,Y5;B1,Y5;X1,B1
+  hole X2,Y2 X2+1000,Y2 X2+1000,Y3 X2,Y3
+```
+
+The hall has seven outer edges. The sloping edge follows B1 from Y5 to X1. The outer perimeter encloses 40 m² and the inner perimeter excludes 1 m², giving the hall a single area entry of 39 m². Plan, section and solids use this net footprint. A rectangular neighbour may meet a cell along part of a side.
+
+Each consecutive pair of intersections defines an edge. On a sloping side, `edge:N/E/S/W` selects the dominant compass direction of the outward normal. A 45-degree tie uses north or south. An opening’s fractional position is measured along the actual wall, starting at its smaller X coordinate. If several segments match, an absolute `at:` grid reference can select the only segment that accommodates the opening at its full width. A fractional position requires one selected segment. Vertical devices use rectangular enclosures aligned to the primary grid or specified as a range on a rotated orthogonal frame.
+
 ## Regions — a union of rectangles
 
-A region is **two tokens**, `X?..X? Y?..Y?`: one range on X and one on Y. A `+` written as its own token joins several rectangles into a union (an L shape, for instance).
+A [sloping Y grid](grid.md) turns each range pair into a parallelogram through its four grid intersections. A `+` union can therefore allocate a skewed L-shaped room while leaving its inside corner free.
+
+A region takes two ranges from one grid frame. Use `X?..X? Y?..Y?` on XY or `A?..A? B?..B?` on a rotated AB frame. A `+` written as its own token joins several rectangles into a union (an L shape, for instance).
 
 ```muro-part
 space /L1/L ldk X1..X3 Y1..Y2 + X1..X2 Y2..Y3 name:L字
@@ -184,7 +207,7 @@ Three worth naming.
 ## daylight — the scope is declared
 
 ```muro
-muro 1.7
+muro 1.8
 grid X 0 4000
 grid Y 0 5000
 level L1 0 h:2400 slab:150

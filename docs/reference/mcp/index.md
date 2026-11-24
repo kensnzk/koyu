@@ -72,9 +72,9 @@ model_summary  →  layers  →  write_layer  →  check ──errors──→ f
 | [`doors`](tools-ask.md#doors) | `file`, `from`, `to` | The fewest-doors route, or `{unreachable: true}` |
 | [`light`](tools-ask.md#light) | `file` | Floor area and effective window area for every space written `daylight:1` |
 | [`site`](tools-ask.md#site) | `file` | Site area, road frontage, coverage ratio, floor-area ratio |
-| [`plan_svg`](tools-ask.md#plan_svg) | `file`, `level` | The plan SVG for that level, as a string |
-| [`section_svg`](tools-ask.md#section_svg) | `file`, `at`, `look`? | The section cut at a grid reference, as a string |
-| [`elevation_svg`](tools-ask.md#elevation_svg) | `file`, `face` | The elevation of one face, as a string |
+| [`plan_svg`](tools-ask.md#plan_svg) | `file`, `level`, `drawingStyle`? | The plan SVG for that level, as a string |
+| [`section_svg`](tools-ask.md#section_svg) | `file`, `at`, `look`?, `drawingStyle`? | The section cut at a grid reference, as a string |
+| [`elevation_svg`](tools-ask.md#elevation_svg) | `file`, `face`, `frame`?, `drawingStyle`? | The elevation of one face, as a string |
 
 `?` marks an optional argument. The JSON-RPC surface — what `initialize` announces, the shape of a `tools/call` result, how errors come back — is on [The protocol](protocol.md).
 

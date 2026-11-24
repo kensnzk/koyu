@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/vertical-circulation.md#an-independent-arrival-line"],
+  "why": "At the shared storey the lower stair can arrive at a different station from the next departure. Its flights meet the same intermediate landing."
+}

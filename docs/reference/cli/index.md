@@ -118,10 +118,10 @@ Unknown command: frobnicate
 | [`validate`](validate.md) | Is it sound as architecture, under a named profile (not what check guarantees) | `--profile` `--as-of` `--json` | 0 / 1 / 2 |
 | [`layers`](layers.md) | Which layers composed, and which layer gave which value | `--attrs` | 0 / 1 |
 | [`diff`](diff.md) | What did this edit change about the composition | `--json` | 0 / 1 / 2 |
-| [`plan`](plan.md) | The plan drawing (SVG) | `-l` `-o` | 0 / 1 / 2 |
-| [`axo`](axo.md) | The axonometric (SVG) | `-o` `-d` `-l` `-s` `--no-walls` `--ceilings` | 0 / 1 / 2 |
-| [`section`](section.md) | The section cut at a grid reference (SVG) | `--at` `--look` `-s` `-o` | 0 / 1 / 2 |
-| [`elevation`](elevation.md) | The elevation of one face (SVG) | `--face` `-s` `-o` | 0 / 1 / 2 |
+| [`plan`](plan.md) | The plan drawing (SVG) | `-l` `-o` `--style` | 0 / 1 / 2 |
+| [`axo`](axo.md) | The axonometric (SVG) | `-o` `-d` `-l` `-s` `--no-walls` `--ceilings` `--style` | 0 / 1 / 2 |
+| [`section`](section.md) | The section cut at a grid reference (SVG) | `--at` `--look` `-s` `-o` `--style` | 0 / 1 / 2 |
+| [`elevation`](elevation.md) | The elevation of one face (SVG) | `--face` `-s` `-o` `--style` | 0 / 1 / 2 |
 | [`doors`](doors.md) | How many doors from here to there | — | 0 / 1 / 2 |
 | [`graph`](graph.md) | What is this space next to, and how | — | 0 / 1 |
 | [`stats`](stats.md) | What are the areas | `--by` | 0 / 1 / 2 |
@@ -148,3 +148,11 @@ They differ down to the type. `check` returns `Diagnostic { code, severity }`; `
 - [koyu-mcp](../mcp/index.md) — the same derivations for agents
 - [The public API](../api/index.md) — the same derivations from a program
 - [.muro reference](../muro/index.md) — how to write the file you pass in
+
+## Drawing styles
+
+The `plan`, `section`, `elevation` and `axo` commands accept `--style <name>`. Use `ink` for dark ink on white paper, `blueprint` for light marks on a deep blue background, and `classic` for the warm paper palette. The default is `ink`. Each command sets the palette for its own output.
+
+```sh
+koyu plan examples/two-rooms.muro -l L1 --style blueprint -o out/plan-blue.svg
+```

@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/grid.md#rotated-orthogonal-frames", "docs/reference/json/schema.md"],
+  "why": "Positive A points north and positive B points west after a right-angle rotation. A 500 mm local A offset and a negative 200 mm local B offset place the column at (7200,6500) in world coordinates."
+}

@@ -1,40 +1,47 @@
 // koyu — 空間グラフ
 // 節点が空間、辺が境界。「この室とこの室は繋がっているか」「ここから外へ扉いくつか」が
 // 変換なしにそのままグラフへの問いになる。
-// 空間の領域は矩形の合併 (L字など)。壁は合併の外周と共有辺から導出される。
+// Walls derive from the perimeter and shared faces of the allocated spaces.
 
 import type { Boundary, Edge, Model, Opening, Pt, Rect, Space } from "./model.js";
 import {
+  hasRegion,
+  frameGridRef,
+  hasPolygonAllocation,
+  yGridAt,
+  allocatedPieces,
+  regionOf,
   canonicalBoundaryOrder,
   canonicalSpaceOrder,
   canonicalizeDrawn,
   compareCanonical,
   EXTERIOR,
   isOutside,
-  rectToPoly,
+  isNewerVersion,
   srcRef,
 } from "./model.js";
 import * as poly from "./poly.js";
+import { clipDiagonal, exposedCellEdges, mergeDiagonals, sharedCellEdges } from "./cell-edges.js";
 import { EPS, PARALLEL_EPS, PROBE, SPAN_EPS } from "./tolerance.js";
 
 /** 壁芯線分 (mm)。水平なら y1===y2、垂直なら x1===x2。
- *  描かれた線 (ADR-0022) は斜めになりうる — その場合 diagonal が立つ */
+ *  An authored line or a grid-cell edge can be diagonal. */
 export interface Segment {
   x1: number;
   y1: number;
   x2: number;
   y2: number;
   horizontal: boolean;
-  /** 軸に平行でない (描かれた線) */
+  /** Its direction is oblique to both Cartesian axes. */
   diagonal?: boolean;
-  /** boundary.a 側 (領域を持つ側) の矩形から見た辺 */
+  /** Compass side of the space facing its neighbour. */
   edgeOfA?: Edge;
 }
 
 /**
  * 凸片の軸平行な辺 (向きから N/E/S/W を読む)。頂点列は反時計回りなので、
  * +x へ進む辺が南、+y が東、-x が北、-y が西の面になる。
- * 斜めの辺は返さない — それは描かれた線であり、自分の境界が実現を持っている
+ * Grid-cell diagonals are handled by the line-distance operations in cell-edges.
  */
 function polyEdges(poly: Pt[]): Array<{ edge: Edge; fixed: number; lo: number; hi: number }> {
   const out: Array<{ edge: Edge; fixed: number; lo: number; hi: number }> = [];
@@ -65,9 +72,10 @@ function polyEdges(poly: Pt[]): Array<{ edge: Edge; fixed: number; lo: number; h
 const FACING: Record<Edge, Edge> = { N: "S", S: "N", E: "W", W: "E" };
 
 /** 凸片の外周のうち、他の空間の凸片と向かい合っていない区間 (= 外部に面する壁) */
-function pieceOutline(pieces: Pt[][], others: Pt[][]): Segment[] {
+function pieceOutline(space: Space, others: Pt[][]): Segment[] {
+  const pieces = regionOf(space);
   const otherEdges = others.flatMap(polyEdges);
-  const segs: Segment[] = [];
+  const segs = hasPolygonAllocation(space) ? exposedCellEdges(pieces, others) : [];
   for (let i = 0; i < pieces.length; i++) {
     const siblings = pieces.filter((_, k) => k !== i).flatMap(polyEdges);
     for (const e of polyEdges(pieces[i]!)) {
@@ -98,14 +106,11 @@ function pieceOutline(pieces: Pt[][], others: Pt[][]): Segment[] {
   return segs;
 }
 
-/**
- * 二つの領域 (凸片の集合) が共有する軸平行な辺。矩形どうしの共有辺ではなく凸片で見るので、
- * 描かれた線で切られた形にも正しい。
- * 斜めの辺は返さない — それは描かれた線であり、自分の境界が実現を持っている
- */
-function sharedFromPieces(A: Pt[][], B: Pt[][]): Segment[] {
+/** Shared faces follow the derived pieces, including oblique edges of a grid cell. */
+function sharedFromPieces(a: Space, b: Space): Segment[] {
+  const A = regionOf(a), B = regionOf(b);
   const eb = B.flatMap(polyEdges);
-  const out: Segment[] = [];
+  const out = hasPolygonAllocation(a) || hasPolygonAllocation(b) ? sharedCellEdges(A, B) : [];
   for (const ea of A.flatMap(polyEdges)) {
     for (const o of eb) {
       if (o.edge !== FACING[ea.edge]) continue;
@@ -126,13 +131,15 @@ function sharedFromPieces(A: Pt[][], B: Pt[][]): Segment[] {
 /** 共線で連続する線分をまとめる (L字の合併外周を一本の壁にする) */
 export function mergeCollinear(segs: Segment[]): Segment[] {
   const groups = new Map<string, Segment[]>();
+  const diagonals: Segment[] = [];
   for (const s of segs) {
+    if (s.diagonal) { diagonals.push(s); continue; }
     const key = `${s.horizontal ? "h" : "v"}:${s.horizontal ? s.y1 : s.x1}:${s.edgeOfA ?? ""}`;
     const g = groups.get(key) ?? [];
     g.push(s);
     groups.set(key, g);
   }
-  const out: Segment[] = [];
+  const out = mergeDiagonals(diagonals);
   for (const g of groups.values()) {
     g.sort((p, q) => (p.horizontal ? p.x1 - q.x1 : p.y1 - q.y1));
     let cur = { ...g[0]! };
@@ -163,14 +170,14 @@ export interface UnresolvedBoundary {
 
 export function unresolvedBoundaries(model: Model): UnresolvedBoundary[] {
   if (model.mode !== "spatial") return [];
-  const spaces = canonicalSpaceOrder(model).filter(s => s.rects.length > 0 && s.level !== undefined);
+  const spaces = canonicalSpaceOrder(model).filter(s => hasRegion(s) && s.level !== undefined);
   const result: UnresolvedBoundary[] = [];
   for (let i = 0; i < spaces.length; i++) {
     const a = spaces[i]!;
     for (let j = i + 1; j < spaces.length; j++) {
       const b = spaces[j]!;
       if (a.level !== b.level) continue;
-      let segments = sharedFromPieces(piecesOf(a), piecesOf(b));
+      let segments = sharedFromPieces(a, b);
       for (const boundary of model.boundaries) {
         if (!((boundary.a === a.path && boundary.b === b.path) || (boundary.a === b.path && boundary.b === a.path))) continue;
         for (const covered of segmentsFor(model, boundary)) segments = segments.flatMap(s => subtractOverlap(s, covered));
@@ -193,7 +200,7 @@ export function deriveDefaultBoundaries(model: Model): void {
   if (model.mode === "spatial") return;
   const declared = new Set<string>();
   for (const b of model.boundaries) declared.add([b.a, b.b].sort().join("|"));
-  const withRect = [...model.spaces.values()].filter((s) => s.rects.length > 0);
+  const withRect = [...model.spaces.values()].filter((s) => hasRegion(s));
   for (let i = 0; i < withRect.length; i++) {
     for (let j = i + 1; j < withRect.length; j++) {
       const a = withRect[i]!;
@@ -202,7 +209,7 @@ export function deriveDefaultBoundaries(model: Model): void {
       const key = [a.path, b.path].sort().join("|");
       if (declared.has(key)) continue;
       // 接触は**導出された形**で見る — 線で接触が消えた組に既定の壁を作らない
-      if (sharedFromPieces(piecesOf(a), piecesOf(b)).length === 0) continue;
+      if (sharedFromPieces(a, b).length === 0) continue;
       // The a/b orientation is decided in **canonical order**. On a declared boundary, `a` is
       // the side as written and the canonical form preserves it as the `a` key, so the shape
       // may read it. A derived boundary never appears in the canonical form, so it has no
@@ -244,7 +251,7 @@ export function deriveDefaultBoundaries(model: Model): void {
  * makes `deriveDefaultBoundaries` idempotent.
  */
 function facesTheOutside(s: Space, siteZones: readonly string[], index: GapIndex): boolean {
-  if (s.rects.length === 0 || s.level === undefined) return false;
+  if (!hasRegion(s) || s.level === undefined) return false;
   if (isOutside(s) || index.semiOutdoor.has(s.path)) return false;
   return !siteZones.some((prefix) => s.path.startsWith(prefix));
 }
@@ -308,7 +315,7 @@ function deriveExteriorBoundaries(model: Model): void {
  * 離れた翼まで巻き添えにするため。冪等ではないので parse の出口で一度だけ呼ぶ。
  */
 export function derivePieces(model: Model): void {
-  for (const s of model.spaces.values()) s.pieces = s.rects.map(rectToPoly);
+  for (const s of model.spaces.values()) s.pieces = allocatedPieces(s);
 
   // **線の向きを正準に揃えてから切る。**線分は向きを持たないので、正準JSONは端点の対を
   // 解決座標の昇順に並べ替える。モデルの側が書き順のままだと、開口の `at:` の起点が
@@ -425,14 +432,14 @@ export function segmentsFor(model: Model, b: Boundary): Segment[] {
   if (b.drawn) return drawnShare(model, sa, sb, b.drawn.a, b.drawn.b);
 
   let segs: Segment[] = [];
-  const aHas = sa.rects.length > 0;
-  const bHas = sb.rects.length > 0;
+  const aHas = hasRegion(sa);
+  const bHas = hasRegion(sb);
 
   if (aHas && bHas) {
     if (sa.level !== sb.level) return []; // 異なるレベル間に壁は立たない
     // 共有辺も**導出された領域** (pieces) から取る。割付から取ると、
     // 描かれた線で切り落とした側にまで壁が立つ (隅切りの外へ壁が飛び出す)
-    segs.push(...sharedFromPieces(piecesOf(sa), piecesOf(sb)));
+    segs.push(...sharedFromPieces(sa, sb));
   } else if (aHas || bHas) {
     // 片側が領域を持たない (外部など): 導出された領域の外周から、
     // 同レベルで向かい合う他室の区間を除いた残り。**割付ではなく形の縁を辿る** —
@@ -442,9 +449,9 @@ export function segmentsFor(model: Model, b: Boundary): Segment[] {
     for (const s of model.spaces.values()) {
       if (s === sa || s === sb) continue;
       if (s.level !== roomSpace.level) continue;
-      others.push(...piecesOf(s));
+      others.push(...regionOf(s));
     }
-    segs.push(...pieceOutline(piecesOf(roomSpace), others));
+    segs.push(...pieceOutline(roomSpace, others));
   }
   segs = mergeCollinear(segs);
   if (b.edge) segs = segs.filter((s) => s.edgeOfA === b.edge);
@@ -483,7 +490,7 @@ function indexFor(model: Model): GapIndex {
   for (const o of model.spaces.values()) {
     if (o.level === undefined) continue;
     const row = byLevel.get(o.level) ?? [];
-    row.push({ space: o, pieces: piecesOf(o) });
+    row.push({ space: o, pieces: regionOf(o) });
     byLevel.set(o.level, row);
   }
   const byPath = new Map<string, Boundary[]>();
@@ -502,20 +509,20 @@ function indexFor(model: Model): GapIndex {
     for (const [self, other] of [[b.a, b.b], [b.b, b.a]] as const) {
       const mine = model.spaces.get(self);
       const theirs = model.spaces.get(other);
-      if (mine && mine.rects.length > 0 && theirs && isOutside(theirs)) semiOutdoor.add(self);
+      if (mine && hasRegion(mine) && theirs && isOutside(theirs)) semiOutdoor.add(self);
     }
   }
   return { byLevel, byPath, semiOutdoor };
 }
 
 function gapsOf(model: Model, s: Space, index: GapIndex): Segment[] {
-  if (s.rects.length === 0 || !s.level) return [];
+  if (!hasRegion(s) || !s.level) return [];
   const others: Pt[][] = [];
   for (const o of index.byLevel.get(s.level) ?? []) {
     if (o.space === s) continue;
     others.push(...o.pieces);
   }
-  let gaps = pieceOutline(piecesOf(s), others);
+  let gaps = pieceOutline(s, others);
   // 宣言された境界 (外部・斜めを含む) が覆う区間を引く。
   // **導出された境界は引かない。**外部との既定境界はこの関数の答えそのものなので、数えれば
   // 自分を呼び戻す。接する空間同士の既定壁は共有辺であり、上の `others` が既に引いている
@@ -527,9 +534,10 @@ function gapsOf(model: Model, s: Space, index: GapIndex): Segment[] {
   return gaps.filter((g) => segmentLength(g) > SPAN_EPS);
 }
 
-/** 軸平行の線分から、同一直線上で重なる区間を引く */
+/** Subtract a collinear overlap from the free part of an edge. */
 function subtractOverlap(g: Segment, o: Segment): Segment[] {
-  if (o.diagonal || g.horizontal !== o.horizontal) return [g];
+  if (g.diagonal && o.diagonal) return clipDiagonal(g, o, false);
+  if (g.diagonal || o.diagonal || g.horizontal !== o.horizontal) return [g];
   const fixedG = g.horizontal ? g.y1 : g.x1;
   const fixedO = o.horizontal ? o.y1 : o.x1;
   if (Math.abs(fixedG - fixedO) > EPS) return [g];
@@ -550,10 +558,6 @@ function subtractOverlap(g: Segment, o: Segment): Segment[] {
   );
 }
 
-function piecesOf(s: Space): Pt[][] {
-  return s.pieces.length > 0 ? s.pieces : s.rects.map(rectToPoly);
-}
-
 /**
  * 描かれた線のうち、この二空間が実際に向かい合っている区間だけを返す (ADR-0022)。
  *
@@ -568,8 +572,8 @@ function drawnShare(model: Model, sa: Space, sb: Space, p: Pt, q: Pt): Segment[]
   if (len < EPS) return [];
   const nx = -dy / len;
   const ny = dx / len;
-  const A = piecesOf(sa);
-  const B = piecesOf(sb);
+  const A = regionOf(sa);
+  const B = regionOf(sb);
 
   // 切り位置: 両空間の凸片の辺と線の交点
   const cuts = new Set<number>([0, 1]);
@@ -591,8 +595,8 @@ function drawnShare(model: Model, sa: Space, sb: Space, p: Pt, q: Pt): Segment[]
     const inA = (pt: Pt) => A.some((g) => poly.pointIn(pt, g, 0));
     const inB = (pt: Pt) => B.some((g) => poly.pointIn(pt, g, 0));
     // 片側が領域を持たない (外部) 相手なら、持つ側が片側に居るだけで境界になる
-    const soloB = sb.rects.length === 0;
-    const soloA = sa.rects.length === 0;
+    const soloB = !hasRegion(sb);
+    const soloA = !hasRegion(sa);
     const ok = soloB
       ? inA(left) !== inA(right)
       : soloA
@@ -639,6 +643,13 @@ function lineHit(p: Pt, q: Pt, u: Pt, v: Pt): number | undefined {
   return w >= -PARALLEL_EPS && w <= 1 + PARALLEL_EPS ? t : undefined;
 }
 
+/** True for a sloping segment parallel to the authored Y grid family. */
+export function runsAlongYGrid(model: Model, segment: Segment): boolean {
+  if (!segment.diagonal || !model.grid.Y.slope) return false;
+  const dy = segment.y2 - segment.y1;
+  return Math.abs(dy - model.grid.Y.slope * (segment.x2 - segment.x1)) < EPS;
+}
+
 export function segmentLength(s: Segment): number {
   return Math.hypot(s.x2 - s.x1, s.y2 - s.y1);
 }
@@ -655,6 +666,7 @@ export function planOverlap(a: Rect, b: Rect): Rect | undefined {
 
 /** 二つの空間が平面上で重なるか (合併同士) */
 export function spacesOverlap(a: Space, b: Space): boolean {
+  if (hasPolygonAllocation(a) || hasPolygonAllocation(b)) return poly.overlaps(allocatedPieces(a), allocatedPieces(b));
   for (const ra of a.rects) {
     for (const rb of b.rects) {
       if (planOverlap(ra, rb)) return true;
@@ -719,57 +731,78 @@ export function placeBand(
     return fail("04", `No boundary segment can hold the ${label} (${b.a} | ${b.b})`);
   }
   if (segs.length > 1) {
+    if (band.atRef && isNewerVersion(model.version, "1.7")) {
+      const matches = segs.map(placeOnSegment).filter((p): p is PlacedBand => "segment" in p);
+      if (matches.length === 1) return matches[0]!;
+    }
     return fail("05", `There is more than one boundary segment; pick an edge with edge:N/E/S/W (${b.a} | ${b.b})`);
   }
-  const seg = segs[0]!;
-  const len = segmentLength(seg);
-  if (band.w > len) {
-    return fail("06", `The ${label} width ${band.w} exceeds the boundary segment length ${len}`);
+  return placeOnSegment(segs[0]!);
+
+  function placeOnSegment(seg: Segment): PlacedBand | BandError {
+    const len = segmentLength(seg);
+    if (band.w > len) {
+      return fail("06", `The ${label} width ${band.w} exceeds the boundary segment length ${len}`);
+    }
+    const half = band.w / 2;
+    let pos: number;
+    const local = band.atRef && frameGridRef(model, band.atRef);
+    if (local) {
+      const frame = model.frames!.get(local.frame)!;
+      const normal = frame.basis[local.index];
+      const start = (seg.x1 - frame.origin.x) * normal.x + (seg.y1 - frame.origin.y) * normal.y;
+      const change = (seg.x2 - seg.x1) * normal.x + (seg.y2 - seg.y1) * normal.y;
+      if (Math.abs(change) <= PARALLEL_EPS * len) return fail("07", `The ${label} position ${band.atRef} is parallel to its boundary`);
+      pos = (local.coord - start) / change * len;
+      if (pos < half - EPS || pos > len - half + EPS) return fail("08", `At ${band.atRef} the ${label} runs off the boundary segment`);
+    } else if (band.atAbs !== undefined) {
+      // Follow a grid crossing for aligned walls. Other drawn diagonals keep ratio placement.
+      const alongYGrid = runsAlongYGrid(model, seg);
+      if (seg.diagonal && !alongYGrid) {
+        return fail(
+          "07",
+          `The ${label} position ${band.atRef} cannot be used on a diagonal segment (write it as a ratio, at:0..1)`,
+        );
+      }
+      // 明示位置: 通り参照で置かれたものはクランプしない — はみ出しは言葉のエラーになる
+      const eastWest = seg.horizontal || alongYGrid;
+      const axisOk = eastWest ? band.atAxis === "X" : band.atAxis === "Y";
+      if (!axisOk) {
+        return fail(
+          "07",
+          // **期待する軸を言う。**書かれた軸を言うと「X1+200 は Y系で書かれています」のような
+          // 偽の文になる (この枝は軸が食い違ったときにだけ通るので、書かれた軸は期待と逆である)
+          `The ${label} position ${band.atRef} is on the wrong axis: ${
+            alongYGrid ? "a wall parallel to the sloping Y grid takes an X" : seg.horizontal ? "a horizontal segment takes an X" : "a vertical segment takes a Y"
+          } grid line`,
+        );
+      }
+      const start = eastWest ? seg.x1 : seg.y1;
+      const end = eastWest ? seg.x2 : seg.y2;
+      const coordinate = eastWest ? band.atAbs : yGridAt(model, band.atAbs, seg.x1);
+      const unitsPerMm = (end - start) / len;
+      pos = (coordinate - start) / unitsPerMm;
+      if (pos < half - EPS || pos > len - half + EPS) {
+        return fail(
+          "08",
+          `At ${band.atRef} the ${label} (width ${band.w}) runs off the boundary segment (segment ${Math.round(
+            start,
+          )}-${Math.round(end)}mm, center allowed ${Math.round(start + half * unitsPerMm)}-${Math.round(
+            end - half * unitsPerMm,
+          )}mm)`,
+        );
+      }
+    } else {
+      pos = Math.min(Math.max(band.at * len, half), len - half);
+    }
+    // 線分上の位置はパラメトリックに取る — 軸平行でも斜めでも同じ一つの式
+    const f = len > 0 ? pos / len : 0;
+    return {
+      segment: seg,
+      cx: seg.x1 + f * (seg.x2 - seg.x1),
+      cy: seg.y1 + f * (seg.y2 - seg.y1),
+    };
   }
-  const half = band.w / 2;
-  let pos: number;
-  if (band.atAbs !== undefined) {
-    // 斜めの線分 (描かれた線) の上では、通り参照は一意に位置を定めない — 比率で書く
-    if (seg.diagonal) {
-      return fail(
-        "07",
-        `The ${label} position ${band.atRef} cannot be used on a diagonal segment (write it as a ratio, at:0..1)`,
-      );
-    }
-    // 明示位置: 通り参照で置かれたものはクランプしない — はみ出しは言葉のエラーになる
-    const axisOk = seg.horizontal ? band.atAxis === "X" : band.atAxis === "Y";
-    if (!axisOk) {
-      return fail(
-        "07",
-        // **期待する軸を言う。**書かれた軸を言うと「X1+200 は Y系で書かれています」のような
-        // 偽の文になる (この枝は軸が食い違ったときにだけ通るので、書かれた軸は期待と逆である)
-        `The ${label} position ${band.atRef} is on the wrong axis: ${
-          seg.horizontal ? "a horizontal segment takes an X" : "a vertical segment takes a Y"
-        } grid line`,
-      );
-    }
-    const start = seg.horizontal ? seg.x1 : seg.y1;
-    pos = band.atAbs - start;
-    if (pos < half - EPS || pos > len - half + EPS) {
-      return fail(
-        "08",
-        `At ${band.atRef} the ${label} (width ${band.w}) runs off the boundary segment (segment ${Math.round(
-          start,
-        )}-${Math.round(start + len)}mm, center allowed ${Math.round(start + half)}-${Math.round(
-          start + len - half,
-        )}mm)`,
-      );
-    }
-  } else {
-    pos = Math.min(Math.max(band.at * len, half), len - half);
-  }
-  // 線分上の位置はパラメトリックに取る — 軸平行でも斜めでも同じ一つの式
-  const f = len > 0 ? pos / len : 0;
-  return {
-    segment: seg,
-    cx: seg.x1 + f * (seg.x2 - seg.x1),
-    cy: seg.y1 + f * (seg.y2 - seg.y1),
-  };
 }
 
 /** 開口を境界線分上に配置する */

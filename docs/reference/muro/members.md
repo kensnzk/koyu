@@ -22,9 +22,11 @@ foundation /substructure/m1 level:L1 type:mat t:500 top:-600
 
 | Foundation type | Plan extent |
 |---|---|
-| `pad` | Rectangle at the declared centre, with X width `w:` and Y depth `d:` |
+| `pad` | Rectangle at the declared centre. On one [local frame](grid.md#rotated-orthogonal-frames), `w:` follows its first dimension and `d:` follows its second. Primary and mixed-frame intersections use world X and Y. |
 | `strip` | Rectangle following the line between the declared endpoints, with perpendicular width `w:` |
 | `mat` | One simple polygon of grid-relative vertices. A concave perimeter can follow a re-entrant corner. Closing the polygon is implicit. |
+
+On a pad, `frame:AB` selects a declared local frame and `frame:XY` selects the world axes. The orientation can change independently of the grid lines locating the centre.
 
 Each declaration has a unique path within its kind. Use `drop beam /frame/b1` or `drop foundation /substructure/p1` in a stronger layer to remove that member.
 

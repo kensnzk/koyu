@@ -12,7 +12,7 @@ Writes the plan drawing of one level as SVG. **There is no operation anywhere th
 ## Arguments
 
 ```text
-koyu plan <entry.muro> [-l <level>] [-o <out.svg>]
+koyu plan <entry.muro> [-l <level>] [-o <out.svg>] [--style <name>]
 ```
 
 Takes one entry path. The drawing goes to a file; stdout gets one line naming where it went.
@@ -21,6 +21,7 @@ Takes one entry path. The drawing goes to a file; stdout gets one line naming wh
 
 | Flag | Effect |
 |---|---|
+| `--style <name>` | Sheet palette: `ink` (default), `blueprint` or `classic`. See [drawing styles](index.md#drawing-styles). |
 | `-l <level>` / `--level <level>` | The level to draw. Defaults to **the first level declared** |
 | `-o <path>` | Where to write. Defaults to `<the entry path with .muro removed>-<level>.svg` |
 

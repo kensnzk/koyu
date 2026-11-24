@@ -7,7 +7,7 @@
 // 段割り・踊り場・勾配・立体・平面の切断をルールで生成する。
 // 段数も踏面も勾配も書かれない — 書かないが検査する (RUN06 / RUN07)。
 
-import { gridRef, isNewerVersion, levelsSorted, regionOf, type Edge, type Model, type Pt, type Rect, type Space } from "./model.js";
+import { frameGridRef, framePoint, allocatedPieces, type GridFrame, hasPolygonAllocation, hasRegion, gridRef, isNewerVersion, levelsSorted, regionOf, type Edge, type Model, type Pt, type Rect, type Space } from "./model.js";
 import { boundsOf, rectToPoly, subtract } from "./poly.js";
 import { EPS, SPAN_EPS } from "./tolerance.js";
 
@@ -48,6 +48,8 @@ export const ARROW_SPAN_MIN = 900;
 
 /** 走りと踊り場の一区間。局所座標は t (走り方向) と s (進行方向の左からの幅) */
 export interface RunPart {
+  /** World footprint when rect is expressed in a rotated frame. */
+  outline?: Pt[];
   kind: "flight" | "landing";
   rect: Rect;
   /** 走り方向の区間 mm (t0 < t1、宣言された向きの枠で測る) */
@@ -78,6 +80,9 @@ export interface RunPart {
 }
 
 export interface VerticalRun {
+  /** With a rotated range, rects use local frame coordinates and outlines are world geometry. */
+  frame?: Pick<GridFrame, "name" | "origin" | "basis">;
+  outline?: Pt[];
   /** 宣言した空間のパス */
   path: string;
   device: RunDevice;
@@ -179,9 +184,24 @@ export function verticalRuns(model: Model): VerticalRun[] {
   return out.sort((a, b) => (a.z0 - b.z0) || (a.path < b.path ? -1 : 1));
 }
 
+/** Existing run geometry needs an axis-aligned rectangle, whichever allocation spelling supplied it. */
+function singleRunRect(space: Space): Rect | undefined {
+  if (!hasPolygonAllocation(space)) return space.rects.length === 1 ? space.rects[0] : undefined;
+  const pieces = allocatedPieces(space);
+  if (pieces.length !== 1) return undefined;
+  const corners = pieces[0]!;
+  const bounds = boundsOf([corners]);
+  if (corners.length !== 4 || !bounds) return undefined;
+  return corners.every(p => (p.x === bounds.x1 || p.x === bounds.x2) &&
+    (p.y === bounds.y1 || p.y === bounds.y2)) ? bounds : undefined;
+}
+
 /** The upper enclosure can supply the common frame above a separately allocated room. */
 function runFrame(model: Model, s: Space, device: RunDevice, upper?: string): Rect | undefined {
-  if (s.rects.length <= 1) return s.rects[0];
+  if (s.grids.length === 1 && frameGridRef(model, s.grids[0]!.xa)) {
+    return subtract(allocatedPieces(s)[0]!, regionOf(s)).length === 0 ? s.rects[0] : undefined;
+  }
+  if (hasPolygonAllocation(s) || s.rects.length <= 1) return singleRunRect(s);
   if (!upper || device !== "stair" || s.attrs["form"] !== "return" || isNewerVersion("1.6", model.version)) return undefined;
 
   const bounds = boundsOf(regionOf(s));
@@ -196,10 +216,22 @@ function runFrame(model: Model, s: Space, device: RunDevice, upper?: string): Re
     if (arrival && arrival !== space) return undefined;
     arrival = space;
   }
-  if (!arrival || arrival.rects.length !== 1) return undefined;
-  const rect = arrival.rects[0]!;
+  if (!arrival) return undefined;
+  const rect = singleRunRect(arrival);
+  if (!rect) return undefined;
   if (!sameRect(bounds, rect) || subtract(rectToPoly(rect), regionOf(arrival)).length) return undefined;
   return rect;
+}
+
+/** Resolve a station in the run's own grid and dimension, before measuring its signed depth. */
+function runStation(model: Model, s: Space, token: string, axis: "X" | "Y"): number | undefined {
+  const host = s.grids[0] && frameGridRef(model, s.grids[0].xa);
+  if (host) {
+    const ref = frameGridRef(model, token);
+    return ref?.frame === host.frame && ref.index === (axis === "X" ? 0 : 1) ? ref.coord : undefined;
+  }
+  const ref = gridRef(model, token);
+  return ref?.axis === axis ? ref.coord : undefined;
 }
 
 /** Two ordered transverse grid spans, expressed in the run's local s coordinates. */
@@ -219,9 +251,9 @@ function returnFlightSpans(model: Model, s: Space, rect: Rect, up: Edge): [numbe
     const tokens = range.split("..");
     if (tokens.length !== 2) return undefined;
     for (const token of tokens) {
-      const point = gridRef(model, token);
-      if (point?.axis !== axis || point.coord < min || point.coord > max) return undefined;
-      ends.push(point.coord);
+      const coord = runStation(model, s, token, axis);
+      if (coord === undefined || coord < min || coord > max) return undefined;
+      ends.push(coord);
     }
   }
   const [a, b, c, d] = ends as [number, number, number, number];
@@ -229,6 +261,20 @@ function returnFlightSpans(model: Model, s: Space, rect: Rect, up: Edge): [numbe
   return up === "N" || up === "W"
     ? [a - min, b - min, c - min, d - min]
     : [max - d, max - c, max - b, max - a];
+}
+
+function returnArrival(model: Model, s: Space, rect: Rect, up: Edge, entry: number): number | undefined {
+  const written = s.attrs["arrival-at"];
+  if (written === undefined) return entry;
+  if (typeof written !== "string" || isNewerVersion("1.8", model.version)) return undefined;
+  const station = runStation(model, s, written, up === "N" || up === "S" ? "Y" : "X");
+  if (station === undefined) return undefined;
+  switch (up) {
+    case "N": return station - rect.y1;
+    case "S": return rect.y2 - station;
+    case "E": return station - rect.x1;
+    case "W": return rect.x2 - station;
+  }
 }
 
 /** 一つの空間の縦動線。宣言が無い/壊れているときは undefined */
@@ -256,7 +302,8 @@ export function verticalRun(
   const form = formRaw as RunForm;
   if (device !== "stair" && device !== "ramp" && form !== "straight") return undefined;
 
-  if (s.attrs["flights"] !== undefined && (device !== "stair" || form !== "return")) return undefined;
+  if ((s.attrs["flights"] !== undefined || s.attrs["arrival-at"] !== undefined) &&
+      (device !== "stair" || form !== "return")) return undefined;
 
   const z0 = levels[li]!.z;
   if (!upper && device !== "lift") return undefined; // 上る先が無い — SUF04
@@ -266,7 +313,11 @@ export function verticalRun(
   const turn = s.attrs["turn"] === "L" ? "L" : "R";
   const { length, width } = extent(rect, up);
 
+  const reference = s.grids.length === 1 && frameGridRef(model, s.grids[0]!.xa);
+  const frame = reference && model.frames?.get(reference.frame);
   const base = {
+    ...(frame ? {frame: {name:frame.name, origin:frame.origin, basis:frame.basis},
+      outline: rectToPoly(rect).map(p => framePoint(frame, p.x, p.y))} : {}),
     path: s.path,
     device,
     form,
@@ -322,12 +373,15 @@ export function verticalRun(
       riser = rise / risersTotal;
       const k = Math.min(risersTotal - 1, Math.max(1, Math.round(risersTotal / 2)));
       const zMid = z0 + k * riser;
+      const arrival = returnArrival(model, s, rect, up, entry);
+      if (arrival === undefined || arrival < 0 || arrival >= tA1) return undefined;
+      const returnLength = flightLen + (entry - arrival);
       tread = flightLen / Math.max(1, k - 1);
       parts.push(
         flight(rect, up, tA0, tA1, aS, aE, z0, zMid, false, k, flightLen / Math.max(1, k - 1)),
         landingPart(rect, up, tA1, length, leftStart, rightEnd, zMid),
         // 二本目は遠端から近端へ戻る — t が減る向きに走り、z は増える
-        flight(rect, up, tA0, tA1, bS, bE, z1, zMid, true, risersTotal - k, flightLen / Math.max(1, risersTotal - k - 1)),
+        flight(rect, up, arrival, tA1, bS, bE, z1, zMid, true, risersTotal - k, returnLength / Math.max(1, risersTotal - k - 1)),
       );
     } else {
       const zMid = z0 + rise / 2;
@@ -369,6 +423,9 @@ export function verticalRun(
       .map((p) => (p.t1 - p.t0 > 0 ? Math.abs(p.z1 - p.z0) / (p.t1 - p.t0) : 0)),
   );
 
+  if (frame) {
+    for (const part of parts) part.outline = rectToPoly(part.rect).map(p => framePoint(frame, p.x, p.y));
+  }
   return { ...base, entry, lanes, parts, risers: risersTotal, riser, tread, slope, going };
 }
 
@@ -482,20 +539,36 @@ export function toPoint(rect: Rect, up: Edge, t: number, s: number): Pt {
   }
 }
 
+/** A position measured along a run, expressed in world plan coordinates. */
+export function runPoint(run: VerticalRun, t: number, s: number): Pt {
+  const p = toPoint(run.rect, run.up, t, s);
+  return run.frame ? framePoint(run.frame, p.x, p.y) : p;
+}
+
 // ---- 立体 (ビルド) ----
 
 /**
  * 生成された立体 — 依存ゼロの素の記述。ビュアーはこれを幾何へ写すだけで、
  * 段割りや勾配の判断は一切持たない (README の「ビュアーは答えを持たない」)
  */
-export type RunSolid =
+export type RunSolid = (
   /** 軸平行の直方体 — 段板・踊り場・エスカレーターの端部・かご */
   | { kind: "box"; rect: Rect; z0: number; z1: number }
   /** 傾いた版 — rect の up 側へ z0→z1 で上がる厚さ t の板 (斜路・トラス・欄干) */
-  | { kind: "incline"; rect: Rect; up: Edge; z0: number; z1: number; t: number };
+  | { kind: "incline"; rect: Rect; up: Edge; z0: number; z1: number; t: number }
+) & { outline?: Pt[] };
 
 /** 縦動線の三次元形状。段は段として、斜路は傾いた版として立ち上がる */
 export function runSolids(run: VerticalRun): RunSolid[] {
+  const solids = localRunSolids(run);
+  if (run.frame) {
+    const frame = run.frame;
+    for (const solid of solids) solid.outline = rectToPoly(solid.rect).map(p => framePoint(frame, p.x, p.y));
+  }
+  return solids;
+}
+
+function localRunSolids(run: VerticalRun): RunSolid[] {
   const out: RunSolid[] = [];
   if (run.device === "lift") {
     const m = Math.min(300, (run.rect.x2 - run.rect.x1) / 6, (run.rect.y2 - run.rect.y1) / 6);
@@ -601,15 +674,16 @@ export interface RunDraw {
   anchor?: { x: number; y: number };
 }
 
+type Interval = [number, number];
+
 /**
  * 上る走りのうち、**切断面より下に残る**区間 (部品ごと、原点の枠での [t0,t1])。
  *
  * 判定は幾何 — 部品の z の範囲と切断面の高さだけで決まる。部品の番号 (何本目か) では
  * 決めない。並列の台は同じ高さで切られるので、この書き方でしか二台目に窓が出ない。
  */
-function upWindows(run: VerticalRun, cutZ: number | undefined): Array<[number, number] | undefined> {
+function upWindows(run: VerticalRun, cutZ: number): Array<Interval | undefined> {
   return run.parts.map((p) => {
-    if (cutZ === undefined) return [p.t0, p.t1] as [number, number];
     const lo = Math.min(p.z0, p.z1);
     const hi = Math.max(p.z0, p.z1);
     if (cutZ >= hi - SPAN_EPS) return [p.t0, p.t1] as [number, number]; // 丸ごと切断面より下
@@ -627,17 +701,13 @@ function upWindows(run: VerticalRun, cutZ: number | undefined): Array<[number, n
  * 補い合う — 上りが切断線までを占め、その先に下りが見える。双子が無い (上る走りが
  * 無い / 枠が違う) なら、下りる走りは丸ごと見える。
  */
-function downWindows(
-  run: VerticalRun,
-  twin: Array<[number, number] | undefined> | undefined,
-): Array<[number, number] | undefined> {
+function downWindows(run: VerticalRun, twin: Array<Interval | undefined> | undefined): Interval[][] {
   return run.parts.map((p, i) => {
-    const w = twin?.[i];
-    if (!w) return [p.t0, p.t1] as [number, number];
-    const [a, b] = w;
-    // 上りが占めたのが手前側 ([t0,t]) なら残りは奥側、逆なら手前側
-    const out: [number, number] = a <= p.t0 + SPAN_EPS ? [b, p.t1] : [p.t0, a];
-    return out[1] - out[0] > SPAN_EPS ? out : undefined;
+    const cover = twin?.[i];
+    if (!cover) return [[p.t0, p.t1]];
+    const before: Interval = [p.t0, Math.min(cover[0], p.t1)];
+    const after: Interval = [Math.max(cover[1], p.t0), p.t1];
+    return [before, after].filter(([lo, hi]) => hi - lo > SPAN_EPS);
   });
 }
 
@@ -658,7 +728,7 @@ export function runDrawsForLevel(model: Model, level: string, cut = CUT_HEIGHT):
   const upRuns = runs.filter((r) => r.level === level);
 
   for (const r of upRuns) {
-    const wins = r.device === "lift" ? undefined : upWindows(r, cutZ);
+    const wins = upWindows(r, cutZ).map(w => w ? [w] : []);
     out.push(drawRun(r, wins, r.device === "lift" ? undefined : crossings(r, cutZ), "up"));
   }
   for (const r of runs.filter((x) => x.upper === level)) {
@@ -681,7 +751,7 @@ function sameRect(a: Rect, b: Rect): boolean {
  */
 function sameFrame(a: VerticalRun, b: VerticalRun): boolean {
   return (
-    sameRect(a.rect, b.rect) &&
+    a.frame?.name === b.frame?.name && sameRect(a.rect, b.rect) &&
     a.up === b.up &&
     a.form === b.form &&
     a.device === b.device &&
@@ -704,7 +774,7 @@ function crossings(run: VerticalRun, cutZ: number): Array<number | undefined> {
 
 function drawRun(
   run: VerticalRun,
-  windows: Array<[number, number] | undefined> | undefined,
+  windows: Interval[][],
   cross: Array<number | undefined> | undefined,
   dir: "up" | "down",
 ): RunDraw {
@@ -717,10 +787,9 @@ function drawRun(
     breaks: [],
     arrows: [],
   };
-  const { rect, up } = run;
   const seg = (t0: number, s0: number, t1: number, s1: number): Seg2 => {
-    const a = toPoint(rect, up, t0, s0);
-    const b = toPoint(rect, up, t1, s1);
+    const a = runPoint(run, t0, s0);
+    const b = runPoint(run, t1, s1);
     return { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
   };
 
@@ -740,24 +809,27 @@ function drawRun(
 
   for (let i = 0; i < run.parts.length; i++) {
     const p = run.parts[i]!;
-    const win = windows ? windows[i] : ([p.t0, p.t1] as [number, number]);
-    if (!win) continue;
-    const [lo, hi] = win;
-    draw.outline.push(seg(lo, p.s0, hi, p.s0), seg(lo, p.s1, hi, p.s1));
-    if (p.kind === "landing") continue;
+    const intervals = windows[i]!;
+    for (const [lo, hi] of intervals) {
+      draw.outline.push(seg(lo, p.s0, hi, p.s0), seg(lo, p.s1, hi, p.s1));
+      if (p.kind === "landing") continue;
 
-    if (run.device === "stair") {
-      const d = (p.t1 - p.t0) / Math.max(1, (p.risers ?? 2) - 1);
-      for (let t = p.t0 + d; t < p.t1 - SPAN_EPS; t += d) {
-        if (t < lo - EPS || t > hi + EPS) continue;
-        draw.treads.push(seg(t, p.s0, t, p.s1));
+      if (run.device === "stair") {
+        const d = (p.t1 - p.t0) / Math.max(1, (p.risers ?? 2) - 1);
+        for (let t = p.t0 + d; t < p.t1 - SPAN_EPS; t += d) {
+          if (t < lo - EPS || t > hi + EPS) continue;
+          draw.treads.push(seg(t, p.s0, t, p.s1));
+        }
+      } else if (run.device === "escalator") {
+        for (let t = lo + STEP_MARK; t < hi - SPAN_EPS; t += STEP_MARK) {
+          draw.treads.push(seg(t, p.s0, t, p.s1));
+        }
       }
-    } else if (run.device === "escalator") {
-      for (let t = lo + STEP_MARK; t < hi - SPAN_EPS; t += STEP_MARK) {
-        draw.treads.push(seg(t, p.s0, t, p.s1));
-      }
+
     }
-
+    if (p.kind !== "flight" || !intervals.length) continue;
+    // A partial overlap can expose both ends. Keep one arrow on the longer visible interval.
+    const [lo, hi] = intervals.reduce((a, b) => b[1] - b[0] > a[1] - a[0] ? b : a);
     // 矢印: 一台ごと (エスカレーターの上り/下りが並ぶ)。折返しは走りごとには描かず、
     // 出発する走り (上り) / 到着する走り (下り) に一本だけ
     const isFirst = i === run.parts.findIndex((q) => q.kind === "flight");
@@ -786,13 +858,13 @@ function drawRun(
     for (let i = 0; i < run.parts.length; i++) {
       const p = run.parts[i]!;
       const ct = cross[i];
-      if (ct === undefined || !windows?.[i]) continue;
+      if (ct === undefined || !windows[i]?.length) continue;
       draw.breaks.push(seg(ct, p.s0, ct, p.s1));
     }
   }
 
   // 注記の座だけを返す。段数も勾配も VerticalRun が持っており、言葉にするのは描画側である
-  if (dir === "up") draw.anchor = { x: (rect.x1 + rect.x2) / 2, y: (rect.y1 + rect.y2) / 2 };
+  if (dir === "up") draw.anchor = runPoint(run, run.length / 2, run.width / 2);
   return draw;
 }
 
@@ -824,8 +896,9 @@ export function runIssues(model: Model): RunIssue[] {
   for (const s of model.spaces.values()) {
     const decls = runDecls(s);
     const at = { path: s.path, line: s.line, ...(s.file !== undefined ? { file: s.file } : {}) };
-    if (s.attrs["flights"] !== undefined && (s.attrs["stair"] === undefined || s.attrs["form"] !== "return")) {
-      out.push({ code: "RUN05", message: "flights requires a stair with form:return", ...at });
+    const returnAttribute = ["flights", "arrival-at"].find(key => s.attrs[key] !== undefined);
+    if (returnAttribute && (s.attrs["stair"] === undefined || s.attrs["form"] !== "return")) {
+      out.push({ code: "RUN05", message: `${returnAttribute} requires a stair with form:return`, ...at });
       continue;
     }
     if (decls.length === 0) continue;
@@ -855,7 +928,7 @@ export function runIssues(model: Model): RunIssue[] {
       out.push({
         code: "RUN03",
         message:
-          s.rects.length === 0
+          !hasRegion(s)
             ? `Vertical circulation requires a region: ${s.path}`
             : `The region of vertical circulation is a single rectangle (a union leaves the step division undetermined): ${s.path}`,
         ...at,
@@ -886,6 +959,22 @@ export function runIssues(model: Model): RunIssue[] {
         ...at,
       });
       continue;
+    }
+
+    if (s.attrs["arrival-at"] !== undefined) {
+      const up = value as Edge;
+      const { length, width } = extent(frame, up);
+      const entry = Math.max(0, numAttr(s, "entry") ?? ENTRY_LANDING);
+      const arrival = returnArrival(model, s, frame, up, entry);
+      const next = li >= 0 ? levels[li + 1] : undefined;
+      const mid = next
+        ? returnLanding(s, device, next.z - levels[li]!.z, length - entry, width)
+        : numAttr(s, "landing") ?? 0;
+      const landingStart = length - mid;
+      if (arrival === undefined || arrival < 0 || arrival >= length || (landingStart > entry && arrival >= landingStart)) {
+        out.push({ code: "RUN05", message: "arrival-at requires muro 1.8 and a longitudinal grid station within the stair enclosure, before the intermediate landing", ...at });
+        continue;
+      }
     }
 
     if (device !== "lift" && (li < 0 || !levels[li + 1])) {

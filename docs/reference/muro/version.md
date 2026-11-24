@@ -6,13 +6,13 @@ mode: reference
 # muro — the version line
 
 ```muro-part
-muro 1.7
+muro 1.8
 ```
 
 **One line declaring which version of the semantics this file is read under.** These are the accepted versions, and the order is the order of old to new.
 
 ```text
-0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3   1.4   1.5   1.6   1.7
+0.1   0.2   0.3   0.4   0.5   1.0   1.1   1.2   1.3   1.4   1.5   1.6   1.7   1.8
 ```
 
 **Omitted, the file is read as `1.1` — and always will be.** The reading of an undeclared file is frozen; it does not follow the newest version.
@@ -70,7 +70,7 @@ Exactly two tokens: the word and the version.
 | `muro 1.2` | accepted |
 | `muro` | `muro takes a version: muro 1.2` |
 | `muro 1.2 latest` | `Extra tokens on the muro version declaration: latest` |
-| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7)` |
+| `muro 0.6` | `Unsupported muro version: 0.6 (this tool supports 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8)` |
 
 **It is declared in the base layer only, and only once.**
 
@@ -181,3 +181,13 @@ The bundled examples are always written at the newest version. A change that rai
 ### VER11 — roofs and structural geometry require muro 1.7
 
 Declare `muro 1.7` to write a `roof`, a `beam`, a `foundation` or a column with an explicit centre and storey sections. Earlier editions retain their existing column array and slab behaviour.
+
+### VER12 — grid frames, inclined Y grids, named axes and grid cells require muro 1.8
+
+Column and pad foundation declarations also require this edition when they specify a section orientation with `frame:`.
+
+Declare `muro 1.8` to define a rotated grid frame, a Y-grid slope, an additional named axis, or a cell perimeter. Muro 1.8 also supports [swing-relative opening jambs](door.md#hinge--which-jamb-it-hangs-on). With no Y-grid slope, the existing X and Y grid families are orthogonal.
+
+A return stair can independently specify its [upper arrival line](vertical-circulation.md#an-independent-arrival-line) in muro 1.8. An omitted line uses the departure station as in earlier versions.
+
+A [grid-intersection cell](space.md#grid-intersection-cells) may have a concave outer perimeter and inner perimeters. The optional canonical space field `holes` preserves each written inner ring.

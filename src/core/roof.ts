@@ -1,11 +1,14 @@
 import {
   canonicalSpaceOrder,
   compareCanonical,
-  gridRef,
+  frameCoordinates,
+  frameGridRef,
+  gridPoint,
   isOutside,
   isSemiOutdoor,
   regionOf,
   SourceError,
+  type GridFrame,
   type Model,
   type Pt,
   type RoofDecl,
@@ -20,7 +23,7 @@ import {
   subtract,
   unionArea,
 } from "./poly.js";
-import { AREA_EPS, CROSS_EPS } from "./tolerance.js";
+import { AREA_EPS, CROSS_EPS, EPS } from "./tolerance.js";
 import type { Slab } from "./fabric.js";
 
 export interface RoofVertex extends Pt {
@@ -49,25 +52,39 @@ const fail = (roof: RoofDecl, message: string): never => {
   throw new SourceError(roof.line, `${roof.path}: ${message}`, roof.file);
 };
 
-function point(model: Model, token: string): RoofVertex {
+function point(model: Model, token: string, line: number): RoofVertex {
   const [x, y, z] = token.split(",");
-  return { x: gridRef(model, x!)!.coord, y: gridRef(model, y!)!.coord, z: Number(z ?? 0) };
+  return { ...gridPoint(model, `${x},${y}`, line), z: Number(z ?? 0) };
 }
 
 function pieces<T extends Pt>(raw: T[], roof: RoofDecl): T[][] {
   return convexPieces(raw, (message) => fail(roof, message));
 }
 
-function exposedFootprint(model: Model, roof: RoofDecl): Pt[][] {
+function exposedFootprint(model: Model, roof: RoofDecl): { outline: Pt[][]; refs: string[] } {
   const z = model.levels[roof.level]!.z;
   const all = canonicalSpaceOrder(model);
   const upper = all.filter((s) => s.level && model.levels[s.level]!.z > z && !isOutside(s)).flatMap(regionOf);
-  const out: Pt[][] = [];
+  const outline: Pt[][] = [], refs: string[] = [];
   for (const s of all) {
     if (s.level !== roof.level || isOutside(s) || isSemiOutdoor(model, s)) continue;
-    for (const poly of regionOf(s)) out.push(...subtract(poly, [...upper, ...out]));
+    const before = outline.length;
+    for (const poly of regionOf(s)) outline.push(...subtract(poly, [...upper, ...outline]));
+    if (outline.length > before) refs.push(...(s.cell?.refs ?? s.grids.map(g => g.xa)));
   }
-  return out;
+  return { outline, refs };
+}
+
+function directionFrame(model: Model, roof: RoofDecl, refs: string[]): GridFrame | undefined {
+  if (!model.frames?.size || (roof.type !== "gable" && roof.type !== "shed")) return undefined;
+  const direction = roof.ridgeAxis ?? roof.rise?.slice(1);
+  if (direction) {
+    const frame = frameGridRef(model, direction + "1");
+    return frame && model.frames.get(frame.frame);
+  }
+  const axes = refs.flatMap(p => p.split(","));
+  const first = axes.length ? frameGridRef(model, axes[0]!)?.frame : undefined;
+  return first && axes.every(axis => frameGridRef(model, axis)?.frame === first) ? model.frames.get(first) : undefined;
 }
 
 interface Plane {
@@ -121,6 +138,7 @@ function surfaceArea(vertices: RoofVertex[]): number {
 
 function generatedFaces(
   roof: RoofDecl,
+  frame: GridFrame | undefined,
   outline: Pt[][],
   datum: number,
   pitch: number | undefined,
@@ -128,7 +146,6 @@ function generatedFaces(
   assumptions: string[],
 ): RoofVertex[][] {
   if (!roof.type || !outline.length) return [];
-  const box = bounds(outline.flat());
   const base = roof.eaveZ !== undefined ? datum + roof.eaveZ : undefined;
   const high = roof.highZ !== undefined ? datum + roof.highZ : undefined;
   const lifted = (ring: Pt[], z: (p: Pt) => number) => ring.map((p) => ({ x: p.x, y: p.y, z: z(p) }));
@@ -142,34 +159,31 @@ function generatedFaces(
     return z === undefined ? [] : outline.map((p) => lifted(p, () => z));
   }
   let planes: Plane[];
-  const width = box.x2 - box.x1,
-    depth = box.y2 - box.y1;
-  if (roof.type === "shed") {
-    const rise = roof.rise ?? (sketch ? "+Y" : undefined);
-    if (!rise) return [];
-    if (!roof.rise) assumptions.push("rise:+Y");
-    const options: Record<typeof rise, Plane> = {
-      "+X": { x: 1, y: 0, k: -box.x1 },
-      "-X": { x: -1, y: 0, k: box.x2 },
-      "+Y": { x: 0, y: 1, k: -box.y1 },
-      "-Y": { x: 0, y: -1, k: box.y2 },
+  if (roof.type === "shed" || roof.type === "gable") {
+    const points = outline.flat();
+    const names = frame?.name ?? "XY";
+    const basis = frame?.basis ?? [{ x: 1, y: 0 }, { x: 0, y: 1 }];
+    const fromEave = (axis: string, sign: number): Plane => {
+      const unit = basis[names.indexOf(axis)]!;
+      const x = sign * unit.x, y = sign * unit.y;
+      return { x, y, k: -Math.min(...points.map(p => x * p.x + y * p.y)) };
     };
-    planes = [options[rise]];
-  } else if (roof.type === "gable") {
-    if (Math.abs(areaOf(outline) - width * depth) > AREA_EPS) return [];
-    const axis = roof.ridgeAxis ?? (sketch ? (width >= depth ? "X" : "Y") : undefined);
-    if (!axis) return [];
-    if (!roof.ridgeAxis) assumptions.push("ridge-axis:" + axis);
-    planes =
-      axis === "X"
-        ? [
-            { x: 0, y: 1, k: -box.y1 },
-            { x: 0, y: -1, k: box.y2 },
-          ]
-        : [
-            { x: 1, y: 0, k: -box.x1 },
-            { x: -1, y: 0, k: box.x2 },
-          ];
+    if (roof.type === "shed") {
+      const rise = roof.rise ?? (sketch ? "+" + names[1] : undefined);
+      if (!rise) return [];
+      if (!roof.rise) assumptions.push("rise:" + rise);
+      planes = [fromEave(rise.slice(1), rise[0] === "-" ? -1 : 1)];
+    } else {
+      const box = bounds(frame ? points.map(p => frameCoordinates(frame, p)) : points);
+      const width = box.x2 - box.x1, depth = box.y2 - box.y1;
+      if (Math.abs(areaOf(outline) - width * depth) > AREA_EPS) return [];
+      const longer = width >= depth - (frame ? EPS : 0) ? 0 : 1;
+      const axis = roof.ridgeAxis ?? (sketch ? names[longer] : undefined);
+      if (!axis) return [];
+      if (!roof.ridgeAxis) assumptions.push("ridge-axis:" + axis);
+      const across = names[axis === names[0] ? 1 : 0]!;
+      planes = [fromEave(across, 1), fromEave(across, -1)];
+    }
   } else {
     const boundary = hull(outline.flat());
     if (Math.abs(area(boundary) - areaOf(outline)) > AREA_EPS) return [];
@@ -211,12 +225,12 @@ export function readRoofGeometry(model: Model, roof: RoofDecl) {
   const xy = ({ x, y }: Pt): Pt => ({ x, y });
   const ring = (refs: string[]) =>
     pieces(
-      refs.map((ref) => xy(point(model, ref))),
+      refs.map((ref) => xy(point(model, ref, roof.line))),
       roof,
     );
   const faces: RoofVertex[][] = [];
   for (const refs of roof.faces) {
-    const vertices = refs.map((ref) => point(model, ref));
+    const vertices = refs.map((ref) => point(model, ref, roof.line));
     facePlane(vertices, roof);
     for (const panel of pieces(vertices, roof)) {
       faces.push(panel.map((vertex) => ({ ...vertex, z: vertex.z + datum })));
@@ -262,8 +276,9 @@ export function roofForms(
     const authored = readRoofGeometry(model, roof);
     const assumptions: string[] = [];
     let outline = authored.outline;
+    let refs = roof.outline ?? [];
     if (!roof.outline && !roof.faces.length && sketch) {
-      outline = exposedFootprint(model, roof);
+      ({ outline, refs } = exposedFootprint(model, roof));
       if (outline.length) assumptions.push("outline:exposed-storey");
     }
     // Interiors of the pieces are disjoint. Merge a convex footprint spanning several rooms.
@@ -274,7 +289,7 @@ export function roofForms(
     const datum = model.levels[roof.level]!.z;
     const faces = authored.faces.length
       ? authored.faces
-      : generatedFaces(roof, outline, datum, pitches.get(roof.level), sketch, assumptions);
+      : generatedFaces(roof, directionFrame(model, roof, refs), outline, datum, pitches.get(roof.level), sketch, assumptions);
     return {
       ref: roof.path,
       level: roof.level,

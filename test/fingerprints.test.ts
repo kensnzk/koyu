@@ -111,29 +111,29 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 
 /** entry → [canonical SHA-256, Form SHA-256]. Both columns were first measured at v0.17.0 */
 const BASELINE: Readonly<Record<string, readonly [string, string]>> = {
-  "examples/spatial/main.muro": ["b3fb01b8eeead823ba0c79bbc0eebb51864fd7c25f7ff39f4e2aa091b95facbe", "c09bd2c29d6f3e1c5d00e19f87cdf3c44966e0317aaac0cce912445577376f02"],
+  "examples/spatial/main.muro": ["bf37745688359a414abba0099ee042c06f574230ddecb6b3194f822502390850", "c09bd2c29d6f3e1c5d00e19f87cdf3c44966e0317aaac0cce912445577376f02"],
   "examples/basement/main.muro": [
-    "e387d17b0f6b090f4678842a02e4661f3797983215582a5dc8457306e7ad61c4",
+    "e370d2788bd740291c1887d637c909042926ac146fd6fb7a73e9ede0d6455fb0",
     "ec6c647018cb1a14713d3a771b6dc0f32b6f2c3b782cf40fe78c9a8a150167ba",
   ],
   "examples/complex/main.muro": [
-    "7cdeb6f9b48b444e65141d2c4bb4806c4e11f7a216f161d9eec7acf2459b6565",
+    "400b85fa22f19f20424705c5f9b784a296a8bdddbb7ba5b288bf5f64c39ab261",
     "946a452b02bf467081804f089eab4db72f3002ae5a8b13a955c5027ba7df17f0",
   ],
   "examples/house.muro": [
-    "bdfae81ab90c5754d65ed6a0be50d1885c23d32639ad728b4645159dd4e38104",
+    "19e513a0c00f6e71f6341c5f5e31a283f647c2815f95b14ebed9cf6568d29cf4",
     "26145386b412fe7a6cfa041493c3371c7190f7a0ea9c6616df95ae489a591ccb",
   ],
   "examples/house/main.muro": [
-    "15e43360207a428d41b077f15188eb2592afa604492f59a56031c8c7f39108b8",
+    "2c2b5ce5941cfa88e4e0ddae97975b5471ab6b626360af2e1d8a3eb070b9183d",
     "2eaf9e454f0b1d91bb481f75dbc56f17ce81f21fceecae1b1b623fb5dbbc8974",
   ],
   "examples/mansion.muro": [
-    "3b1269df729ec16ff72b205b7e29b505c213d77df7c590e83f67fd7b60867864",
+    "7a06ff1c44de4dfecd059f9881e355f6e0189285142e5540cda9ce4db8f7f9dc",
     "c5afa884e909bce64ab64277e00af6af617de420be5c6a71917b1dcd227dcb43",
   ],
   "examples/office.muro": [
-    "d9f85d29104ac1f6cc2ce11318e0669710dfb94ccd458f74568ca02e356fd7d4",
+    "4090f03c138ee5d1c7e1a3b4eeaa4ef9ff78e1d9e30cd467aafcd59671b249de",
     "7cf1f4c1fe0aa53033118cac9f596a2913cf37e006f403259563f5e5d244e697",
   ],
   "examples/steps/01-one-room.muro": [
@@ -157,19 +157,19 @@ const BASELINE: Readonly<Record<string, readonly [string, string]>> = {
     "d4c0a82880f05d127f92948247121b3df1a1a599527690240f7b0ca24c91aace",
   ],
   "examples/steps/06-finished.muro": [
-    "0080cda56b4455091405e8270fa1e00b64732b7dc535d282ceb89d563766c132",
+    "352a772e5780bde74936b0ec52180b5c127c81b34c825e26aeb28ace8ffa0d6d",
     "433b74d5b0ccffb19bce6cc415375236f8e33ecfa9b4139d328a64138e41adc6",
   ],
   "examples/tower/main.muro": [
-    "cb313ad3f189f542d2a9381b600314fa2ee23db8d9e22fc4a0435988a457edef",
+    "dc1209efb15ad0b0dd4d499056529cb7e09bc598dd969c36895a5ceeb853de79",
     "f7e0e47145a555da4cb2ff38a888c473771d19059a637a257c2771ec38b04702",
   ],
   "examples/twin/main.muro": [
-    "b5665a2fed9b39a1ec8ba2e752f454d119f8215a8e8fdc67fe8975e10570e948",
+    "931c70271d2ef518969e4da972819d9ab627aa1ca1ae3f11f9cf094bc9cf6c6a",
     "bfbbfccdba79a58b72f73344de02ecce17fe12b06a136464baad7aed2c92a69e",
   ],
   "examples/two-rooms.muro": [
-    "0f8f1320219b1da2f609b4ed902707d8fd3e6e536ccc06e25d71259a816f3b39",
+    "58077a472e8a2e39dc549205dbd7275fe197cee55a9cc2bed576c44a5bbd990f",
     "642a6ecea5c4b05f14b14c9a38a6dc44a2b2e808a468b6867eb57471566aa08a",
   ],
 };

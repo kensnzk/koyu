@@ -25,7 +25,9 @@ column 800 L1..L5 at:X2+150,Y3-75 d:900
   section L4..L5 w:600 d:700
 ```
 
-`at:` accepts an X and Y grid reference. Each signed offset is in whole millimetres. The example places the centre 150 mm along positive X from X2 and 75 mm along negative Y from Y3. The lower three sections measure 800 × 900 mm and the upper two measure 600 × 700 mm, all centred on the same axis. Changing the parent position moves all five. A centre that actually moves at an upper storey starts a separate declaration there.
+`at:` accepts a grid intersection. Each signed offset is in whole millimetres. The example places the centre 150 mm along positive X from X2 and 75 mm along negative Y from Y3. The lower three sections measure 800 × 900 mm and the upper two measure 600 × 700 mm, all centred on the same axis. Changing the parent position moves all five. A centre that actually moves at an upper storey starts a separate declaration there.
+
+Two stations on one [local frame](grid.md#rotated-orthogonal-frames) orient the section on every storey: width follows its first dimension and depth its second. Mixed-frame intersections default to the world axes. With Muro 1.8, `frame:AB` selects a declared frame and `frame:XY` selects the world axes independently of the centre. For example, `at:A2,Y2 frame:AB` aligns the sides with AB while retaining the A2/Y2 crossing. Intersections solved through different axes within the model's length tolerance represent the same centre.
 
 An explicit run or section range may use any two declared level names, including `Pit..L5` or `L5..Roof`. Expansion includes all declared levels between their elevations, in ascending order.
 
@@ -45,7 +47,7 @@ That last clause is the rule that **a floor holding up nothing but sky gets no c
 Whether a space is semi-outdoor is derived, not declared (a space with a region meeting the outside across an `open` or `air:1` boundary). Whether it is covered from above is derived too (does any space on any level above overlap it in plan).
 
 ```muro
-muro 1.7
+muro 1.8
 unit mm
 grid X 0 6000 12000
 grid Y 0 6000
@@ -100,6 +102,7 @@ The floor test reads the **derived form** too. Where an intersection falls on th
 |---|---|---|
 | `d` | structure | a positive number, mm — the depth of a rectangular section. Defaults to the side (a square column) |
 | `at` | structure | one explicit grid-relative centre for the run |
+| `frame` | structure | section orientation for all storeys: XY or a declared local frame |
 | `x` / `y` | structure | restrict which grid lines to stand on, comma separated. Unwritten means all of them |
 | `name` | interpreted | display name, and what `drop column` points at |
 | `spec` | carried | the name of the thing — carried and nothing more |

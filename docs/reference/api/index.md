@@ -130,6 +130,16 @@ unevaluated results. See [spatial models](../muro/mode.md) for the full contract
 
 **An empty diagnostic list does not mean the building works.** `checkDiagnostics` says only that what is written is not self-contradictory as data. A two-storey house with not one door declared stays sealed shut with an empty list. The architectural judgement is made separately by `assess`, under a profile you name.
 
+## Resolving a grid intersection
+
+```ts
+import { gridPoint } from "@kensnzk/koyu/model";
+
+const point = gridPoint(model, "X2,Y3");
+```
+
+The result is a world-coordinate `{ x, y }` in millimetres. Use this call for primary XY grids, rotated orthogonal frames (`A1+500,B2-200`), inclined Y families and named axes. For an inclined family, `model.grid.Y.coords` contains northings at X1. Reading them directly as world Y at every X would draw the family horizontally. A pair with no unique intersection or an unknown name throws.
+
 ## Depending on a language version rather than a package range
 
 **What an application depends on is a muro version, not a koyu version.** An editor that writes `muro 1.1` needs a build that reads 1.1; which build that is, is this package's business. Expressing that as a semver range in `package.json` guesses at the answer, and the guess goes stale silently — the range keeps resolving while the language underneath it moves.
@@ -187,6 +197,16 @@ could — no test binds prose to a type.
 `test/public-api.test.ts` keeps it in set-equality with `src/index.ts`. A name in the table is a
 promise; a name absent from it is not one, however visible it is in the source. For what each name
 means, read the declaration.
+
+## SVG palettes
+
+Pass `drawingStyle` in the options of `svgPlan`, `svgSection`, `svgElevation` or `svgAxo`. Each renderer defaults to `ink`. The `@kensnzk/koyu/draw` entry point exports `DRAWING_STYLES` and the `DrawingStyle` type.
+
+```ts
+import { svgPlan } from "@kensnzk/koyu/draw";
+
+const svg = svgPlan(model, { level: "L1", drawingStyle: "blueprint" });
+```
 
 ## Three domains
 

@@ -23,7 +23,7 @@ space /L1/ev  shaft      X4..X5 Y1..Y2 name:昇降機 lift:1
 | `escalator:` | Direction of ascent, `N` / `E` / `S` / `W` |
 | `lift:` | `1` (a lift has no direction) |
 
-`N` is +Y, `S` is −Y, `E` is +X, `W` is −X. The type in the second position (`stair`, `ramp`, `shaft`, …) is open vocabulary used for aggregation; what generates the form is the attribute key.
+On the primary grid, `N` is +Y, `S` is −Y, `E` is +X and `W` is −X. A rectangular range on a [rotated frame](grid.md#rotated-orthogonal-frames) uses the same directions in that frame. On AB, `stair:N` rises along +B, while `stair:E` rises along +A. The flights, landing and lift car follow the frame in plan, section and 3D. For an AB return stair rising along +B, optional `flights:` ranges are A references. The type in the second position (`stair`, `ramp`, `shaft`, …) is open vocabulary used for aggregation; what generates the form is the attribute key.
 
 **One space carries one declaration.**
 
@@ -93,6 +93,12 @@ form:return     usable length = full length − entry
 RUN05  The form of the vertical circulation is undetermined: /L1/s (check that the landing does not exceed the full length)
 ```
 
+### An independent arrival line
+
+In muro 1.8, write `arrival-at:` on the **departure space** of a return stair when its returning flight reaches the upper level at a different longitudinal station from its departure. For example, `stair:N form:return arrival-at:Y1+1900` puts the upper end of the returning flight 1900 mm beyond Y1. On the next storey, the outgoing flight keeps the boarding band from its own stair declaration.
+
+Use a Y reference for north/south ascent or X for east/west ascent. In an AB frame, use B or A respectively. The station must lie within the enclosure on the near side of the intermediate landing. If omitted, the return ends at the departure station. Changing the arrival line adjusts the going and tread of the returning flight. The intermediate landing retains its position and elevation. Floor geometry comes from the floor declarations.
+
 ## Dividing the steps
 
 The riser count is the rise divided by the riser limit, rounded up, with a floor of two. The tread is the length of **one flight** divided by the number of gaps between that flight's steps. A turning run has two flights and therefore two treads, and the more cramped one represents it (see [aggregate values](#aggregate-values) below).
@@ -102,7 +108,8 @@ risers = max(2, ceil(rise ÷ riser))
 riser  = rise ÷ risers
 tread  = the length of one flight ÷ max(1, that flight's risers − 1)
   form:straight   one flight = the usable length, and its risers are all of them
-  form:return     one flight = full length − entry − landing; k risers below, risers − k above
+  form:return     lower flight = full length − entry − landing; k risers
+                  upper flight = distance from the landing edge to the arrival line; risers − k
 ```
 
 `riser:` is the **upper limit** on a riser in mm, defaulting to **180**. Writing it changes the riser count.
@@ -156,6 +163,7 @@ The second flight of a turning run carries more steps and is therefore finer. Lo
 | `turn:` | `R` | Direction of the turn. Only a literal `L` means left |
 | `flights:` | two equal halves | Two transverse grid ranges for a return stair, in increasing world-coordinate order |
 | `entry:` | 1100 | Depth of the boarding band in mm |
+| `arrival-at:` | departure station | Longitudinal grid reference of the upper end of a returning stair flight |
 | `landing:` | derived | Depth of the intermediate landing in mm (minimum 1100) |
 | `riser:` | 180 | **Upper limit** on a riser in mm. It sets the riser count |
 | `tread:` | 300 | Target tread in mm, used to derive a turning run's landing |
@@ -219,7 +227,7 @@ In three dimensions a stair flight of k risers carries **k−1 treads** (the top
 ## A complete example
 
 ```muro
-muro 1.7
+muro 1.8
 name 階段室のある小さなコア
 unit mm
 

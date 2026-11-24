@@ -6,10 +6,13 @@
 import { unionArea } from "./poly.js";
 import { segmentLength, segmentsFor } from "./graph.js";
 import {
+  hasRegion,
+  hasPolygonAllocation,
   areaM2,
   isIndoor,
   polygonAreaM2,
   regionOf,
+  allocatedPieces,
   unionAreaM2,
   type Model,
   type SitePolygon,
@@ -57,16 +60,16 @@ export function siteReport(model: Model): SiteReport {
   const spaces = [...model.spaces.values()];
   const indoor = spaces.filter((s) => s.level && isIndoor(model, s));
   const siteChildren = siteZone
-    ? spaces.filter((s) => s.path.startsWith(siteZone.path + "/") && s.rects.length > 0)
+    ? spaces.filter((s) => s.path.startsWith(siteZone.path + "/") && hasRegion(s))
     : [];
 
   const polygon = siteZone ? model.polygons.get(siteZone.path) : undefined;
+  const allocated = [...siteChildren, ...indoor];
   const derivedArea = polygon
     ? Math.round(polygonAreaM2(polygon.points) * 100) / 100
-    : unionAreaM2([
-        ...siteChildren.flatMap((s) => s.rects),
-        ...indoor.flatMap((s) => s.rects),
-      ]);
+    : allocated.some(hasPolygonAllocation)
+      ? Math.round((unionArea(allocated.flatMap(allocatedPieces)) / 1e6) * 100) / 100
+      : unionAreaM2(allocated.flatMap(s => s.rects));
   // 建築面積も導出された形から。割付から数えると、隅切りで落とした分まで数えてしまう
   const footprint = Math.round((unionArea(indoor.flatMap((s) => regionOf(s))) / 1e6) * 100) / 100;
   const totalFloor =

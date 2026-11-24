@@ -14,6 +14,7 @@ import {
   openingIdentity,
   polygonAreaM2,
   canonicalMemberDefinition,
+  canonicalFrame,
   compareCanonical,
   type Attrs,
   type AttrValue,
@@ -92,6 +93,9 @@ export interface ModelDiff {
   mode?: { from: "building" | "spatial"; to: "building" | "spatial" };
   name?: { from?: string; to?: string };
   grid: GridChange[];
+  gridSlopeY?: { from: number; to: number };
+  frames?: { added: string[]; removed: string[]; changed: ChangedItem[] };
+  axes?: { added: string[]; removed: string[]; changed: ChangedItem[] };
   members?: Partial<Record<"roofs" | "beams" | "foundations", { added: string[]; removed: string[]; changed: ChangedItem[] }>>;
   levels: { added: string[]; removed: string[]; changed: ChangedItem[] };
   assets: { added: string[]; removed: string[]; changed: ChangedItem[] };
@@ -187,6 +191,7 @@ function attrFields(a: Attrs, b: Attrs, prefix = ""): FieldChange[] {
 
 /** 領域 (グリッド参照) の人間可読表記 */
 function fmtGrids(s: Space): string {
+  if (s.cell) return `cell:${s.cell.refs.join(";")}`;
   if (s.grids.length === 0) return "—";
   return s.grids.map((g) => `${g.xa}..${g.xb} ${g.ya}..${g.yb}`).join(" + ");
 }
@@ -199,9 +204,13 @@ function spaceFields(sa: Space, sb: Space): FieldChange[] {
   if (sa.level !== sb.level) fields.push(fieldChange("level", sa.level ?? "—", sb.level ?? "—"));
   const ea = canonicalSpaceEntry(sa);
   const eb = canonicalSpaceEntry(sb);
-  if (JSON.stringify(ea["at"] ?? null) !== JSON.stringify(eb["at"] ?? null)) {
+  if (JSON.stringify(ea["at"] ?? ea["cell"] ?? null) !== JSON.stringify(eb["at"] ?? eb["cell"] ?? null)) {
     fields.push(fieldChange("region", fmtGrids(sa), fmtGrids(sb)));
   }
+  fields.push(...multisetFields(
+    sa.cell?.holes?.map(h => h.refs) ?? [], sb.cell?.holes?.map(h => h.refs) ?? [],
+    () => "hole", refs => (refs as string[]).join(";"),
+  ));
   // 面積は導出値の差分として別掲する — 領域が同じでもグリッド座標の移動で変わる (原因はgrid差分が先頭で言う)
   const arA = areaM2(sa);
   const arB = areaM2(sb);
@@ -511,6 +520,43 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
     }
   }
 
+  const slopeA = a.grid.Y.slope ?? 0;
+  const slopeB = b.grid.Y.slope ?? 0;
+  if (slopeA !== slopeB) d.gridSlopeY = { from: slopeA, to: slopeB };
+
+  const frameNames = new Set([...(a.frames?.keys() ?? []), ...(b.frames?.keys() ?? [])]);
+  for (const name of [...frameNames].sort(compareCanonical)) {
+    const oldFrame = a.frames?.get(name), newFrame = b.frames?.get(name);
+    if (oldFrame && newFrame) {
+      const from = canonicalFrame(oldFrame), to = canonicalFrame(newFrame);
+      const fields: FieldChange[] = [];
+      for (const key of Object.keys(from)) {
+        const left = String(from[key]), right = String(to[key]);
+        if (left !== right) fields.push(fieldChange(key, left, right));
+      }
+      if (!fields.length) continue;
+      (d.frames ??= { added: [], removed: [], changed: [] }).changed.push({ path: name, fields });
+    } else {
+      const changes = d.frames ??= { added: [], removed: [], changed: [] };
+      (newFrame ? changes.added : changes.removed).push(name);
+    }
+  }
+
+  const axisNames = new Set([...(a.axes?.keys() ?? []), ...(b.axes?.keys() ?? [])]);
+  for (const name of [...axisNames].sort(compareCanonical)) {
+    const oldLine = a.axes?.get(name), newLine = b.axes?.get(name);
+    const oldAxis = oldLine?.local ? undefined : oldLine, newAxis = newLine?.local ? undefined : newLine;
+    if (oldAxis?.from === newAxis?.from && oldAxis?.to === newAxis?.to) continue;
+    const changes = d.axes ??= { added: [], removed: [], changed: [] };
+    if (!oldAxis) changes.added.push(name);
+    else if (!newAxis) changes.removed.push(name);
+    else {
+      const fields = (["from", "to"] as const).filter(key => oldAxis[key] !== newAxis[key])
+        .map(key => fieldChange(key, oldAxis[key], newAxis[key]));
+      changes.changed.push({ path: name, fields });
+    }
+  }
+
   // レベル — uidを持たないため改名は削除+追加になる (既知の限界 — ADR-0018)
   const levelSort = levelOrder(a, b);
   for (const name of [...new Set([...Object.keys(a.levels), ...Object.keys(b.levels)])].sort(
@@ -577,6 +623,7 @@ export function semanticDiff(a: Model, b: Model): ModelDiff {
         ...(c.depth !== undefined ? [`d:${c.depth}`] : []),
         c.levels.length > 2 ? `${c.levels[0]}..${c.levels[c.levels.length - 1]}` : c.levels.join(","),
         ...(c.at ? [`at:${c.at}`] : []),
+        ...(c.frame ? [`frame:${c.frame}`] : []),
         ...(c.sections ? [...c.sections].sort((a,b) => c.levels.indexOf(a.levels[0]!) - c.levels.indexOf(b.levels[0]!)).map(s => `section ${s.levels.join(",")} w:${s.w} d:${s.d}`) : []),
         ...(c.xNames ? [`x:${c.xNames.join(",")}`] : []),
         ...(c.yNames ? [`y:${c.yNames.join(",")}`] : []),
@@ -714,10 +761,21 @@ export function renderDiff(d: ModelDiff): string[] {
     else if (g.kind === "added") out.push(`+ grid ${g.axis} ${g.name} ${g.to}`);
     else out.push(`− grid ${g.axis} ${g.name} ${g.from}`);
   }
+  if (d.gridSlopeY) out.push(`± grid Y slope ${d.gridSlopeY.from} → ${d.gridSlopeY.to}`);
+  if (d.frames) {
+    for (const name of d.frames.added) out.push(`+ frame ${name}`);
+    for (const name of d.frames.removed) out.push(`− frame ${name}`);
+    for (const item of d.frames.changed) out.push(`± frame ${item.path}: ${fmtFields(item.fields)}`);
+  }
+  if (d.axes) {
+    for (const name of d.axes.added) out.push(`+ axis ${name}`);
+    for (const name of d.axes.removed) out.push(`− axis ${name}`);
+    for (const axis of d.axes.changed) out.push(`± axis ${axis.path}: ${fmtFields(axis.fields)}`);
+  }
+  if (d.mode) out.push(`± mode ${d.mode.from} → ${d.mode.to}`);
   // **The label names the language, not the implementation.** It also may not be the written
   // declaration: from 1.2 the word is `muro`, so printing `koyu 1.2` would show a line the
   // parser refuses. This is a label for a change, not a copy of either file's first line.
-  if (d.mode) out.push(`± mode ${d.mode.from} → ${d.mode.to}`);
   if (d.version) out.push(`± muro ${d.version.from} → ${d.version.to}`);
   if (d.name) out.push(`± name ${d.name.from ?? "—"} → ${d.name.to ?? "—"}`);
   for (const n of d.levels.added) out.push(`+ level ${n}`);

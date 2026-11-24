@@ -310,6 +310,46 @@ test("a continuous explicit column centre moves the door interference with the d
   assert.deepEqual(hit.centerMm, { x: 4900, y: 4900 });
 });
 
+test("an oblique door span intersects only the interior of columns along its opening", () => {
+  const source = (at: string) => `muro 1.8
+grid X 0 4000
+grid Y 0 4000
+axis D1 X1,Y1 X2,Y1+800
+axis D2 X1,Y1+1000 X2,Y1+1800
+axis D3 X1,Y1+2000 X2,Y1+2800
+level L1 0 h:2700 slab:150
+space /L1/a room cell:X1,D1;X2,D1;X2,D2;X1,D2
+space /L1/b room cell:X1,D2;X2,D2;X2,D3;X1,D3
+column 400 L1 at:${at}
+boundary /L1/a /L1/b
+  door w:1000 at:0.5`;
+  // The midpoint is (2000, 1400). The line touches the lower-right column corner
+  // when its centre is (2000, 1640) and crosses the interior one millimetre below.
+  for (const [at, expected] of [
+    ["X1,D2", "pass"],
+    ["X1+2000,D2", "fail"],
+    ["X1+2000,Y1+1640", "pass"],
+    ["X1+2000,Y1+1639", "fail"],
+  ] as const) {
+    assert.equal(onlyOutcome(assessSource(source(at)), COLUMN_BLOCKS_DOOR_RULE_ID.id).status, expected, at);
+  }
+});
+
+test("door clearance follows the rotated column depth", () => {
+  const source = (offset: number) => `muro 1.8
+grid X 0 4000
+grid Y 0 8000
+frame AB at:X2,Y1 angle:30 A:0,4000 B:0,4000,8000
+level L1 0 h:2700 slab:150
+space /L1/a room A1..A2 B1..B2
+space /L1/b room A1..A2 B2..B3
+column 200 L1 at:A1+2000,B2+${offset} d:900
+boundary /L1/a /L1/b
+  door w:900 at:A1+2000`;
+  assert.equal(collisionValue(source(450)).doors[0]!.firstColumnIntersection, null);
+  assert.equal(collisionValue(source(449)).doors[0]!.firstColumnIntersection?.grid, "A1+2000/B2+449");
+});
+
 function acrossOverlapSource(depth: number): string {
   return `koyu 1.1
 grid X 0 4000 8000

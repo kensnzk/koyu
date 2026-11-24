@@ -1,5 +1,5 @@
-import { compareCanonical, gridPoint, SourceError, type Model, type Pt } from "./model.js";
-import { area, convexPieces, rectToPoly, signedArea } from "./poly.js";
+import { canonicalPointRef, compareCanonical, gridPoint, memberFrame, sectionRectangle, SourceError, type Model, type Pt } from "./model.js";
+import { area, convexPieces, signedArea } from "./poly.js";
 
 interface MemberDecl {
   path: string;
@@ -17,7 +17,7 @@ export interface BeamDecl extends MemberDecl {
 }
 
 export type FoundationDecl = MemberDecl & { t: number } & (
-  | { type: "pad"; at: string; w: number; d: number }
+  | { type: "pad"; at: string; frame?: string; w: number; d: number }
   | { type: "strip"; from: string; to: string; w: number }
   | { type: "mat"; outline: string[] }
 );
@@ -40,10 +40,11 @@ export interface FormFoundation extends FormMember {
 
 export function memberRef(model: Model, ref: string, line: number): string {
   gridPoint(model, ref, line);
-  return ref.split(",").map(axis => axis.replace(/[+-]\d+$/, raw => {
+  const normalized = ref.split(",").map(axis => axis.replace(/[+-]\d+$/, raw => {
     const offset = Number(raw);
     return offset > 0 ? `+${offset}` : offset === 0 ? "" : String(offset);
   })).join(",");
+  return canonicalPointRef(model, normalized);
 }
 
 /** Horizontal rectangle with perpendicular ends at the two authored stations. */
@@ -81,7 +82,7 @@ function foundation(model: Model, f: FoundationDecl): FormFoundation {
   const { type } = f;
   if (type === "pad") {
     const { x, y } = gridPoint(model, f.at, f.line);
-    outline = rectToPoly({ x1: x - f.w / 2, y1: y - f.d / 2, x2: x + f.w / 2, y2: y + f.d / 2 });
+    outline = sectionRectangle({ x, y, w: f.w, d: f.d, basis: memberFrame(model, f.at, f.frame)?.basis });
   } else if (type === "strip") {
     outline = strip(model, f);
   } else {

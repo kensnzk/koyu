@@ -1,0 +1,6 @@
+muro 1.8
+grid X 1000 7000
+grid Y 2000 6000 slope:1/5
+level L1 0 h:2800 slab:200
+space /L1/a X1..X2 Y1..Y2
+column 400 L1 x:X2 y:Y2

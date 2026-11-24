@@ -1,0 +1,8 @@
+muro 1.8
+grid X 0 4000
+grid Y 0 6000
+frame AB at:X1,Y1 angle:90 A:0,3000 B:0,2000
+level L1 0 h:2700
+column 600 L1 at:X1,A2 d:900 frame:AB
+foundation /a level:L1 type:pad at:X1,A2 w:600 d:900 t:400 frame:AB
+foundation /b level:L1 type:pad at:X1,A2 w:600 d:900 t:400 frame:XY

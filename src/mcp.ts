@@ -10,14 +10,17 @@ import { mkdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from
 import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { daylightInputs } from "./core/light.js";
 import {
+  hasRegion,
   DEFAULT_LANGUAGE_VERSION,
   type Edge,
   gridRef,
+  namedAxisGeometry,
   KOYU_VERSION,
   NEWEST_LANGUAGE_VERSION,
   polygonAreaM2,
   SUPPORTED_LANGUAGE_VERSIONS,
 } from "./core/model.js";
+import { referenceCut } from "./draw/section.js";
 import { axisOf } from "./core/section.js";
 import { placedComponents } from "./core/components.js";
 import { check } from "./core/diagnose.js";
@@ -25,7 +28,7 @@ import { siteReport } from "./core/site.js";
 import { assess } from "./validate/assessment.js";
 import { createSchematicRegistry, SCHEMATIC_PROFILE_ID } from "./validate/builtin/index.js";
 import { checkDiagnostics } from "./diagnostics.js";
-import { svgElevation, svgPlan, svgSection } from "./draw/index.js";
+import { DRAWING_STYLES, svgElevation, svgPlan, svgSection, type DrawingStyle } from "./draw/index.js";
 import { doorsBetween } from "./graph.js";
 import {
   areaM2,
@@ -85,7 +88,7 @@ function assertInside(entryDir: string, targetDir: string): void {
 }
 
 function summarize(model: Model, file: string, by: readonly string[] = []): unknown {
-  const rooms = [...model.spaces.values()].filter((s) => s.rects.length > 0 && s.level);
+  const rooms = [...model.spaces.values()].filter((s) => hasRegion(s) && s.level);
   const indoor = rooms.filter((s) => isIndoor(model, s));
   const semi = rooms.filter((s) => !isVoid(s) && isSemiOutdoor(model, s));
   const byLevel: Record<string, { rooms: number; subtotalM2: number }> = {};
@@ -204,6 +207,16 @@ interface Tool {
 const FILE_PROP = {
   file: { type: "string", description: "Path to the entry .muro file (imports are composed automatically)" },
 };
+const SHEET_PROPS = {
+  ...FILE_PROP,
+  drawingStyle: { type: "string", enum: DRAWING_STYLES, description: "Sheet palette (default: ink)" },
+};
+function optionalDrawingStyle(value: unknown): DrawingStyle | undefined {
+  if (value === undefined) return undefined;
+  const style = DRAWING_STYLES.find(name => name === value);
+  if (!style) throw new Error(`drawingStyle must be one of ${DRAWING_STYLES.join(" / ")}`);
+  return style;
+}
 const str = (v: unknown, name: string): string => {
   if (typeof v !== "string" || !v) throw new Error(`${name} (a string) is required`);
   return v;
@@ -456,13 +469,13 @@ const TOOLS: Record<string, Tool> = {
     description: "Generates and returns the plan SVG for a level (form is generated, not written — the lowest level doubles as the site plan)",
     schema: {
       type: "object",
-      properties: { ...FILE_PROP, level: { type: "string", description: "Level name (e.g. L5)" } },
+      properties: { ...SHEET_PROPS, level: { type: "string", description: "Level name (e.g. L5)" } },
       required: ["file", "level"],
     },
     run: (a) => {
       const model = load(str(a.file, "file"));
       const level = str(a.level, "level");
-      return svgPlan(model, { level, componentSvgs: componentSvgFiles(model, level) });
+      return svgPlan(model, { level, drawingStyle: optionalDrawingStyle(a.drawingStyle), componentSvgs: componentSvgFiles(model, level) });
     },
   },
   section_svg: {
@@ -471,15 +484,15 @@ const TOOLS: Record<string, Tool> = {
     schema: {
       type: "object",
       properties: {
-        ...FILE_PROP,
+        ...SHEET_PROPS,
         at: {
           type: "string",
           description: "Grid reference for the cut — X3, X3+450, Y2-600. A plane on a grid line usually runs along a wall; offset it to cut through the rooms",
         },
         look: {
           type: "string",
-          enum: ["N", "E", "S", "W"],
-          description: "Direction of view. Must cross the plane: E or W for an X reference, N or S for a Y reference. Defaults to W and N",
+          enum: ["N", "E", "S", "W", "left", "right"],
+          description: "Direction of view. Must cross the plane: E or W for an X reference, N or S for a Y reference. Defaults to W and N. Supplementary named axes use left or right",
         },
       },
       required: ["file", "at"],
@@ -487,6 +500,11 @@ const TOOLS: Record<string, Tool> = {
     run: (a) => {
       const model = load(str(a.file, "file"));
       const at = str(a.at, "at");
+      const options = { atRef: at, drawingStyle: optionalDrawingStyle(a.drawingStyle) };
+      if (namedAxisGeometry(model, at)) {
+        if (a.look !== undefined && a.look !== "left" && a.look !== "right") throw new Error("A named axis is viewed to its left or right");
+        return svgSection(model, { ...options, cut: referenceCut(model, at, a.look === "right")! });
+      }
       const g = gridRef(model, at);
       if (!g) {
         throw new Error(
@@ -499,7 +517,8 @@ const TOOLS: Record<string, Tool> = {
           `look ${look} runs along ${at} rather than across it (an X reference is looked at from E or W, a Y reference from N or S)`,
         );
       }
-      return svgSection(model, { axis: g.axis, at: g.coord, atRef: at, ...(look ? { look } : {}) });
+      const cut = referenceCut(model, at, look === "S");
+      return svgSection(model, cut ? { ...options, cut } : { ...options, axis: g.axis, at: g.coord, ...(look ? { look } : {}) });
     },
   },
   elevation_svg: {
@@ -508,16 +527,20 @@ const TOOLS: Record<string, Tool> = {
     schema: {
       type: "object",
       properties: {
-        ...FILE_PROP,
+        ...SHEET_PROPS,
+        frame: { type: "string", description: "Optional rotated grid frame name" },
         face: {
           type: "string",
           enum: ["N", "E", "S", "W"],
-          description: "The side the viewer stands on. S is the south elevation, seen from the south",
+          description: "The side the viewer stands on, in world or frame directions",
         },
       },
       required: ["file", "face"],
     },
-    run: (a) => svgElevation(load(str(a.file, "file")), { face: edge(a.face, "face") }),
+    run: (a) => svgElevation(load(str(a.file, "file")), {
+      face: edge(a.face, "face"), frame: a.frame === undefined ? undefined : str(a.frame, "frame"),
+      drawingStyle: optionalDrawingStyle(a.drawingStyle),
+    }),
   },
   canonical_json: {
     description: "The canonical JSON (machine format — one composed model, byte-stable). The ground for diffing and for external connections",

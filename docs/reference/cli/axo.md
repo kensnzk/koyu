@@ -10,7 +10,7 @@ Writes an axonometric as SVG. Floors, roofs, walls, columns and vertical runs ar
 ## Arguments
 
 ```text
-koyu axo <entry.muro> [-o <out.svg>] [-d NE|NW|SE|SW] [-l <levels>] [-s <scale>] [--no-walls] [--ceilings]
+koyu axo <entry.muro> [-o <out.svg>] [--style <name>] [-d NE|NW|SE|SW] [-l <levels>] [-s <scale>] [--no-walls] [--ceilings]
 ```
 
 Takes one entry path. The drawing goes to a file; stdout gets one line naming where it went.
@@ -19,6 +19,7 @@ Takes one entry path. The drawing goes to a file; stdout gets one line naming wh
 
 | Flag | Default | Effect |
 |---|---|---|
+| `--style <name>` | `ink` | Sheet palette: `ink`, `blueprint` or `classic`. See [drawing styles](index.md#drawing-styles). |
 | `-o <path>` / `--out <path>` | `out/axo.svg` | Where to write. The directory is created if missing |
 | `-d <dir>` / `--dir <dir>` | `SE` | Viewing direction. `NE`, `NW`, `SE`, `SW` only |
 | `-l <spec>` / `--levels <spec>` | all levels | Levels to draw. A range `L1..L5` or a list `L1,L3` |

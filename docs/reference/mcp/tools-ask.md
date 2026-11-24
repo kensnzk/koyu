@@ -227,28 +227,13 @@ What `validate` says about the site is three things: whether the building escape
 |---|---|---|
 | `file` | yes | The entry `.muro` path |
 | `level` | yes | A level name (`L1`, say) |
+| `drawingStyle` | no | Sheet palette: `ink` (default), `blueprint` or `classic` |
 
-**What comes back is the SVG string itself, not JSON.** Every other tool on the server returns JSON; this one is the exception.
-
-```text
-<svg xmlns="http://www.w3.org/2000/svg" width="682" height="782" viewBox="0 0 682 782" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
-<rect width="682" height="782" fill="#faf8f4"/>
-<g transform="translate(9.11 9.27) scale(0.02179)"><path d="M1027.53 171.361L224.461 171.363L…" fill="#171A18"/><path d="M707 445.022L811.864 445L…" fill="#A84940"/></g>
-<path d="M 341 316 L 523 316 L 523 134 L 341 134 Z" fill="#f1ebdd"/>
-<path d="M 159 498 L 341 498 L 341 134 L 159 134 Z" fill="#f1ebdd"/>
-<path d="M 341 498 L 523 498 L 523 316 L 341 316 Z" fill="#f1ebdd"/>
+```json
+{"name": "plan_svg", "arguments": {"file": "<abs>/examples/house/main.muro", "level": "L1", "drawingStyle": "blueprint"}}
 ```
 
-(The first six lines of `L1` from `examples/house/main.muro`, with the two paths of the mark shortened. The whole thing is 7,669 bytes and ends with these two lines.)
-
-```text
-<text x="22" y="764" font-size="12" fill="#1f1f1f">小さな戸建住宅 — L1 plan</text>
-</svg>
-```
-
-**Every drawing carries the mark**, drawn rather than linked — an SVG that reaches for a file is one that arrives broken as often as not.
-
-**No file is written.** Only the string comes back; nothing lands on disk. Saving it is the caller's job.
+The three drawing tools return a self-contained SVG string with an embedded Koyu mark. The caller can display the string or save it to a file.
 
 **The lowest level doubles as the site plan.** If site, garden and road are written, they appear on that level's drawing.
 
@@ -281,27 +266,12 @@ The look (colours, line weights, typeface) is not frozen. A new version may chan
 | `file` | yes | The entry `.muro` path |
 | `at` | yes | The cutting plane, as a grid reference with an optional offset — `X3`, `X3+450`, `Y2-600` |
 | `look` | no | The direction of view. It must cross the plane: `E`/`W` for an X reference, `N`/`S` for a Y one. Defaults to `W` and `N` |
+| `drawingStyle` | no | Sheet palette: `ink` (default), `blueprint` or `classic` |
 
 **The plane is named in the notation's own words.** The source never writes a coordinate ([positions](../muro/positions.md)), so neither does a cut — and `at` resolves through the very function `at:X3+450` resolves through on an opening.
 
 ```json
 {"name": "section_svg", "arguments": {"file": "<abs>/examples/house/main.muro", "at": "X2+900"}}
-```
-
-```text
-<svg xmlns="http://www.w3.org/2000/svg" width="834" height="478" viewBox="0 0 834 478" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
-<rect width="834" height="478" fill="#faf8f4"/>
-<g transform="translate(9.11 9.27) scale(0.02179)">…</g>
-<path d="M 516 374 L 698 374 L 698 254 L 516 254 Z" fill="#f1ebdd"/>
-<path d="M 516 229 L 698 229 L 698 109 L 516 109 Z" fill="#f1ebdd"/>
-<path d="M 334 374 L 516 374 L 516 254 L 334 254 Z" fill="#f1ebdd"/>
-```
-
-(9,601 bytes, ending with the title.)
-
-```text
-<text x="70" y="460" font-size="12" fill="#1f1f1f">小さな戸建住宅 — section at X2+900 looking W</text>
-</svg>
 ```
 
 ### A plane on a grid line usually runs along a wall
@@ -327,22 +297,13 @@ Both come back with `isError: true`. Confirm the grid in [`model_summary`](tools
 | Argument | Required | Contents |
 |---|---|---|
 | `file` | yes | The entry `.muro` path |
-| `face` | yes | The side the viewer stands on — `N`, `E`, `S` or `W`. `S` is the south elevation, seen from the south |
+| `face` | yes | The side the viewer stands on — `N`, `E`, `S` or `W` |
+| `frame` | no | Name of a rotated grid frame. With `AB`, `S` views the building from its negative B side. Omit for world directions. |
+| `drawingStyle` | no | Sheet palette: `ink` (default), `blueprint` or `classic` |
 
 ```json
 {"name": "elevation_svg", "arguments": {"file": "<abs>/examples/house/main.muro", "face": "S"}}
 ```
-
-```text
-<svg xmlns="http://www.w3.org/2000/svg" width="734" height="478" viewBox="0 0 734 478" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
-<rect width="734" height="478" fill="#faf8f4"/>
-<g transform="translate(9.11 9.27) scale(0.02179)">…</g>
-<path d="M 573 374 L 650 374 L 650 314 L 573 314 Z" fill="#b8b0a0" stroke="#1f1f1f" stroke-width="0.35" stroke-opacity="0.5"/>
-<path d="M 209 374 L 573 374 L 573 314 L 209 314 Z" fill="#b8b0a0" stroke="#1f1f1f" stroke-width="0.35" stroke-opacity="0.5"/>
-<path d="M 136 374 L 209 374 L 209 314 L 136 314 Z" fill="#b8b0a0" stroke="#1f1f1f" stroke-width="0.35" stroke-opacity="0.5"/>
-```
-
-(11,349 bytes.)
 
 **An opening is a hole, and nothing cuts one.** A wall arrives as the run of intervals its openings split it into, so its elevation has the gap in it before any drawing starts.
 

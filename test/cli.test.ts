@@ -13,11 +13,12 @@
 
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { sheetPalette } from "../src/draw/sheet.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const tmp = mkdtempSync(join(tmpdir(), "koyu-cli-"));
@@ -106,6 +107,27 @@ test("cli: axo writes an SVG and says where (exit code 0)", () => {
 });
 
 // ---- 呼び方の問題は 2 ----
+
+test("cli: each drawing command writes the selected sheet style", () => {
+  for (const [command, args] of [
+    ["plan", ["-l", "L1"]], ["section", ["--at", "Y1+100"]], ["elevation", []], ["axo", []],
+  ] as const) {
+    const out = join(tmp, command + "-blueprint.svg");
+    const r = koyu(command, "examples/two-rooms.muro", ...args, "--style", "blueprint", "-o", out);
+    assert.equal(r.code, 0, r.err);
+    assert.ok(readFileSync(out, "utf8").includes(`fill="${sheetPalette("blueprint").paper}"`), command);
+  }
+});
+
+test("cli: a missing or unknown drawing style leaves no drawing", () => {
+  const out = join(tmp, "invalid-palette.svg");
+  for (const args of [["--style"], ["--style", "sepia"]]) {
+    const r = koyu("plan", "examples/two-rooms.muro", "-o", out, ...args);
+    assert.equal(r.code, 2);
+    assert.match(r.err, /--style.*ink.*blueprint.*classic/);
+    assert.equal(existsSync(out), false);
+  }
+});
 
 const USAGE: Array<[string, string[], RegExp]> = [
   ["no argument at all", [], /^Usage: koyu </],
