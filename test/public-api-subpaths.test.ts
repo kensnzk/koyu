@@ -27,6 +27,7 @@ const cases: SurfaceCase[] = [
     runtime: model,
     values: [
       "areaM2",
+      "gridPoint",
       "DEFAULT_LANGUAGE_VERSION",
       "displayName",
       "effectiveAttr",
@@ -65,6 +66,9 @@ const cases: SurfaceCase[] = [
       "DrawnLine",
       "Edge",
       "GridAxis",
+      "GridFrame",
+      "FrameGridPosition",
+      "NamedGridAxis",
       "GridRef",
       "Level",
       "Model",

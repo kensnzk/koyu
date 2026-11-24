@@ -19,7 +19,7 @@ They are not a compass needle. If the building is not oriented to true north, th
 **Which way the model actually faces is one line of its own.** [`azimuth`](azimuth.md) gives the true bearing of the +Y axis, and it is the only place in koyu that holds a compass direction. It changes nothing on this page — `edge:N` picks the +Y face at any bearing. Given `azimuth Y a`, the true bearings of the four faces are *a*, *a*+90, *a*+180 and *a*+270 for `N`, `E`, `S` and `W`.
 
 ```muro
-muro 1.7
+muro 1.8
 name 方位の例
 unit mm
 
@@ -86,17 +86,7 @@ With `/L1/b` first, the wall between the rooms lies to b's west, so it is `edge:
 
 ## Which way the door opens — `hinge` and `swing`
 
-Two words decide it. **One is a word about axes, the other about the relation.**
-
-**`hinge` is the jamb — which end of the segment the hinge sits on.**
-
-| Segment | Accepted values | If omitted |
-|---|---|---|
-| horizontal (an `N` / `S` face) | `W` / `E` | the west end (the lower coordinate) |
-| vertical (an `E` / `W` face) | `S` / `N` | the south end (the lower coordinate) |
-| diagonal | — | pinned to the start end |
-
-Getting the axis wrong is `OPN01` — `hinge:N` cannot go on a horizontal segment. Segments always run in ascending coordinate order, so "the start" is the west or south end.
+**`hinge` selects the jamb.** Use a compass direction for a fixed world orientation, or `L` / `R` in Muro 1.8 for the left or right jamb seen from the space the door swings into. [Jamb directions and defaults](door.md#hinge--which-jamb-it-hangs-on)
 
 **`swing` is which side the leaf opens toward — `a` or `b`.** It is not a compass word. Omitted, the door opens toward `a` if a has a region, otherwise toward `b`. The actual sense of rotation is taken from the component pointing at the centre of the nearest part of the shape on the side it opens toward.
 

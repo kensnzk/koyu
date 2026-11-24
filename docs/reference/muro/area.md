@@ -69,7 +69,7 @@ in neither category is the error [ATT03](../diagnostics/att.md).
 | `align-y:` | interpreted | `min` / `center` / `max`; default `center` |
 | `offset-x:` | interpreted | Millimetres added along model +X; default `0` |
 | `offset-y:` | interpreted | Millimetres added along model +Y; default `0` |
-| `rotate:` | interpreted | Degrees counter-clockwise from model +X, in `0 <= rotate < 360`; default `0` |
+| `rotate:` | interpreted | Degrees counter-clockwise from the first axis of the area’s frame, in `0 <= rotate < 360`; default `0` |
 | `<namespace>.<key>:` | carry | Anyone may write a dotted key, and core gives its content no meaning at all |
 
 Neither `h:` nor `daylight:` can be written. An `area` is not a room, so it does not carry a room's attributes.
@@ -101,10 +101,10 @@ The named area is the sole placement frame. There is no second absolute-position
 Changing the area moves its component with it, and the pair `(parent space path, area name)` is
 the instance identity.
 
-Alignment uses stable model X/Y, not screen direction or compass direction. `min`, `center` and
+Alignment uses the axes of the area’s frame. `min`, `center` and
 `max` refer to the bounds of the area on each axis. Offsets are applied after alignment. A
 positive `offset-x` moves along +X and a positive `offset-y` along +Y. Positive rotation is
-counter-clockwise from +X.
+counter-clockwise from +X for a primary-grid area or from +A for an AB area.
 
 The rotated component footprint must remain inside the host rectangle and the derived region of
 its parent space. It is [CMP02](../diagnostics/cmp.md#cmp02) when either containment fails. koyu

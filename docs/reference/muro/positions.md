@@ -10,7 +10,7 @@ mode: reference
 This page covers grid references, offsets, ranges, regions and points. Compass words (`N` `E` `S` `W`) are in [orientation and the a side](orientation.md); how a line is tokenised is in [how a line is read](lines.md).
 
 ```muro
-muro 1.7
+muro 1.8
 name 位置の例
 unit mm
 
@@ -81,7 +81,7 @@ A reversed range folds into the ascending spelling because it is the same shape.
 
 ## Regions
 
-**A region is exactly two tokens: one X range and one Y range.** Their order is free, so `Y1..Y2 X1..X2` is the same rectangle.
+A rectangular region takes two range tokens from one grid frame. Use one X and one Y range on the primary grid, or one A and one B range on a [rotated AB frame](grid.md#rotated-orthogonal-frames). Their order is free. Both side lengths are measured along that frame.
 
 ```muro-part
 space /L1/room room X1..X3 Y2..Y3 name:寝室
@@ -97,13 +97,13 @@ Give three, or one, and you get `A region is given as two ranges, X?..X? and Y?.
 space /L1/ldk ldk X1..X2 Y1..Y2 + X2..X3 Y1..Y1+2800 name:LDK
 ```
 
-Each side of `+` is its own pair of X and Y ranges. **Rectangles that overlap inside one space are an error** (`GEO01`), and so is an overlap with another space on the same level (`GEO02`). No wall stands on the internal seam of a union — an L written as two rectangles behaves as one room.
+Each side of `+` supplies its own pair of ranges and may use its own grid frame. **Rectangles that overlap inside one space are an error** (`GEO01`), and so is an overlap with another space on the same level (`GEO02`). No wall stands on the internal seam of a union — an L written as two rectangles behaves as one room.
 
 **A space may have no region at all.** `space /out name:外部` is how exteriors and aggregation-only spaces are written. But a space that does have a region must have a determinable level and ceiling height (`SUF02` / `SUF01`).
 
 ## Points
 
-Only the endpoints of a `line` are written as **points** — an X reference and a Y reference joined by a comma.
+A primary grid **point** is an X reference and a Y reference joined by a comma. For a [rotated frame](grid.md#rotated-orthogonal-frames), a pair such as `A2+500,B1-200` locates a point in its own orthogonal basis. For an [inclined Y family](grid.md#inclining-the-y-grid-family), the pair selects the actual intersection at that X. From muro 1.8 a pair containing a [named axis](grid.md#named-lines-and-their-intersections) resolves to the intersection instead. A space can use these points as the vertices of a [cell](space.md#grid-intersection-cells).
 
 ```muro-part
 boundary /L1/a /L1/b
@@ -121,7 +121,7 @@ Two constructs give dimensions and let the position follow.
 **`band` supplies the extent, and its members carry only a width `w:`.** The cut positions are derived by addition, and the widths must sum to the extent of the band or the file stops.
 
 ```muro
-muro 1.7
+muro 1.8
 grid X 0 3600 5400
 grid Y 0 4000
 level L1 0 h:2400 slab:150

@@ -9,9 +9,14 @@ import {
   type Attrs,
   type AttrValue,
   type Boundary,
+  canonicalPointRef,
+  frameAxisEndpoints,
+  type GridFrame,
   DEFAULT_LANGUAGE_VERSION,
   type Edge,
   gridRef,
+  frameGridRef,
+  gridRangeOutline,
   gridPoint as resolvePoint,
   type GridPosition,
   isNewerVersion,
@@ -32,6 +37,7 @@ import {
   SUPPORTED_LANGUAGE_VERSIONS,
   type Zone,
 } from "./model.js";
+import { convexPieces, signedArea } from "./poly.js";
 import { matOutline, memberRef, type BeamDecl, type FoundationDecl } from "./members.js";
 import { readRoofGeometry } from "./roof.js";
 import { deriveDefaultBoundaries, derivePieces } from "./graph.js";
@@ -71,6 +77,23 @@ interface BandMember {
 }
 
 function checkModeVersion(model: Model): void {
+  if (!isNewerVersion(model.version, "1.7")) {
+    const oriented = model.columns.find(c => c.frame) ?? model.foundations?.find(f => "frame" in f && f.frame);
+    if (oriented) throw new SourceError(oriented.line, "A structural section frame requires muro 1.8", oriented.file, "VER12");
+    for (const b of model.boundaries) {
+      const handed = b.openings.find(o => o.hinge === "L" || o.hinge === "R");
+      if (handed) throw new SourceError(handed.line, "Swing-relative hinge sides require muro 1.8", b.file, "VER12");
+    }
+    const slope = model.grid.Y.slopeSource;
+    if (slope) throw new SourceError(slope.line, "Sloped Y grid lines require muro 1.8", slope.file, "VER12");
+    const frame = model.frames?.values().next().value;
+    if (frame) throw new SourceError(frame.line, "Rotated grid frames require muro 1.8", frame.file, "VER12");
+    const axis = model.axes?.values().next().value;
+    if (axis) throw new SourceError(axis.line, "Named grid axes require muro 1.8", axis.file, "VER12");
+    for (const space of model.spaces.values()) {
+      if (space.cell) throw new SourceError(space.line, "A grid cell requires muro 1.8", space.file, "VER12");
+    }
+  }
   const structural = model.columns.find(c => c.at !== undefined) ?? model.beams?.[0] ?? model.foundations?.[0];
   if (structural && !isNewerVersion(model.version, "1.6")) {
     throw new SourceError(structural.line, "Explicit column centres, beams and foundations require muro 1.7", structural.file, "VER11");
@@ -252,6 +275,12 @@ function ingest(
           if (currentRoof.outline) throw new SourceError(ln, "A roof has one outer outline");
           currentRoof.outline = vertices;
         }
+      } else if (head === "hole") {
+        if (!currentSpaces.length || currentSpaces.some(s => !s.cell)) {
+          throw new SourceError(ln, "A space hole is written directly under a space with a cell perimeter");
+        }
+        const hole = { ...parseCellRing(model, rest, ln), line: ln };
+        for (const s of currentSpaces) (s.cell!.holes ??= []).push(hole);
       } else if (head === "door" || head === "window") {
         if (current.length === 0) {
           throw new SourceError(ln, `${head} is written indented directly under boundary`);
@@ -626,6 +655,32 @@ function ingest(
         if (rest[0] !== "mm") throw new SourceError(ln, `The only unit in v0 is mm: ${rest[0]}`);
         break;
       }
+      case "frame": {
+        parseFrame(model, rest, ln, file);
+        break;
+      }
+      case "axis": {
+        const [name, start, end] = rest;
+        if (rest.length !== 3 || !name || !start || !end) {
+          throw new SourceError(ln, "axis takes a name and two X,Y grid points");
+        }
+        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(name) || /^[XY](?:\d+)?$/.test(name)) {
+          throw new SourceError(ln, `Invalid or reserved axis name: ${name}`);
+        }
+        if (model.axes?.has(name)) throw new SourceError(ln, `Duplicate named axis: ${name}`);
+        for (const ref of [start, end]) {
+          const words = ref.split(",");
+          if (words.length !== 2 || words.some(word => !gridRef(model, word))) {
+            throw new SourceError(ln, `A named axis is defined by X,Y grid points: ${ref}`);
+          }
+        }
+        const p = resolvePoint(model, start, ln), q = resolvePoint(model, end, ln);
+        if (p.x === q.x && p.y === q.y) throw new SourceError(ln, `An axis requires two distinct points: ${name}`);
+        const forward = p.x < q.x || (p.x === q.x && p.y < q.y);
+        const [from, to, a, b] = forward ? [start, end, p, q] as const : [end, start, q, p] as const;
+        (model.axes ??= new Map()).set(name, { name, from, to, a, b, line: ln, file });
+        break;
+      }
       case "grid": {
         const axis = rest[0];
         if (axis !== "X" && axis !== "Y") {
@@ -634,7 +689,18 @@ function ingest(
         if (model.grid[axis].coords.length > 0) {
           throw new SourceError(ln, `grid ${axis} is declared once (in the base layer when composing)`);
         }
-        const coords = rest.slice(1).map((t) => toNumber(t, ln, "The grid coordinate"));
+        const coords: number[] = [];
+        let slope: number | undefined;
+        for (const token of rest.slice(1)) {
+          if (token.startsWith("slope:")) {
+            if (axis !== "Y") throw new SourceError(ln, "Only the Y grid family takes slope:");
+            if (slope !== undefined) throw new SourceError(ln, "The Y grid takes a single slope:");
+            slope = readRatio(token.slice(6));
+            if (!Number.isFinite(slope)) throw new SourceError(ln, "Grid slope requires a finite signed rise/run ratio");
+          } else {
+            coords.push(toNumber(token, ln, "The grid coordinate"));
+          }
+        }
         if (coords.length < 2) throw new SourceError(ln, "grid takes two or more coordinates");
         for (let k = 1; k < coords.length; k++) {
           if (coords[k]! <= coords[k - 1]!) {
@@ -644,6 +710,7 @@ function ingest(
         model.grid[axis] = {
           names: coords.map((_, k) => `${axis}${k + 1}`),
           coords,
+          ...(slope !== undefined ? { slope, slopeSource: { line: ln, file } } : {}),
         };
         break;
       }
@@ -748,6 +815,7 @@ function ingest(
         currentColumn = {
           size,
           ...(at ? { at } : {}),
+          ...takeMemberFrame(model, attrs, ln),
           ...(depth !== undefined ? { depth } : {}),
           levels,
           ...(xNames ? { xNames } : {}),
@@ -878,6 +946,57 @@ function ingest(
 
 // ---- 各要素 ----
 
+/** Two ordered families define a rigid local frame; their lines are exposed alongside named axes. */
+function parseFrame(model: Model, words: string[], line: number, file?: string): void {
+  const [name, ...tokens] = words;
+  if (!name || !/^[A-Z]{2}$/.test(name) || /[XY]/.test(name) || name[0] === name[1]) {
+    throw new SourceError(line, "A frame takes two distinct uppercase family letters other than X and Y");
+  }
+  const attrs = parseAttrs(tokens, line);
+  const at = takeString(attrs, "at");
+  const degree = takeNumber(attrs, "angle", line);
+  if (!at || degree === undefined || !Number.isFinite(degree)) throw new SourceError(line, "A frame requires at: and a finite angle in degrees");
+  const origin = resolvePoint(model, at, line);
+  const stations = (family: string): number[] => {
+    const list = takeString(attrs, family);
+    if (list === undefined) throw new SourceError(line, `Missing frame dimensions: ${family}`);
+    const nums = list.split(",").map(value => toNumber(value, line, "Local grid station"));
+    if (nums.length < 2 || nums.some((n,i) => !Number.isFinite(n) || (i > 0 && n <= nums[i-1]!))) {
+      throw new SourceError(line, "Each local grid family requires at least two strictly increasing finite dimensions");
+    }
+    return nums;
+  };
+  const coords: [number[], number[]] = [stations(name[0]!), stations(name[1]!)];
+  const extra = Object.keys(attrs);
+  if (extra.length) throw new SourceError(line, `Unknown frame field: ${extra[0]}`);
+  const turn = degree % 360;
+  const angle = turn < 0 ? turn + 360 : turn;
+  const quadrants = [{x:1,y:0},{x:0,y:1},{x:-1,y:0},{x:0,y:-1}];
+  const radians = angle * Math.PI / 180;
+  const u = quadrants[angle/90] ?? { x: Math.cos(radians), y: Math.sin(radians) };
+  const frame: GridFrame = { name, at: canonicalPointRef(model, at), angle, origin,
+    basis: [u, { x: -u.y, y: u.x }], coords, line, file };
+  for (const index of [0, 1] as const) {
+    const family = name[index]!, opposite = name[index === 0 ? 1 : 0]!;
+    const count = coords[index === 0 ? 1 : 0].length;
+    for (const [k, coord] of coords[index].entries()) {
+      const ref = `${family}${k+1}`;
+      if (model.axes?.has(ref)) throw new SourceError(line, `Duplicate grid line: ${ref}`);
+      const cross = (n: number) => index === 0 ? `${ref},${opposite}${n}` : `${opposite}${n},${ref}`;
+      (model.axes ??= new Map()).set(ref, { name:ref, from:cross(1), to:cross(count),
+        ...frameAxisEndpoints(frame, index, coord), local:{ frame:name, family, index, coord }, line, file });
+    }
+  }
+  (model.frames ??= new Map()).set(name, frame);
+}
+
+function readRatio(text: string): number {
+  const match = /^([+-]?\d+(?:\.\d+)?)(?:\/(\d+(?:\.\d+)?))?$/.exec(text);
+  if (!match) return NaN;
+  const rise = Number(match[1]), run = Number(match[2] ?? 1);
+  return Number.isFinite(rise) && Number.isFinite(run) && run > 0 ? rise / run : NaN;
+}
+
 function parseRoof(rest: string[], ln: number, file: string | undefined, model: Model): RoofDecl {
   const path = rest[0];
   if (!path?.startsWith("/")) throw new SourceError(ln, "roof takes a path beginning with /");
@@ -889,18 +1008,19 @@ function parseRoof(rest: string[], ln: number, file: string | undefined, model: 
     throw new SourceError(ln, `Unknown roof type: ${type}`);
   }
   const rise = takeString(attrs, "rise");
-  if (rise !== undefined && (type !== "shed" || !["+X", "-X", "+Y", "-Y"].includes(rise))) {
-    throw new SourceError(ln, "A shed rises toward +X, -X, +Y or -Y");
+  const knownDirection = (axis: string) =>
+    axis === "X" || axis === "Y" || frameGridRef(model, axis + "1")?.family === axis;
+  if (rise !== undefined && (type !== "shed" || !/^[+-][A-Z]$/.test(rise) || !knownDirection(rise.slice(1)))) {
+    throw new SourceError(ln, "A shed rise requires a signed world or declared frame direction");
   }
   const ridgeAxis = takeString(attrs, "ridge-axis");
-  if (ridgeAxis !== undefined && (type !== "gable" || (ridgeAxis !== "X" && ridgeAxis !== "Y"))) {
-    throw new SourceError(ln, "A gable ridge-axis is X or Y");
+  if (ridgeAxis !== undefined && (type !== "gable" || !knownDirection(ridgeAxis))) {
+    throw new SourceError(ln, "A gable ridge-axis requires a world or declared frame direction");
   }
   const rawSlope = takeString(attrs, "slope");
   let slope: number | undefined;
   if (rawSlope !== undefined) {
-    const ratio = /^(\d+(?:\.\d+)?)(?:\/(\d+(?:\.\d+)?))?$/.exec(rawSlope);
-    slope = ratio ? Number(ratio[1]) / Number(ratio[2] ?? 1) : NaN;
+    slope = rawSlope.startsWith("+") ? NaN : readRatio(rawSlope);
     if (!Number.isFinite(slope) || slope <= 0) throw new SourceError(ln, "slope takes a positive rise/run ratio");
   }
   const eaveZ = takeNumber(attrs, "eave-z", ln);
@@ -936,6 +1056,13 @@ function rejectExtraMemberAttrs(attrs: Attrs, line: number): void {
   if (key) throw new SourceError(line, `Unexpected structural attribute: ${key}`);
 }
 
+function takeMemberFrame(model: Model, attrs: Attrs, line: number): { frame?: string } {
+  const frame = takeString(attrs, "frame");
+  if (frame === undefined) return {};
+  if (frame !== "XY" && !model.frames?.has(frame)) throw new SourceError(line, `Unknown section frame: ${frame}`);
+  return { frame };
+}
+
 function parseMember(model: Model, kind: "beam" | "foundation", rest: string[], line: number, file?: string): BeamDecl | FoundationDecl {
   const [path, ...tokens] = rest;
   if (!path?.startsWith("/") || path.length === 1) throw new SourceError(line, `A ${kind} requires its own path`);
@@ -961,7 +1088,7 @@ function parseMember(model: Model, kind: "beam" | "foundation", rest: string[], 
   } else {
     const type = takeString(attrs, "type");
     const t = dim("t");
-    if (type === "pad") member = { ...base, type, at: point("at"), w: dim("w"), d: dim("d"), t };
+    if (type === "pad") member = { ...base, type, at: point("at"), ...takeMemberFrame(model, attrs, line), w: dim("w"), d: dim("d"), t };
     else if (type === "strip") member = { ...base, type, ...span(), t };
     else if (type === "mat") member = { ...base, type, outline: [], t };
     else throw new SourceError(line, "A foundation type is pad, strip or mat");
@@ -1025,7 +1152,28 @@ function parseSpace(rest: string[], ln: number, model: Model): Space {
     space.grids.push(r.grid);
     space.rects.push(r.rect);
   }
+  if (space.rects.length && (model.grid.Y.slope || space.grids.some(g => frameGridRef(model, g.xa)))) {
+    space.rangePolygons = space.rects.map((r, i) => gridRangeOutline(model, r, frameGridRef(model, space.grids[i]!.xa)?.frame));
+  }
+  const cell = takeString(attrs, "cell");
+  if (cell !== undefined) {
+    if (space.rects.length || groups.length > 1) throw new SourceError(ln, "A cell cannot also declare rectangle ranges");
+    space.cell = parseCellRing(model, cell.split(";"), ln);
+  }
   return space;
+}
+
+/** The one spelling retained by canonical JSON must also drive vertex order in Form. */
+function parseCellRing(model: Model, refs: string[], ln: number): { refs: string[]; outline: Pt[]; pieces: Pt[][] } {
+  const ring = refs.map(ref => ({ ...resolvePoint(model, ref, ln), ref: canonicalPointRef(model, ref) }));
+  const fail = (message: string): never => { throw new SourceError(ln, `Invalid cell: ${message}`); };
+  if (signedArea(ring) < 0) ring.reverse();
+  const start = ring.reduce((min, vertex, i) => vertex.ref < ring[min]!.ref ? i : min, 0);
+  const ordered = [...ring.slice(start), ...ring.slice(0, start)];
+  const outline = ordered.map(({ x, y }) => ({ x, y }));
+  const pieces = convexPieces(outline, fail);
+  if (new Set(pieces.flat()).size !== outline.length) return fail("use distinct corners without collinear intermediate points");
+  return { refs: ordered.map(p => p.ref), outline, pieces };
 }
 
 // ---- 帯 (band) — 寸法と並びから位置を導く (ADR-0019) ----
@@ -1226,6 +1374,7 @@ function parseRegion(
   if (regionTokens.length !== 2) {
     throw new SourceError(ln, "A region is given as two ranges, X?..X? and Y?..Y?");
   }
+  let regionFrame: string | undefined;
   let xr: [number, number] | undefined;
   let yr: [number, number] | undefined;
   let xg: [string, string] | undefined;
@@ -1233,8 +1382,16 @@ function parseRegion(
   for (const t of regionTokens) {
     const [p, q] = t.split("..");
     if (!p || !q) throw new SourceError(ln, `Cannot read the region: ${t}`);
-    const rp = resolveRef(model, p, ln);
-    const rq = resolveRef(model, q, ln);
+    const fp = frameGridRef(model, p);
+    const fq = frameGridRef(model, q);
+    if (fp?.frame !== fq?.frame || fp?.index !== fq?.index) {
+      throw new SourceError(ln, `Both ends of a range belong to the same grid family: ${t}`);
+    }
+    const family = fp?.frame ?? "XY";
+    if (regionFrame && regionFrame !== family) throw new SourceError(ln, "Both ranges of a region belong to the same grid frame");
+    regionFrame = family;
+    const rp = fp ? { axis: fp.index === 0 ? "X" : "Y", coord: fp.coord } : resolveRef(model, p, ln);
+    const rq = fq ? { axis: fq.index === 0 ? "X" : "Y", coord: fq.coord } : resolveRef(model, q, ln);
     if (rp.axis !== rq.axis) {
       throw new SourceError(ln, `Both ends of a range are grid lines on the same axis: ${t}`);
     }
@@ -1283,7 +1440,7 @@ function parseDrawnLine(
   if (Math.abs(a.x - b.x) < 0.5 && Math.abs(a.y - b.y) < 0.5) {
     throw new SourceError(ln, `Both ends of the line are the same point: ${aRef}`);
   }
-  return { aRef, bRef, a, b, line: ln };
+  return { aRef: canonicalPointRef(model, aRef), bRef: canonicalPointRef(model, bRef), a, b, line: ln };
 }
 
 /** 数えない分節: 室内の領域 (床材の切替など) */
@@ -1291,7 +1448,8 @@ function parseArea(rest: string[], ln: number, model: Model): Area {
   const regionTokens = rest.filter((t) => t.includes(".."));
   const attrTokens = rest.filter((t) => !t.includes(".."));
   const r = parseRegion(regionTokens, ln, model);
-  return { grid: r.grid, rect: r.rect, attrs: parseAttrs(attrTokens, ln), line: ln };
+  const frame = frameGridRef(model, r.grid.xa)?.frame;
+  return { grid: r.grid, rect: r.rect, ...(frame ? { frame } : {}), attrs: parseAttrs(attrTokens, ln), line: ln };
 }
 
 /** 数えない分節: 境界上の区間 (壁材の途中変更など) */
@@ -1324,6 +1482,7 @@ function parseAt(
     }
     return { at: v };
   }
+  if (frameGridRef(model, v)) return { at: 0.5, atRef: v };
   const r = resolveRef(model, v, ln);
   return { at: 0.5, atRef: v, atAbs: r.coord, atAxis: r.axis };
 }
@@ -1452,8 +1611,8 @@ function parseOpening(
   const at = parseAt(attrs, ln, model);
   const edge = takeEdge(attrs, ln);
   const hingeRaw = takeString(attrs, "hinge");
-  if (hingeRaw !== undefined && !EDGES.has(hingeRaw)) {
-    throw new SourceError(ln, `hinge is given as N/E/S/W: ${hingeRaw}`);
+  if (hingeRaw !== undefined && !EDGES.has(hingeRaw) && hingeRaw !== "L" && hingeRaw !== "R") {
+    throw new SourceError(ln, `hinge is given as N/E/S/W or L/R: ${hingeRaw}`);
   }
   const swingRaw = takeString(attrs, "swing");
   if (swingRaw !== undefined && swingRaw !== "a" && swingRaw !== "b") {
@@ -1466,7 +1625,7 @@ function parseOpening(
     ...(h !== undefined ? { h } : {}),
     ...at,
     ...(edge ? { edge } : {}),
-    ...(hingeRaw ? { hinge: hingeRaw as Edge } : {}),
+    ...(hingeRaw ? { hinge: hingeRaw as Opening["hinge"] } : {}),
     ...(swingRaw ? { swing: swingRaw as "a" | "b" } : {}),
     attrs,
     line: ln,

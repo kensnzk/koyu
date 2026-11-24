@@ -18,8 +18,8 @@
 // and a mark that carried one would make koyu's language mix everyone's. A mark carries the seat
 // (`at`) and the unrounded facts (`note`); the words are put on at the far end.
 import { band, type Form, type FormOpening, type FormPlan, type FormRun, type PlanClass, type PlanSubject, type PlanEntity } from "../core/derive.js";
-import { polyBounds, type Pt } from "../core/model.js";
-import { toPoint, type RunDevice, type RunPart, type Seg2 } from "../core/vertical.js";
+import { frameCoordinates, polyBounds, type Pt } from "../core/model.js";
+import { runPoint, type RunDevice, type RunPart, type Seg2 } from "../core/vertical.js";
 import { ARCHITECTURAL_PLAN_CONVENTION } from "./conventions/architectural.js";
 
 /**
@@ -440,7 +440,7 @@ function curtainWallMullionMarks(o: FormOpening, base: SymbolBase): Mark[] {
 const distance = (a: Pt, b: Pt): number => Math.hypot(a.x - b.x, a.y - b.y);
 
 const flightPoint = (run: FormRun, part: RunPart, t: number): Pt =>
-  toPoint(run.rect, run.up, t, (part.s0 + part.s1) / 2);
+  runPoint(run, t, (part.s0 + part.s1) / 2);
 
 const flightRise = (run: FormRun, part: RunPart): Seg2 => {
   const from = flightPoint(run, part, part.reversed ? part.t1 : part.t0);
@@ -500,8 +500,8 @@ function stairArrowPath(run: FormRun, plan: FormPlan, entity: PlanEntity): Seg2[
         const ratio = ARCHITECTURAL_PLAN_CONVENTION.stairs.landingOffsetFlightWidthRatio;
         const offset = Math.min(Math.abs(farT - joinT) * ratio, flightWidth * ratio);
         const insideT = joinT + Math.sign(farT - joinT) * offset;
-        const insidePrevious = toPoint(run.rect, run.up, insideT, previousLocal.s);
-        const insideNext = toPoint(run.rect, run.up, insideT, fromLocal.s);
+        const insidePrevious = runPoint(run, insideT, previousLocal.s);
+        const insideNext = runPoint(run, insideT, fromLocal.s);
         out.push(seg(previous, insidePrevious), seg(insidePrevious, insideNext), seg(insideNext, from));
       } else {
         out.push(seg(previous, from));
@@ -514,7 +514,8 @@ function stairArrowPath(run: FormRun, plan: FormPlan, entity: PlanEntity): Seg2[
   return out;
 }
 
-function runLocal(run: FormRun, point: Pt): { t: number; s: number } {
+function runLocal(run: FormRun, world: Pt): { t: number; s: number } {
+  const point = run.frame ? frameCoordinates(run.frame, world) : world;
   switch (run.up) {
     case "N": return { t: point.y - run.rect.y1, s: point.x - run.rect.x1 };
     case "S": return { t: run.rect.y2 - point.y, s: run.rect.x2 - point.x };
@@ -532,8 +533,8 @@ function stairCutLine(run: FormRun, cut: number): Seg2 | undefined {
     if (cutZ < lo - 1e-6 || cutZ > hi + 1e-6 || hi - lo < 1e-6) continue;
     const q = (cutZ - part.z0) / (part.z1 - part.z0);
     const t = part.t0 + (part.t1 - part.t0) * q;
-    const a = toPoint(run.rect, run.up, t, part.s0);
-    const b = toPoint(run.rect, run.up, t, part.s1);
+    const a = runPoint(run, t, part.s0);
+    const b = runPoint(run, t, part.s1);
     return { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
   }
   return undefined;
@@ -570,8 +571,8 @@ function stairVisibleBoundaryLines(run: FormRun, plan: FormPlan, entity: PlanEnt
     if (part.kind !== "flight") continue;
     for (const [t, z] of [[part.t0, part.z0], [part.t1, part.z1]] as const) {
       if (z < z0 - 1e-6 || z > z1 + 1e-6) continue;
-      const a = toPoint(run.rect, run.up, t, part.s0);
-      const b = toPoint(run.rect, run.up, t, part.s1);
+      const a = runPoint(run, t, part.s0);
+      const b = runPoint(run, t, part.s1);
       const boundary = { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
       if (!out.some((existing) => sameLine(existing, boundary))) out.push(boundary);
     }

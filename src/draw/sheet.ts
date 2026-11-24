@@ -1,45 +1,48 @@
-// koyu — the page every drawing is put on.
-//
-// **Nothing here decides shape.** This module holds what a sheet of paper is: the two inks, the
-// escaping a piece of text needs before it can sit in markup, the rounding that keeps a path
-// readable, the opening element, and the accumulator that measures how far the drawing reaches.
-//
-// It exists because there are three renderers now. While `plan.ts` and `axo.ts` were the only two,
-// each carrying its own copy of `esc` and its own spelling of `#1f1f1f`, the duplication was
-// cheap; a third copy is the point at which "the paper is the same paper" stops being visible in
-// the code. What is **not** here is anything the three do differently — the world-to-paper mapping
-// (a plan flips y, an axonometric does not), the title block, the margin. Sharing those would mean
-// parameterising them until the shared version says less than the three separate ones did.
+import { koyuMark } from "./brand.js";
 
-// The palette. Shared so that a plan and a section of the same building read as one set of
-// drawings — which is the whole use of being able to lay them side by side. Every one of these may
-// change; none of them is on a frozen surface.
+// Shared presentation for standalone SVG sheets. The selected palette belongs to one render.
+export const DRAWING_STYLES = ["ink", "blueprint", "classic"] as const;
+export type DrawingStyle = (typeof DRAWING_STYLES)[number];
 
-/** The drawing ink. */
-export const INK = "#1f1f1f";
-/** The paper. */
-export const PAPER = "#faf8f4";
-/** The air of a room, cut open. */
-export const ROOM = "#f1ebdd";
-/**
- * A space that is roofed but not enclosed — a balcony, a piloti, an external walkway.
- *
- * **Warm is inside and cool is outside**, and this is the step between them: paler than a room,
- * because there is less of a room here, and already tinted away from the warm of one.
- */
-export const SEMI_OUTDOOR = "#eef1e9";
-/**
- * A space declared `outside:1` that has a region — a courtyard, a plaza, the paving of a site.
- *
- * It used to be painted as a room, which said the opposite of what it is: on a large plan the
- * forecourt and the entrance hall were one continuous field of the same cream. Cool and a shade
- * deeper reads as ground rather than floor without naming a material.
- */
-export const OUTDOOR = "#dfe6da";
-/** Given lines — the grid, and the level datums that are the grid of a section. */
-export const GRID = "#b5aa94";
-/** A line that is present but not the subject. */
-export const FAINT = "#b3ab9c";
+export interface SheetOptions {
+  /** Colour scheme of the SVG drawing. */
+  drawingStyle?: DrawingStyle;
+}
+
+const classic = {
+  paper: "#faf8f4", ink: "#1f1f1f", grid: "#b5aa94", faint: "#b3ab9c", label: "#8a8171",
+  room: "#f1ebdd", semiOutdoor: "#eef1e9", outdoor: "#dfe6da", subdivision: "#e7dfcc",
+  segment: "#77716a", glass: "#b9c3c0", beyond: "#b8b0a0", guide: "#A84940",
+  members: { roof: "#367b81", beam: "#a36625", foundation: "#72628e" },
+  axo: { floor: "#cfc7b6", roof: "#8d8577", ceiling: "#e2dbca", wall: "#b8b0a0",
+    column: "#5d574d", run: "#7f8f8a", ground: "#eceadf" },
+};
+export type SheetPalette = typeof classic;
+
+const palettes: Record<DrawingStyle, SheetPalette> = {
+  ink: {
+    paper: "#ffffff", ink: "#101619", grid: "#647078", faint: "#747c80", label: "#4c585e",
+    room: "#fafafa", semiOutdoor: "#f0f2f2", outdoor: "#e2e7e6", subdivision: "#d2d7d7",
+    segment: "#556067", glass: "#c0d1d5", beyond: "#d2d7d9", guide: "#983d32",
+    members: { roof: "#495e68", beam: "#57534b", foundation: "#625e69" },
+    axo: { floor: "#d6dbdd", roof: "#a9b3b7", ceiling: "#e7e9e9", wall: "#bfcbcf",
+      column: "#64717a", run: "#8b9a9f", ground: "#edf0ef" },
+  },
+  blueprint: {
+    paper: "#061426", ink: "#f1f8ff", grid: "#84b6d5", faint: "#96b6c9", label: "#d0e6f3",
+    room: "#0b2139", semiOutdoor: "#132f45", outdoor: "#1b3b4d", subdivision: "#284a63",
+    segment: "#accde4", glass: "#537e99", beyond: "#294861", guide: "#ffd99e",
+    members: { roof: "#85d8e4", beam: "#ffd092", foundation: "#c7b7ed" },
+    axo: { floor: "#6f95ac", roof: "#5c809b", ceiling: "#a2becb", wall: "#779bb4",
+      column: "#b6d1e0", run: "#90bfc6", ground: "#395e76" },
+  },
+  classic,
+};
+
+export function sheetPalette(style: DrawingStyle = "ink"): SheetPalette {
+  if (!Object.hasOwn(palettes, style)) throw new Error(`Unknown drawing style: ${style}`);
+  return palettes[style];
+}
 
 /** Two decimal places — enough for a coordinate on paper, and it keeps the path text short. */
 export const r2 = (v: number): number => Math.round(v * 100) / 100;
@@ -51,10 +54,9 @@ export const r2 = (v: number): number => Math.round(v * 100) / 100;
 export const esc = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-/** Conventional colours for the authored envelope and framing in each projection. */
-export const MEMBER_INK = { roof: "#367b81", beam: "#a36625", foundation: "#72628e" };
-export function memberInk(subject: string): string | undefined {
-  return Object.hasOwn(MEMBER_INK, subject) ? MEMBER_INK[subject as keyof typeof MEMBER_INK] : undefined;
+export function memberInk(palette: SheetPalette, subject: string): string | undefined {
+  const members = palette.members;
+  return Object.hasOwn(members, subject) ? members[subject as keyof typeof members] : undefined;
 }
 
 /** Identify projected parts for selection or inspection, including paths with quoted names. */
@@ -63,43 +65,16 @@ export function subjectAttrs(subject: string, ref: string): string {
 }
 
 /** The opening element, the paper under the drawing, and the mark in the corner. */
-export function openSheet(w: number, h: number): string[] {
+export function openSheet(w: number, h: number, palette: SheetPalette): string[] {
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">`,
-    `<rect width="${w}" height="${h}" fill="${PAPER}"/>`,
-    koyuMark(14, 13, 19),
+    `<rect width="${w}" height="${h}" fill="${palette.paper}"/>`,
+    koyuMark(14, 13, MARK_WIDTH, palette.ink),
   ];
 }
 
-// The mark, drawn rather than linked. A drawing koyu makes should say so on its face, and an SVG
-// that reaches for a file is a drawing that arrives broken as often as not — so the two paths are
-// here, in the light-mode colours, because the paper is light.
-//
-// The outline is a room in plan: a wall running round, stopping short at the foot to leave a
-// doorway, one partition inside it, and an opening in red. Which is the whole notation in one
-// figure, and the reason it is the mark.
-const MARK_INK = "#171A18";
-const MARK_OPENING = "#A84940";
-const MARK_W = 803.138;
-const MARK_H = 872.069;
-const MARK_X = 224.392;
-const MARK_Y = 171.361;
-
-/** The koyu mark, its top-left corner at (x, y) and `size` tall. */
-export function koyuMark(x: number, y: number, size: number): string {
-  const k = size / MARK_H;
-  const tx = r2(x - MARK_X * k);
-  const ty = r2(y - MARK_Y * k);
-  return (
-    `<g transform="translate(${tx} ${ty}) scale(${r2(k * 1000) / 1000})">` +
-    `<path d="M1027.53 171.361L224.461 171.363L224.392 1043.39L361.454 1043.42L361.567 308.689L889.587 308.679L889.581 904.864L566.4 904.876L566.387 524.585L419.01 452.015L419.047 1043.39L1027.51 1043.43L1027.53 171.361Z" fill="${MARK_INK}"/>` +
-    `<path d="M707 445.022L811.864 445L811.858 613.697C811.831 648.974 812.209 684.759 811.831 720L707.005 719.933L707 445.022Z" fill="${MARK_OPENING}"/>` +
-    `</g>`
-  );
-}
-
-/** How wide the mark drawn by `openSheet` is, so a caller can keep clear of it. */
-export const MARK_WIDTH = (19 / MARK_H) * MARK_W;
+/** Width in sheet units of the square brand symbol. */
+export const MARK_WIDTH = 19;
 
 /**
  * How far the drawing reaches.

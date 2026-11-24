@@ -223,6 +223,7 @@ RUN04, RUN06, RUN07 and RUN08 are [retired numbers](retired.md).
 | [VER09](ver.md#ver09) | error | A pre-1.5 file uses component assets or placement introduced in muro 1.5 |
 | [VER10](ver.md#ver10) | error | Spatial mode requires muro 1.6 |
 | [VER11](ver.md#ver11) | error | Explicit roofs, continuous column centres, beams and foundations require muro 1.7 |
+| [VER12](ver.md#ver12) | error | Rotated frames, sloped Y grids, named axes and grid cells require muro 1.8 |
 
 ### SYN — syntax and composition
 

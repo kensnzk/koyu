@@ -192,3 +192,8 @@ No differences
 - [koyu layers](layers.md) — which layers composed, and in what strength order
 - [koyu check](check.md) — the other gate, where 0/1 means something else
 - [The koyu command](index.md) — the shared promises about exit codes
+
+
+Named grid lines appear under `axes`. The diff compares the two defining point references and reports added, removed or changed lines. Moving a primary input line appears once in `grid`. A change of inclination for the entire Y family appears once in `gridSlopeY`, with its previous and new signed ratios.
+
+A rotated grid is compared once under `frames`. Its origin, angle and station lists are independently reported. Changing the rotation of the frame moves its generated lines together.

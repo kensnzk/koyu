@@ -128,13 +128,7 @@ The side it opens into is `swing:a/b`, or, unwritten, "a if a has a region, othe
 
 The direction is decided by the component pointing at the centre of the bounding box of **the derived piece** nearest the opening, on the side it opens into. It reads shape, not allocation — in a space cut by a drawn line, the centre of the nearest allocation can land on the wrong side of the line.
 
-The hinge is decided like this.
-
-| Segment | Hinge |
-|---|---|
-| horizontal | east end with `hinge:E`, west end otherwise |
-| vertical | north end with `hinge:N`, south end otherwise |
-| diagonal | **pinned to the start point.** `hinge`'s N/E/S/W are words about axes and do not apply to a diagonal |
+The hinge coordinate is the jamb selected by [the opening's hinge and swing side](../muro/door.md#hinge--which-jamb-it-hangs-on). The same resolved point locates the leaf and its symbol.
 
 The trace is a quarter circle centred on the hinge with **radius equal to the opening width**, sweeping from the leaf tip (the opening width from the hinge, into the swing side) to the far jamb (the opening width from the hinge, along the segment). The sweep direction is the sign of the cross product of those two points about the hinge.
 

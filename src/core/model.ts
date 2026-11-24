@@ -3,6 +3,7 @@
 // 形はここには無い。形は生成物である。(docs/writing-architecture.md)
 
 import * as poly from "./poly.js";
+import { AREA_EPS, PARALLEL_EPS } from "./tolerance.js";
 import type { BeamDecl, FoundationDecl } from "./members.js";
 
 export type AttrValue = string | number;
@@ -59,6 +60,7 @@ export const MURO_SUPPORT: readonly { muro: string; since: string; until: string
   { muro: "1.5", since: "0.28.0", until: null },
   { muro: "1.6", since: "0.29.0", until: null },
   { muro: "1.7", since: "0.31.0", until: null },
+  { muro: "1.8", since: "0.32.0", until: null },
 ];
 
 /** The word a version line is written with from 1.2 on. */
@@ -85,7 +87,7 @@ export const LAST_KOYU_SPELLED_VERSION = "1.1";
  * `since` column is written in this vocabulary, and every surface that answers "which muro
  * does this build speak" needs both halves at once.
  */
-export const KOYU_VERSION = "0.31.0";
+export const KOYU_VERSION = "0.32.0";
 
 /**
  * Whether `a` names a later language version than `b`.
@@ -251,6 +253,45 @@ export interface GridAxis {
   names: string[];
   /** 座標 mm */
   coords: number[];
+  /** Y-family northing change per millimetre east; coordinates are intercepts on X1. */
+  slope?: number;
+  slopeSource?: { line: number; file?: string };
+}
+
+/** Orthogonal local grid in world XY, with one ordered dimension list per family. */
+export interface GridFrame {
+  name: string;
+  at: string;
+  angle: number;
+  origin: Pt;
+  basis: [Pt, Pt];
+  coords: [number[], number[]];
+  line: number;
+  file?: string;
+}
+
+export interface FrameGridPosition {
+  frame: string;
+  family: string;
+  index: 0 | 1;
+  coord: number;
+}
+
+export function framePoint(frame: Pick<GridFrame, "origin" | "basis">, a: number, b: number): Pt {
+  const [u, v] = frame.basis;
+  return { x: frame.origin.x + a*u.x + b*v.x, y: frame.origin.y + a*u.y + b*v.y };
+}
+
+/** An infinite reference line through two primary X,Y grid intersections. */
+export interface NamedGridAxis {
+  name: string;
+  from: string;
+  to: string;
+  a: Pt;
+  b: Pt;
+  local?: FrameGridPosition;
+  line: number;
+  file?: string;
 }
 
 /** A grid reference resolved: which axis names it, and where it sits in mm. */
@@ -284,15 +325,122 @@ export function gridRef(model: Model, token: string): GridPosition | undefined {
   return undefined;
 }
 
-/** Resolve one grid-relative point for drawn lines and structural placements. */
-export function gridPoint(model: Model, token: string, line: number): Pt {
+/** World northing of a Y grid line (including its offset) at the given world easting. */
+export function yGridAt(model: Model, intercept: number, x: number): number {
+  const slope = model.grid.Y.slope;
+  return slope ? intercept + slope * (x - model.grid.X.coords[0]!) : intercept;
+}
+
+/** Frame-local scalar station, including an optional offset in whole millimetres. */
+export function frameGridRef(model: Model, token: string): FrameGridPosition | undefined {
+  if (!model.frames?.size) return undefined;
+  const match = /^([A-Z]\d+)([+-]\d+)?$/.exec(token);
+  if (!match) return undefined;
+  const local = model.axes?.get(match[1]!)?.local;
+  if (!local) return undefined;
+  return match[2] ? { ...local, coord: local.coord + Number(match[2]) } : local;
+}
+
+/** Resolve the written section orientation, otherwise inherit the common frame of the centre. */
+export function memberFrame(model: Model, at?: string, frame?: string): GridFrame | undefined {
+  if (frame !== undefined) return model.frames?.get(frame); // XY uses the world basis.
+  if (!at) return undefined;
+  const [first, second] = at.split(",") as [string, string];
+  const a = frameGridRef(model, first), b = frameGridRef(model, second);
+  return a && a.frame === b?.frame ? model.frames!.get(a.frame) : undefined;
+}
+
+/** World points on a named line or a shifted frame line, for drawing and section cuts. */
+export function namedAxisGeometry(model: Model, token: string): Pick<NamedGridAxis, "a" | "b"> | undefined {
+  const axis = model.axes?.get(token);
+  if (axis) return axis;
+  const local = frameGridRef(model, token);
+  if (!local) return undefined;
+  const frame = model.frames!.get(local.frame)!;
+  return frameAxisEndpoints(frame, local.index, local.coord);
+}
+
+export function frameAxisEndpoints(frame: GridFrame, index: 0 | 1, coord: number): { a: Pt; b: Pt } {
+  const opposite = frame.coords[index === 0 ? 1 : 0];
+  const min = opposite[0]!, max = opposite[opposite.length - 1]!;
+  return index === 0
+    ? { a: framePoint(frame, coord, min), b: framePoint(frame, coord, max) }
+    : { a: framePoint(frame, min, coord), b: framePoint(frame, max, coord) };
+}
+
+function namedAxisRef(model: Model, token: string, line: number): Pick<NamedGridAxis, "a" | "b"> {
+  const axis = namedAxisGeometry(model, token);
+  if (axis) return axis;
+  const shifted = /^(.+)[+-]\d+$/.exec(token);
+  if (shifted && model.axes?.has(shifted[1]!)) {
+    throw new SourceError(line, `Offsets on named axes are unsupported: ${token}`);
+  }
+  throw new SourceError(line, `Undefined grid line name: ${token}`);
+}
+
+/** A point is commutative. Retain X first, Y last and sort a pair of named axes by name. */
+export function canonicalPointRef(model: Model, token: string): string {
+  const axes = model.axes;
+  if (!axes?.size) return token;
+  const [a, b] = token.split(",") as [string, string];
+  const localA = frameGridRef(model, a), localB = frameGridRef(model, b);
+  if (localA && localB && localA.frame === localB.frame) return localA.index === 0 ? token : `${b},${a}`;
+  const rank = (ref: string): number => axes.has(ref) || frameGridRef(model, ref) ? 1 : ref.startsWith("X") ? 0 : 2;
+  const order = rank(a) - rank(b) || compareCanonical(a, b);
+  return order <= 0 ? token : `${b},${a}`;
+}
+
+/** Primary grid intersections keep their X,Y order; a named axis may occupy either position. */
+export function gridPoint(model: Model, token: string, line = 0): Pt {
   const parts = token.split(",");
-  if (parts.length !== 2) throw new SourceError(line, `A point takes the form <X grid line>,<Y grid line>: ${token}`);
-  const x = gridRef(model, parts[0]!), y = gridRef(model, parts[1]!);
-  if (!x || !y) throw new SourceError(line, `Undefined grid line name: ${!x ? parts[0] : parts[1]}`);
-  if (x.axis !== "X" || y.axis !== "Y") throw new SourceError(line, `A point is written X grid line first, then Y: ${token}`);
-  if (!Number.isFinite(x.coord) || !Number.isFinite(y.coord)) throw new SourceError(line, `Grid coordinates must be finite: ${token}`);
-  return { x: x.coord, y: y.coord };
+  if (parts.length !== 2) throw new SourceError(line, `A point takes two grid lines: ${token}`);
+  const [first, second] = parts as [string, string];
+  const localA = frameGridRef(model, first), localB = frameGridRef(model, second);
+  if (localA && localB && localA.frame === localB.frame) {
+    if (localA.index === localB.index) throw new SourceError(line, `Grid lines do not have a unique intersection: ${token}`);
+    const frame = model.frames!.get(localA.frame)!;
+    const [a, b] = localA.index === 0 ? [localA, localB] : [localB, localA];
+    const point = framePoint(frame, a.coord, b.coord);
+    if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) throw new SourceError(line, `Grid coordinates must be finite: ${token}`);
+    return point;
+  }
+  const x = gridRef(model, first), y = gridRef(model, second);
+  const namedA = x ? undefined : namedAxisRef(model, first, line);
+  const namedB = y ? undefined : namedAxisRef(model, second, line);
+  let point: Pt;
+  if (x && y) {
+    if (x.axis !== "X" || y.axis !== "Y") throw new SourceError(line, `A point is written X grid line first, then Y: ${token}`);
+    point = { x: x.coord, y: yGridAt(model, y.coord, x.coord) };
+  } else if (x || y) {
+    const fixed = (x ?? y)!;
+    const { a, b } = (namedA ?? namedB)!;
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const slope = fixed.axis === "Y" ? model.grid.Y.slope ?? 0 : 0;
+    const delta = fixed.axis === "X" ? dx : dy - slope * dx;
+    if (Math.abs(delta) <= PARALLEL_EPS * Math.hypot(dx, dy) * Math.hypot(1, slope)) {
+      throw new SourceError(line, `Grid lines do not have a unique intersection: ${token}`);
+    }
+    if (fixed.axis === "X") {
+      point = { x: fixed.coord, y: a.y + (fixed.coord - a.x) * dy / dx };
+    } else {
+      const t = (yGridAt(model, fixed.coord, a.x) - a.y) / delta;
+      const east = a.x + t * dx;
+      point = { x: east, y: yGridAt(model, fixed.coord, east) };
+    }
+  } else {
+    // Use the same operand order for either spelling of an intersection.
+    const [u, v] = compareCanonical(first, second) < 0 ? [namedA!, namedB!] : [namedB!, namedA!];
+    const dx = u.b.x - u.a.x, dy = u.b.y - u.a.y;
+    const ex = v.b.x - v.a.x, ey = v.b.y - v.a.y;
+    const det = dx * ey - dy * ex;
+    if (Math.abs(det) <= PARALLEL_EPS * Math.hypot(dx, dy) * Math.hypot(ex, ey)) {
+      throw new SourceError(line, `Grid lines do not have a unique intersection: ${token}`);
+    }
+    const t = ((v.a.x - u.a.x) * ey - (v.a.y - u.a.y) * ex) / det;
+    point = { x: u.a.x + t * dx, y: u.a.y + t * dy };
+  }
+  if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) throw new SourceError(line, `Grid coordinates must be finite: ${token}`);
+  return point;
 }
 
 /** mm矩形 (x1<x2, y1<y2) */
@@ -308,6 +456,8 @@ export interface Rect {
  * 面積・室数・グラフには一切現れない。属性の上書きだけを運ぶ (ADR-0003)
  */
 export interface Area {
+  /** Reference frame of the local rectangular bounds. Omitted for X/Y. */
+  frame?: string;
   grid: { xa: string; xb: string; ya: string; yb: string };
   rect: Rect;
   attrs: Attrs;
@@ -319,6 +469,12 @@ export interface GridRef {
   xb: string;
   ya: string;
   yb: string;
+}
+
+interface CellRing {
+  refs: string[];
+  outline: Pt[];
+  pieces?: Pt[][];
 }
 
 export interface Space {
@@ -336,7 +492,11 @@ export interface Space {
   level?: string;
   /** グリッド参照。複数矩形の合併でL字などを表す (rectsと同順) */
   grids: GridRef[];
-  /** グリッド解決後のmm矩形の合併。`outside:1` の空間などは空。**書かれた割付** (セル) であって形ではない */
+  /** The written outer and inner perimeters retain their grid references; geometry uses convex pieces. */
+  cell?: CellRing & { holes?: (CellRing & { pieces: Pt[][]; line: number })[]; netPieces?: Pt[][] };
+  /** World-space corners for ordinary X/Y ranges when the Y grid is inclined. */
+  rangePolygons?: Pt[][];
+  /** Written X/Y intervals in grid coordinates (mm). Read regionOf for world geometry. */
   rects: Rect[];
   /**
    * 導出された領域 — 凸片の集合 (ADR-0022)。既定は rects をそのまま写したもので、
@@ -407,7 +567,8 @@ export interface Opening {
   /** 区間が複数あるとき (外部境界など) の辺の指定 */
   edge?: Edge;
   /** 開き勝手: 吊元の側 (水平線分ならW/E、垂直線分ならS/N)。既定は始端側 */
-  hinge?: Edge;
+  /** L/R is the jamb as seen from the side the opening swings into. */
+  hinge?: Edge | "L" | "R";
   /** 開き勝手: 開く側 (境界のa側/b側)。既定はa側 (領域を持つ方) */
   swing?: "a" | "b";
   attrs: Attrs;
@@ -496,8 +657,10 @@ export interface RoofDecl {
   type?: "flat" | "shed" | "gable" | "hip";
   eaveZ?: number;
   highZ?: number;
-  rise?: "+X" | "-X" | "+Y" | "-Y";
-  ridgeAxis?: "X" | "Y";
+  /** Signed world or declared frame dimension direction. */
+  rise?: `${"+" | "-"}${string}`;
+  /** World or declared frame dimension direction parallel to the ridge. */
+  ridgeAxis?: string;
   slope?: number;
   thickness?: number;
   outline?: string[];
@@ -524,6 +687,8 @@ export interface Model {
   /** 測地の枠 — 真北 (ADR-0057)。**不在は 0 ではなく「未知」である** */
   azimuth?: Azimuth;
   grid: { X: GridAxis; Y: GridAxis };
+  axes?: Map<string, NamedGridAxis>;
+  frames?: Map<string, GridFrame>;
   levels: Record<string, Level>;
   spaces: Map<string, Space>;
   zones: Map<string, Zone>;
@@ -587,6 +752,7 @@ export interface Pt {
 export interface ColumnDecl {
   /** One grid-relative centre shared by every member in this run. */
   at?: string;
+  frame?: string;
   sections?: Array<{ levels: string[]; w: number; d: number }>;
   /** 一辺 mm (角柱)。`d:` があれば矩形断面の奥行 */
   size: number;
@@ -605,9 +771,10 @@ export interface ColumnDecl {
 export interface Column {
   x: number;
   y: number;
-  /** X方向の幅 mm / Y方向の奥行 mm */
+  /** Width and depth along the local basis, or along world X and Y when omitted. */
   w: number;
   d: number;
+  basis?: GridFrame["basis"];
   level: string;
   /** 立っている通りの名 (X3・Y2 のような組) — 図面の言葉 */
   grid: string;
@@ -743,11 +910,40 @@ export class SourceError extends Error {
      * module, so the union cannot be imported here — and widening it to `string` would let
      * a typo reach `check --json` as a code no page documents.
      */
-    public code?: "VER06" | "VER10" | "VER11",
+    public code?: "VER06" | "VER10" | "VER11" | "VER12",
   ) {
     super(`${file ? `${file}:` : ""}line ${line}: ${raw}`);
     this.name = "SourceError";
   }
+}
+
+/** True for both forms of authored plan allocation. */
+export function hasRegion(s: Space): boolean {
+  return s.cell !== undefined || s.rects.length > 0;
+}
+
+/** Inverse of framePoint for an orthonormal frame. */
+export function frameCoordinates(frame: Pick<GridFrame, "origin" | "basis">, p: Pt): Pt {
+  const x = p.x - frame.origin.x, y = p.y - frame.origin.y;
+  const [a, b] = frame.basis;
+  return { x: x * a.x + y * a.y, y: x * b.x + y * b.y };
+}
+
+/** Convert a range in the parametric grid to its four world-space corners. */
+export function gridRangeOutline(model: Model, range: Rect, frameName?: string): Pt[] {
+  if (frameName) {
+    const frame = model.frames!.get(frameName)!;
+    return poly.rectToPoly(range).map(({x, y}) => framePoint(frame, x, y));
+  }
+  return poly.rectToPoly(range).map(({ x, y }) => ({ x, y: yGridAt(model, y, x) }));
+}
+
+export function hasPolygonAllocation(s: Space): boolean {
+  return Boolean(s.cell || s.rangePolygons);
+}
+
+export function allocatedPieces(s: Space): Pt[][] {
+  return s.cell ? s.cell.netPieces ?? s.cell.pieces ?? [s.cell.outline] : s.rangePolygons ?? s.rects.map(poly.rectToPoly);
 }
 
 /**
@@ -756,17 +952,25 @@ export class SourceError extends Error {
  * この式が各所に散っていたことが、rects と pieces の取り違えを四度生んだ根である。
  */
 export const regionOf = (s: Space): Pt[][] =>
-  s.pieces.length > 0 ? s.pieces : s.rects.map(poly.rectToPoly);
+  s.pieces.length > 0 ? s.pieces : allocatedPieces(s);
 
 /** 面積 (壁芯) m²。導出された凸片の合計 — 描かれた線で切られていればその形の面積になる */
 export function areaM2(s: Space): number | undefined {
-  if (s.rects.length === 0) return undefined;
+  if (!hasRegion(s)) return undefined;
   const a = poly.areaOf(regionOf(s)) / 1e6;
   return Math.round(a * 100) / 100;
 }
 
 /** 矩形を頂点列へ (反時計回り) */
 export const rectToPoly = poly.rectToPoly;
+
+/** World corners of a centred rectangular section, walking from the local lower-left corner. */
+export function sectionRectangle(c: Pick<Column, "x" | "y" | "w" | "d" | "basis">): Pt[] {
+  if (!c.basis) return rectToPoly({ x1: c.x - c.w / 2, y1: c.y - c.d / 2, x2: c.x + c.w / 2, y2: c.y + c.d / 2 });
+  const frame = { origin: c, basis: c.basis };
+  return rectToPoly({ x1: -c.w / 2, y1: -c.d / 2, x2: c.w / 2, y2: c.d / 2 })
+    .map(p => framePoint(frame, p.x, p.y));
+}
 
 /** 頂点列の外接矩形 */
 export const polyBounds = poly.bounds;
@@ -791,7 +995,7 @@ export function columnSites(
       s.level === level &&
       !isOutside(s) &&
       !isVoid(s) &&
-      s.rects.length > 0 &&
+      hasRegion(s) &&
       // 空しか支えない床には柱を立てない (ADR-0030): 半屋外で上に床も無い
       // 屋上庭園・テラスは、柱が持ち上げるものを持たない
       !(isSemiOutdoor(model, s) && !isCoveredAbove(model, s)),
@@ -806,12 +1010,9 @@ export function columnSites(
   const out: Array<{ x: number; y: number; grid: string }> = [];
   for (const gx of xs) {
     for (const gy of ys) {
-      const inside = floors.some((s) =>
-        (s.pieces.length ? s.pieces : s.rects.map(rectToPoly)).some((p) =>
-          pointInPolygon({ x: gx.v, y: gy.v }, p, 1),
-        ),
-      );
-      if (inside) out.push({ x: gx.v, y: gy.v, grid: `${gx.n}/${gy.n}` });
+      const point = { x: gx.v, y: yGridAt(model, gy.v, gx.v) };
+      const inside = floors.some(s => regionOf(s).some(p => pointInPolygon(point, p, 1)));
+      if (inside) out.push({ ...point, grid: `${gx.n}/${gy.n}` });
     }
   }
   return out;
@@ -824,28 +1025,38 @@ export function columnSites(
  */
 export function columnsFor(model: Model, level: string): Column[] {
   const out: Column[] = [];
-  const seen = new Set<string>();
+  const seenArraySites = new Set<string>();
   const explicitBases = new Set<string>();
-  const explicitCentres = new Set<string>();
-  for (const c of model.columns) {
+  const explicitCentres = new Map<string, Pt & { grid: string; decl: number }>();
+  const explicitAt = (p: Pt & { grid: string }) => {
+    const exact = explicitCentres.get(`${p.x},${p.y}`);
+    if (exact || !model.axes?.size) return exact;
+    for (const centre of explicitCentres.values()) if (sameColumnCentre(model, centre, p)) return centre;
+  };
+  for (const [decl, c] of model.columns.entries()) {
     if (!c.at || !c.levels.includes(level)) continue;
     explicitBases.add(c.at.replace(/[+-]\d+/g, "").replace(",", "/"));
-    const p = gridPoint(model, c.at, c.line);
-    explicitCentres.add(`${p.x},${p.y}`);
+    const p = { ...gridPoint(model, c.at, c.line), grid: c.at.replace(",", "/") };
+    if (!explicitAt(p)) explicitCentres.set(`${p.x},${p.y}`, { ...p, decl });
   }
   for (let ci = 0; ci < model.columns.length; ci++) {
     const c = model.columns[ci]!;
     const section = c.sections?.find(s => s.levels.includes(level));
     for (const site of columnSites(model, c, level)) {
-      const centre = `${site.x},${site.y}`;
-      if (!c.at && (explicitBases.has(site.grid) || explicitCentres.has(centre))) continue;
-      if (seen.has(centre)) continue;
-      seen.add(centre);
+      const explicit = explicitAt(site);
+      if (c.at) {
+        if (explicit?.decl !== ci) continue;
+      } else {
+        if (explicit || explicitBases.has(site.grid) || seenArraySites.has(site.grid)) continue;
+        seenArraySites.add(site.grid);
+      }
+      const frame = memberFrame(model, c.at, c.frame);
       out.push({
         x: site.x,
         y: site.y,
         w: section?.w ?? c.size,
         d: section?.d ?? c.depth ?? c.size,
+        ...(frame ? { basis: frame.basis } : {}),
         level,
         grid: site.grid,
         decl: ci,
@@ -854,6 +1065,14 @@ export function columnsFor(model: Model, level: string): Column[] {
     }
   }
   return out;
+}
+
+/** Intersections solved through different axes can differ by less than the model's length tolerance. */
+export function sameColumnCentre(model: Model, a: Pt & { grid: string }, b: Pt & { grid: string }): boolean {
+  if (a.x === b.x && a.y === b.y) return true;
+  if (!model.axes?.size || Math.hypot(a.x - b.x, a.y - b.y) >= poly.EPS) return false;
+  // Primary stations keep their exact identity even when an unrelated frame is present.
+  return [a, b].some(p => p.grid.split("/").some(ref => !gridRef(model, ref)));
 }
 
 /**
@@ -893,7 +1112,7 @@ export function isVoid(s: Space): boolean {
  * open または air:1 (手すり等、遮蔽しない物) の境界で接する空間は半屋外である (ADR-0007)
  */
 export function isSemiOutdoor(model: Model, s: Space): boolean {
-  if (s.rects.length === 0) return false;
+  if (!hasRegion(s)) return false;
   for (const b of model.boundaries) {
     if (b.kind !== "open" && !b.air) continue;
     const other = b.a === s.path ? b.b : b.b === s.path ? b.a : undefined;
@@ -909,11 +1128,11 @@ export function isSemiOutdoor(model: Model, s: Space): boolean {
  * 採光の半屋外係数 (庇下0.7 / 上が開いていれば1.0) などが読む (ADR-0009)
  */
 export function isCoveredAbove(model: Model, s: Space): boolean {
-  if (s.rects.length === 0 || !s.level) return false;
+  if (!hasRegion(s) || !s.level) return false;
   const z = model.levels[s.level]?.z;
   if (z === undefined) return false;
   for (const o of model.spaces.values()) {
-    if (o === s || o.rects.length === 0 || !o.level) continue;
+    if (o === s || !hasRegion(o) || !o.level) continue;
     const oz = model.levels[o.level]?.z;
     if (oz === undefined || oz <= z) continue;
     if (poly.overlaps(regionOf(s), regionOf(o))) return true;
@@ -957,7 +1176,7 @@ export function zoneAreaM2(model: Model, zonePath: string): number {
  * 半屋外に落ちるかどうかが変わっていた。母集団は場所ごとに決めるものではない (ADR-0028)。
  */
 export function isIndoor(model: Model, s: Space): boolean {
-  if (s.rects.length === 0) return false;
+  if (!hasRegion(s)) return false;
   if (isOutside(s) || isVoid(s)) return false;
   return !isSemiOutdoor(model, s);
 }
@@ -1091,6 +1310,8 @@ export function canonicalSpaceEntry(s: Space): Record<string, unknown> {
     // 明示の level: (パス先頭セグメントと異なる所属 — メゾネット等) は書かれた構成として保存する。
     // これが無いとJSONだけでは所属レベル (垂直検査・集計・既定境界の前提) を復元できない
     ...(s.level !== undefined && s.path.split("/")[1] !== s.level ? { level: s.level } : {}),
+    ...(s.cell ? { cell: s.cell.refs } : {}),
+    ...(s.cell?.holes?.length ? { holes: s.cell.holes.map(hole => hole.refs) } : {}),
     ...(s.grids.length === 1
       ? { at: [s.grids[0]!.xa, s.grids[0]!.ya, s.grids[0]!.xb, s.grids[0]!.yb] }
       : s.grids.length > 1
@@ -1222,6 +1443,23 @@ export function canonicalSpaceOrder(model: Model): Space[] {
  */
 export function normalizeRegionOrder(model: Model): void {
   for (const s of model.spaces.values()) {
+    if (s.cell?.holes?.length) {
+      const cell = s.cell;
+      const holes = cell.holes!;
+      holes.sort((a, b) => compareCanonical(a.refs.join(";"), b.refs.join(";")));
+      let remaining = cell.pieces ?? [cell.outline];
+      const prior = [cell.outline];
+      for (const hole of holes) {
+        const touching = prior.some(ring => ring.some(p => poly.onEdge(p, hole.outline)) || hole.outline.some(p => poly.onEdge(p, ring)));
+        const outside = hole.pieces.some(piece => poly.areaOf(poly.subtract(piece, remaining)) > AREA_EPS);
+        if (touching || outside) {
+          throw new SourceError(hole.line, "A cell hole must lie inside the perimeter and stay clear of other holes", s.file);
+        }
+        remaining = remaining.flatMap(piece => poly.subtract(piece, hole.pieces));
+        prior.push(hole.outline);
+      }
+      cell.netPieces = remaining;
+    }
     if (s.grids.length < 2 || s.grids.length !== s.rects.length) continue;
     const order = s.grids
       .map((g, i) => [JSON.stringify([g.xa, g.ya, g.xb, g.yb]), i] as const)
@@ -1229,6 +1467,8 @@ export function normalizeRegionOrder(model: Model): void {
       .map(([, i]) => i);
     s.grids = order.map((i) => s.grids[i]!);
     s.rects = order.map((i) => s.rects[i]!);
+    const polygons = s.rangePolygons;
+    if (polygons) s.rangePolygons = order.map(i => polygons[i]!);
   }
 }
 
@@ -1247,8 +1487,13 @@ export function canonicalMemberDefinition(member: RoofDecl | BeamDecl | Foundati
   return definition;
 }
 
+export function canonicalFrame(frame: GridFrame): Record<string, string | number | number[]> {
+  return { at: frame.at, angle: frame.angle, [frame.name[0]!]: frame.coords[0], [frame.name[1]!]: frame.coords[1] };
+}
+
 export function toCanonical(model: Model): string {
   // Keys taken from the source go in a Map so the collation order survives serialisation
+  const explicitAxes = [...(model.axes?.values() ?? [])].filter(axis => !axis.local);
   const spaces = new Map<string, unknown>();
   for (const p of [...model.spaces.keys()].sort(compareCanonical)) {
     spaces.set(p, canonicalSpaceEntry(model.spaces.get(p)!));
@@ -1302,7 +1547,16 @@ export function toCanonical(model: Model): string {
         }
       : {}),
     ...(model.azimuth ? { azimuth: model.azimuth.deg } : {}),
-    grid: { X: model.grid.X.coords, Y: model.grid.Y.coords },
+    grid: {
+      X: model.grid.X.coords, Y: model.grid.Y.coords,
+      ...(model.grid.Y.slope ? { slopeY: model.grid.Y.slope } : {}),
+    },
+    ...(model.frames?.size ? { frames: new Map([...model.frames].sort(([a],[b]) => compareCanonical(a,b))
+      .map(([name, frame]) => [name, canonicalFrame(frame)])) } : {}),
+    ...(explicitAxes.length ? {
+      axes: new Map(explicitAxes.sort((a, b) => compareCanonical(a.name, b.name))
+        .map(axis => [axis.name, [axis.from, axis.to]])),
+    } : {}),
     levels: sortObj(
       Object.fromEntries(
         Object.entries(model.levels).map(([k, v]) => [
@@ -1331,6 +1585,7 @@ export function toCanonical(model: Model): string {
             ...(c.depth !== undefined ? { d: c.depth } : {}),
             levels: c.levels,
             ...(c.at ? { at: c.at } : {}),
+            ...(c.frame ? { frame: c.frame } : {}),
             ...(c.sections ? { sections: [...c.sections].sort((a,b) => c.levels.indexOf(a.levels[0]!) - c.levels.indexOf(b.levels[0]!)) } : {}),
             ...(c.xNames ? { x: sortGridNames(model.grid.X.names, c.xNames) } : {}),
             ...(c.yNames ? { y: sortGridNames(model.grid.Y.names, c.yNames) } : {}),

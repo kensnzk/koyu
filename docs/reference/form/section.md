@@ -78,6 +78,8 @@ The line direction is left-to-right on the sheet. `u = 0` is `(x1,y1)`, positive
 
 A body is a prism over a convex ring with lower and upper heights at each vertex. The same representation describes a sloping roof face, a horizontal beam and a foundation below its datum. An edge-on roof surface of zero thickness has two section points. When a higher part of a roof is visible behind the cut, its projection also contributes a background entity. A roof outline without surface heights supplies no section entity.
 
+For a beam crossing the plane, `cut` gives the beam section. Where the portion on the far side projects past that section, `beyond` gives the exposed span with the same beam reference. Reversing the view selects the opposite length of beam.
+
 - **A convex ring meets the plane in exactly one interval.** The cut is that interval by the body's height. For a directed line, the ring is first expressed in the line's orthonormal frame and then goes through the same intersection operation as an axis cut.
 - **The height is read at the crossing**, off the edge the crossing sits on. A per-vertex height means the height is linear along each edge, so reading it there is exact rather than sampled. A ramp cut across its rise comes out level; cut along it, the section leans by the whole rise.
 - **The projection of a convex solid is the hull of its projected vertices**, so what stands beyond the plane is exact too, not an outline fitted to it.
@@ -114,7 +116,7 @@ A space contributes `cut` and never `beyond`: a space is air, and from outside y
 
 Where exactly the plane goes is free. The projection is orthographic, so moving it further back changes no `u` and no `z` — only the datum `depth` is counted from, and only relative depth is used.
 
-**The elevation plane is axis-parallel**, so a building face that is neither gets the elevation of no face. A caller that needs that face can request a directed-line section at its near edge; `elevationForm` remains the four named elevations.
+Pass the wing's declared grid as the third argument, for example `elevationForm(form, "S", model.frames.get("AB"))` after resolving the frame. South in AB looks along positive B, with positive A to the right. The returned directed-line section measures horizontal position from the frame origin and projects the whole building. Calling the two-argument form uses world directions.
 
 ## The order is inherited, never re-established
 

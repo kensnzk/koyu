@@ -8,6 +8,7 @@ import type {
 } from "../../analysis/contracts.js";
 import { codePointCompare } from "../../analysis/json.js";
 import {
+  hasRegion,
   canonicalSpaceOrder,
   displayName,
   isOutside,
@@ -117,7 +118,7 @@ export const SITE_ANALYSIS: AnalysisDefinition<SiteAnalysisValue> = freezeBuilti
     const polygons: SitePolygonObservation[] = [];
     const spaceRelations: SiteSpaceRelationObservation[] = [];
     const evidence: Evidence[] = [];
-    const spaces = canonicalSpaceOrder(coreModel).filter((space) => space.rects.length > 0);
+    const spaces = canonicalSpaceOrder(coreModel).filter((space) => hasRegion(space));
 
     for (const polygon of [...coreModel.polygons.values()].sort((a, b) => codePointCompare(a.path, b.path))) {
       const zone = coreModel.zones.get(polygon.path);

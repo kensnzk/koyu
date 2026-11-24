@@ -33,6 +33,29 @@ const form = (file: string) => derive(parseFile(join(root, file)));
 
 const FACES: Edge[] = ["N", "E", "S", "W"];
 
+test("a beam crossing the cut retains only its exposed length on the far side", () => {
+  const building = derive(parse(`muro 1.7
+grid X 0 3000
+grid Y 0 4000
+level L1 0 h:3000
+beam /diagonal level:L1 from:X1,Y1 to:X2,Y2 w:400 d:600 top:2700
+beam /square-cut level:L1 from:X1,Y1 to:X1,Y2 w:400 d:600 top:2700`));
+  const extent = (e: SectionEntity) => {
+    const us = e.polygon.map(p => p.u);
+    const zs = e.polygon.map(p => p.z);
+    return [e.class, Math.min(...us), Math.max(...us), Math.min(...zs), Math.max(...zs)];
+  };
+  const north = sectionForm(building, { axis: "Y", at: 2000, look: "N" }).entities;
+  assert.deepEqual(north.filter(e => e.ref === "/diagonal").map(extent), [
+    ["cut", 1250, 1750, 2100, 2700], ["beyond", 1750, 3160, 2100, 2700],
+  ]);
+  assert.deepEqual(north.filter(e => e.ref === "/square-cut").map(e => e.class), ["cut"]);
+  const south = sectionForm(building, { cut: { x1: 0, y1: 2000, x2: -1000, y2: 2000 } }).entities;
+  assert.deepEqual(south.filter(e => e.ref === "/diagonal").map(extent), [
+    ["cut", -1750, -1250, 2100, 2700], ["beyond", -1250, 160, 2100, 2700],
+  ]);
+});
+
 /** Every bundled entry, so a claim about "any building" is tested against every building we have. */
 const ENTRIES = [
   "examples/two-rooms.muro",

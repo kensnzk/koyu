@@ -1,0 +1,8 @@
+muro 1.8
+mode spatial
+grid X 0 2000 6000 8000
+grid Y 0 1000 2000 3000 6000
+frame AB at:X1,Y1+4000 angle:45 A:0,2000 B:0,2000
+level L1 0
+space /L1/hall cell:X1,Y1;X4,Y1;X4,Y4;X3,Y4;X3,Y5;B1,Y5;X1,B1
+  hole X2,Y2 X2+1000,Y2 X2+1000,Y3 X2,Y3

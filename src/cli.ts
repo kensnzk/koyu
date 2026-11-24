@@ -27,10 +27,12 @@ import { AssessmentConfigError, type AssessmentReport } from "./validate/contrac
 import { createSchematicRegistry, SCHEMATIC_PROFILE_ID } from "./validate/builtin/index.js";
 import { siteReport } from "./core/site.js";
 import {
+  hasRegion,
   areaM2,
   displayName,
   effectiveAttr,
   gridRef,
+  namedAxisGeometry,
   heff,
   isSemiOutdoor,
   levelsSorted,
@@ -46,7 +48,8 @@ import {
 import { componentSvgFiles, parseFile } from "./parse-file.js";
 import { svgPlan } from "./draw/plan.js";
 import { svgAxo } from "./draw/axo.js";
-import { svgElevation, svgSection } from "./draw/section.js";
+import { referenceCut, svgElevation, svgSection } from "./draw/section.js";
+import { DRAWING_STYLES } from "./draw/sheet.js";
 import { axisOf } from "./core/section.js";
 import { slopeText, verticalRuns } from "./core/vertical.js";
 
@@ -220,6 +223,14 @@ function roofSketchOptions(args: string[]): { roofSketches?: boolean } {
   return on || off ? { roofSketches: on } : {};
 }
 
+function drawingOptions(args: string[]) {
+  const drawingStyle = enumOpt(args, DRAWING_STYLES, "--style");
+  if (args.includes("--style") && drawingStyle === undefined) {
+    die(`--style requires one of ${DRAWING_STYLES.join(" / ")}`);
+  }
+  return { ...roofSketchOptions(args), drawingStyle };
+}
+
 function main(argv: string[]): number {
   const [cmd, file, ...rest] = argv;
   // Asked before the usage text, because it takes no file and a tool that cannot state its
@@ -391,7 +402,7 @@ function main(argv: string[]): number {
       const explicit = opt(rest, "-o");
       const outFile =
         explicit ?? `${file.replace(/\.muro$/, "")}-${level}.svg`;
-      const svg = svgPlan(model, { level, ...roofSketchOptions(rest), componentSvgs: componentSvgFiles(model, level) });
+      const svg = svgPlan(model, { level, ...drawingOptions(rest), componentSvgs: componentSvgFiles(model, level) });
       mkdirSync(dirname(outFile), { recursive: true });
       writeFileSync(outFile, svg);
       console.log(`Generated the plan: ${outFile}`);
@@ -459,7 +470,7 @@ function main(argv: string[]): number {
       let semiTotal = 0;
       let outdoorTotal = 0;
       for (const l of levels) {
-        const onLevel = spaces.filter((s) => s.level === l.name && s.rects.length > 0);
+        const onLevel = spaces.filter((s) => s.level === l.name && hasRegion(s));
         if (onLevel.length === 0) continue;
         console.log(`${l.name}`);
         let sub = 0;
@@ -613,7 +624,7 @@ function main(argv: string[]): number {
       const lv = opt(rest, "-l", "--levels");
       const sc = numOpt(rest, "-s", "--scale");
       const svg = svgAxo(model, {
-        ...roofSketchOptions(rest),
+        ...drawingOptions(rest),
         ...(dirOpt ? { dir: dirOpt } : {}),
         ...(lv ? { levels: expandLevelArg(model, lv) } : {}),
         ...(sc !== undefined ? { scale: sc } : {}),
@@ -631,32 +642,33 @@ function main(argv: string[]): number {
       const at = opt(rest, "--at");
       if (!at) {
         console.log(
-          "Usage: koyu section <file.muro> --at <X3|X3+450|Y2-600> [--look N|E|S|W] [-s <scale>] [-o <out.svg>]",
+          "Usage: koyu section <file.muro> --at <X3|X3+450|Y2-600> [--look N|E|S|W] [-s <scale>] [--style <name>] [-o <out.svg>]",
         );
         return 2;
       }
-      const g = gridRef(model, at);
-      if (!g) {
-        die(
-          `Undefined grid reference: ${at} (declared: ${model.grid.X.names.join(" ")} ${model.grid.Y.names.join(" ")})`,
-        );
-      }
-      const chosen = enumOpt(rest, ["N", "E", "S", "W"] as const, "--look");
-      if (chosen && axisOf(chosen) !== g.axis) {
-        die(
-          `--look ${chosen} runs along ${at} rather than across it (an X reference is looked at from E or W, a Y reference from N or S)`,
-        );
-      }
       const sc = numOpt(rest, "-s", "--scale");
       const outPath = opt(rest, "-o", "--out") ?? `out/section-${at}.svg`;
-      const svg = svgSection(model, {
-        ...roofSketchOptions(rest),
-        axis: g.axis,
-        at: g.coord,
-        atRef: at,
-        ...(chosen ? { look: chosen } : {}),
-        ...(sc !== undefined ? { scale: sc } : {}),
-      });
+      const options = { ...drawingOptions(rest), atRef: at, ...(sc !== undefined ? { scale: sc } : {}) };
+      const named = namedAxisGeometry(model, at);
+      let svg: string;
+      if (named) {
+        const reverse = enumOpt(rest, ["left", "right"] as const, "--look") === "right";
+        svg = svgSection(model, { ...options, cut: referenceCut(model, at, reverse)! });
+      } else {
+        const g = gridRef(model, at);
+        if (!g) {
+          const refs = [...model.grid.X.names, ...model.grid.Y.names, ...(model.axes?.keys() ?? [])];
+          die(`Undefined grid reference: ${at} (declared: ${refs.join(" ")})`);
+        }
+        const chosen = enumOpt(rest, ["N", "E", "S", "W"] as const, "--look");
+        if (chosen && axisOf(chosen) !== g.axis) {
+          die(
+            `--look ${chosen} runs along ${at} rather than across it (an X reference is looked at from E or W, a Y reference from N or S)`,
+          );
+        }
+        const cut = referenceCut(model, at, chosen === "S");
+        svg = svgSection(model, cut ? { ...options, cut } : { ...options, axis: g.axis, at: g.coord, ...(chosen ? { look: chosen } : {}) });
+      }
       mkdirSync(dirname(outPath), { recursive: true });
       writeFileSync(outPath, svg);
       console.log(`Generated the section: ${outPath}`);
@@ -670,8 +682,10 @@ function main(argv: string[]): number {
       }
       const face = enumOpt(rest, ["N", "E", "S", "W"] as const, "-f", "--face") ?? "S";
       const sc = numOpt(rest, "-s", "--scale");
-      const outPath = opt(rest, "-o", "--out") ?? `out/elevation-${face}.svg`;
-      const svg = svgElevation(model, { face, ...roofSketchOptions(rest), ...(sc !== undefined ? { scale: sc } : {}) });
+      const frame = opt(rest, "--frame");
+      if (rest.includes("--frame") && (!frame || !model.frames?.has(frame))) die(`Unknown elevation frame: ${frame ?? "(missing)"}`);
+      const outPath = opt(rest, "-o", "--out") ?? `out/elevation-${frame ? frame + "-" : ""}${face}.svg`;
+      const svg = svgElevation(model, { face, frame, ...drawingOptions(rest), ...(sc !== undefined ? { scale: sc } : {}) });
       mkdirSync(dirname(outPath), { recursive: true });
       writeFileSync(outPath, svg);
       console.log(`Generated the elevation: ${outPath}`);
@@ -729,7 +743,7 @@ function main(argv: string[]): number {
           console.log(`  ↑ storey height ${pitch}${detail}`);
         }
       }
-      const spaces = [...model.spaces.values()].filter((s) => s.rects.length > 0 && s.level);
+      const spaces = [...model.spaces.values()].filter((s) => hasRegion(s) && s.level);
       const overrides = spaces.filter((s) => typeof s.attrs["h"] === "number");
       for (const s of overrides) {
         console.log(`Per-space ceiling height: ${s.path} h:${heff(model, s)}`);

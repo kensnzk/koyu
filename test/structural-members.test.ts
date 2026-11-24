@@ -3,6 +3,8 @@ import { test } from "node:test";
 import { columnsFor, SourceError, toCanonical } from "../src/core/model.js";
 import { parse, parseFiles } from "../src/core/parse.js";
 import { derive } from "../src/core/derive.js";
+import { sceneOf } from "../src/draw/scene.js";
+import { areaSchedule } from "../src/core/area-schedule.js";
 import { checkDiagnostics } from "../src/core/diagnose.js";
 import { renderDiff, semanticDiff } from "../src/core/diff.js";
 
@@ -18,6 +20,49 @@ space /L1..L3/hall X1..X3 Y1..Y2
 const column = `column 800 L1..L3 at:X2+150,Y1-75 d:900
   section L2..L3 w:600 d:700
 `;
+
+test("one rotated centre controls column sections, the footing, and the count at a shared intersection", () => {
+  const model = parse(`muro 1.8
+grid X 0 8000
+grid Y 0 4000
+frame AB at:X1,Y1 angle:30 A:0,8000 B:0,6000
+level L1 0 h:2700 slab:200
+level L2 2900 h:2700 slab:200
+column 600 L1..L2 at:B1,A2 d:900
+  section L2 w:400 d:700
+column 600 L1 at:A2,Y2 d:900
+column 400 L1 at:A2+1,B1 d:700
+foundation /pad level:L1 type:pad at:A2,B1 w:1800 d:2400 t:600`);
+  const form = derive(model);
+  const quantities = areaSchedule(form);
+  assert.equal(form.columns.length, 3);
+  assert.equal(quantities.columns.filter(c => c.level === "L1").length, 2);
+  assert.equal(checkDiagnostics(model).filter(d => d.code === "COL02").length, 1);
+  const scene = sceneOf(form);
+  for (const [level, ref, width, depth] of [
+    ["L1", "L1/A2/B1", 600, 900], ["L2", "L2/A2/B1", 400, 700], ["L1", "/pad", 1800, 2400],
+  ] as const) {
+    const ring = scene.nodes.find(n => n.ref === ref && n.solid)!.solid!.ring;
+    const plan = form.plans.find(p => p.level === level)!.entities.find(e => e.ref === ref)!.polygon;
+    assert.deepEqual(plan, ring);
+    const angle = Math.PI / 6, [p, q, r] = ring;
+    assert.ok(Math.abs(q!.x - p!.x - width * Math.cos(angle)) < 1e-7);
+    assert.ok(Math.abs(q!.y - p!.y - width * Math.sin(angle)) < 1e-7);
+    assert.ok(Math.abs(r!.x - q!.x + depth * Math.sin(angle)) < 1e-7);
+    assert.ok(Math.abs(r!.y - q!.y - depth * Math.cos(angle)) < 1e-7);
+  }
+});
+
+test("an unrelated frame preserves distinct primary column stations", () => {
+  const model = parse(`muro 1.8
+grid X 0 0.25 6000
+grid Y 0 4000
+frame AB at:X3,Y2 angle:30 A:0,3000 B:0,3000
+level L1 0 h:2700
+column 400 L1 at:X1,Y1
+column 400 L1 at:X2,Y1`);
+  assert.deepEqual(columnsFor(model, "L1").map(c => c.x), [0, 0.25]);
+});
 const structure = `beam /frame/b1 level:L2 from:X1,Y1 to:X2,Y2 w:400 d:700
 foundation /frame/p level:L1 type:pad at:X2+150,Y1-75 w:1800 d:2000 t:700 top:-600
 foundation /frame/s level:L1 type:strip from:X1,Y1 to:X2,Y2 w:1200 t:600 top:-500
@@ -36,6 +81,41 @@ test("a column run follows one grid offset while its upper section changes", () 
   const canonical = JSON.parse(toCanonical(parse(grid + column))).columns[0];
   assert.equal(canonical.at, "X2+150,Y1-75");
   assert.deepEqual(canonical.sections, [{ levels:["L2","L3"], w:600, d:700 }]);
+});
+
+test("a mixed-grid column and pad can change their section frame without moving their centre", () => {
+  const mixed = `muro 1.8
+grid X 0 8000
+grid Y 0 4000
+frame AB at:X1,Y1 angle:30 A:0,8000 B:0,6000
+frame CD at:X1,Y1 angle:-45 C:0,4000 D:0,4000
+level L1 0 h:2700 slab:200
+column 600 L1 at:A2,Y2 d:900
+foundation /pad level:L1 type:pad at:A2,Y2 w:1800 d:2400 t:600`;
+  const select = (name: string) => mixed.replaceAll("at:A2,Y2", `at:A2,Y2 frame:${name}`);
+  for (const [name, degrees] of [["", 0], ["XY", 0], ["AB", 30], ["CD", -45]] as const) {
+    const model = parse(name ? select(name) : mixed);
+    const form = derive(model);
+    const shapes = sceneOf(form).nodes.filter(n => (n.of === "column" || n.of === "foundation") && n.solid);
+    assert.equal(shapes.length, 2);
+    for (const shape of shapes) {
+      const ring = shape.solid!.ring;
+      const edge = { x: ring[1]!.x - ring[0]!.x, y: ring[1]!.y - ring[0]!.y };
+      assert.ok(Math.abs(Math.atan2(edge.y, edge.x) * 180 / Math.PI - degrees) < 1e-8);
+      assert.ok(Math.abs((ring[0]!.x + ring[2]!.x) / 2 - Math.sqrt(3) * 4000) < 1e-8);
+      assert.ok(Math.abs((ring[0]!.y + ring[2]!.y) / 2 - 4000) < 1e-8);
+    }
+    const canonical = JSON.parse(toCanonical(model));
+    assert.equal(canonical.columns[0].frame, name || undefined);
+    assert.equal(canonical.foundations["/pad"].frame, name || undefined);
+  }
+  const diff = semanticDiff(parse(select("AB")), parse(select("CD")));
+  assert.equal(diff.columns.added.length, 1);
+  assert.equal(diff.members?.foundations?.changed[0]!.fields[0]!.field, "frame");
+  assert.throws(() => parse(select("AC")), /Unknown section frame/);
+  for (const line of ["column 600 L1 frame:XY", "foundation /pad level:L1 type:pad at:X1,Y1 frame:XY w:1800 d:2400 t:600"]) {
+    assert.throws(() => parse(grid + line), e => e instanceof SourceError && e.code === "VER12");
+  }
 });
 
 test("explicit placements supersede grid candidates by base or by coincident coordinates", () => {

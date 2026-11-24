@@ -23,7 +23,7 @@ boundary /L1/w04 /out t:300 spec:カーテンウォール
   line X1,Y5+2000 X2,Y6
 ```
 
-Each endpoint is a pair `<X grid line>,<Y grid line>`. Either may carry an offset such as `+600` or `-900`. **Neither raw coordinates nor angles can be written** — position is always fixed by a line, and the ends of a line are grid lines. The X grid line comes first, the Y grid line second.
+Each endpoint is a Cartesian pair `<X grid line>,<Y grid line>` or, from muro 1.8, an [intersection involving a named grid line](grid.md#named-lines-and-their-intersections). Either may carry an offset such as `+600` or `-900`. **Neither raw coordinates nor angles can be written** — position is always fixed by a line, and the ends of a line are grid lines. The X grid line comes first, the Y grid line second.
 
 If both ends resolve to the same point, parse stops there and then.
 
@@ -41,7 +41,7 @@ and both the model and the canonical JSON hold it as `X1,Y2-3000` then `X1+3000,
 
 This is not tidying. **That canonical start point is the origin of `at:` for openings on the line.** Without it, the canonical JSON stays byte-identical while a door moves — measured, `line X1,Y1+2000 X2,Y1+4000` and `line X2,Y1+4000 X1,Y1+2000` hashed the same and put the door at (1500, 2500) and at (4500, 3500).
 
-On a diagonal segment, an opening's `at:` **can only be a ratio 0..1**, because a grid reference does not fix a unique point on a diagonal. The hinge is fixed at the start end too — `hinge`'s N/E/S/W are words of the axes and do not reach a diagonal. And `edge:` has no effect, because the line is the segment.
+On a diagonal segment that does not follow the sloping Y grid, an opening's `at:` **can only be a ratio 0..1**, because a grid reference does not fix a unique point on a diagonal. Select the jamb with the [opening's hinge direction](door.md#hinge--which-jamb-it-hangs-on). And `edge:` has no effect, because the line is the segment.
 
 ## What it cuts
 
@@ -59,7 +59,7 @@ The cut merges the allocations inside the window and then redivides them across 
 **Which side to keep is not written.** Every convex piece touching the window is measured whole, and the side with the greater area is kept. For an envelope cut, the bias of the side that has a region is the side kept. For two spaces, both biases are taken, and if exactly one of them is zero, the opposite of the other is used.
 
 ```muro
-muro 1.7
+muro 1.8
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -98,7 +98,7 @@ It is not recomputed later because by then the form has **already been cut**, an
 A line tracing the default adjacency line cuts nothing.
 
 ```muro-warn
-muro 1.7
+muro 1.8
 unit mm
 grid X 0 6000
 grid Y 0 6000
@@ -117,7 +117,7 @@ boundary /L1/a /out
 A line across the diagonal of a square leaves equal areas either side, so no side can be chosen.
 
 ```muro-bad
-muro 1.7
+muro 1.8
 unit mm
 grid X 0 6000
 grid Y 0 6000

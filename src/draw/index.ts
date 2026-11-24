@@ -7,6 +7,7 @@
 // ルートからも同じものが出ている (`@kensnzk/koyu`)。分けてあるのは、
 // **凍る面と凍らない面を、import 一行で見分けられるようにするため**である。
 
+export { DRAWING_STYLES, type DrawingStyle } from "./sheet.js";
 export { svgPlan, type PlanOptions } from "./plan.js";
 export {
   planMarks,

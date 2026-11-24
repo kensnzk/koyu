@@ -19,8 +19,8 @@
 
 import { formBodies, type FormBody, type FormSubject } from "./bodies.js";
 import type { Form } from "./derive.js";
-import type { Edge, Pt } from "./model.js";
-import { crossing, hull, signedArea } from "./poly.js";
+import type { Edge, GridFrame, Pt } from "./model.js";
+import { crossing, hull, signedArea, subtract } from "./poly.js";
 import { AREA_EPS, EPS } from "./tolerance.js";
 
 /** Which axis names the plane. `"X"` means the plane `x = at`. */
@@ -300,8 +300,8 @@ function lineFrame(spec: LineSectionSpec): SectionFrame {
   return { u, behind, cut: (body) => lineCutOf(body, u, behind) };
 }
 
-/** Project the part of a cut roof behind the section line, including a higher ridge behind the cut. */
-function roofBehind(body: FormBody, frame: SectionFrame): SectionPt[] | undefined {
+/** Clip the solid to the far half-space before projecting it onto the section. */
+function shadowBehind(body: FormBody, frame: SectionFrame): SectionPt[] | undefined {
   const poly: Pt[] = [], bottom: number[] = [], top: number[] = [];
   for (let i = 0; i < body.poly.length; i++) {
     const j = (i + 1) % body.poly.length;
@@ -348,11 +348,19 @@ function entitiesOf(bodies: FormBody[], frame: SectionFrame): SectionEntity[] {
         : cut;
       if (polygon) {
         out.push({ class: "cut", of: body.of, ref: body.ref, ...(body.kind ? { kind: body.kind } : {}), polygon, depth: 0 });
-        if (body.of === "roof") {
-          const background = roofBehind(body, frame);
+        if (body.of === "roof" || body.of === "beam") {
+          const background = shadowBehind(body, frame);
           // The cut is contained in the shadow. A larger shadow exposes matter behind the cut.
           if (background && sectionArea(background) > sectionArea(polygon) + AREA_EPS) {
-            out.push({ class: "beyond", of: body.of, ref: body.ref, polygon: background, depth: 0 });
+            if (body.of === "roof") {
+              out.push({ class: "beyond", of: body.of, ref: body.ref, polygon: background, depth: 0 });
+            } else {
+              const sheet = (p: SectionPt): Pt => ({ x: p.u, y: p.z });
+              for (const span of subtract(background.map(sheet), [polygon.map(sheet)])) {
+                out.push({ class: "beyond", of: "beam", ref: body.ref,
+                  polygon: span.map(p => ({ u: p.x, z: p.y })), depth: 0 });
+              }
+            }
           }
         }
       }
@@ -419,26 +427,34 @@ export function sectionForm(form: Form, spec: SectionSpec | LineSectionSpec): Fo
  * exactly it goes is free: the projection is orthographic, so moving the plane further back
  * changes no `u` and no `z`, only the datum that `depth` is counted from.
  */
-export function elevationForm(form: Form, face: Edge): FormSection {
-  // Standing to the south means looking north.
+export function elevationForm(form: Form, face: Edge): FormSection;
+export function elevationForm(form: Form, face: Edge, grid: GridFrame): LineFormSection;
+export function elevationForm(form: Form, face: Edge, grid?: GridFrame): FormSection | LineFormSection {
   const from: Edge = face === "N" ? "S" : face === "S" ? "N" : face === "E" ? "W" : "E";
-  const axis = axisOf(from);
-  const d = look(from);
+  const local = look(from);
+  const d = grid ? {
+    x: local.x * grid.basis[0].x + local.y * grid.basis[1].x,
+    y: local.x * grid.basis[0].y + local.y * grid.basis[1].y,
+  } : local;
+  const origin = grid?.origin ?? { x: 0, y: 0 };
   const bodies = cuttableBodies(form);
-  // The near extreme along the line of sight: looking towards the larger coordinate puts the plane
-  // at the smallest, and looking towards the smaller puts it at the largest.
-  const towardsLarger = (axis === "X" ? d.x : d.y) > 0;
-  let at = 0;
-  let seen = false;
+  let nearest = Infinity;
   for (const body of bodies) {
     for (const p of body.poly) {
-      const c = axis === "X" ? p.x : p.y;
-      if (!seen || (towardsLarger ? c < at : c > at)) at = c;
-      seen = true;
+      nearest = Math.min(nearest, (p.x - origin.x) * d.x + (p.y - origin.y) * d.y);
     }
   }
-  const spec: SectionSpec = { axis, at, look: from };
-  return { axis, at, look: from, entities: entitiesOf(bodies, axisFrame(spec)) };
+  if (nearest === Infinity) nearest = 0;
+  if (grid) {
+    const right = rightOf(d);
+    const x1 = origin.x + nearest * d.x, y1 = origin.y + nearest * d.y;
+    const cut = { x1, y1, x2: x1 + 1000 * right.x, y2: y1 + 1000 * right.y };
+    return { cut, entities: entitiesOf(bodies, lineFrame({ cut })) };
+  }
+  const axis = axisOf(from);
+  const at = nearest === 0 ? 0 : nearest * (axis === "X" ? d.x : d.y);
+  const spec = { axis, at, look: from };
+  return { ...spec, entities: entitiesOf(bodies, axisFrame(spec)) };
 }
 
 /** The area of a section polygon, mm². Used by the tests that hold the cut against the Form. */

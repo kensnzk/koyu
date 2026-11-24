@@ -7,6 +7,7 @@
 // 床を置く操作も、天井を張る操作も、屋根を架ける操作も存在しない。
 
 import {
+  hasRegion,
   canonicalSpaceOrder,
   heff,
   isSemiOutdoor,
@@ -59,7 +60,7 @@ export function slabs(model: Model): Slab[] {
   // Canonical order — the canonical form discards declaration order, so a surface that reads
   // it makes the shape a function of it (promise 1)
   for (const s of canonicalSpaceOrder(model)) {
-    if (s.rects.length === 0 || !s.level) continue;
+    if (!hasRegion(s) || !s.level) continue;
     const arr = byLevel.get(s.level) ?? [];
     arr.push(s);
     byLevel.set(s.level, arr);

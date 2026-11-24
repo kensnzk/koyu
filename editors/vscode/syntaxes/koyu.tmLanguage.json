@@ -168,7 +168,7 @@
     },
     "keyword-directive": {
       "comment": "行頭に書く語 — src/core/parse.ts の switch (head)",
-      "match": "^(mode|koyu|muro|import|over|drop|asset|polygon|origin|azimuth|name|unit|grid|level|column|roof|beam|foundation|band|space|boundary|zone|stack)\\b",
+      "match": "^(mode|koyu|muro|import|over|drop|asset|polygon|origin|azimuth|name|unit|grid|axis|frame|level|column|roof|beam|foundation|band|space|boundary|zone|stack)\\b",
       "captures": { "1": { "name": "keyword.control.directive.muro" } }
     },
     "path": {
@@ -178,7 +178,7 @@
     },
     "attr-ledger": {
       "comment": "The ledger keys that are not carrier-tier — the attributes the tools act on. ATTR_LEDGER in src/core/vocabulary.ts is the contract; free k:v gets a different colour",
-      "match": "\\b(underground|ridge-axis|elevation|escalator|daylight|northing|offset-x|offset-y|plan-svg|vertical|align-x|align-y|ceiling|easting|flights|landing|outside|eave-z|high-z|panels|rotate|asset|entry|hinge|level|pitch|riser|slope|stair|style|swing|tread|area|edge|epsg|form|from|lane|lift|name|ramp|rise|road|site|slab|turn|type|void|air|top|uid|use|at|to|d|h|t|w|x|y)(:)",
+      "match": "\\b(underground|arrival-at|ridge-axis|elevation|escalator|daylight|northing|offset-x|offset-y|plan-svg|vertical|align-x|align-y|ceiling|easting|flights|landing|outside|eave-z|high-z|panels|rotate|angle|asset|entry|frame|hinge|level|pitch|riser|slope|stair|style|swing|tread|area|cell|edge|epsg|form|from|lane|lift|name|ramp|rise|road|site|slab|turn|type|void|air|top|uid|use|at|to|d|h|t|w|x|y)(:)",
       "captures": {
         "1": { "name": "entity.other.attribute-name.muro" },
         "2": { "name": "punctuation.separator.key-value.muro" }

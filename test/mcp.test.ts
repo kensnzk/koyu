@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { DRAWING_STYLES, sheetPalette } from "../src/draw/sheet.js";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 
@@ -62,6 +63,28 @@ class McpClient {
     this.proc.kill();
   }
 }
+
+test("MCP: the three sheet tools advertise, apply and validate drawingStyle", async () => {
+  const c = new McpClient();
+  try {
+    const list = await c.request("tools/list");
+    const { tools } = list.result as { tools: { name: string; inputSchema: { properties: Record<string, { enum?: string[] }> } }[] };
+    for (const [name, args] of [
+      ["plan_svg", { level: "L1" }], ["section_svg", { at: "Y1+100" }], ["elevation_svg", { face: "S" }],
+    ] as const) {
+      const tool = tools.find(t => t.name === name)!;
+      assert.deepEqual(tool.inputSchema.properties.drawingStyle?.enum, DRAWING_STYLES);
+      const input = { file: "examples/two-rooms.muro", ...args };
+      const styled = await c.call(name, { ...input, drawingStyle: "classic" });
+      assert.ok(!styled.isError && styled.text.includes(`fill="${sheetPalette("classic").paper}"`), name);
+      const invalid = await c.call(name, { ...input, drawingStyle: "sepia" });
+      assert.equal(invalid.isError, true);
+      assert.match(invalid.text, /drawingStyle.*ink.*blueprint.*classic/);
+    }
+  } finally {
+    c.kill();
+  }
+});
 
 test("MCP: initialize → tools/list → questions about tower → the write_layer gatekeeper", { timeout: 120000 }, async () => {
   // towerを一時ディレクトリへコピー (write_layerで汚さないため)

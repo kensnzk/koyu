@@ -7,12 +7,16 @@ mode: reference
 
 Writes the section cut at one grid reference as SVG. **The plane is named in the notation's own words** — [coordinates are never written directly](../muro/positions.md), so a cut is named the way an opening's position is.
 
-The command names axis-parallel cuts because its input is a muro grid reference. The [`sectionForm` and `svgSection` APIs](../form/section.md#the-plane-and-which-way-it-is-faced) also accept a directed plan line for an arbitrary vertical cut.
+When the Y family has a slope, `--at Y2+450` follows the oblique line through the offset at X1. The default view faces the north side of that line; `--look S` reverses it. An X section labels the Y axes where they actually cross the chosen X position.
+
+A section such as `--at A2+450` follows the rotated frame. Offsets are measured in that frame. The section shows its intersecting B axes.
+
+For a [named axis](../muro/grid.md#named-lines-and-their-intersections), use `--at D1`. The default view looks to the left of its first-to-second defining point. `--look right` reverses the view. The [`sectionForm` and `svgSection` APIs](../form/section.md#the-plane-and-which-way-it-is-faced) also accept a directed plan line for an arbitrary vertical cut.
 
 ## Arguments
 
 ```text
-koyu section <entry.muro> --at <X3|X3+450|Y2-600> [--look N|E|S|W] [-s <scale>] [-o <out.svg>]
+koyu section <entry.muro> --at <X3|X3+450|Y2-600> [--look N|E|S|W] [-s <scale>] [-o <out.svg>] [--style <name>]
 ```
 
 Takes one entry path and one cutting plane. The drawing goes to a file; stdout gets one line naming where it went.
@@ -21,6 +25,7 @@ Takes one entry path and one cutting plane. The drawing goes to a file; stdout g
 
 | Flag | Effect |
 |---|---|
+| `--style <name>` | Sheet palette: `ink` (default), `blueprint` or `classic`. See [drawing styles](index.md#drawing-styles). |
 | `--at <reference>` | **Required.** The cutting plane, as a grid line with an optional whole-millimetre offset. The axis of the named line decides which way the plane runs: `X3` is the plane `x = X3` |
 | `--look <N\|E\|S\|W>` | The direction of view. It must **cross** the plane: `E` or `W` for an X reference, `N` or `S` for a Y one. Defaults to `W` and `N` |
 | `-s <n>` / `--scale <n>` | px per mm. Defaults to `0.05`, the same as [`plan`](plan.md), so a plan and a section of one building can be laid side by side |
@@ -44,7 +49,7 @@ The output directory is created if it does not exist.
 
 ## What is on the sheet
 
-Solid black marks cut walls, slabs, columns and vertical circulation. Authored roof faces, beams and foundations use their member colours. A roof surface with zero thickness has a cut line. It is the [`cut` classification of the shape](../form/section.md) itself; there is no operation that works out a poché on the paper side.
+The sheet’s solid drawing ink marks cut walls, slabs, columns and vertical circulation. Authored roof faces, beams and foundations use their member colours. A roof surface with zero thickness has a cut line. It is the [`cut` classification of the shape](../form/section.md) itself; there is no operation that works out a poché on the paper side.
 
 **Behind it stands what the plane did not cut**, painted far to near. A wall seen head-on carries its openings as holes, because [a wall is the run of intervals its openings split it into](../form/bodies.md) before any drawing starts.
 

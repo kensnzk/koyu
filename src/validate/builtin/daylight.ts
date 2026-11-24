@@ -11,6 +11,7 @@ import type {
 import { codePointCompare } from "../../analysis/json.js";
 import { COVERED_SEMI_FACTOR, daylightInputs } from "../../core/light.js";
 import {
+  hasRegion,
   canonicalBoundaryOrder,
   canonicalOpeningOrder,
   isCoveredAbove,
@@ -220,7 +221,7 @@ function uncountedWindows(model: Model): Map<string, MissingHeightOpeningFact[]>
 
 /** Whether the space put the daylight question on itself — never inferred from the type word (ADR-0020). */
 function asksDaylight(space: Space): boolean {
-  return space.rects.length > 0 && space.attrs["daylight"] === 1;
+  return hasRegion(space) && space.attrs["daylight"] === 1;
 }
 
 /** The coefficient `daylightInputs` applies to what lies beyond the window; 0 means it does not count. */

@@ -1,6 +1,6 @@
 # muro — the notation, the working subset
 
-Use `muro 1.7` with `mode spatial` for allocation before boundary decisions. Declare the mode once in the entry; imports cannot change it. Unwritten faces stay unresolved, and `h:` / `slab:` may be omitted. `check` still verifies structural consistency. Architectural assessment is unevaluated until the mode is removed; removing it restores default walls.
+Use `muro 1.8` with `mode spatial` for allocation before boundary decisions. Declare the mode once in the entry; imports cannot change it. Unwritten faces stay unresolved, and `h:` / `slab:` may be omitted. `check` still verifies structural consistency. Architectural assessment is unevaluated until the mode is removed; removing it restores default walls.
 
 The normative reference is [docs/reference/muro](../../docs/reference/muro/index.md)
 in the koyu repository; this file is the subset an agent needs to write a
@@ -29,12 +29,12 @@ before the opening that references it. Boundaries may name spaces declared later
 ## The version line
 
 ```muro
-muro 1.7
+muro 1.8
 ```
 
 Optional. If you write it, it goes in the ENTRY layer only, exactly once — never
-in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7.
-Write `muro 1.7`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
+in an imported layer. Accepted versions: 0.1 0.2 0.3 0.4 0.5 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8.
+Write `muro 1.8`. The word belongs to the version: `muro` from 1.2, `koyu` at 1.1
 and earlier. A file with no version line is read as 1.1 and stays there.
 
 ## grid — the reference lines
@@ -53,6 +53,22 @@ no X0.
 - Once per axis across ALL layers. Re-declaring `grid X` anywhere is an error.
 - A grid reference is `X2`, or `X2+600` / `Y3-150` — one signed INTEGER offset,
   no spaces, no decimals. `X2 + 600` and `X2+600.5` are both errors.
+
+Use `frame AB at:X2,Y2 angle:30 A:0,3000 B:0,4000` to add an independent
+orthogonal grid. The specified angle turns the local +A direction counterclockwise
+from world +X; local +B lies 90° to its left. `A2,B2` is a local intersection.
+`A1+500,B2-200` applies offsets in that same basis. For room ranges write
+`space /L1/wing A1..A2 B1..B2`.
+
+In muro 1.8, `grid Y 0 4000 slope:1/5` inclines all Y lines, with the
+listed northings measured at X1. An additional straight reference line can
+be defined by two distinct X,Y grid points, e.g. `axis D1 X1,Y1 X3,Y2+300`. In a point
+reference, `X2,D1`, `D1,Y2` and `D1,E1` denote unique intersections with
+previously declared lines. Primary grid references can still carry a signed
+offset. A space can use `cell:X1,D1;X2,D1;X2,Y3;X1,Y3` to allocate a
+simple perimeter in corner order. It may turn inward or cross grid frames.
+Under the space, each `hole X1,Y1 …` traces an interior exclusion using
+the same point references. See [grid-intersection cells](../../docs/reference/muro/space.md#grid-intersection-cells).
 
 ## level — the storeys
 
@@ -222,7 +238,7 @@ zone above it supplies the value.
 
 ```muro-part
 # main.muro — the entry
-muro 1.7
+muro 1.8
 name Corner building
 unit mm
 grid X 0 6400 12800

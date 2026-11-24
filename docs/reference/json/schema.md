@@ -26,7 +26,9 @@ The key order is fixed.
 | `unit` | **always** | currently `"mm"` only |
 | `origin` | if [`origin`](../muro/origin.md) was written | `{ epsg, easting, northing, elevation?, vertical? }` — **metres**, not millimetres |
 | `azimuth` | if [`azimuth`](../muro/azimuth.md) was written | a number: the true bearing of +Y, clockwise from true north, `0 ≤ v < 360` |
-| `grid` | **always** | `{ "X": [coords…], "Y": [coords…] }` — the names `X1..` are implicit |
+| `grid` | **always** | X and Y coordinate arrays, plus `slopeY` when the Y grid has a nonzero slope |
+| `frames` | if a `frame` is declared | frame name → origin reference, rotation and two station arrays |
+| `axes` | if an `axis` is declared | axis name → pair of primary grid-point references |
 | `levels` | **always** | name → `{ z, h?, slab?, underground? }`; keys in collation order |
 | `roofs` | if declared | path → level, roof parameters, grid-relative outline, holes and panels |
 | `assets` | if declared | name → `{ kind, attrs? }`; keys in collation order |
@@ -58,7 +60,15 @@ The two halves of the model's frame. They come before `grid` because they say wh
 "grid": { "X": [0, 3600, 7200], "Y": [0, 4500] }
 ```
 
-Only the coordinate arrays. Grid names are implicitly `X1`, `X2`, … from the front, so they are not spelled.
+The X and Y arrays carry coordinates. For an inclined Y family, the optional numeric `slopeY` gives rise/run and the Y values are the intercepts at X1. A zero slope is omitted. Grid names are implicitly `X1`, `X2`, … from the front, so they are not spelled.
+
+A file with named axes adds an `axes` map keyed by name. Each value contains the two primary X,Y point references, ordered by resolved X then Y. In a point containing a named axis, a primary X reference comes first, a primary Y reference comes last, and two named axes follow code-point order. Resolved intersections do not enter the canonical document; moving a primary grid line can move all the intersections derived from it.
+
+A rotated orthogonal grid adds one entry per declaration in `frames`. The frame name determines the two local family letters. The entry preserves the referenced origin, the angle in degrees in [0,360), and each list of station dimensions. Its generated lines and world-coordinate vertices are derived. For example:
+
+```json-part
+"frames": {"AB": {"at": "X2,Y2", "angle": 30, "A": [0,3000,7000], "B": [-2000,0,4000]}}
+```
 
 ## levels
 
@@ -110,6 +120,7 @@ Only the coordinate arrays. Grid names are implicitly `X1`, `X2`, … from the f
 | `at` | an explicit pair of grid references shared by the storeys, when authored |
 | `sections` | level-specific width and depth overrides, ordered by first affected storey |
 | `levels` | the levels the column stands on |
+| `frame` | the written section orientation, if supplied. Pad foundations retain the same field. |
 | `x` / `y` | the grids it targets. Omit for all grids. **Ordered by grid order** (`x:X2,X1` and `x:X1,X2` are the same composition) |
 | `attrs` | attributes |
 
@@ -147,7 +158,9 @@ A zone carries attributes only. No region, no type.
 |---|---|---|
 | `type` | when written | the type of the space. **Optional**, so the key is absent when none was written (no default is fabricated) |
 | `level` | only when explicit | emitted only when the level differs from the first path segment (a maisonette, say). The default is omitted |
-| `at` | if there is a region | four grid names. **A flat quadruple for a single rectangle, an array of quadruples for several**, sorted by canonical content |
+| `cell` | for a grid-intersection cell | the written corner references in counterclockwise perimeter order, starting at the lexicographically first reference |
+| `holes` | for a cell with inner perimeters | one array of corner references per hole, normalized in the same way as `cell`, then sorted by the normalized reference sequences |
+| `at` | for rectangular allocations | four grid names. **A flat quadruple for a single rectangle, an array of quadruples for several**, sorted by canonical content |
 | `attrs` | if there are attributes | keys in collation order |
 | `areas` | if `area` was written | an array of `{ at, attrs? }` in canonical content order |
 

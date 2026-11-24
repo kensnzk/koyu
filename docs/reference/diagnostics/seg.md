@@ -137,7 +137,7 @@ boundary /L1/b /out t:150
 
 `There is more than one boundary segment; pick an edge with edge:N/E/S/W (/L1/a | /out)`
 
-**Cause** — a boundary with the outside (a space with no region) is **all that remains** of the room's perimeter not touching another room, and it usually splits across several edges. Which edge is meant is not settled. **A `seg` on an external wall always needs `edge:`.**
+**Cause** — several segments remain candidates for the written band. In muro 1.8, an absolute grid reference at `at:` can resolve the placement if exactly one segment fits its full width. A fractional position requires one selected segment.
 
 **Fix** — select the side with `edge:`. The compass is read from the rectangle of the space written first (here `/L1/a`): **N=+Y, S=−Y, E=+X, W=−X**.
 

@@ -22,8 +22,11 @@ import { roofForms, replaceRoofSlabs, type FormRoof } from "./roof.js";
 import { CEILING_T, ROOF_T, slabs, type Slab } from "./fabric.js";
 import { placeBand, placeOpening, segmentLength, segmentsFor, unresolvedBoundaries, type UnresolvedBoundary, type Segment } from "./graph.js";
 import {
+  hasRegion,
+  hasPolygonAllocation,
   areaM2,
   columnsFor,
+  sectionRectangle as columnRect,
   heff,
   isCoveredAbove,
   isIndoor,
@@ -391,7 +394,7 @@ export function levelPitch(model: Model, level: string): number | undefined {
   if (up) return up.z - l.z;
   let top: number | undefined = l.h;
   for (const s of model.spaces.values()) {
-    if (s.level !== level || s.rects.length === 0) continue;
+    if (s.level !== level || !hasRegion(s)) continue;
     const h = heff(model, s);
     if (h !== undefined && (top === undefined || h > top)) top = h;
   }
@@ -402,8 +405,8 @@ export function levelPitch(model: Model, level: string): number | undefined {
 function boundaryRoom(model: Model, b: Boundary): Space | undefined {
   const sa = model.spaces.get(b.a);
   const sb = model.spaces.get(b.b);
-  if (sa && sa.rects.length > 0) return sa;
-  if (sb && sb.rects.length > 0) return sb;
+  if (sa && hasRegion(sa)) return sa;
+  if (sb && hasRegion(sb)) return sb;
   return sa ?? sb;
 }
 
@@ -473,42 +476,53 @@ function swingOf(
   let into: Space | undefined;
   if (o.swing === "a") into = sa;
   else if (o.swing === "b") into = sb;
-  else into = sa && sa.rects.length > 0 ? sa : sb;
+  else into = sa && hasRegion(sa) ? sa : sb;
   if (!into) return undefined;
-  const pieces = regionOf(into);
+  // An unbounded exterior has no outline. At its door, the outside normal
+  // points away from the room on the other side of the boundary.
+  const outward = isOutside(into) && !hasRegion(into) && isNewerVersion(model.version, "1.7");
+  const reference = outward ? (into === sa ? sb : sa) : into;
+  if (!reference || (outward && isOutside(reference))) return undefined;
+  const pieces = regionOf(reference);
   if (pieces.length === 0) return undefined;
   const centre = pieces
     .map((p) => {
+      // A convex cell's bounding-box centre can lie exactly on its oblique door wall.
+      // The mean of its corners lies strictly inside, so the swing has a side.
+      if (hasPolygonAllocation(reference)) {
+        return { x: p.reduce((sum, v) => sum + v.x, 0) / p.length,
+          y: p.reduce((sum, v) => sum + v.y, 0) / p.length };
+      }
       const r = polyBounds(p);
       return { x: (r.x1 + r.x2) / 2, y: (r.y1 + r.y2) / 2 };
     })
     .sort((p, q) => (p.x - cx) ** 2 + (p.y - cy) ** 2 - ((q.x - cx) ** 2 + (q.y - cy) ** 2))[0]!;
 
-  let hinge: Pt;
-  let along: Pt;
-  let inward: Pt;
-  if (seg.diagonal) {
-    // 斜めの線分では吊元を始端側に固定する — hinge の N/E/S/W は軸の言葉なので使えない。
-    // 開く側は法線のうち開く空間の中心へ向く方をとる
-    const dx = seg.x2 - seg.x1;
-    const dy = seg.y2 - seg.y1;
-    const len = Math.hypot(dx, dy) || 1;
-    along = { x: dx / len, y: dy / len };
-    const n = { x: -along.y, y: along.x };
-    const sign = n.x * (centre.x - cx) + n.y * (centre.y - cy) >= 0 ? 1 : -1;
-    inward = { x: n.x * sign, y: n.y * sign };
-    hinge = { x: cx - along.x * (o.w / 2), y: cy - along.y * (o.w / 2) };
-  } else if (seg.horizontal) {
-    const fromEast = o.hinge === "E";
-    hinge = { x: fromEast ? cx + o.w / 2 : cx - o.w / 2, y: cy };
-    along = { x: fromEast ? -1 : 1, y: 0 };
-    inward = { x: 0, y: centre.y > cy ? 1 : -1 };
-  } else {
-    const fromNorth = o.hinge === "N";
-    hinge = { x: cx, y: fromNorth ? cy + o.w / 2 : cy - o.w / 2 };
-    along = { x: 0, y: fromNorth ? -1 : 1 };
-    inward = { x: centre.x > cx ? 1 : -1, y: 0 };
+  const dx = seg.x2 - seg.x1, dy = seg.y2 - seg.y1;
+  const len = Math.hypot(dx, dy);
+  const tangent = seg.diagonal ? { x: dx / len, y: dy / len }
+    : seg.horizontal ? { x: 1, y: 0 } : { x: 0, y: 1 };
+  const normal = { x: -tangent.y, y: tangent.x };
+  const towardRoom = normal.x * (centre.x - cx) + normal.y * (centre.y - cy);
+  // On a centre-line tie, preserve the earlier horizontal and vertical conventions.
+  const side = towardRoom === 0 ? (seg.horizontal ? -1 : 1) : Math.sign(towardRoom);
+  if (outward && Math.abs(towardRoom) <= EPS) return undefined;
+  const towardSwing = outward ? -side : side;
+  const inward = { x: normal.x * towardSwing, y: normal.y * towardSwing };
+  let along = tangent;
+  if (o.hinge === "L" || o.hinge === "R") {
+    // From the swing room the viewer faces away from inward, so screen-right is its left normal.
+    const sign = o.hinge === "L" ? 1 : -1;
+    along = { x: -inward.y * sign, y: inward.x * sign };
+  } else if (o.hinge) {
+    // Earlier editions attached a diagonal leaf to the start end regardless of its compass hint.
+    const useCompass = !seg.diagonal || isNewerVersion(model.version, "1.7");
+    if (useCompass) {
+      const end = o.hinge === "E" ? tangent.x : o.hinge === "W" ? -tangent.x : o.hinge === "N" ? tangent.y : -tangent.y;
+      if (end > 0) along = { x: -tangent.x, y: -tangent.y };
+    }
   }
+  const hinge = { x: cx - along.x * o.w / 2, y: cy - along.y * o.w / 2 };
   const leaf = { x: hinge.x + inward.x * o.w, y: hinge.y + inward.y * o.w };
   const jamb = { x: hinge.x + along.x * o.w, y: hinge.y + along.y * o.w };
   const cross =
@@ -556,10 +570,8 @@ export function band(seg: Segment, cx: number, cy: number, w: number, t: number)
   return thicken(g.x1, g.y1, g.x2, g.y2, t);
 }
 
-/** 柱の断面 — 通り芯の交点を中心に、幅と奥行の半分ずつ */
-export function columnRect(c: { x: number; y: number; w: number; d: number }): Pt[] {
-  return rectToPoly({ x1: c.x - c.w / 2, y1: c.y - c.d / 2, x2: c.x + c.w / 2, y2: c.y + c.d / 2 });
-}
+/** Column footprint in world coordinates. */
+export { columnRect };
 
 /** 立体の一片 — 底面の輪郭と、頂点ごとの下端/上端 z。箱も傾いた版もこれで足りる */
 export interface FormPrism {
@@ -573,12 +585,13 @@ export interface FormPrism {
  * `up` 側が高い (docs/reference/form/index.md)。箱は四隅とも同じ高さになる。
  */
 export function runPrism(s: RunSolid): FormPrism {
-  const poly = rectToPoly(s.rect);
+  const local = rectToPoly(s.rect);
+  const poly = s.outline ?? local;
   if (s.kind === "box") {
     return { poly, bottom: poly.map(() => s.z0), top: poly.map(() => s.z1) };
   }
   const r = s.rect;
-  const top = poly.map((p) => {
+  const top = local.map((p) => {
     const u =
       s.up === "E"
         ? (p.x - r.x1) / Math.max(1, r.x2 - r.x1)
@@ -891,7 +904,7 @@ export function derive(model: Model, opts: DeriveOptions = {}): Form {
   // so a shape that reads it yields two different `Form`s for one building (promise 1)
   const spaces: FormSpace[] = [];
   for (const s of canonicalSpaceOrder(model)) {
-    if (s.rects.length === 0) continue;
+    if (!hasRegion(s)) continue;
     const h = heff(model, s);
     const z = s.level !== undefined ? zOf.get(s.level) : undefined;
     spaces.push({

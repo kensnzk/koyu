@@ -1,6 +1,6 @@
 {
   "name": "@kensnzk/koyu",
-  "version": "0.31.0",
+  "version": "0.32.0",
   "muro": {
     "reads": [
       "0.1",
@@ -15,9 +15,10 @@
       "1.4",
       "1.5",
       "1.6",
-      "1.7"
+      "1.7",
+      "1.8"
     ],
-    "newest": "1.7",
+    "newest": "1.8",
     "undeclared": "1.1"
   },
   "description": "A text-native architectural notation with space as the primary element",

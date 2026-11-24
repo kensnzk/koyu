@@ -10,16 +10,18 @@ Writes the elevation of one face as SVG. **An elevation is a section whose plane
 ## Arguments
 
 ```text
-koyu elevation <entry.muro> [--face N|E|S|W] [-s <scale>] [-o <out.svg>]
+koyu elevation <entry.muro> [--face N|E|S|W] [--frame <name>] [-s <scale>] [-o <out.svg>] [--style <name>]
 ```
 
 ## Flags
 
 | Flag | Effect |
 |---|---|
+| `--style <name>` | Sheet palette: `ink` (default), `blueprint` or `classic`. See [drawing styles](index.md#drawing-styles). |
 | `--face <N\|E\|S\|W>` / `-f` | The side the viewer stands on. `S` is the south elevation, seen from the south. Defaults to `S` |
+| `--frame <name>` | Resolve the face in a declared rotated frame. With `--frame AB --face S` the viewer stands on the negative B side, looking along positive B |
 | `-s <n>` / `--scale <n>` | px per mm. Defaults to `0.05` |
-| `-o <path>` / `--out <path>` | Where to write. Defaults to `out/elevation-<face>.svg` |
+| `-o <path>` / `--out <path>` | Where to write. Defaults to `out/elevation-<face>.svg`, or `out/elevation-<frame>-<face>.svg` with a frame |
 
 There is no `--at`. The plane is placed at the near extreme of the mass along the line of sight, which is derived rather than named — and naming one is [refused rather than ignored](#a-calling-mistake-is-returned-as-a-calling-mistake).
 
@@ -47,9 +49,9 @@ There is no operation anywhere that paints an opening back out in the paper colo
 
 The projection is orthographic, so moving the plane further back changes no coordinate on the sheet — only the datum that distance is counted from, and only relative distance is used. Putting it at the extreme of the mass is therefore the least surprising choice among many that draw the same picture, and it makes "an elevation cuts nothing" a consequence of where the plane sits rather than a branch in the code.
 
-## The limit
+## A rotated wing
 
-**The plane is axis-parallel.** A building face that is neither runs oblique to the sheet, and its elevation is the elevation of no face. That is the resolution of a schematic design, and [`koyu axo`](axo.md) is the drawing to reach for instead.
+Use the wing's frame to measure the facade head-on. The elevation projects the whole building; the frame sets the view direction and the grid labels.
 
 ## A calling mistake is returned as a calling mistake
 

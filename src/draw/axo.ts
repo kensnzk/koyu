@@ -16,9 +16,9 @@
 import { formBodies } from "../core/bodies.js";
 import { derive, type DeriveOptions } from "../core/derive.js";
 import { type Model, type Pt } from "../core/model.js";
-import { esc, Extent, INK, MEMBER_INK, openSheet, r2, subjectAttrs } from "./sheet.js";
+import { esc, Extent, openSheet, r2, sheetPalette, subjectAttrs, type SheetOptions } from "./sheet.js";
 
-export interface AxoOptions extends Pick<DeriveOptions, "roofSketches"> {
+export interface AxoOptions extends Pick<DeriveOptions, "roofSketches">, SheetOptions {
   /** 見る向き — 建物のどの隅から見下ろすか (既定 SE) */
   dir?: "NE" | "NW" | "SE" | "SW";
   /** px per mm (既定 0.02) */
@@ -45,18 +45,10 @@ interface Prism {
 /** 地盤面を見せる版の下端・上端 mm — 導出値ではなく紙の側の約束 */
 const GROUND_Z0 = -400;
 const GROUND_Z1 = -100;
-const C = {
-  floor: "#cfc7b6",
-  roof: "#8d8577",
-  ceiling: "#e2dbca",
-  wall: "#b8b0a0",
-  column: "#5d574d",
-  run: "#7f8f8a",
-  ground: "#eceadf",
-};
 
 /** 軸測図のSVG。ソースに形は無い — ここに出るものはすべて規則からの生成物である */
 export function svgAxo(model: Model, opts: AxoOptions = {}): string {
+  const palette = sheetPalette(opts.drawingStyle);
   const scale = opts.scale ?? 0.02;
   const dir = opts.dir ?? "SE";
 
@@ -100,7 +92,7 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   // ---- 敷地 (地盤面) ----
   // 地盤に厚みは導出されない (Form が持つのは所与の形だけ) ので、地面をどれだけの
   // 厚みの版として見せるかは**紙の側の判断**である
-  for (const poly of form.site) add(poly.points, GROUND_Z0, GROUND_Z1, C.ground);
+  for (const poly of form.site) add(poly.points, GROUND_Z0, GROUND_Z1, palette.axo.ground);
 
   for (const body of formBodies(form)) {
     if (body.level !== undefined && !names.has(body.level)) continue;
@@ -108,20 +100,20 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
     switch (body.of) {
       case "slab":
         if (body.kind === "ceiling" && !opts.ceilings) continue;
-        fill = body.kind === "roof" ? C.roof : body.kind === "floor" ? C.floor : C.ceiling;
+        fill = body.kind === "roof" ? palette.axo.roof : body.kind === "floor" ? palette.axo.floor : palette.axo.ceiling;
         break;
       case "boundary":
         if (opts.walls === false) continue;
-        fill = C.wall;
+        fill = palette.axo.wall;
         break;
       case "column":
       case "run":
-        fill = C[body.of];
+        fill = palette.axo[body.of];
         break;
       case "roof":
       case "beam":
       case "foundation":
-        fill = MEMBER_INK[body.of];
+        fill = palette.members[body.of];
         break;
       default:
         continue;
@@ -149,10 +141,10 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
   const sx = (v: number) => (v - ext.min0) * scale + M;
   const sy = (v: number) => (v - ext.min1) * scale + M;
 
-  const out: string[] = openSheet(W, H);
+  const out: string[] = openSheet(W, H, palette);
   const face = (ring: Array<[number, number]>, fill: string, shade: number) => {
     const d = ring.map(([x, y], i) => `${i === 0 ? "M" : "L"} ${r2(sx(x))} ${r2(sy(y))}`).join(" ");
-    return `<path d="${d} Z" fill="${tint(fill, shade)}" stroke="${INK}" stroke-width="0.35" stroke-opacity="0.5"/>`;
+    return `<path d="${d} Z" fill="${tint(fill, shade)}" stroke="${palette.ink}" stroke-width="0.35" stroke-opacity="0.5"/>`;
   };
   for (const pr of prisms) {
     if (pr.attrs) out.push(`<g ${pr.attrs}>`);
@@ -182,7 +174,7 @@ export function svgAxo(model: Model, opts: AxoOptions = {}): string {
     if (pr.attrs) out.push("</g>");
   }
   out.push(
-    `<text x="${M - 24}" y="${H - 12}" font-size="11" fill="${INK}">${esc(model.name ?? "Untitled")} — axonometric (from ${dir})</text>`,
+    `<text x="${M - 24}" y="${H - 12}" font-size="11" fill="${palette.ink}">${esc(model.name ?? "Untitled")} — axonometric (from ${dir})</text>`,
     "</svg>",
   );
   return out.join("\n") + "\n";

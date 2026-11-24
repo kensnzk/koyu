@@ -1,0 +1,8 @@
+muro 1.8
+grid X 0 6000
+grid Y 0 4000
+axis D1 X1,Y1 X2,Y2
+axis E1 X2,Y1 X1,Y2
+level L1 0 h:2800 slab:160
+space /L1/r room X1..X2 Y1..Y2
+column 400 L1 at:D1,E1

@@ -299,11 +299,14 @@ test("every attribute key in a muro block is in ATTR_LEDGER", () => {
       // where the only false positive came from: "# default: out of scope".
       const code = raw.replace(/\s#.*$/, "");
       if (code.trimStart().startsWith("#")) continue;
+      // Frame station-list fields are named by the two letters in that declaration.
+      const families = /^\s*frame\s+([A-Z]{2})\b/.exec(code)?.[1];
       for (const token of code.split(/\s+/)) {
         const key = /^([a-zA-Z][a-zA-Z0-9_-]*):/.exec(token)?.[1];
         // A namespaced key is deliberately outside the ledger — that is the
         // boundary between "we have not looked at this" and "we looked".
         if (key === undefined || ledger.has(key) || key.includes(".")) continue;
+        if (families && key.length === 1 && families.includes(key)) continue;
         unknown.push(`${block.where} [${block.fence}]: ${key}:`);
       }
     }

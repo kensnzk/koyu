@@ -170,8 +170,11 @@ export function isNamespaced(key: string): boolean {
  * 「その要素にそのキーを書いてよい」という事実そのものが契約だからである。
  */
 export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
+  grid: { slope: structure() },
+  frame: { at: structure(), angle: structure() },
   space: {
     // 構造 — parse が持ち上げる
+    cell: structure(), // Room perimeter at grid intersections.
     level: structure(), // 所属レベルの明示 (メゾネット)
     w: structure(), // 帯 (band) の要素の寸法。帯の外には書けない
 
@@ -212,6 +215,7 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
     turn: one("R", "L"),
     entry: num(), // 乗り込みの床の奥行 mm
     flights: free(), // Two transverse grid ranges for a return stair; RUN05 checks the resolved spans.
+    "arrival-at": free(), // Longitudinal grid station where the return stair reaches the upper floor.
     landing: num(), // 中間踊り場の奥行 mm
     riser: num(), // 蹴上げの上限 mm
     tread: num(), // 目標踏面 mm
@@ -312,10 +316,11 @@ export const ATTR_LEDGER: Record<string, Record<string, AttrSpec>> = {
     slope: structure(), rise: structure(), "ridge-axis": structure(), t: structure(),
   },
   beam: { level: structure(), from: structure(), to: structure(), w: structure(), d: structure(), top: structure() },
-  foundation: { type: structure(), level: structure(), from: structure(), to: structure(), at: structure(), w: structure(), d: structure(), t: structure(), top: structure() },
+  foundation: { type: structure(), level: structure(), from: structure(), to: structure(), at: structure(), frame: structure(), w: structure(), d: structure(), t: structure(), top: structure() },
   section: { w: structure(), d: structure() },
   column: {
     at: structure(),
+    frame: structure(),
     // 構造 — parse が持ち上げる
     d: structure(),
     x: structure(),

@@ -1,5 +1,8 @@
 import {
   canonicalSpaceOrder,
+  yGridAt,
+  gridRangeOutline,
+  framePoint,
   compareCanonical,
   pointInPolygon,
   regionOf,
@@ -99,18 +102,18 @@ export function placedComponents(model: Model): ComponentPlacementResult {
         continue;
       }
 
-      const component = place(space, area, asset, name, dimensions, settings);
+      const component = place(model, space, area, asset, name, dimensions, settings);
       components.push(component);
-      const insideHost = inside(area, component.footprint);
+      const insideHost = inside(model, area, component.footprint);
       const insideSpace = regionOf(space).some((piece) =>
         component.footprint.every((point) => pointInPolygon(point, piece, EPS))
       );
       if (!insideHost) {
-        const alternate = place(space, area, asset, name, dimensions, {
+        const alternate = place(model, space, area, asset, name, dimensions, {
           ...settings,
           rotation: (settings.rotation + 90) % 360,
         });
-        const suggestion = inside(area, alternate.footprint) ? "; rotate it by a further 90 degrees to fit" : "";
+        const suggestion = inside(model, area, alternate.footprint) ? "; rotate it by a further 90 degrees to fit" : "";
         issues.push({
           code: "CMP02",
           message: `${ref} extends outside its host area ${name}${suggestion}`,
@@ -160,6 +163,7 @@ function placementSettings(area: Area):
 }
 
 function place(
+  model: Model,
   space: Space,
   area: Area,
   asset: Asset,
@@ -171,9 +175,16 @@ function place(
   const cos = Math.cos(rad);
   const sin = Math.sin(rad);
   const halfX = Math.abs(cos) * dimensions.w / 2 + Math.abs(sin) * dimensions.d / 2;
-  const halfY = Math.abs(sin) * dimensions.w / 2 + Math.abs(cos) * dimensions.d / 2;
-  const cx = aligned(area.rect.x1, area.rect.x2, halfX, settings.alignX) + settings.offsetX;
-  const cy = aligned(area.rect.y1, area.rect.y2, halfY, settings.alignY) + settings.offsetY;
+  const frame = area.frame && model.frames?.get(area.frame);
+  const slope = frame ? 0 : model.grid.Y.slope ?? 0;
+  // The physical component stays rectangular. Align its extremities in the host grid coordinates.
+  const halfY = Math.abs(sin - slope * cos) * dimensions.w / 2 + Math.abs(cos + slope * sin) * dimensions.d / 2;
+  const anchorX = aligned(area.rect.x1, area.rect.x2, halfX, settings.alignX);
+  const localY = aligned(area.rect.y1, area.rect.y2, halfY, settings.alignY);
+  const centre = frame ? framePoint(frame, anchorX, localY) : {x: anchorX, y: yGridAt(model, localY, anchorX)};
+  const cx = centre.x + settings.offsetX, cy = centre.y + settings.offsetY;
+  const rotation = ((frame ? frame.angle : 0) + settings.rotation + 360) % 360;
+  const worldCos = Math.cos(rotation * Math.PI / 180), worldSin = Math.sin(rotation * Math.PI / 180);
   const corners: Pt[] = [
     { x: -dimensions.w / 2, y: -dimensions.d / 2 },
     { x: dimensions.w / 2, y: -dimensions.d / 2 },
@@ -181,8 +192,8 @@ function place(
     { x: -dimensions.w / 2, y: dimensions.d / 2 },
   ];
   const footprint = corners.map((p) => ({
-    x: cx + p.x * cos - p.y * sin,
-    y: cy + p.x * sin + p.y * cos,
+    x: cx + p.x * worldCos - p.y * worldSin,
+    y: cy + p.x * worldSin + p.y * worldCos,
   }));
   return {
     space: space.path,
@@ -192,7 +203,7 @@ function place(
     centre: { x: cx, y: cy },
     w: dimensions.w,
     d: dimensions.d,
-    rotation: settings.rotation,
+    rotation,
     footprint,
   };
 }
@@ -203,11 +214,9 @@ function aligned(lo: number, hi: number, half: number, alignment: ComponentAlign
   return (lo + hi) / 2;
 }
 
-function inside(area: Area, footprint: readonly Pt[]): boolean {
-  return footprint.every((p) =>
-    p.x >= area.rect.x1 - EPS && p.x <= area.rect.x2 + EPS
-    && p.y >= area.rect.y1 - EPS && p.y <= area.rect.y2 + EPS
-  );
+function inside(model: Model, area: Area, footprint: readonly Pt[]): boolean {
+  const host = gridRangeOutline(model, area.rect, area.frame);
+  return footprint.every(p => pointInPolygon(p, host, EPS));
 }
 
 function isAlignment(value: unknown): value is ComponentAlignment {

@@ -1,0 +1,4 @@
+{
+  "pins": ["docs/reference/muro/space.md#grid-intersection-cells"],
+  "why": "A single room can follow a rotated grid at one side, turn inward at another corner and exclude an interior ring. Its net area is 40 minus 1 square metre."
+}

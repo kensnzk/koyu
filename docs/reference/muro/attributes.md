@@ -84,6 +84,7 @@ turn on /L1/b is one of R / L: turn:X
 | Key | Tier | Value | Meaning |
 |---|---|---|---|
 | `level` | structure | a level name | states the level explicitly. Defaults to the first path segment |
+| `cell` | structure | semicolon-separated grid intersections | outer room perimeter, in corner order (see [space and inner perimeters](space.md#grid-intersection-cells)) |
 | `w` | structure | a positive integer in mm, or `rest` | the dimension of a band member. **Cannot be written on a `space` outside a band** |
 | `outside` | interpreted | `0` / `1` | outside the building. **May have no region.** Not counted in floor area |
 | `void` | interpreted | `0` / `1` | a void. Having no floor it is not counted in floor area, and is not passable |
@@ -99,6 +100,7 @@ turn on /L1/b is one of R / L: turn:X
 | `form` | interpreted | `straight` / `return` | whether the run turns back |
 | `turn` | interpreted | `R` / `L` | which way it turns |
 | `entry` | interpreted | positive number, mm | depth of the boarding floor |
+| `arrival-at` | interpreted | longitudinal grid reference | upper end of a [returning stair flight](vertical-circulation.md#an-independent-arrival-line) |
 | `landing` | interpreted | positive number, mm | depth of the intermediate landing |
 | `riser` | interpreted | positive number, mm | the maximum riser |
 | `tread` | interpreted | positive number, mm | the target tread |
@@ -170,16 +172,18 @@ OPN09, while a word outside this row is ATT02.
 |---|---|---|---|
 | `area` | (the region is positional) | `name` `asset` `align-x` `align-y` `offset-x` `offset-y` `rotate` | `floor` `spec` |
 | `seg` | `w` `at` `edge` | `name` | `spec` `fire` `sound` |
-| `column` | `d` `x` `y` `at` | `name` | `spec` |
+| `column` | `d` `x` `y` `at` `frame` | `name` | `spec` |
 
-### Structural member fields
+### Grid and structural member fields
 
 | Element | Structural keys |
 |---|---|
+| `grid Y` | `slope` |
+| `frame` | `at` `angle` and two station lists keyed by the frame's family letters |
 | `roof` | `level` `type` `eave-z` `high-z` `slope` `rise` `ridge-axis` `t` |
 | `section` under an explicit column | `w` `d` |
 | `beam` | `level` `from` `to` `w` `d` `top` |
-| `foundation` | `level` `type` `at` `from` `to` `w` `d` `t` `top` |
+| `foundation` | `level` `type` `at` `frame` `from` `to` `w` `d` `t` `top` |
 
 [Beam and foundation geometry](members.md) specifies the combinations each kind accepts.
 
@@ -223,7 +227,7 @@ The value comes from the **deepest zone** whose path is a prefix of the space's 
 **Which key travels is chosen by whatever asks for it.** Core hands nothing down of its own accord; the resolution runs when something names a key — [`koyu stats --by`](../cli/stats.md), the MCP `model_summary`, a validation rule reading the key it cares about. A space is therefore grouped along as many divisions at once as it carries.
 
 ```muro
-muro 1.7
+muro 1.8
 name 継承の例
 grid X 0 4000 8000
 grid Y 0 4000
